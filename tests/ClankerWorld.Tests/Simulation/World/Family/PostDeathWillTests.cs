@@ -21,8 +21,8 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira"), HeirKey(observation, "Rowan")],
                 CognitionWillContext.EqualSplit, FinalWords: Words));
         using var world = NewWorld(provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Called.Task;
         await AdvanceUntilResolved(world);
 
         var estate = Assert.Single(world.Society.Estates, item => item.DeceasedId == "founder-scout");
@@ -95,8 +95,8 @@ public sealed class PostDeathWillTests
                 });
         });
         using var world = NewWorld(provider, childHeir: true);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Called.Task;
         await AdvanceUntilResolved(world);
 
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
@@ -133,8 +133,8 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira"), HeirKey(observation, "Rowan")],
                 CognitionWillContext.EqualSplit, FinalWords: Words));
         using var world = NewWorld(provider, vessels: true);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Called.Task;
         await AdvanceUntilResolved(world);
 
         var will = Assert.Single(provider.Observations).Will!;
@@ -193,7 +193,7 @@ public sealed class PostDeathWillTests
         using var world = NewWorld(provider);
         var householdBeneficiaries = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout")
             .BeneficiaryIds.ToArray();
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         await AdvanceUntilResolved(world);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal("default", estate.WillStatus);
@@ -283,7 +283,7 @@ public sealed class PostDeathWillTests
         var provider = new WillProvider(CognitionWillContext.HouseholdCandidateId, _ =>
             new CognitionWillChoice([], FinalWords: Words));
         using var world = NewWorld(provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         await AdvanceUntilResolved(world);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal(("default", Words), (estate.WillStatus, estate.FinalWords));
@@ -302,7 +302,7 @@ public sealed class PostDeathWillTests
     {
         using var world = NewWorld(new DeterministicDecisionProvider());
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal("default", estate.WillStatus);
@@ -324,13 +324,13 @@ public sealed class PostDeathWillTests
             using var world = NewWorld(failing);
             using var service = new WorldRuntimeService(world,
                 new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await failing.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
+            await failing.Called.Task;
             for (var attempt = 0; attempt < 8 &&
                  world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus == "pending"; attempt++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
-                await Task.Delay(10);
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
             Assert.Equal(1, failing.CallCount);
@@ -350,14 +350,14 @@ public sealed class PostDeathWillTests
         var held = new WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit), hold: true);
         using var pending = NewWorld(held);
-        Assert.True((await pending.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await pending.TickModelWorkAsync()).Advanced);
+        await held.Called.Task;
         var bytes = WorldRuntimeCodec.Encode(pending.ExportState());
         pending.CancelPendingModelCalls();
-        await held.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await held.Cancelled.Task;
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
             id => id == "founder-scout" ? held : new DeterministicDecisionProvider());
-        Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await restored.TickModelWorkAsync()).Advanced);
         Assert.Equal("default", restored.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Equal(1, held.CallCount);
     }
@@ -369,16 +369,16 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit),
             hold: true, ignoreCancellation: true);
         using var world = NewWorld(late);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await late.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await late.Called.Task;
         for (var tick = 0; tick < 28; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal("pending", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
 
         late.ReleaseHeldResponse();
-        await late.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        await Task.Delay(50);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        await late.Completed.Task;
+        await ModelWorkHarness.For(world).SettleAsync();
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Equal(1, late.CallCount);
@@ -392,12 +392,12 @@ public sealed class PostDeathWillTests
         var held = new WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit), hold: true);
         using var world = NewWorld(held);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await held.Called.Task;
 
         held.ProviderEpoch++;
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await held.Cancelled.Task;
 
         Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Contains(world.ExportState().Events,
@@ -496,8 +496,8 @@ public sealed class PostDeathWillTests
         for (var attempt = 0; attempt < 8; attempt++)
         {
             if (world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus != "pending") return;
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.Fail("The final will did not resolve within the bounded test window.");
     }
@@ -505,7 +505,7 @@ public sealed class PostDeathWillTests
     private static async Task<SocietyCheckpoint> AdvanceUntilSettled(WorldRuntime world, string estateId)
     {
         for (var attempt = 0; attempt < 12 && !world.Society.GetEstate(estateId).Settled; attempt++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.True(world.Society.GetEstate(estateId).Settled);
         return world.Society;
     }
@@ -517,15 +517,15 @@ public sealed class PostDeathWillTests
         bool hold = false,
         bool ignoreCancellation = false) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<bool> release = new(TaskCreationOptions.None);
 
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch { get; set; } = 42;
         public int CallCount { get; private set; }
         public List<AgentObservation> Observations { get; } = [];
-        public TaskCompletionSource<bool> Called { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Called { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Completed { get; } = new(TaskCreationOptions.None);
 
         public void ReleaseHeldResponse() => release.TrySetResult(true);
 

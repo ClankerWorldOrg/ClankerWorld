@@ -54,14 +54,14 @@ public sealed class TownHeirWillTests
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         Assert.Equal(deceasedId, estate.DeceasedId);
         Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(world.ExportState().DeceasedAgents!).TownId);
         for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
@@ -95,11 +95,11 @@ public sealed class TownHeirWillTests
         using var settling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             saved with { Society = saved.Society with { Society = shortened } })), Provider);
         var beforeSettlement = WorldRuntimeCodec.Encode(settling.ExportState());
-        Assert.False((await settling.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await settling.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(beforeSettlement, WorldRuntimeCodec.Encode(settling.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(beforeSettlement), Provider);
-        Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settling.TickModelWorkAsync()).Advanced);
+        Assert.True((await replay.TickModelWorkAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(settling.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var settled = settling.Society;
         Assert.True(settled.GetEstate(estate.Id).Settled);
@@ -167,12 +167,12 @@ public sealed class TownHeirWillTests
             Agents = state.Agents.Select(person => person.AgentId == deceasedId
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
@@ -187,7 +187,7 @@ public sealed class TownHeirWillTests
         };
         using var settling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             saved with { Society = saved.Society with { Society = shortened } })), Provider);
-        Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settling.TickModelWorkAsync()).Advanced);
         settling.Validate();
         Assert.True(settling.Society.GetEstate(estate.Id).Settled);
         var cart = settling.Society.Inventory.GetLot("will-cart");

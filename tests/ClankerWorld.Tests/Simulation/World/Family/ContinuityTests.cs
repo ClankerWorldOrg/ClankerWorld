@@ -207,8 +207,8 @@ public sealed partial class ParenthoodTests
         using var client = new HttpClient(handler);
         using var modelWorld = WorldRuntime.Restore(state, _ => new OpenAiCompatibleDecisionProvider(client,
             () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model"));
-        await modelWorld.AdvanceOneTickNonBlockingAsync();
-        for (var attempt = 0; attempt < 100 && handler.Bodies.Count < state.Agents.Count; attempt++) await Task.Delay(10);
+        await modelWorld.TickModelWorkAsync();
+        for (var attempt = 0; attempt < 100 && handler.Bodies.Count < state.Agents.Count; attempt++) await ModelWorkHarness.For(world).SettleAsync();
         var requests = handler.Bodies.Select(body =>
         {
             using var payload = JsonDocument.Parse(body);
@@ -288,7 +288,7 @@ public sealed partial class ParenthoodTests
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<WorldRuntimeService>();
             using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.Contains(logger.Messages, message => message.Contains("family_activity", StringComparison.Ordinal) &&
                 message.Contains("event=continuity_rule_off", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-continuity-secret", StringComparison.Ordinal));

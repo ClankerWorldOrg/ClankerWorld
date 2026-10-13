@@ -64,7 +64,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(10));
             presence.RecordAuthenticatedReconnect("estate-test-owner");
             using var service = new WorldRuntimeService(world, file, presence);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.All(due, estate => Assert.True(world.Society.GetEstate(estate.Id).Settled));
             foreach (var lot in lots)
             {
@@ -92,7 +92,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
             for (var step = 0; step < 3; step++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
                 Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
                 Assert.Equal(File.ReadAllBytes(file.Path), WorldRuntimeCodec.Encode(restored.ExportState()));
             }
@@ -166,12 +166,9 @@ public sealed partial class GrownAgentHelperMemoryTests
                 Assert.True(choices.Wills > 0);
                 return WorldRuntimeCodec.Encode(world.ExportState());
             }
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-                .GetField("pendingWills", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world));
-            await Task.WhenAll(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!))
-                .WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.For(world).WaitForKindAsync(ModelWorkKind.Will);
         }
         throw new Xunit.Sdk.XunitException("The natural family deaths did not reach a stored-food estate expiry.");
     }

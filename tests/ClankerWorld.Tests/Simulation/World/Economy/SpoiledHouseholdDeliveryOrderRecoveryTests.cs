@@ -97,8 +97,8 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var walked = false;
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await provider.Started.Task;
             var request = Assert.Single(provider.Requests);
             Assert.Null(request.OperativeOrderInstructionId);
             Assert.Contains(request.Candidates, candidate => candidate.Id == "recover_household_delivery");
@@ -114,7 +114,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
                 previous = position;
                 Assert.Single(provider.Requests);
                 Assert.False(provider.Release.Task.IsCompleted);
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null), 4, 8);
             }
 
@@ -232,8 +232,8 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)

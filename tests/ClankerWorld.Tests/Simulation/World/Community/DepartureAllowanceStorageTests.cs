@@ -174,7 +174,7 @@ public sealed class DepartureAllowanceStorageTests
         state = state with { Society = state.Society with { Society = checkpoint } };
         using var dying = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Choices());
         dying.Resume();
-        Assert.True((await dying.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await dying.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(dying.Society.Estates);
         var frozen = Assert.Single(estate.FrozenLots!, lot => lot.LotId == allowanceId);
         Assert.Equal((Store, 2), (frozen.StorageBuildingId, frozen.Quantity));
@@ -223,8 +223,8 @@ public sealed class DepartureAllowanceStorageTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(ready), _ => new Choices());
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await settling.TickModelWorkAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(settling.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.True(Assert.Single(settling.Society.Estates).Settled);
@@ -269,11 +269,11 @@ public sealed class DepartureAllowanceStorageTests
         using var dying = WorldRuntime.Restore(DieOnNextTick(state, actor),
             id => id == actor ? will : new Choices());
         dying.Resume();
-        Assert.True((await dying.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await will.Called.Task.WaitAsync(TimeSpan.FromSeconds(30));
-        await will.Completed.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.True((await dying.TickModelWorkAsync()).Advanced);
+        await will.Called.Task;
+        await will.Completed.Task;
         for (var tick = 0; tick < 8 && dying.Society.Estates.Single(item => item.DeceasedId == actor).WillStatus == "pending"; tick++)
-            Assert.True((await dying.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await dying.TickModelWorkAsync()).Advanced);
         var first = Assert.Single(dying.Society.Estates, item => item.DeceasedId == actor);
         Assert.Equal("accepted", first.WillStatus);
         Assert.Contains(first.WillBequests!, item => item.LotId == Food && item.HeirId == beneficiary);
@@ -282,7 +282,7 @@ public sealed class DepartureAllowanceStorageTests
         {
             Assert.Contains(first.BeneficiaryIds, id => id == beneficiary);
             using var unavailable = WorldRuntime.Restore(DieOnNextTick(state, otherHeir), _ => new Choices());
-            Assert.True((await unavailable.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await unavailable.TickModelWorkAsync()).Advanced);
             Assert.Equal(SocietyAgentStatus.Dead, unavailable.Society.GetAgent(otherHeir).Status);
             state = unavailable.ExportState();
         }
@@ -291,8 +291,8 @@ public sealed class DepartureAllowanceStorageTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(ready), _ => new Choices());
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await settling.TickModelWorkAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(settling.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.True(settling.Society.GetEstate(first.Id).Settled);
@@ -305,7 +305,7 @@ public sealed class DepartureAllowanceStorageTests
         // the first estate's physical allowance rather than requiring a new one.
         Assert.Null(settling.Agents.Single(person => person.AgentId == beneficiary).Departures);
         using var secondDeath = WorldRuntime.Restore(DieOnNextTick(settling.ExportState(), beneficiary), _ => new Choices());
-        Assert.True((await secondDeath.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await secondDeath.TickModelWorkAsync()).Advanced);
         var second = Assert.Single(secondDeath.Society.Estates, item => item.DeceasedId == beneficiary);
         Assert.Equal((second.Id, Store, 2), (secondDeath.Society.Inventory.GetLot(inherited.Id).OwnerId,
             secondDeath.Society.Inventory.GetLot(inherited.Id).StorageBuildingId,
@@ -324,8 +324,8 @@ public sealed class DepartureAllowanceStorageTests
         using var secondReplay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(secondReady), _ => new Choices());
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await secondSettlement.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.True((await secondReplay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await secondSettlement.TickModelWorkAsync()).Advanced);
+            Assert.True((await secondReplay.TickModelWorkAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(secondSettlement.ExportState()), WorldRuntimeCodec.Encode(secondReplay.ExportState()));
         }
         Assert.True(secondSettlement.Society.GetEstate(second.Id).Settled);

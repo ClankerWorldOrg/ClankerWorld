@@ -74,11 +74,13 @@ public sealed class HouseholdJoinRequestTests
         Assert.Contains(member, request.Members);
         Assert.DoesNotContain(member, request.Approvals);
         var allowStart = deferStartup ? 0 : 1;
-        var held = new HeldPhysicalTaskDecisionProvider { CanStart = () => Volatile.Read(ref allowStart) == 1 };
+        var held = new HeldPhysicalTaskDecisionProvider();
         using var world = WorldRuntime.Restore(state, actor => actor == member ? held : provider);
+        var harness = ModelWorkHarness.For(world);
+        harness.Scheduler.CanStart = () => Volatile.Read(ref allowStart) == 1;
         world.SubmitInstruction(new("waiting-housing-lesson-guidance", "owner:test", member,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         // Registration precedes the provider's background startup. The lesson
         // must continue while that exact request is pending in either phase.
         var (heldRequest, heldTask) = CapturePendingHousingCall(world, member);
@@ -90,16 +92,16 @@ public sealed class HouseholdJoinRequestTests
         {
             for (var tick = 0; tick < 8 && state.Map.FootDistance(
                 world.Agents.Single(person => person.AgentId == learner).Position, startingSite) > 1; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             var arrival = world.Agents.Single(person => person.AgentId == learner).Position;
             Assert.NotEqual(start, arrival);
             Assert.InRange(state.Map.FootDistance(arrival, startingSite), 0, 1);
         }
         var before = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(before.Progress + 3, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         Assert.Equal(JsonSerializer.Serialize(request), JsonSerializer.Serialize(Housing(world, applicant)!.Request));
         Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
@@ -108,7 +110,8 @@ public sealed class HouseholdJoinRequestTests
         if (deferStartup) Assert.False(held.Started.Task.IsCompleted);
         var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
         Volatile.Write(ref allowStart, 1);
-        await held.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        harness.RunPendingWork();
+        await held.Started.Task;
         Assert.Same(heldRequest.Observation, Assert.Single(held.Requests));
         Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
@@ -861,13 +864,8 @@ public sealed class HouseholdJoinRequestTests
 
     private static (CognitionDecisionRequest Request, Task Task) CapturePendingHousingCall(WorldRuntime world, string member)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var call = pending[member];
-        Assert.NotNull(call);
-        return (Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call)),
-            Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call)));
+        var call = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == member);
+        return (Assert.IsType<CognitionDecisionRequest>(call.DecisionRequest), call.Completion);
     }
 
     private static async Task AdvanceUntil(WorldRuntime world, Func<bool> condition, int maxTicks = 40, Action? onTick = null)

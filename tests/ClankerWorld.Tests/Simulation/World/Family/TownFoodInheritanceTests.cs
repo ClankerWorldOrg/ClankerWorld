@@ -52,17 +52,17 @@ public sealed class TownFoodInheritanceTests
                 ? person with { Equipment = null } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         // Wait at the death checkpoint; polling with ticks can expire the will.
         var pendingWill = NativeWillFixture.PendingTask(world);
         var frozen = WorldRuntimeCodec.Encode(world.ExportState());
-        var waiting = pendingWill.WaitAsync(TimeSpan.FromSeconds(30));
+        var waiting = pendingWill;
         if (holdWill)
         {
             try
             {
-                await will.Called.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                await will.Called.Task;
                 Assert.False(waiting.IsCompleted);
             }
             finally { will.ReleaseHeldResponse(); }
@@ -70,7 +70,7 @@ public sealed class TownFoodInheritanceTests
         await waiting;
         Assert.Equal(frozen, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal("pending", world.Society.GetEstate(estate.Id).WillStatus);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
         Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(estate.WillHeirIds!));

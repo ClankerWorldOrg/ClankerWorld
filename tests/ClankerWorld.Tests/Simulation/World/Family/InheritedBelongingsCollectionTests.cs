@@ -54,10 +54,10 @@ public sealed class InheritedBelongingsCollectionTests
             observation => new([PostDeathWillTests.HeirKey(observation, heirName)], CognitionWillContext.EqualSplit));
         using var dying = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == deceased ? will : new ActionCoverageRecorder(chooseIdle: true));
-        Assert.True((await dying.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await will.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await dying.TickModelWorkAsync()).Advanced);
+        await will.Completed.Task;
         for (var tick = 0; tick < 20 && dying.Society.Estates.Single().WillStatus != "accepted"; tick++)
-            Assert.True((await dying.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await dying.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(dying.Society.Estates);
         Assert.Equal("accepted", estate.WillStatus);
         Assert.Equal([heir], estate.WillHeirIds);
@@ -75,7 +75,7 @@ public sealed class InheritedBelongingsCollectionTests
         };
         using var settling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(escrow)),
             _ => new ActionCoverageRecorder(chooseIdle: true));
-        Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settling.TickModelWorkAsync()).Advanced);
         Assert.True(settling.Society.GetEstate(estate.Id).Settled);
         var wood = Assert.Single(settling.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "bequest-wood");
         var stone = Assert.Single(settling.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "bequest-stone");
@@ -110,7 +110,7 @@ public sealed class InheritedBelongingsCollectionTests
             id => id == heir ? chooser : new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(collecting.ExportState()));
         for (var tick = 0; tick < 20 && collecting.Society.Inventory.GetLot(wood.Id).Quantity == 4; tick++)
-            Assert.True((await collecting.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await collecting.TickModelWorkAsync()).Advanced);
         Assert.Contains("household_collect:" + wood.Id, chooser.Offered);
         Assert.Equal((heir, house.InstanceId, 3),
             (collecting.Society.Inventory.GetLot(wood.Id).OwnerId,
@@ -147,7 +147,7 @@ public sealed class InheritedBelongingsCollectionTests
         using var groundWorld = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(groundPickup)),
             id => id == heir ? chooser : new ActionCoverageRecorder(chooseIdle: true));
         for (var tick = 0; tick < 20 && groundWorld.Society.Inventory.GetLot(stone.Id).GroundPosition is not null; tick++)
-            Assert.True((await groundWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await groundWorld.TickModelWorkAsync()).Advanced);
         Assert.Contains("household_collect:" + stone.Id, chooser.Offered);
         Assert.True(PersonalEquipmentRules.IsCarried(groundWorld.Society.Inventory.GetLot(stone.Id), heir));
         Assert.Equal((heir, 3), (groundWorld.Society.Inventory.GetLot(stone.Id).OwnerId, groundWorld.Society.Inventory.GetLot(stone.Id).Quantity));
