@@ -17,6 +17,8 @@ public partial class Main
     private readonly GridContainer tileFacts = new();
     private readonly Label tileThingsHeading = new();
     private readonly VBoxContainer tileThings = new();
+    private readonly ScrollContainer tileDetailsScroll = new();
+    private readonly VBoxContainer tileDetailsContent = new();
 
     private void BuildTileCard(Control content)
     {
@@ -41,16 +43,23 @@ public partial class Main
         header.AddChild(closeTile);
         body.AddChild(header);
 
+        tileDetailsScroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        tileDetailsContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        tileDetailsContent.AddThemeConstantOverride("separation", 8);
+        tileDetailsScroll.AddChild(tileDetailsContent);
+        body.AddChild(tileDetailsScroll);
+        tileDetailsContent.MinimumSizeChanged += () => Callable.From(PositionSelectedTilePanel).CallDeferred();
+
         tileFacts.Columns = 2;
         tileFacts.AddThemeConstantOverride("h_separation", 14);
         tileFacts.AddThemeConstantOverride("v_separation", 2);
-        body.AddChild(tileFacts);
+        tileDetailsContent.AddChild(tileFacts);
 
         tileThingsHeading.Text = "HERE";
         tileThingsHeading.ThemeTypeVariation = "SectionLabel";
-        body.AddChild(tileThingsHeading);
+        tileDetailsContent.AddChild(tileThingsHeading);
         tileThings.AddThemeConstantOverride("separation", 4);
-        body.AddChild(tileThings);
+        tileDetailsContent.AddChild(tileThings);
 
         // The facts also stay as plain text for checks and assistive reading.
         selectedTileText.Hide();
