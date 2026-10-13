@@ -230,7 +230,7 @@ public sealed class ServerObservationTests
     [Fact]
     public async Task WorldObservationExposesPublicIntentionsWithoutModelTrace()
     {
-        using var runtime = new WorldRuntime("test-alpha");
+        using var runtime = new WorldRuntime("test-alpha", _ => new ActionCoverageRecorder(chooseIdle: true));
         _ = await runtime.AdvanceOneTickAsync();
 
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
