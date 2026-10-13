@@ -361,6 +361,10 @@ promised; attaching and giving check the existing cart and cargo access rules.
 Cart pulling retains the attachment, cargo and building destination. An absent
 route remains a wait choice with the existing movement-blocked events; changed
 stock, attachments or destinations receive a typed refusal.
+Cart loading and unloading retain the exact source, cart families, physical
+place and quantity. Checks share existing loading permissions and food rules,
+and match the native cargo operations' hold access and capacity. Order and Civic
+callers keep their named-cart and maximum-quantity limits.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
