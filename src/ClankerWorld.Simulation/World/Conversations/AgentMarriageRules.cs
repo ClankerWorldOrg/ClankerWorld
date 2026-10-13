@@ -44,7 +44,7 @@ public static class AgentMarriageRules
     public const int MaximumSurnameTurns = 4;
 
     public static bool IsAdult(SocietyAgent person) => person.Status == SocietyAgentStatus.Active &&
-        person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+        LifeStageRules.IsAdult(person.AgeBand);
 
     public static SocietyRelationship? Partnership(SocietyCheckpoint society, string first, string second) =>
         society.Relationships.SingleOrDefault(relationship => relationship.Type == SocietyRelationshipType.Partnership &&

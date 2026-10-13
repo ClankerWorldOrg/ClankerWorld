@@ -824,7 +824,7 @@ public sealed partial class WorldRuntime
         if (withheldActions?.Contains(agentId) == true || IsRefusedAction(agentId, candidateId)) return;
         if (attemptedActions is not null) attemptedActions[agentId] = candidateId;
         if (candidateId != "safe_idle") guardianPlacementActions.Add(agentId);
-        if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle))) return;
+        if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle, plan))) return;
         if (!AgePermitsCandidate(agentId, candidateId))
         {
             AppendEvent("age_action_rejected", $"{agentId}:{candidateId}");

@@ -387,6 +387,9 @@ shared medical need threshold.
 Medicine collection retains the patient, last-seen position, original trip and
 selected pickup dose. Return travel keeps that recorded destination and carried
 dose; the shared check never looks up a distant patient's current position.
+Conversation choices retain the selected person or conversation revision and
+participants. The same check prepares existing pure transitions at offer,
+admission and apply; the conversation system keeps its native writers.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
