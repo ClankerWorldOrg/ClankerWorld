@@ -1037,3 +1037,21 @@ public sealed record SocialStandingChangedEventPayload(string? ActorId, [propert
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => SubjectId is not null && Reason is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record AgentSleptEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "agent_slept";
+    [JsonIgnore] public override string DiagnosticDetail => ActorId ?? "";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
+    [JsonIgnore] public override bool FieldsAreValid => true;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record AgentBuildingProposedEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "agent_building_proposed";
+    [JsonIgnore] public override string DiagnosticDetail => ActorId ?? "";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
+    [JsonIgnore] public override bool FieldsAreValid => true;
+}

@@ -405,7 +405,7 @@ public sealed record AuthoringStateView(
     string Season,
     IReadOnlyList<string> ApprovedAssetReferences);
 
-public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null)
+public sealed record EventView(long EventId, long WorldTick, string Kind, [property: System.Text.Json.Serialization.JsonIgnore] string Detail, PositionView? Position = null)
 {
     public string Text { get; init; } = string.Empty;
     public ClankerWorld.Simulation.World.WorldEventPayload? Payload { get; init; }

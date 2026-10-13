@@ -19,9 +19,15 @@ public sealed class EventPresentationBoundaryTests
     [Fact]
     public void EventTextDoesNotParseDetailInTheGame()
     {
-        var path = Path.Combine(RuntimeWriterScan.RepositoryRoot,
-            "src/ClankerWorld.GodotClient/UI/Text/WorldEventText.cs");
-        Assert.DoesNotContain(".Detail", File.ReadAllText(path), StringComparison.Ordinal);
+        var root = Path.Combine(RuntimeWriterScan.RepositoryRoot, "src/ClankerWorld.GodotClient");
+        foreach (var path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Contains("/obj/", StringComparison.Ordinal) && !path.Contains("/.godot/", StringComparison.Ordinal)))
+        {
+            var source = File.ReadAllText(path);
+            Assert.DoesNotContain("Detail.Split", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Detail.LastIndexOf", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Detail.IndexOf", source, StringComparison.Ordinal);
+        }
     }
     [Fact]
     public async Task ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions()

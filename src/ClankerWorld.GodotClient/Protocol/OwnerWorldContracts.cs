@@ -702,7 +702,7 @@ public sealed record OwnerWorldSnapshot(
     public IReadOnlyList<OwnerWorldProductionJob> ProductionJobs { get; init; } = [];
 }
 
-public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, string Detail, OwnerWorldPosition? Position = null)
+public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, [property: System.Text.Json.Serialization.JsonIgnore] string Detail, OwnerWorldPosition? Position = null)
 {
     public string Text { get; init; } = string.Empty;
     public ClankerWorld.Simulation.World.WorldEventPayload? Payload { get; init; }

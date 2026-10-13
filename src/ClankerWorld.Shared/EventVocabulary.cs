@@ -212,12 +212,6 @@ public static class EventVocabulary
     public const int RetainedEventCount = 2048;
     public const int VisibleEventCount = 30;
 
-    public static (string? Actor, string? Status) ModelStatusFields(string detail)
-    {
-        var separator = detail.LastIndexOf(':');
-        return separator <= 0 ? (null, null) : (detail[..separator], detail[(separator + 1)..]);
-    }
-
     public static IEnumerable<T> PlayerEvents<T>(IEnumerable<T> events, Func<T, long> eventId,
         Func<T, string> kind, Func<T, (string? Actor, string? Status)> modelStatus)
     {

@@ -939,7 +939,7 @@ public sealed partial class OwnerWorldObservationStore
         var visibleEvents = ClankerWorld.Presentation.EventVocabulary.PlayerEvents(
             state.Events.TakeLast(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount),
             item => item.EventId, item => item.Kind,
-            item => ClankerWorld.Presentation.EventVocabulary.ModelStatusFields(item.Detail));
+            item => item.Payload is ModelAttemptStatusEventPayload status ? (status.ActorId, status.Status) : (null, null));
         return snapshot with
         {
             EventTexts = visibleEvents.TakeLast(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount)
@@ -1916,7 +1916,8 @@ public sealed partial class OwnerWorldObservationStore
         worldEvent.Kind,
         worldEvent.Detail,
         worldEvent.Position is { } position ? ToPosition(position) : null);
-        return view with { Payload = worldEvent.Payload, Text = WorldEventFormatter.Describe(view, snapshot) };
+        view = view with { Payload = worldEvent.Payload };
+        return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
     }
 
     private static CognitionView ToCognition(WorldRuntimeState state)

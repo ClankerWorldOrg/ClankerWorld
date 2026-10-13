@@ -427,6 +427,8 @@ public sealed record EventPosition(int X, int Y);
 [JsonDerivedType(typeof(WorkstationSuppliedEventPayload), "workstation_supplied")]
 [JsonDerivedType(typeof(WorldCreatedEventPayload), "world_created")]
 [JsonDerivedType(typeof(WorldStartedEventPayload), "world_started")]
+[JsonDerivedType(typeof(AgentSleptEventPayload), "agent_slept")]
+[JsonDerivedType(typeof(AgentBuildingProposedEventPayload), "agent_building_proposed")]
 public abstract record WorldEventPayload([property: JsonRequired] string? ActorId)
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
