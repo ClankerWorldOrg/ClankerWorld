@@ -127,6 +127,15 @@ public sealed partial class WorldRuntime
             prepareCheckpoint, failurePolicy);
     }
 
+    internal WorldRuntime CopyForChoiceTrial(Func<string, IDecisionProvider> providers) =>
+        RestoreCore(ExportState(), providers, maxCognitionDispatchPerCycle, trustedPreparedState: true,
+            applyLoadTransitions: false);
+
+    // The choice invariant uses the same isolated preparation and checkpoint callback
+    // as the server, with inline fixture replies so no background timing is involved.
+    internal ValueTask<WorldStepResult> AdvanceChoiceTrialAsync(Func<WorldRuntime, Action> prepareCheckpoint) =>
+        AdvanceOneTickCoreAsync(false, null, null, CancellationToken.None, prepareCheckpoint, WorldTickFailurePolicy.Strict);
+
     /// <summary>Replay an accepted refusal alongside the same recorded decision inputs, without reproducing the defect.</summary>
     public ValueTask<WorldStepResult> AdvanceOneTickReplayingActionRefusalAsync(
         WorldEventEntry recordedRefusal, Func<WorldRuntime, Action> prepareCheckpoint,
