@@ -244,7 +244,10 @@ public sealed partial class OwnerWorldObservationStore
                         HouseholdName(response.HouseholdId), response.AgentId, AgentName(response.AgentId), response.Kind, response.Tick,
                         response.PartyAdults.ToArray())).ToArray(), request.Status, request.SettledTick, request.Reason, request.Receipt?.AdjustmentId)
                 {
-                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity) : null,
+                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity)
+                    {
+                        ItemName = GoodsNameText.ForQuantity(price.ItemKind, price.Quantity, state.Content),
+                    } : null,
                     Payment = request.Receipt?.Payment is { } payment ? new(payment.BuyerAgentId, AgentName(payment.BuyerAgentId),
                         payment.SellerAgentId, AgentName(payment.SellerAgentId), ToPosition(payment.Position), request.Receipt.Tick) : null
                 };
