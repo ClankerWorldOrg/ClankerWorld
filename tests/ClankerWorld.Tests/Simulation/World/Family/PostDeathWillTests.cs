@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -28,7 +29,7 @@ public sealed class PostDeathWillTests
         var checkpoint = state.Society.Society;
         foreach (var actor in new[] { owner, other })
             for (var index = 0; index < 4; index++)
-                checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new($"walk-{actor}-{index}", actor, other,
+                checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new(DerivedId.Create($"walk-{actor}-{index}"), actor, other,
                     "I walked past the orchard and thought about sharing my belongings with my heirs. " + index, "private", 0)).Checkpoint;
         const string rumorId = "orchard-rumor";
         checkpoint = SocietyRules.RecordAgentBelief(checkpoint, new(rumorId, owner,

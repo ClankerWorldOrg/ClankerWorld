@@ -707,3 +707,14 @@ the [playtest results procedure](../../playtest/README.md#keeping-the-list-curre
 Do not deploy, change credentials or modify the active playtest save just to
 run a check; that needs the owner's separate go-ahead. Use a disposable world
 for setup, placement and damaged-save cases.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.
