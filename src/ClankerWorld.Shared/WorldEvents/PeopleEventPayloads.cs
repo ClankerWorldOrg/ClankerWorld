@@ -1037,3 +1037,22 @@ public sealed record SocialStandingChangedEventPayload(string? ActorId, [propert
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => SubjectId is not null && Reason is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record HousingRequestCancelledEventPayload(string? ActorId, [property: JsonRequired] string HouseholdId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "housing_request_cancelled";
+    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{HouseholdId}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { HouseholdId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
+    [JsonIgnore] public override bool FieldsAreValid => HouseholdId is not null;
+}
+
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record HousingRequestBlockedCapacityEventPayload(string? ActorId, [property: JsonRequired] string HouseholdId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "housing_request_blocked_capacity";
+    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{HouseholdId}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { HouseholdId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
+    [JsonIgnore] public override bool FieldsAreValid => HouseholdId is not null;
+}
