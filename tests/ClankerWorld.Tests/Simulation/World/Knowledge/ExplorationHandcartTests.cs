@@ -114,7 +114,10 @@ public sealed class ExplorationHandcartTests
 
     private static async Task<WorldRuntimeState> PrepareCart()
     {
-        using var setup = NormalPathWorld.CreateGenerated("normal-visible-handcart", _ => new ScoutChooser("safe_idle"));
+        // Keep ordinary cart destinations near the scout so candidate building
+        // does not search across the whole map for unrelated household work.
+        using var setup = NormalPathWorld.CreateGenerated("normal-visible-handcart", _ => new ScoutChooser("safe_idle"),
+            roughTownSite: Start);
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");

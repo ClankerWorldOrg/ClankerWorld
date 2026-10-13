@@ -223,6 +223,10 @@ public sealed partial class GrownAgentHelperMemoryTests
                     ProductProgressTicks = animal.ProductProgressTicks * day / oldDay,
                     CareUntilTick = animal.CareUntilTick > society.WorldTick ?
                         society.WorldTick + (animal.CareUntilTick - society.WorldTick) * day / oldDay : animal.CareUntilTick,
+                    WildFedUntilTick = animal.WildFedUntilTick > society.WorldTick ?
+                        society.WorldTick + (animal.WildFedUntilTick - society.WorldTick) * day / oldDay : animal.WildFedUntilTick,
+                    WildWaterUntilTick = animal.WildWaterUntilTick > society.WorldTick ?
+                        society.WorldTick + (animal.WildWaterUntilTick - society.WorldTick) * day / oldDay : animal.WildWaterUntilTick,
                     Pregnancy = animal.Pregnancy is { } pregnancy ? pregnancy with
                     { ProgressTicks = pregnancy.ProgressTicks * day / oldDay } : null,
                 }).ToArray(),
