@@ -607,8 +607,8 @@ public sealed partial class WorldRuntime
         if (care is null) return false;
         // Use the ordinary physical care boundary without cancelling an existing
         // repair or starting, ending or accepting a caregiving relationship.
-        if (care.Id.StartsWith("care:", StringComparison.Ordinal)) CareForChild(id, care.Id[5..]);
-        else TendToIllDependent(id, care.Id[14..]);
+        if (care.Id.StartsWith("care:", StringComparison.Ordinal)) CareForChild(id, care.Id[5..], care.ActionPlan);
+        else TendToIllDependent(id, care.Id[14..], care.ActionPlan);
         return true;
     }
 

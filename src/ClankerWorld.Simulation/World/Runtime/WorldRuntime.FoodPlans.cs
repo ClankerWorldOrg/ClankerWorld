@@ -56,7 +56,8 @@ public sealed partial class WorldRuntime
                     return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected carried serving is no longer available");
                 return new();
             case SharedFoodActionPlan shared:
-                if (HouseholdFor(plan.Actor) != shared.HouseholdId || !MayCollectSharedFood(plan.Actor))
+                if (HouseholdFor(plan.Actor) != shared.HouseholdId ||
+                    (shared.DependentId is null ? !MayCollectSharedFood(plan.Actor) : !ChildrenNeedingCare(plan.Actor).Any(child => child.AgentId == shared.DependentId)))
                     return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "household food is no longer available to them");
                 if (RecheckGoods(new(GoodsUse.ConsumeAt, plan.Actor, GoodsOwners.One(shared.HouseholdId), GoodsKinds.One(shared.ItemKind)),
                         shared.StockId) is not { } serving || serving.Root.Id != shared.RootId || serving.Lot.CarrierId is not null ||
@@ -73,6 +74,8 @@ public sealed partial class WorldRuntime
                     agents[plan.Actor].Position != potHouse.Position && Reach(plan.Actor, potHouse.Position,
                         ReachPurpose.HouseholdFood, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
                     return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected food pot is out of reach now");
+                if (shared.ReturnPosition is { } destination && PickupCarryCapacity(plan.Actor, serving.Lot, destination, shared.ReturnRange) < 1)
+                    return ActionCheck.Refuse(ActionRefusalReason.Capacity, "they cannot carry the selected serving back to the child");
                 if (FreeCarryCapacity(plan.Actor) < 1)
                     return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected serving");
                 return Reach(plan.Actor, shared.Position, ReachPurpose.HouseholdFood, shared.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0

@@ -393,6 +393,9 @@ admission and apply; the conversation system keeps its native writers.
 Dependent-care authority choices retain the proposal or relationship receipt,
 guardian search and intended household/family. The same check runs at offer,
 admission and apply; owner guardian orders carry that plan too.
+Practical care retains the dependent, caregiving receipt, position and selected
+serving or food preparation source. Waiting routines use that same plan; native
+feeding, warmth and illness relief remain in their existing writers.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

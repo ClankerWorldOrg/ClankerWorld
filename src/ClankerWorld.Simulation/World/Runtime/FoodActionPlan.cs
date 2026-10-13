@@ -23,7 +23,8 @@ public sealed record ConsumeFoodActionPlan(string ActorId, string StockId, strin
 }
 
 public sealed record SharedFoodActionPlan(string ActorId, string HouseholdId, string StockId, string ItemKind,
-    string RootId, GridPoint Position, int InteractionRange, IReadOnlyList<GridPoint> Route)
+    string RootId, GridPoint Position, int InteractionRange, IReadOnlyList<GridPoint> Route,
+    string? DependentId = null, GridPoint? ReturnPosition = null, int ReturnRange = 0)
     : FoodActionPlan(ActorId, new(FoodActionKind.CollectShared))
 {
     public override string Activity => "collect the selected household serving";

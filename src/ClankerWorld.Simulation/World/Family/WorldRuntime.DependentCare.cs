@@ -245,8 +245,8 @@ public sealed partial class WorldRuntime
         foreach (var dependent in IllDependentsNeedingCare(actor).Where(dependent =>
                      !NeedsUrgentFood(agents[actor]) || IsWithinInteractionRange(agents[actor].Position, agents[dependent].Position, ResourceInteractionRange)))
         {
-            candidates.Add(new("guardian_tend:" + dependent,
-                "Offer warmth and practical care to your ill dependent.", 75));
+            if (PlanPracticalCare(actor, new(PracticalCareKind.IllDependent, dependent)) is { } care && CheckPracticalCarePlan(care).Allowed)
+                candidates.Add(new CognitionCandidate(care.CandidateId, "Offer warmth and practical care to your ill dependent.", 75) { ActionPlan = care });
         }
         foreach (var child in agents.Keys.Order(StringComparer.Ordinal).Where(child => CanAcceptGuardian(actor, child)))
         {
@@ -275,7 +275,7 @@ public sealed partial class WorldRuntime
     private void ApplyDependentCareCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
         if (candidate.StartsWith("guardian_tend:", StringComparison.Ordinal))
-        { TendToIllDependent(actor, candidate["guardian_tend:".Length..]); return; }
+        { TendToIllDependent(actor, candidate["guardian_tend:".Length..], originalPlan); return; }
         var plan = originalPlan as DependentCareActionPlan ?? (DependentCareChoice.Decode(candidate) is { } choice ? PlanDependentCare(actor, choice) : null);
         if (plan is not null) ApplyDependentCarePlan(plan);
     }
@@ -377,17 +377,15 @@ public sealed partial class WorldRuntime
     private bool CanTendToIllDependent(string adult, string dependent) => IsAdult(adult) &&
         IllDependentsNeedingCare(adult).Contains(dependent, StringComparer.Ordinal);
 
-    private void TendToIllDependent(string adult, string dependent)
+    private void TendToIllDependent(string adult, string dependent, ActionPlan? originalPlan = null)
     {
-        if (!ReadyForBriefInteraction(adult) || !CanTendToIllDependent(adult, dependent)) return;
-        var caregiver = agents[adult];
+        var plan = originalPlan as PracticalCareActionPlan ?? PlanPracticalCare(adult, new(PracticalCareKind.IllDependent, dependent));
+        if (plan is not null) ApplyPracticalCarePlan(plan);
+    }
+
+    private void CompleteIllDependentCare(string adult, string dependent)
+    {
         var recipient = agents[dependent];
-        if (NeedsUrgentFood(caregiver) && !IsWithinInteractionRange(caregiver.Position, recipient.Position, ResourceInteractionRange)) return;
-        if (!IsWithinInteractionRange(caregiver.Position, recipient.Position, ResourceInteractionRange))
-        {
-            MoveToward(adult, caregiver, recipient.Position, "care", ResourceInteractionRange);
-            return;
-        }
         recipient = recipient with
         {
             Survival = recipient.Survival! with

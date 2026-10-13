@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
 
     // Only adults can have children; elders cannot (the owner's answer of October 2).
     private bool CanHaveChildren(string actor) => agents.ContainsKey(actor) &&
-        society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Adult;
+        LifeStageRules.CanHaveChildren(society.Checkpoint.GetAgent(actor).AgeBand);
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
     private bool Partners(string actor, string other) => CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
@@ -38,9 +38,9 @@ public sealed partial class WorldRuntime
          ChildrenNeedingCare(actor).Any());
 
     private IEnumerable<AgentState> ChildrenNeedingCare(string actor) => agents.Values.Where(person =>
-        society.Checkpoint.GetAgent(person.AgentId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
-        (person.FullnessBasisPoints < 7_000 || person.Survival is { WarmthBasisPoints: < 6_000 } ||
-         person.Survival is { IllnessBasisPoints: >= 2_500 } && !RecentlyCaredForIllness(person.AgentId)) &&
+        LifeStageRules.IsDependent(society.Checkpoint.GetAgent(person.AgentId).AgeBand) &&
+        (person.FullnessBasisPoints < NeedThresholds.FoodPickupFullness || person.Survival is { WarmthBasisPoints: < NeedThresholds.ComfortableWarmth } ||
+         person.Survival is { IllnessBasisPoints: >= NeedThresholds.MedicalCareIllness } && !RecentlyCaredForIllness(person.AgentId)) &&
         (society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver &&
              item.State == SocietyRelationshipState.Accepted && item.EffectiveTick <= WorldTick &&
              item.ProposerId == actor && item.TargetId == person.AgentId) ||
@@ -111,13 +111,13 @@ public sealed partial class WorldRuntime
 
     private bool CanReachDependent(string actor, AgentState parent, AgentState child) =>
         IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange) ||
-        FindUnoccupiedRoute(actor, parent.Position, child.Position, ResourceInteractionRange).Count > 0;
+        Reach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private int CaregiverFoodCarryRequirement(string actor, AgentState parent)
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor) || NeedsUrgentFood(parent) ||
             PreferredFood(actor, actor).Any() ||
-            !ChildrenNeedingCare(actor).Any(child => child.FullnessBasisPoints < 7_000 && CanReachDependent(actor, parent, child)))
+            !ChildrenNeedingCare(actor).Any(child => child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && CanReachDependent(actor, parent, child)))
             return 0;
         return MinimumFoodPickupCarryUnits(actor, parent.Position, forDependent: true);
     }
@@ -132,7 +132,7 @@ public sealed partial class WorldRuntime
                      !NeedsUrgentFood(agents[actor]) || IsWithinInteractionRange(agents[actor].Position, child.Position, ResourceInteractionRange)))
         {
             var parent = agents[actor];
-            if (child.FullnessBasisPoints < 7_000 && !PreferredFood(actor, actor).Any())
+            if (child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && !PreferredFood(actor, actor).Any())
             {
                 if (NeedsUrgentFood(parent) || !CanReachDependent(actor, parent, child))
                     continue;
@@ -145,7 +145,8 @@ public sealed partial class WorldRuntime
                     continue;
                 }
             }
-            candidates.Add(new("care:" + child.AgentId, "Bring food and warmth to your dependent child.", 2));
+            if (PlanPracticalCare(actor, new(PracticalCareKind.Child, child.AgentId)) is { } care && CheckPracticalCarePlan(care).Allowed)
+                candidates.Add(new CognitionCandidate(care.CandidateId, "Bring food and warmth to your dependent child.", 2) { ActionPlan = care });
         }
         if (!ReadyForLesson(actor)) return;
         foreach (var person in agents.Values.Where(person => ActiveParenthood(person.Parenthood) &&
@@ -187,7 +188,7 @@ public sealed partial class WorldRuntime
             continuityCouple is null &&
             society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver && item.ProposerId == actor &&
                 item.State == SocietyRelationshipState.Accepted && agents.ContainsKey(item.TargetId) &&
-                society.Checkpoint.GetAgent(item.TargetId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child) ||
+                LifeStageRules.IsYoungChild(society.Checkpoint.GetAgent(item.TargetId).AgeBand)) ||
             agents.Values.Any(person => person.Parenthood is { } previous &&
                 (person.AgentId == actor || previous.PartnerId == actor) && WorldTick - previous.LastTransitionTick < worldSystems.Config.TicksPerDay))
         {
@@ -207,12 +208,12 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyParenthoodCandidate(string actor, string candidate)
+    private void ApplyParenthoodCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
         var target = candidate[(candidate.IndexOf(':', StringComparison.Ordinal) + 1)..];
         if (candidate.StartsWith("care:", StringComparison.Ordinal))
         {
-            CareForChild(actor, target);
+            CareForChild(actor, target, originalPlan);
             return;
         }
         if (candidate.StartsWith("parent_propose:", StringComparison.Ordinal))
@@ -370,42 +371,24 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void CareForChild(string actor, string childId)
+    private void CareForChild(string actor, string childId, ActionPlan? originalPlan = null)
     {
-        if (!ReadyForBriefInteraction(actor) || !ChildrenNeedingCare(actor).Any(child => child.AgentId == childId))
-        {
-            return;
-        }
-        var parent = agents[actor];
+        var plan = originalPlan as PracticalCareActionPlan ?? PlanPracticalCare(actor, new(PracticalCareKind.Child, childId));
+        if (plan is not null) ApplyPracticalCarePlan(plan);
+    }
+
+    private void CompleteChildFoodPickup(string actor, SharedFoodActionPlan shared, GridPoint destination) =>
+        TryCollectHouseholdServing(actor, agents[actor], society.Checkpoint.Inventory.GetLot(shared.StockId), $"care-food:{WorldTick}:{actor}",
+            "caregiver_food", "care_food", destination, ResourceInteractionRange);
+
+    private void CompleteChildCare(PracticalCareActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var childId = plan.Choice.DependentId;
         var child = agents[childId];
-        if (NeedsUrgentFood(parent) && !IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange)) return;
-        if (child.FullnessBasisPoints < 7_000 && PreferredFood(actor, actor).FirstOrDefault() is null)
+        if (plan.Food is ConsumeFoodActionPlan meal)
         {
-            if (NeedsUrgentFood(parent)) return;
-            if (AvailableHouseholdServing(actor, parent.Position, returnTo: child.Position, returnRange: ResourceInteractionRange) is { } sharedFood)
-            {
-                TryCollectHouseholdServing(actor, parent, sharedFood, $"care-food:{WorldTick}:{actor}",
-                    "caregiver_food", "care_food", child.Position, ResourceInteractionRange);
-            }
-            else
-            {
-                if (AvailableFoodSource(actor, parent.Position) is { } source)
-                {
-                    if (IsWithinInteractionRange(parent.Position, source.Position, ResourceInteractionRange))
-                        HarvestFood(actor, parent);
-                    else
-                        MoveToward(actor, parent, source.Position, "care_food", ResourceInteractionRange);
-                }
-            }
-            return;
-        }
-        if (!IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange))
-        {
-            MoveToward(actor, parent, child.Position, "care", ResourceInteractionRange);
-            return;
-        }
-        if (child.FullnessBasisPoints < 7_000 && PreferredFood(actor, actor).FirstOrDefault() is { } serving)
-        {
+            var serving = society.Checkpoint.Inventory.GetLot(meal.StockId);
             society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, actor, serving.Id, 1));
             child = child with { FullnessBasisPoints = Math.Min(10_000, child.FullnessBasisPoints + FoodNourishment(serving.ItemKind)), Survival = AfterMeal(child, serving) };
         }
