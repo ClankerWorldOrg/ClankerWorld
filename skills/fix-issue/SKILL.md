@@ -211,6 +211,18 @@ next person will look.
    for someone who has not read the conversation, including the **Author**
    line and the stale-text search. Mark sections that do not apply.
 
+## Choose checks
+
+Follow [Which checks to run](../../docs/development/build-and-test.md#which-checks-to-run)
+and the current workflow.
+
+- **Let CI run the full Release suite.** Its test jobs run it on the exact
+  head on several machines at once, sooner than one machine can. Locally,
+  build and run the tests for what changed, so problems show before the CI
+  wait. Run the full suite locally only when you need its result before you
+  push. Fix CI failures on the pull request: the author while it is a draft,
+  or the reviewer once it is ready.
+
 ## Drafts and readiness
 
 [CONTRIBUTING](../../CONTRIBUTING.md#drafts-and-readiness) sets when a pull
