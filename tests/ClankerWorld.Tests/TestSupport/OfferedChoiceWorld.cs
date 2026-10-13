@@ -7,11 +7,12 @@ namespace ClankerWorld.Tests;
 /// <summary>Small seeded maps keep an exhaustive choice sweep inexpensive.</summary>
 internal static class OfferedChoiceWorld
 {
-    internal static Task<WorldRuntimeState> CreateAsync(int seed)
+    internal static async Task<WorldRuntimeState> CreateAsync(int seed)
     {
         using var world = NormalPathWorld.CreateGenerated("choice-sweep-" + seed, _ => new SweepChoiceProvider(), ticksPerDay: 8);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var state = world.ExportState();
-        return Task.FromResult(SecondGenerationFixture.Add(state).State);
+        return OfferedChoiceScenario.Prepare(SecondGenerationFixture.Add(state).State, seed);
     }
 }
 
