@@ -50,7 +50,7 @@ internal sealed partial class TownSystem
             candidates.Add(new(plan.CandidateId,
                 $"Salvage {plan.Quantity} {plan.ItemKind.Replace('_', ' ')} from abandoned {town.Name} here. Only unreserved communal goods move; this grants no Town membership or private access." +
                 (plan.ItemKind == InventoryContainerRules.Handcart ? " The handcart and its cargo stay on the ground until you pull it." : string.Empty), 120)
-                { ActionPlan = plan });
+            { ActionPlan = plan });
         }
     }
 }
