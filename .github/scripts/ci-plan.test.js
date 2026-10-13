@@ -368,7 +368,7 @@ test('scope prints whether to run the code checks and the test suite', () => {
   assert.equal(main(['scope'], 'docs/playing.md\nCONTRIBUTING.md\n'), 'code=false\ntests=false');
   assert.equal(main(['scope'], 'docs/playing.md\nglobal.json\n'), 'code=true\ntests=true');
   assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/Screens/Main/Main.tscn\n'), 'code=true\ntests=false');
-  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs\n'), 'code=true\ntests=true');
+  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.Client.cs\n'), 'code=true\ntests=true');
 });
 
 test('the workflow also runs on merge-queue batches, which run everything', () => {
