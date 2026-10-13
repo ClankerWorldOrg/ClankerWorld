@@ -239,6 +239,30 @@ filter copies that licence into the game data. Do not edit the font file: the
 licence reserves the name Fusion Pixel for unmodified copies. The heading
 lettering, Timber, is drawn in code in `UI/Theme/TimberFont.cs`.
 
+## Testing model work
+
+Use `ModelWorkHarness.For(world)` for tests of the nonblocking tick. `TickAsync`
+commits one tick, then runs scheduled model work; it never admits a reply in
+that same tick. Pass `runPendingWork: false` to keep work registered without
+starting it, and call `RunPendingWork` when the test permits provider entry.
+`ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
+`Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
+provider gates keep reply completion independent of the thread pool.
+
+`SettleAsync` starts pending work and finishes returned wrappers while held
+calls remain held. `PendingModelWork` snapshots all four live queues, with the
+request and actual completion task. Observe registered, started and finished
+calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
+come from the live runtime. Admission includes its committed world tick. A
+refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
+for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
+
+The harness has its own proof tests. #1862 moves the existing proof fixtures
+onto it, and #1818 moves the remaining clock waits. New model tests use the
+harness and no reflection into runtime queues.
+
 ## Which checks to run
 
 | Change | Check |
@@ -468,8 +492,10 @@ self-contained `win-x64` world server in `server/` (`dotnet publish`, no .NET in
 needed on the player's PC), a short `README.txt`, a `package.json` naming its entry points
 (`{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}`)
 and a `manifest.sha256` of every file. The launcher and the game read the
-entry points from the version they check or start, so a newer package can
-move its programs without making an installed version look damaged; a
+entry points relative to the version's package root. When the game is in a
+subfolder, it finds the enclosing manifest that names its executable; local
+developer runs use the same root for the server and options marker. A newer
+package can move its programs without making an installed version look damaged; a
 version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
 commit, stages the server and version from committed inputs (excluding local
 edits), and checks that the server assembly carries the same version and commit,
@@ -720,3 +746,14 @@ the [playtest results procedure](../../playtest/README.md#keeping-the-list-curre
 Do not deploy, change credentials or modify the active playtest save just to
 run a check; that needs the owner's separate go-ahead. Use a disposable world
 for setup, placement and damaged-save cases.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.

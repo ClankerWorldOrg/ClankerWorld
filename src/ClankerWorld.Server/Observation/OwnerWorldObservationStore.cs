@@ -7,10 +7,9 @@ using ClankerWorld.Simulation.Kernel;
 namespace ClankerWorld.Server.Observation;
 
 /// <summary>
-/// Server-side projection of the world runtime and the fixture world. It converts the
-/// protected simulation records into stable view DTOs while retaining the
-/// distinction between the live fixture topology, cognition state, and paused
-/// authoring state.
+/// Server-side projection of the supported world runtime. It converts protected
+/// simulation records into stable owner views, including cognition and native
+/// world metadata.
 /// </summary>
 public sealed partial class OwnerWorldObservationStore
 {
@@ -244,7 +243,10 @@ public sealed partial class OwnerWorldObservationStore
                         HouseholdName(response.HouseholdId), response.AgentId, AgentName(response.AgentId), response.Kind, response.Tick,
                         response.PartyAdults.ToArray())).ToArray(), request.Status, request.SettledTick, request.Reason, request.Receipt?.AdjustmentId)
                 {
-                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity) : null,
+                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity)
+                    {
+                        ItemName = GoodsNameText.ForQuantity(price.ItemKind, price.Quantity, state.Content),
+                    } : null,
                     Payment = request.Receipt?.Payment is { } payment ? new(payment.BuyerAgentId, AgentName(payment.BuyerAgentId),
                         payment.SellerAgentId, AgentName(payment.SellerAgentId), ToPosition(payment.Position), request.Receipt.Tick) : null
                 };
@@ -603,7 +605,10 @@ public sealed partial class OwnerWorldObservationStore
                 .OrderBy(group => group.Key.Position.Y).ThenBy(group => group.Key.Position.X)
                 .ThenBy(group => group.Key.ItemKind, StringComparer.Ordinal).ThenBy(group => group.Key.OwnerId, StringComparer.Ordinal)
                 .Select(group => new GroundStockView(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
-                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))).ToArray(),
+                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))
+                {
+                    OwnerName = MarketOwnerName(group.Key.OwnerId),
+                }).ToArray(),
             WrapsEastWest = state.Geography?.WrapEastWest == true,
             Generation = state.Geography is { } geography
                 ? new WorldGenerationView(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),

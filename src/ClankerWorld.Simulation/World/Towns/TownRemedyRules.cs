@@ -5,16 +5,16 @@ public static class TownRemedyRules
 {
     public static string TermsHash(IReadOnlyList<TownRemedyTerm> terms, long completionTicks) =>
         TownHearingProcedure.Digest(new { Terms = terms, CompletionTicks = completionTicks });
-    internal static bool ValidTerm(TownRemedyTerm? term) => term is not null && TownHearingProcedure.Id(term.Id) &&
-        TownHearingProcedure.Id(term.ContributorId) && term.Quantity > 0 && (term.Kind switch
-        {
-            "return_goods" => TownHearingProcedure.Id(term.BeneficiaryId) && term.BeneficiaryId != term.ContributorId &&
-                TownHearingProcedure.Id(term.ItemKind) && (term.TargetId is null || TownHearingProcedure.Id(term.TargetId)),
-            "repair_equipment" => TownHearingProcedure.Id(term.TargetId) && term.Quantity == 1 && TownHearingProcedure.Id(term.ItemKind) &&
-                (term.BeneficiaryId is null || TownHearingProcedure.Id(term.BeneficiaryId)),
-            "public_service_goods" => TownHearingProcedure.Id(term.BeneficiaryId) && TownHearingProcedure.Id(term.ItemKind) && TownHearingProcedure.Id(term.TargetId),
-            _ => false,
-        });
+    internal static bool ValidTerm(TownRemedyTerm? term) => term is not null && IdentityRules.Reference(term.Id, int.MaxValue, requireTrimmed: true) &&
+IdentityRules.Reference(term.ContributorId, int.MaxValue, requireTrimmed: true) && term.Quantity > 0 && (term.Kind switch
+{
+    "return_goods" => IdentityRules.Reference(term.BeneficiaryId, int.MaxValue, requireTrimmed: true) && term.BeneficiaryId != term.ContributorId &&
+IdentityRules.Reference(term.ItemKind, int.MaxValue, requireTrimmed: true) && (term.TargetId is null || IdentityRules.Reference(term.TargetId, int.MaxValue, requireTrimmed: true)),
+    "repair_equipment" => IdentityRules.Reference(term.TargetId, int.MaxValue, requireTrimmed: true) && term.Quantity == 1 && IdentityRules.Reference(term.ItemKind, int.MaxValue, requireTrimmed: true) &&
+        (term.BeneficiaryId is null || IdentityRules.Reference(term.BeneficiaryId, int.MaxValue, requireTrimmed: true)),
+    "public_service_goods" => IdentityRules.Reference(term.BeneficiaryId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(term.ItemKind, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(term.TargetId, int.MaxValue, requireTrimmed: true),
+    _ => false,
+});
     internal static bool ValidTerms(IReadOnlyList<TownRemedyTerm>? terms) => terms is { Count: > 0 and <= 8 } &&
         terms.All(ValidTerm) && terms.Select(t => t.Id).Distinct(StringComparer.Ordinal).Count() == terms.Count;
     private static TownNonLandHearingState Replace(TownNonLandHearingState state, TownRemedyOffer offer) =>
@@ -35,7 +35,7 @@ public static class TownRemedyRules
         }
         var prior = replacesOfferId is null ? null : state.Offers.SingleOrDefault(o => o.Id == replacesOfferId && o.CaseId == caseId);
         if (finding is null || finding.Id != findingId || finding.Result != "supported" || !feasible || !ValidTerms(terms) ||
-            !TownHearingProcedure.Text(reason) || !TownHearingProcedure.Id(noticeId) || completionTicks <= 0 || day <= 0 || tick < finding.Tick ||
+            !BoundedText.IsValid(reason, 1024, requireTrimmed: true) || !IdentityRules.Reference(noticeId, int.MaxValue, requireTrimmed: true) || completionTicks <= 0 || day <= 0 || tick < finding.Tick ||
             (prior is null ? finding.Judge.AgentId != author && !item!.Revisions[^1].Parties.Any(p => p.SubjectId == author || p.RespondingAdultId == author) || replacesOfferId is not null :
                 prior.Status is not ("countered" or "accepted") || !prior.Terms.Any(t => t.ContributorId == author)) ||
             !TownNonLandRules.ReadCurrent(item!, author, tick) ||
@@ -54,7 +54,7 @@ public static class TownRemedyRules
         var offer = state.Offers.SingleOrDefault(o => o.Id == offerId && o.Revision == revision && o.Status == "pending");
         if (offer is null || tick < offer.PublishedTick || tick >= offer.ResponseDeadlineTick || day <= 0 ||
             kind is not ("accept" or "decline" or "counter") || !offer.Terms.Any(t => t.ContributorId == actor) ||
-            offer.Responses.Any(r => r.AgentId == actor) || reason is not null && !TownHearingProcedure.Text(reason) ||
+            offer.Responses.Any(r => r.AgentId == actor) || reason is not null && !BoundedText.IsValid(reason, 1024, requireTrimmed: true) ||
             !TownHearingProcedure.HasNotice(offer.NoticeId, offer.PublishedTick, actor, tick, receipts) || kind == "accept" && !feasible)
             throw new InvalidOperationException("Respond personally to the current offer after learning it; consent cannot promise impossible contributions.");
         offer = offer with { Responses = offer.Responses.Append(new(actor, revision, offer.TermsHash, kind, tick, offer.NoticeId, reason)).ToArray() };
@@ -95,8 +95,8 @@ public static class TownRemedyRules
         var agreement = state.Agreements.SingleOrDefault(a => a.Id == effect.AgreementId);
         var term = agreement?.Terms.SingleOrDefault(t => t.Id == effect.TermId);
         if (agreement is null || term is null || IsSuperseded(state, agreement.Id) || agreement.Status == "completed" ||
-            !TownHearingProcedure.Id(effect.Id) || !TownHearingProcedure.Id(effect.NativeReceiptId) ||
-            !TownHearingProcedure.Id(effect.NativeReceiptVersion) || effect.Tick < agreement.AcceptedTick || effect.Quantity <= 0 ||
+            !IdentityRules.Reference(effect.Id, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(effect.NativeReceiptId, int.MaxValue, requireTrimmed: true) ||
+            !IdentityRules.Reference(effect.NativeReceiptVersion, int.MaxValue, requireTrimmed: true) || effect.Tick < agreement.AcceptedTick || effect.Quantity <= 0 ||
             effect.ActorId != term.ContributorId || effect.Kind != term.Kind || effect.BeneficiaryId != term.BeneficiaryId ||
             effect.ItemKind != term.ItemKind || effect.TargetId != term.TargetId ||
             state.Effects.Any(e => e.Id == effect.Id || e.NativeReceiptId == effect.NativeReceiptId) ||

@@ -647,6 +647,12 @@ agent ID. A valid long-seed newborn can bind both roles, including when
 reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
+Shutdown completes pending newborn bindings in installation provider storage
+before acknowledging a saved world. Frozen bindings are staged before a prepared
+birth becomes visible, so shutdown during tick publication retains the original key.
+A failed binding refuses shutdown for a
+paused retry, retaining the frozen original default key even if that default
+changes. Key bytes never enter the world checkpoint; its format is unchanged.
 
 Schema 50 saves an unresolved dependent-guardian search, including its current
 relative, household or Town stage, start tick and offered adults. Each stage
@@ -2108,6 +2114,21 @@ unchanged, and model routing and autosave choices match. Browsing running
 autosaves therefore does not create empty branches, while a missing or damaged
 checkpoint cannot replace a recovery copy. If loading fails, the branch record
 is restored along with the world.
+
+A manual load first records a private `pending-load.json` intent in `.manual`,
+naming the selected save, its before-load copy, effective autosave settings and
+the previous timeline. The intent stays until checkpoint, model assignments,
+autosave settings and loaded timeline all commit. Startup finishes that intent
+before opening the active world, including loads within the same world. If a
+load fails, its intent switches to rollback before restoring the before-load
+copy; an interrupted rollback therefore resumes in the same direction. The
+source snapshots remain unchanged. While its intent is pending, the shared save
+mutation gate refuses snapshot changes and world switching, including requests
+already admitted before shutdown. An unfinished live rollback stops the host;
+an unreadable intent or failed recovery stops startup and preserves the files.
+Include this intent in an installation
+backup; older binaries cannot resolve it, so complete recovery before rollback.
+No world schema or replay event changes.
 
 The branch record is written before a new save's metadata is published, so an
 interruption leaves it pointing at an unlisted save whose position still keeps the

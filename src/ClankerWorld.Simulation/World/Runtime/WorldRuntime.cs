@@ -142,9 +142,13 @@ public sealed partial class WorldRuntime : IDisposable
         int maxCognitionQueueLength = 64,
         int maxCognitionDispatchPerCycle = 4,
         WorldStartPace startPace = WorldStartPace.Legacy,
-        GeographyOptions? geographyOptions = null)
+        GeographyOptions? geographyOptions = null,
+        IModelWorkScheduler? modelWorkScheduler = null,
+        IModelWorkObserver? modelWorkObserver = null,
+        TimeProvider? timeProvider = null)
         : this(worldSeed, providerFactory, maxCognitionQueueLength, maxCognitionDispatchPerCycle, startPace, geographyOptions, preparedMap: null)
     {
+        ConfigureModelWork(modelWorkScheduler ?? ThreadPoolModelWorkScheduler.Instance, modelWorkObserver, timeProvider);
     }
 
     private WorldRuntime(
@@ -328,8 +332,15 @@ public sealed partial class WorldRuntime : IDisposable
     public static WorldRuntime Restore(
         WorldRuntimeState state,
         Func<string, IDecisionProvider>? providerFactory = null,
-        int maxCognitionDispatchPerCycle = 4)
-        => RestoreCore(state, providerFactory, maxCognitionDispatchPerCycle, trustedPreparedState: false);
+        int maxCognitionDispatchPerCycle = 4,
+        IModelWorkScheduler? modelWorkScheduler = null,
+        IModelWorkObserver? modelWorkObserver = null,
+        TimeProvider? timeProvider = null)
+    {
+        var runtime = RestoreCore(state, providerFactory, maxCognitionDispatchPerCycle, trustedPreparedState: false);
+        runtime.ConfigureModelWork(modelWorkScheduler ?? ThreadPoolModelWorkScheduler.Instance, modelWorkObserver, timeProvider);
+        return runtime;
+    }
 
     private static WorldRuntime RestoreCore(
         WorldRuntimeState state,

@@ -657,7 +657,7 @@ public static partial class SocietyRules
         foreach (var score in scores)
         {
             ArgumentNullException.ThrowIfNull(score);
-            if (!IsCanonicalBoundedText(score.SourceId, 128) || !Enum.IsDefined(score.Kind) ||
+            if (!BoundedText.IsValid(score.SourceId, 128, requireTrimmed: true) || !Enum.IsDefined(score.Kind) ||
                 score.SourceTick < 0 || score.SourceTick > checkpoint.WorldTick ||
                 score.ImportanceBasisPoints is < 0 or > 10_000 ||
                 score.ImportanceConfidenceBasisPoints is < 0 or > 10_000)
@@ -1249,7 +1249,7 @@ public static partial class SocietyRules
             if (!memory.Permanent || !checkpoint.Agents.Any(person => person.Id == memory.OwnerId) || memory.SubjectId != memory.OwnerId ||
                 memory.Visibility != "private" || memory.TombstonedTick is not null ||
                 memory.SourceTick < 0 || memory.SourceTick > checkpoint.WorldTick ||
-                !IsCanonicalBoundedText(memory.Summary, 256))
+                !BoundedText.IsValid(memory.Summary, 256, requireTrimmed: true))
                 throw new InvalidDataException("A permanent personal memory must retain its owner, source date and private contents.");
         }
         ValidateAgentBeliefs(checkpoint);
@@ -1380,7 +1380,7 @@ public static partial class SocietyRules
 
             foreach (var source in compaction.Sources)
             {
-                if (!IsCanonicalBoundedText(source.SourceId, 128) || !Enum.IsDefined(source.Kind) ||
+                if (!BoundedText.IsValid(source.SourceId, 128, requireTrimmed: true) || !Enum.IsDefined(source.Kind) ||
                     source.SourceTick < 0 || source.SourceTick > checkpoint.WorldTick ||
                     source.AssessedTick < source.SourceTick || source.AssessedTick > checkpoint.WorldTick ||
                     source.ImportanceBasisPoints is < 0 or > 10_000 ||
@@ -1407,16 +1407,16 @@ public static partial class SocietyRules
         bool allowSupersedes,
         SocietyBeliefValidationIndex? index = null)
     {
-        if (!IsSafeBeliefId(belief.Id) || string.IsNullOrWhiteSpace(belief.OwnerId) ||
+        if (!IdentityRules.Belief(belief.Id) || string.IsNullOrWhiteSpace(belief.OwnerId) ||
             belief.OwnerId != belief.OwnerId.Trim() || belief.OwnerId.Any(char.IsControl) ||
-            !IsCanonicalBoundedText(belief.Statement, 512) ||
+            !BoundedText.IsValid(belief.Statement, 512, requireTrimmed: true) ||
             belief.Statement.Any(char.IsControl) || !Enum.IsDefined(belief.Provenance) || !Enum.IsDefined(belief.Kind) ||
             belief.ConfidenceBasisPoints is < 0 or > 10_000 || belief.FormedTick < 0 ||
             belief.FormedTick > checkpoint.WorldTick || belief.SourceEventId is <= 0 ||
-            belief.SourceTurnId is { } sourceTurnId && !IsCanonicalBoundedText(sourceTurnId, 600) ||
+            belief.SourceTurnId is { } sourceTurnId && !BoundedText.IsValid(sourceTurnId, 600, requireTrimmed: true) ||
             belief.SupersededTick is < 0 || belief.SupersededTick > checkpoint.WorldTick ||
-            belief.SupersededByBeliefId is { } superseding && !IsSafeBeliefId(superseding) ||
-            belief.SupersedesBeliefId is { } superseded && !IsSafeBeliefId(superseded))
+            belief.SupersededByBeliefId is { } superseding && !IdentityRules.Belief(superseding) ||
+            belief.SupersedesBeliefId is { } superseded && !IdentityRules.Belief(superseded))
             throw new InvalidDataException("An agent belief has invalid bounded fields.");
 
         index ??= new SocietyBeliefValidationIndex(checkpoint);
@@ -1462,16 +1462,6 @@ public static partial class SocietyRules
             throw new ArgumentOutOfRangeException(nameof(statement), "A belief must be bounded single-line text.");
         return normalized;
     }
-
-    private static bool IsCanonicalBoundedText(string? value, int maximumLength) =>
-        value is { Length: > 0 } && value.Length <= maximumLength &&
-        value == value.Trim() && !value.Any(char.IsControl);
-
-    // Belief IDs appear in operational telemetry. Keep caller-provided prose
-    // and other private content out of this identifier channel.
-    private static bool IsSafeBeliefId(string? value) =>
-        IsCanonicalBoundedText(value, DerivedId.MaximumLength) &&
-        value!.All(character => char.IsAsciiLetterOrDigit(character) || character is ':' or '-' or '_');
 
     /// <summary>
     /// Only an accepted will carries heirs and an exact plan that covers every

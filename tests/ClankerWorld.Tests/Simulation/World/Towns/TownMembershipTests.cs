@@ -855,7 +855,7 @@ public sealed partial class TownMembershipTests
         return (state with { Towns = [town with { Council = governance, Admissions = [record] }] }, newcomer, governance.Proposals[^1].Id);
     }
 
-    private static string Founder(int number) => $"founder:{number:D32}";
+    private static string Founder(int number) => NormalPathWorld.FounderId(number);
 
     private static string NewAgentId() => "agent:" + Guid.NewGuid().ToString("N");
 

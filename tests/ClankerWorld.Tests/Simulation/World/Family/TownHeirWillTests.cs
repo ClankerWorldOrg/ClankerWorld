@@ -22,7 +22,7 @@ public sealed class TownHeirWillTests
         using var client = new HttpClient(handler);
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
-        const string deceasedId = "founder:00000000000000000000000000000001";
+        const string deceasedId = NormalPathWorld.Founder1;
         IDecisionProvider Provider(string id) => id == deceasedId ? model : new DeterministicDecisionProvider();
         using var generated = NormalPathWorld.CreateGenerated("will-town-heir", Provider);
         var state = generated.ExportState();
@@ -132,7 +132,7 @@ public sealed class TownHeirWillTests
         using var client = new HttpClient(handler);
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
-        const string deceasedId = "founder:00000000000000000000000000000001";
+        const string deceasedId = NormalPathWorld.Founder1;
         IDecisionProvider Provider(string id) => id == deceasedId ? model : new DeterministicDecisionProvider();
         using var generated = NormalPathWorld.CreateGenerated("will-town-cart", Provider);
         var state = generated.ExportState();

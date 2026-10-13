@@ -1738,7 +1738,8 @@ cannot write a summary. The server rechecks the batch and attribution before
 applying an awaited reply. No original record is deleted or replaced.
 
 Saved owner-private summaries compete with active source records for the same
-four-excerpt recall budget. Each recalled summary includes bounded source
+four-excerpt recall budget, including the deceased agent's final will request.
+Each recalled summary includes bounded source
 attribution: subject, firsthand/hearsay/inference, confidence, speaker, event and
 correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
@@ -4357,7 +4358,7 @@ position and household authorization, and moves the cart with each admitted
 legal cardinal step. Ground cart contents never become carried recipe inputs,
 fuel, planting seeds or equipped gear. Loading a partial quantity preserves
 the untouched remainder's original location and reservations.
-Shared edible food follows the Council's existing collection policy at both
+Shared edible food follows the current household-food access rule at both
 choice generation and execution. Under hungry-members-first access, a healthy
 loader can take only the shared surplus above the protected serving reserve.
 The same allowance determines ordinary collection permission and caps a bulk

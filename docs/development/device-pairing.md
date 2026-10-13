@@ -358,9 +358,16 @@ The game does this itself when the `package.json` in its folder names a world
 server that is there, and no `--server-url` argument is given (`LocalServer`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
-apart from a server pairing. Before starting the server it checks the port: a
-running server of the exact same version and source revision, started by an
-earlier launch, is reused only after a side-effect-free `GET /api/v1/approval/launch-check`
+apart from a server pairing. The game holds an exclusive per-installation
+`server/startup.lock` handle from the port check through launch and readiness.
+An overlapping game refuses startup
+before changing the secret or logs. The empty lock file stays in place; process
+exit releases its handle, so a crash leaves no stale lock. A failed launch
+restores the prior secret, and cancellation finishes its own starting child's
+stop attempt before releasing the handle. An explicitly refused shutdown keeps
+the server and its paused world available for retry. A running server of the exact same version and
+source revision, started by an earlier launch, is reused only after a
+side-effect-free `GET /api/v1/approval/launch-check`
 confirms the secret already in its file on the approval listener. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
@@ -374,9 +381,10 @@ Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
 `POST /api/v1/approval/shutdown` exists only on a local server. It
-pauses the world, cancels model work and writes its checkpoint before
-returning 202. The response completion callback requests process exit, so server
-teardown follows the acknowledgement. If writing fails, it returns 503 and
+pauses the world, cancels model work, saves pending newborn model bindings in
+provider storage and writes its checkpoint before returning 202. The response
+completion callback requests process exit, so server teardown follows the
+acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
 returns 409 without rewriting the refused checkpoint. Whenever a world
 server stops, it waits for the tick loop to finish and writes a final checkpoint
