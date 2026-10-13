@@ -316,7 +316,7 @@ public sealed partial class TownMembershipTests
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var factor = Assert.Single(snapshot.Agents.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
         Assert.Equal(expected, factor.AcceptanceDeadlineTick);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, AdmissionJsonOptions), AdmissionJsonOptions)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, AdmissionJsonOptions), AdmissionJsonOptions)!;
         var clientFactor = Assert.Single(client.Agents.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
         Assert.Equal(expected, clientFactor.AcceptanceDeadlineTick);
         Assert.Equal(factor.Detail, clientFactor.Detail);

@@ -2,13 +2,11 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
-using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.Protocol;
+namespace ClankerWorld.Contracts;
 
-// These client-owned DTOs mirror the public owner projection. Keeping them in
-// the Godot project prevents the renderer from taking a project reference on
-// the authoritative server or simulation assemblies.
+// The server and game compile this same wire contract. Runtime and renderer
+// code stay outside it; server-only factories live beside their projections.
 public sealed record OwnerDeletionAction(string Kind, string Id, string WorldId, DateTimeOffset? ExpectedCreatedUtc = null);
 public sealed record OwnerDeletionReceipt(string Id, bool CleanupComplete);
 public sealed record OwnerRecoveryCleanupAction(string Operation, string WorldId, int KeepCount, string? ExpectedDigest = null);
@@ -45,6 +43,7 @@ public sealed record OwnerWorldAnimal(string Id, string Name, string Species, st
     int? ProductProgressPercent = null)
 {
     /// <summary>A sheep in a household looks shorn for the first half of each wool cycle; a wild sheep stays woolly.</summary>
+    [JsonIgnore]
     public bool LooksShorn => Species == "sheep" && LifeStage == "adult" && ProductProgressPercent is < 50;
 }
 
@@ -58,6 +57,7 @@ public sealed record OwnerWorldConstructionSite(string Id, string DefinitionId, 
     /// staked-out site until a third of the work is done, then the frame, then
     /// the walls with the roof half on from two thirds.
     /// </summary>
+    [JsonIgnore]
     public int DrawnStage => WorkRequired <= 0 || WorkDone * 3 < WorkRequired ? 1 : WorkDone * 3 < WorkRequired * 2 ? 2 : 3;
 }
 
@@ -106,7 +106,10 @@ public sealed record OwnerWorldPlannedRoute(
     string Reason,
     OwnerWorldPosition Destination,
     IReadOnlyList<OwnerWorldPosition> Steps,
-    int StepCount);
+    int StepCount)
+{
+    public const int StepLimit = 256;
+}
 
 public sealed record OwnerWorldSpatialKnowledge(
     OwnerWorldPosition CurrentTile,
@@ -190,6 +193,7 @@ public sealed record OwnerWorldTown(
     IReadOnlyList<string> AssignedBuildingIds,
     IReadOnlyList<OwnerWorldPosition> BorderTiles)
 {
+    [JsonIgnore]
     public bool IsAbandoned => FoundingState == "founded" && ResidentIds.Count == 0;
 
     /// <summary>An abandoned Town that has stood empty for a full season; its buildings look falling apart.</summary>
@@ -386,7 +390,7 @@ public sealed record OwnerWorldAgent(
     public string? ToolMakingRequestNote { get; init; }
     public OwnerWorldLesson? Lesson { get; init; }
     public OwnerWorldProficiency? Proficiency { get; init; }
-    public IReadOnlyList<OwnerWorldSkill>? Skills { get; init; }
+    public IReadOnlyList<OwnerWorldSkill> Skills { get; init; } = [];
     public IReadOnlyList<OwnerWorldSocialStanding> SocialStanding { get; init; } = [];
 
     public IReadOnlyList<string> SocialNotes { get; init; } = [];
@@ -737,14 +741,15 @@ public sealed record OwnerWorldCreationAction(string Name, string Seed, string S
     string MountainRelief = "Normal", string RiverAbundance = "Normal",
     int? CandidateAttempt = null, string? ExpectedManifestDigest = null,
     string? ExpectedMapLayersDigest = null, bool AcceptUnmetTargets = false);
-public sealed record CatalogWorld(string Id, string Name, string WorldId, string Seed,
+public sealed partial record CatalogWorld(string Id, string Name, string WorldId, string Seed,
     DateTimeOffset UpdatedUtc, IReadOnlyList<AgentProviderAssignment> Assignments,
     WorldAutosaveSettings? AutosaveSettings, string Compatibility = "unknown",
-    string? CompatibilityReason = null, WorldThumbnail? Thumbnail = null,
-    string? GameVersion = null, string? SourceRevision = null);
+    string? CompatibilityReason = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorldThumbnail? Thumbnail = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
 /// <summary>A small picture of a world's terrain for the Load World list, packed like the world's own terrain.</summary>
-public sealed record WorldThumbnail(int Width, int Height, string Encoding, string Data);
-public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds);
+public sealed partial record WorldThumbnail(int Width, int Height, string Encoding, string Data);
+public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CatalogWorld>? PendingDeletions = null);
 public sealed record OwnerWorldPreview(OwnerWorldPackedTerrain Terrain, OwnerWorldPosition StartingSite,
     string ManifestDigest, int ResourceSites = 0)
 {
@@ -780,7 +785,7 @@ public sealed record OwnerWorldCandidateReport(int Attempt, int DryLandTiles, in
 public sealed record ManualWorldSave(string Id, string Name, DateTimeOffset CreatedUtc, long WorldTick,
     bool IsAutosave = false, SaveBranch? Branch = null, string? ContinuedFromId = null,
     DateTimeOffset? ContinuedFromCreatedUtc = null, long BranchPosition = 0,
-    string? GameVersion = null, string? SourceRevision = null);
+    [property: JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null, [property: JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
 /// <summary>One version of a world's history; saves from before branches have none.</summary>
 public sealed record SaveBranch(string Id, int Number, string? StartedFromId = null,
     string? StartedFromName = null, long? StartedFromTick = null);
@@ -1031,7 +1036,7 @@ public sealed record OwnerProductionStartResult(
     string RecipeId,
     string? Failure);
 
-public sealed record OwnerControlReceipt(
+public sealed partial record OwnerControlReceipt(
     string Operation,
     bool Changed,
     bool IsPaused,
@@ -1061,7 +1066,7 @@ public sealed record OwnerAuthoringBatchReceipt(
     long TopologyRevision,
     string CurrentMapManifestDigest);
 
-public sealed record OwnerContentPackageReceipt(
+public sealed partial record OwnerContentPackageReceipt(
     string Operation,
     bool Applied,
     string PackageId,

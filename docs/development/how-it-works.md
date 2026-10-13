@@ -21,6 +21,15 @@ tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
 host's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
+The server and game compile the same records from
+`ClankerWorld.Shared/Contracts`. Server-only partial record members keep native
+projection and thumbnail factories beside server code. The server's former
+view names are aliases to those records; the game has no separate DTO copy.
+Rendering conveniences are excluded from JSON. A strict round-trip check fills
+every wire record and reads it through the actual game assembly, comparing the
+complete JSON and refusing an unmapped field. This contract belongs to the game
+and world server of the same build; it changes no saved world schema.
+
 ## Derived identities
 
 `DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other

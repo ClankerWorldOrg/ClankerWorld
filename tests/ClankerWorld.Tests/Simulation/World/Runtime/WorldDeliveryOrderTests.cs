@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -64,7 +65,7 @@ public sealed partial class WorldDeliveryOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldOrderTask>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldOrderTask>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal(("cloth", "house", "goods_items", 2),
             (client.TargetItemKind, client.TargetBuildingKind, client.ProgressUnit, client.CompletedUnits));

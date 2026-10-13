@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -53,7 +54,7 @@ public sealed class KnowledgeOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldOrderTask>(JsonSerializer.Serialize(projected, json), json)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldOrderTask>(JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "artifacts", 1), (client.TargetKnowledgeKind, client.ProgressUnit, client.CompletedUnits));
         AssertReload(final);
     }

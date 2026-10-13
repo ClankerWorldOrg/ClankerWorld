@@ -169,7 +169,7 @@ public sealed class LearningTests
             Assert.Equal("building", wireLesson.GetProperty("role").GetString());
             Assert.False(wireLesson.TryGetProperty("skill", out _));
         }
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(wire, options)!;
+        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(wire, options)!;
         Assert.Equal("building", client.Agents.Single(person => person.Id == learner).Lesson!.Skill);
         Assert.Equal(skill.TeacherId, Assert.Single(client.Agents.Single(person => person.Id == learner).Skills!).TeacherId);
         using var completedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(restored.ExportState())));

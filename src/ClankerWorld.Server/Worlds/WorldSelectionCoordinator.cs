@@ -264,6 +264,13 @@ public sealed class WorldSelectionCoordinator(
     /// <summary>Compatibility of a world that another game version can open.</summary>
     public const string OtherVersion = "other_version";
 
+    private static OwnerWorldCandidateReport CandidateReport(GeographyCandidateReport report) => new(
+        report.Attempt, report.DryLandTiles, report.ForestTiles, report.MountainTiles,
+        report.ForestPercent, report.MountainPercent, report.ForestRegionCount,
+        report.LargestForestRegion, report.MountainRegionCount, report.LargestMountainRegion,
+        report.ForestTargetApplicable, report.MountainTargetApplicable,
+        report.ForestTargetMet, report.MountainTargetMet);
+
     public WorldPreviewView Preview(GeographyOptions geography)
     {
         ArgumentNullException.ThrowIfNull(geography);
@@ -285,9 +292,9 @@ public sealed class WorldSelectionCoordinator(
             {
                 PackedMapLayers = OwnerWorldObservationStore.PackMapLayers(map, geography.Seed),
                 MapLayersDigest = MapLayerManifestCodec.Digest(map),
-                Coverage = selection.Selected,
-                Candidates = selection.Candidates,
-                FailedCandidates = selection.FailedCandidates,
+                Coverage = CandidateReport(selection.Selected),
+                Candidates = selection.Candidates.Select(CandidateReport).ToArray(),
+                FailedCandidates = selection.FailedCandidates.Select(item => new OwnerWorldCandidateFailure(item.Attempt, item.Reason)).ToArray(),
             };
         }
     }

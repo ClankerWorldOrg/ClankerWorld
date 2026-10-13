@@ -7,8 +7,7 @@ using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Saves;
 
-public sealed record RecoveryCleanupPreview(string WorldId, int KeepCount, string Digest,
-    IReadOnlyList<ManualWorldSave> Remove, IReadOnlyList<ManualWorldSave> Keep);
+
 
 public sealed partial class ManualWorldSaveStore
 {

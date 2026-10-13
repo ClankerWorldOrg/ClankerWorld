@@ -412,7 +412,7 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         return Assert.Single(Assert.Single(client.Towns).LandTransfers);
     }
 }
