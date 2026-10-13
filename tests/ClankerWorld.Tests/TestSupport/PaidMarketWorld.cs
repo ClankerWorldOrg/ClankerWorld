@@ -47,10 +47,13 @@ internal static class PaidMarketWorld
     internal static GridPoint StallTile(WorldRuntimeState state, int slot) => MarketContent.StallSite(Market(state).Site, slot);
 
     internal static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = MarketStockHolds.Update(inventory, state.Towns!) } } };
 
-    internal static WorldRuntimeState WithMarket(WorldRuntimeState state, Func<TownMarketState, TownMarketState> change) =>
-        state with { Towns = state.Towns!.Select(town => town with { Markets = town.Markets.Select(change).ToArray() }).ToArray() };
+    internal static WorldRuntimeState WithMarket(WorldRuntimeState state, Func<TownMarketState, TownMarketState> change)
+    {
+        var updated = state with { Towns = state.Towns!.Select(town => town with { Markets = town.Markets.Select(change).ToArray() }).ToArray() };
+        return WithInventory(updated, updated.Society.Society.Inventory);
+    }
 
     internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position) => state with
     {

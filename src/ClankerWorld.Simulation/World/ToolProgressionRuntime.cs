@@ -119,7 +119,7 @@ public sealed partial class WorldRuntime
                 if (tool.Quantity > 1)
                 {
                     wornToolLotId = UsedToolLotId(tool.Id, WorldTick, actor);
-                    updated = InventoryAuthority.SplitLot(updated, tool.Id, 1, wornToolLotId);
+                    updated = InventoryAuthority.SplitLot(updated, tool.Id, 1, wornToolLotId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 }
             }
 
@@ -134,7 +134,7 @@ public sealed partial class WorldRuntime
                     deliveryBuildingId);
             }
             if (wornToolLotId is not null && plan.WearLossBasisPoints > 0)
-                updated = InventoryAuthority.WearSingleUnit(updated, wornToolLotId, plan.WearLossBasisPoints);
+                updated = InventoryAuthority.WearSingleUnit(updated, wornToolLotId, plan.WearLossBasisPoints, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             return updated;
         });
     }
@@ -159,9 +159,9 @@ public sealed partial class WorldRuntime
             if (lot.Quantity > 1)
             {
                 usedLotId = UsedToolLotId(lot.Id, tick, actor);
-                updated = InventoryAuthority.SplitLot(updated, lot.Id, 1, usedLotId);
+                updated = InventoryAuthority.SplitLot(updated, lot.Id, 1, usedLotId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             }
-            updated = InventoryAuthority.WearSingleUnit(updated, usedLotId, plan.WearLossBasisPoints);
+            updated = InventoryAuthority.WearSingleUnit(updated, usedLotId, plan.WearLossBasisPoints, holdAccess: InventoryHoldRules.BorrowedBy(actor));
         }
         return updated;
     }
@@ -370,7 +370,7 @@ public sealed partial class WorldRuntime
             if (currentTool.Quantity > 1)
             {
                 repairId = RepairedToolLotId(currentTool.Id, WorldTick, actor);
-                updated = InventoryAuthority.SplitLot(updated, currentTool.Id, 1, repairId);
+                updated = InventoryAuthority.SplitLot(updated, currentTool.Id, 1, repairId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             }
 
             foreach (var input in materialNeeds)
@@ -387,15 +387,15 @@ public sealed partial class WorldRuntime
                     // Repairing a borrowed household tool, the member gives their materials to the household.
                     var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ResourceId);
                     updated = InventoryAuthority.Transfer(updated, giftId, actor, currentTool.OwnerId, material.Id,
-                        input.Amount, "equipment_repair_materials");
+                        input.Amount, "equipment_repair_materials", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     if (input.Amount < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");
                 }
                 updated = InventoryAuthority.Reserve(updated, reservationId, currentTool.OwnerId, materialId,
-                    input.Amount, "equipment_repair", checked(WorldTick + 1));
+                    input.Amount, "equipment_repair", checked(WorldTick + 1), holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 reservations.Add(reservationId);
             }
 
-            return InventoryAuthority.RepairSingleUnit(updated, repairId, 10_000, reservations);
+            return InventoryAuthority.RepairSingleUnit(updated, repairId, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
         });
         RecordNonLandRepairCompletion(actor, tool, repairId,
             $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations);

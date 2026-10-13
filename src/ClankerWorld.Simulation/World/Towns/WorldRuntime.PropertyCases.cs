@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
         foreach (var lot in prior.SharedLots.Where(lot => lot.ContainerLotId is null))
             inventory = InventoryAuthority.Transfer(inventory, ruling.Id + ":" + lot.Id, lot.OwnerId, recipient, lot.Id,
                 lot.Quantity, "noticed Town property ruling", destinationStorageBuildingId: lot.StorageBuildingId,
-                destinationGroundPosition: lot.GroundPosition);
+                destinationGroundPosition: lot.GroundPosition, holdAccess: InventoryHoldRules.Family(InventoryIndex.For(inventory), lot));
         ApplyInventoryTransition(_ => inventory);
         worldSimulation = worldSimulation with
         {

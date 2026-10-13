@@ -22,7 +22,6 @@ public sealed partial class WorldRuntime
         var actor = request.Actor!;
         if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         var root = index.Root(lot);
-        if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
         if (request.Use == GoodsUse.StorePersonal)
         {
             // Storing physical property keeps damage/spoilage, just as relocation
@@ -37,7 +36,6 @@ public sealed partial class WorldRuntime
         }
         // Sale stock on a borrowed stall remains available to its actual seller;
         // the Market caller still validates the exact live occupancy and stock receipt.
-        if (request.Use == GoodsUse.Spend && OnBorrowedMarketStall(root)) return GoodsReason.MarketStall;
         return null;
     }
 }

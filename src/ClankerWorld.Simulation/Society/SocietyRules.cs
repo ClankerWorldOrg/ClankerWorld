@@ -896,7 +896,8 @@ public static partial class SocietyRules
                     : $"birth:{request.Id}:food:{index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture)}");
                 reservationIds[index] = reservationId;
                 inventory = InventoryAuthority.Reserve(inventory, reservationId, sources[index].OwnerId,
-                    food[index].LotId, food[index].Quantity, $"birth:{request.Id}", checkpoint.WorldTick);
+                    food[index].LotId, food[index].Quantity, $"birth:{request.Id}", checkpoint.WorldTick,
+                    holdAccess: [new(InventoryHoldPurpose.Borrowed, firstParent.Id), new(InventoryHoldPurpose.Borrowed, secondParent.Id)]);
             }
             foreach (var reservationId in reservationIds)
                 inventory = InventoryAuthority.ConsumeReservation(inventory, reservationId);

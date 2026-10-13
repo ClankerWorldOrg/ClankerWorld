@@ -79,7 +79,7 @@ internal sealed partial class FarmingSystem
         var lot = inventory.GetLot(lotId);
         if (lot.Quantity == 1) return lot.Id;
         var isolatedId = WorldRuntime.FarmingSharedRules.FieldToolLotId(lot.Id, position, world.WorldTick, workerId);
-        world.ApplyInventoryTransition(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId));
+        world.ApplyInventoryTransition(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId, holdAccess: InventoryHoldRules.BorrowedBy(workerId)));
         return isolatedId;
     }
 

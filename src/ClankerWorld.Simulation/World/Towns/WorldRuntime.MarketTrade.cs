@@ -23,13 +23,9 @@ public sealed partial class WorldRuntime
     private IEnumerable<GridPoint> MarketSiteTiles() => Ground.MarketSites;
 
     /// <summary>Household goods stay on sale while one of the household's members borrows the stall they lie on.</summary>
-    private bool OnBorrowedMarketStall(InventoryLot lot) => OnBorrowedMarketStall(lot, towns);
-
-    private static bool OnBorrowedMarketStall(InventoryLot lot, IReadOnlyList<TownRuntimeState> townStates) => lot.GroundPosition is { } ground &&
-        townStates.Any(town => town.Markets.Any(market => market.Occupancies.Any(occupancy =>
-            occupancy.EndedTick is null && occupancy.SellerHouseholdId == lot.OwnerId &&
-            market.Stalls.Any(stall => stall.BuildingId == occupancy.StallBuildingId &&
-                MarketContent.StallSite(market.Site, stall.SlotIndex) == new GridPoint(ground.X, ground.Y)))));
+    private bool OnBorrowedMarketStall(InventoryLot lot) =>
+        InventoryHoldRules.For(InventoryIndex.For(society.Checkpoint.Inventory), lot)
+            .Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall);
 
     private bool MarketAdult(string actor) => IsAdult(actor) &&
         society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active;
@@ -44,6 +40,7 @@ public sealed partial class WorldRuntime
     {
         var town = towns.Single(item => item.Id == townId);
         SetTown(town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
+        ApplyInventoryTransition(inventory => MarketStockHolds.Update(inventory, towns));
     }
 
     private bool LiveMarketStall(TownRuntimeState town, TownMarketState market, MarketStallState stall) =>
@@ -358,7 +355,7 @@ public sealed partial class WorldRuntime
             case "collect":
                 ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
                     MarketTradeRules.Identity("market-pickup:", actor, id, WorldTick.ToString(CultureInfo.InvariantCulture)),
-                    choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor));
+                    choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                 AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
                     $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", destination);
                 break;
@@ -395,7 +392,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var next = InventoryAuthority.Relocate(inventory, operation, lot.Id, lot.OwnerId, choice.Quantity,
-                groundPosition: new(position.X, position.Y));
+                groundPosition: new(position.X, position.Y), holdAccess: InventoryHoldRules.BorrowedBy(actor));
             eventId = next.Events[^1].EventId;
             return next;
         });
@@ -422,7 +419,8 @@ public sealed partial class WorldRuntime
             choice.Market.Trades.Count.ToString(CultureInfo.InvariantCulture));
         ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
             InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1, choice.Lot.OwnerId, buyer,
-                choice.Lot.Id, 1, choice.Payment.Id, 1, WorldTick + MarketTradeRules.OfferLifetimeTicks)),
+                choice.Lot.Id, 1, choice.Payment.Id, 1, WorldTick + MarketTradeRules.OfferLifetimeTicks),
+                holdAccess: [new(InventoryHoldPurpose.MarketStall, occupancy.Id)]),
             id, 1, buyer));
         var trade = new MarketTradeState(id, occupancy.Id, choice.Stall.BuildingId, seller,
             choice.Lot.OwnerId, owner, buyer, position, WorldTick, choice.Lot.ItemKind, choice.Payment.ItemKind)
@@ -499,12 +497,13 @@ public sealed partial class WorldRuntime
         {
             var settled = InventoryAuthority.AcceptDirectBarterOffer(inventory, offer.Id, offer.Revision, trade.GoodsOwnerId);
             settled = InventoryAuthority.Relocate(settled, offer.Id + ":collect", goodsId, trade.BuyerId,
-                offer.FirstQuantity, carrierId: trade.BuyerId);
+                offer.FirstQuantity, carrierId: trade.BuyerId,
+                holdAccess: [new(InventoryHoldPurpose.MarketStall, trade.OccupancyId)]);
             if (trade.GoodsOwnerId != trade.PaymentOwnerId)
                 settled = InventoryAuthority.Transfer(settled, offer.Id + ":household-payment", trade.GoodsOwnerId,
-                    trade.PaymentOwnerId, paymentId, offer.SecondQuantity, "market_household_payment");
+                    trade.PaymentOwnerId, paymentId, offer.SecondQuantity, "market_household_payment", holdAccess: InventoryHoldRules.BorrowedBy(actor));
             settled = InventoryAuthority.Relocate(settled, TownRecordIds.DepositOperation(receiptId), paymentId, trade.PaymentOwnerId,
-                offer.SecondQuantity, groundPosition: new(trade.Position.X, trade.Position.Y));
+                offer.SecondQuantity, groundPosition: new(trade.Position.X, trade.Position.Y), holdAccess: InventoryHoldRules.BorrowedBy(actor));
             eventId = settled.Events[^1].EventId;
             return settled;
         });

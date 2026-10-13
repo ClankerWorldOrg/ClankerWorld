@@ -17,7 +17,10 @@ World schema 129 adds optional typed holds to inventory lots and the matching
 authorization to reservations. Each hold records a purpose and an exact holder;
 the inventory core checks both, including vessel families. Splits keep their
 holds, and a saved reservation rechecks its authorization before consumption or
-barter settlement. Hold lists have unique entries in purpose/holder order and
+barter settlement. Delivery holders are destination buildings, borrowers and
+supply-trip holders are their actors, and Market holders are occupancy IDs.
+Strict world validation checks each hold against its corresponding saved promise
+and refuses a missing or inconsistent link. Hold lists have unique entries in purpose/holder order and
 participate in checkpoint bytes and inventory digests. Empty lists are omitted.
 Current-format reload and continued transitions retain the holds; refused
 operations leave the supplied checkpoint unchanged. Earlier alpha worlds are

@@ -50,7 +50,7 @@ public sealed record InventoryLot(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ContainerLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InventoryGroundPosition? GroundPosition = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? CarrierId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<InventoryHold>? Holds = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InventoryHoldSet? Holds = null);
 
 public sealed record InventoryReservation(
     string Id,
@@ -61,7 +61,7 @@ public sealed record InventoryReservation(
     long ExpiryTick,
     bool IsExclusive,
     InventoryReservationState State,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<InventoryHold>? HoldAccess = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InventoryHoldSet? HoldAccess = null);
 
 public sealed record DirectBarterOffer(
     string Id,
@@ -153,7 +153,8 @@ public static partial class InventoryAuthority
         var orderedLots = lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         ValidateLots(orderedLots);
         ValidateContainerGroups(orderedLots);
-        return new InventoryCheckpoint(0, orderedLots, [], [], []);
+        var empty = new InventoryCheckpoint(0, [], [], [], []);
+        return new InventoryCheckpoint(0, UpdateCustodyHolds(empty, orderedLots), [], [], []);
     }
 
     public static InventoryCheckpoint SplitLot(
@@ -333,7 +334,7 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A reusable vessel cannot be consumed as a production input.");
         EnsureOwnerAndAvailableQuantity(checkpoint, lot, ownerId, quantity);
         var reservation = new InventoryReservation(
-            reservationId, ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(holdAccess));
+            reservationId, ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), lot).ToArray()));
         return Commit(
             checkpoint,
             reservations: checkpoint.Reservations.Append(reservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -804,10 +805,10 @@ public static partial class InventoryAuthority
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
         var firstReservation = new InventoryReservation(
             DerivedId.Create($"{proposal.Id}:first"), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
-            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(holdAccess));
+            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), firstLot).ToArray()));
         var secondReservation = new InventoryReservation(
             DerivedId.Create($"{proposal.Id}:second"), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
-            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(holdAccess));
+            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), secondLot).ToArray()));
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||
             string.Equals(reservation.Id, secondReservation.Id, StringComparison.Ordinal)))
@@ -1026,7 +1027,7 @@ public static partial class InventoryAuthority
 
         var next = new InventoryCheckpoint(
             nextTick,
-            lots ?? checkpoint.Lots,
+            lots is null ? checkpoint.Lots : UpdateCustodyHolds(checkpoint, lots),
             reservations ?? checkpoint.Reservations,
             offers ?? checkpoint.Offers,
             events, checkpoint.EventHistoryFloor);

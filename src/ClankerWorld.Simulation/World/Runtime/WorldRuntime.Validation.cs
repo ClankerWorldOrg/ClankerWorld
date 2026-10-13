@@ -33,7 +33,9 @@ public sealed partial class WorldRuntime
         WorldContentSimulationRules.Validate(worldSimulation, worldContent, map, WorldTick, TownPropertyValidation.RecoveredBuildings(towns));
         ValidateBuildingExpansionState(worldSimulation, worldContent, society.Checkpoint, map, checkpointSchemaVersion);
         ValidateBoatTransport(CaptureState());
-        ValidateAnimalState(CaptureState());
+        var stockState = CaptureState();
+        ValidateAnimalState(stockState);
+        StockHoldValidation.Validate(stockState);
         ValidateTalkOrderBindings(instructionsByIdempotency.Values, conversations, marriages);
         ValidateCartOrderBindings(society.Checkpoint.Inventory, instructionsByIdempotency.Values);
         ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
@@ -474,6 +476,7 @@ public sealed partial class WorldRuntime
             state.WorldSimulation is null || state.AssetReservations is null)
             throw new InvalidDataException("The current world checkpoint is missing required content or world-system state.");
         ValidateAnimalState(state);
+        StockHoldValidation.Validate(state);
         if (state.SchemaVersion < ToolProgressionSchemaVersion && HasSavedToolUseState(state))
             throw new InvalidDataException($"Saved tool use links require world schema {ToolProgressionSchemaVersion}.");
         if (state.SchemaVersion >= ConversationSchemaVersion && (state.Conversations is null || state.ConversationBudgets is null))

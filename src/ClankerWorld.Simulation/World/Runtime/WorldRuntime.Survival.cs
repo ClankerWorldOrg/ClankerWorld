@@ -333,9 +333,9 @@ public sealed partial class WorldRuntime
         var keepOwner = item.OwnerId == actor ||
             borrowedTool && item.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
         ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor)
+            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
             : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{kind}",
-                item.OwnerId, actor, item.Id, 1, "equipment_collected"));
+                item.OwnerId, actor, item.Id, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent("equipment_collected", $"{actor}:{kind}");
     }
 
