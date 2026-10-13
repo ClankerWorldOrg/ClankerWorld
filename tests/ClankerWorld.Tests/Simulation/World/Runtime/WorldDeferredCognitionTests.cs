@@ -280,16 +280,10 @@ public sealed class WorldDeferredCognitionTests
         world.StartWorld();
 
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await Task.WhenAll(firstProvider.FirstReturned.Task, secondProvider.FirstReturned.Task)
-            ;
+        await Task.WhenAll(firstProvider.FirstReturned.Task, secondProvider.FirstReturned.Task);
         // Each provider signals just before the runtime's call task finishes,
         // so wait for both calls to finish before the tick that admits them together.
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(3);
-        while (!ModelWorkHarness.For(world).DecisionsFinished(NameTargetId, NameOwnerId))
-        {
-            Assert.True(DateTime.UtcNow < deadline, "Both model calls should finish.");
-            await ModelWorkHarness.For(world).SettleAsync();
-        }
+        await ModelWorkHarness.For(world).WaitForKindAsync(ModelWorkKind.Decision);
         var simultaneous = await world.TickModelWorkAsync();
         Assert.True(simultaneous.Advanced);
         Assert.Contains(simultaneous.Decisions, item => item.AgentId == NameTargetId && item.Admission.Accepted);
@@ -396,45 +390,71 @@ public sealed class WorldDeferredCognitionTests
         Assert.Equal("Player Name", restored.Society.GetAgent(NameTargetId).Name);
     }
 
-    [Fact]
-    public async Task HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice(bool deferReturn)
     {
-        var modelProvider = new HeldModelProvider(ignoreCancellation: true, kind: DecisionProviderKind.OpenAiDecisions);
+        var returnAllowed = new InlineCompletionSource<bool>();
+        var modelProvider = new HeldModelProvider(ignoreCancellation: true, kind: DecisionProviderKind.OpenAiDecisions,
+            returnAllowed: deferReturn ? returnAllowed.Task : null);
         using var world = new WorldRuntime("helper-switch", id => id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
-        Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await modelProvider.Started.Task;
-        world.Pause();
-        var memories = world.Society.Memories;
-        Assert.True(world.SetRoutineHelper(new("decisions", "gpt-6-luna")));
-        Assert.True(world.SetRoutineHelper(new("jev", "typed-jev-model")));
-        Assert.True(world.SetRoutineHelper(RoutineHelperSettings.Off));
-        var checkpoint = world.ExportState();
-        Assert.Equal(WorldRuntime.StateSchemaVersion, checkpoint.SchemaVersion);
-        var older = checkpoint with { SchemaVersion = checkpoint.SchemaVersion - 1 };
-        var refused = Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(older));
-        Assert.Contains("older than the minimum supported schema", refused.Message, StringComparison.Ordinal);
-        var saved = WorldRuntimeCodec.Encode(checkpoint);
-        modelProvider.Release.TrySetResult(true);
-        await modelProvider.Returned.Task;
-        Assert.False((await world.TickModelWorkAsync()).Advanced);
-        Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.Equal(memories, world.Society.Memories);
-        using var first = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietDecisionProvider());
-        using var second = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietDecisionProvider());
-        first.Resume();
-        second.Resume();
-        for (var tick = 0; tick < 3; tick++)
+        var harness = ModelWorkHarness.For(world);
+        Assert.True((await harness.TickAsync()).Advanced);
+        // Capture the registered worker before pause removes it from the pending collection.
+        var completion = harness.WaitForDecisionAsync("founder-scout");
+        try
         {
-            Assert.True((await first.AdvanceOneTickAsync()).Advanced);
-            Assert.True((await second.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(WorldRuntimeCodec.Encode(first.ExportState()), WorldRuntimeCodec.Encode(second.ExportState()));
+            await harness.WaitAsync(Task.WhenAny(modelProvider.Started.Task, completion));
+            Assert.True(modelProvider.Started.Task.IsCompleted, "The registered worker finished before provider entry.");
+            Assert.False(completion.IsCompleted);
+            world.Pause();
+            var memories = world.Society.Memories;
+            Assert.True(world.SetRoutineHelper(new("decisions", "gpt-6-luna")));
+            Assert.True(world.SetRoutineHelper(new("jev", "typed-jev-model")));
+            Assert.True(world.SetRoutineHelper(RoutineHelperSettings.Off));
+            var checkpoint = world.ExportState();
+            Assert.Equal(WorldRuntime.StateSchemaVersion, checkpoint.SchemaVersion);
+            var older = checkpoint with { SchemaVersion = checkpoint.SchemaVersion - 1 };
+            var refused = Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(older));
+            Assert.Contains("older than the minimum supported schema", refused.Message, StringComparison.Ordinal);
+            var saved = WorldRuntimeCodec.Encode(checkpoint);
+            modelProvider.Release.TrySetResult(true);
+            if (deferReturn)
+            {
+                await harness.WaitAsync(modelProvider.Returned.Task);
+                Assert.False(completion.IsCompleted);
+                Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+                returnAllowed.TrySetResult(true);
+            }
+            await completion;
+            Assert.True(modelProvider.Returned.Task.IsCompleted);
+            Assert.False((await harness.TickAsync()).Advanced);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+            Assert.Equal(memories, world.Society.Memories);
+            using var first = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietDecisionProvider());
+            using var second = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietDecisionProvider());
+            first.Resume();
+            second.Resume();
+            for (var tick = 0; tick < 3; tick++)
+            {
+                Assert.True((await first.AdvanceOneTickAsync()).Advanced);
+                Assert.True((await second.AdvanceOneTickAsync()).Advanced);
+                Assert.Equal(WorldRuntimeCodec.Encode(first.ExportState()), WorldRuntimeCodec.Encode(second.ExportState()));
+            }
+            Assert.Equal(RoutineHelperSettings.Off, first.RoutineHelper);
+            Assert.Equal(3, first.JevPolicyRevision);
+            first.Pause();
+            Assert.True(first.SetRoutineHelper(new("decisions", "future-model")));
+            using var modelRestored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(first.ExportState())));
+            Assert.Equal(new RoutineHelperSettings("decisions", "future-model"), modelRestored.RoutineHelper);
         }
-        Assert.Equal(RoutineHelperSettings.Off, first.RoutineHelper);
-        Assert.Equal(3, first.JevPolicyRevision);
-        first.Pause();
-        Assert.True(first.SetRoutineHelper(new("decisions", "future-model")));
-        using var modelRestored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(first.ExportState())));
-        Assert.Equal(new RoutineHelperSettings("decisions", "future-model"), modelRestored.RoutineHelper);
+        finally
+        {
+            modelProvider.Release.TrySetResult(true);
+            returnAllowed.TrySetResult(true);
+            await completion;
+        }
     }
 
     [Fact]
@@ -740,7 +760,8 @@ public sealed class WorldDeferredCognitionTests
         bool ignoreCancellation = false,
         DecisionProviderKind kind = DecisionProviderKind.Jev,
         string? privateThought = null,
-        string? chosenName = null) : IDecisionProvider
+        string? chosenName = null,
+        Task? returnAllowed = null) : IDecisionProvider
     {
         public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
@@ -759,12 +780,14 @@ public sealed class WorldDeferredCognitionTests
             var selected = request.Observation.Candidates.Single(item => item.Id == "safe_idle");
             var probabilities = request.Observation.Candidates.ToDictionary(item => item.Id,
                 item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
-            Returned.TrySetResult(true);
-            return new CognitionDecisionResponse(
+            var response = new CognitionDecisionResponse(
                 request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d, probabilities,
                 PrivateThought: privateThought, ChosenName: chosenName);
+            Returned.TrySetResult(true);
+            if (returnAllowed is not null) await returnAllowed;
+            return response;
         }
     }
 

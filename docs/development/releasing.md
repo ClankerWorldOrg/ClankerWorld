@@ -2,7 +2,7 @@
 title: Releasing
 type: release-policy
 status: active
-updated: 2026-10-10
+updated: 2026-10-13
 ---
 
 # Releasing
@@ -26,30 +26,32 @@ constant. See the [build reference](build-and-test.md) for the selected toolchai
 Untagged development builds use `0.1.0-dev`; they do not claim an alpha release.
 The SDK includes the checked-out source revision in the assembly's informational
 version. Settings and Developer tools show that version with seven commit
-characters, and the tooltip gives the full commit. The host's `/api/v1/status`
+characters, and the tooltip gives the full commit. The server's `/api/v1/status`
 reply reports its own `build`, `version` and full `sourceRevision`, without world
 or device state. A tagged release must report both its game version and source
 revision.
 
-## Matching client and host builds
+## Matching client and server builds
 
 For an owner-authorized remote world server update, follow the
 [deployment checklist](remote-server-deployment.md). It covers staging,
 paused backups, accounting, credentials and rollback; a private update does
 not require a public release or tag.
 
-When an action's signed format changes, ship or deploy the matching host before
-distributing the client. A bundled local host and client must come from the
+When an action's signed format changes, ship or deploy the matching server before
+distributing the client. A bundled local server and client must come from the
 same verified source revision. Record both revisions for a private deployment;
 a successful reconnect alone does not prove that New World or another changed
 action is compatible.
 
 Before distribution, use an approved test device and a disposable world to
 preview and create with the accepted Advanced settings at the real signed HTTP
-boundary. Verify an older host produces the update explanation, preserves the
-pairing and cannot receive a downgraded action. The New World client now requires
-the host's authenticated v2 action advertisement, including on hosts that
-already verified v2 before they advertised it. See [Device pairing](device-pairing.md#client-and-host-updates).
+boundary. Verify an older server produces the update explanation, preserves the
+pairing and cannot receive a downgraded action. New World preview and creation
+require the server's authenticated `clankerworld.owner-world-creation.v3`
+advertisement. A server advertising only v2, or no matching format, needs an
+update; the client keeps the pairing and never sends a downgraded action.
+See [Device pairing](device-pairing.md#client-and-server-updates).
 
 ## Save and content compatibility
 
@@ -98,7 +100,9 @@ marks those for `v0.1.0-alpha.1`, the first playtest release.
 Prepare a release when the owner requests it; do not tag every merged change.
 Before publishing:
 
-1. Choose the version and update runtime/package metadata. Run
+1. Choose the version in `Directory.Build.props`: for alpha 1, keep
+   `VersionPrefix` at `0.1.0` and set the default `VersionSuffix` to `alpha.1`.
+   Run
    `bash scripts/collect-changes.sh` to move the entries waiting in `changes/`
    into `CHANGELOG.md`; the script requires full Git history. Rename
    `## Unreleased` to the dated release heading and add a new empty
@@ -107,9 +111,10 @@ Before publishing:
 2. Run the applicable build, test and Godot-export gates. The owner also runs
    the [Windows release smoke check](#windows-release-smoke-check) below.
    Fold every per-change file in `playtest/` into this release's checklist,
-   such as `playtest/alpha-2.md`
+   `playtest/alpha-1.md` for alpha 1
    ([how](../../playtest/README.md#keeping-the-list-current)), and list its
-   remaining checks in the release notes as "not yet checked by hand".
+   remaining checks in the release notes as "not yet checked by hand". Update
+   links to files deleted by the fold, then run the documentation checks.
 3. If compatibility changed, verify replay and rollback from a matching backup.
    Also verify migration and old-save handling when the release promises that
    older saves load.
@@ -122,7 +127,11 @@ Before publishing:
    release PR's squash commit on GitHub's `origin/main`. Confirm its required
    checks passed and that `git ls-tree --name-only <commit> changes/` lists
    only `changes/README.md`. If it still has entries, collect them through a
-   reviewed follow-up before tagging; do not tag an uncollected commit.
+   reviewed follow-up before tagging; do not tag an uncollected commit. Build
+   the export and portable package from that verified commit: both scripts
+   stage committed inputs, so local version edits are excluded. Check that the
+   client, bundled server, package name and manifest report the chosen version
+   and the same source commit.
 6. That preparing session creates and pushes the annotated tag for the verified
    release commit, then verifies that GitHub resolves it to that commit.
    Never move or delete a pushed tag. Publish a GitHub release when there is a
@@ -140,13 +149,35 @@ Before publishing:
    when the launcher changed. Players download it themselves: the launcher
    never updates itself, it only says that a newer launcher exists.
 
+### Rehearse without publishing
+
+Use a detached scratch worktree of fetched `origin/main`, with full history.
+Fold the playtest files, collect the changelog, set the version and run the
+applicable gates there. Run the collector again and leave `Unreleased` empty.
+Keep those scratch edits uncommitted.
+
+The export and package scripts exclude those edits. To rehearse alpha 1's
+artifact metadata from the unchanged main commit, pass the same override to
+both commands:
+
+```bash
+VersionSuffix=alpha.1 bash scripts/verify-godot-windows-export.sh
+VersionSuffix=alpha.1 bash scripts/package-windows.sh
+```
+
+Keep the zip, checksum, logs and pending manual checks as rehearsal evidence.
+They identify the tested main commit, not a reviewed release commit. Record
+Windows-only gates and approved-device checks that could not run. Post-merge
+verification waits for a real release PR; pushing release changes, tagging and
+publishing are outside the rehearsal.
+
 ### Windows release smoke check
 
 Before each release, the owner checks the actual Windows bundle on an approved
 test device and disposable world:
 
 - Start the game. From the portable zip, it starts its own local server and pairs
-  without a code; otherwise pair with the matching host.
+  without a code; otherwise pair with the matching server.
 - Create a New World.
 - Load a saved World.
 - Save, then quit.
