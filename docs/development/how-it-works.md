@@ -2417,13 +2417,18 @@ Crop recipes and the retired generic-food and bedding transformations are
 excluded from the workstation list. Each entry carries its registered name
 and input/output quantities, rather than a client-maintained recipe table.
 
+Owner observations retain every running or paused production job and the
+newest 32 terminal jobs by start tick and identity. The checkpoint also retains
+older jobs still needed as recipe, project, tool-request, food-origin or owner-order
+evidence; unreferenced older work moves into the durable history archive.
 Production jobs project the same recipe facts and `HeldInputs` grouped from
 the job's own active inventory reservations. Completed or released
 reservations contribute nothing; building storage remains a separate view.
 Godot Details refreshes these facts even when work progress stays unchanged.
 Missing fields from an older host leave recipe facts unavailable rather than
-fabricating them. This projection changes neither world state nor agent
-knowledge and needs no save-schema change.
+fabricating them. The recipe-facts projection changes neither world state nor agent
+knowledge; the production-retention format is described in
+[Saves and replay](saves-and-replay.md#bounded-production-history).
 
 ## Towns, building sites and death
 

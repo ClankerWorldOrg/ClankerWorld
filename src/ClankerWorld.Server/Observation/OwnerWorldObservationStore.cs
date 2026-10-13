@@ -530,7 +530,8 @@ public sealed partial class OwnerWorldObservationStore
                 inventory.Where(item => item.Kind == "food").Sum(item => item.Quantity),
                 inventory.Where(item => item.Kind == "wood").Sum(item => item.Quantity));
         }
-        var jobs = state.WorldSimulation?.ProductionJobs.Concat(state.WorldSimulation.CropBuilds ?? []).ToArray() ?? [];
+        var jobs = state.WorldSimulation is { } jobSimulation
+            ? WorldHistory.ProductionJobsForInspection(jobSimulation) : [];
         var latestEventId = state.Events.Count == 0 ? 0 : state.Events[^1].EventId;
         var terrainUnchanged = state.Geography is not null &&
             string.Equals(knownTerrainWorldId, state.Society.Society.WorldId, StringComparison.Ordinal) &&
