@@ -56,46 +56,7 @@ internal static class NormalPathWorld
             .Take(WorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
         for (var index = 0; index < placements.Length; index++)
             world.PlaceFounder($"founder:{index + 1:D32}", placements[index]);
-        // Placement itself has a GUID grammar. Prepare maximum-length saved identities
-        // with the Society operations, without widening the game's placement contract.
-        var placed = world.ExportState();
-        var societyBefore = placed.Society.Society;
-        var hardened = societyBefore with
-        {
-            Agents = [],
-            Relationships = [],
-            Households = societyBefore.Households.Select(home => home with { MemberIds = [] }).ToArray(),
-        };
-        for (var index = 0; index < placements.Length; index++)
-        {
-            var original = societyBefore.Agents[index];
-            var founder = SocietyRules.CreateFounder(FounderId(index + 1), FounderName(index + 1),
-                config: hardened.Config, startingAge: societyBefore.AgeAt(original, 0));
-            hardened = SocietyRules.PlaceFounder(hardened, founder, original.HouseholdId!).Checkpoint;
-        }
-        string ReplaceFounder(string text)
-        {
-            for (var index = 0; index < placements.Length; index++)
-                text = text.Replace(societyBefore.Agents[index].Id, FounderId(index + 1), StringComparison.Ordinal);
-            return text;
-        }
-        var preparedFounders = WorldRuntime.Restore(placed with
-        {
-            Society = placed.Society with { Society = hardened },
-            FounderSetup = placed.FounderSetup! with { FounderIds = Enumerable.Range(1, placements.Length).Select(FounderId).ToArray() },
-            Agents = placed.Agents.Select(person => person with { AgentId = ReplaceFounder(person.AgentId) }).ToArray(),
-            Towns = placed.Towns!.Select(town => town with
-            {
-                ResidentIds = town.ResidentIds.Select(ReplaceFounder).ToArray(),
-                Council = town.Council is { } council ? council with
-                {
-                    Members = council.Members.Select(ReplaceFounder).ToArray(),
-                    ElectionHistory = council.ElectionHistory.Select(election => election with
-                    { Voters = election.Voters.Select(ReplaceFounder).ToArray() }).ToArray(),
-                } : null,
-            }).ToArray(),
-            Events = placed.Events.Select(entry => entry with { Detail = ReplaceFounder(entry.Detail) }).ToArray(),
-        }, providerFactory);
+        var preparedFounders = WorldRuntime.Restore(WithHardFounders(world.ExportState()), providerFactory);
         world.Dispose();
         world = preparedFounders;
         if (ticksPerDay is { } day)
@@ -126,6 +87,50 @@ internal static class NormalPathWorld
         }
         world.StartWorld();
         return world;
+    }
+
+    /// <summary>Hardens a paused founder setup without changing the game's GUID placement grammar.</summary>
+    internal static WorldRuntimeState WithHardFounders(WorldRuntimeState placed)
+    {
+        Assert.False(placed.FounderSetup!.Started);
+        var placements = placed.Agents;
+        var societyBefore = placed.Society.Society;
+        var hardened = societyBefore with
+        {
+            Agents = [],
+            Relationships = [],
+            Households = societyBefore.Households.Select(home => home with { MemberIds = [] }).ToArray(),
+        };
+        for (var index = 0; index < placements.Count; index++)
+        {
+            var original = societyBefore.Agents[index];
+            var founder = SocietyRules.CreateFounder(FounderId(index + 1), FounderName(index + 1),
+                config: hardened.Config, startingAge: societyBefore.AgeAt(original, 0));
+            hardened = SocietyRules.PlaceFounder(hardened, founder, original.HouseholdId!).Checkpoint;
+        }
+        string ReplaceFounder(string text)
+        {
+            for (var index = 0; index < placements.Count; index++)
+                text = text.Replace(societyBefore.Agents[index].Id, FounderId(index + 1), StringComparison.Ordinal);
+            return text;
+        }
+        return placed with
+        {
+            Society = placed.Society with { Society = hardened },
+            FounderSetup = placed.FounderSetup! with { FounderIds = Enumerable.Range(1, placements.Count).Select(FounderId).ToArray() },
+            Agents = placed.Agents.Select(person => person with { AgentId = ReplaceFounder(person.AgentId) }).ToArray(),
+            Towns = placed.Towns!.Select(town => town with
+            {
+                ResidentIds = town.ResidentIds.Select(ReplaceFounder).ToArray(),
+                Council = town.Council is { } council ? council with
+                {
+                    Members = council.Members.Select(ReplaceFounder).ToArray(),
+                    ElectionHistory = council.ElectionHistory.Select(election => election with
+                    { Voters = election.Voters.Select(ReplaceFounder).ToArray() }).ToArray(),
+                } : null,
+            }).ToArray(),
+            Events = placed.Events.Select(entry => entry with { Detail = ReplaceFounder(entry.Detail) }).ToArray(),
+        };
     }
 
     /// <summary>Keep candidate-less failed election windows consistent with a fixture's new day length.</summary>

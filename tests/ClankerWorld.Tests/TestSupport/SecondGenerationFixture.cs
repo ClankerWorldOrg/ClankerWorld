@@ -51,7 +51,7 @@ internal static class SecondGenerationFixture
             .Where(point => state.Map.IsBuildable(point) && !state.Agents.Any(person => person.Position == point) &&
                 !state.Map.MapObjects.Any(item => item.Position == point) && !state.Map.Resources.Any(item => item.Position == point))
             .OrderBy(point => state.Map.FootDistance(parent.Position, point)).First();
-        return (state with
+        var prepared = state with
         {
             Society = state.Society with { Society = checkpoint },
             Survival = state.Survival ?? new SurvivalState(checkpoint.WorldTick, []),
@@ -60,6 +60,9 @@ internal static class SecondGenerationFixture
                 : town).ToArray(),
             Agents = state.Agents.Append(new AgentState(child, position, 10_000, 0, "curious", "grow with the household",
                 Survival: new SurvivalCondition(WarmthBasisPoints: 10_000))).ToArray(),
-        }, child);
+        };
+        // Restore installs the same derived child-care state as a native runtime birth.
+        using var normalized = WorldRuntime.Restore(prepared);
+        return (normalized.ExportState(), child);
     }
 }
