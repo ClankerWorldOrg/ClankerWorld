@@ -12,7 +12,8 @@ public sealed partial class ConcreteMealTests
 {
     private static readonly Lazy<byte[]> HouseCookingSite = new(() =>
     {
-        using var world = NormalPathWorld.CreateGenerated("concrete-meal-house-meal", _ => new Chooser());
+        // Keep the original terrain and placement used by the jug and cold-cook journeys.
+        using var world = NormalPathWorld.CreateGenerated("concrete-meal-porridge", _ => new Chooser());
         return WorldRuntimeCodec.Encode(world.ExportState());
     });
     private static readonly Lazy<byte[]> RestaurantCookingSite = new(() => PaidRestaurantSite("restaurant-1x2"));
