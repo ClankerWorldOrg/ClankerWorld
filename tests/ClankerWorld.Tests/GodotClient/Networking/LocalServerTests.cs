@@ -10,7 +10,7 @@ using ClankerWorld.GodotClient.Pairing;
 namespace ClankerWorld.Tests;
 
 /// <summary>The game starting, pairing with and stopping its local server (#1564).</summary>
-public sealed class LocalServerTests
+public sealed partial class LocalServerTests
 {
     private static readonly string[] UntouchedDataFiles =
         ["saves/world.json", "settings/provider-configuration.json", "client/game-display-preferences.json"];
@@ -250,6 +250,9 @@ public sealed class LocalServerTests
             var layout = new LocalServerLayout(Path.Combine(data, "missing-host"), [], data, data);
             Directory.CreateDirectory(Path.GetDirectoryName(layout.LogPath)!);
             File.WriteAllText(layout.LogPath, "the launch that crashed");
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
+            File.WriteAllText(layout.SecretPath, "synthetic-previous-launch-value");
+            var previousSecretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var http = new HttpClient();
             var game = new LocalServer(layout, http, FreePort(), FreePort());
             var start = await game.StartAsync("0", "0", CancellationToken.None);
@@ -257,6 +260,7 @@ public sealed class LocalServerTests
             Assert.Contains("try again", start.PlayerMessage, StringComparison.OrdinalIgnoreCase);
             // A new launch keeps the last one's log, so a crash can still be reported.
             Assert.Equal("the launch that crashed", File.ReadAllText(layout.PreviousLogPath));
+            Assert.Equal(previousSecretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
         }
         finally
         {
