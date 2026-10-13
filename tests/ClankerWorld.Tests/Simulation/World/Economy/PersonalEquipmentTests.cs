@@ -231,6 +231,32 @@ public sealed class PersonalEquipmentTests
         var working = first.ExportState();
         var repair = Assert.IsType<EquipmentRepairWork>(working.Agents.Single(item => item.AgentId == actor).Equipment?.Repair);
         Assert.Equal(2, first.Society.Inventory.GetLot("repair-cloth").Quantity);
+        var originalMaterial = repair.MaterialReservationIds[0];
+        WorldRuntimeState WithSavedMaterialKey(string value)
+        {
+            var key = Identity.ParseStored(value);
+            var changedInventory = working.Society.Society.Inventory with
+            {
+                Reservations = working.Society.Society.Inventory.Reservations.Select(item => item.Id == originalMaterial
+                    ? item with { Id = key } : item).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
+            };
+            return WithInventory(working, changedInventory) with
+            {
+                Agents = working.Agents.Select(item => item.AgentId == actor ? item with
+                {
+                    Equipment = item.Equipment! with
+                    { Repair = repair with { MaterialReservationIds = repair.MaterialReservationIds.Select(id => id == originalMaterial ? key : id).ToArray() } },
+                } : item).ToArray(),
+            };
+        }
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithSavedMaterialKey("control\0material"), Provider));
+        // The skilled row resumes and cancels with an existing legal long input
+        // reference. The ordinary row keeps the native generated key.
+        if (skilled)
+        {
+            working = WithSavedMaterialKey(new string('x', 129));
+            repair = working.Agents.Single(item => item.AgentId == actor).Equipment!.Repair!;
+        }
         using var resumed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(working)), Provider);
         for (var tick = 0; tick < 12 && resumed.ExportState().Agents.Single(item => item.AgentId == actor).Equipment?.Repair is not null; tick++)
             Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);

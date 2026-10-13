@@ -88,7 +88,7 @@ public sealed class TownReleasedMaterialRecoveryTests
                      Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
         {
             if (situation == "claimed")
-                inventory = InventoryAuthority.Reserve(inventory, DerivedId.Create("recovery:other-job:" + item.Id), item.OwnerId, item.Id,
+                inventory = InventoryAuthority.Reserve(inventory, "recovery:other-job:" + item.Id, item.OwnerId, item.Id,
                     item.Quantity, "unrelated-job", long.MaxValue);
             if (situation == "private")
                 inventory = InventoryAuthority.Transfer(inventory, "recovery:private-transfer:" + item.Id, item.OwnerId, actor,
@@ -105,7 +105,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         {
             var other = inventory.Lots.First(item => item.Id != lot.Id && released.Contains(item.Id) &&
                 item.GroundPosition is not null);
-            inventory = InventoryAuthority.ReleaseReservation(inventory, DerivedId.Create("recovery:fixture-claim:" + other.Id), "fixture_custody");
+            inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + other.Id, "fixture_custody");
             inventory = InventoryAuthority.Relocate(inventory, "recovery:other-carrier", other.Id, other.OwnerId,
                 other.Quantity, carrierId: state.Agents.First(person => person.AgentId != actor).AgentId);
             inventory = FillWarehouse(state, inventory, room: 2);
@@ -117,7 +117,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         Assert.NotEmpty(policy.Offers);
         Assert.DoesNotContain(policy.Offers.SelectMany(ids => ids), id => id.StartsWith("town_project_recover:", StringComparison.Ordinal));
         Assert.Equal(inventory.GetLot(lot.Id) with { LastProcessedTick = world.WorldTick }, world.Society.Inventory.GetLot(lot.Id));
-        if (situation == "claimed") Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(DerivedId.Create("recovery:other-job:" + lot.Id)).State);
+        if (situation == "claimed") Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("recovery:other-job:" + lot.Id).State);
         world.Validate();
     }
 
@@ -172,7 +172,7 @@ public sealed class TownReleasedMaterialRecoveryTests
             lot.OwnerId, lot.Quantity, carrierId: actor);
         var otherLoad = inventory.Lots.First(item => item.OwnerId == lot.OwnerId && item.ItemKind == "wood" &&
             item.GroundPosition is not null && state.Towns![0].Projects[0].Deliveries.Any(delivery => delivery.LotId == item.Id));
-        inventory = InventoryAuthority.ReleaseReservation(inventory, DerivedId.Create("recovery:fixture-claim:" + otherLoad.Id), "fixture_custody");
+        inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + otherLoad.Id, "fixture_custody");
         inventory = InventoryAuthority.Relocate(inventory, "recovery:full-carrier", otherLoad.Id, otherLoad.OwnerId,
             otherLoad.Quantity, carrierId: actor);
         // Keep the other parcel committed so native ID ordering cannot choose it instead of the released parcel.
@@ -296,7 +296,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         // released goods remain Town-owned and reserved for a separate job.
         foreach (var other in inventory.Lots.Where(item => item.Id != lot.Id && released.Contains(item.Id) &&
                      item.GroundPosition is not null && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
-            inventory = InventoryAuthority.Reserve(inventory, DerivedId.Create("recovery:fixture-claim:" + other.Id), other.OwnerId,
+            inventory = InventoryAuthority.Reserve(inventory, "recovery:fixture-claim:" + other.Id, other.OwnerId,
                 other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {

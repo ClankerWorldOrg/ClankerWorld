@@ -349,6 +349,13 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(home, fallback.Animals.Single().HouseholdId);
         Assert.Equal(2, fallback.Society.Inventory.GetLot("payment").Quantity);
         using var world = WorldRuntime.Restore(state, id => Provider(id, DecisionProviderKind.LargeLanguageModel));
+        await Until(world, () => world.ExportState().AnimalWorld.Offers.Count == 1);
+        var offered = world.ExportState();
+        _ = WorldRuntimeCodec.Encode(offered);
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(offered with
+        {
+            AnimalWorld = offered.AnimalWorld with { Offers = [offered.AnimalWorld.Offers[0] with { Id = null! }] },
+        }));
         await Until(world, () => world.Animals.Single().HouseholdId == buyerHome);
         var transferred = world.Animals.Single();
         Assert.Equal("receiving-yard", transferred.YardId);

@@ -1,1 +1,0 @@
-- Saves with malformed or oversized memory, reservation, offer or receipt IDs are refused with a reason, and the original files are kept. Current generated IDs keep their saved spelling.

@@ -114,6 +114,10 @@ public sealed partial class ShopTradeTests
         state = WorldRuntimeCodec.Decode(bytes);
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
         {
+            ShopTrades = state.ShopTrades!.Select(item => item with { OfferId = null! }).ToArray(),
+        }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
+        {
             ShopTrades = [.. state.ShopTrades!, null!],
         }));
         state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };

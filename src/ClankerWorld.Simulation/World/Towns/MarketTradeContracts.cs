@@ -115,7 +115,7 @@ public static class MarketTradeValidation
                             throw Invalid("A live seller must borrow one existing stall for their actual household.");
                     }
                 }
-                if (market.Trades.Select(trade => trade.OfferId.Value).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count)
+                if (market.Trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count)
                     throw Invalid("A Market cannot record the same exchange twice.");
                 if (!market.StockReceipts.Select(receipt => receipt.Sequence).SequenceEqual(
                         market.StockReceipts.Select(receipt => receipt.Sequence).Distinct().Order()))

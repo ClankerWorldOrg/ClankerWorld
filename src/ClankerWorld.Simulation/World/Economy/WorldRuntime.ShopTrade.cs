@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private List<ShopTradeState> shopTrades = [];
 
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
-        .OrderBy(trade => trade.OfferId.Value, StringComparer.Ordinal).ToArray();
+        .OrderBy(trade => (string?)trade.OfferId, StringComparer.Ordinal).ToArray();
 
     private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
         shopTrades.Select(trade => (Trade: trade, Offer: (inventory ?? society.Checkpoint.Inventory).Offers
@@ -461,8 +461,8 @@ public sealed partial class WorldRuntime
         SocietyCheckpoint societyState, WorldMap map, long worldTick)
     {
         var inventory = societyState.Inventory;
-        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => trade.OfferId.Value).SequenceEqual(
-                trades.Select(trade => trade.OfferId.Value).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
+        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => (string?)trade.OfferId).SequenceEqual(
+                trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("The checkpoint is missing canonical shop trade records.");
         foreach (var trade in trades)
         {

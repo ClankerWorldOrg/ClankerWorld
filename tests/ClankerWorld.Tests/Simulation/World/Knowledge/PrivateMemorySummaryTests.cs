@@ -17,7 +17,7 @@ public sealed class PrivateMemorySummaryTests
         var owner = state.Agents[0].AgentId;
         var original = state.Society.Society.ArchivedMemories.First(item => item.Memory.OwnerId == owner);
         var memories = state.Society.Society.ArchivedMemories.Select(item => item == original
-            ? item with { Memory = item.Memory with { Id = Identity.ParseStoredMemory(key) } } : item)
+            ? item with { Memory = item.Memory with { Id = Identity.ParseStored(key) } } : item)
             .OrderBy(item => item.Memory.Id.Value, StringComparer.Ordinal).ToArray();
         state = state with
         {

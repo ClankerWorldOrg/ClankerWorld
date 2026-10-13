@@ -327,7 +327,7 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A reusable vessel cannot be consumed as a production input.");
         EnsureOwnerAndAvailableQuantity(checkpoint, lot, ownerId, quantity);
         var reservation = new InventoryReservation(
-            Identity.Parse(reservationId), ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved);
+            Identity.ParseStored(reservationId), ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved);
         return Commit(
             checkpoint,
             reservations: checkpoint.Reservations.Append(reservation).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
@@ -778,10 +778,10 @@ public static partial class InventoryAuthority
         EnsureOwnerAndAvailableQuantity(checkpoint, firstLot, proposal.FirstPartyId, proposal.FirstQuantity);
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
         var firstReservation = new InventoryReservation(
-            Identity.Parse(DerivedId.Create($"{proposal.Id}:first")), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
+            Identity.ParseStored(DerivedId.Create($"{proposal.Id}:first")), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         var secondReservation = new InventoryReservation(
-            Identity.Parse(DerivedId.Create($"{proposal.Id}:second")), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
+            Identity.ParseStored(DerivedId.Create($"{proposal.Id}:second")), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||
@@ -1020,8 +1020,8 @@ public static partial class InventoryAuthority
 
         ValidateLots(checkpoint.Lots);
         ValidateContainerGroups(checkpoint.Lots);
-        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => reservation.Id.Value), "reservations");
-        EnsureCanonicalIds(checkpoint.Offers.Select(offer => offer.Id.Value), "offers");
+        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => (string?)reservation.Id), "reservations");
+        EnsureCanonicalIds(checkpoint.Offers.Select(offer => (string?)offer.Id), "offers");
         var lotsById = checkpoint.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
         foreach (var reservation in checkpoint.Reservations.Where(reservation =>
                      reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed))
@@ -1122,7 +1122,7 @@ public static partial class InventoryAuthority
         }
     }
 
-    private static void EnsureCanonicalIds(IEnumerable<string> ids, string collectionName)
+    private static void EnsureCanonicalIds(IEnumerable<string?> ids, string collectionName)
     {
         var actual = ids.ToArray();
         if (actual.Any(string.IsNullOrWhiteSpace) || actual.Distinct(StringComparer.Ordinal).Count() != actual.Length ||
@@ -1153,6 +1153,7 @@ public static class InventoryCheckpointCodec
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
+        Converters = { new StoredIdentityJsonConverter() },
     };
 
     private sealed record InventoryCheckpointDocument(
@@ -1173,9 +1174,9 @@ public static class InventoryCheckpointCodec
         var document = new InventoryCheckpointDocument(
             checkpoint.WorldTick,
             checkpoint.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            checkpoint.Reservations.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
+            checkpoint.Reservations.OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             checkpoint.Offers
-                .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+                .OrderBy(item => (string?)item.Id, StringComparer.Ordinal)
                 .Select(item => item with
                 {
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
@@ -1199,7 +1200,8 @@ public static class InventoryCheckpointCodec
         var header = text[..separator];
         if (header == LegacyHeader)
         {
-            return DecodeLegacyV1(text.Split('\n', StringSplitOptions.RemoveEmptyEntries));
+            try { return DecodeLegacyV1(text.Split('\n', StringSplitOptions.RemoveEmptyEntries)); }
+            catch (ArgumentException exception) { throw new InvalidDataException("The saved inventory identity is invalid.", exception); }
         }
 
         if (header != Header)
@@ -1226,9 +1228,9 @@ public static class InventoryCheckpointCodec
         var checkpoint = new InventoryCheckpoint(
             document.WorldTick,
             document.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            document.Reservations.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
+            document.Reservations.OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             document.Offers
-                .OrderBy(item => item.Id.Value, StringComparer.Ordinal)
+                .OrderBy(item => (string?)item.Id, StringComparer.Ordinal)
                 .Select(item => item with
                 {
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
@@ -1251,8 +1253,8 @@ public static class InventoryCheckpointCodec
         var checkpoint = new InventoryCheckpoint(
             ParseLong(ValueAfterPrefix(lines[1], "tick=")),
             lines.Skip(2).Where(line => line.StartsWith("lot=", StringComparison.Ordinal)).Select(ParseLot).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
+            lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
+            lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             lines.Skip(2).Where(line => line.StartsWith("event=", StringComparison.Ordinal)).Select(ParseEvent).OrderBy(item => item.EventId).ToArray());
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;
@@ -1269,7 +1271,7 @@ public static class InventoryCheckpointCodec
     {
         var parts = ValueAfterPrefix(line, "reservation=").Split('|');
         if (parts.Length != 8 || !Enum.TryParse<InventoryReservationState>(parts[7], out var state)) throw new InvalidDataException("The saved reservation is invalid.");
-        return new InventoryReservation(Identity.Parse(parts[0]), parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
+        return new InventoryReservation(Identity.ParseStored(parts[0]), parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
     }
 
     private static DirectBarterOffer ParseOffer(string line)
@@ -1277,7 +1279,7 @@ public static class InventoryCheckpointCodec
         var parts = ValueAfterPrefix(line, "offer=").Split('|');
         if (parts.Length != 11 || !Enum.TryParse<DirectBarterState>(parts[9], out var state)) throw new InvalidDataException("The saved barter offer is invalid.");
         var accepted = string.IsNullOrEmpty(parts[10]) ? [] : parts[10].Split(',', StringSplitOptions.RemoveEmptyEntries).OrderBy(id => id, StringComparer.Ordinal).ToArray();
-        return new DirectBarterOffer(Identity.Parse(parts[0]), ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
+        return new DirectBarterOffer(Identity.ParseStored(parts[0]), ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
     }
 
     private static InventoryEvent ParseEvent(string line)

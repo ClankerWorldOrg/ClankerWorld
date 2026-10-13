@@ -63,11 +63,12 @@ describes the native transition, factory, save and recall evidence.
 
 
 Typed memory, reservation, offer and receipt handles retain their existing JSON
-string spelling, including strings in saved input lists. Their parser rejects
-blank, control-bearing or oversized handles without hashing a saved value.
-Complete provenance references keep their own limits. No fields or schema
-change; unsupported earlier alpha handle spellings are refused and preserved,
-with no migration. See [Derived identities](derived-identities.md).
+string spelling, including strings in saved input lists. Save readers retain
+existing nonblank spellings; validation applies each record's original rules.
+This preserves legal long or control-containing inventory keys while keeping
+the stricter belief, receipt and repair-material checks. Complete provenance
+references keep their own limits. No fields, schema, spelling or migration
+change. See [Derived identities](derived-identities.md).
 
 ## Save-space warning
 

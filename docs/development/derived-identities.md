@@ -68,8 +68,13 @@ receipt handles, and their saved reservation/offer links and input lists also
 use `Identity`. Ordinal ordering and equality use the identity's saved value;
 complete lot, owner and other provenance references remain strings. Asset
 reservations identify content assets under their separate content contract.
-Typed handles reject oversized or control-bearing saved values visibly during
-strict loading. Earlier alpha spellings outside that bound are not migrated.
+`Identity.ParseStored` and the stored converter retain each existing nonblank
+spelling. Inventory, Society, Society-runtime and World save codecs use that
+reader for scalar handles and input-list entries. Their validators retain each
+role's original bounds and control rules; for example, repair material links
+forbid controls but have no length cap. Generated handles and the default
+identity parser/converter remain bounded. No saved spelling is hashed or
+normalized while reading.
 
 The Town, animal, knowledge, trade and belief validators use these shared
 rules. The five prior excerpt implementations in law labels, memory summaries,
