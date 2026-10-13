@@ -163,6 +163,13 @@ its own runtime and providers. Setup stops when the real output appears;
 protected-stock cases require a valid trade control and an ordinary action
 observation before checking refusal, ownership, reservations and capacity.
 
+Native land-hearing fixtures use twenty-tick test days for actual elections,
+notice windows and expiry rulings. Their age, continuity, animal and weather
+clocks are rescaled together. Later-generation family growth keeps its forty-tick test
+day; only the completed family checkpoint is reclocked for hearing setup.
+Personal consent, saved election ties, strict reload and paired checkpoint
+replay remain checked through the real runtime transitions.
+
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary model decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
