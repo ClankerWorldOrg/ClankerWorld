@@ -1,7 +1,11 @@
+using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Simulation.World;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ClankerWorld.Tests;
 
@@ -128,6 +132,47 @@ public sealed class CouncilHistoryTests
         Assert.Contains(first, plan.State.Towns![0].Council!.ElectionHistory);
         Assert.Equal(9, plan.State.Towns[0].Council!.ElectionHistory.Count);
         Assert.Contains(town.Council.Notices[0], plan.State.Towns[0].Council!.Notices);
+    }
+
+    [Theory]
+    [InlineData("streams")]
+    [InlineData("entry")]
+    [InlineData("name")]
+    public void MalformedArchiveStreamsEnterRecoveryWithoutChangingSavedFiles(string damage)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("council-malformed-history", _ => new ActionCoverageRecorder(chooseIdle: true));
+        using var world = WorldRuntime.Restore(WithFailedAttempts(generated.ExportState()));
+        var directory = Directory.CreateTempSubdirectory("clanker-council-malformed-");
+        try
+        {
+            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
+            Assert.True(file.Save(world));
+            var saved = world.ExportState();
+            var segment = JsonNode.Parse(File.ReadAllBytes(Path.Combine(file.Path + ".history", saved.HistoryArchiveHead + ".json")))!;
+            if (damage == "streams") segment[nameof(WorldHistorySegment.Streams)] = null;
+            else if (damage == "entry") segment[nameof(WorldHistorySegment.Streams)]!.AsArray()[0] = null;
+            else segment[nameof(WorldHistorySegment.Streams)]!.AsArray()[0]![nameof(ArchivedEventBatch.Name)] = null;
+            var archiveBytes = JsonSerializer.SerializeToUtf8Bytes(segment);
+            var digest = Convert.ToHexStringLower(SHA256.HashData(archiveBytes));
+            var archivePath = Path.Combine(file.Path + ".history", digest + ".json");
+            File.WriteAllBytes(archivePath, archiveBytes);
+            var damaged = saved with { HistoryArchiveHead = digest };
+            var checkpointBytes = WorldRuntimeCodec.Encode(damaged);
+            File.WriteAllBytes(file.Path, checkpointBytes);
+
+            Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(saved.WorldSeed));
+            Assert.Throws<InvalidDataException>(() => file.VerifyRequiredHistory(damaged));
+            var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+                new("deterministic", null, null, null, null, null, null));
+            var recovery = new WorldStartupRecovery(file, new ManualWorldSaveStore(file.Path), providers,
+                _ => new ActionCoverageRecorder(chooseIdle: true), saved.WorldSeed, Path.Combine(directory.FullName, "authority.json"),
+                NullLogger<WorldStartupRecovery>.Instance);
+            Assert.True(recovery.Pending);
+            Assert.Equal(world.Society.WorldId, recovery.Capture().WorldId);
+            Assert.Equal(checkpointBytes, File.ReadAllBytes(file.Path));
+            Assert.Equal(archiveBytes, File.ReadAllBytes(archivePath));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
     private static WorldRuntimeState WithFailedAttempts(WorldRuntimeState state)
