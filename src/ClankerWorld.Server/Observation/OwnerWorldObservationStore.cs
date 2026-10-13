@@ -121,7 +121,7 @@ public sealed partial class OwnerWorldObservationStore
         LandHearingElectionView Election(TownLandCaseJudgeContest contest) => new(contest.Id, contest.Stage,
             contest.Round, contest.RoundDeadlineTick, contest.Candidates.Select(id => new CivicCandidateView(id,
                 AgentName(id), contest.Ballots.Count(ballot => ballot.CandidateId == id))).ToArray(),
-            contest.WinnerId is { } winner ? AgentName(winner) : null, contest.Reason);
+            contest.WinnerId is { } winner ? AgentName(winner) : null, HearingReasonText.Describe(contest.Reason));
         LandHearingEvidenceView Evidence(TownLandEvidence evidence, TownLandCase item)
         {
             var right = item.Revisions.SelectMany(revision => revision.RightVersions)
@@ -179,7 +179,7 @@ public sealed partial class OwnerWorldObservationStore
                             item.Revisions.Single(old => old.Number == ruling.Revision).NoticeId, ruling.Tick))).ToArray(),
                     }).ToArray(),
                     item.Judge is { } judge ? Judge(judge) : null,
-                    item.JudgeHistory.Select(term => new LandHearingJudgeTermView(Judge(term.Judge), term.EndedTick, term.Reason)).ToArray(),
+                    item.JudgeHistory.Select(term => new LandHearingJudgeTermView(Judge(term.Judge), term.EndedTick, HearingReasonText.Describe(term.Reason)!)).ToArray(),
                     item.Contest is { } contest ? Election(contest) : null,
                     item.ContestHistory.Count > 0 ? Election(item.ContestHistory[^1]) : null,
                     item.ReopenRequests.Select(request => new LandHearingReopenRequestView(request.Id, request.AgentId,

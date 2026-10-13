@@ -67,11 +67,7 @@ public sealed partial class ManualWorldSaveStore
                 {
                     var bytes = File.ReadAllBytes(CommittedStatePath(save.Id, metadata));
                     inventory.Add(save.Id + ":" + Fingerprint(bytes));
-                    var checkpoint = WorldRuntimeCodec.Decode(bytes);
-                    if (checkpoint.Society.Society.WorldId != worldId)
-                        throw new InvalidDataException("Recovery identity does not match.");
-                    stateFile.VerifyRequiredHistory(checkpoint);
-                    using var restored = WorldRuntime.Restore(checkpoint);
+                    VerifyCheckpoint(bytes, worldId, stateFile);
                     verified.Add((save, provenance));
                 }
                 catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException or ArgumentException)
@@ -114,5 +110,14 @@ public sealed partial class ManualWorldSaveStore
             foreach (var save in preview.Remove) Delete(save.Id, worldId, save.CreatedUtc);
             return preview.Remove.Select(save => save.Id).ToArray();
         }
+    }
+
+    private static void VerifyCheckpoint(byte[] bytes, string? worldId, WorldStateFile stateFile)
+    {
+        var checkpoint = WorldRuntimeCodec.Decode(bytes);
+        if (checkpoint.Society.Society.WorldId != worldId)
+            throw new InvalidDataException("Checkpoint identity does not match.");
+        stateFile.VerifyRequiredHistory(checkpoint);
+        using var restored = WorldRuntime.Restore(checkpoint);
     }
 }
