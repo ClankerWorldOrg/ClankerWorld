@@ -63,7 +63,7 @@ public partial class Main
                 FounderSetup = new(4, 0, false) { CanChooseTownSite = true },
             };
             var events = Enumerable.Range(1, eventCount)
-                .Select(id => new OwnerWorldEvent(id, tick, "timeline_smoke", $"generation:{generation}") { Text = "An event was recorded." })
+                .Select(id => new OwnerWorldEvent(id, tick, "timeline_smoke", $"generation:{generation}") { Text = $"generation:{generation}" })
                 .ToArray();
             return new(new(new(1, 1),
                     ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
@@ -166,7 +166,7 @@ public partial class Main
                 VerifyRetainedInstruction();
                 if (observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 2 ||
                     observationSession.Current?.Baseline.Snapshot.WorldTick != 5 || selectedAgentId is not null ||
-                    knownEvents.ContainsKey(2) || knownEvents.Count != 1 || knownEvents[1].Detail != "generation:2" ||
+                    knownEvents.ContainsKey(2) || knownEvents.Count != 1 || knownEvents[1].Text != "generation:2" ||
                     ReferenceEquals(terrainMap, heldTerrain) || manualSaveOverlay.Visible || choosingFirstTownSite ||
                     observationSession.Current?.Baseline.Snapshot.FounderSetup?.CanChooseTownSite != true)
                     throw new InvalidOperationException("Accepting a fresh same-world baseline must clear old events, selection and terrain caches.");
