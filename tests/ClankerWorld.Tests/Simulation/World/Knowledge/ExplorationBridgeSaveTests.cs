@@ -21,7 +21,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
     {
         var returnRequested = false;
         IDecisionProvider ChooseProvider(string actor) => new ScoutProvider(
-            actor == NormalPathWorld.Founder1, () => returnRequested);
+            actor == "founder:00000000000000000000000000000001", () => returnRequested);
         using var world = CreateScoutingWorld(ChooseProvider);
         var actor = world.Agents[0].AgentId;
         // The seeded visited memory starts at tick zero, so let the ordinary
@@ -194,7 +194,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), chooseProvider);
     }
 
-    private static ScoutProvider Provider(string actor) => new ScoutProvider(actor == NormalPathWorld.Founder1);
+    private static ScoutProvider Provider(string actor) => new ScoutProvider(actor == "founder:00000000000000000000000000000001");
 
     private static Dictionary<string, int> Totals(WorldRuntimeState state) => state.Society.Society.Inventory.Lots
         .GroupBy(lot => lot.ItemKind, StringComparer.Ordinal)
