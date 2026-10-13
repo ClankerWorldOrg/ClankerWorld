@@ -257,13 +257,14 @@ public partial class Main
                 throw new InvalidOperationException("Field ownership, crop and soil inspection must show on the tile card and fit at 200% interface size: " + TileCardText());
             foreach (var ownerName in new[] { "Élodie Lake", "Élodie Ridge" })
             {
+                const string ownerId = "agent:ground-stock-ui";
                 var namedGround = fieldMap with
                 {
-                    GroundStocks = [new(new(1, 1), fieldMap.Agents[0].Id, "wood", 2) { OwnerName = ownerName }],
+                    GroundStocks = [new(new(1, 1), ownerId, "wood", 2) { OwnerName = ownerName }],
                 };
                 RenderTileInspection(namedGround);
                 if (!TileCardText().Contains("on the ground · " + ownerName, StringComparison.Ordinal) ||
-                    TileCardText().Contains(fieldMap.Agents[0].Id, StringComparison.Ordinal))
+                    TileCardText().Contains(ownerId, StringComparison.Ordinal))
                     throw new InvalidOperationException("Ground goods must display the server's owner name after each refresh: " + TileCardText());
             }
             householdPropertyFilter.ButtonPressed = false;
