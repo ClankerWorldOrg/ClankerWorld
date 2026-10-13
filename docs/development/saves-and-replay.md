@@ -2072,7 +2072,9 @@ autosave settings and loaded timeline all commit. Startup finishes that intent
 before opening the active world, including loads within the same world. If a
 load fails, its intent switches to rollback before restoring the before-load
 copy; an interrupted rollback therefore resumes in the same direction. The
-source snapshots remain unchanged. An unfinished live rollback stops the host;
+source snapshots remain unchanged. While its intent is pending, the shared save
+mutation gate refuses snapshot changes and world switching, including requests
+already admitted before shutdown. An unfinished live rollback stops the host;
 an unreadable intent or failed recovery stops startup and preserves the files.
 Include this intent in an installation
 backup; older binaries cannot resolve it, so complete recovery before rollback.

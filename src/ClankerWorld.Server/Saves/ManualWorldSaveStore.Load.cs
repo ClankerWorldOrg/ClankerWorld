@@ -12,6 +12,12 @@ public sealed partial class ManualWorldSaveStore
     private string PendingLoadPath => Path.Combine(directory, "pending-load.json");
     public bool HasPendingLoad { get { lock (gate) return File.Exists(PendingLoadPath); } }
 
+    internal void RequireNoPendingLoad()
+    {
+        if (HasPendingLoad)
+            throw new InvalidOperationException("Finish recovering the interrupted save load before changing saves or worlds.");
+    }
+
     /// <summary>Load all world-owned settings together, retaining a durable intent until completion.</summary>
     public void Load(string id, string backupId, WorldRuntime runtime, WorldStateFile stateFile,
         ProviderConfigurationStore providers, WorldAutosaveStore autosave)
@@ -35,6 +41,7 @@ public sealed partial class ManualWorldSaveStore
     {
         lock (gate)
         {
+            RequireNoPendingLoad();
             var saved = ReadCommitted(id);
             var backup = ReadCommitted(backupId);
             var worldId = saved.Checkpoint.Society.Society.WorldId;

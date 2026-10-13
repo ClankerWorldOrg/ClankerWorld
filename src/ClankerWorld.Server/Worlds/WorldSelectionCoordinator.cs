@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Saves;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -18,7 +19,8 @@ public sealed class WorldSelectionCoordinator(
     WorldAutosaveStore autosave,
     WorldJevPolicy jevPolicy,
     ILogger<WorldSelectionCoordinator> logger,
-    Func<string, IDecisionProvider> providerFactory)
+    Func<string, IDecisionProvider> providerFactory,
+    ManualWorldSaveStore saves)
 {
     private readonly object gate = providers.WorldMutationGate;
     // Bound read-only generation without blocking the current world's transactions.
@@ -37,8 +39,9 @@ public sealed class WorldSelectionCoordinator(
         WorldJevPolicy jevPolicy,
         ILogger<WorldSelectionCoordinator> logger,
         Func<string, IDecisionProvider> providerFactory,
+        ManualWorldSaveStore saves,
         Func<GeographyOptions, GeographyCandidateSelection> selectCandidates)
-        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory)
+        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory, saves)
     {
         ArgumentNullException.ThrowIfNull(selectCandidates);
         selectGeographyCandidates = selectCandidates;
@@ -392,6 +395,7 @@ public sealed class WorldSelectionCoordinator(
 
     private void RequirePaused()
     {
+        saves.RequireNoPendingLoad();
         if (!runtime.Society.IsPaused)
             throw new InvalidOperationException("Pause the current world before switching worlds.");
     }

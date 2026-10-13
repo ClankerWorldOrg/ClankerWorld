@@ -97,6 +97,7 @@ public sealed partial class ManualWorldSaveStore
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before overwriting a manual save.");
@@ -183,6 +184,7 @@ public sealed partial class ManualWorldSaveStore
         name = NormalizeName(name);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!isAutosave && !state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before making a manual save.");
@@ -427,6 +429,7 @@ public sealed partial class ManualWorldSaveStore
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
         lock (gate)
         {
+            RequireNoPendingLoad();
             var intent = Path.Combine(directory, id + ".deleting.json");
             var source = File.Exists(intent) ? intent : MetadataPath(id);
             var metadata = ReadDeletionMetadata(source, id);
@@ -442,6 +445,7 @@ public sealed partial class ManualWorldSaveStore
     {
         lock (gate)
         {
+            RequireNoPendingLoad();
             if (!Directory.Exists(directory)) return;
             var foreignSaveIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var path in Directory.GetFiles(directory, "*.json"))
@@ -562,6 +566,7 @@ public sealed partial class ManualWorldSaveStore
         if (count is < 1 or > 10) throw new ArgumentOutOfRangeException(nameof(count));
         lock (gate)
         {
+            RequireNoPendingLoad();
             // Each branch keeps its own newest autosaves, so playing one branch
             // never retires another branch's history. Unknown histories stay
             // recoverable rather than being merged into the pre-branch group.
