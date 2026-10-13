@@ -1,0 +1,1 @@
+- Blacksmith delivery choices keep their selected ore or other supplies and load. The Event Log explains when that shipment is no longer available.

@@ -169,6 +169,13 @@ physical room and pickup/delivery route rules. Shelf accounting includes usable
 physical stock even when promised; selecting a new load uses the shared goods
 query and named hold authorization. Shop trade and order forwarders remain.
 
+Blacksmith delivery choices use `SmithDeliveryActionPlan` for personally mined
+ore and other on-site inputs. They retain the chosen supplies, quantities and
+pickup or direct-delivery step. One quantity check preserves the dedicated ore
+rule and the ordinary input rule, including their different incoming-stock and
+load limits. Source gathering, cargo preparation and tool callers remain for
+their next action area; order delivery keeps its existing forwarder.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -436,7 +443,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 229 references across 62 files. Named delivery, hold and cargo operations
+is 219 references across 61 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;

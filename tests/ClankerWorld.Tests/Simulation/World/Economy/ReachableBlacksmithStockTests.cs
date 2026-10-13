@@ -48,8 +48,19 @@ public sealed class ReachableBlacksmithStockTests
         };
         var chooser = new HaulChoices(true);
         using var world = Restore(state, actor, chooser);
+        var baseline = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(baseline, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 30 && !PickedUp(world); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            foreach (var decision in result.Decisions.Where(decision => decision.AgentId == actor &&
+                         decision.Admission.Intention?.CandidateId == "haul_smith_input"))
+                Assert.Same(chooser.Plan, decision.ActionPlan);
+        }
+        var plan = Assert.IsType<SmithDeliveryActionPlan>(chooser.Plan);
+        Assert.Equal((reachableId, 4, smith.InstanceId), (plan.StockId, plan.Quantity, plan.SmithId));
 
         Assert.True(chooser.OfferedSmithHaul);
         Assert.True(PickedUp(world));
@@ -106,11 +117,13 @@ public sealed class ReachableBlacksmithStockTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public bool OfferedSmithHaul { get; private set; }
+        public ActionPlan? Plan { get; private set; }
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
             var smith = request.Observation.Candidates.Any(candidate => candidate.Id == "haul_smith_input");
             OfferedSmithHaul |= smith;
+            if (smith) Plan = request.Observation.Candidates.Single(candidate => candidate.Id == "haul_smith_input").ActionPlan;
             var selected = haul && smith ? "haul_smith_input" : haul &&
                 request.Observation.Candidates.Any(candidate => candidate.Id == "haul_household_stock") ? "haul_household_stock" : "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
