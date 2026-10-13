@@ -102,7 +102,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
             }
             bool Gratitude(SocietySocialMemory memory) => memory.OwnerId == requester && memory.SubjectId == helper &&
-                memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal);
+                memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal);
             if (fullHouse)
             {
                 Assert.Equal(0, world.DestinationRoom(house.InstanceId));
@@ -157,9 +157,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             observation.Validate();
             var recalled = Assert.Single(observation.RetrievedMemories!, item => item.Id == memory.Id);
             Assert.Equal((memory.Summary, memory.SourceTick, "public"), (recalled.Summary, recalled.SourceTick, recalled.Visibility));
-            Assert.InRange(memory.Id.Length, 1, 128);
-            if (nativeBorn) Assert.StartsWith("project-gratitude:sha256:", memory.Id, StringComparison.Ordinal);
-            else Assert.Equal($"project-gratitude:{requester}:{helper}", memory.Id);
+            Assert.InRange(memory.Id.Value.Length, 1, 128);
+            if (nativeBorn) Assert.StartsWith("project-gratitude:sha256:", memory.Id.Value, StringComparison.Ordinal);
+            else Assert.Equal(DerivedId.Create($"project-gratitude:{requester}:{helper}", "project-gratitude:sha256:"), memory.Id.Value);
 
             // Cancel actual external work before the checkpoint fork. Both
             // continuations use the same native blocking admission boundary.

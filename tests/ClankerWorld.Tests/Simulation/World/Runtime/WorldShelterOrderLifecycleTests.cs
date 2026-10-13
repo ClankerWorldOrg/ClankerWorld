@@ -186,11 +186,11 @@ public sealed partial class WorldShelterOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-shelter", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             var stopped = Person(world, actor).Position;
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
             for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {

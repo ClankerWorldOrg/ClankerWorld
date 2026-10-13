@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
@@ -7,8 +5,6 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldConversationTests
 {
-    private static readonly string[] PendingConversationFixtureFields = ["pendingModelCalls", "pendingConversationTurns"];
-
     [Fact]
     public async Task NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation()
     {
@@ -18,7 +14,7 @@ public sealed partial class WorldConversationTests
             id is InitiatorId or InviteeId ? held : new DeterministicDecisionProvider());
         world.StartWorld();
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await held.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(held.Started.Task);
         var guidance = world.SubmitInstruction(new OwnerInstructionRequest(
             "guidance-during-talk", "owner:test", InitiatorId, OwnerInstructionKind.Suggestion,
             "Remember the river path after this conversation."));

@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class TownLandHearingHeldReplyTests
 {
-    private const string Actor = "founder:00000000000000000000000000000003";
+    private const string Actor = NormalPathWorld.Founder3;
     private const string Newcomer = "agent:00000000000000000000000000000093";
     private const int Day = 40;
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);

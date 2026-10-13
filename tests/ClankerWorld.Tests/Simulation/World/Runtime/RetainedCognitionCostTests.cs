@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class RetainedCognitionCostTests
 {
-    private const string TargetId = "founder:00000000000000000000000000000001";
+    private const string TargetId = NormalPathWorld.Founder1;
 
     // Ordinary peers change the world while a reply is held, so some choices
     // disappear. That leaves the accepted reply valid and needs no second call.
@@ -21,7 +21,7 @@ public sealed class RetainedCognitionCostTests
             id == TargetId ? provider : new DeterministicDecisionProvider());
         for (var tick = 0; tick < 400 && provider.Requests.IsEmpty; tick++)
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         for (var tick = 0; tick < heldTicks; tick++)
             Assert.True((await world.TickModelWorkAsync()).Advanced);
         var original = provider.Requests.First().Observation.Candidates.Select(candidate => candidate.Id).ToHashSet(StringComparer.Ordinal);
@@ -32,7 +32,7 @@ public sealed class RetainedCognitionCostTests
         Assert.True(original.Except(current.Select(candidate => candidate.Id)).Any(),
             "The held observation must actually lose an offered choice.");
         provider.Release.TrySetResult();
-        await provider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
         var admitted = false;
         for (var tick = 0; tick < 20 && !admitted; tick++)
         {

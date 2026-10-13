@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -65,7 +66,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Equal(stoneBefore - stoneCost, Quantity(world, "stone"));
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Completed,
             world.Society.Inventory.GetReservation(id).State));
-        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
         Assert.Single(world.ExportState().Events, item => item.Kind == "building_expanded");
         await TickTogether(world, replay);
         Assert.Single(world.WorldSimulation.BuildingExpansions!);
@@ -224,7 +225,7 @@ public sealed partial class WorldExpansionOrderTests
             order with { ExpansionBinding = binding with { OwnerId = OtherHousehold } },
             order with { ExpansionBinding = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } },
             order with { ExpansionBinding = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } },
-            order with { Status = "finished", CompletedUnits = 1, LastEffectId = "expand:job:" + new string('0', 64) },
+            order with { Status = "finished", CompletedUnits = 1, LastEffectId = Identity.Parse("expand:job:" + new string('0', 64)) },
         })
         {
             var corrupt = saved with

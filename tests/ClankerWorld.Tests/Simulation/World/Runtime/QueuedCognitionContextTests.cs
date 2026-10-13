@@ -19,7 +19,7 @@ public sealed class QueuedCognitionContextTests
         Assert.True(scheduler.Enqueue(new("old", "alice", 1, 0, ["old"], observation)));
         var preview = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>()));
         var pending = preview.DecideAsync(default).AsTask();
-        await provider.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
         Assert.True(scheduler.Enqueue(new("new", "alice", 2, 1, ["new"], observation with
         {
             WorldTick = 1,
@@ -46,7 +46,7 @@ public sealed class QueuedCognitionContextTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var first = Assert.Single(provider.Requests);
             Assert.DoesNotContain(first.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             for (var tick = 0; tick < 6; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
@@ -56,7 +56,7 @@ public sealed class QueuedCognitionContextTests
                 Assert.Contains(queued.Observation.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             Assert.Single(provider.Requests);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             await AdvanceUntil(world, () => Accepted(world) >= 1);
             var admittedAt = world.WorldTick;
             for (var tick = 0; tick < 35 && provider.Requests.Count < 2; tick++)
@@ -90,7 +90,7 @@ public sealed class QueuedCognitionContextTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.Empty(Assert.Single(provider.Requests).ObserverGuidance ?? []);
             var message = world.SubmitInstruction(new OwnerInstructionRequest("new-held-guidance", "owner:test", Actor,
                 OwnerInstructionKind.Suggestion, "Look for a grove after you eat."));
@@ -119,7 +119,7 @@ public sealed class QueuedCognitionContextTests
                 restored = Restore(saved, replacement);
                 restored.Resume();
                 Assert.True((await restored.TickModelWorkAsync()).Advanced);
-                await replacement.Started.Task;
+                await ModelWorkHarness.For(restored).WaitAsync(replacement.Started.Task);
                 var resumed = Assert.Single(replacement.Requests);
                 Assert.NotEqual(fresh.RunEpoch, resumed.RunEpoch);
                 Assert.Equal(restored.Society.RunEpoch, resumed.RunEpoch);
@@ -127,7 +127,7 @@ public sealed class QueuedCognitionContextTests
 
                 // The obsolete provider deliberately ignores cancellation and answers after the new epoch started.
                 provider.ReleaseSecond.TrySetResult(true);
-                await provider.SecondReturned.Task;
+                await ModelWorkHarness.For(world).WaitAsync(provider.SecondReturned.Task);
                 Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
                 Assert.Null(Instruction(restored, message.InstructionId).ObservedTick);
                 replacement.Release.TrySetResult(true);
@@ -165,15 +165,15 @@ public sealed class QueuedCognitionContextTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             for (var tick = 0; tick < 6; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
                 entry => entry.AgentId == Actor).Observation.Candidates, candidate => candidate.Id == "seek_food");
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var before = WorldRuntimeCodec.Encode(world.ExportState());
             var preparedAdmission = false;
-            using var deadline = new CancellationTokenSource();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             while (!preparedAdmission)
             {
                 var permitted = true;
@@ -217,7 +217,7 @@ public sealed class QueuedCognitionContextTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var first = Assert.Single(provider.Requests);
             Assert.True(first.NeedsPersonality);
             Assert.True(first.NeedsAspiration);
@@ -291,14 +291,14 @@ public sealed class QueuedCognitionContextTests
             Assert.Equal(field.Work.RemainingTicks, Assert.Single(restored.Fields).Work!.RemainingTicks);
             restored.Resume();
             Assert.True((await restored.TickModelWorkAsync()).Advanced);
-            await replacement.Started.Task;
+            await ModelWorkHarness.For(restored).WaitAsync(replacement.Started.Task);
             var fresh = Assert.Single(replacement.Requests);
             Assert.NotEqual(oldEpoch, fresh.RunEpoch);
             Assert.Equal(restored.Society.RunEpoch, fresh.RunEpoch);
             Assert.Equal(message.InstructionId, Assert.Single(fresh.ObserverGuidance!).InstructionId);
             Assert.Equal(field.Work.RemainingTicks - 1, Assert.Single(restored.Fields).Work!.RemainingTicks);
             provider.ReleaseSecond.TrySetResult(true);
-            await provider.SecondReturned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.SecondReturned.Task);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.Null(Instruction(restored, message.InstructionId).ObservedTick);
             replacement.Release.TrySetResult(true);
@@ -357,7 +357,7 @@ public sealed class QueuedCognitionContextTests
         {
             // Bound a stuck tick, not the combined cost of valid ticks and
             // scheduling delays. The forty-tick behavior bound stays separate.
-            using var deadline = new CancellationTokenSource();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
                 Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);

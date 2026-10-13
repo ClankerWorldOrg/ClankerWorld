@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class AgentIdentityChoiceTests
 {
-    private const string AgentId = "founder:00000000000000000000000000000001";
+    private const string AgentId = NormalPathWorld.Founder1;
 
     [Fact]
     public async Task FirstPersonalReplyChoosesIdentityInANormalWorldAndRestoredRequestsKeepIt()
@@ -108,7 +108,7 @@ public sealed class AgentIdentityChoiceTests
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
         var saved = WorldRuntimeCodec.Decode(paused);
         model.Release.TrySetResult(true);
-        await model.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(model.Returned.Task);
         await task;
         Assert.Equal(paused, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(saved);
