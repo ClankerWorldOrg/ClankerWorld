@@ -247,6 +247,14 @@ for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
 Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
 will and conversation deadlines; production uses `TimeProvider.System`.
 
+Client pairing, signed actions, catalogs and local-server lifecycle tests pass
+their clock to the client constructor. Advance it after the actual request or
+body read enters. Keep entry and completion waits bounded with
+`ModelWorkHarness.WaitForSignalAsync`; its diagnostic deadline does not advance
+the test clock or replace the client's timeout or caller cancellation.
+The manual clock synchronizes timer state and invokes callbacks outside that
+state lock, so a returned HTTP call can dispose its deadline on another thread.
+
 The proof fixtures use this harness; remaining clock waits move in #1818. New
 model tests use the harness and no reflection into runtime queues.
 

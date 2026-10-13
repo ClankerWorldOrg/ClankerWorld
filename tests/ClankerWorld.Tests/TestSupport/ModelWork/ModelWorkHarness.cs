@@ -69,6 +69,12 @@ public sealed class ModelWorkHarness : IModelWorkObserver
     public static Task WaitForSignalAsync(Task signal, TimeSpan? deadline = null) =>
         signal.WaitAsync(deadline ?? TimeSpan.FromSeconds(30));
 
+    public static async Task<T> WaitForSignalAsync<T>(Task<T> signal, TimeSpan? deadline = null)
+    {
+        await WaitForSignalAsync((Task)signal, deadline);
+        return await signal;
+    }
+
     public async Task WaitAsync(Task signal)
     {
         RunPendingWork();
