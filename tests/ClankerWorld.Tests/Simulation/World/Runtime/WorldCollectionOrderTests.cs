@@ -343,7 +343,7 @@ public sealed partial class WorldCollectionOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-held-a", kind, actor, 1, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "collect-held-b", kind, actor, 1, storageBuildingId: House);
         var provider = new CollectionChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
-        var entryGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var entryGate = new InlineCompletionSource<bool>(TaskCreationOptions.None);
         if (delayedStartup) provider.EntryGate = entryGate.Task;
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), id => id == actor ? provider : new CollectionChoices());
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
@@ -351,9 +351,9 @@ public sealed partial class WorldCollectionOrderTests
         var receipt = Submit(world, actor, "held", text);
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
-            var invoked = await AwaitCollectionSignal(provider.Invoked.Task, "receive the native request");
+            var invoked = await AwaitCollectionSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
@@ -363,7 +363,7 @@ public sealed partial class WorldCollectionOrderTests
             }
             Assert.Equal(firstFrame, WorldRuntimeCodec.Encode(world.ExportState()));
             entryGate.TrySetResult(true);
-            var started = await AwaitCollectionSignal(provider.Started.Task, "validate and hold the operative request");
+            var started = await AwaitCollectionSignal(world, provider.Started.Task, "validate and hold the operative request");
             Assert.Same(invoked.Observation, started);
             Assert.Same(started, Assert.Single(provider.Requests));
             // Chosen work can continue during model waits. Keep the first
@@ -373,12 +373,12 @@ public sealed partial class WorldCollectionOrderTests
             Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("collect-held-a"), actor));
             Assert.True(world.CancelOrder(new("cancel-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            var returned = await AwaitCollectionSignal(provider.Returned.Task, "return the late reply");
+            var returned = await AwaitCollectionSignal(world, provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
             Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind switch { "fruit" => "collect_food", "basket" => "collect_equipment", _ => "collect_material" },
                 returned.SelectedCandidateId);
-            for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 5; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             var second = world.Society.Inventory.GetLot("collect-held-b");
             Assert.Equal((actor, 1, House), (second.OwnerId, second.Quantity, second.StorageBuildingId));
@@ -395,9 +395,9 @@ public sealed partial class WorldCollectionOrderTests
         }
     }
 
-    private static async Task<T> AwaitCollectionSignal<T>(Task<T> signal, string phase)
+    private static async Task<T> AwaitCollectionSignal<T>(WorldRuntime world, Task<T> signal, string phase)
     {
-        try { return await signal.WaitAsync(TimeSpan.FromSeconds(30)); }
+        try { return await ModelWorkHarness.For(world).WaitAsync(signal); }
         catch (TimeoutException exception)
         {
             throw new TimeoutException($"The held collection provider did not {phase} within thirty seconds.", exception);
@@ -526,10 +526,10 @@ public sealed partial class WorldCollectionOrderTests
         public DecisionProviderKind Kind => kind;
         public Task? EntryGate { get; set; }
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.None);
         public long ProviderEpoch => 0;
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

@@ -428,15 +428,15 @@ public sealed partial class WorldStorageOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-held-a", kind, actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "storage-held-b", kind, actor, 1);
         var provider = new StorageChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
-        var entryGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var entryGate = new InlineCompletionSource<bool>(TaskCreationOptions.None);
         if (delayedStartup) provider.EntryGate = entryGate.Task;
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), id => id == actor ? provider : new StorageChoices());
         var receipt = Submit(world, actor, "held", $"keep storing {kind}");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
-            var invoked = await AwaitStorageSignal(provider.Invoked.Task, "receive the native request");
+            var invoked = await AwaitStorageSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
@@ -446,7 +446,7 @@ public sealed partial class WorldStorageOrderTests
             }
             Assert.Equal(firstFrame, WorldRuntimeCodec.Encode(world.ExportState()));
             entryGate.TrySetResult(true);
-            var started = await AwaitStorageSignal(provider.Started.Task, "validate and hold the operative request");
+            var started = await AwaitStorageSignal(world, provider.Started.Task, "validate and hold the operative request");
             Assert.Same(invoked.Observation, started);
             Assert.Same(started, Assert.Single(provider.Requests));
             // Existing chosen work can continue while a model waits. Keep the
@@ -455,11 +455,11 @@ public sealed partial class WorldStorageOrderTests
             Assert.Equal(1, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("cancel-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            var returned = await AwaitStorageSignal(provider.Returned.Task, "return the late reply");
+            var returned = await AwaitStorageSignal(world, provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
             Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind == "basket" ? "store_equipment" : "store_material", returned.SelectedCandidateId);
-            for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 5; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Null(world.Society.Inventory.GetLot("storage-held-b").StorageBuildingId);
             Assert.Single(world.ExportState().Events, item => item.Kind == "personal_goods_stored");
@@ -475,9 +475,9 @@ public sealed partial class WorldStorageOrderTests
         }
     }
 
-    private static async Task<T> AwaitStorageSignal<T>(Task<T> signal, string phase)
+    private static async Task<T> AwaitStorageSignal<T>(WorldRuntime world, Task<T> signal, string phase)
     {
-        try { return await signal.WaitAsync(TimeSpan.FromSeconds(30)); }
+        try { return await ModelWorkHarness.For(world).WaitAsync(signal); }
         catch (TimeoutException exception)
         {
             throw new TimeoutException($"The held storage provider did not {phase} within thirty seconds.", exception);
@@ -524,10 +524,10 @@ public sealed partial class WorldStorageOrderTests
         public DecisionProviderKind Kind => kind;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public Task? EntryGate { get; set; }
-        public TaskCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.None);
         public long ProviderEpoch => 0;
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
