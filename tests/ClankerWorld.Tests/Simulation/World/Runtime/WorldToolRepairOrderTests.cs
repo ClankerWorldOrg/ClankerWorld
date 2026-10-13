@@ -214,7 +214,7 @@ public sealed class WorldToolRepairOrderTests
         var provider = new RepairChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new RepairChoices());
         var startAfter = world.WorldTick + 3;
-        provider.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
+        ModelWorkHarness.For(world).Scheduler.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
         var receipt = Submit(world, actor, "held", "repair wooden axe");
         try
         {
@@ -227,7 +227,7 @@ public sealed class WorldToolRepairOrderTests
             provider.Release.TrySetResult(true);
             await AdvanceUntil(world, () => provider.Returned.Task.IsCompleted,
                 "The held repair-planning reply did not return within forty native ticks.");
-            for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 5; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(3_000, world.Society.Inventory.GetLot("target").ConditionBasisPoints);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "tool_repaired");
@@ -580,13 +580,13 @@ public sealed class WorldToolRepairOrderTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested)
             {
                 Assert.Fail($"World tick {world.WorldTick} stalled during poll {tick + 1} of 40.");
             }
-            if (!done()) await Task.Delay(5);
+            if (!done()) await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(done(), failureMessage);
     }
@@ -595,13 +595,11 @@ public sealed class WorldToolRepairOrderTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public Func<bool>? CanStart { get; set; }
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
             request.Validate();
             var observation = request.Observation;
             Requests.Enqueue(observation);
