@@ -423,12 +423,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
     }
 
-    internal static async Task WaitForRequests(WorldRuntime world)
+    internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
         var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await Task.WhenAll(tasks.Concat(additionalTasks)).WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     private static async Task<byte[]> CreateBornAsync()

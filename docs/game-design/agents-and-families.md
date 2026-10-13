@@ -2,7 +2,7 @@
 title: Agents, families and social life
 type: game-design
 status: active
-updated: 2026-10-11
+updated: 2026-10-13
 ---
 
 # Agents, families and social life
@@ -364,8 +364,8 @@ The player chooses a **rough site for the first Town** in New World, with the
 best suitable areas shown as **guidance, not the only allowed locations**.
 Fertile land, reachable wood and stone, and short connected Roads make a site
 more suitable; lack of an ideal score does not forbid the player's choice.
-The current map tint and hovered tips are provisional advice from nearby map
-resources and open ground; they do not decide whether a site can be chosen.
+Map tint and hovered tips give provisional advice from nearby resources and
+open ground; they do not decide whether a site can be chosen.
 Water or another physically impossible location cannot hold the Town. Within
 the chosen rough site, Town generation automatically picks a feasible layout
 for **two Houses, a Warehouse, a Farmhouse and a Blacksmith**, connected by
@@ -471,8 +471,7 @@ stage, and what each stage can do is agreed above
   must be started even across the world, has the four-turn bound described
   above, and a marriage cannot complete with its surname undecided. The
   ordinary conversation limits below are provisional and may change after
-  playtesting; they do not imply that the separate marriage-surname feature is
-  implemented.
+  playtesting; the separate marriage-surname conversation keeps its own limits.
 - **Each participant's own model speaks that participant's turns** in a
   conversation, as in the marriage-surname conversation above.
 - **Agreed on October 8
@@ -560,8 +559,8 @@ stage, and what each stage can do is agreed above
   models keep seeing exact numbers. The owner chose this after a comparison
   with real models ([need wording comparison](../development/need-wording-comparison.md)):
   describing needs in words did no worse than numbers with GPT 6 Luna but
-  clearly worse with GLM 5.3 Flash. The words stay built but switched off, and
-  no further comparison is planned. Switched on, a request describes each need
+  clearly worse with GLM 5.3 Flash. No further comparison is planned. The
+  alternative wording describes each need
   in words and always shows the whole scale from worst to best, so the model
   cannot misread how serious a word is, for example "Fullness: hungry
   (starving, hungry, fine, full; starving is worst, full is best)". The words
@@ -580,10 +579,10 @@ stage, and what each stage can do is agreed above
 ### Still to decide
 
 Real token budgets and conversation costs, whether the provisional frequency
-and turn limits above feel right, and Jev's exact role need implementation and
+and turn limits above feel right, and Jev's exact role need
 playtesting. Group talks and memory summaries are agreed above. The budgets stay
 open until they are measured in play. The bounded consent and interrupt/resume
-behavior is the current baseline, not proof that it will feel right in the
+behavior is the agreed baseline, not proof that it will feel right in the
 finished game. The September 29 external code review raised additional
 **questions, not decisions**. On 30 September computment settled or deferred
 three of them: each participant's own model speaks its own conversation turns
@@ -617,9 +616,7 @@ options, not agreed game design.
   terms. The game rules decide every outcome.
 - Combat can turn lethal, but agents should not be dying constantly. Personal
   models choose intentions; the game rules resolve reach, movement,
-  timing, protection, injury, and outcomes. Health already exists in the
-  prototype, but the integrated game **does not yet have a combat loop,
-  weapons, armor, combat injuries, or combat AI**.
+  timing, protection, injury, and outcomes.
 
 ### Weapons and armor
 
@@ -638,7 +635,7 @@ equipment changes a fight belongs to the combat design
 **Parked on October 1, 2026
 ([#568](https://github.com/compoodment/ClankerWorld/issues/568)):** crafting,
 equipping and repairing combat gear waits until combat itself is designed. The
-pipelines above stay agreed but are not built before then.
+pipelines above stay agreed; this staging does not remove them from the design.
 
 ### Still to decide
 
