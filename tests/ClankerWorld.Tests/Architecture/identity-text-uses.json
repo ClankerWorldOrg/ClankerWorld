@@ -454,7 +454,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs|length|observerGuidance.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ConstructionOrders.cs|id|$\u0022build-site:{position.X},{position.Y}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Content.cs|id|$\u0022production-{worldSimulation.NextProductionJobSequence.ToString(\u0022D10\u0022, System.Globalization.CultureInfo.InvariantCulture)}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Control.cs|id|$\u0022private-instruction-{sequence.ToString(\u0022D10\u0022, System.Globalization.CultureInfo.InvariantCulture)}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Control.cs|length|value.Trim().Length \u003E 128": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs|id|\u0022animal-\u0022 \u002B id": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs|id|$\u0022developer-edit-{edit.ExpectedEventId \u002B 1}\u0022": 1,
