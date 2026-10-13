@@ -16,9 +16,9 @@ public sealed class ServerObservationTests
         using var generated = NormalPathWorld.CreateGenerated("ground-owner-names",
             _ => new ActionCoverageRecorder(chooseIdle: true));
         var state = generated.ExportState();
-        var person = state.Society.Society.Agents.First();
-        var household = state.Society.Society.Households.First();
-        var town = state.Towns!.First();
+        var person = state.Society.Society.Agents[0];
+        var household = state.Society.Society.Households[0];
+        var town = state.Towns![0];
         var (ownerId, ownerName) = ownerKind switch
         {
             "person" => (person.Id, person.Name),
@@ -27,7 +27,7 @@ public sealed class ServerObservationTests
         };
         var inventory = state.Society.Society.Inventory;
         var wood = inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.Quantity >= 2 && lot.ContainerLotId is null);
-        var point = state.Agents.First().Position;
+        var point = state.Agents[0].Position;
         inventory = wood.OwnerId == ownerId
             ? InventoryAuthority.Relocate(inventory, "ground-label", wood.Id, ownerId, 2, groundPosition: new(point.X, point.Y))
             : InventoryAuthority.Transfer(inventory, "ground-label", wood.OwnerId, ownerId, wood.Id, 2,
@@ -43,12 +43,14 @@ public sealed class ServerObservationTests
                 JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.GroundStocks.Single(stock =>
                     stock.OwnerId == ownerId && stock.Kind == "wood" && stock.Position.X == point.X && stock.Position.Y == point.Y);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.Equal((ownerId, ownerName, "wood", 2), (Read().OwnerId, Read().OwnerName, Read().Kind, Read().Quantity));
+        var stock = Read();
+        Assert.Equal((ownerId, ownerName, "wood", 2), (stock.OwnerId, stock.OwnerName, stock.Kind, stock.Quantity));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         if (ownerKind == "person")
         {
             Assert.True(world.RenameAgent(ownerId, "Élodie Lake"));
-            Assert.Equal((ownerId, "Élodie Lake", "wood", 2), (Read().OwnerId, Read().OwnerName, Read().Kind, Read().Quantity));
+            stock = Read();
+            Assert.Equal((ownerId, "Élodie Lake", "wood", 2), (stock.OwnerId, stock.OwnerName, stock.Kind, stock.Quantity));
         }
     }
 
