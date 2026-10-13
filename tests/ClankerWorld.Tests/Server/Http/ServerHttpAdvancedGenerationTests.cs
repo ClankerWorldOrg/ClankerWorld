@@ -39,7 +39,7 @@ public sealed partial class ServerHttpTests
         output.WriteLine($"small-balanced-owner-preview elapsed_ms={stopwatch.Elapsed.TotalMilliseconds:F0} " +
             $"response_bytes={responseBytes.Length} candidates={preview.Candidates.Count}");
         Assert.Equal(3, preview.Candidates.Count);
-        var coverage = Assert.IsType<GeographyCandidateReport>(preview.Coverage);
+        var coverage = Assert.IsType<ClankerWorld.Contracts.OwnerWorldCandidateReport>(preview.Coverage);
         Assert.True(coverage.ForestTargetApplicable);
         Assert.True(coverage.MountainTargetApplicable);
         Assert.False(coverage.MeetsTargets);

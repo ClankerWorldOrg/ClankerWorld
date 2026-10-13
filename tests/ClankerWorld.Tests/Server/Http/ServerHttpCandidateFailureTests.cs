@@ -128,7 +128,7 @@ public sealed partial class ServerHttpTests
         var failure = Assert.Single(preview.FailedCandidates);
         Assert.Equal(2, failure.Attempt);
         Assert.Equal("no-clearing", failure.Reason);
-        var selected = Assert.IsType<GeographyCandidateReport>(preview.Coverage);
+        var selected = Assert.IsType<ClankerWorld.Contracts.OwnerWorldCandidateReport>(preview.Coverage);
         Assert.Equal(0, selected.Attempt);
         Assert.True(selected.MeetsTargets);
         var direct = GeographyCandidateSelector.GenerateCandidate(new GeographyOptions(action.Seed, WorldSizePreset.Small,

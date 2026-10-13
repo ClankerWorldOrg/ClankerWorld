@@ -25,6 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ClankerWorld.Simulation\ClankerWorld.Simulation.csproj" />
     <ProjectReference Include="..\..\src\ClankerWorld.Server\ClankerWorld.Server.csproj" />
+    <!-- Build both wire assemblies without importing the Godot runtime into the test host. -->
+    <ProjectReference Include="..\..\src\ClankerWorld.GodotClient\ClankerWorld.GodotClient.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
