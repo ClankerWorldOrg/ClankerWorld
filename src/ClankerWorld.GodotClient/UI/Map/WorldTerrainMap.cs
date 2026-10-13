@@ -229,7 +229,7 @@ public sealed class WorldTerrainMap
     {
         if (layers is null) return new WorldTerrainMap(width, height, terrain, wrapsEastWest: wrapsEastWest);
         if (layers.Width != width || layers.Height != height ||
-            layers.Encoding is not ("map-layers-v1" or "map-layers-v2"))
+            layers.Encoding is not ("map-layers-v1" or TerrainCodes.LayersEncoding))
             throw new InvalidDataException("The packed world map layers have an unsupported encoding or dimensions.");
         var length = checked(width * height);
         var climate = DecodeLayer(layers.Climate, length, 5, "climate");

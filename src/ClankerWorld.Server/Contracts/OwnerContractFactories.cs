@@ -71,7 +71,7 @@ public sealed partial record WorldThumbnail
         var height = Math.Clamp((int)Math.Round(width * (double)map.Height / map.Width), 1, map.Height);
         var terrain = new byte[checked(map.Width * map.Height)];
         foreach (var tile in map.Tiles)
-            terrain[tile.Position.Y * map.Width + tile.Position.X] = checked((byte)tile.Terrain);
+            terrain[tile.Position.Y * map.Width + tile.Position.X] = TerrainCodes.Encode(tile.Terrain.ToString());
         var pixels = new byte[checked(width * height)];
         var counts = new int[256];
         for (var py = 0; py < height; py++)
@@ -92,6 +92,6 @@ public sealed partial record WorldThumbnail
                 pixels[py * width + px] = (byte)commonest;
             }
         }
-        return new WorldThumbnail(width, height, "terrain-kind-v1", Convert.ToBase64String(pixels));
+        return new WorldThumbnail(width, height, TerrainCodes.TerrainEncoding, Convert.ToBase64String(pixels));
     }
 }
