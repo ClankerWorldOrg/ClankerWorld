@@ -7,42 +7,23 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string RepairToolPrefix = ToolRepairChoice.Prefix;
-    private const string RareMiningPrefix = "gather_rare_material:";
+    private const string RareMiningPrefix = RareMiningChoice.Prefix;
     // One trial load before a household needs another use for these goods.
     private const int RareMaterialStockTarget = 8;
 
-    private MapResource? RareMiningSource(string actor, string itemKind)
-    {
-        if (itemKind is not ("gold_ore" or "diamond") || !IsAdult(actor) ||
-            !agents.TryGetValue(actor, out var state) || NeedsUrgentFood(state) ||
-            NeedsUrgentWarmth(state) || state.Project is { Stage: not ("completed" or "cancelled"), RequiresFreshChoice: false } ||
-            ToolProgressionRules.BestUsableTool(society.Checkpoint.Inventory, actor, ToolFamily.Pickaxe) is not { } pick ||
-            ToolProgressionRules.Find(pick.ItemKind)!.Tier < 3)
-            return null;
-        var household = HouseholdFor(actor);
-        var stock = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == itemKind &&
-                (lot.OwnerId == actor || lot.OwnerId == household)).Sum(lot => lot.Quantity);
-        if (stock >= RareMaterialStockTarget)
-            return null;
-        var source = MaterialSource(itemKind, actor);
-        var plan = source is null ? null : ProjectMaterialHarvest(actor, itemKind, source);
-        return plan is not null && FreeCarryCapacity(actor) >= plan.Quantity + plan.TreeSeedQuantity
-            ? source : null;
-    }
+    private MapResource? RareMiningSource(string actor, string itemKind) =>
+        PlanRareMining(actor, itemKind) is { } plan && CheckRareMiningPlan(plan).Allowed ? plan.Source : null;
 
     private void AddRareMiningCandidates(List<CognitionCandidate> candidates, string actor)
     {
         foreach (var itemKind in new[] { "gold_ore", "diamond" })
-            if (RareMiningSource(actor, itemKind) is { } source)
-                candidates.Add(new(RareMiningPrefix + itemKind,
-                    $"Mine {itemKind.Replace('_', ' ')} with the carried iron pickaxe.", 36, source.Id));
+            if (PlanRareMining(actor, itemKind) is { } plan && CheckActionPlan(plan).Allowed)
+                candidates.Add(new(plan.CandidateId,
+                    $"Mine {itemKind.Replace('_', ' ')} with the carried iron pickaxe.", 36, plan.Source.Id)
+                { ActionPlan = plan });
     }
 
-    private void GatherRareMaterial(string actor, AgentState state, string itemKind)
-    {
-        if (RareMiningSource(actor, itemKind) is { } source)
-            GatherProjectMaterial(actor, state, itemKind, source);
-    }
+    private void GatherRareMaterial(string actor, AgentState state, string itemKind) => ApplyRareMiningPlan(PlanRareMining(actor, itemKind));
 
     private bool CanGatherFromSource(string actor, string itemKind, MapResource source,
         Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache)
