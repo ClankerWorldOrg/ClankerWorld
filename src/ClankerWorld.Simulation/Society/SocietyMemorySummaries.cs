@@ -56,16 +56,7 @@ public static class SocietyMemorySummaryRules
             "varied" => new[] { ordered[0], ordered[^1] },
             _ => throw new InvalidDataException("Unknown private memory summary choice."),
         };
-        return string.Join("; ", selected.Select(source => source.Label + ": " + Excerpt(source.Text)));
-    }
-
-    private static string Excerpt(string text)
-    {
-        var clean = string.Join(' ', new string(text.Select(character => char.IsControl(character) ? ' ' : character).ToArray())
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (clean.Length <= 48) return clean;
-        var length = char.IsHighSurrogate(clean[46]) && char.IsLowSurrogate(clean[47]) ? 46 : 47;
-        return clean[..length] + "…";
+        return string.Join("; ", selected.Select(source => source.Label + ": " + BoundedText.Excerpt(source.Text, 48, "…", TextNormalization.ControlsAndSpaces)));
     }
 
     internal sealed record SourceRecord(SocietyMemorySummarySource Source, string Text, string Label, bool Corrected);

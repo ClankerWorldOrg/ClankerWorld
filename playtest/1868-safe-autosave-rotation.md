@@ -1,0 +1,1 @@
+- In a disposable world with several autosaves, pause, open World Settings and reduce rotation, then turn it off. Confirm that Load Save still opens the newest usable copy and other worlds and save branches keep their own copies. ([#1868](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1868))
