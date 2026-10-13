@@ -353,13 +353,14 @@ public sealed partial class OwnerWorldObservationStore
 
     public EventSliceView GetEventsAfter(long afterEventId)
     {
-        var state = worldRuntime.ExportState();
+        var (state, diagnostics) = worldRuntime.ExportStateWithDiagnostics();
+        var snapshot = ToSnapshot(state, diagnostics);
         return new EventSliceView(
             state.Society.Society.WorldTick,
             afterEventId,
             state.Events
                 .Where(worldEvent => worldEvent.EventId > afterEventId)
-                .Select(ToEvent)
+                .Select(item => ToEvent(item, snapshot))
                 .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor);
     }
 
@@ -377,7 +378,7 @@ public sealed partial class OwnerWorldObservationStore
                 afterEventId,
                 state.Events
                     .Where(worldEvent => worldEvent.EventId > afterEventId)
-                    .Select(ToEvent)
+                    .Select(item => ToEvent(item, snapshot))
                     .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor),
             new ObserverTimelineView(timeline.InstanceId, timeline.Generation));
     }
@@ -1898,12 +1899,16 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static EventView ToEvent(WorldEventEntry worldEvent) => new(
+    private static EventView ToEvent(WorldEventEntry worldEvent, WorldSnapshotView snapshot)
+    {
+        var view = new EventView(
         worldEvent.EventId,
         worldEvent.WorldTick,
         worldEvent.Kind,
         worldEvent.Detail,
         worldEvent.Position is { } position ? ToPosition(position) : null);
+        return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
+    }
 
     private static CognitionView ToCognition(WorldRuntimeState state)
     {

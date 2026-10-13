@@ -53,7 +53,8 @@ public partial class Main
             {
                 long id = 1_000 + index;
                 var worldEvent = new OwnerWorldEvent(id, index, wrapped ? "model_call_warning" : "tree_planted",
-                    wrapped ? "used:812:limit:1000" : "founder-scout:planted-tree-1-1:broadleaf", index == 0 ? new OwnerWorldPosition(0, 0) : null);
+                    wrapped ? "used:812:limit:1000" : "founder-scout:planted-tree-1-1:broadleaf", index == 0 ? new OwnerWorldPosition(0, 0) : null)
+                { Text = wrapped ? "Model calls: 812 of 1,000 used across all worlds. Your worlds pause at the limit; raise it in Settings → Game." : "Someone planted a tree." };
                 knownEvents[id] = worldEvent;
                 return (EventId: id, Located: worldEvent.Position is not null,
                     Clock: (index == 0 ? "2 Spring, Year 1" : "1 Spring, Year 1") + " · 12:00",

@@ -41,7 +41,7 @@ public sealed class ModelAttemptOutcomeTests
         var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot()),
             ClientJson)!;
-        var description = ClankerWorld.GodotClient.UI.WorldEventText.Describe(failure, clientSnapshot);
+        var description = EventTextFixture.Describe(failure, clientSnapshot);
         Assert.Contains("could not get a model reply:", description, StringComparison.Ordinal);
         Assert.DoesNotContain(TargetId, description, StringComparison.Ordinal);
         Assert.DoesNotContain("sk-private-status", description, StringComparison.Ordinal);

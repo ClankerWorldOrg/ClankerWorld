@@ -2270,3 +2270,11 @@ Water jugs accept only fresh water; milk may remain loose or enter a food pot.
 An interrupted tick or refused durable developer edit restores both animal and
 inventory state. Older alpha checkpoints are refused and preserved; no animal
 inference or migration runs.
+
+## Event presentation
+
+Owner event observations include server-formatted `Text`. It is derived from the
+same captured state as the event slice and is not stored in accepted history.
+The game displays it without parsing event details. This presentation step leaves
+checkpoint bytes and the current schema unchanged; typed saved payloads follow
+in the event refactor stack.

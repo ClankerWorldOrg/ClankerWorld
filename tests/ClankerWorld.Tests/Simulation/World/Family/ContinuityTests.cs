@@ -260,7 +260,7 @@ public sealed partial class ParenthoodTests
         var transitions = fewer.ExportState().Events.Where(item => item.Kind.StartsWith("continuity_rule_", StringComparison.Ordinal)).ToArray();
         Assert.Equal(["continuity_rule_on", "continuity_rule_off", "continuity_rule_on"], transitions.Select(item => item.Kind));
         Assert.Equal("eligible_couples|3|threshold|4", transitions[^1].Detail);
-        Assert.Equal(ContinuityOnText(3), WorldEventText.Describe(
+        Assert.Equal(ContinuityOnText(3), EventTextFixture.Describe(
             new GodotOwnerWorldEvent(transitions[^1].EventId, transitions[^1].WorldTick, transitions[^1].Kind, transitions[^1].Detail), null));
         Assert.Equal(3, fewer.ExportState().Continuity!.Couples.Count);
         Assert.Contains(fewer.ExportState().Continuity!.Couples, couple => couple.FirstPartnerId == first || couple.SecondPartnerId == first);
@@ -329,7 +329,7 @@ public sealed partial class ParenthoodTests
         var clientEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(
             JsonSerializer.Serialize(accepted, ContinuityGodotJson), ContinuityGodotJson);
         Assert.True(GameUiText.IsPlayerFacingEvent(clientEvent!.Kind));
-        return WorldEventText.Describe(clientEvent, snapshot);
+        return EventTextFixture.Describe(clientEvent, snapshot);
     }
 
     private static GodotOwnerWorldSnapshot ClientSnapshot(WorldRuntime world) =>
@@ -462,7 +462,7 @@ public sealed partial class ParenthoodTests
     [InlineData(false)]
     public void LegacyContinuityEventsKeepTheirHistoricalReason(bool active)
     {
-        var text = WorldEventText.Describe(new GodotOwnerWorldEvent(1, 1,
+        var text = EventTextFixture.Describe(new GodotOwnerWorldEvent(1, 1,
             active ? "continuity_rule_on" : "continuity_rule_off", "non_elders:8"), null);
         Assert.Contains("people who are not elders are alive", text, StringComparison.Ordinal);
         Assert.DoesNotContain("couples of adults", text, StringComparison.Ordinal);

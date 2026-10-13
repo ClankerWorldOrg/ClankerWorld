@@ -405,7 +405,10 @@ public sealed record AuthoringStateView(
     string Season,
     IReadOnlyList<string> ApprovedAssetReferences);
 
-public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null);
+public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null)
+{
+    public string Text { get; init; } = string.Empty;
+}
 
 public sealed record FounderSetupView(int Required, int Placed, bool Started)
 {

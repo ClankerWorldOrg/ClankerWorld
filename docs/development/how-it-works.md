@@ -4065,7 +4065,10 @@ pass is a safety net, not permission. Reports go to `reports/` in the player's
 data folder (or `user://reports` without a local server), keeping the five
 newest.
 
-Event descriptions resolve complete agent and Town IDs from the owner snapshot;
+`WorldEventFormatter` in the server builds descriptions from one owner snapshot.
+The observation sends its derived `Text` on each event; the game displays that text
+and keeps its existing event filtering and location controls. Descriptions resolve
+complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. Food yields and Town membership
 fields are read separately. Existing entries use the current saved name, including
 deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
