@@ -244,13 +244,24 @@ broken items while excluding existing reservations and promises. Starting work
 reserves the captured materials through the same commit used by repair orders;
 continuation still uses the saved work record and reservation IDs.
 
+Fire tending carries `FireActionPlan` with the selected hearth and exact
+carried wood, shared pickup, or resource/tool/harvest. It rechecks the same fuel,
+return load and hearth before applying; a changed last-tree harvest is refused
+instead of changing its seed yield. The fuel commit is also used by shelter
+orders and preserves the existing payment and fire duration.
+
+`WarmthActionPlan` retains the chosen building, lit-hearth requirement, tree
+cover or decision to remain protected. Checking and applying preserve current
+cover that already stops cooling. A lost destination or blocked route gets a
+plain refusal instead of selecting another destination while applying.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
 keeps the original swimming and carried-load rules, with a named purpose.
 
 `Actions/LifeStageRules.cs` owns action age eligibility, and
-`Actions/NeedThresholds.cs` names the shared food thresholds. Child routes use
+`Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
 one per-call reach service with an explicit swimming policy and separate
 prospective return origin. The source guard in `ActionRuleBoundaryTests` records
 existing raw age gates, unnamed need comparisons and direct route calls;

@@ -327,12 +327,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "tend_fire", [], ["tend_fire"], static (runtime, action) =>
     {
-        runtime.TendFire(action.AgentId, action.State);
+        runtime.ApplyFirePlan(action.Plan as FireActionPlan ?? runtime.PlanFire(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "seek_warmth", [], ["seek_warmth"], static (runtime, action) =>
     {
-        runtime.SeekWarmth(action.AgentId, action.State);
+        runtime.ApplyWarmthPlan(action.Plan as WarmthActionPlan ?? runtime.PlanWarmth(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "seek_food", [], ["seek_food"], static (runtime, action) =>

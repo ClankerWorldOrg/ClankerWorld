@@ -213,9 +213,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)",
-    "FindUnoccupiedRoute(actor, origin, candidate, 0)",
-    "FindUnoccupiedRoute(actor, person.Position, building.Position, range)",
-    "FindUnoccupiedRoute(actor, person.Position, target, WarmthDestinationRange(actor, person.Position, building))",
     "person.FullnessBasisPoints \u003C 500",
     "person.FullnessBasisPoints \u003E 3_500"
   ],

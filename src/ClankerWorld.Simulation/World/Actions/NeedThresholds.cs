@@ -2,6 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public static class NeedThresholds
 {
+    public const int ComfortableWarmth = 6_000;
+    public const int UrgentWarmth = 3_500;
     public const int FoodPickupFullness = 7_000;
     public const int ComfortableFullness = 4_000;
     public const int RoutineFoodSeekFullness = 4_500;
