@@ -796,7 +796,7 @@ outcomes. Loading validates retained order links and rebuilds the active index.
 Earlier alpha schemas are refused and preserved without migration. The schema
 number is provisional until merge.
 
-Schema 130 stores each task's `definition` with an explicit `kind` discriminator
+Schema 133 stores each task's `definition` with an explicit `kind` discriminator
 and only that kind's fields, beside common progress and the unchanged status
 spelling. Missing required targets, unknown kinds and fields belonging to
 another kind are refused during decoding. Each task record owns its shape
