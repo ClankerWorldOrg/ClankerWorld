@@ -124,8 +124,7 @@ public sealed class EventContentNamesTests
     private static OwnerWorldSnapshot Snapshot(WorldRuntime world) => JsonSerializer.Deserialize<OwnerWorldSnapshot>(
         JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot(), WebJson), WebJson)!;
     private static OwnerWorldEvent ClientEvent(WorldEventEntry worldEvent) =>
-        new(worldEvent.EventId, worldEvent.WorldTick, worldEvent.Kind, worldEvent.Detail)
-        { Payload = worldEvent.Payload };
+        new(worldEvent.EventId, worldEvent.WorldTick, worldEvent.Kind, worldEvent.Detail) { Payload = worldEvent.Payload };
     private static void CheckReload(WorldRuntime world)
     {
         world.Validate();

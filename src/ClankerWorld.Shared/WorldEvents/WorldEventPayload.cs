@@ -209,6 +209,8 @@ public sealed record EventPosition(int X, int Y);
 [JsonDerivedType(typeof(HousingAnswerRecordedEventPayload), "housing_answer_recorded")]
 [JsonDerivedType(typeof(HousingBlockedEventPayload), "housing_blocked")]
 [JsonDerivedType(typeof(HousingRequestExpiredEventPayload), "housing_request_expired")]
+[JsonDerivedType(typeof(HousingRequestCancelledEventPayload), "housing_request_cancelled")]
+[JsonDerivedType(typeof(HousingRequestBlockedCapacityEventPayload), "housing_request_blocked_capacity")]
 [JsonDerivedType(typeof(HousingRequestMadeEventPayload), "housing_request_made")]
 [JsonDerivedType(typeof(HousingRequestRefusedEventPayload), "housing_request_refused")]
 [JsonDerivedType(typeof(InitialContentActivatedEventPayload), "initial_content_activated")]

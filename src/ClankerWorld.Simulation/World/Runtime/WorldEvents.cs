@@ -39,6 +39,8 @@ internal static class WorldEvents
     {
         "housing_request_refused" => new HousingRequestRefusedEventPayload(actor, HouseholdId),
         "housing_request_expired" => new HousingRequestExpiredEventPayload(actor, HouseholdId),
+        "housing_request_cancelled" => new HousingRequestCancelledEventPayload(actor, HouseholdId),
+        "housing_request_blocked_capacity" => new HousingRequestBlockedCapacityEventPayload(actor, HouseholdId),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown event kind."),
     };
 
