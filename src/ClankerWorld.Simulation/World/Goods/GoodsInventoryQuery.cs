@@ -54,11 +54,12 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
                 GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or
-                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair) ||
+                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
             request.ExtraUnits < 0 ||
-            request.Use != GoodsUse.FieldPlanting && request.ReservationId is not null ||
+            request.Use is not (GoodsUse.FieldPlanting or GoodsUse.AnimalProduct) && request.ReservationId is not null ||
+            request.Use == GoodsUse.AnimalProduct && string.IsNullOrWhiteSpace(request.ReservationId) ||
             request.Use != GoodsUse.VesselFor && (request.ExtraUnits != 0 || request.ContentsKind is not null) ||
             request.ContentsKind is not null && string.IsNullOrWhiteSpace(request.ContentsKind) ||
             (request.Use == GoodsUse.Cargo ? string.IsNullOrWhiteSpace(request.ContainerId) : request.ContainerId is not null) ||
@@ -70,7 +71,7 @@ internal static class GoodsInventoryQuery
             !Enum.IsDefined(request.DeliveryPurpose) ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide) &&
                 string.IsNullOrWhiteSpace(request.Actor))
             throw new ArgumentException("Use exact owners and kinds, an actor for personal uses and Deliver, and a container for Cargo. Contents and extra units apply only to VesselFor; Deliver requires its native destination and purpose.", nameof(request));
     }
@@ -89,7 +90,7 @@ internal static class GoodsInventoryQuery
         return Math.Min(lot.Quantity - Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)), reserved);
     }
 
-    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => use is GoodsUse.OrchardFoodRecovery or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.EquipmentRepair ? lot.Quantity : IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo
+    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => use is GoodsUse.OrchardFoodRecovery or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct ? lot.Quantity : IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
         : use is GoodsUse.ConsumeAt or GoodsUse.Eat ? InventoryRules.ReservableQuantity(index, lot, InventoryHoldRules.For(index, lot).ToArray()) : InventoryRules.UsableQuantity(index, lot);
 

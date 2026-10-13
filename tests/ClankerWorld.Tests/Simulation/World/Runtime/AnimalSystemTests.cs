@@ -160,6 +160,9 @@ public sealed class AnimalSystemTests
         public List<string> ReplacedResources { get; } = [];
         public int EcologySyncs { get; private set; }
         public bool IsAdult(string actor) => actor == "agent";
+        public ActorCapabilityState? CapabilitiesFor(string actor) => new(Society.GetAgent(actor).AgeBand, false, false, false, false, false);
+        public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => throw new NotSupportedException();
+        public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => Events.Add(("choice_refused", refusal.Explanation, null));
         public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };

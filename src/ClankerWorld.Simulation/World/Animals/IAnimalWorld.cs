@@ -8,6 +8,9 @@ namespace ClankerWorld.Simulation.World;
 internal interface IAnimalWorld
 {
     bool IsAdult(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    void RefuseChoice(ActionPlan plan, ActionRefusal refusal);
     void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     InventoryLot? AttachedHandcart(string actor);
