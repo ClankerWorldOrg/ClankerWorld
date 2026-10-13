@@ -284,7 +284,7 @@ public sealed class ChildInitialIdentityTests
             state = firstGeneration.ExportState();
         }
 
-        const string partnerId = "founder:00000000000000000000000000000003";
+        const string partnerId = NormalPathWorld.Founder3;
         Assert.Equal(SocietyAgeBand.Adult, state.Society.Society.GetAgent(partnerId).AgeBand);
         var household = state.Society.Society.GetAgent(parentId).HouseholdId!;
         var home = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
@@ -324,8 +324,15 @@ public sealed class ChildInitialIdentityTests
         using (var secondGeneration = WorldRuntime.Restore(state,
             id => new CookedBirthFixture.BirthChooser(id, parentId, partnerId)))
         {
-            for (var tick = 0; tick < 650 && secondGeneration.Society.Births.Count == 1; tick++)
+            for (var tick = 0; tick < 40 && secondGeneration.Agents.Single(person => person.AgentId == parentId)
+                     .Parenthood?.Stage != "preparing"; tick++)
                 Assert.True((await secondGeneration.AdvanceOneTickAsync()).Advanced);
+            var plan = secondGeneration.Agents.Single(person => person.AgentId == parentId).Parenthood!;
+            Assert.Equal("preparing", plan.Stage);
+            ParenthoodTests.PositionFamilyFixtureAt(secondGeneration, plan.LastTransitionTick + 598);
+            Assert.True((await secondGeneration.AdvanceOneTickAsync()).Advanced);
+            Assert.Single(secondGeneration.Society.Births);
+            Assert.True((await secondGeneration.AdvanceOneTickAsync()).Advanced);
             var birth = Assert.Single(secondGeneration.Society.Births, birth => birth.ChildId != parentId);
             childId = birth.ChildId;
             Assert.Contains(secondGeneration.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
@@ -432,8 +439,15 @@ public sealed class ChildInitialIdentityTests
     {
         var prepared = await CookedBirthFixture.PrepareAsync(inPot: true);
         using var world = CookedBirthFixture.Restore(prepared);
-        for (var tick = 0; tick < 650 && world.Society.Births.Count == 0; tick++)
+        for (var tick = 0; tick < 40 && world.Agents.Single(person => person.AgentId == prepared.First)
+                 .Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = world.Agents.Single(person => person.AgentId == prepared.First).Parenthood!;
+        Assert.Equal("preparing", plan.Stage);
+        ParenthoodTests.PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Empty(world.Society.Births);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var birth = Assert.Single(world.Society.Births);
         Assert.Equal(prepared.Household, birth.HouseholdId);
         Assert.Equal(4, world.Society.Inventory.Lots.Where(lot => prepared.OutputIds.Contains(lot.Id)).Sum(lot => lot.Quantity));

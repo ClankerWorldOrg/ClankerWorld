@@ -2,7 +2,7 @@
 title: The interface, art and audio
 type: game-design
 status: active
-updated: 2026-10-10
+updated: 2026-10-13
 ---
 
 # The interface, art and audio
@@ -141,8 +141,8 @@ everything that is available in the current build. See [what works today](../wha
   default, while respecting a saved player choice to use a window. Main Menu
   Settings needs one compact back chevron in the close-button position; omit
   duplicate large back navigation. Load World does not need the pause/save
-  helper sentence. Player-facing wording should be short and ordinary; `Agent model` is preferred over `Inhabitant cognition`,
-  and the optional model-call limit needs a clear unit and consequence.
+  helper sentence. Player-facing wording should be short and ordinary; use
+  **Agent model**. The optional model-call limit needs a clear unit and consequence.
 - **Agreed after the September 29 style review:** the interface uses the
   **Timber & Parchment** look chosen from three mockup directions: wooden
   frames around parchment panels, ink text, bevelled pixel buttons and a green
@@ -325,7 +325,7 @@ everything that is available in the current build. See [what works today](../wha
   storage limit. When the owner is paired, Details also offers signed building
   removal and owner-change actions. A confirmation explains that removal keeps
   the Town border and
-  Roads; the host refuses a change while stock, deliveries or active work
+  Roads; the server refuses a change while stock, deliveries or active work
   remain. Moving a private building between households keeps its Town title and
   assignment; moving a Warehouse changes its recorded Town assignment but not
   either border. Refusals appear in plain language. Hovering a building still
@@ -377,7 +377,7 @@ everything that is available in the current build. See [what works today](../wha
   tells the player if the placement changed. If claims or Towns overlap so that
   the answer is ambiguous, the placement is refused and the game explains why.
   It is never decided by list order or distance. How claims and use rights
-  work, and how Add Agent currently reads them, is in
+  work, and how Add Agent uses them, is in
   [Town land and household use rights](towns.md#town-land-and-household-use-rights).
 - Selecting an agent opens an **interactive info popup near that agent**. The
   player can change that agent's provider and model there, including choosing
@@ -742,9 +742,8 @@ provide a UI drawing.
     warms the ground without hiding its texture, and fades in and out with
     dusk and dawn.
   - Every design gets lights, including the Market, Town Hall, Port, Clinic
-    and Restaurant designs approved on October 1; a design whose feature is
-    not in the game yet gets its lights when that feature lands. Night lights
-    are only for looks: night still sets no visibility rule.
+    and Restaurant designs approved on October 1. Night lights are only for
+    looks: night still sets no visibility rule.
 - **Street lanterns, agreed on October 3:** agents build street lanterns
   beside Roads; they need **no fuel** and light themselves at dusk. Two
   designs: **B, a round stone lamp with an open flame**, and **C, a lantern

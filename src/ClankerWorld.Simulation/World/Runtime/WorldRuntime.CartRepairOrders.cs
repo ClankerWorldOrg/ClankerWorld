@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
 {
     private InventoryLot? CartForRepairOrder(string actor, AgentState person) =>
         society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IsValidInstructionIdentifier(lot.Id) &&
+                lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);

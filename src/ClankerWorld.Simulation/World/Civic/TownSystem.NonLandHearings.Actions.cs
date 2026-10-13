@@ -115,7 +115,7 @@ internal sealed partial class TownSystem
                 var lawText = ("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule));
                 state = AddNonLandEvidence(world, state, state.Cases.Single(current => current.Id == item.Id),
                     new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor, LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
-                        actor, world.WorldTick, NonLandExcerpt(lawText, 256)), actor, council);
+                        actor, world.WorldTick, BoundedText.Excerpt(lawText, 256)), actor, council);
                 state = TownNonLandRules.Inspect(state, item.Id, revision.Number, actor, world.WorldTick);
                 state = AcquireNonLandInspectedSources(world, town with { NonLandHearings = state, Council = council },
                     state.Cases.Single(current => current.Id == item.Id), actor);

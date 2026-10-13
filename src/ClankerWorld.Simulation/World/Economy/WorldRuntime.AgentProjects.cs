@@ -70,7 +70,8 @@ public sealed partial class WorldRuntime
                     resource.NaturalObjectKind != (resource.Kind == "wood" ? "fallen_wood" : null))
                     return true;
                 return resource.Kind == "clay"
-                    ? !IsReachableClayBank(baseline, resource.Position)
+                    ? !IsReachableClayBank(baseline,
+                        StartingStoragePosition(state.Map, state.WorldSimulation, state.Towns), resource.Position)
                     : !baseline.IsBuildable(resource.Position);
             })))
             return false;
@@ -83,9 +84,9 @@ public sealed partial class WorldRuntime
         return MapManifestCodec.Digest(original) == baseline.ManifestDigest;
     }
 
-    private static bool IsReachableClayBank(WorldMap baseline, GridPoint point) =>
-        baseline.HydrologyAt(point) == WaterKind.Land && baseline.IsPassable(point) &&
-        baseline.IsReachableFromStartingSiteOnFoot(point) && ClayBankOffsets.Any(offset =>
+    private static bool IsReachableClayBank(WorldMap baseline, GridPoint origin, GridPoint point) =>
+        baseline.HydrologyAt(point) == WaterKind.Land && baseline.IsBuildable(point) &&
+        baseline.IsReachableOnFoot(origin, point) && ClayBankOffsets.Any(offset =>
         {
             var neighbor = baseline.WrapColumn(new GridPoint(point.X + offset.X, point.Y + offset.Y));
             return baseline.Contains(neighbor) &&
@@ -301,8 +302,7 @@ public sealed partial class WorldRuntime
             foreach (var (dx, dy) in ClayBankOffsets)
             {
                 var bank = map.WrapColumn(new GridPoint(point.X + dx, point.Y + dy));
-                if (map.Contains(bank) && map.HydrologyAt(bank) == WaterKind.Land && map.IsBuildable(bank) &&
-                    !occupied.Contains(bank) && map.IsReachableFromStartingSiteOnFoot(bank))
+                if (!occupied.Contains(bank) && IsReachableClayBank(map, origin, bank))
                     banks.Add(bank);
             }
         }

@@ -11,8 +11,9 @@ The goal is a small society that survives, trades, forms institutions and
 eventually invents things that change its world.
 
 ClankerWorld is an **early private alpha**. You currently play through a Windows
-game client connected to a world server. A simple local Windows install
-is part of the intended finished game; it is not available yet.
+game client with a bundled world server, installed through the launcher or
+extracted from the portable package. You can also connect to an approved remote
+world server. See [Playing](docs/playing.md) for the setup and current build limits.
 
 ## Start here
 
@@ -40,7 +41,7 @@ clear bug reports are useful. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to
 report things and make changes.
 
 Developers can use [build and test](docs/development/build-and-test.md) and
-[how the game works](docs/development/how-it-works.md). The server's old web page
-is a diagnostic tool; the supported game client is Godot.
+[how the game works](docs/development/how-it-works.md). The server's web page is a
+diagnostic tool; the supported game client is Godot.
 
 ClankerWorld is available under the [MIT License](LICENSE).
