@@ -60,6 +60,7 @@ public sealed class CaregiverCapacityRecoveryTests
         }
 
         Assert.Contains(world.ExportState().Events, item => item.Kind == "child_cared_for" && item.Detail == child);
+        Assert.All(choices.Offers, offer => Assert.Equal(offer.Length, offer.Distinct(StringComparer.Ordinal).Count()));
         Assert.InRange(world.WorldTick - started, 1, 40);
         Assert.Equal(world.WorldTick, waiting.WorldTick);
         Assert.Equal(3_000, world.Agents.Single(person => person.AgentId == child).FullnessBasisPoints -
