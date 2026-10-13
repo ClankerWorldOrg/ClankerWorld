@@ -365,6 +365,10 @@ Cart loading and unloading retain the exact source, cart families, physical
 place and quantity. Checks share existing loading permissions and food rules,
 and match the native cargo operations' hold access and capacity. Order and Civic
 callers keep their named-cart and maximum-quantity limits.
+Cart repair retains its exact cart and ordered carried material lots, while
+repair-input pickup retains its source and cart target. The shared equipment
+pickup check verifies access, capacity and reach; repair rechecks its selected
+inputs before the existing native commit and receipt.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

@@ -6,6 +6,8 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        HandcartRepairInputActionPlan cartRepairInput => CheckHandcartRepairInputPlan(cartRepairInput),
+        HandcartRepairActionPlan cartRepair => CheckHandcartRepairPlan(cartRepair),
         HandcartCargoActionPlan cartCargo => CheckHandcartCargoPlan(cartCargo),
         HandcartPullActionPlan cartPull => CheckHandcartPullPlan(cartPull),
         HandcartControlActionPlan cartControl => CheckHandcartControlPlan(cartControl),
