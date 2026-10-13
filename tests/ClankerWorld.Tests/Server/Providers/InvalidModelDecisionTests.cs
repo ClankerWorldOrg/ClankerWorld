@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -30,15 +29,13 @@ public sealed class InvalidModelDecisionTests
                 id == "founder-scout" ? router : new ActionCoverageRecorder(chooseIdle: true));
             CognitionAdmissionResult? admission = null;
             var started = false;
-            // Allow the model task to finish under instrumentation while
-            // retaining this one native reply and its metered effects.
-            var wait = Stopwatch.StartNew();
-            while (admission is null && wait.Elapsed < TimeSpan.FromSeconds(10))
+            // Bound world progress and wait for the registered wrapper between ticks.
+            for (var tick = 0; tick < 20 && admission is null; tick++)
             {
                 var result = await world.TickModelWorkAsync();
                 started |= result.Events.Any(item => item.Kind == "hosted_decision_started" && item.Detail == "founder-scout");
                 admission = result.Decisions.FirstOrDefault(item => item.AgentId == "founder-scout")?.Admission;
-                await ModelWorkHarness.For(world).SettleAsync();
+                await ModelWorkHarness.For(world).WaitForDecisionAsync("founder-scout");
             }
             Assert.True(started);
             Assert.NotNull(admission);
