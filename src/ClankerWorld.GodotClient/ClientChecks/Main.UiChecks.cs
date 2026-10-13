@@ -1667,6 +1667,7 @@ public partial class Main
             VerifyChildModelStatus();
             VerifyModelSetupCheckControls();
             VerifyModelSettingsLayout();
+            await VerifyHelperKeyDeletionRefusalAsync(sample);
             Render(sample with { JevEnabled = true, RoutineHelperProvider = "jev", RoutineHelperModel = "jev-1.13.0" }, []);
             if (SelectedRoutineHelper() != "jev" || routineHelperModelPicker.Model != "jev-1.13.0")
                 throw new InvalidOperationException("World Settings must reflect the saved helper and model.");
