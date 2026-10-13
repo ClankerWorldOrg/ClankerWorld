@@ -885,11 +885,6 @@ Its term and elections are agreed in
 [The mayor's office and elections](#the-mayors-office-and-elections);
 [Land hearings and rulings](#land-hearings-and-rulings) settles adjudication.
 
-The first accepted Town layout records title to the connected land inside its
-initial border. Later border growth makes room for the Town without adding
-title, following answer 19A, that a boundary change does not by itself change
-title ([Borders, abandoned Towns and salvage](#borders-abandoned-towns-and-salvage)).
-
 **Agreed by the owner on October 2, 2026
 ([#426](https://github.com/compoodment/ClankerWorld/issues/426#issuecomment-5948873459)):**
 a Town may extend its title through an explicit Council-approved claim to
