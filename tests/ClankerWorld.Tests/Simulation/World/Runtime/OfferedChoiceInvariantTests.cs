@@ -164,4 +164,4 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
 
 // Keep the bounded PR sweep's timing independent of other CPU-heavy worlds.
 [CollectionDefinition("Offered choice invariants", DisableParallelization = true)]
-public sealed class OfferedChoiceInvariantCollection;
+public sealed class OfferedChoiceInvariantGroup;
