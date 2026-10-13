@@ -122,7 +122,7 @@ public sealed partial class WorldRuntime
         return MinimumFoodPickupCarryUnits(actor, parent.Position, forDependent: true);
     }
 
-    private void AddParenthoodCandidates(List<CognitionCandidate> candidates, string actor)
+    private void AddParenthoodCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor) || survivalState is null)
         {
@@ -181,22 +181,8 @@ public sealed partial class WorldRuntime
                     "who are not close relatives are available you may not refuse; the plan goes ahead when your two days are up.", 110));
             }
         }
-        // A couple held by the continuity rule may start sooner even with an older child, as long as no infant.
         var continuityCouple = ContinuityCoupleOf(actor);
-        if (!FamilyResourcesReady(actor) || agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                (person.AgentId == actor || person.Parenthood!.PartnerId == actor)) ||
-            continuityCouple is null &&
-            society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver && item.ProposerId == actor &&
-                item.State == SocietyRelationshipState.Accepted && agents.ContainsKey(item.TargetId) &&
-                LifeStageRules.IsYoungChild(society.Checkpoint.GetAgent(item.TargetId).AgeBand)) ||
-            agents.Values.Any(person => person.Parenthood is { } previous &&
-                (person.AgentId == actor || previous.PartnerId == actor) && WorldTick - previous.LastTransitionTick < worldSystems.Config.TicksPerDay))
-        {
-            return;
-        }
-        var partner = agents.Keys.Order(StringComparer.Ordinal).FirstOrDefault(other => other != actor && Partners(actor, other) &&
-            !agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                (person.AgentId == other || person.Parenthood!.PartnerId == other)));
+        var partner = agents.Keys.Order(StringComparer.Ordinal).FirstOrDefault(other => other != actor && MayProposeParenthood(actor, other));
         if (partner is not null)
         {
             candidates.Add(new("parent_propose:" + partner, continuityCouple is null
@@ -216,47 +202,29 @@ public sealed partial class WorldRuntime
             CareForChild(actor, target, originalPlan);
             return;
         }
-        if (candidate.StartsWith("parent_propose:", StringComparison.Ordinal))
+        var plan = originalPlan as ParenthoodActionPlan ?? (ParenthoodChoice.Decode(candidate) is { } choice ? PlanParenthoodAction(actor, choice) : null);
+        if (plan is not null) ApplyParenthoodActionPlan(plan);
+    }
+
+    private void CompleteParenthoodAction(ParenthoodActionPlan plan)
+    {
+        switch (plan.Choice.Kind)
         {
-            if (Partners(actor, target) && FamilyResourcesReady(actor) &&
-                !agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                    (person.AgentId == actor || person.AgentId == target || person.Parenthood!.PartnerId == actor || person.Parenthood.PartnerId == target)))
-            {
-                SetParenthood(actor, new(target, "requested", WorldTick, WorldTick,
-                    PrimaryCaregiverId: actor, IntendedHouseholdId: HouseholdFor(actor)));
+            case ParenthoodChoiceKind.Propose:
+                SetParenthood(plan.OwnerId, new(plan.PartnerId, "requested", WorldTick, WorldTick,
+                    PrimaryCaregiverId: plan.CaregiverId, IntendedHouseholdId: plan.IntendedHouseholdId));
                 checkpointSchemaVersion = StateSchemaVersion;
-            }
-            return;
-        }
-        var isAccept = TryParseParentAcceptance(candidate, out var acceptingPlanId, out var selector, out var intendedHomeId);
-        if (!isAccept) acceptingPlanId = target;
-        if (!agents.TryGetValue(acceptingPlanId, out var owner) || owner.Parenthood is not { } plan ||
-            !ActiveParenthood(plan) || (actor != target && actor != plan.PartnerId))
-        {
-            return;
-        }
-        if (isAccept && actor == plan.PartnerId &&
-            plan.Stage == "requested" && Partners(acceptingPlanId, actor))
-        {
-            var selected = ParenthoodCaregiverOptions(acceptingPlanId, actor)
-                .SingleOrDefault(option => option.Selector == selector && option.HouseholdId == intendedHomeId);
-            if (selected.CaregiverId is null || !FamilyResourcesReady(selected.CaregiverId)) return;
-            SetParenthood(acceptingPlanId, plan with
-            {
-                Stage = "preparing",
-                PrimaryCaregiverId = selected.CaregiverId,
-                IntendedHouseholdId = selected.HouseholdId,
-            });
-        }
-        else if (ContinuityCoupleFor(target, plan.PartnerId) is { } rule)
-        {
-            // Refusal is not available while the rule holds the couple; "not yet" lasts only until the deadline.
-            if (candidate.StartsWith("parent_postpone:", StringComparison.Ordinal) && ContinuityAllowsPostponement(rule))
-                SetParenthood(target, plan with { Stage = "postponed" });
-        }
-        else if (candidate.StartsWith("parent_cancel:", StringComparison.Ordinal) || candidate.StartsWith("parent_decline:", StringComparison.Ordinal))
-        {
-            SetParenthood(acceptingPlanId, plan with { Stage = "cancelled" });
+                break;
+            case ParenthoodChoiceKind.Accept:
+                SetParenthood(plan.OwnerId, plan.Original! with
+                { Stage = "preparing", PrimaryCaregiverId = plan.CaregiverId, IntendedHouseholdId = plan.IntendedHouseholdId });
+                break;
+            case ParenthoodChoiceKind.Postpone:
+                SetParenthood(plan.OwnerId, plan.Original! with { Stage = "postponed" });
+                break;
+            default:
+                SetParenthood(plan.OwnerId, plan.Original! with { Stage = "cancelled" });
+                break;
         }
     }
 
@@ -280,21 +248,12 @@ public sealed partial class WorldRuntime
         out string selector,
         out string householdId)
     {
-        var prefix = "parent_accept:";
-        initiatorId = string.Empty;
-        selector = string.Empty;
-        householdId = string.Empty;
-        if (!candidate.StartsWith(prefix, StringComparison.Ordinal)) return false;
-        var householdSeparator = candidate.LastIndexOf(':');
-        var selectorSeparator = householdSeparator > 0 ? candidate.LastIndexOf(':', householdSeparator - 1) : -1;
-        if (selectorSeparator <= prefix.Length || householdSeparator <= selectorSeparator + 1 ||
-            householdSeparator == candidate.Length - 1)
-            return false;
-        initiatorId = candidate[prefix.Length..selectorSeparator];
-        selector = candidate[(selectorSeparator + 1)..householdSeparator];
-        if (selector is not ("initiator" or "acceptor")) return false;
-        householdId = Uri.UnescapeDataString(candidate[(householdSeparator + 1)..]);
-        return !string.IsNullOrWhiteSpace(initiatorId) && !string.IsNullOrWhiteSpace(householdId);
+        var choice = ParenthoodChoice.Decode(candidate);
+        var accepted = choice?.Kind == ParenthoodChoiceKind.Accept;
+        initiatorId = accepted ? choice!.OwnerId : string.Empty;
+        selector = accepted ? choice!.Selector! : string.Empty;
+        householdId = accepted ? choice!.HouseholdId! : string.Empty;
+        return accepted;
     }
 
     private void MaintainParenthood()
