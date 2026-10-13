@@ -257,6 +257,14 @@ internal sealed partial class AnimalSystem
             CompleteAnimalProductCollection(world, actor, animal, world.Society.Inventory.GetLot(plan.StockId));
     }
 
+    private static void CompleteMilkConsumption(IAnimalWorld world, string actor, InventoryLot milk, int quantity)
+    {
+        ConsumeAnimalInputs(world, actor, "drink_milk", [(milk, quantity)]);
+        var person = world.Agents[actor];
+        world.SetAgent(actor, person with { FullnessBasisPoints = Math.Min(10_000, person.FullnessBasisPoints + 3_000) });
+        world.AppendEvent("milk_drunk", actor);
+    }
+
     private void CompleteAnimalProductCollection(IAnimalWorld world, string actor, AnimalState animal, InventoryLot product)
     {
         ClearAnimalProduct(world, animal, discard: false);

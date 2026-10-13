@@ -78,10 +78,7 @@ internal sealed partial class AnimalSystem
         var stock = world.Society.Inventory.GetLot(plan.StockId);
         if (plan.Choice.Kind == AnimalProductKind.Milk)
         {
-            ConsumeAnimalInputs(world, plan.Actor, "drink_milk", [(stock, plan.Quantity)]);
-            var person = world.Agents[plan.Actor];
-            world.SetAgent(plan.Actor, person with { FullnessBasisPoints = Math.Min(10_000, person.FullnessBasisPoints + 3_000) });
-            world.AppendEvent("milk_drunk", plan.Actor);
+            CompleteMilkConsumption(world, plan.Actor, stock, plan.Quantity);
             return;
         }
         var animal = Animal(plan.Choice.AnimalId!)!;
