@@ -4,7 +4,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
-public sealed class SchedulerDeferredObservationTests
+public sealed partial class SchedulerDeferredObservationTests
 {
     private const string Actor = "alice";
     private static readonly HashSet<string> NoExclusions = new(StringComparer.Ordinal);

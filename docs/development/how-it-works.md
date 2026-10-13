@@ -126,6 +126,11 @@ continuing intentions plan their next step from the current position. Plans
 are excluded from prompts, observation digests and saved state. A stale plan
 appends one `choice_refused` Event Log line with a plain refusal reason.
 The private child forwarders remain for existing callers.
+Deferred admission checks the original offered plan before the scheduler
+completes its reply. A planned identity that disappeared from the current
+choices reaches its typed refusal; current order/context exclusions still
+refuse it, while unplanned identities and request/epoch checks retain their
+existing scheduler gates.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal

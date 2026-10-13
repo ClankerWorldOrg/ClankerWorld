@@ -704,8 +704,10 @@ public sealed partial class WorldRuntime
                                 (!candidate.StartsWith(MedicalAllowPrefix, StringComparison.Ordinal) ||
                                  physical.Survival is { IllnessBasisPoints: >= 2_500 })))
                         : null;
-                    var decision = society.CompleteDeferredCognition(item.Request, outcome.Response,
-                        outcome.Failure, legal, decisionContextChanged);
+                    var plannedAdmission = DeferredPlanAdmission.Prepare(item.Request, outcome.Response, legal,
+                        CheckActionPlan, PendingInstructionFor(id) is not null);
+                    var decision = plannedAdmission.Complete(society.CompleteDeferredCognition(item.Request, outcome.Response,
+                        outcome.Failure, plannedAdmission.LegalCandidateIds, decisionContextChanged));
                     if (decision is not null)
                     {
                         RecordModelCompletion(id, decision.Admission, outcome.Failure);
