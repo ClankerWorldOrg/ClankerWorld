@@ -2,7 +2,7 @@
 title: Towns, buildings and government
 type: game-design
 status: active
-updated: 2026-10-11
+updated: 2026-10-13
 ---
 
 # Towns, buildings and government
@@ -105,9 +105,9 @@ everything that is available in the current build. See [what works today](../wha
   Only a household can plan a House. The adult is told
   the real blocker: no household, no House their household holds yet, missing
   materials or no legal site.
-- **Town(s)** replaces “settlement” in player-facing terminology. There are
-  no village or city place classes: every such place is a Town. The first Town
-  already exists during paused New World setup, and its four starting agents
+- **Town** is the name for every such place; there are no village or city
+  place classes. The first Town is created during paused New World setup, and
+  its four starting agents
   are Town residents with access to its Warehouse. Agents found later Towns
   under the [founding rule](#borders-abandoned-towns-and-salvage). Later
   membership follows the [agreed Town rules](#town-membership). Towns have generated,
@@ -191,8 +191,7 @@ everything that is available in the current build. See [what works today](../wha
   its ownership. If care is missed, production and riding stop first. Breeding is
   autonomous but must have a population cap, not a player-triggered breeding
   action. The owner approved the complete [animal pipeline](#animal-pipeline)
-  on October 6, 2026, resuming its implementation. It remains intended behavior
-  until connected to normal play. Slaughter, hunting and predators are excluded.
+  on October 6, 2026. Slaughter, hunting and predators are excluded.
 
 ### Animal pipeline
 
@@ -394,11 +393,8 @@ them onward, for example to a household that needs a House. Former members who
 are still alive keep the property unless they agree: a ruling cannot pass it
 to the Town without their consent.
 
-Adult departure, personal ownership, limited physical collection, the once-only
-food allowance, care-group moves and solo formation are implemented through
-[#593](https://github.com/compoodment/ClankerWorld/issues/593). Overcrowding
-notice and relocation selection are implemented through
-[#599](https://github.com/compoodment/ClankerWorld/issues/599). The agreed
+See [what works today](../what-works.md#life-work-and-society) for departure,
+collection, care-group moves and relocation in the current build. The agreed
 response to losing a dependent's last active primary caregiver is described in
 [Agents and families](agents-and-families.md#dependent-care-after-loss-of-the-last-active-primary-caregiver).
 Cross-Town moves after accepted care still follow Town admission rules in
@@ -533,11 +529,9 @@ The resident counts, family scope, birth exceptions, notice and departure
 rules are agreed. The existing
 [housing-admission work](https://github.com/compoodment/ClankerWorld/issues/464)
 and [storage-expansion work](https://github.com/compoodment/ClankerWorld/issues/463)
-remain their original implementation slices. Resident limits, admission checks,
-birth placement and expansion for more places are implemented in
-[#598](https://github.com/compoodment/ClankerWorld/issues/598). Notice,
-departure and relocation for existing overcrowding are implemented in
-[#599](https://github.com/compoodment/ClankerWorld/issues/599).
+remain their original implementation slices. See [what works
+today](../what-works.md#life-work-and-society) for resident limits, admission,
+birth placement, expansion and relocation in the current build.
 
 ### Town membership
 
@@ -691,7 +685,7 @@ and invented content are not silently approved. In particular:
   **ore-bearing outcrops**, not ground veins.
 - The farm roster includes **universal grain** (no named grain species),
   **potatoes**, a cultivated leafy green distinct from wild greens that
-  satisfies more hunger, and orchard fruit. Flour is a sellable Farmhouse
+  restores more fullness, and orchard fruit. Flour is a sellable Farmhouse
   intermediate, including at a Market; cloth, made at the Tailor Shop from
   plant fiber, is likewise a real intermediate item.
 - The Blacksmith refines **iron ore into a separate metal item**, then uses it
@@ -891,10 +885,9 @@ Its term and elections are agreed in
 [The mayor's office and elections](#the-mayors-office-and-elections);
 [Land hearings and rulings](#land-hearings-and-rulings) settles adjudication.
 
-**Current implementation:** the first
-accepted Town layout records title to the connected land inside its initial
-border, and later border growth makes room for the Town without adding title.
-That follows answer 19A, that a boundary change does not by itself change
+The first accepted Town layout records title to the connected land inside its
+initial border. Later border growth makes room for the Town without adding
+title, following answer 19A, that a boundary change does not by itself change
 title ([Borders, abandoned Towns and salvage](#borders-abandoned-towns-and-salvage)).
 
 **Agreed by the owner on October 2, 2026
@@ -925,23 +918,10 @@ crops, goods or household stock, or automatically grant a household use right.
   reassignment, preserving the ownership and dispute safeguards. Town title
   remains unchanged.
 
-**Current implementation:**
-starter household use rights cover only the footprints of the buildings
-assigned to each household; the shared Warehouse remains Town property.
-Add Agent treats a recorded use right as household property and Town title
-like a Town border; a single pending request gives no household. A household
-building's current owner comes before another household's undisputed use right
-on its footprint. Reassigning a household building carries its existing
-footprint use right to the new household. The rest of a larger plot stays with
-its holder, even when the footprint splits it into separate plots. Town title
-and grant terms stay unchanged; disputed, expired or differently held rights
-prevent reassignment. A field does not override a use right, and disputed land
-is always refused.
-
 The October 2 owner answers on
 [#426](https://github.com/compoodment/ClankerWorld/issues/426#issuecomment-5956742184)
 settle title growth through Council-approved claims to adjoining unclaimed
-land. These claims now run through ordinary Council proposals: an adult names
+land. Claims use ordinary Council proposals: an adult names
 one connected plot, councillors learn its notice and vote, and the server
 rechecks the plot before recording title. Existing claims, household rights,
 structures and private goods are preserved. A border change alone still gives
@@ -951,7 +931,7 @@ the beneficiary household must separately accept before a right is granted.
 Expansion checks the resulting rights at construction start and completion.
 New fields cannot occupy land another household holds or has requested.
 Ordinary land requests cannot cover another household's field, and grant
-settlement checks that the field is still clear of that conflict. A challenge
+completion checks that the field is still clear of that conflict. A challenge
 to a recorded use right still follows the dispute procedure.
 Pending disputes supply no grant; hearings and transfers follow the case
 procedure below.
@@ -972,9 +952,8 @@ the final decision on disputes and what happens when an agreed period ends.
 These rules do not imply automatic confiscation or unilateral household
 transfers. Evidence, hearings, outcomes and conflicts of interest follow the
 agreed [case procedure](#land-hearings-and-rulings). Disputed land is striped
-on the map, and inspecting a tile lists each household's claim. Household
-grants, individual acceptance, consensual transfers and land hearings work
-([what works today](../what-works.md)).
+on the map, and inspecting a tile lists each household's claim. See
+[what works today](../what-works.md) for current availability.
 
 **Neighbouring Towns, agreed on October 8
 ([#1240](https://github.com/compoodment/ClankerWorld/issues/1240)):** Town
@@ -1726,7 +1705,7 @@ communal resource Warehouse.
 Farm production responds to population, expected yield and stored reserves.
 Shortages can justify more fields or another farming household. The target for
 playtesting is roughly two substantial meals per agent per day, leaving time
-for other activities; this is not a fixed nutrition or hunger-drain formula.
+for other activities; this is not a fixed nutrition or fullness-drain formula.
 
 **Agreed on October 8 ([#1235](https://github.com/compoodment/ClankerWorld/issues/1235)):**
 farms plan fields for the whole Town they feed, not only for their own
@@ -1899,10 +1878,9 @@ detailed actions. See [combat](agents-and-families.md#combat) and
 **Owner decision on October 2, 2026:** "Defer injury causes; build supplies now."
 This stage makes, stores and trades bandages, but does not create injuries or
 apply bandages to a patient. Medicine uses the existing illness system and
-supports recovery gradually. The Clinic implements this scope in the normal
-world path; its Windows playtest is pending, and the injury stage is
-agreed below. See
-[current availability](../what-works.md#life-work-and-society).
+supports recovery gradually. The injury stage is agreed below. See
+[current availability](../what-works.md#life-work-and-society) for the build and
+pending Windows checks.
 
 **Injuries, agreed on October 8
 ([#1267](https://github.com/compoodment/ClankerWorld/issues/1267)):** the injury
