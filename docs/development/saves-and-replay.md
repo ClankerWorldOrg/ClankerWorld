@@ -2219,9 +2219,9 @@ honestly and startup resumes only those already confirmed deletion intents.
 ## Developer edits
 
 A paused developer edit changes existing need, inventory, skill or partnership
-state and appends one `developer_edit` event whose JSON detail is the complete
-`WorldDeveloperEdit` command. No checkpoint fields or schema version
-change. Existing save validation still applies to the entire proposed world;
+state and appends one `developer_edit` event whose typed payload carries the
+complete `WorldDeveloperEdit` command. Existing save validation still applies
+to the entire proposed world;
 readers supporting the same checkpoint schema can load the representation,
 though they do not offer
 the edit UI or describe the new event kind.
@@ -2277,9 +2277,10 @@ Owner event observations include server-formatted `Text`. It is derived from the
 same captured state as the event slice and is not stored in accepted history.
 The snapshot refreshes the 30 visible descriptions from its current names and
 relationships; renaming still updates existing rows. The game displays this text
-without parsing event details. This presentation step leaves
-checkpoint bytes and the current schema unchanged; typed saved payloads follow
-in the event refactor stack.
+without parsing event details. Observations also carry the typed payload for
+fields the game uses directly, such as model status and weather. Diagnostic
+detail is not serialized in observations. Descriptions remain derived and
+do not change checkpoint bytes.
 
 ## Typed world events
 

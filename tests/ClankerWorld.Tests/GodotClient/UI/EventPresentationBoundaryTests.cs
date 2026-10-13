@@ -21,7 +21,7 @@ public sealed class EventPresentationBoundaryTests
     {
         var root = Path.Combine(RuntimeWriterScan.RepositoryRoot, "src/ClankerWorld.GodotClient");
         foreach (var path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-            .Where(path => !path.Contains("/obj/", StringComparison.Ordinal) && !path.Contains("/.godot/", StringComparison.Ordinal)))
+            .Where(path => !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/obj/", StringComparison.Ordinal) && !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/.godot/", StringComparison.Ordinal)))
         {
             var source = File.ReadAllText(path);
             Assert.DoesNotContain("Detail.Split", source, StringComparison.Ordinal);
@@ -48,7 +48,13 @@ public sealed class EventPresentationBoundaryTests
         Assert.Contains("Zoë 🌿 Vale", current.EventTexts[original.EventId], StringComparison.Ordinal);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(current, options), options)!;
-        var clientEvent = JsonSerializer.Deserialize<OwnerWorldEvent>(JsonSerializer.Serialize(original, options), options)!;
+        var observationJson = JsonSerializer.Serialize(original, options);
+        using var observation = JsonDocument.Parse(observationJson);
+        Assert.False(observation.RootElement.TryGetProperty("detail", out _));
+        var clientEvent = JsonSerializer.Deserialize<OwnerWorldEvent>(observationJson, options)!;
+        Assert.Equal(original.Text, clientEvent.Text);
+        Assert.Equal(original.Payload, clientEvent.Payload);
+        Assert.Equal(child, Assert.IsType<InstructionNotUnderstoodEventPayload>(clientEvent.Payload).ActorId);
         Assert.Equal(current.EventTexts[original.EventId], WorldEventText.Describe(clientEvent, client));
         Assert.DoesNotContain("eventTexts", System.Text.Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
     }

@@ -542,11 +542,11 @@ public static class WorldEventFormatter
     /// <summary>The agent whose estate an event settles. Estate IDs are <c>estate:&lt;agent&gt;:&lt;tick&gt;</c>.</summary>
     private static string EstateOwner(WorldSnapshotView? snapshot, WorldEventPayload payload) => Name(snapshot, payload.ActorId ?? "");
 
-    /// <summary>The agent named after a fixed marker in an event detail, such as a medical caregiver.</summary>
+    /// <summary>The related agent named by a payload subject, such as a medical caregiver.</summary>
     private static string AfterMarker(WorldSnapshotView? snapshot, WorldEventPayload payload, string marker, string fallback) =>
         snapshot?.Agents.FirstOrDefault(person => payload.SubjectIds.Contains(person.Id))?.DisplayName ?? fallback;
 
-    /// <summary>The agent whose complete ID ends an event detail, such as a handcart's new keeper.</summary>
+    /// <summary>The related agent named by a payload subject, such as a handcart's new keeper.</summary>
     private static string LastPerson(WorldSnapshotView? snapshot, WorldEventPayload payload, string fallback) =>
         snapshot?.Agents.FirstOrDefault(person => payload.SubjectIds.Contains(person.Id))?.DisplayName ?? fallback;
 
@@ -558,11 +558,11 @@ public static class WorldEventFormatter
     private static string LandTown(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
         TownNamed(snapshot, payload, "the Town")!;
 
-    /// <summary>The Town whose complete ID leads an event detail.</summary>
+    /// <summary>The Town named by a complete payload subject reference.</summary>
     private static string? TownNamed(WorldSnapshotView? snapshot, WorldEventPayload payload, string? fallback) =>
         snapshot?.Towns.FirstOrDefault(town => payload.SubjectIds.Contains(town.Id))?.Name ?? fallback;
 
-    /// <summary>A building joining a Town; the detail is <c>&lt;town&gt;:&lt;building&gt;:buildings:&lt;count&gt;</c>.</summary>
+    /// <summary>The building named by a Town event payload.</summary>
     private static string DescribeTownBuilding(WorldSnapshotView? snapshot, WorldEventPayload payload)
     {
         var town = TownNamed(snapshot, payload, "the Town");
@@ -570,7 +570,7 @@ public static class WorldEventFormatter
         return building is null ? $"A building is now part of {town}." : $"The {building} is now part of {town}.";
     }
 
-    /// <summary>The word for a young animal of the newborn's species; the newborn's ID leads the detail.</summary>
+    /// <summary>The word for a young animal of the newborn's species, found by its payload subject reference.</summary>
     private static string YoungAnimal(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
         snapshot?.Animals.FirstOrDefault(animal => payload.SubjectIds.Count > 0 && payload.SubjectIds[0] == animal.Id)?.Species switch
         { "cow" => "calf", "sheep" => "lamb", "horse" => "foal", "chicken" => "chick", _ => "young animal" };

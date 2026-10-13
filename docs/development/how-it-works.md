@@ -3259,7 +3259,7 @@ world appends `continuity_rule_on` when it is created; each tick
 partnerships whose living, physically present adult partners each have a
 household and are not close relatives. It compares whether that count is
 below four with the saved flag and appends `continuity_rule_on` or
-`continuity_rule_off` (detail `eligible_couples|{count}|threshold|4`) only when
+`continuity_rule_off`, with typed eligible-couple count and threshold fields, only when
 it changes. Having an infant does not remove a couple from this risk count.
 The Event Log displays the count and reason; historical `non_elders:{count}`
 events retain their original headcount explanation.
