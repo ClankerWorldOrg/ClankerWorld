@@ -25,7 +25,8 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("ProductionOrderReceipt")]
     [InlineData("ToolMakingRequestId")]
     [InlineData("ToolRequestChoice")]
-    [InlineData("OrnamentChoiceId")]
+    [InlineData("WearOrnamentChoice")]
+    [InlineData("GiftOrnamentChoice")]
     [InlineData("TownProjectChoiceId")]
     [InlineData("MarketChoiceId")]
     [InlineData("TownSalvageId")]
@@ -248,7 +249,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             "BoundedWillHeirKey" => ["will:heir:", actor, new HashSet<string>(StringComparer.Ordinal)],
             "ToolMakingRequestId" => [actor, building, recipe, society.WorldTick],
             "ToolRequestChoice" => ["accept", new[] { actor, building, recipe, sourceLot }],
-            "OrnamentChoiceId" => ["ornament:", new[] { actor, relative, sourceLot }],
+            "WearOrnamentChoice" => [sourceLot],
+            "GiftOrnamentChoice" => [sourceLot, relative],
             "TownProjectChoiceId" => ["town-project:", new[] { actor, building, sourceLot }],
             "MarketChoiceId" => ["deposit", new[] { actor, building, sourceLot }],
             "TownSalvageId" => [state.Towns![0].Id, sourceLot],
@@ -356,11 +358,16 @@ public sealed partial class GrownAgentHelperMemoryTests
                 BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [townId, sourceLot]))],
             _ => throw new ArgumentOutOfRangeException(nameof(factory)),
         };
-        var methodName = factory.Contains('-', StringComparison.Ordinal) ? factory[..factory.IndexOf('-', StringComparison.Ordinal)] : factory;
-        var method = owner.GetMethod(methodName,
-            BindingFlags.Static | BindingFlags.NonPublic)!;
-        Assert.NotNull(method);
-        var id = Assert.IsType<string>(method.Invoke(null, arguments));
+        string id;
+        if (factory == "WearOrnamentChoice") id = new WearOrnamentChoice(sourceLot).Encode();
+        else if (factory == "GiftOrnamentChoice") id = new GiftOrnamentChoice(sourceLot, relative).Encode();
+        else
+        {
+            var methodName = factory.Contains('-', StringComparison.Ordinal) ? factory[..factory.IndexOf('-', StringComparison.Ordinal)] : factory;
+            var method = owner.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic)!;
+            Assert.NotNull(method);
+            id = Assert.IsType<string>(method.Invoke(null, arguments));
+        }
         Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
         if (factory == "OrchardReplantingReservationId")
             society = society with
