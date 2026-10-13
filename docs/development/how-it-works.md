@@ -152,8 +152,8 @@ the original storage destination and any orchard reservation release. It checks
 the same cargo at offer, admission and application. New spare stock never replaces
 the selected load; only the captured orchard units are released when set down.
 The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physical
-stock separate from the urgent adult seed exception. Tool and blacksmith cargo
-callers retain their existing forwarders until their action area moves.
+stock separate from the urgent adult seed exception. Tool callers retain their existing forwarders until their action area moves.
+Blacksmith preparation shares the captured cargo check and storage commit.
 
 Farm stock choices use `FarmStockActionPlan` for grain and seeds going to private
 farm storage and flour going to the House. The plan keeps the source, destination,
@@ -178,8 +178,14 @@ Blacksmith delivery choices use `SmithDeliveryActionPlan` for personally mined
 ore and other on-site inputs. They retain the chosen supplies, quantities and
 pickup or direct-delivery step. One quantity check preserves the dedicated ore
 rule and the ordinary input rule, including their different incoming-stock and
-load limits. Source gathering, cargo preparation and tool callers remain for
-their next action area; order delivery keeps its existing forwarder.
+load limits. Order delivery keeps its existing forwarder.
+
+Blacksmith gathering uses `SmithGatherActionPlan` to retain the source, tool
+and complete harvest. A preparation step binds either the shared tool pickup
+or the spare cargo, its quantities and storage destination. The same check
+revalidates that step without selecting replacements, and ordinary gathering
+applies the frozen harvest through the common material commit. Tool collection
+and repair choices remain separate action areas.
 
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
