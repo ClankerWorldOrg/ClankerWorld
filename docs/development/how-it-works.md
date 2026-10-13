@@ -156,6 +156,13 @@ resource amount and whole-vessel or partial-load transfer form. Its shared check
 revalidates that load, the trip, capacity and any milling deficit; it never selects
 replacement stock or a different store. Existing delivery-order forwarders remain.
 
+Workstation supplies use `WorkstationSupplyActionPlan` for carried inputs, stock
+pickups and source gathering. One codec retains the existing supply choice ID.
+Each plan binds the workstation and stock family or resource, harvesting tool
+and yield. Gathering applies the captured harvest through the common material
+commit path; it does not select another tool or source. `CarriedInputs` validates
+physical custody and the named borrowed-stock authorization.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -423,7 +430,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 236 references across 64 files. Named delivery, hold and cargo operations
+is 231 references across 63 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;

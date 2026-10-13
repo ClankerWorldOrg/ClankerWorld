@@ -854,7 +854,6 @@ public sealed partial class WorldRuntime
         MapResource source, bool useHarvestBonus = true, string? deliveryBuildingId = null,
         GridPoint? returnTo = null, int returnRange = 0)
     {
-        var ecology = worldSystems.Ecology.GetResource(source.Id);
         var plan = ProjectMaterialHarvest(agentId, itemKind, source, useHarvestBonus);
         returnTo ??= worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == deliveryBuildingId)?.Position;
         if (returnTo is { } destination && !CanReturnWithHarvest(agentId, itemKind, source,
@@ -864,6 +863,13 @@ public sealed partial class WorldRuntime
             CollectToolForGathering(agentId, state, itemKind, source);
             return null;
         }
+        return GatherPlannedProjectMaterial(agentId, state, itemKind, source, plan, deliveryBuildingId);
+    }
+
+    private MaterialGatherEffect? GatherPlannedProjectMaterial(string agentId, AgentState state, string itemKind,
+        MapResource source, ToolGatheringPlan plan, string? deliveryBuildingId = null)
+    {
+        var ecology = worldSystems.Ecology.GetResource(source.Id);
         if (!IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange))
         {
             MoveToward(agentId, agents[agentId], source.Position, "materials", ResourceInteractionRange);

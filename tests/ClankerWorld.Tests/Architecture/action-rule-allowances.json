@@ -107,9 +107,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs": [
     "FindUnoccupiedRoute(actor, position, building.Position, ResourceInteractionRange)"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WorkstationSupply.cs": [
-    "FindUnoccupiedRoute(actor, position, building.Position, 0)"
-  ],
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Continuity.cs": [
     "society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant"
   ],
