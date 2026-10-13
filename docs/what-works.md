@@ -699,8 +699,9 @@ fire expiry or removal of the building.
 
 Weapon-repair orders remain outside the current catalogue.
 
-A recognized new order replaces the active and queued orders unless **Queue**
-is selected. **Cancel task** stops a waiting or active order. An order
+A recognized new order replaces the current order unless **Queue** is selected.
+The replacement runs first; existing queued orders keep their place, targets and
+remaining amounts. **Cancel task** stops a waiting or active order. An order
 the game cannot understand preserves the current task and its queue. Explicit
 source names must match exactly; the game does not quietly choose another
 source or food. Unsupported, mixed, negated or incomplete requests close as not

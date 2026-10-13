@@ -151,6 +151,21 @@ public partial class Main
                     text.Contains("Blocked", StringComparison.Ordinal) || text.Split("You said:").Length - 1 != orders.Length)
                     throw new InvalidOperationException($"All orders and the order line must follow the host's next snapshot, at {size}: {profileOrderLabel.Text}\n{text}");
                 RenderSelectedAgentCard(snapshot);
+                var replaced = snapshot with
+                {
+                    Instructions = [.. snapshot.Instructions.Select(item => item.InstructionId == "order-list-4"
+                        ? Order(4, "Eat three berries.", "cancelled", reason: "Replaced by a newer order.") : item),
+                        Order(10, "Eat two berries.", "waiting", requested: 2)],
+                };
+                RenderSelectedAgentCard(replaced);
+                var (now, queued, _) = OrdersFor(replaced, ilya.Id);
+                if (now?.InstructionId != "order-list-10" || PendingOrderToCancel(replaced, ilya.Id)?.InstructionId != now.InstructionId ||
+                    !queued.Select(item => item.InstructionId).SequenceEqual(orders.Skip(4).Select(item => item.InstructionId)) ||
+                    !profileOrderLabel.Text.StartsWith("Order: Waiting · Eating food", StringComparison.Ordinal) ||
+                    ordersReaderText.GetParsedText().IndexOf("You said: “Eat two berries.”", StringComparison.Ordinal) >
+                    ordersReaderText.GetParsedText().IndexOf("Queued", StringComparison.Ordinal))
+                    throw new InvalidOperationException("A newer replacement must lead the preserved queue on the card, in All orders and for Cancel task.");
+                RenderSelectedAgentCard(snapshot);
                 _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
                 if (ordersPanel.Visible || !agentProfilePanel.Visible)
                     throw new InvalidOperationException("Escape must close All orders before the Profile.");
