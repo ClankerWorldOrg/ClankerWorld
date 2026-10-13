@@ -1738,6 +1738,8 @@ The rotating autosave schedule recovers within its configured interval after
 the host's clock moves backwards, including across a restart.
 Rotation keeps the newest copies on each known branch despite earlier future
 dates, while named manual saves remain separate.
+Damaged autosaves stay on disk and do not count toward rotation, so reducing
+the count or turning rotation off keeps a verified usable predecessor.
 
 If the active saved state cannot open on restart, the host stays available for
 pairing and an authenticated **Recover world** screen. It offers the last
