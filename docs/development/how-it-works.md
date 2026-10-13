@@ -355,8 +355,8 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 244 references across 67 files, down from 245 before the remaining
-workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
+is 243 references across 67 files, after household building-material counts
+moved to `Holdings` and the workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
 The guard binds C# property symbols, including aliases and conditional access;
 comments, strings and unrelated `Lots` properties do not count. It exempts files
 ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
@@ -3035,7 +3035,9 @@ for matched native results and allocation/timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
-owns anywhere, plus what its members carry. Each kind is planned at most once
+owns anywhere, plus its members' stock. The shared `Holdings` query excludes
+reservations, delivery promises and borrowed Market sale stock from both this
+gate and the missing-material count. Each kind is planned at most once
 at a time and a household never holds two of a kind; a second member choosing
 the same kind in the same tick is refused, and a project stops if its household
 comes to hold that kind. Only a household holding a Farmhouse plans a Silo, and
