@@ -7,6 +7,51 @@ namespace ClankerWorld.Tests;
 
 public sealed class ServerObservationTests
 {
+    [Theory]
+    [InlineData("person")]
+    [InlineData("household")]
+    [InlineData("town")]
+    public void GroundStockOwnerNamesReachClientWithoutChangingOwnership(string ownerKind)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("ground-owner-names",
+            _ => new ActionCoverageRecorder(chooseIdle: true));
+        var state = generated.ExportState();
+        var person = state.Society.Society.Agents.First();
+        var household = state.Society.Society.Households.First();
+        var town = state.Towns!.First();
+        var (ownerId, ownerName) = ownerKind switch
+        {
+            "person" => (person.Id, person.Name),
+            "household" => (household.Id, household.Name),
+            _ => (town.Id, town.Name),
+        };
+        var inventory = state.Society.Society.Inventory;
+        var wood = inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.Quantity >= 2 && lot.ContainerLotId is null);
+        var point = state.Agents.First().Position;
+        inventory = wood.OwnerId == ownerId
+            ? InventoryAuthority.Relocate(inventory, "ground-label", wood.Id, ownerId, 2, groundPosition: new(point.X, point.Y))
+            : InventoryAuthority.Transfer(inventory, "ground-label", wood.OwnerId, ownerId, wood.Id, 2,
+                "ground ownership check", destinationGroundPosition: new(point.X, point.Y));
+        using var world = WorldRuntime.Restore(state with
+        {
+            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        }, _ => new ActionCoverageRecorder(chooseIdle: true));
+        var store = new OwnerWorldObservationStore(world);
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        ClankerWorld.GodotClient.Protocol.OwnerWorldGroundStock Read() =>
+            JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+                JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.GroundStocks.Single(stock =>
+                    stock.OwnerId == ownerId && stock.Kind == "wood" && stock.Position.X == point.X && stock.Position.Y == point.Y);
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal((ownerId, ownerName, "wood", 2), (Read().OwnerId, Read().OwnerName, Read().Kind, Read().Quantity));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        if (ownerKind == "person")
+        {
+            Assert.True(world.RenameAgent(ownerId, "Élodie Lake"));
+            Assert.Equal((ownerId, "Élodie Lake", "wood", 2), (Read().OwnerId, Read().OwnerName, Read().Kind, Read().Quantity));
+        }
+    }
+
     [Fact]
     public void GeneratedReconnectOmitsOnlyAlreadyHeldTerrain()
     {

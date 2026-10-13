@@ -602,7 +602,10 @@ public sealed partial class OwnerWorldObservationStore
                 .OrderBy(group => group.Key.Position.Y).ThenBy(group => group.Key.Position.X)
                 .ThenBy(group => group.Key.ItemKind, StringComparer.Ordinal).ThenBy(group => group.Key.OwnerId, StringComparer.Ordinal)
                 .Select(group => new GroundStockView(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
-                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))).ToArray(),
+                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))
+                {
+                    OwnerName = MarketOwnerName(group.Key.OwnerId),
+                }).ToArray(),
             WrapsEastWest = state.Geography?.WrapEastWest == true,
             Generation = state.Geography is { } geography
                 ? new WorldGenerationView(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),
