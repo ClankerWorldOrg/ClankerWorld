@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
             !(person.AgentId == retryingActor && project.Stage == "blocked" &&
                 WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks));
 
-    /// <summary>Materials the household owns, wherever it stores them, plus what its members carry.</summary>
+    /// <summary>Usable materials the household or its members own, wherever they store them.</summary>
     private bool HouseholdHasMaterialsInHand(string householdId, IReadOnlyList<ContentQuantity> costs) =>
         costs.All(cost => HouseholdMaterialInHand(householdId, cost.ResourceId) >= cost.Amount);
 
