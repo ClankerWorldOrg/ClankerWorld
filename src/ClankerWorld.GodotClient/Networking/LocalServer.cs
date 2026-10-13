@@ -226,8 +226,9 @@ public sealed class LocalServer : IAsyncDisposable
             try { return await StartExclusiveAsync(expectedVersion, expectedRevision, cancellationToken); }
             catch (OperationCanceledException)
             {
-                // Do not release startup ownership with an unready child still
-                // running. A reused server belongs to another launch.
+                // Finish our child's stop attempt before releasing startup ownership.
+                // A refused shutdown preserves its paused world for retry;
+                // a reused server belongs to another launch.
                 if (process is not null) await StopAsync(CancellationToken.None);
                 throw;
             }

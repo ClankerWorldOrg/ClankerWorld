@@ -359,8 +359,9 @@ apart from a server pairing. The game holds an exclusive per-installation
 An overlapping game refuses startup
 before changing the secret or logs. The empty lock file stays in place; process
 exit releases its handle, so a crash leaves no stale lock. A failed launch
-restores the prior secret, and cancellation settles its own starting child
-before releasing the handle. A running server of the exact same version and
+restores the prior secret, and cancellation finishes its own starting child's
+stop attempt before releasing the handle. An explicitly refused shutdown keeps
+the server and its paused world available for retry. A running server of the exact same version and
 source revision, started by an earlier launch, is reused only after a
 side-effect-free `GET /api/v1/approval/launch-check`
 confirms the secret already in its file on the approval listener. Anything else on
