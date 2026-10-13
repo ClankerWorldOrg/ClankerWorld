@@ -1685,7 +1685,8 @@ either participant is talking. Conversation logs record only purpose, bounded
 turn count, latency and usage totals, including reported usage for rejected speech.
 
 Personal requests retrieve at most four own-memory/belief excerpts and sixteen
-recent own-map facts. Permanent rename experiences take precedence, newest first,
+recent own-map facts. Social memories protected by `SocietyMemoryArchiveRules`,
+including final words and permanent rename experiences, take precedence, newest first,
 including before the 256-source scan limit; ordinary sources retain their
 relevance and salience ranking. The owner's bounded 16-entry Memories projection
 also keeps permanent entries first and marks them Permanent. All rename source
@@ -1694,7 +1695,10 @@ Excerpts use at most 160 UTF-16 units and keep complete Unicode characters;
 the saved source text and evidence stay unchanged.
 An existing Jev routine call may score up to twelve previously unassessed
 ordinary records; permanent entries are excluded from scoring and cannot fade
-through a low assessment. Only linked salience/confidence values are saved.
+through a low assessment. Candidates must fit the writer's latest-256 scoring
+window, including scores already saved for protected sources, so the helper
+does not repeatedly assess entries the index cannot retain.
+Only linked salience/confidence values are saved.
 The same Jev or OpenAI Decisions request may include a `memory_summary`
 choice over source-derived recent, earliest or varied extracts, plus
 `keep_records`. It adds no separate paid request or free-form model prose. Local retrieval works with
