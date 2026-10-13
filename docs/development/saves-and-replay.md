@@ -781,7 +781,7 @@ Orders retain their existing saved status spelling. Runtime status is an
 orders cannot return to active work. The runtime keeps a completion set only
 for suggestions and derives order completion from status when exporting the
 existing checkpoint list. The status foundation changed no saved fields or schema.
-Schema 129 bounds closed orders to the six newest submissions per agent,
+Schema 132 bounds closed orders to the six newest submissions per agent,
 keeping all active work. Cancellation retries are also bounded to six per
 agent, ordered by world tick, event ID and idempotency key. A retired order can
 no longer be cancelled through its old ID. Compact submission receipts and
