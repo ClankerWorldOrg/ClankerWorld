@@ -252,11 +252,12 @@ calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
 come from the live runtime. Admission includes its committed world tick. A
 refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
 for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
-A test clock can be passed to the runtime for identity, will and conversation
-deadlines; production uses `TimeProvider.System`.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
 
-The proof fixtures use this harness; remaining clock waits move in #1818. New
-model tests use the harness and no reflection into runtime queues.
+The harness has its own proof tests. #1862 moves the existing proof fixtures
+onto it, and #1818 moves the remaining clock waits. New model tests use the
+harness and no reflection into runtime queues.
 
 ## Which checks to run
 
