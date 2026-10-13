@@ -221,7 +221,10 @@ public sealed record OwnerLandTransfer(string Id, string FilerId, string FilerNa
     public OwnerLandSalePrice? Price { get; init; }
     public OwnerLandSalePayment? Payment { get; init; }
 }
-public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity);
+public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity)
+{
+    public string ItemName { get; init; } = "goods";
+}
 public sealed record OwnerLandSalePayment(string BuyerAgentId, string BuyerName, string SellerAgentId, string SellerName,
     OwnerWorldPosition Position, long Tick);
 

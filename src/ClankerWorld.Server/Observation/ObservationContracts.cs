@@ -456,7 +456,10 @@ public sealed record LandTransferView(string Id, string FilerId, string FilerNam
     public LandSalePriceView? Price { get; init; }
     public LandSalePaymentView? Payment { get; init; }
 }
-public sealed record LandSalePriceView(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity);
+public sealed record LandSalePriceView(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity)
+{
+    public string ItemName { get; init; } = "goods";
+}
 public sealed record LandSalePaymentView(string BuyerAgentId, string BuyerName, string SellerAgentId, string SellerName,
     PositionView Position, long Tick);
 
