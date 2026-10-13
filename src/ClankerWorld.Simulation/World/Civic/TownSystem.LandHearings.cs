@@ -113,7 +113,6 @@ internal sealed partial class TownSystem
     }
 
     internal static void LandHearingEvent(ITownWorld world, string kind, TownRuntimeState town, TownLandCase item, string? actor, string status) =>
-            world.AppendEvent("land_case_" + kind,
-                $"{town.Id}|{item.Id}|{TownLandHearingRules.CurrentRevision(item).Number}|{actor ?? ""}|{status}", CivicBoard(world, town));
+            world.AppendEvent(WorldEvents.LandCase(kind, actor, town.Id, item.Id, TownLandHearingRules.CurrentRevision(item).Number, status), CivicBoard(world, town));
 
 }

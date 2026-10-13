@@ -405,7 +405,7 @@ internal sealed partial class TownSystem
                         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
                             term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution"));
                         RecordNonLandGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
-                        world.AppendEvent("voluntary_goods_returned", $"{actor}:{term.BeneficiaryId}:{lot.Id}:{remaining}");
+                        world.AppendEvent(new VoluntaryGoodsReturnedEventPayload(actor, term.BeneficiaryId, lot.Id, remaining));
                     }
                     else if (term.Kind == "public_service_goods")
                         DeliverNonLandTownGoods(world, actor, term, remaining);
@@ -452,7 +452,7 @@ internal sealed partial class TownSystem
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor, warehouse.TownId!,
             lot.Id, quantity, "town_resources_stored", warehouse.InstanceId));
         RecordNonLandGoodsCompletion(world, actor, lot, warehouse.TownId!, quantity, warehouse.InstanceId, operation, "public_service_goods", availableBefore);
-        world.AppendEvent("town_resources_stored", $"{actor}:{lot.Id}:{quantity}:{warehouse.InstanceId}");
+        world.AppendEvent(new TownResourcesStoredEventPayload(actor, lot.Id, quantity, warehouse.InstanceId));
     }
 
     internal void RecordNonLandRepairCompletion(ITownWorld world, string actor, InventoryLot originalTarget, string repairedLotId,
@@ -508,7 +508,7 @@ internal sealed partial class TownSystem
                         term.TargetId, receipt.Id, receipt.Version);
                     var state = town.NonLandHearings with { NativeReceipts = town.NonLandHearings.NativeReceipts.Append(receipt).ToArray() };
                     SetTown(world, town with { NonLandHearings = TownRemedyRules.RecordEffect(state, effect) });
-                    world.AppendEvent("law_case_remedy_effect", $"{town.Id}|{agreement.Id}|{receipt.ActorId}", receipt.Position);
+                    world.AppendEvent(new LawCaseRemedyEffectEventPayload(receipt.ActorId, town.Id, agreement.Id), receipt.Position);
                     return;
                 }
     }

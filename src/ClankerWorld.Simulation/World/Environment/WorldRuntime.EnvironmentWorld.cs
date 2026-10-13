@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
         public void SetResourceAvailability(string id, bool available) =>
             runtime.resources[id] = available ? ResourceState.Available : ResourceState.Depleted;
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
         public void AddAgent(string id, AgentState state) => runtime.agents.Add(id, state);
         public void SetAgent(string id, AgentState state) => runtime.agents[id] = state;
         public void RemoveAgent(string id) => runtime.agents.Remove(id);

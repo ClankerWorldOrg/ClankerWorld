@@ -551,10 +551,9 @@ public sealed partial class WorldRuntime
                 worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
                 worldSimulation.ConstructionReceipts);
             if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
-                AppendEvent("house_tool_made", $"{job.WorkerId}|{recipe.Outputs.Single().ResourceId}",
-                    worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
+                AppendEvent(new HouseToolMadeEventPayload(job.WorkerId, recipe.Outputs.Single().ResourceId), worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
             else
-                AppendEvent(completed ? "recipe_completed" : "recipe_cancelled", $"{job.JobId}:{recipe.CanonicalId}");
+                AppendEvent(completed ? new RecipeCompletedEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null) : new RecipeCancelledEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null));
             if (completed)
             {
                 LearnProducedRecipe(job, recipe, targetTick);
@@ -587,8 +586,7 @@ public sealed partial class WorldRuntime
                 }
                 return inventory;
             });
-            AppendEvent(unsupportedOutput ? "production_output_unsupported" :
-                inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.JobId);
+            AppendEvent(WorldEvents.ProductionFailure(unsupportedOutput ? "production_output_unsupported" : inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.WorkerId, job.JobId));
             return false;
         }
         var productionBuilding = worldSimulation.Buildings

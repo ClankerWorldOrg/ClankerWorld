@@ -408,6 +408,7 @@ public sealed record AuthoringStateView(
 public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null)
 {
     public string Text { get; init; } = string.Empty;
+    public ClankerWorld.Simulation.World.WorldEventPayload? Payload { get; init; }
 }
 
 public sealed record FounderSetupView(int Required, int Placed, bool Started)

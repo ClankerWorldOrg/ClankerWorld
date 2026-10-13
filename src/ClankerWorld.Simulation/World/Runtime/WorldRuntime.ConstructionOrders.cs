@@ -142,7 +142,7 @@ public sealed partial class WorldRuntime
                 OrderInstructionId: instruction.InstructionId);
             agents[actor] = person with { Project = project };
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
+            AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }
         if (agents[actor].Project is { Stage: "paused" } paused)
             SetProject(actor, paused with { Stage = "acquiring", Blocker = null, RequiresFreshChoice = false });

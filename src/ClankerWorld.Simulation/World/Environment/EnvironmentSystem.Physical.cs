@@ -110,7 +110,7 @@ internal sealed partial class EnvironmentSystem
             { BoatIdAtDeath = world.RecordBoatDeath(id) });
             world.RemoveAgent(id);
             world.RemoveTownResident(id);
-            world.AppendEvent("agent_removed", id);
+            world.AppendEvent(new AgentRemovedEventPayload(id));
         }
     }
 }

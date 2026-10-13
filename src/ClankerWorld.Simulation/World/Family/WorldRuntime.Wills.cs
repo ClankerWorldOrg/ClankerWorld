@@ -84,7 +84,7 @@ public sealed partial class WorldRuntime
                 pendingWills.Add(estate.Id, new PendingWillDecision(estate.Id, request,
                     observation.Candidates.Select(item => item.Id).ToHashSet(StringComparer.Ordinal),
                     context.HeirKeys, context.ItemKeys, task, cancellation));
-                AppendEvent("estate_will_started", estate.Id);
+                AppendEvent(new EstateWillStartedEventPayload(estate.DeceasedId, estate.Id));
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
@@ -317,9 +317,7 @@ public sealed partial class WorldRuntime
                 var result = society.Apply(checkpoint => SocietyRules.ResolveWill(
                     checkpoint, estate.Id, directive, "accepted", finalWords, TownsThatMayInherit()));
                 var accepted = result.Checkpoint.GetEstate(estate.Id).WillStatus == "accepted";
-                AppendEvent(accepted ? "estate_will_accepted" : "estate_will_default", accepted
-                    ? $"{estate.Id}:{directive.Split}:{directive.HeirIds.Count.ToString(CultureInfo.InvariantCulture)}"
-                    : $"{estate.Id}:invalid_estate_or_heir");
+                AppendEvent(accepted ? new EstateWillAcceptedEventPayload(estate.DeceasedId, estate.Id, directive.Split, directive.HeirIds.Count) : new EstateWillDefaultEventPayload(estate.DeceasedId, estate.Id, "invalid_estate_or_heir"));
             }
             else if (!active.Contains(estate.Id))
             {
@@ -370,8 +368,9 @@ public sealed partial class WorldRuntime
 
     private void ResolveWillDefault(string estateId, string reason, string? finalWords = null)
     {
+        var actor = society.Checkpoint.Estates.FirstOrDefault(estate => estate.Id == estateId)?.DeceasedId;
         society.Apply(checkpoint => SocietyRules.ResolveWill(checkpoint, estateId, null, reason, finalWords));
-        AppendEvent("estate_will_default", $"{estateId}:{reason}");
+        AppendEvent(new EstateWillDefaultEventPayload(actor, estateId, reason));
     }
 
     private void CancelPendingWill(string estateId, string reason = "interrupted", bool underRuntimeGate = true)

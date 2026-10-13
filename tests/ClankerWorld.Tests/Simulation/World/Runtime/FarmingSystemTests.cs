@@ -132,7 +132,7 @@ public sealed class FarmingSystemTests
         public GroundOccupancy Ground => new(Map, Content, Simulation);
         public List<(string, string)> Events { get; } = [];
         public HashSet<GridPoint> Roads { get; } = [];
-        public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
+        public void AppendEvent(WorldEventPayload payload) => Events.Add((payload.Kind, payload.DiagnosticDetail));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) =>
             Society = Society with { Inventory = transition(Society.Inventory) };
         public void SetMap(WorldMap map) => Map = map;

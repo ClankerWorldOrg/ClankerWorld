@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
                         ? item with { State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null, ToolLotId = knifeId }
                         : item).ToArray(),
                 };
-                AppendEvent("production_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
+                AppendEvent(new ProductionOrderResumedEventPayload(null, instruction.InstructionId, job.JobId));
             }
             return;
         }
@@ -109,7 +109,7 @@ public sealed partial class WorldRuntime
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             agents[actor] = person with { Project = project };
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
+            AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }
         if (agents[actor].Project is { RequiresFreshChoice: true } pausedProject)
             SetProject(actor, pausedProject with { Stage = "acquiring", RequiresFreshChoice = false, Blocker = null });
@@ -184,7 +184,7 @@ public sealed partial class WorldRuntime
             ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == job.JobId
                 ? item with { State = WorldProductionJobState.Paused, PausedAtTick = WorldTick } : item).ToArray(),
         };
-        AppendEvent("production_order_paused", $"{instruction.InstructionId}:{job.JobId}");
+        AppendEvent(new ProductionOrderPausedEventPayload(null, instruction.InstructionId, job.JobId));
     }
 
     private bool IsActiveProductionOrderJob(string jobId) => instructionsByIdempotency.Values.Any(instruction =>
@@ -209,7 +209,7 @@ public sealed partial class WorldRuntime
                 ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == job.JobId
                     ? item with { State = WorldProductionJobState.Cancelled } : item).ToArray(),
             };
-            AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
+            AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         }
         if (agents.TryGetValue(instruction.TargetAgentId, out var person) &&
             IsProductionOrderProject(instruction, person.Project))

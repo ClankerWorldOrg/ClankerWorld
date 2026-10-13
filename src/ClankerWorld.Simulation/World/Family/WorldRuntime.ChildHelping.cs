@@ -98,7 +98,7 @@ public sealed partial class WorldRuntime
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                     $"child-delivery:{WorldTick}:{actor}", actor, house.HouseholdId!, delivery.Id, delivery.Quantity,
                     "child_household_delivery", house.InstanceId));
-                AppendEvent("child_delivered_household", $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{house.InstanceId}");
+                AppendEvent(new ChildDeliveredHouseholdEventPayload(actor, delivery.ItemKind, delivery.Quantity, house.InstanceId));
                 return;
             }
             if (ChildHelpingStock(actor, house) is not { } stock || ("child_carry:" + stock.Id) != candidate) return;
@@ -114,7 +114,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"child-pickup:{WorldTick}:{actor}", house.HouseholdId!, actor, stock.Id, quantity,
                 "child_household_pickup", destinationDeliveryBuildingId: house.InstanceId));
-            AppendEvent("child_collected_household", $"{actor}:{stock.ItemKind}:{quantity}");
+            AppendEvent(new ChildCollectedHouseholdEventPayload(actor, stock.ItemKind, quantity));
             return;
         }
         var kind = candidate["child_gather:".Length..].Split(':', 2)[0];

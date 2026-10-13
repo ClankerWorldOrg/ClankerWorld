@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
                 instruction.RunEpoch,
                 sequence);
             instructionReceipts.Add(instruction.IdempotencyKey, new(receipt, InstructionRequestDigest(request)));
-            AppendEvent("instruction_queued", $"{instruction.InstructionId}:{ToWireValue(instruction.Kind)}");
+            AppendEvent(new InstructionQueuedEventPayload(instruction.TargetAgentId, instruction.InstructionId, ToWireValue(instruction.Kind)));
             CloseOrdersNotUnderstood(targetId);
             PruneClosedOrderHistory();
             return receipt;
@@ -141,7 +141,7 @@ public sealed partial class WorldRuntime
             society.Apply(checkpoint => SocietyRules.SetAgingOverride(checkpoint, rate));
             if (before == society.Checkpoint.LifeClock) return false;
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("aging_override_changed", rate.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            AppendEvent(new AgingOverrideChangedEventPayload(null, rate));
             return true;
         }
         finally
@@ -172,7 +172,7 @@ public sealed partial class WorldRuntime
             jevEnabled = settings.Provider != "off";
             jevPolicyRevision = checked(jevPolicyRevision + 1);
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("routine_helper_changed", $"{settings.Provider}:{settings.Model}");
+            AppendEvent(new RoutineHelperChangedEventPayload(null, settings.Provider, settings.Model));
             return true;
         }
         finally { gate.Release(); }
@@ -250,7 +250,7 @@ public sealed partial class WorldRuntime
             foreach (var id in pendingConversationTurns.Keys.ToArray())
                 CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused);
             SuspendAllConversations(AgentConversationInterruption.OwnerPaused);
-            AppendEvent("paused", "owner_request");
+            AppendEvent(new PausedEventPayload(null));
         }
     }
 
@@ -269,7 +269,7 @@ public sealed partial class WorldRuntime
         if (IsInvokingProviderUnderGateOnThisThread || !gate.Wait(wait)) return false;
         try
         {
-            AppendEvent("model_call_warning", FormattableString.Invariant($"used:{attempts}:limit:{attemptLimit}"));
+            AppendEvent(new ModelCallWarningEventPayload(null, attempts, attemptLimit));
             return true;
         }
         finally
@@ -289,7 +289,7 @@ public sealed partial class WorldRuntime
             var result = society.Resume();
             if (wasPaused && !result.Checkpoint.IsPaused)
             {
-                AppendEvent("resumed", $"epoch:{result.Checkpoint.RunEpoch}");
+                AppendEvent(new ResumedEventPayload(null, result.Checkpoint.RunEpoch));
             }
         }
         finally
@@ -332,7 +332,7 @@ public sealed partial class WorldRuntime
         CancelBoatTravelForOrder(instruction);
         CancelKnowledgeWritingForOrder(instruction);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_cancelled", $"{instruction.TargetAgentId}:{instruction.InstructionId}:{cause}");
+        AppendEvent(new InstructionOrderCancelledEventPayload(instruction.TargetAgentId, instruction.InstructionId, cause));
     }
 
     private static bool IsActiveOrder(string status) =>
@@ -453,7 +453,7 @@ public sealed partial class WorldRuntime
             {
                 Task = order.Task!.Transition(OrderStatus.NotUnderstood),
             };
-            AppendEvent("instruction_not_understood", $"{agentId}:{order.InstructionId}");
+            AppendEvent(new InstructionNotUnderstoodEventPayload(agentId, order.InstructionId));
         }
         checkpointSchemaVersion = StateSchemaVersion;
     }

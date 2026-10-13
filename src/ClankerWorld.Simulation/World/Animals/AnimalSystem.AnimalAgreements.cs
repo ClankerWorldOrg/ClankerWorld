@@ -119,7 +119,7 @@ internal sealed partial class AnimalSystem
                 .Concat(grant ? [agreement.OtherId] : Array.Empty<string>()).Order(StringComparer.Ordinal).ToArray();
             SetAnimal(riding ? animal with { RidingPermissions = permissions } : animal with { CarePermissions = permissions });
             if (riding && !grant && animal.RiderId == agreement.OtherId) EndAnimalRide(world, Animal(animal.Id)!, "permission_revoked");
-            world.AppendEvent("animal_permission_changed", actor + ":" + animal.Id + ":" + agreement.Action + ":" + agreement.OtherId);
+            world.AppendEvent(new AnimalPermissionChangedEventPayload(actor, animal.Id, agreement.Action, agreement.OtherId));
         }
         else if (agreement.Action is "offer_sale" or "offer_gift")
         {
@@ -129,7 +129,7 @@ internal sealed partial class AnimalSystem
                 animal.Id, actor, agreement.OtherId, home, AnimalYard(world, home)!.InstanceId, payment?.ItemKind, payment is null ? 0 : 1, world.WorldTick)
             { PaymentLotId = payment?.Id };
             State = State with { Offers = State.Offers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() };
-            world.AppendEvent("animal_trade_offered", offer.Id + ":" + animal.Id + ":" + (payment?.Id ?? "gift"));
+            world.AppendEvent(new AnimalTradeOfferedEventPayload(actor, offer.Id, animal.Id, (payment?.Id ?? "gift")));
         }
         else
         {
@@ -156,7 +156,7 @@ internal sealed partial class AnimalSystem
                     LeadDestination = world.Agents[actor].Position == animal.Position && MayLeadAnimal(world, actor, animal) ?
                         world.Simulation.Buildings.Single(yard => yard.InstanceId == offer.ReceivingYardId).Position : null
                 });
-                world.AppendEvent("animal_transferred", offer.Id + ":" + animal.Id + ":" + offer.ReceivingHouseholdId, animal.Position);
+                world.AppendEvent(new AnimalTransferredEventPayload(actor, offer.Id, animal.Id, offer.ReceivingHouseholdId), animal.Position);
             }
             State = State with { Offers = State.Offers.Where(item => item.Id != offer.Id).ToArray() };
         }

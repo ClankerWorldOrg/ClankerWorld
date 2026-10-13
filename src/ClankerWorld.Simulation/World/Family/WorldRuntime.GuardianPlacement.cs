@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
         var care = society.Checkpoint.GetRelationship(careRelationshipId);
         SetGuardianPlacement(child, new(caregiver, care.Id, care.Revision, WorldTick, "collecting"));
         RefreshGuardianPlacement(child);
-        AppendEvent("guardian_placement_pending", child);
+        AppendEvent(new GuardianPlacementPendingEventPayload(child));
     }
 
     private void SetGuardianPlacement(string child, GuardianPlacementState? placement)
@@ -70,7 +70,7 @@ public sealed partial class WorldRuntime
         if (!IsCurrentGuardianPlacement(child, placement))
         {
             SetGuardianPlacement(child, null);
-            AppendEvent("guardian_placement_cancelled", child);
+            AppendEvent(new GuardianPlacementCancelledEventPayload(child));
             return;
         }
         var household = society.Checkpoint.GetAgent(placement.CaregiverId).HouseholdId;
@@ -314,7 +314,7 @@ public sealed partial class WorldRuntime
             throw new InvalidOperationException("A validated guardian placement could not settle the child's Town.");
         SetGuardianPlacement(child, null);
         SetHousing(child, (agents[child].Housing ?? new()) with { Blocker = HousingBlocker(child) });
-        AppendEvent("guardian_placement_completed", $"{child}:{placement.CaregiverId}");
+        AppendEvent(new GuardianPlacementCompletedEventPayload(child, placement.CaregiverId));
     }
 
     private bool CanEnterGuardianPlacementHouse(string child, PlacedBuilding house) =>

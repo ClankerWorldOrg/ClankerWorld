@@ -34,7 +34,8 @@ public static class WorldRuntimeCodec
         var resolver = new DefaultJsonTypeInfoResolver();
         resolver.Modifiers.Add(typeInfo =>
         {
-            if (typeInfo.Type != typeof(OrderTask) && !typeof(OrderTaskDefinition).IsAssignableFrom(typeInfo.Type)) return;
+            if (typeInfo.Type != typeof(OrderTask) && !typeof(OrderTaskDefinition).IsAssignableFrom(typeInfo.Type) &&
+                typeInfo.Type != typeof(WorldEventEntry) && !typeof(WorldEventPayload).IsAssignableFrom(typeInfo.Type)) return;
             // Read-only projections belong to the runtime API, not the saved
             // contract. Removing their metadata makes extra fields fail closed.
             for (var index = typeInfo.Properties.Count - 1; index >= 0; index--)

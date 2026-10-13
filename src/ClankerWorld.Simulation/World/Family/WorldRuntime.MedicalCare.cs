@@ -82,7 +82,7 @@ public sealed partial class WorldRuntime
                 ? null : person.MedicalTreatment,
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(allowed ? "medical_care_allowed" : "medical_care_revoked", $"{patient}:medical_caregiver:{caregiver}");
+        AppendEvent(allowed ? new MedicalCareAllowedEventPayload(patient, caregiver) : new MedicalCareRevokedEventPayload(patient, caregiver));
     }
 
     private InventoryLot? MedicalSupplyAtHand(string caregiver) => society.Checkpoint.Inventory.Lots
@@ -129,7 +129,7 @@ public sealed partial class WorldRuntime
         if (agents[caregiver].MedicalSupplyTrip?.PatientId == patient)
             agents[caregiver] = agents[caregiver] with { MedicalSupplyTrip = null };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("medical_treatment_started", $"{patient}:medicine:{caregiver}:{supply.Id}");
+        AppendEvent(new MedicalTreatmentStartedEventPayload(patient, caregiver, supply.Id));
         return new(true);
     }
 
@@ -163,7 +163,7 @@ public sealed partial class WorldRuntime
             {
                 CloseMedicalDose(person.AgentId, treatment);
                 agents[person.AgentId] = person with { MedicalTreatment = null };
-                AppendEvent("medical_treatment_interrupted", person.AgentId);
+                AppendEvent(new MedicalTreatmentInterruptedEventPayload(person.AgentId));
                 continue;
             }
             if (treatment.LastProcessedTick >= WorldTick) continue;
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
                 MedicalTreatment = remaining == 0 ? null : treatment with
                 { LastProcessedTick = WorldTick, RemainingTicks = remaining },
             };
-            if (remaining == 0) AppendEvent("medical_treatment_completed", person.AgentId);
+            if (remaining == 0) AppendEvent(new MedicalTreatmentCompletedEventPayload(person.AgentId));
         }
     }
 

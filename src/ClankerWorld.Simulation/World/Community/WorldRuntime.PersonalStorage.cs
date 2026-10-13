@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
         var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
             moveId, lot.Id, actor, quantity, storageBuildingId: house.InstanceId));
-        AppendEvent("personal_goods_stored", $"{actor}|{lot.ItemKind}|{quantity}|{actor}");
+        AppendEvent(new PersonalGoodsStoredEventPayload(actor, lot.ItemKind, quantity));
         return new(moveId, lot.ItemKind, quantity);
     }
 }

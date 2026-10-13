@@ -4069,10 +4069,15 @@ newest.
 The observation sends its derived `Text` on each event; the game displays that text
 and keeps its existing event filtering and location controls. Descriptions resolve
 complete agent and Town IDs from the owner snapshot;
-colons inside those IDs are part of the identity. Food yields and Town membership
-fields are read separately. Existing entries use the current saved name, including
+colons inside those IDs are part of the identity. `WorldEventEntry` stores a
+kind-discriminated `WorldEventPayload`: actor, captured position and each kind’s
+own subject references and values. Producers construct these records directly.
+`WorldEventLog` uses the complete actor ID, without trying detail prefixes.
+A read-only diagnostic projection keeps the established log spelling. Food yields
+and Town membership fields remain separate values. Existing entries use the current saved name, including
 deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
-These readers do not rewrite accepted event details or change save/replay formats.
+Server descriptions leave accepted payloads unchanged. The typed saved format is
+documented in [Saves and replay](saves-and-replay.md#typed-world-events).
 
 The owner snapshot projects the saved continuity rule's current on/off state.
 Godot uses it to keep an **Add a newcomer** offer in the Event Log while the

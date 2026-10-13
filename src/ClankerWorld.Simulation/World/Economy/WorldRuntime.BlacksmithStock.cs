@@ -165,7 +165,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"smith-ore-delivery:{WorldTick}:{actor}", actor, householdId, ore.Id,
             quantity, "smith_ore_delivered", blacksmith.InstanceId));
-        AppendEvent("smith_ore_delivered", $"{actor}:{ore.Id}:{quantity}:{blacksmith.InstanceId}");
+        AppendEvent(new SmithOreDeliveredEventPayload(actor, ore.Id, quantity, blacksmith.InstanceId));
     }
 
     private InventoryLot? BlacksmithInputForDelivery(string householdId, PlacedBuilding blacksmith, string actor,
@@ -352,7 +352,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"smith-input-delivery:{WorldTick}:{actor}", actor, householdId, input.Id,
                 personalQuantity, "smith_input_delivered", destinationStorageBuildingId: blacksmith.InstanceId));
-            AppendEvent("smith_input_delivered", $"{actor}:{input.Id}:{personalQuantity}:{blacksmith.InstanceId}");
+            AppendEvent(new SmithInputDeliveredEventPayload(actor, input.Id, personalQuantity, blacksmith.InstanceId));
             return;
         }
         var source = HouseholdStockPosition(input);
@@ -376,7 +376,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"smith-input-pickup:{WorldTick}:{actor}", input.OwnerId, actor, input.Id,
             quantity, "smith_input_picked_up", destinationDeliveryBuildingId: blacksmith.InstanceId));
-        AppendEvent("smith_input_picked_up", $"{actor}:{input.Id}:{quantity}:{blacksmith.InstanceId}");
+        AppendEvent(new SmithInputPickedUpEventPayload(actor, input.Id, quantity, blacksmith.InstanceId));
     }
 
     private DeliveryOrderPlan? GetBlacksmithOrderPlan(string actor, AgentState person,

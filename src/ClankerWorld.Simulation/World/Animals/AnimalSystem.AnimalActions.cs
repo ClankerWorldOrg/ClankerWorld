@@ -86,7 +86,7 @@ internal sealed partial class AnimalSystem
                     FullnessBasisPoints = Math.Min(10_000,
                     world.Agents[actor].FullnessBasisPoints + 3_000)
                 });
-                world.AppendEvent("milk_drunk", actor);
+                world.AppendEvent(new MilkDrunkEventPayload(actor));
             }
             return true;
         }
@@ -146,7 +146,7 @@ internal sealed partial class AnimalSystem
                     WildFedUntilTick = 0,
                     WildWaterUntilTick = 0
                 });
-                world.AppendEvent("animal_tamed", actor + ":" + animal.Id, animal.Position);
+                world.AppendEvent(new AnimalTamedEventPayload(actor, animal.Id), animal.Position);
                 break;
             case "care":
                 var definition = AnimalRules.Definition(animal.Species);
@@ -154,7 +154,7 @@ internal sealed partial class AnimalSystem
                 ConsumeAnimalInputs(world, actor, "care:" + animal.Id, inputs);
                 FinishAnimalSupplyTrip(actor);
                 SetAnimal(animal with { CareUntilTick = world.WorldTick + AnimalDayTicks(world) });
-                world.AppendEvent("animal_cared", actor + ":" + animal.Id, animal.Position);
+                world.AppendEvent(new AnimalCaredEventPayload(actor, animal.Id), animal.Position);
                 break;
             case "collect": CollectAnimalProduct(world, actor, animal); break;
             case "collect_hide":
@@ -163,11 +163,11 @@ internal sealed partial class AnimalSystem
                     AnimalHideTransferId(actor, animal.Id, world.WorldTick, false), animal.Id, actor,
                     hide.Id, 1, "wild-animal-hide", destinationGroundPosition: hide.GroundPosition),
                     AnimalHideTransferId(actor, animal.Id, world.WorldTick, true), hide.Id, actor, 1, carrierId: actor));
-                world.AppendEvent("animal_hide_collected", actor + ":" + animal.Id, animal.Position);
+                world.AppendEvent(new AnimalHideCollectedEventPayload(actor, animal.Id), animal.Position);
                 break;
             case "lead_home": LeadAnimalHome(world, actor, animal); break;
             case "saddle": SaddleAnimal(world, actor, animal); break;
-            case "mount": SetAnimal(animal with { RiderId = actor }); world.AppendEvent("horse_mounted", actor + ":" + animal.Id, animal.Position); break;
+            case "mount": SetAnimal(animal with { RiderId = actor }); world.AppendEvent(new HorseMountedEventPayload(actor, animal.Id), animal.Position); break;
         }
         return true;
     }
@@ -271,7 +271,7 @@ internal sealed partial class AnimalSystem
             product.Id, product.OwnerId, product.Quantity, carrierId: actor));
         SetAnimal(animal with { ReadyProductLotId = null, ReadyProductReservationId = null });
         FinishAnimalSupplyTrip(actor);
-        world.AppendEvent("animal_product_collected", actor + ":" + animal.Id + ":" + product.ItemKind + ":" + product.Quantity, animal.Position);
+        world.AppendEvent(new AnimalProductCollectedEventPayload(actor, animal.Id, product.ItemKind, product.Quantity), animal.Position);
     }
     internal void LeadAnimalHome(IAnimalWorld world, string actor, AnimalState animal)
     {

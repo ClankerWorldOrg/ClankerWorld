@@ -244,12 +244,12 @@ public sealed partial class WorldRuntime
             survivalState = new SurvivalState(WorldTick, []);
             // Do not retroactively rot years of legacy inventory on migration.
             ApplyInventoryTransition(inventory => InventoryAuthority.ProcessSpoilage(inventory, WorldTick, 0));
-            AppendEvent("survival_activated", "weather_equipment_and_food");
+            AppendEvent(new SurvivalActivatedEventPayload(null));
         }
         var existingIds = worldSimulation.Buildings.Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);
         foreach (var fire in survivalState.Fires.Where(fire => fire.FuelUntilTick <= WorldTick || !existingIds.Contains(fire.BuildingId)))
         {
-            AppendEvent("fire_extinguished", fire.BuildingId);
+            AppendEvent(new FireExtinguishedEventPayload(null, fire.BuildingId));
         }
         survivalState = survivalState with
         {
@@ -276,7 +276,7 @@ public sealed partial class WorldRuntime
             agents[person.AgentId] = person with { Survival = old with { WarmthBasisPoints = warmth, IllnessBasisPoints = illness } };
             if (old.WarmthBasisPoints / 2_500 != warmth / 2_500 || old.IllnessBasisPoints / 2_500 != illness / 2_500)
             {
-                AppendEvent("survival_condition_changed", $"{person.AgentId}:warmth={warmth}:illness={illness}");
+                AppendEvent(new SurvivalConditionChangedEventPayload(person.AgentId, warmth, illness));
             }
         }
     }
@@ -336,7 +336,7 @@ public sealed partial class WorldRuntime
             ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor)
             : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{kind}",
                 item.OwnerId, actor, item.Id, 1, "equipment_collected"));
-        AppendEvent("equipment_collected", $"{actor}:{kind}");
+        AppendEvent(new EquipmentCollectedEventPayload(actor, kind));
     }
 
     private bool HasCarriedEquipmentAtLeast(string actor, string kind)
@@ -383,7 +383,7 @@ public sealed partial class WorldRuntime
             item.OwnerId == actor && item.LotId == fuel.Id && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
             item.State == InventoryReservationState.Completed && item.ExpiryTick == WorldTick);
         survivalState = survivalState with { Fires = survivalState.Fires.Append(new BuildingFireState(building.InstanceId, WorldTick + 120)).ToArray() };
-        AppendEvent("fire_fuelled", building.InstanceId);
+        AppendEvent(new FireFuelledEventPayload(null, building.InstanceId));
         return new FireFuelEffect(building.InstanceId, payment.Id);
     }
 
@@ -565,7 +565,7 @@ public sealed partial class WorldRuntime
             (food.ItemKind == "restaurant_meal" ? 500 : food.ItemKind is "berry_porridge" or "fruit_porridge" ? 250 : 0), 0, 10_000);
         var illness = Math.Clamp(condition.IllnessBasisPoints +
             (food.FreshnessBasisPoints < 2_500 ? SpoiledMealIllnessIncreaseBasisPoints : -FreshMealIllnessReliefBasisPoints), 0, 10_000);
-        AppendEvent("meal_eaten", $"{person.AgentId}:{kind}:nutrition={nutrition}");
+        AppendEvent(new MealEatenEventPayload(person.AgentId, kind, nutrition));
         return condition with { NutritionBasisPoints = nutrition, LastMealKind = kind, IllnessBasisPoints = illness };
     }
 

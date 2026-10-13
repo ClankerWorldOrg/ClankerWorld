@@ -176,7 +176,7 @@ public sealed partial class WorldRuntime
             society.Apply(checkpoint => SocietyRules.CreateBarterOffer(checkpoint,
                 new DirectBarterProposal(id, 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, WorldTick + 120)));
             society.Apply(checkpoint => SocietyRules.AcceptBarterOffer(checkpoint, id, 1, actor));
-            AppendEvent("barter_offered", actor + ":" + other);
+            AppendEvent(new BarterOfferedEventPayload(actor, other));
             return;
         }
         if (candidate.StartsWith("trade_wait:", StringComparison.Ordinal))
@@ -201,7 +201,7 @@ public sealed partial class WorldRuntime
         if (!accept)
         {
             ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory, offerId, offer.Revision, actor));
-            AppendEvent("barter_declined", actor);
+            AppendEvent(new BarterDeclinedEventPayload(actor));
             return;
         }
         var storagePosition = SharedStoragePosition;
@@ -232,7 +232,7 @@ public sealed partial class WorldRuntime
                     { Kind = SocietyMemoryKind.Relationship }));
                 }
             }
-            AppendEvent("barter_completed", actor);
+            AppendEvent(new BarterCompletedEventPayload(actor));
         }
     }
 
@@ -270,7 +270,7 @@ public sealed partial class WorldRuntime
                     !currentInventory.Reservations.Any(reservation => reservation.Id == party.Reservation && reservation.State == InventoryReservationState.Reserved)))
             {
                 ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory, offer.Id, offer.Revision, offer.FirstPartyId));
-                AppendEvent("barter_cancelled", offer.FirstPartyId);
+                AppendEvent(new BarterCancelledEventPayload(offer.FirstPartyId));
             }
         }
         var stale = society.Checkpoint.Inventory.Offers.Where(offer => offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&

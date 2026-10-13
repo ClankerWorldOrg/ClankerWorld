@@ -80,7 +80,7 @@ internal sealed partial class TownSystem
     internal static TownCouncilState PostNonLandNotice(TownCouncilState council, TownNonLandCase item) =>
         TownCouncilRules.PostNotice(council, "law_case", NonLandCaseToken(item),
             "A reported act is alleged to breach a Town law. The named people may answer with caregiver support where needed. No guilt, payment or work is presumed.", NonLandRevision(item).PublishedTick);
-    internal static void NonLandEvent(ITownWorld world, string kind, TownRuntimeState town, string subject, string actor) => world.AppendEvent("law_case_" + kind, $"{town.Id}|{subject}|{actor}", CivicBoard(world, town));
+    internal static void NonLandEvent(ITownWorld world, string kind, TownRuntimeState town, string subject, string actor) => world.AppendEvent(WorldEvents.LawCase(kind, actor, town.Id, subject), CivicBoard(world, town));
     internal static string NonLandText(string? text) => CognitionDecisionResponse.NormalizeIdentityText(text) ??
         throw new InvalidOperationException("A legal submission needs a clear personal statement.");
     internal static string NonLandExcerpt(string text, int limit)

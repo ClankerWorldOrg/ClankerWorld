@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         guardianPlacementActions.Add(agentId);
         if (IsWithinInteractionRange(state.Position, destination, interactionRange))
         {
-            AppendEvent("destination_reached", $"{agentId}:{reason}");
+            AppendEvent(new DestinationReachedEventPayload(agentId, reason));
             return;
         }
 
@@ -75,7 +75,7 @@ public sealed partial class WorldRuntime
         WearCarryAid(agentId);
         RecordNonLandConduct(agentId, "travel", next, null, null, 1,
             $"move:{WorldTick}:{agentId}:{nextEventId}");
-        AppendEvent("agent_moved", $"{agentId}:{state.Position.X},{state.Position.Y}->{next.X},{next.Y}:{reason}");
+        AppendEvent(new AgentMovedEventPayload(agentId, state.Position.X, state.Position.Y, next.X, next.Y, reason));
         if (mounted && horseMovementBudget == 100 && travelCost <= 50 && agents[agentId].TravelCooldownTicks == 0)
             MoveToward(agentId, agents[agentId], destination, reason, interactionRange, 100 - travelCost);
     }
@@ -177,8 +177,8 @@ public sealed partial class WorldRuntime
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
             if (AttachedHandcart(agentId) is not null || reason == "cart_unusable")
-                AppendEvent("handcart_blocked", $"{agentId}:{reason}");
-            AppendEvent("movement_blocked", $"{agentId}:{reason}:wait={waitTicks}");
+                AppendEvent(new HandcartBlockedEventPayload(agentId, reason));
+            AppendEvent(new MovementBlockedEventPayload(agentId, reason, waitTicks));
         }
     }
 
@@ -222,14 +222,14 @@ public sealed partial class WorldRuntime
         var source = requestedSource ?? AvailableFoodSource(agentId, state.Position);
         if (source is null || !IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange))
         {
-            AppendEvent("harvest_failed", $"{agentId}:not_at_available_food");
+            AppendEvent(new HarvestFailedEventPayload(agentId, "not_at_available_food"));
             return null;
         }
 
         var harvestYield = FoodHarvestQuantity(source);
         if (FreeCarryCapacity(agentId) < FoodHarvestCarryUnits(source))
         {
-            AppendEvent("carrying_full", agentId);
+            AppendEvent(new CarryingFullEventPayload(agentId));
             return null;
         }
         var ecologyResource = worldSystems.Ecology.GetResource(source.Id);
@@ -237,7 +237,7 @@ public sealed partial class WorldRuntime
         if (!harvest.IsValid || harvest.Resource is null)
         {
             SyncEcologyResourceStates();
-            AppendEvent("harvest_failed", $"{agentId}:{harvest.Failure ?? "food_depleted"}");
+            AppendEvent(new HarvestFailedEventPayload(agentId, harvest.Failure ?? "food_depleted"));
             return null;
         }
 
@@ -261,7 +261,7 @@ public sealed partial class WorldRuntime
         RecordNonLandConduct(agentId, "gather_food", source.Position, source.Id,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
             harvestYield, $"gather-food:{WorldTick}:{agentId}:{nextEventId}");
-        AppendEvent("food_harvested", $"{agentId}:{harvestYield}");
+        AppendEvent(new FoodHarvestedEventPayload(agentId, harvestYield));
         if (source.TreeKind == TreeGrowthRules.Orchard)
         {
             var lotId = OrchardSeedLotId(WorldTick, agentId);
@@ -269,7 +269,7 @@ public sealed partial class WorldRuntime
                 InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
                     TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
                 agentId, lotId, 1, "orchard_replanting", long.MaxValue));
-            AppendEvent("fruit_harvested", $"{agentId}:{source.Id}:{harvestYield}:picked");
+            AppendEvent(new FruitHarvestedEventPayload(agentId, source.Id, harvestYield));
         }
         return new FoodHarvestEffect(harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
@@ -346,7 +346,7 @@ public sealed partial class WorldRuntime
                 return false;
             ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
                 operationId, householdId, actor, potId, food.Id, 1));
-            AppendEvent("food_taken_from_pot", $"{actor}:{potId}:{food.Id}:1");
+            AppendEvent(new FoodTakenFromPotEventPayload(actor, potId, food.Id, 1));
         }
         else
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
@@ -364,7 +364,7 @@ public sealed partial class WorldRuntime
             return;
         if (TryCollectHouseholdServing(agentId, state, lot, $"household-food:{WorldTick}:{agentId}",
                 "household_food_share", "household_food"))
-            AppendEvent("household_food_collected", $"{agentId}:{lot.Id}:1");
+            AppendEvent(new HouseholdFoodCollectedEventPayload(agentId, lot.Id));
     }
 
     private string? ConsumeFood(string agentId, AgentState state, string? requiredItemKind = null)
@@ -373,7 +373,7 @@ public sealed partial class WorldRuntime
             .FirstOrDefault(item => requiredItemKind is null || item.ItemKind == requiredItemKind);
         if (lot is null)
         {
-            AppendEvent("consumption_failed", $"{agentId}:no_food");
+            AppendEvent(new ConsumptionFailedEventPayload(agentId));
             return null;
         }
 
@@ -383,7 +383,7 @@ public sealed partial class WorldRuntime
             FullnessBasisPoints = Math.Min(10_000, state.FullnessBasisPoints + FoodNourishment(lot.ItemKind)),
             Survival = AfterMeal(state, lot)
         };
-        AppendEvent("food_consumed", agentId);
+        AppendEvent(new FoodConsumedEventPayload(agentId));
         return lot.Id;
     }
 

@@ -82,12 +82,13 @@ public sealed record DeceasedAgentState(
     public string? BoatIdAtDeath { get; init; }
 }
 
-public sealed record WorldEventEntry(
-    long EventId,
-    long WorldTick,
-    string Kind,
-    string Detail,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? Position = null);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record WorldEventEntry(long EventId, long WorldTick, WorldEventPayload Payload)
+{
+    [JsonIgnore] public string Kind => Payload.Kind;
+    [JsonIgnore] public string Detail => Payload.DiagnosticDetail;
+    [JsonIgnore] public GridPoint? Position => Payload.Position is { } point ? new(point.X, point.Y) : null;
+}
 
 public sealed record FounderSetupState(IReadOnlyList<string> FounderIds, bool Started);
 

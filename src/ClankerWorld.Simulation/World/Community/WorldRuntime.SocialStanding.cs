@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
             .OrderBy(item => item.SubjectId, StringComparer.Ordinal).ToArray();
         agents[owner] = person with { SocialStanding = standing };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("social_standing_changed", $"{owner}:{subject}:{reason}");
+        AppendEvent(new SocialStandingChangedEventPayload(owner, subject, reason));
     }
 
     private static void ValidateSocialStanding(

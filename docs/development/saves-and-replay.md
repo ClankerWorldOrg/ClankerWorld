@@ -2278,3 +2278,15 @@ same captured state as the event slice and is not stored in accepted history.
 The game displays it without parsing event details. This presentation step leaves
 checkpoint bytes and the current schema unchanged; typed saved payloads follow
 in the event refactor stack.
+
+## Typed world events
+
+Provisional world schema 131 stores accepted events as event ID, world time and a
+kind-discriminated payload. The payload carries an explicit actor when there is
+one, its captured position, and only that kind's subject references and values.
+The event log looks up the complete actor ID. It never guesses an actor from
+colon prefixes, and IDs and canonical content references remain complete.
+Unknown kinds, foreign fields and missing required payload fields are refused.
+Text and diagnostic detail are derived; they are not authoritative saved fields.
+Earlier alpha schemas are refused and preserved without migration. Strict reload
+and matched continuation retain accepted event order, payload data and positions.

@@ -62,6 +62,6 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"empty-vessel-pickup:{WorldTick}:{actor}", householdId, actor, vessel.Id, 1,
             "empty_vessel_picked_up", destinationDeliveryBuildingId: house.InstanceId));
-        AppendEvent("empty_vessel_picked_up", $"{actor}:{vessel.Id}:{source.InstanceId}:{house.InstanceId}");
+        AppendEvent(new EmptyVesselPickedUpEventPayload(actor, vessel.Id, source.InstanceId, house.InstanceId));
     }
 }

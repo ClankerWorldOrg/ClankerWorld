@@ -249,6 +249,6 @@ public sealed partial class WorldRuntime
                     destinationDeliveryBuildingId: destinationId)
                 : InventoryAuthority.Transfer(inventory, operationId, householdId, actor,
                     plan.Resource.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId));
-        AppendEvent(purpose, $"{actor}:{plan.Resource.Id}:{plan.ResourceQuantity}:{destinationId}");
+        AppendEvent(WorldEvents.FarmStock(purpose, actor, plan.Resource.Id, plan.ResourceQuantity, destinationId));
     }
 }

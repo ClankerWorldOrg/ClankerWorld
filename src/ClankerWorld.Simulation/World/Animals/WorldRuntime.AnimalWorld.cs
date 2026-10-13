@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private sealed class AnimalWorldAdapter(WorldRuntime runtime) : IAnimalWorld
     {
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);

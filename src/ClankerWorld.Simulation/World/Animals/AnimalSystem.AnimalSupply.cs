@@ -128,7 +128,7 @@ internal sealed partial class AnimalSystem
                 InventoryAuthority.Transfer(current, "animal-donate-" + world.WorldTick + "-" + world.NextEventId, lot.OwnerId, yard.HouseholdId!,
                     lot.Id, quantity, "animal_yard_supplied", destinationStorageBuildingId: yard.InstanceId));
             FinishAnimalSupplyTrip(actor);
-            world.AppendEvent("animal_yard_supplied", actor + ":" + yard.InstanceId);
+            world.AppendEvent(new AnimalYardSuppliedEventPayload(actor, yard.InstanceId));
             return true;
         }
         if (!id.StartsWith("animal:supply:", StringComparison.Ordinal)) return false;

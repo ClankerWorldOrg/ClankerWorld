@@ -702,6 +702,7 @@ public sealed record OwnerWorldSnapshot(
 public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, string Detail, OwnerWorldPosition? Position = null)
 {
     public string Text { get; init; } = string.Empty;
+    public ClankerWorld.Simulation.World.WorldEventPayload? Payload { get; init; }
 }
 
 public sealed record OwnerWorldEventSlice(

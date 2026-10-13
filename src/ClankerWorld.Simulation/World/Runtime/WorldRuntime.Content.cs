@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         try
         {
             var record = contentRegistry.Propose(manifest, WorldTick);
-            AppendEvent("content_proposed", manifest.PackageId);
+            AppendEvent(new ContentProposedEventPayload(null, manifest.PackageId));
             return record;
         }
         finally
@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
             contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
             contentRegistry.Approve(manifest.PackageId, WorldTick);
             contentRegistry.Stage(manifest.PackageId, WorldTick);
-            AppendEvent("starter_content_staged", manifest.PackageId);
+            AppendEvent(new StarterContentStagedEventPayload(null, manifest.PackageId));
             return true;
         }
         finally
@@ -119,7 +119,7 @@ public sealed partial class WorldRuntime
                     throw new InvalidOperationException($"Initial content assets were rejected: {reservation.FailureCode}");
                 contentRegistry.ActivateAtCreation(manifest.PackageId);
                 worldContent = definitions;
-                AppendEvent("initial_content_activated", manifest.PackageId);
+                AppendEvent(new InitialContentActivatedEventPayload(null, manifest.PackageId));
             }
         }
         finally { gate.Release(); }
@@ -135,7 +135,7 @@ public sealed partial class WorldRuntime
             var manifest = GetContentManifest(packageId);
             _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
             var record = contentRegistry.Validate(packageId, resolution, WorldTick);
-            AppendEvent("content_validated", packageId);
+            AppendEvent(new ContentValidatedEventPayload(null, packageId));
             return record;
         }
         finally
@@ -150,7 +150,7 @@ public sealed partial class WorldRuntime
         try
         {
             var record = contentRegistry.Approve(packageId, WorldTick);
-            AppendEvent("content_approved", packageId);
+            AppendEvent(new ContentApprovedEventPayload(null, packageId));
             return record;
         }
         finally
@@ -167,7 +167,7 @@ public sealed partial class WorldRuntime
             var manifest = GetContentManifest(packageId);
             _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
             var record = contentRegistry.Stage(packageId, WorldTick);
-            AppendEvent("content_staged", packageId);
+            AppendEvent(new ContentStagedEventPayload(null, packageId));
             return record;
         }
         finally
@@ -299,8 +299,7 @@ public sealed partial class WorldRuntime
                 worldSimulation.ConstructionReceipts);
             if (assignedTownId is not null)
                 AssignBuildingToTown(placed, definition);
-            AppendEvent(eventKind, $"{placed.InstanceId}:{placed.DefinitionId}:{position.X},{position.Y}" +
-                (householdId is null ? string.Empty : $":household={householdId}"));
+            AppendEvent(WorldEvents.BuildingPlacement(eventKind, null, placed.InstanceId, placed.DefinitionId, position.X, position.Y, householdId));
             return BuildingPlacementResult.Success(placed);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
@@ -450,8 +449,7 @@ public sealed partial class WorldRuntime
             BindToolMakingJob(job);
             if (knife is not null)
                 checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(eventKind,
-                $"{job.JobId}:{job.RecipeId}:{job.BuildingInstanceId}");
+            AppendEvent(WorldEvents.ProductionStarted(eventKind, job.WorkerId, job.JobId, job.RecipeId, job.BuildingInstanceId));
             return ProductionStartResult.Success(job);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
@@ -509,7 +507,7 @@ public sealed partial class WorldRuntime
                 };
             }
             assetReservations.ReleasePackage(packageId, WorldTick);
-            AppendEvent("content_rolled_back", $"{packageId}:{reason.Trim()}");
+            AppendEvent(new ContentRolledBackEventPayload(null, packageId, reason.Trim()));
             return record;
         }
         finally
