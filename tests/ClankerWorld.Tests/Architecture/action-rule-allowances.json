@@ -1,0 +1,336 @@
+{
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs": [
+    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "world.Agents[actor].FullnessBasisPoints \u003C 4_500"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingValidation.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Authority.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs": [
+    "world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs": [
+    "world.Society.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
+    "person.FullnessBasisPoints \u003E= 6_500"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs": [
+    "world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs": [
+    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
+    "person.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)"
+  ],
+  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs": [
+    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
+  ],
+  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Housing.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "societyPerson.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Learning.cs": [
+    "FindUnoccupiedRoute(actor, agents[actor].Position, SharedStoragePosition, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Relocation.cs": [
+    "adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
+  ],
+  "src/ClankerWorld.Simulation/World/Conversations/AgentMarriageRules.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Conversations/ConversationSystem.cs": [
+    "item.AgeBand != SocietyAgeBand.Infant",
+    "item.AgeBand != SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": [
+    "FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange)",
+    "FindUnoccupiedRoute(actor, state.Position, destination.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": [
+    "FindUnoccupiedRoute(actor, position, blacksmith.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, source.Position, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ContainerReturns.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, source.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Containers.cs": [
+    "FindUnoccupiedRoute(actor, origin, point, 0, additionalCarriedUnits: additionalCarriedUnits)",
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, shore, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, source.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, source.Position, 0)",
+    "person.FullnessBasisPoints \u003C 7_000"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs": [
+    "agents[actor].FullnessBasisPoints \u003C 8_500",
+    "agents[actor].FullnessBasisPoints \u003E= 6_500",
+    "agents[actor].FullnessBasisPoints \u003E= 6_500",
+    "agents[other].FullnessBasisPoints \u003E= 6_500"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, site.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs": [
+    "FindUnoccupiedRoute(actor, farmhouse.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, position, source, range)",
+    "FindUnoccupiedRoute(actor, source, destination.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, farmhouse.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, site, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs": [
+    "FindUnoccupiedRoute(actor, HouseholdStockPosition(stock), house.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, HouseholdStockPosition(stock), HouseholdStockInteractionRange(stock))",
+    "FindUnoccupiedRoute(actor, state.Position, SharedStoragePosition, ResourceInteractionRange)",
+    "FindUnoccupiedRoute(actor, state.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, state.Position, storagePosition, ResourceInteractionRange)",
+    "state.FullnessBasisPoints \u003C 6_000",
+    "state.FullnessBasisPoints \u003C 7_000",
+    "state.FullnessBasisPoints \u003E= 6_000"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, position, range)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs": [
+    "FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange)",
+    "FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange)",
+    "FindUnoccupiedRoute(trade.BuyerId, buyerState.Position, trade.Position, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.StoreStock.cs": [
+    "FindUnoccupiedRoute(actor, agents[actor].Position, source, range)",
+    "FindUnoccupiedRoute(actor, source, store.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs": [
+    "FindUnoccupiedRoute(actor, position, building.Position, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WarehouseStock.cs": [
+    "FindUnoccupiedRoute(actor, state.Position, warehouse.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WorkstationSupply.cs": [
+    "FindUnoccupiedRoute(actor, position, building.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Continuity.cs": [
+    "society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.DependentCare.cs": [
+    "adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "society.Checkpoint.GetAgent(child).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
+    "society.Checkpoint.GetAgent(edge.TargetId).AgeBand != SocietyAgeBand.Infant",
+    "society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.GuardianPlacement.cs": [
+    "FindUnoccupiedRoute(caregiver, origin, person.Position, ResourceInteractionRange)",
+    "dependent.FullnessBasisPoints \u003C 7_000",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
+    "society.Checkpoint.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs": [
+    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "provider.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "recipient.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "recipient.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
+  ],
+  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Parenthood.cs": [
+    "FindUnoccupiedRoute(actor, parent.Position, child.Position, ResourceInteractionRange)",
+    "WarmthBasisPoints: \u003C 6_000",
+    "child.FullnessBasisPoints \u003C 7_000",
+    "child.FullnessBasisPoints \u003C 7_000",
+    "child.FullnessBasisPoints \u003C 7_000",
+    "child.FullnessBasisPoints \u003C 7_000",
+    "person.FullnessBasisPoints \u003C 7_000",
+    "society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Adult",
+    "society.Checkpoint.GetAgent(item.TargetId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child",
+    "society.Checkpoint.GetAgent(person.AgentId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
+  ],
+  "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.FieldValidation.cs": [
+    "worker.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
+  ],
+  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsCollection.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, key.Item1, key.Item2)"
+  ],
+  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsDelivery.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, destination, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsRecovery.cs": [
+    "FindUnoccupiedRoute(actor, position, key.Item1, key.Item2)"
+  ],
+  "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)",
+    "person.FullnessBasisPoints \u003C 7_000"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/ToolMakingRequestValidation.cs": [
+    "societyState.GetAgent(request.RequesterId).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "societyState.GetAgent(request.WorkerId!).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs": [
+    "FindUnoccupiedRoute(actor, position, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot))",
+    "FindUnoccupiedRoute(actor, position, house.Position, 0)",
+    "FindUnoccupiedRoute(actor, position, resource.Position, ResourceInteractionRange)",
+    "FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.AgentRegistrations.cs": [
+    "state.FullnessBasisPoints \u003C 7_000"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartCargoOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartRepairOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
+    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs": [
+    "agent.AgeBand == SocietyAgeBand.Infant",
+    "agent.AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Control.cs": [
+    "target.AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CustodyOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 1)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeliveryOrders.cs": [
+    "FindUnoccupiedRoute(actor, from, destination, range)",
+    "person.FullnessBasisPoints \u003C 6_000"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
+    "FindUnoccupiedRoute(person.AgentId, person.Position, building.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.FieldOrders.cs": [
+    "FindUnoccupiedRoute(actor, from, destination, range)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.GuardianPlacementValidation.cs": [
+    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
+    "child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs": [
+    "item.AgeBand != SocietyAgeBand.Infant",
+    "person.AgeBand == SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.InputCollection.cs": [
+    "FindUnoccupiedRoute(actor, position, input.Position, input.Range, additionalCarriedUnits: addedUnits)",
+    "FindUnoccupiedRoute(actor, position, returnTo.Value, returnRange, additionalCarriedUnits: addedUnits)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.MaterialOrders.cs": [
+    "FindUnoccupiedRoute(actor, position, target, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Orders.cs": [
+    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0)",
+    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs": [
+    "FindUnoccupiedRoute(actorId, agents[actorId].Position, placed.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ShelterOrders.cs": [
+    "FindUnoccupiedRoute(actor, origin, destination, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.StorageOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, house.Position, 1)"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
+    "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
+    "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)",
+    "FindUnoccupiedRoute(actor, origin, candidate, 0)",
+    "FindUnoccupiedRoute(actor, person.Position, building.Position, range)",
+    "FindUnoccupiedRoute(actor, person.Position, target, WarmthDestinationRange(actor, person.Position, building))",
+    "person.FullnessBasisPoints \u003C 500",
+    "person.FullnessBasisPoints \u003E 3_500"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Swimming.cs": [
+    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, additionalCarriedUnits: 1)",
+    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
+    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
+    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
+    "FindUnoccupiedRoute(actor, position, source, sourceRange)",
+    "society.Checkpoint.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TalkOrders.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, other.Position, ResourceInteractionRange)",
+    "society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Infant",
+    "society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant"
+  ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs": [
+    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, site, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": [
+    "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs": [
+    "seller.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs": [
+    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs": [
+    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownLandCasePartyRules.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownNonLandPartyRules.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs": [
+    "people[judge.AgentId].AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/TownPropertyRules.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": [
+    "FindUnoccupiedRoute(actor, agents[actor].Position, destination, range)",
+    "FindUnoccupiedRoute(trade.BuyerId, agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Ports.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, work, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs": [
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectSites.cs": [
+    "FindUnoccupiedRoute(actor, person.Position, plan.Site, 0)"
+  ],
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs": [
+    "FindUnoccupiedRoute(actor, from, target, range)"
+  ]
+}

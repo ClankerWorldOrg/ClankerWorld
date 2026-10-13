@@ -53,7 +53,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs": 4,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WorkstationSupply.cs": 5,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Wills.cs": 2,
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.ChildHelping.cs": 2,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": 6,
   "src/ClankerWorld.Simulation/World/ToolProgressionRules.cs": 3,

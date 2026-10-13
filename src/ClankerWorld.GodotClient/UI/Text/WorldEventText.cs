@@ -156,6 +156,7 @@ public static class WorldEventText
 
         return worldEvent.Kind switch
         {
+            "choice_refused" => worldEvent.Detail,
             "action_refused" => DescribeActionRefusal(worldEvent.Detail, snapshot),
             "developer_edit" => DescribeDeveloperEdit(worldEvent.Detail, snapshot),
             "animals_arrived" => "Wild animals have appeared in the area.",

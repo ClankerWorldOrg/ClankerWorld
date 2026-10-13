@@ -11,7 +11,16 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Choice plans
+
+Child action plans are transient server data and add no checkpoint fields.
+The new `choice_refused` event records a plain Event Log reason when a selected
+person, resource, lot or quantity is no longer available. This raises the
+provisional world schema to 129. Earlier alpha saves are refused and preserved;
+no migration runs. The schema number is adjusted to current main when merged.
+
 ## Mod content identities
+
 
 Content IDs use the 512-character import limit in
 `ContentPackageRules.MaximumContentIdLength`. It covers package and local IDs,

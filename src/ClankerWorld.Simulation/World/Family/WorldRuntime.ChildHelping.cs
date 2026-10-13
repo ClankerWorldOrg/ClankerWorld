@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private const int ChildHelpingRoute = 8;
 
     private PlacedBuilding? ChildHelpingHouse(string actor, AgentState state) =>
-        IsChild(actor) && state.FullnessBasisPoints >= 6_000 && !NeedsUrgentWarmth(state) &&
+        IsChild(actor) && state.FullnessBasisPoints >= NeedThresholds.ChildHelpingFullness && !NeedsUrgentWarmth(state) &&
         society.Checkpoint.GetAgent(actor).HouseholdId is { } household &&
         HouseForHousehold(household) is { } house &&
         map.FootDistance(state.Position, house.Position) <= ChildHelpingRoute ? house : null;
@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         bool ShortRoute(GridPoint from, GridPoint to, int interactionRange)
         {
             if (IsWithinInteractionRange(from, to, interactionRange)) return true;
-            var route = FindUnoccupiedRoute(actor, from, to, interactionRange);
+            var route = ReachLeg(actor, from, to, ReachPurpose.ChildHelping, interactionRange, 0, SwimmingPolicy.WhenCapable);
             return route.Count > 0 && route.Count - 1 <= ChildHelpingRoute &&
                 route.All(point => map.FootDistance(point, house.Position) <= ChildHelpingRoute);
         }
@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
     private static bool ChildHelpingItem(string kind) => kind == "wood" || IsEdibleFood(kind);
 
     private InventoryLot? ChildHelpingDelivery(string actor, PlacedBuilding house) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
+        FindGoods(ChildHelpingGoodsRequest(actor, actor)).Matches.Select(match => match.Lot).Where(lot => lot.OwnerId == actor &&
             PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
             lot.DeliveryBuildingId == house.InstanceId && ChildHelpingItem(lot.ItemKind) &&
             lot.Quantity <= ChildHelpingLoad &&
@@ -43,20 +43,26 @@ public sealed partial class WorldRuntime
             CanDeliverHouseDelivery(lot)).OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private InventoryLot? ChildHelpingStock(string actor, PlacedBuilding house) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == house.HouseholdId &&
+        FindGoods(ChildHelpingGoodsRequest(actor, house.HouseholdId!)).Matches.Select(match => match.Lot).Where(lot => lot.OwnerId == house.HouseholdId &&
             lot.CarrierId is null && lot.ContainerLotId is null && lot.StorageBuildingId is null &&
             lot.DeliveryBuildingId is null && ChildHelpingItem(lot.ItemKind) && !OnBorrowedMarketStall(lot) &&
             AvailableLotQuantity(lot) > 0 && ChildHelpingReachable(actor, HouseholdStockPosition(lot),
                 HouseholdStockInteractionRange(lot), house))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
+    private static GoodsRequest ChildHelpingGoodsRequest(string actor, string owner) =>
+        new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(owner), new([.. FoodRules.EdibleKinds, "wood"]));
+
+    private bool ChildHelpingSourceAvailable(string actor, PlacedBuilding house, MapResource source, string kind) =>
+        resources.GetValueOrDefault(source.Id) == ResourceState.Available &&
+        (kind == "food" ? source.Kind is "food" or "fruit" && source.TreeKind is null &&
+            FoodHarvestCarryUnits(source) <= ChildHelpingRoom(actor) &&
+            DestinationRoom(house.InstanceId) >= FoodHarvestQuantity(source)
+            : source.TreeKind is null && (source.Kind == "wood" || source.NaturalObjectKind == "fallen_wood")) &&
+        ChildHelpingReachable(actor, source.Position, ResourceInteractionRange, house);
+
     private MapResource? ChildHelpingSource(string actor, PlacedBuilding house, string kind) => map.Resources
-        .Where(source => resources.GetValueOrDefault(source.Id) == ResourceState.Available &&
-            (kind == "food" ? source.Kind is "food" or "fruit" && source.TreeKind is null &&
-                FoodHarvestCarryUnits(source) <= ChildHelpingRoom(actor) &&
-                DestinationRoom(house.InstanceId) >= FoodHarvestQuantity(source)
-                : source.TreeKind is null && (source.Kind == "wood" || source.NaturalObjectKind == "fallen_wood")) &&
-            ChildHelpingReachable(actor, source.Position, ResourceInteractionRange, house))
+        .Where(source => ChildHelpingSourceAvailable(actor, house, source, kind))
         .OrderBy(source => map.FootDistance(agents[actor].Position, source.Position))
         .ThenBy(source => source.Id, StringComparer.Ordinal).FirstOrDefault();
 
@@ -66,68 +72,54 @@ public sealed partial class WorldRuntime
         if (ChildHelpingDelivery(actor, house) is { } delivery)
         {
             if (ChildHelpingReachable(actor, state.Position, 0, house))
-                candidates.Add(new("child_carry:" + delivery.Id, "Return your small delivery to your household's House.", 20));
+                OfferChildChoice(candidates, actor, new(ChildActionKind.Carry, delivery.Id), "Return your small delivery to your household's House.", 20);
             return;
         }
         if (CarriedHouseDelivery(actor) is not null || ChildHelpingRoom(actor) == 0 ||
             DestinationRoom(house.InstanceId) == 0) return;
         if (ChildHelpingStock(actor, house) is { } stock)
-            candidates.Add(new("child_carry:" + stock.Id, "Carry a small loose household food or wood load to your House.", 28));
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Carry, stock.Id), "Carry a small loose household food or wood load to your House.", 28);
         foreach (var kind in new[] { "food", "wood" })
             if (ChildHelpingSource(actor, house, kind) is { } source)
-                candidates.Add(new("child_gather:" + kind + ":" + source.Id,
+                OfferChildChoice(candidates, actor, new(kind == "food" ? ChildActionKind.GatherFood : ChildActionKind.GatherWood, source.Id),
                     kind == "food" ? "Gather nearby wild food for your household, then carry it home." :
-                        "Pick up nearby fallen wood for your household, then carry it home.", 30));
+                        "Pick up nearby fallen wood for your household, then carry it home.", 30);
     }
 
-    private void ApplyChildHelpingCandidate(string actor, AgentState state, string candidate)
+    private void ApplyChildHelpingCandidate(string actor, AgentState state, string candidate) =>
+        ApplyChildPlan(PlanChildCandidate(actor, candidate));
+
+    private void ApplyChildHelpingPlan(ChildActionPlan plan)
     {
-        if (ChildHelpingHouse(actor, state) is not { } house) return;
-        var legal = new List<CognitionCandidate>();
-        AddChildHelpingCandidates(legal, actor, state);
-        if (!legal.Any(item => item.Id == candidate)) return;
-        if (candidate.StartsWith("child_carry:", StringComparison.Ordinal))
+        var actor = plan.Actor;
+        var state = agents[actor];
+        if (!IsWithinInteractionRange(state.Position, plan.Destination, plan.InteractionRange))
         {
-            if (ChildHelpingDelivery(actor, house) is { } delivery && ("child_carry:" + delivery.Id) == candidate)
+            MoveToward(actor, state, plan.Destination, "child_help", plan.InteractionRange);
+            return;
+        }
+        if (plan.Choice.Kind == ChildActionKind.Carry)
+        {
+            if (plan.IsDelivery)
             {
-                if (state.Position != house.Position)
-                {
-                    MoveToward(actor, state, house.Position, "child_help", 0);
-                    return;
-                }
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                    $"child-delivery:{WorldTick}:{actor}", actor, house.HouseholdId!, delivery.Id, delivery.Quantity,
-                    "child_household_delivery", house.InstanceId));
-                AppendEvent("child_delivered_household", $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{house.InstanceId}");
-                return;
+                    $"child-delivery:{WorldTick}:{actor}", actor, plan.HouseholdId!, plan.StockId!, plan.Quantity,
+                    "child_household_delivery", plan.HouseId));
+                AppendEvent("child_delivered_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
             }
-            if (ChildHelpingStock(actor, house) is not { } stock || ("child_carry:" + stock.Id) != candidate) return;
-            var source = HouseholdStockPosition(stock);
-            var range = HouseholdStockInteractionRange(stock);
-            if (!IsWithinInteractionRange(state.Position, source, range))
+            else
             {
-                MoveToward(actor, state, source, "child_help", range);
-                return;
+                ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
+                    $"child-pickup:{WorldTick}:{actor}", plan.HouseholdId!, actor, plan.StockId!, plan.Quantity,
+                    "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId));
+                AppendEvent("child_collected_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}");
             }
-            var quantity = Math.Min(ChildHelpingRoom(actor), Math.Min(AvailableLotQuantity(stock),
-                DestinationRoom(house.InstanceId)));
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"child-pickup:{WorldTick}:{actor}", house.HouseholdId!, actor, stock.Id, quantity,
-                "child_household_pickup", destinationDeliveryBuildingId: house.InstanceId));
-            AppendEvent("child_collected_household", $"{actor}:{stock.ItemKind}:{quantity}");
             return;
         }
-        var kind = candidate["child_gather:".Length..].Split(':', 2)[0];
-        if (ChildHelpingSource(actor, house, kind) is not { } resource ||
-            candidate != ("child_gather:" + kind + ":" + resource.Id)) return;
-        if (!IsWithinInteractionRange(state.Position, resource.Position, ResourceInteractionRange))
-        {
-            MoveToward(actor, state, resource.Position, "child_help", ResourceInteractionRange);
-            return;
-        }
-        if (kind == "wood")
-            GatherProjectMaterial(actor, state, "wood", resource, deliveryBuildingId: house.InstanceId);
+        var resource = map.Resources.Single(source => source.Id == plan.Choice.Target);
+        if (plan.Choice.Kind == ChildActionKind.GatherWood)
+            GatherProjectMaterial(actor, state, "wood", resource, deliveryBuildingId: plan.HouseId);
         else if (HarvestFood(actor, state, resource) is { } food)
-            ApplyInventoryTransition(inventory => MarkBuildingMaterialDelivery(inventory, food.LotId, house.InstanceId));
+            ApplyInventoryTransition(inventory => MarkBuildingMaterialDelivery(inventory, food.LotId, plan.HouseId!));
     }
 }

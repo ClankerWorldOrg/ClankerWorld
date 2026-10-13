@@ -36,6 +36,9 @@ public sealed record CognitionCandidate(
     string? DestinationId = null,
     string? DestinationName = null)
 {
+    [JsonIgnore]
+    public World.ActionPlan? ActionPlan { get; init; }
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(Id);

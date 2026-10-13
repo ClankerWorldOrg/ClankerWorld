@@ -11,6 +11,16 @@ public sealed class WorldEventTextTests
     private const string Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
     [Fact]
+    public void StaleChoiceShowsTheServerReasonInThePlayerEventLog()
+    {
+        const string reason = "Éloïse 🌿 didn't carry goods home: the selected goods are no longer available.";
+        var worldEvent = new OwnerWorldEvent(1, 1, "choice_refused", reason);
+        Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
+        Assert.Equal(reason, WorldEventText.Describe(worldEvent));
+        Assert.Single(GameUiText.PlayerEvents([worldEvent]));
+    }
+
+    [Fact]
     public void ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload()
     {
         var detail = System.Text.Json.JsonSerializer.Serialize(new

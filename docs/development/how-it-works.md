@@ -93,6 +93,24 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Child choices carry a server-only `ChildActionPlan` with their selected person,
+resource or lot, household, House, route purpose and quantity. The same
+`CheckActionPlan` validates it when offered, after reply admission and again
+before application in agent order. Application uses those selected values;
+continuing intentions plan their next step from the current position. Plans
+are excluded from prompts, observation digests and saved state. A stale plan
+appends one `choice_refused` Event Log line with a plain refusal reason.
+The private child forwarders remain for existing callers.
+
+`Actions/LifeStageRules.cs` owns action age eligibility, and
+`Actions/NeedThresholds.cs` names the shared food thresholds. Child routes use
+one per-call reach service with an explicit swimming policy and separate
+prospective return origin. The source guard in `ActionRuleBoundaryTests` records
+existing raw age gates, unnamed need comparisons and direct route calls;
+child code has no allowance. Lower its expression allowances as later action
+areas move to these services. Child stock selection and exact-lot rechecks use
+the shared goods query before applying the original child load and trip limits.
+
 `GroundOccupancy` is a read view over the current map, content, placed buildings,
 fields, roads, bridges, Town projects, Markets and animals. Its named layers
 retain each source's enumeration order. Callers combine the layers in their

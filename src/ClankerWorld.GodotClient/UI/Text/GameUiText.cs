@@ -336,7 +336,7 @@ public static class GameUiText
     public static bool IsPlayerFacingEvent(string kind)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(kind);
-        return kind is "action_refused" or "developer_edit" or "marriage_accepted" or "marriage_surname_agreed" or "skill_learned" or
+        return kind is "choice_refused" or "action_refused" or "developer_edit" or "marriage_accepted" or "marriage_surname_agreed" or "skill_learned" or
             "exploration_started" or "exploration_return_started" or "exploration_completed" or "exploration_aborted" or
             "animal_tamed" or "animal_born" or "animal_died" or "animal_transferred" or "animals_arrived" or
             "world_created" or "world_started" or "weather_changed" or "building_placed" or

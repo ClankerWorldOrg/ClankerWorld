@@ -747,7 +747,7 @@ public sealed partial class WorldRuntime
                         .ToHashSet(StringComparer.Ordinal), IsQueuedObservationReady, cancellationToken).ConfigureAwait(false)
                 : await society.DispatchCognitionAsync(cancellationToken).ConfigureAwait(false);
             var decisions = deferredDecisions.Concat(dispatch.Decisions)
-                .OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray();
+                .OrderBy(item => item.AgentId, StringComparer.Ordinal).Select(CheckAcceptedPlan).ToArray();
             foreach (var decision in decisions)
             {
                 ApplyDecision(decision);

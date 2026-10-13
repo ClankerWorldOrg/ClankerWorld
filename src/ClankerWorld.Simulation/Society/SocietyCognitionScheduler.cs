@@ -22,7 +22,13 @@ public sealed record SocietyCognitionSchedulerEvent(
 
 public sealed record SocietyCognitionDispatchResult(
     string AgentId,
-    CognitionAdmissionResult Admission);
+    CognitionAdmissionResult Admission)
+{
+    [JsonIgnore]
+    public World.ActionPlan? ActionPlan { get; init; }
+    [JsonIgnore]
+    public World.ActionRefusal? PlanRefusal { get; init; }
+}
 
 public sealed record SocietyDeferredCognitionRequest(
     string AgentId,
@@ -338,7 +344,11 @@ public sealed class SocietyCognitionScheduler
         AppendEvent(entry.Observation.WorldTick,
             admission.Accepted ? "cognition_dispatched" : "cognition_dispatch_rejected",
             $"{agentId}:{admission.Outcome}");
-        return new SocietyCognitionDispatchResult(agentId, admission);
+        return new SocietyCognitionDispatchResult(agentId, admission)
+        {
+            ActionPlan = originalRequest.Observation.Candidates.SingleOrDefault(candidate =>
+                candidate.Id == admission.Intention?.CandidateId)?.ActionPlan,
+        };
     }
 
     private IOrderedEnumerable<SocietyCognitionScheduleEntry> OrderedQueue() => queue
@@ -360,10 +370,11 @@ public sealed class SocietyCognitionScheduler
         {
             cancellationToken.ThrowIfCancellationRequested();
             var runtime = runtimes[entry.AgentId];
+            var observation = ObservationFor(entry);
             CognitionAdmissionResult admission;
             try
             {
-                admission = await runtime.RequestAndDecideAsync(ObservationFor(entry), cancellationToken)
+                admission = await runtime.RequestAndDecideAsync(observation, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (InvalidOperationException exception)
@@ -376,7 +387,11 @@ public sealed class SocietyCognitionScheduler
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            return new SocietyCognitionDispatchResult(entry.AgentId, admission);
+            return new SocietyCognitionDispatchResult(entry.AgentId, admission)
+            {
+                ActionPlan = observation.Candidates.SingleOrDefault(candidate =>
+                    candidate.Id == admission.Intention?.CandidateId)?.ActionPlan,
+            };
         }
 
         // Each agent owns an independent cognition runtime, so the
