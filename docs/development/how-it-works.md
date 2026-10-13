@@ -1665,7 +1665,10 @@ Excerpts use at most 160 UTF-16 units and keep complete Unicode characters;
 the saved source text and evidence stay unchanged.
 An existing Jev routine call may score up to twelve previously unassessed
 ordinary records; permanent entries are excluded from scoring and cannot fade
-through a low assessment. Only linked salience/confidence values are saved.
+through a low assessment. Candidates must fit the writer's latest-256 scoring
+window, including scores already saved for protected sources, so the helper
+does not repeatedly assess entries the index cannot retain.
+Only linked salience/confidence values are saved.
 The same Jev or OpenAI Decisions request may include a `memory_summary`
 choice over source-derived recent, earliest or varied extracts, plus
 `keep_records`. It adds no separate paid request or free-form model prose. Local retrieval works with

@@ -677,11 +677,7 @@ public static partial class SocietyRules
             combined[$"{score.Kind}:{score.SourceId}"] = score with { AssessedTick = checkpoint.WorldTick };
         }
 
-        var boundedSources = combined.Values
-            .OrderByDescending(item => item.SourceTick)
-            .ThenBy(item => item.Kind)
-            .ThenBy(item => item.SourceId, StringComparer.Ordinal)
-            .Take(256)
+        var boundedSources = RetainedMemoryImportanceSources(combined.Values)
             .OrderBy(item => item.Kind)
             .ThenBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
         var compactions = (checkpoint.MemoryCompactions ?? [])
@@ -690,6 +686,13 @@ public static partial class SocietyRules
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
         return checkpoint with { MemoryCompactions = compactions };
     }
+
+    internal static IEnumerable<SocietyAgentMemoryImportance> RetainedMemoryImportanceSources(
+        IEnumerable<SocietyAgentMemoryImportance> sources) => sources
+        .OrderByDescending(item => item.SourceTick)
+        .ThenBy(item => item.Kind)
+        .ThenBy(item => item.SourceId, StringComparer.Ordinal)
+        .Take(256);
 
     public static SocietyOperationResult CreateOrganization(
         SocietyCheckpoint checkpoint,
