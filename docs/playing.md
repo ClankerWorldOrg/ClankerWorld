@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Playing the current game
@@ -47,7 +47,7 @@ finish pairing and return you to the same menu.
 For an already paired device, **Connect** checks the saved server connection
 and shows the result below the address. It does not start a new pairing.
 
-A game folder that carries its own `host` folder runs the world on your PC
+A game folder that carries its own `server` folder runs the world on your PC
 instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
 it without a code and opens the Main Menu. Quitting saves the world and stops
 the server. Your saves, keys and model-call count are kept in
@@ -73,7 +73,7 @@ the game keeps its test worlds, keys and settings apart from your usual data.
 **Open test data folder** shows that folder; the saves and logs buttons follow
 the selected folder. Turn **Use test data folder** off to play your usual worlds.
 **Detailed logs** adds diagnostic detail for the next run. **Run a local build**
-lets you choose a locally built portable `ClankerWorld.exe` with its `host`
+lets you choose a locally built portable `ClankerWorld.exe` with its `server`
 folder. Builds too old to support these data and logging options are refused
 until you choose a newer build or turn the options off.
 Started without the launcher, the game turns
@@ -158,7 +158,7 @@ need a Town or Blacksmith for those first tools. Crude tools gather less and
 wear out sooner than the Blacksmith's wooden tools. Agents collect and use a
 better usable tool when one is available. Inventory and plot details name the
 crude tools, and the Event Log records completed work; their item pictures
-still use the generic icon.
+use the wooden axe and pickaxe icons.
 Agents take a smaller harvest when the tool and its full load would exceed
 their carrying limit, keeping any tree seed with the gathered wood.
 
@@ -465,7 +465,8 @@ the pot and remaining food together. Eating a serving needs no extra carrying
 space; food reserved for other work or being delivered is unavailable.
 
 A hungry child whose load is full can put spare unreserved supplies at their
-household House or storage pile at the first Town's Warehouse to make room for food. Worn equipment, maps, held work
+household House or storage pile at the first Town's Warehouse to make room
+for food. Worn equipment, maps, held work
 supplies and delivery loads stay with them. Infants still need their caregivers.
 
 Material orders can gather wood, stone, plant fiber, clay, iron ore, gold ore
@@ -545,7 +546,8 @@ When a child needs a guardian, an adult can follow **Become guardian for Élodie
 using the child's full name. Names with accents work when typed or pasted,
 including accents entered separately from their letters. The adult still has to be eligible in the current
 guardian search. The order finishes when they accept primary care; moving the
-child into their House still requires room and a shared Town. This order can be
+child home still requires a completed House with room and, when relocation
+is needed, physical collection and accompaniment. This order can be
 queued or cancelled like a food task. It cannot replace an existing guardian.
 
 To pick up personal raw materials, use **Collect my wood**, **Collect three
@@ -1241,6 +1243,8 @@ save-name limit, it is shortened between whole characters, including emoji.
 World Settings offers rotating
 autosaves as well as automatic recovery. If the world server's clock moves backwards,
 the next rotating save waits one configured interval from the corrected time.
+Damaged autosaves are kept separately from the chosen number of usable copies,
+including when rotation is off.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
@@ -1312,8 +1316,9 @@ the saves change while the preview is open, preview again before confirming.
 ## Report what you notice
 
 Use [GitHub Issues](https://github.com/compoodment/ClankerWorld/issues/new/choose)
-for a bug or playtest report. Rough notes are welcome: what you did, what happened,
-what you expected and the build you used.
+for a bug report. Rough notes are welcome: what you did, what happened, what
+you expected and the build you used. Report results from the playtest list to
+an agent in chat; there is no separate playtest report issue.
 [Contributing](../CONTRIBUTING.md#issues-and-design-questions) explains the report options.
 Some fixes still need a Windows playtest; the [playtest list](../playtest/README.md)
 says what to try. Include failures as well as successes.
