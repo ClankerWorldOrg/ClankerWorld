@@ -1,0 +1,1 @@
+- Lesson choices now explain when the selected teacher, request or agreed lesson changes before they can act.

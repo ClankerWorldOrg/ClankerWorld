@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
 
     private bool CanReachLessonSite(string actor) =>
         IsWithinInteractionRange(agents[actor].Position, SharedStoragePosition, ResourceInteractionRange) ||
-        FindUnoccupiedRoute(actor, agents[actor].Position, SharedStoragePosition, ResourceInteractionRange).Count > 0;
+        Reach(actor, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private bool CanMentor(string teacher, SkillKind skill) =>
         IsAdult(teacher) && !ActiveLesson(agents[teacher].Lesson) && HasSkill(teacher, skill);
@@ -73,7 +73,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void AddLearningCandidates(List<CognitionCandidate> candidates, string actor)
+    private void AddLearningCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
         if (!ReadyForLesson(actor) || survivalState is null)
         {
@@ -100,10 +100,9 @@ public sealed partial class WorldRuntime
         {
             foreach (var request in agents.Values.Where(item => item.Lesson is { Stage: "requested" } lesson && lesson.TeacherId == actor))
             {
-                if (CanMentor(actor, request.Lesson!.Skill) && FreeToMentor(actor, request.AgentId) &&
-                    CanReachLessonSite(actor) && CanReachLessonSite(request.AgentId))
+                if (MayAcceptLesson(actor, request.AgentId, request.Lesson!))
                     candidates.Add(new("lesson_accept:" + request.AgentId,
-                        $"Teach {society.Checkpoint.GetAgent(request.AgentId).Name} the requested {request.Lesson.Skill.ToString().ToLowerInvariant()} skill.", 17));
+                        $"Teach {society.Checkpoint.GetAgent(request.AgentId).Name} the requested {request.Lesson!.Skill.ToString().ToLowerInvariant()} skill.", 17));
                 candidates.Add(new("lesson_decline:" + request.AgentId, "Decline this teaching request.", 70));
             }
             if (IsAdult(actor) &&
@@ -111,9 +110,7 @@ public sealed partial class WorldRuntime
             {
                 foreach (var skill in Enum.GetValues<SkillKind>().Where(skill => !HasSkill(actor, skill)))
                 {
-                    var mentor = agents.Keys.Order(StringComparer.Ordinal).FirstOrDefault(id => id != actor &&
-                        CanMentor(id, skill) && FreeToMentor(id) &&
-                        CanReachLessonSite(actor) && CanReachLessonSite(id));
+                    var mentor = agents.Keys.Order(StringComparer.Ordinal).FirstOrDefault(id => MayRequestLesson(actor, id, skill));
                     if (mentor is not null)
                     {
                         candidates.Add(new($"learn:{skill.ToString().ToLowerInvariant()}:{mentor}",
@@ -124,82 +121,52 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyLearningCandidate(string actor, string candidate)
+    private void ApplyLearningCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
-        if (!IsAdult(actor)) return;
-        var person = agents[actor];
-        if (candidate.StartsWith("learn:", StringComparison.Ordinal))
+        var plan = originalPlan as LearningActionPlan ?? (LearningChoice.Decode(candidate) is { } choice ? PlanLearningAction(actor, choice) : null);
+        if (plan is not null) ApplyLearningActionPlan(plan);
+    }
+
+    private void CompleteLearningAction(LearningActionPlan plan)
+    {
+        if (plan.Choice.Kind == LearningChoiceKind.Request)
         {
-            var parts = candidate.Split(':', 3);
-            if (parts.Length != 3 || !Enum.TryParse<SkillKind>(parts[1], true, out var skill) ||
-                !Enum.IsDefined(skill) || parts[2] == actor || HasSkill(actor, skill) || !ReadyForLesson(actor) ||
-                ActiveLesson(person.Lesson) || !CanMentor(parts[2], skill) || !FreeToMentor(parts[2]) ||
-                !CanReachLessonSite(actor) || !CanReachLessonSite(parts[2]))
-            {
-                return;
-            }
-            SetLesson(actor, new(parts[2], skill, "requested", 0, WorldTick, WorldTick));
+            SetLesson(plan.StudentId, new(plan.TeacherId, plan.Skill, "requested", 0, WorldTick, WorldTick));
             checkpointSchemaVersion = StateSchemaVersion;
             return;
         }
-        if (candidate == "lesson_cancel")
+        if (plan.Choice.Kind is LearningChoiceKind.Attend or LearningChoiceKind.Teach)
         {
-            if (person.Lesson is { } withdrawn && ActiveLesson(withdrawn))
-                SetLesson(actor, withdrawn with { Stage = "cancelled" });
+            ContinueLesson(plan.Actor, plan.WaitingForModel, plan);
             return;
         }
-        if (candidate == "lesson_attend" || candidate.StartsWith("lesson_teach:", StringComparison.Ordinal))
+        SetLesson(plan.StudentId, plan.Original! with
         {
-            ContinueLesson(actor);
-            return;
-        }
-        var accept = candidate.StartsWith("lesson_accept:", StringComparison.Ordinal);
-        if (!accept && !candidate.StartsWith("lesson_decline:", StringComparison.Ordinal)) return;
-        var studentId = candidate[(accept ? 14 : 15)..];
-        if (!agents.TryGetValue(studentId, out var student) || student.Lesson is not { } lesson ||
-            lesson.TeacherId != actor || !ActiveLesson(lesson))
-        {
-            return;
-        }
-        if (!accept)
-        {
-            SetLesson(studentId, lesson with { Stage = "declined" });
-        }
-        else if (lesson.Stage == "requested" && ReadyForLesson(studentId) &&
-            CanMentor(actor, lesson.Skill) && FreeToMentor(actor, studentId) &&
-            CanReachLessonSite(actor) && CanReachLessonSite(studentId))
-        {
-            SetLesson(studentId, lesson with { Stage = "accepted" });
-            foreach (var participant in new[] { actor, studentId })
-            {
+            Stage = plan.Choice.Kind switch
+            { LearningChoiceKind.Accept => "accepted", LearningChoiceKind.Cancel => "cancelled", _ => "declined" }
+        });
+        if (plan.Choice.Kind == LearningChoiceKind.Accept)
+            foreach (var participant in new[] { plan.TeacherId, plan.StudentId })
                 if (agents[participant].Project is { Stage: not ("completed" or "cancelled") } project)
-                {
-                    SetProject(participant, project with
-                    {
-                        Stage = "paused",
-                        Blocker = "Taking part in an agreed lesson",
-                    });
-                }
-            }
-        }
+                    SetProject(participant, project with { Stage = "paused", Blocker = "Taking part in an agreed lesson" });
     }
 
-    private void ContinueLesson(string actor, bool waitingForModel = false)
+    private void ContinueLesson(string actor, bool waitingForModel = false, LearningActionPlan? originalPlan = null)
     {
-        if (!CanContinueLesson(actor, waitingForModel))
-        {
-            return;
-        }
-        var person = agents[actor];
-        var storagePosition = SharedStoragePosition;
-        RecordAttemptedAction(actor, person.Lesson is { Stage: "accepted" or "training" }
-            ? "lesson_attend" : "lesson_teach:" + ActiveStudent(actor)!.AgentId);
+        if (!agents.TryGetValue(actor, out var person)) return;
+        var choice = person.Lesson is { Stage: "accepted" or "training" }
+            ? new LearningChoice(LearningChoiceKind.Attend) : new LearningChoice(LearningChoiceKind.Teach, ActiveStudent(actor)?.AgentId);
+        var plan = originalPlan ?? PlanLearningAction(actor, choice, waitingForModel);
+        if (plan is null || !CheckLearningActionPlan(plan).Allowed) return;
+        var storagePosition = plan.Site;
+        RecordAttemptedAction(actor, plan.CandidateId);
         if (!IsWithinInteractionRange(person.Position, storagePosition, ResourceInteractionRange))
         {
             MoveToward(actor, person, storagePosition, "lesson", ResourceInteractionRange);
             return;
         }
-        if (ActiveStudent(actor) is not { } student || !IsWithinInteractionRange(student.Position, storagePosition, ResourceInteractionRange))
+        if (plan.TeacherId != actor || !agents.TryGetValue(plan.StudentId, out var student) ||
+            !IsWithinInteractionRange(student.Position, storagePosition, ResourceInteractionRange))
         {
             return;
         }

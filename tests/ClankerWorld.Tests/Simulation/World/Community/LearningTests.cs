@@ -7,7 +7,7 @@ using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
-public sealed class LearningTests
+public sealed partial class LearningTests
 {
     [Theory]
     [InlineData("unskilled", false)]
