@@ -240,7 +240,12 @@ public static class WorldEventText
             "ornament_worn" => $"{LeadingName(snapshot, worldEvent.Detail)} put on an ornament.",
             "ornament_removed" => $"{LeadingName(snapshot, worldEvent.Detail)} took off an ornament.",
             "ornament_given" => $"{LeadingName(snapshot, worldEvent.Detail)} gave an ornament to {OrnamentGiftRecipient(snapshot, worldEvent.Detail)}.",
-            "food_policy_adopted" => $"The council adopted a new policy: {GameUiText.HumanizeIdentifier(worldEvent.Detail).ToLowerInvariant()}.",
+            "food_policy_adopted" => worldEvent.Detail switch
+            {
+                "essential_first" => "Scarce shared household food is now reserved for hungry members.",
+                "open" => "Shared household food is open to everyone again.",
+                _ => "The rule for shared household food changed.",
+            },
             "barter_completed" => $"{Name(snapshot, worldEvent.Detail)} completed a trade.",
             "tool_request_placed" => $"{LeadingName(snapshot, worldEvent.Detail)} asked the Blacksmith for a tool.",
             "tool_request_accepted" => $"{LeadingName(snapshot, worldEvent.Detail)} agreed to make the tool.",
