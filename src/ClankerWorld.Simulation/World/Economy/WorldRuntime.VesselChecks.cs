@@ -48,17 +48,14 @@ public sealed partial class WorldRuntime
             if (kind == VesselActionKind.CollectJug)
             {
                 if (WaterJugStockLocation(vessel, plan.HouseholdId)?.InstanceId != source.InstanceId ||
-                    CarriedContainer(plan.Actor, InventoryContainerRules.WaterJug) is not null ||
-                    !CanRemoveWorkstationStock(inventory, vessel, 1) || physical >= FreeCarryCapacity(plan.Actor))
+                    !CanCollectJugForRefill(plan.Actor, vessel))
                     return ActionCheck.Refuse(ActionRefusalReason.Capacity, "they cannot collect the selected jug and leave room for water");
                 if (plan.Shore is not { } shore || !FreshWaterShorePositions().Contains(shore) ||
                     ReachLeg(plan.Actor, source.Position, shore, ReachPurpose.HouseholdVessel, 0, physical, SwimmingPolicy.WhenCapable).Count == 0 ||
                     PickupCarryCapacity(plan.Actor, shore, plan.HousePosition) <= physical)
                     return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected jug's water trip is out of reach now");
             }
-            else if (source.InstanceId == plan.HouseId || ContainerContentsQuantity(inventory, vessel.Id) != 0 ||
-                !worldContent.Buildings.Any(definition => definition.CanonicalId == source.DefinitionId && HouseholdBuildingKind(definition) is not null) ||
-                CarriedHouseDelivery(plan.Actor) is not null || DestinationRoom(plan.HouseId) < 1 || FreeCarryCapacity(plan.Actor) < 1 ||
+            else if (!IsEmptyWorkplaceVessel(vessel, plan.HouseId) || !CanStartEmptyVesselReturn(plan.Actor, plan.HouseId) ||
                 PickupCarryCapacity(plan.Actor, vessel, plan.HousePosition) < physical)
                 return ActionCheck.Refuse(ActionRefusalReason.Capacity, "they cannot return the selected empty household vessel");
         }
