@@ -708,7 +708,7 @@ public sealed partial class WorldRuntime
         foreach (var recorded in receipts)
         {
             if (recorded is null || recorded.Receipt is not { } receipt ||
-                !IsValidInstructionIdentifier(receipt.IdempotencyKey) || !receiptKeys.Add(receipt.IdempotencyKey) ||
+                !IdentityRules.Reference(receipt.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) || !receiptKeys.Add(receipt.IdempotencyKey) ||
                 receipt.Revision <= 0 || receipt.InstructionId != InstructionIdFor(receipt.Revision) || !receiptIds.Add(receipt.InstructionId) ||
                 receipt.SubmittedTick < 0 || receipt.SubmittedTick > checkpoint.WorldTick ||
                 receipt.RunEpoch < 0 || receipt.RunEpoch > checkpoint.RunEpoch ||
