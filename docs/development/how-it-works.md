@@ -376,6 +376,10 @@ Boat request choices retain their Town, Ports, approach and a boat route proving
 geography. Queue and cancel choices retain the exact waiting request. Shared
 checks run at offer, admission and apply; native queue processing still assigns
 a free boat and dock, including requests made while the destination is full.
+Medical permission choices retain their caregiver, prior and resulting consent
+lists and any interrupted dose identity. One check runs before the caregiver
+cap and at admission and apply; fresh personal-model consent and historical
+revocation remain required.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

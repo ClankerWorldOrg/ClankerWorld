@@ -5,7 +5,7 @@ using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
-public sealed class MedicalPermissionChoiceTests
+public sealed partial class MedicalPermissionChoiceTests
 {
     [Theory]
     [InlineData(14, true)]
