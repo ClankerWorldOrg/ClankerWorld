@@ -135,10 +135,14 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var request = new OwnerInstructionRequest("write-produced-paper", "owner:test", actor,
             OwnerInstructionKind.Suggestion, "Write a field record of what you discovered using our paper.");
         Assert.Equal(world.SubmitInstruction(request), restored.SubmitInstruction(request));
+        var writingSources = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "paper")
+            .ToDictionary(lot => lot.Id, lot => lot.ProvenanceLotId ?? lot.Id, StringComparer.Ordinal);
         for (var tick = 0; tick < 64 && world.ExportState().Knowledge!.Artifacts.Count == 0; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
+            foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "paper"))
+                writingSources.TryAdd(lot.Id, lot.ProvenanceLotId ?? lot.Id);
         }
         final = world.ExportState();
         var written = Assert.Single(final.Knowledge!.Artifacts);
@@ -146,8 +150,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Equal(actor, written.CreatorId);
         Assert.All(written.Materials, material =>
         {
-            var lot = final.Society.Society.Inventory.GetLot(material.LotId);
-            Assert.StartsWith(job.JobId + ":output:", lot.ProvenanceLotId ?? lot.Id);
+            Assert.True(writingSources.TryGetValue(material.LotId, out var source));
+            Assert.StartsWith(job.JobId + ":output:", source);
         });
         Assert.All(written.Facts, fact => Assert.Contains(final.Knowledge.Facts.Concat(final.Knowledge.EarlierFacts),
             learned => learned.OwnerId == actor && FactIdentity(learned) == FactIdentity(fact)));
