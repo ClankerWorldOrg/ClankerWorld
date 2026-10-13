@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -205,8 +206,8 @@ public sealed class MultiHeirWillCustodyTests
         checkpoint = SocietyRules.AdvanceTo(checkpoint, checkpoint.WorldTick + 1).Checkpoint;
         for (var index = 0; index < newerRecords; index++)
             checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
-                $"walk-{index:D3}", "bob", "bob", "A quiet walk along the riverbank.", "private", checkpoint.WorldTick)).Checkpoint;
-        var rename = new SocietySocialMemory("rename:bob", "bob", "bob", "I was renamed Bob.", "private", 0, Permanent: true);
+                Identity.Parse($"walk-{index:D3}"), "bob", "bob", "A quiet walk along the riverbank.", "private", checkpoint.WorldTick)).Checkpoint;
+        var rename = new SocietySocialMemory(Identity.Parse("rename:bob"), "bob", "bob", "I was renamed Bob.", "private", 0, Permanent: true);
         checkpoint = SocietyRules.RecordSocialMemory(checkpoint, rename).Checkpoint;
         var bytes = SocietyCheckpointCodec.Encode(checkpoint);
         checkpoint = SocietyCheckpointCodec.Decode(bytes);

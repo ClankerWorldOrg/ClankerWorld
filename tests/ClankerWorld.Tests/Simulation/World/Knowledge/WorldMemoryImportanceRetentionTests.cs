@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
@@ -14,17 +15,17 @@ public sealed class WorldMemoryImportanceRetentionTests
         var checkpoint = SocietyRules.AdvanceTo(SocietyRules.CreateGenesis("importance-retention",
             [SocietyRules.CreateFounder("owner", "Owner"), SocietyRules.CreateFounder("other", "Other")]), 11).Checkpoint;
         var protectedMemories = Enumerable.Range(0, 256).Select(index => new SocietySocialMemory(
-            $"protected-{index:D3}", "owner", "owner", "I learned a useful craft.", "private", 10)
+            Identity.Parse($"protected-{index:D3}"), "owner", "owner", "I learned a useful craft.", "private", 10)
         { Kind = SocietyMemoryKind.Skill }).ToArray();
         var ordinaryMemories = Enumerable.Range(0, 12).Select(index => new SocietySocialMemory(
-            $"ordinary-{index:D3}", "owner", "owner", "I remembered a quiet walk.", "private", sourceTick)).ToArray();
+            Identity.Parse($"ordinary-{index:D3}"), "owner", "owner", "I remembered a quiet walk.", "private", sourceTick)).ToArray();
         var previousScores = protectedMemories.Select(memory =>
             new SocietyAgentMemoryImportance(memory.Id, SocietyMemorySourceKind.Experience, 10, 5_000, 8_000, 10)).ToArray();
         checkpoint = checkpoint with
         {
-            Memories = protectedMemories.Concat(ordinaryMemories).Append(new("foreign", "other", "other",
+            Memories = protectedMemories.Concat(ordinaryMemories).Append(new(Identity.Parse("foreign"), "other", "other",
                     "Someone else's private experience.", "private", 11))
-                .OrderBy(memory => memory.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(memory => memory.Id.Value, StringComparer.Ordinal).ToArray(),
             MemoryCompactions = [new("owner", previousScores)],
         };
         var before = SocietyCheckpointCodec.Encode(checkpoint);
@@ -45,7 +46,7 @@ public sealed class WorldMemoryImportanceRetentionTests
             Assert.StartsWith("ordinary-", candidate.Id);
         });
         var accepted = SocietyRules.RecordAgentMemoryCompaction(checkpoint, "owner", candidates.Select(candidate =>
-            new SocietyAgentMemoryImportance(candidate.Id, SocietyMemorySourceKind.Experience,
+            new SocietyAgentMemoryImportance(Identity.Parse(candidate.Id), SocietyMemorySourceKind.Experience,
                 candidate.SourceTick, 5_000, 8_000, checkpoint.WorldTick)).ToArray());
         var after = SocietyCheckpointCodec.Encode(accepted);
         accepted = SocietyCheckpointCodec.Decode(after);
@@ -53,8 +54,8 @@ public sealed class WorldMemoryImportanceRetentionTests
         Assert.Equal(checkpoint.Memories, accepted.Memories);
         var scores = accepted.MemoryCompactions!.Single().Sources;
         Assert.Equal(256, scores.Count);
-        Assert.Equal(12, scores.Count(score => score.SourceId.StartsWith("ordinary-", StringComparison.Ordinal)));
-        Assert.All(scores.Where(score => score.SourceId.StartsWith("protected-", StringComparison.Ordinal)),
+        Assert.Equal(12, scores.Count(score => score.SourceId.Value.StartsWith("ordinary-", StringComparison.Ordinal)));
+        Assert.All(scores.Where(score => score.SourceId.Value.StartsWith("protected-", StringComparison.Ordinal)),
             score => Assert.Contains(score, previousScores));
         Assert.Empty(Unassessed(accepted));
 
