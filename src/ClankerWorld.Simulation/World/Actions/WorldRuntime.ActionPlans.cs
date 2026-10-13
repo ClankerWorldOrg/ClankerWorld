@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        VesselActionPlan vessel => CheckVesselPlan(vessel),
         FieldActionPlan field => farmingSystem.CheckFieldPlan(farmingWorld, field),
         TreeActionPlan tree => FarmingSystem.CheckTreePlan(farmingWorld, tree),
         RareMiningActionPlan mining => CheckRareMiningPlan(mining),

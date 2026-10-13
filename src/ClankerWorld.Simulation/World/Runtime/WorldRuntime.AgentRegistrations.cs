@@ -227,32 +227,32 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [ReturnEmptyVesselPrefix], [], static (runtime, action) =>
     {
-        runtime.ReturnEmptyVessel(action.AgentId, action.State, action.CandidateId[ReturnEmptyVesselPrefix.Length..]);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "collect_water_jug", [], ["collect_water_jug"], static (runtime, action) =>
     {
-        runtime.CollectWaterJug(action.AgentId, action.State);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "return_water_jug", [], ["return_water_jug"], static (runtime, action) =>
     {
-        runtime.ReturnWaterJug(action.AgentId, action.State);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "store_food_in_pot", [], ["store_food_in_pot"], static (runtime, action) =>
     {
-        runtime.StoreFoodInPot(action.AgentId, action.State);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "take_food_from_pot", [], ["take_food_from_pot"], static (runtime, action) =>
     {
-        runtime.TakeFoodFromPot(action.AgentId, action.State);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "FillWaterJugPrefix", [FillWaterJugPrefix], [], static (runtime, action) =>
     {
-        runtime.FillWaterJug(action.AgentId, action.State, action.CandidateId[FillWaterJugPrefix.Length..]);
+        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [GatherBuildingMaterialPrefix], [], static (runtime, action) =>
