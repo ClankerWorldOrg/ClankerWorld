@@ -69,11 +69,15 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
                                     entry.Kind.EndsWith("_refused", StringComparison.Ordinal) ||
                                     entry.Kind.EndsWith("_blocked", StringComparison.Ordinal) ||
                                     entry.Kind.EndsWith("_failed", StringComparison.Ordinal));
+                            var beforeActor = original.Agents.Single(person => person.AgentId == observation.AgentId);
+                            var afterActor = after.Agents.Single(person => person.AgentId == observation.AgentId);
+                            // Must Do also runs for the idle control. A walking step may pay
+                            // its remaining travel cost without changing position this turn.
                             var orderProgress = observation.OperativeOrderInstructionId is { } orderId &&
                                 (JsonSerializer.Serialize(original.Instructions!.Single(order => order.InstructionId == orderId).Task) !=
                                     JsonSerializer.Serialize(after.Instructions!.Single(order => order.InstructionId == orderId).Task) ||
-                                 original.Agents.Single(person => person.AgentId == observation.AgentId).Position !=
-                                    after.Agents.Single(person => person.AgentId == observation.AgentId).Position);
+                                 beforeActor.Position != afterActor.Position ||
+                                 afterActor.TravelCooldownTicks < beforeActor.TravelCooldownTicks);
                             Assert.True(candidate.Id == "safe_idle" || ActionState(after) != control || orderProgress || refusal,
                                 "The admitted choice made no progress and provided no refusal reason.");
                         }
@@ -110,6 +114,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         {
             person.AgentId,
             person.Position,
+            person.TravelCooldownTicks,
             person.Project,
             person.Equipment,
             person.Exploration,
