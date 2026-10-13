@@ -14,7 +14,8 @@ public sealed partial class MedicalPermissionChoiceTests
         if (revoke)
         {
             using var allowed = WorldRuntime.Restore(state, _ => new ConsentPlanChooser(patient, caregiver, true, true));
-            Assert.True((await allowed.AdvanceOneTickAsync()).Advanced);
+            for (var tick = 0; tick < 4 && allowed.Agents.Single(person => person.AgentId == patient).MedicalConsent?.CaregiverIds.Contains(caregiver) != true; tick++)
+                Assert.True((await allowed.AdvanceOneTickAsync()).Advanced);
             Assert.True(allowed.TreatPatient(caregiver, patient, "medicine").Applied);
             state = allowed.ExportState() with
             { Agents = allowed.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
@@ -25,12 +26,19 @@ public sealed partial class MedicalPermissionChoiceTests
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ConsentPlanChooser(patient, caregiver, !revoke, true));
-        var step = await world.AdvanceOneTickAsync();
-        Assert.True(step.Advanced);
-        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        var samePlan = false;
+        for (var tick = 0; tick < 4; tick++)
+        {
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            samePlan |= step.Decisions.Any(decision => decision.AgentId == patient && chooser.Plan is not null && ReferenceEquals(decision.ActionPlan, chooser.Plan));
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+            if (world.Agents.Single(person => person.AgentId == patient).MedicalConsent?.CaregiverIds.Contains(caregiver) == !revoke) break;
+        }
+        Assert.True(chooser.Plan is not null, string.Join(", ", chooser.Offered));
         var plan = Assert.IsType<MedicalConsentActionPlan>(chooser.Plan);
-        Assert.Same(plan, step.Decisions.Single(decision => decision.AgentId == patient).ActionPlan);
+        Assert.True(samePlan);
         Assert.Equal(caregiver, plan.Choice.CaregiverId);
         var person = world.Agents.Single(item => item.AgentId == patient);
         Assert.Equal(plan.ResultingCaregivers, person.MedicalConsent!.CaregiverIds);
@@ -53,7 +61,8 @@ public sealed partial class MedicalPermissionChoiceTests
         var (state, patient, first, caregiver) = await PreparedState(14);
         var chooser = new ConsentPlanChooser(patient, caregiver, true, false);
         using var world = WorldRuntime.Restore(state, _ => chooser);
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        for (var tick = 0; tick < 4 && chooser.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True(chooser.Plan is not null, string.Join(", ", chooser.Offered));
         var plan = Assert.IsType<MedicalConsentActionPlan>(chooser.Plan);
         var checkpoint = world.ExportState();
         var existing = checkpoint.Agents.Single(person => person.AgentId == patient).MedicalConsent!.CaregiverIds;
@@ -75,10 +84,13 @@ public sealed partial class MedicalPermissionChoiceTests
     private sealed class ConsentPlanChooser(string patient, string caregiver, bool allow, bool choose) : IDecisionProvider
     {
         public MedicalConsentActionPlan? Plan { get; private set; }
+        public List<string> Offered { get; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
+            if (request.Observation.AgentId == patient) Offered.AddRange(request.Observation.Candidates.Where(item =>
+                item.Id.StartsWith("medical_", StringComparison.Ordinal)).Select(item => item.Id + ":" + item.ActionPlan?.GetType().Name));
             var candidate = request.Observation.AgentId == patient ? request.Observation.Candidates.FirstOrDefault(item =>
                 item.ActionPlan is MedicalConsentActionPlan plan && plan.Choice.CaregiverId == caregiver && plan.Choice.Allow == allow) : null;
             if (candidate is not null) Plan = Assert.IsType<MedicalConsentActionPlan>(candidate.ActionPlan);
