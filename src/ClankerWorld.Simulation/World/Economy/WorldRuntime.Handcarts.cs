@@ -14,7 +14,6 @@ public sealed partial class WorldRuntime
     private const string LoadCartPrefix = HandcartCargoChoice.LoadPrefix;
     private const string UnloadCartPrefix = HandcartCargoChoice.UnloadPrefix;
     private const string UnloadCartGroundPrefix = HandcartCargoChoice.GroundPrefix;
-    private const string CollectCartMaterialPrefix = "collect_handcart_material:";
     private const string CollectCartRepairPrefix = HandcartRepairInputChoice.Prefix;
     private const string RepairCartPrefix = HandcartRepairChoice.Prefix;
     private const string PullCartPrefix = HandcartPullChoice.Prefix;
@@ -39,22 +38,25 @@ public sealed partial class WorldRuntime
     {
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         var recipe = HouseholdHandcartRecipe(household);
-        if (recipe is null || household is null || !IsAdult(actor) ||
-            society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == actor) ||
+        return recipe is not null && household is not null && MayBuildHandcart(actor, household, recipe) ? recipe : null;
+    }
+
+    private bool MayBuildHandcart(string actor, string household, RecipeDefinition recipe)
+    {
+        if (!IsAdult(actor) || !IsHandcartRecipe(recipe) || HandcartControlStock(actor).Any() ||
             worldSimulation.ProductionJobs.Any(job => job.WorkerId == actor && job.RecipeId == recipe.CanonicalId &&
-                job.State == WorldProductionJobState.Running))
-            return null;
+                job.State == WorldProductionJobState.Running)) return false;
         var shortfall = recipe.Inputs.Select(input => (Kind: input.ResourceId, Missing: input.Amount -
                 CarriedMaterialQuantity(actor, input.ResourceId) - HouseholdMaterialQuantity(actor, household, input.ResourceId)))
             .Where(item => item.Missing > 0).ToArray();
         // Town Warehouse stock needs a route, so it is counted last: first without routes, then one route per Warehouse.
         return shortfall.All(item => WarehouseStockLots(actor, item.Kind).Sum(AvailableLotQuantity) >= item.Missing) &&
-            shortfall.All(item => ReachableWarehouseStockCovers(actor, item.Kind, item.Missing)) ? recipe : null;
+            shortfall.All(item => ReachableWarehouseStockCovers(actor, item.Kind, item.Missing));
     }
 
-    private int CarriedMaterialQuantity(string actor, string kind) => society.Checkpoint.Inventory.Lots
-        .Where(lot => ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) && lot.OwnerId == actor && lot.ItemKind == kind)
-        .Sum(AvailableLotQuantity);
+    private int CarriedMaterialQuantity(string actor, string kind) =>
+        FindGoods(new(GoodsUse.Holdings, actor, GoodsOwners.One(actor), GoodsKinds.One(kind))).Matches
+            .Where(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor)).Sum(match => match.Quantity);
 
     private int HouseholdMaterialQuantity(string actor, string household, string kind) =>
         FindGoods(new GoodsRequest(GoodsUse.ReachableHoldings, actor, GoodsOwners.One(household), GoodsKinds.One(kind)))
@@ -84,11 +86,11 @@ public sealed partial class WorldRuntime
     }
 
     private static bool IsHandcartCargo(InventoryCheckpoint inventory, InventoryLot lot) => lot.ContainerLotId is { } id &&
-        inventory.Lots.Any(container => container.Id == id && container.ItemKind == InventoryContainerRules.Handcart);
+        InventoryIndex.For(inventory).Find(id)?.ItemKind == InventoryContainerRules.Handcart;
 
     private InventoryLot? AttachedHandcart(string actor) => handcartHitches
         .FirstOrDefault(hitch => hitch.PullerId == actor) is { } hitch
-        ? society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == hitch.CartLotId) : null;
+        ? InventoryIndex.For(society.Checkpoint.Inventory).Find(hitch.CartLotId) : null;
 
     private IEnumerable<InventoryLot> NearbyOwnedHandcarts(string actor, GridPoint position) =>
         HandcartControlStock(actor).Where(lot => lot.GroundPosition == new InventoryGroundPosition(position.X, position.Y));
@@ -131,7 +133,7 @@ public sealed partial class WorldRuntime
     {
         foreach (var hitch in handcartHitches.ToArray())
         {
-            var cart = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == hitch.CartLotId);
+            var cart = InventoryIndex.For(society.Checkpoint.Inventory).Find(hitch.CartLotId);
             if (!agents.ContainsKey(hitch.PullerId) || cart?.OwnerId != hitch.PullerId ||
                 cart.ConditionBasisPoints == 0)
                 ParkHandcart(hitch.PullerId, "ownership_changed");
@@ -156,17 +158,9 @@ public sealed partial class WorldRuntime
         AgentState person)
     {
         var inventory = society.Checkpoint.Inventory;
-        if (HandcartToBuild(actor) is { } craftRecipe && HouseholdFor(actor) is { } home &&
-            HouseholdBuildingWithTag(home, "blacksmith") is { } smith)
-        {
+        if (HandcartToBuild(actor) is { } craftRecipe)
             foreach (var input in craftRecipe.Inputs)
-            {
-                if (CarriedMaterialQuantity(actor, input.ResourceId) < input.Amount && FreeCarryCapacity(actor) > 0 &&
-                    SharedItem(input.ResourceId, actor, smith.Position) is not null)
-                    candidates.Add(new(CollectCartMaterialPrefix + input.ResourceId,
-                        $"Collect nearby {input.ResourceId.Replace('_', ' ')} and carry it to build a handcart at your household Blacksmith.", 25));
-            }
-        }
+                AddHandcartBuildMaterialCandidate(candidates, PlanHandcartBuildMaterial(actor, new(input.ResourceId), craftRecipe));
         if (AttachedHandcart(actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
         {
             foreach (var cart in HandcartControlStock(actor))
@@ -213,22 +207,11 @@ public sealed partial class WorldRuntime
             if (PlanHandcartControl(actor, control) is { } plan) ApplyHandcartControlPlan(plan);
             return true;
         }
-        if (candidateId.StartsWith(CollectCartMaterialPrefix, StringComparison.Ordinal))
+        if (originalPlan is HandcartBuildMaterialActionPlan buildMaterial)
+        { ApplyHandcartBuildMaterialPlan(buildMaterial); return true; }
+        if (HandcartBuildMaterialChoice.Decode(candidateId) is { } buildMaterialChoice)
         {
-            var kind = candidateId[CollectCartMaterialPrefix.Length..];
-            var input = HandcartToBuild(actor)?.Inputs.FirstOrDefault(item => item.ResourceId == kind);
-            if (input is null || input.Value.Amount <= 0 || HouseholdFor(actor) is not { } home ||
-                HouseholdBuildingWithTag(home, "blacksmith") is not { } smith ||
-                SharedItem(kind, actor, smith.Position) is not { } stock) return true;
-            var source = HouseholdStockPosition(stock);
-            if (!IsWithinInteractionRange(person.Position, source, HouseholdStockInteractionRange(stock)))
-            { MoveToward(actor, person, source, "handcart_material", HouseholdStockInteractionRange(stock)); return true; }
-            if (RecheckGoods(SharedCollectionRequest(actor, stock.OwnerId, kind), stock.Id) is not { } match) return true;
-            var quantity = Math.Min(input.Value.Amount - CarriedMaterialQuantity(actor, kind),
-                Math.Min(match.Quantity, PickupCarryCapacity(actor, stock, smith.Position)));
-            if (quantity <= 0) return true;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{WorldTick}:{actor}",
-                stock.OwnerId, actor, stock.Id, quantity, "handcart_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            if (PlanHandcartBuildMaterial(actor, buildMaterialChoice) is { } plan) ApplyHandcartBuildMaterialPlan(plan);
             return true;
         }
         if (originalPlan is HandcartRepairInputActionPlan repairInput)
@@ -262,6 +245,11 @@ public sealed partial class WorldRuntime
         }
         return false;
     }
+
+    private void CompleteHandcartBuildMaterial(HandcartBuildMaterialActionPlan plan) =>
+        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{WorldTick}:{plan.Actor}",
+            plan.Pickup.OwnerId, plan.Actor, plan.Pickup.StockId, plan.Quantity, "handcart_material_collected",
+            holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
 
     private void CompleteHandcartRepair(HandcartRepairActionPlan plan, InventoryLot cart)
     {
