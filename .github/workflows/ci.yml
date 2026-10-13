@@ -218,6 +218,8 @@ jobs:
         shard: ${{ fromJSON(needs.scope.outputs.shards) }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
