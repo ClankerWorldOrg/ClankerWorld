@@ -125,7 +125,10 @@ public sealed class PrivateMemoryArchiveTests
             Assert.True((await recalling.AdvanceOneTickAsync()).Advanced);
         var observed = Assert.Single(observations.Where(item => item.AgentId == owner).Take(1));
         Assert.DoesNotContain(observed.RetrievedMemories ?? [], item => item.Id is "old-low" or "old-rumor" or "foreign");
-        Assert.Contains(observed.RetrievedMemories ?? [], item => item.Id == "old-cutoff");
+        Assert.Equal(4, observed.RetrievedMemories!.Count);
+        Assert.All(memories.Where(item => item.Kind != SocietyMemoryKind.Experience), memory =>
+            Assert.Contains(observed.RetrievedMemories, item => item.Id == memory.Id));
+        Assert.DoesNotContain(observed.RetrievedMemories, item => item.Id == "old-cutoff");
         Assert.Equal(2, recalling.Society.ArchivedMemories.Count);
         Assert.Single(recalling.Society.ArchivedBeliefs);
     }

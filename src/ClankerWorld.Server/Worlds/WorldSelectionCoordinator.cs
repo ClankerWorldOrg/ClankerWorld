@@ -46,7 +46,7 @@ public sealed class WorldSelectionCoordinator(
 
     private sealed record CachedCheckpoint(string WorldId, string Seed, string Digest,
         string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests, IReadOnlyDictionary<string, long> RecordCounts,
-        bool Restorable, WorldThumbnail? Thumbnail);
+        bool Restorable, WorldThumbnail? Thumbnail, RoutineHelperSettings? Helper = null);
 
     public WorldCatalogSnapshot List(CancellationToken cancellationToken = default)
     {
@@ -197,7 +197,7 @@ public sealed class WorldSelectionCoordinator(
             // History files and provider credentials can change without a
             // checkpoint rewrite; never reuse their previous assessment.
             stateFile.VerifyRequiredHistory(checkedCheckpoint.HistoryArchiveHead, checkedCheckpoint.RetiredRequests, checkedCheckpoint.RecordCounts);
-            if (!providers.CanRestoreWorldAssignments(world.Assignments))
+            if (!providers.CanRestoreWorldAssignments(world.Assignments, checkedCheckpoint.Helper))
                 return world with
                 {
                     Compatibility = "incompatible",
@@ -234,7 +234,8 @@ public sealed class WorldSelectionCoordinator(
             // provider routing. Credentials and assignments are checked in Assess.
             using var verified = WorldRuntime.Restore(checkpoint);
             return new CachedCheckpoint(world.WorldId, world.Seed, digest,
-                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint), true, thumbnail);
+                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint), true, thumbnail,
+                checkpoint.RoutineHelper);
         }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             System.Text.Json.JsonException or FormatException or InvalidOperationException)

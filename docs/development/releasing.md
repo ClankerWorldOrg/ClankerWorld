@@ -26,30 +26,32 @@ constant. See the [build reference](build-and-test.md) for the selected toolchai
 Untagged development builds use `0.1.0-dev`; they do not claim an alpha release.
 The SDK includes the checked-out source revision in the assembly's informational
 version. Settings and Developer tools show that version with seven commit
-characters, and the tooltip gives the full commit. The host's `/api/v1/status`
+characters, and the tooltip gives the full commit. The server's `/api/v1/status`
 reply reports its own `build`, `version` and full `sourceRevision`, without world
 or device state. A tagged release must report both its game version and source
 revision.
 
-## Matching client and host builds
+## Matching client and server builds
 
 For an owner-authorized remote world server update, follow the
 [deployment checklist](remote-server-deployment.md). It covers staging,
 paused backups, accounting, credentials and rollback; a private update does
 not require a public release or tag.
 
-When an action's signed format changes, ship or deploy the matching host before
-distributing the client. A bundled local host and client must come from the
+When an action's signed format changes, ship or deploy the matching server before
+distributing the client. A bundled local server and client must come from the
 same verified source revision. Record both revisions for a private deployment;
 a successful reconnect alone does not prove that New World or another changed
 action is compatible.
 
 Before distribution, use an approved test device and a disposable world to
 preview and create with the accepted Advanced settings at the real signed HTTP
-boundary. Verify an older host produces the update explanation, preserves the
-pairing and cannot receive a downgraded action. The New World client now requires
-the host's authenticated v2 action advertisement, including on hosts that
-already verified v2 before they advertised it. See [Device pairing](device-pairing.md#client-and-host-updates).
+boundary. Verify an older server produces the update explanation, preserves the
+pairing and cannot receive a downgraded action. New World preview and creation
+require the server's authenticated `clankerworld.owner-world-creation.v3`
+advertisement. A server advertising only v2, or no matching format, needs an
+update; the client keeps the pairing and never sends a downgraded action.
+See [Device pairing](device-pairing.md#client-and-server-updates).
 
 ## Save and content compatibility
 
@@ -175,7 +177,7 @@ Before each release, the owner checks the actual Windows bundle on an approved
 test device and disposable world:
 
 - Start the game. From the portable zip, it starts its own local server and pairs
-  without a code; otherwise pair with the matching host.
+  without a code; otherwise pair with the matching server.
 - Create a New World.
 - Load a saved World.
 - Save, then quit.

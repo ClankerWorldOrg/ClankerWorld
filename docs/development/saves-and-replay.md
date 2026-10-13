@@ -64,7 +64,7 @@ describes the native transition, factory, save and recall evidence.
 
 ## Save-space warning
 
-The host samples available free space on the active checkpoint, manual/autosave,
+The server samples available free space on the active checkpoint, manual/autosave,
 world-catalog and history-archive volumes every five seconds, resolving existing parent
 directories, symlinks and mounted volumes. The initial advisory level is below
 1 GiB. Any known low volume warns even if another cannot be read; space is
@@ -699,15 +699,16 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The host keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a host restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
-After a host start, a background task makes the structural check for each
+After a server start, a background task makes the structural check for each
 inactive checkpoint, so the first list can reuse it; it reads checkpoints only
 and changes no save.
 
@@ -784,7 +785,7 @@ that recorded events reproduce its expected results and digests.
   applies: a save that cannot load is refused with a reason and kept. Finished
   releases promise forward migration later, as described in
   [Saves](../game-design/saves.md). The cutoff and removal audit are recorded in
-  [issue #487](https://github.com/compoodment/ClankerWorld/issues/487).
+  [issue #487](https://github.com/ClankerWorldOrg/ClankerWorld/issues/487).
 - Keep build revision, release labels and telemetry out of canonical digests.
 - Never infer compatibility merely from the public game version or file age.
 
@@ -1020,7 +1021,7 @@ recovery paths do not resume time implicitly.
 
 Before a potentially committed create/select/rewind request, the client invalidates
 older observation requests and asks for a fresh baseline. It keeps the last
-confirmed view when the host advertises observer timelines; legacy hosts clear
+confirmed view when the server advertises observer timelines; legacy servers clear
 the held observation. If the receipt is lost, reconnect starts from a fresh
 baseline while retaining normal regression and terrain-identity checks within
 that timeline. Continue does not resume an uncertain world switch.
@@ -1047,13 +1048,13 @@ establish that the checkpoint can load.
 ## Current formats and older worlds
 
 Schema 128 removes prototype names from the save
-([#1364](https://github.com/compoodment/ClankerWorld/issues/1364)): map objects are
+([#1364](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1364)): map objects are
 saved as `mapObjects`, the checkpoint header is
 `clankerworld.world-runtime/v2`, and the active save is `saves/world.json`
 instead of `saves/private-world.json`. A save under the old file name is
 not found, so the game starts without it and leaves it on disk. An older
 checkpoint opened by path is refused by schema with the usual reason and left
-unchanged; there is no migration. The version is provisional until merge.
+unchanged; there is no migration.
 The same schema saves the game design's names: `agents`, `deceasedAgents`,
 `agentId` and `targetAgentId` instead of `inhabitants`, `deceasedInhabitants`,
 `inhabitantId` and `targetInhabitantId`; `fullnessBasisPoints` instead of
@@ -1108,23 +1109,23 @@ there is no in-place lake shrink or river rewrite. Older builds need not accept
 new-revision worlds.
 
 The terrain rules for sand, groves and hills
-([#461](https://github.com/compoodment/ClankerWorld/issues/461)) change the
+([#461](https://github.com/ClankerWorldOrg/ClankerWorld/issues/461)) change the
 surfaces, vegetation and resource layout generated from a seed, for every
 hydrology revision. There is no generator switch and no migration: a generated
 world saved before them no longer matches regeneration and is refused with "The
 world map does not match deterministic regeneration." Its file is kept.
 The save format and schema number do not change. As with any unloadable active
-world, the host will not start until that save is moved aside. Hills are drawn
+world, the server will not start until that save is moved aside. Hills are drawn
 from the saved elevation and water layers, so nothing extra is saved for them.
 
 The polar sea rows at the north and south edges
-([#1317](https://github.com/compoodment/ClankerWorld/issues/1317)) also change
+([#1317](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1317)) also change
 generated maps in the same way: there is no generator switch or migration.
 A saved map that differs from deterministic regeneration fails the check
 with the same message, and its file is kept. The save format and schema number
 do not change for the polar rows.
 
-Mountain massifs ([#683](https://github.com/compoodment/ClankerWorld/issues/683))
+Mountain massifs ([#683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/683))
 change elevation, rivers, climate and resources for every generated world, so
 the terrain version saved in `GeographyOptions` (`balancedVisibilityVersion`)
 moves from 1 to 2 for all climate modes. Generation and loading accept only the
@@ -1444,14 +1445,14 @@ Restore uses the saved value, not the new-world default. Ages, setup guards,
 action deadlines and elapsed durations keep using the original world tick;
 calendar dates, daylight and daily allowances use its offset calendar.
 
-Night ([#673](https://github.com/compoodment/ClankerWorld/issues/673)) adds no
+Night ([#673](https://github.com/ClankerWorldOrg/ClankerWorld/issues/673)) adds no
 saved darkness field: time of day is derived from the saved tick, ticks per day
 and calendar offset. Current-format saves retain their saved clock; nights and
 their chill on outdoor warmth are derived from it without re-simulating
 recorded history. A world saved during dawn reloads at the same darkness and
 advances to the same bytes as the live world, which `SurvivalTests`
 checks. Seasonal night length
-([#891](https://github.com/compoodment/ClankerWorld/issues/891)) is derived the
+([#891](https://github.com/ClankerWorldOrg/ClankerWorld/issues/891)) is derived the
 same way, from the saved tick and the saved season lengths, so it adds no saved
 field either: current-format saves retain their saved season, and from the
 next tick their nights follow that season.
@@ -1520,7 +1521,8 @@ previous Town and care-group count; initial First Town events keep their format.
 
 The choice binds the current physical site and is rechecked when applied.
 Competing or delayed replies cannot claim another Town's land, move membership
-twice or supply free property. `TownFoundingTests` covers generated-world
+twice or supply free property. [TownFoundingTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Towns/TownFoundingTests.cs),
+part of `TownMembershipTests`, covers generated-world
 founding, care-group membership, existing owned and foreign Houses and fields, claimed
 land, competing and delayed model choices, exact replay/reload and discarded
 prepared ticks. Routine Windows playtesting remains pending.
@@ -1555,7 +1557,8 @@ condition, provenance and stock history and record `town_stock_salvaged`.
 Revival neither confiscates prior pickups nor permits a stale public choice
 to collect more stock.
 
-`TownAbandonmentTests` exercises strict current-format roundtrips, identical
+[TownAbandonmentTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Towns/TownAbandonmentTests.cs),
+also part of `TownMembershipTests`, exercises strict current-format roundtrips, identical
 live/restored continuations before and after membership or stock transfer,
 discarded prepared ticks, competing pickups and a delayed model reply after
 revival. No migration or inferred historical abandonment is added.
@@ -1596,7 +1599,7 @@ matching the existing owner view. The older full records go into
 `ClosedBoatRequests` in the same digest-addressed history segment as event
 prefixes. The segment is fsync-written before the smaller checkpoint is
 published or installed in the live runtime. Preparing a plan or failing either
-write leaves the live queue unchanged. The ordinary host saves after each
+write leaves the live queue unchanged. The ordinary server saves after each
 advanced tick; a runtime used without persistence keeps its records until saved.
 
 Retired sequence ranges are ordered, disjoint and merged. They account for each
@@ -1663,7 +1666,7 @@ a SHA-256 digest of the complete requester/helper key, preserving their
 `project-gratitude:` cooperation prefix. Short keys and full saved participant
 references are unchanged. No field, schema or migration changes: existing
 records load without rewriting, and previously oversized keys retain their
-recall exclusion. Native assistance, physical delivery, strict hosted reload,
+recall exclusion. Native assistance, physical delivery, strict server-file reload,
 later personal recall, complete-byte continuation and refused ticks are checked.
 
 ## Private memory summaries
@@ -1923,7 +1926,7 @@ preserved. No wording repair or migration is attempted. Return to an earlier
 usable manual or recovery save, keeping the damaged file as evidence. Healthy
 current-format checkpoints retain their schema and roundtrip behavior.
 
-On private-host startup, `WorldStartupRecovery` holds a refused active
+On private-server startup, `WorldStartupRecovery` holds a refused active
 checkpoint without constructing a replacement world. A readable current-format
 checkpoint identifies the affected world even if an interrupted selection left
 the catalog behind. Otherwise the existing catalog, adjacent autosave settings
@@ -1938,7 +1941,11 @@ branch position rather than a possibly corrected clock. If play continues from
 an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
-rotation, and every required history segment must verify. A damaged newer autosave is retained and skipped. No usable
+rotation, and every required history segment must verify. Model preflight includes
+the saved OpenAI Decisions helper's selected key as well as agent assignments.
+Load World rechecks that key's availability even when its structural checkpoint
+proof is cached; a missing named key never substitutes the installation default.
+A damaged newer autosave is retained and skipped. No usable
 candidate leaves recovery pending; named saves and other worlds are not automatic
 fallbacks. An older alpha schema receives a format explanation, never a migration.
 
@@ -1976,7 +1983,10 @@ Rotating autosaves are a separate
 mechanism and must not delete another world's checkpoints, or another branch's.
 Updating autosave configuration trims only that configured world, including
 rotation off, and counts each branch's autosaves separately.
-The schedule persists a new interval anchor if the host clock moves backwards,
+Only copies whose checkpoint, world identity, required history and full runtime
+restore verify count toward retention. Unverifiable copies are preserved and
+reported, so a damaged newer copy cannot displace a usable predecessor.
+The schedule persists a new interval anchor if the server clock moves backwards,
 so restart cannot restore the resulting delay. This changes only the adjacent
 schedule timestamp; it keeps the saved world tick and existing snapshot files.
 Rotation uses the saved branch position to keep that branch's newest copies,
@@ -2011,7 +2021,7 @@ the world's own terrain (`terrain-kind-v1`) and at most 96 pixels wide, so Load
 World can show it without reading the world's checkpoint. Worlds catalogued
 before thumbnails existed get one the first time they are listed, from the
 checkpoint that listing already reads. It is a convenience copy, not world
-state: an older host ignores it, and a missing or damaged thumbnail shows a globe
+state: an older server ignores it, and a missing or damaged thumbnail shows a globe
 while the rest of the world list stays available.
 
 A full recovery backup must keep together:
@@ -2028,7 +2038,7 @@ entries are isolated from listing so sound saves remain reachable; preserve and
 report the damaged file rather than silently removing it.
 
 For an incompatible rollback, restore the matching older application and
-pre-upgrade save/history. An older host is not expected to read a newer schema.
+pre-upgrade save/history. An older server is not expected to read a newer schema.
 The September 2026 internal-identifier reset was an explicitly approved
 pre-release fresh-save/new-pairing exception. It never permits deleting saves.
 During alpha an older save may stop loading, but it is refused with a reason and
@@ -2037,16 +2047,16 @@ kept. Finished releases follow the migration promise in [Saves](../game-design/s
 ### Which build saved a world
 
 Each named save and autosave records the `gameVersion` and `sourceRevision` of
-the host that wrote it, in its `.meta.json`. Overwriting a named save records
+the server that wrote it, in its `.meta.json`. Overwriting a named save records
 the overwriting build; saves from before this have neither field. The first
-checkpoint a host run writes also records that build in
+checkpoint a server run writes also records that build in
 `<checkpoint>.build.json` beside the active save, so it can be read without
 loading the world. When startup refuses a checkpoint, the recovery status
 includes `savedByVersion` from that file, and the game names that version in
 its "different save format" message. Each world catalog entry in
 `catalog.json` records the build that last wrote or opened that world in the
 same two fields, so any version can list who saved a world without restoring
-it; the host stamps an entry when it creates, archives, selects or starts with
+it; the server stamps an entry when it creates, archives, selects or starts with
 that world. When a listed world can't be restored and its entry names another
 version, its compatibility is `other_version` instead of `incompatible`, and
 Load World offers to open it in that version through the launcher. A damaged
@@ -2078,7 +2088,7 @@ through the signed `save-timeline` control action
 world continues from, that save's branch and time, whether the next save starts
 a new branch, and the branch number the next save will use even after deletions.
 The answer comes from the same checks saving uses, so the two cannot
-disagree, and reading it changes nothing. A host from before this action
+disagree, and reading it changes nothing. A server from before this action
 answers 404, and the client then leaves the marker out.
 
 A new save continues the recorded branch unless something else on that branch
@@ -2089,9 +2099,9 @@ one higher than any the world has used. Overwriting a slot moves it into the
 running world's branch; its recovery copy keeps the old branch and position.
 The fork decision uses the loaded save before rebinding it to that recovery copy.
 
-Before loading, the host saves the world being left as **Before loading**, so its
+Before loading, the server saves the world being left as **Before loading**, so its
 unsaved progress stays on its own branch. After a successful load, the record
-keeps a fingerprint of the loaded world after the host's required pause, as well
+keeps a fingerprint of the loaded world after the server's required pause, as well
 as the stored checkpoint's fingerprint. It skips the copy only when the world
 still matches that loaded state, the stored checkpoint remains readable and
 unchanged, and model routing and autosave choices match. Browsing running
@@ -2171,7 +2181,7 @@ selection and snapshot writes. The active world cannot be deleted.
 
 Deletion reads verify the metadata's save identity against its filename before
 using it. A missing save record or mismatched identity keeps cleanup pending
-instead of preventing the healthy host from starting. These checks do not
+instead of preventing the healthy server from starting. These checks do not
 require playable model settings or a valid display name just to remove an
 otherwise identifiable checkpoint.
 
@@ -2246,7 +2256,7 @@ world ID and expected latest event ID. An exact retry found in hot event history
 returns already applied without another grant or event. After history compaction,
 the old event precondition refuses that retry instead of applying it again.
 
-The host writes the validated proposal through the checkpoint's atomic file
+The server writes the validated proposal through the checkpoint's atomic file
 replacement before accepting it in memory. A failed write preserves the live
 state and the prior save, and the original command can be retried. Tests cover
 this rollback, stale/wrong-world refusals, field binding in signed requests,
@@ -2275,7 +2285,7 @@ Current-format replay and rollback cover arrival, paid care, collection, birth,
 production jobs and attachments. Reload validates required animal fields,
 physical saddle/product custody, household/herd limits and vessel contents.
 Ordinary milk barter covers twenty consecutive whole-lot resales without ID
-growth. Pending and completed Store purchases cover host-file reload,
+growth. Pending and completed Store purchases cover server-file reload,
 acceptance, refusal, paired exact-byte continuation and refused-tick rollback.
 Ordinary offer validation rejects unknown parties and inconsistent references.
 Water jugs accept only fresh water; milk may remain loose or enter a food pot.

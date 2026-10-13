@@ -6,21 +6,23 @@ This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](htt
 
 Each check is one short play session. Its steps say what to do, then, after the arrow, what you should see. Do the **Start here** checks first: they cover what has to work in your first hour. Try the rest as you reach that part of the game, and tell any agent what you found ([how results are recorded](README.md#keeping-the-list-current)).
 
+The portable game starts its own world server on your PC; it needs no manual pairing. Checks marked **On a remote server:** need a separately running world server. For checks using **Developer tools** or F12, turn on **Developer mode** in the launcher before playing. Interface size follows the window or screen automatically; there is no interface-size setting.
+
 ## Start here
 
 - [ ] **Install and manage versions with the launcher.** ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
   - On Windows 11, start `ClankerWorldLauncher.exe`. → A small launcher window with the logo opens first, or says no versions are published yet.
   - Press **Play** ("Install and Play <version>"). → The download shows a progress bar, then the launcher closes and that version's Main Menu opens.
   - Look in `%LOCALAPPDATA%\ClankerWorld`. → The version is installed under `versions`, with the `saves`, `settings` and `logs` folders beside it untouched.
-  - Choose **Quit to Launcher** on the Main Menu. → It asks first, saves, closes the game and reopens the launcher with that version chosen.
+  - Create and save a world, then choose **Quit to Launcher** on the Main Menu. → It asks first, saves, closes the game and reopens the launcher with that version chosen.
   - Press **Play** again and open **Load World**. → The game opens at the Main Menu, the world you left is already selected, and it opens only after you choose **Open World**.
   - Start a game straight from `ClankerWorld.exe`. → Its Main Menu has no **Quit to Launcher** button.
-  - Edit a file in the installed version and choose **Repair**. → The file is restored.
-  - Try **Remove**. → It asks first and keeps your worlds.
+  - Edit a file in the installed version and choose **Versions → Repair** in the launcher. → The file is restored.
+  - Try **Versions → Remove**. → It asks first and keeps your worlds.
   - Start the launcher with the network off. → It says it couldn't check for updates, but **Play** still works.
-  - Use **Open saves folder** and **Open logs folder**. → Each opens Explorer.
-  - Turn on **Developer mode** and reopen the launcher. → Developer mode stays on and only then lists "Nightly build of main", while **Play** still suggests the newest alpha.
-- [ ] **Pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
+  - In the launcher's **Settings**, use **Open saves folder** and **Open logs folder**. → Each opens Explorer.
+  - In the launcher's **Settings**, turn on **Developer mode** and reopen the launcher. → Developer mode stays on and only then lists "Nightly build of main", while **Play** still suggests the newest alpha.
+- [ ] **On a remote server: pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
   - Pair the device with the host. → The Main Menu shows the logo with Continue, Settings and Quit Game.
   - Open Settings, then leave it. → Settings returns you to the Main Menu.
   - Press Continue. → It enters the world on the remote server.
@@ -39,18 +41,18 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - While playing, search `logs\server.log` and the game folder for your key. → Your key appears nowhere.
   - While playing, run `netstat -ano | findstr 5188`. → The world server listens only on 127.0.0.1.
   - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Server is left in Task Manager.
-  - Start again and press **Continue**, once with the network to the remote world server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
+  - Start again and press **Continue**, once with the PC offline. → The same local world reopens at the saved point, fullscreen stays as you chose it, and the interface fits the window or screen.
 - [ ] **New World screen and preview.** ([#409](https://github.com/compoodment/ClankerWorld/issues/409), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#719](https://github.com/compoodment/ClankerWorld/issues/719), [#900](https://github.com/compoodment/ClankerWorld/issues/900), [#1023](https://github.com/compoodment/ClankerWorld/issues/1023))
   - Open New World, also straight after changing a Main Menu setting such as the model-call limit. → Name, seed and size sit in one box.
-  - Change the name, seed and size, and press Reset these options. → Any change updates the preview.
+  - Change the seed and size, and press **Reset these options**. → Each updates the preview; changing only the name keeps the same map.
   - Open + More options for Land and Climate and try Small and Medium, wrapped and unwrapped. → The settings look clearly different.
   - Try Low, Normal and High forest and mountains, and 80% water with High mountains. → Each setting looks clearly different.
   - Read the text under the map, also at 720p and larger interface sizes. → It describes forest and mountains in words (hover for their shares) and fits.
   - When no map meets the balance, read the text. → It says how, and creation waits until you turn on **Keep this map anyway** or pick another seed.
-  - Then change a setting. → **Keep this map anyway** clears.
+  - Then change a map setting. → **Keep this map anyway** clears.
   - Press Reroll once. → The old map and tooltip vanish at once, and the new seed gets its own preview without pressing Preview.
   - Press Reroll twice quickly. → The newest seed gets its own preview; Create World becomes available only once a matching preview arrives.
-  - Clear the name and press Reroll. → The old map and tooltip vanish, and Create World stays unavailable. Enter a name and press Preview again for a matching preview.
+  - Clear the name and press Reroll. → The old map and tooltip vanish, and Create World stays unavailable. Enter a name and press **Preview again** for a matching preview.
   - Create from a preview whose tooltip lists a failed attempt (now rare). → It still shows a playable map, and Create uses that map.
   - Place the Town and four agents, then save, quit and load. → The same map and settlement return.
   - Try a map with no room for a first Town. → Creation stops with a useful message.
@@ -59,7 +61,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Create a world, then save and load it. → The world matches the preview before and after loading. Note how long previews take.
 - [ ] **Create a world and found the first Town.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#424](https://github.com/compoodment/ClankerWorld/issues/424), [#523](https://github.com/compoodment/ClankerWorld/issues/523), [#525](https://github.com/compoodment/ClankerWorld/issues/525), [#667](https://github.com/compoodment/ClankerWorld/issues/667), [#718](https://github.com/compoodment/ClankerWorld/issues/718), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#1388](https://github.com/compoodment/ClankerWorld/issues/1388), [#1441](https://github.com/compoodment/ClankerWorld/issues/1441))
   - Create a Small world with a seed and climate. → The same options give the same map.
-  - Refresh the preview, reroll, select the shown candidate and confirm the pause. → The world matches the preview.
+  - Press **Reroll**, wait for its preview and press **Create World**. → The world opens paused and matches the preview.
   - Before choosing a site, look around. → There are no buildings and no Town border, and the clock reads Spring 1, Year 1, 06:00 in full daylight.
   - Check the first view and the buttons. → The view shows dry land, not open sea, and Start World, Play/Pause and the founder buttons are shaded.
   - Hover over possible first Town sites. → Better land is tinted greener, and hovering describes nearby food, fertile ground, wood, stone and room for Roads.
@@ -110,7 +112,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Let a slow reply work, and cancel a request. → Neither adds an Event Log line.
   - Save and load after a bad reply. → The unfinished decision and its Event Log line are kept, with no copies.
   - In Settings → Game → Model calls, type a limit and click away. → The typed limit stays while the screen refreshes.
-  - Use Set limit, then clear the field. → Set limit applies it, and an empty field removes it.
+  - Enter a limit and press **Set limit**, then clear the field and press **Set limit** again. → Each applies the edit; the blank field removes the limit.
   - Let the agents reach a limit. → Time pauses at the limit.
   - Choose Allow 100 more calls and resume. → The world keeps running.
   - Save and reload. → The count and allowance are still there.
@@ -267,7 +269,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - While playing, end the ClankerWorld.Server process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
   - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
   - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
-  - Start a different game build while that server is still running. → It refuses the server that doesn't match, and the original world keeps running.
+  - Start a different game build while that server is still running. → It refuses the server that doesn't match, without stopping or replacing that server.
   - Let the host's save disk get nearly full. → A readable warning shows during play and in Save World, in both themes.
   - Save and Overwrite with the disk nearly full. → Both still work, and autosaves and emergency saves keep trying.
   - Watch for a save that fails. → It says so instead of claiming success.
@@ -282,13 +284,13 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Keep playing, including some failed replies. → Refused or unusable replies still count as failed calls, with their usage.
   - Play until the limit. → The world pauses until you choose **Allow 100 more calls** and **Resume**.
   - Restart the host and load an older save. → The count never goes down, and the warning doesn't repeat.
-  - With the game running its own world server, choose **Settings → Report a problem**. → File Explorer opens on a new zip in `%LOCALAPPDATA%\ClankerWorld\reports`.
+  - With the game running its own world server, choose **Settings → Game → Build → Report a problem**. → File Explorer opens on a new zip in `%LOCALAPPDATA%\ClankerWorld\reports`.
   - Open the zip. → It holds a summary (game version, Windows version, graphics card and open world) and the game and host logs, with no API key you entered anywhere in it.
 
 ## Install, launch and pairing
 
 - [ ] **Connection and build details in Settings.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#452](https://github.com/compoodment/ClankerWorld/issues/452), [#730](https://github.com/compoodment/ClankerWorld/issues/730), [#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973))
-  - In Settings, press Connect with the server up, unreachable and at a wrong address. → Each shows a checking message, then a clear result, with one way back from the Connect screen.
+  - On a remote server: in **Settings → Game → World connection**, press **Connect** with the server up, unreachable and at a wrong address. → Each shows a checking message, then a clear result, with one way back from the World connection screen.
   - Press Continue with the server unreachable. → It shows the problem without resuming.
   - Place an adult with no walking route to the Town's food, such as on an island. → The world view keeps working and reports the missing route.
   - Reconnect and open the Main Menu. → The Main Menu still pauses the world, even if a later refresh fails.
@@ -302,7 +304,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Create worlds with each climate, with and without latitude cooling. → The top and bottom rows are always sea, and no agent walks onto them.
   - Create a Small and a Medium world from the same seed, with different names and autosave settings. → Each world keeps its own map and settings.
   - Make a named save in each, switch worlds and restart. → Each world keeps its own map, settings and save list.
-  - Preview a Medium world while a world is running. → The running world's clock keeps advancing while the preview shows full terrain detail.
+  - Leave a running world with **Quit to Menu**, then open **New World** and preview a Medium world. → The existing world stays paused while the preview shows full terrain detail.
   - Try making the same choices again under a new name. → The repeated choices are refused.
   - Save and reload. → Soil ratings stay the same, and fields still work on fertile land.
   - Open Settings → World in a running world. → It shows size, climate, wrapping and seed as read-only, and changes with the loaded world.
@@ -402,12 +404,12 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Switch to Ollama Cloud with a key that can use its default. → The default is listed, a typed name survives a refresh, and existing agents keep their models.
   - Read the panel. → It reads Provider, API key and Model, and cuts a long key name short with no sideways scrollbar.
   - Press Open model settings. → It opens that agent in World Settings' Agent model box, where Delete this key lives.
-  - Save a model change. → It confirms with "Loaded Agent model settings" and "… at the agent's next model choice", without the words "inhabitant" or "cognition".
-  - Hover over Send. → The tooltip reads "Send an instruction to this agent."
+  - Open model settings, then save a model change. → Opening confirms "Agent model settings loaded." and saving says "… at the agent's next model choice", without the words "inhabitant" or "cognition".
+  - Hover over Send for an adult. → The tooltip reads "Send this message to the agent."
 - [ ] **Routine helper and children's models.** ([#455](https://github.com/compoodment/ClankerWorld/issues/455), [#501](https://github.com/compoodment/ClankerWorld/pull/501), [#1302](https://github.com/compoodment/ClankerWorld/issues/1302))
   - Pause and open Settings → World → Routine helper; look at Jev, OpenAI Decisions and Off. → Each choice shows its own model list, and Off hides it.
-  - Try to change it during play. → Apply is unavailable during play.
-  - Choose OpenAI Decisions with a saved key and gpt-6-luna, and resume. → Paid calls rise once per combined call, and agents keep their own models.
+  - Close Settings, resume, then reopen Settings. → The world pauses before **Apply helper** becomes available.
+  - Choose OpenAI Decisions with a saved key and gpt-6-luna, press **Apply helper** while paused, and resume. → Paid calls rise once per combined call, and agents keep their own models.
   - Save and reload. → The choice survives.
   - Switch while a reply is pending. → An old pending reply never overwrites later choices.
   - Try a bad key or model. → Agents stay on safe choices, and no key appears in the Event Log.
@@ -416,7 +418,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Turn the helper Off, then save and reload. → Grown world-born adults go back to their own model or the built-in choices, and keep their memories and scores.
   - Give two parents different personal models and let one start a family plan. → The newborn first shows the model of the parent who started the plan.
   - Watch the infant. → It makes no paid calls as an infant.
-  - Set the newborn to **No personal model (safe local)** and reopen. → The setting survives, and later uses built-in choices even with a paid world default.
+  - Set the newborn to **No personal model (built-in choices)** and reopen. → The setting survives, and later uses built-in choices even with a paid world default.
   - Remove the key, or open the save on another install. → The child keeps its choice, makes safe choices and never uses a different paid model.
 - [ ] **Memories, personality and life moments.** ([#442](https://github.com/compoodment/ClankerWorld/issues/442), [#472](https://github.com/compoodment/ClankerWorld/issues/472), [#970](https://github.com/compoodment/ClankerWorld/issues/970), [#1311](https://github.com/compoodment/ClankerWorld/issues/1311), [#1312](https://github.com/compoodment/ClankerWorld/issues/1312), [#1524](https://github.com/compoodment/ClankerWorld/issues/1524), [#1690](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1690), [#1694](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1694), [#1704](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1704))
   - Let agents live more than three world days with the routine helper off. → Old, unimportant memories leave the recent list, while life, relationship, skill and family records stay.
@@ -448,11 +450,11 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Name reserved cargo, protected household food, or a book on the ground or owned by someone else. → The card explains what is in the way, and nothing false happens.
   - Give orders with too few materials, a full load, a blocked approach or a rider on a horse. → The card explains each blocker, with no false "finished".
   - Remove the obstacle, for example by returning the book to the reader. → The same order can finish.
-- [ ] **Queueing, replacing and cancelling orders.** ([#586](https://github.com/compoodment/ClankerWorld/issues/586), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#1220](https://github.com/compoodment/ClankerWorld/issues/1220), [#1221](https://github.com/compoodment/ClankerWorld/issues/1221), [#1222](https://github.com/compoodment/ClankerWorld/issues/1222), [#1223](https://github.com/compoodment/ClankerWorld/issues/1223), [#1225](https://github.com/compoodment/ClankerWorld/issues/1225), [#1227](https://github.com/compoodment/ClankerWorld/issues/1227), [#1228](https://github.com/compoodment/ClankerWorld/issues/1228), [#1229](https://github.com/compoodment/ClankerWorld/issues/1229), [#1230](https://github.com/compoodment/ClankerWorld/issues/1230); `1516-client-native-cancellation.md`, no link)
+- [ ] **Queueing, replacing and cancelling orders.** ([#586](https://github.com/compoodment/ClankerWorld/issues/586), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#1220](https://github.com/compoodment/ClankerWorld/issues/1220), [#1221](https://github.com/compoodment/ClankerWorld/issues/1221), [#1222](https://github.com/compoodment/ClankerWorld/issues/1222), [#1223](https://github.com/compoodment/ClankerWorld/issues/1223), [#1225](https://github.com/compoodment/ClankerWorld/issues/1225), [#1227](https://github.com/compoodment/ClankerWorld/issues/1227), [#1228](https://github.com/compoodment/ClankerWorld/issues/1228), [#1229](https://github.com/compoodment/ClankerWorld/issues/1229), [#1230](https://github.com/compoodment/ClankerWorld/issues/1230), [#1884](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1884); `1516-client-native-cancellation.md`, no link)
   - Order **Move to tile (X, Y)** to a reachable tile. → The card shows it; the move stays active while walking and finishes only on that tile.
   - Queue a return trip. → The return starts after arrival.
   - Order a trip to an occupied tile, then cancel it. → The blocked reason is visible, and freeing the tile doesn't restart the cancelled trip.
-  - Queue more orders and replace one. → The card shows each change, and queued orders keep their place and remaining amount.
+  - Queue more orders, then turn **Queue** off and send a new Order to replace the current one. → The card shows each change, and queued orders keep their place and remaining amount.
   - Cancel a waiting and an active order, for a world-born adult and for a founder. → Each ends without an error and has no further effect.
   - Check for side effects. → No invitation is sent, and nothing is attached, repaired or learned.
   - Check what was left over. → Unused materials, seeds, ingredients or building payment are released; finished goods and goods already moved stay put, and a moored boat stays available.
@@ -651,7 +653,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Look at the land after the change. → The building's land use moves to the new household; the Town border, Roads, title and the old household's other land stay put.
   - Remove or reassign an empty building, then reopen the save. → Finished work history stays valid, even after removal.
   - Try the same on a building holding or expecting goods, with work under way, or the household's last Farmhouse in use. → It refuses the change without losing anything.
-  - With two paired devices, open a removal confirmation on one while changing that building's owner on the other. → The out-of-date action is refused and changes nothing.
+  - On a remote server: with two paired devices, open a removal confirmation on one while changing that building's owner on the other. → The out-of-date action is refused and changes nothing.
   - Start an action in one world, then switch worlds before confirming. → The out-of-date action is refused and changes nothing, while a fresh action works in the intended world.
 - [ ] **Town land and plots.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#885](https://github.com/compoodment/ClankerWorld/issues/885), [#1141](https://github.com/compoodment/ClankerWorld/issues/1141), [#1331](https://github.com/compoodment/ClankerWorld/issues/1331), [#1628](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1628))
   - Start a new world, accept the first Town layout, place four founders, then turn on the Town land title and household land use views. → The Town's border is titled.
@@ -718,8 +720,6 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Order **Make two sacks**. → Two sacks land in household storage at **2/2 items made**.
   - Order **Make two batches of house bandages**. → They make four bandages.
   - Give a production order **at (X, Y)**. → The pinned site waits with a reason rather than moving.
-  - Activate a recipe that makes two water jugs or storage pots in one batch, provide its inputs at the household workstation and run one batch. → Two separate vessels appear, with inputs spent once and nothing duplicated.
-  - Repeat with a two-handcart recipe and carried inputs at the Blacksmith. → Two separate carts appear on the ground, owned by the worker, with inputs spent once and nothing duplicated.
   - Let a workshop recipe run out of ingredients. → It pauses so the adult can do other work, then resumes when supplies return.
   - Let a Clinic jug or workstation pot empty. → An adult of the owning household carries the empty vessel home, leaving other households' or reserved vessels alone.
   - Save and reopen mid-job and while waiting. → Each result above still holds, with inputs spent once and nothing duplicated.
@@ -1149,7 +1149,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Amend it, adding an emoji near the end of a long law, then repeal it. → Each decision appears in the Event Log and Towns with the law's scope, dates and full wording.
   - Let residents die before and after the amendment or repeal. → Earlier deaths keep the old rule; later deaths use the new one.
   - While laws are in force, watch buildings and gathering. → Laws never quietly move a building or stop gathering.
-  - With a mayor in office, have residents approve the separate non-land hearing duty and report witnessed conduct under a law. → The case stays pending until the mayor accepts the added duty.
+  - With a mayor whose office handles land cases only, have residents approve the added duty of hearing other cases and report witnessed conduct under a law. → The case stays pending until the mayor accepts the added duty.
   - Have the mayor accept. → Towns shows the added duty with the original term's end date.
   - Leave the case for a while. → It waits until the mayor takes it up.
   - Inspect the case. → It shows its place, the law as it was, evidence, sources, inspection receipts, who knew, response window and reasons.
@@ -1262,7 +1262,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Look at long names, and scroll the timeline. → Long names stay inside their controls with the full name on hover; the timeline fits and scrolls with names and seasons in view.
   - Judge Save World's layout overall. → Say if it feels cramped.
 - [ ] **Load World and saves from other versions.** ([#445](https://github.com/compoodment/ClankerWorld/issues/445), [#487](https://github.com/compoodment/ClankerWorld/issues/487), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#565](https://github.com/compoodment/ClankerWorld/issues/565), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#584](https://github.com/compoodment/ClankerWorld/issues/584), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#595](https://github.com/compoodment/ClankerWorld/pull/595), [#625](https://github.com/compoodment/ClankerWorld/issues/625), [#683](https://github.com/compoodment/ClankerWorld/issues/683), [#767](https://github.com/compoodment/ClankerWorld/issues/767), [#971](https://github.com/compoodment/ClankerWorld/issues/971), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1534](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1534), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566), [#1771](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1771))
-  - Restart the server and play straight away, then open Load World with several worlds. → The world runs and saves normally while the list is checked.
+  - Restart the server and press **Continue**, then use **Quit to Menu → Load World** with several worlds. → Play and saving work before opening the list; the world stays paused while the list is checked.
   - Wait for the first check. → It may be slow, but it lists every world.
   - Press Back, reopen it, open a different world and check once more. → The list appears almost at once, with the same marks.
   - Look at each card, on every visit. → Each shows its name, save time, seed and a small map of its land and water, older worlds too; the current world is tagged.
@@ -1277,7 +1277,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Use a healthy world holding a named save from an older version, then restart. → The unreadable save stays, and restarting still opens the healthy world.
   - From **Load a save...** on the current world, the Main Menu and after leaving the world, delete a named save and an autosave. → Each asks with a confirmation naming the right save.
   - Cancel one of those deletions. → Cancel keeps both saves.
-- [ ] **Two devices on one host.** ([#312](https://github.com/compoodment/ClankerWorld/issues/312), [#728](https://github.com/compoodment/ClankerWorld/issues/728), [#959](https://github.com/compoodment/ClankerWorld/issues/959), [#1024](https://github.com/compoodment/ClankerWorld/issues/1024))
+- [ ] **On a remote server: two devices on one world server.** ([#312](https://github.com/compoodment/ClankerWorld/issues/312), [#728](https://github.com/compoodment/ClankerWorld/issues/728), [#959](https://github.com/compoodment/ClankerWorld/issues/959), [#1024](https://github.com/compoodment/ClankerWorld/issues/1024))
   - Pair two devices, give two worlds different autosave settings with several copies each, and reload. → Each world keeps its own settings and listed autosaves.
   - From one device, change a world setting while the other device switches to the other world. → The change reaches only the world it was made in, or is refused.
   - Repeat for **Aging override**, the routine helper, autosave copies and turning rotation off, with the other device also selecting the other world. → The same holds each time.
@@ -1323,7 +1323,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Settings, interface size and dates.** ([#281](https://github.com/compoodment/ClankerWorld/issues/281), [#285](https://github.com/compoodment/ClankerWorld/issues/285), [#582](https://github.com/compoodment/ClankerWorld/pull/582), [#585](https://github.com/compoodment/ClankerWorld/pull/585), [#674](https://github.com/compoodment/ClankerWorld/issues/674), [#700](https://github.com/compoodment/ClankerWorld/pull/700))
   - Open Settings from the Main Menu and from the Pause Menu. → Interface, Display, Weather and Date and time each sit in a box, with no UI Scale or Render Resolution.
   - Use the drop-downs and click around. → The scrollbar stays clear of the drop-downs, and mouse clicks work.
-  - Look around the Main Menu. → There is no World Settings or other way into a world from it.
+  - Look around Settings opened from the Main Menu. → Only Game is shown; there is no World settings page.
   - Switch between the Game and World pages. → Pages keep their width and open at the top; World ends with Agent model, and Game shows Model calls right after API keys.
   - On a 1080p or 1440p screen, shrink a windowed game to 1280×720. → The interface switches from 200% to 100%, with crisp text.
   - Shrink it as narrow as it goes, opening Settings, Mod Library, Add Agent, Filters, World Info and a Profile. → Everything fits or scrolls, with nothing off screen.
@@ -1397,7 +1397,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Open a world at risk of dying out. → The dying-out warning with **Add a newcomer** shows above the first day, opening Add Agent without placing anyone.
   - Rename someone, then read the Event Log. → Lines are plain sentences naming who was involved, never "Agent" or "Founder", and using new names after a rename.
   - While playing, watch for partnerships, marriages, births, animal births, skill lessons and a paid Clinic's construction. → Each appears with the right names.
-  - Have a Blacksmith make a wooden axe from its controls, and from a Must Do order. → Each appears with the right names, and the axe reaches storage.
+  - Let an adult make a wooden axe at their household's Blacksmith by their own choice, then send **Order → Make a wooden axe**. → Each appears with the right names, and the axe reaches storage.
   - In a Town, watch a law decision, a government vote or handover, and a mayor's election or change of office. → Each gets a readable Event Log line naming the Town, and Towns shows its wording or result.
   - Save and reopen the world, then read those lines again. → They still show, without raw record or agent IDs.
   - Save and reload, then read the Event Log. → The names, headings and Find are kept, and weather lines are unchanged.
@@ -1437,7 +1437,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Try editing while running, and editing a dead agent. → The controls are unavailable.
   - Open a world of another size. → The fields use the new world's edges, clamping anything beyond them and still accepting valid values above 99.
   - Use the panel at each window size. → It stays usable at both sizes.
-  - After a lost connection leaves an instruction, order cancellation or paused edit waiting, open Response-loss recovery and load a save from the other device. → Retry becomes unavailable.
+  - On a remote server: after a lost connection leaves an instruction, order cancellation or paused edit waiting, open Response-loss recovery and load a save from the other device. → Retry becomes unavailable.
   - Leave the waiting request in the recovery list. → It stays kept until you forget it.
   - Reconnect. → The waiting request is never sent into the loaded world.
   - Lose a reply without loading a save. → An exact retry is still allowed.

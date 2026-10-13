@@ -125,11 +125,12 @@ public sealed partial class WorldRuntime
         var quantity = Math.Min(DestinationRoom(warehouse.InstanceId), Math.Min(WarehouseLoadQuantity, surplus.Quantity));
         if (quantity == 0) return;
         var availableBefore = PersonalWarehouseAvailableQuantity(actor, surplus.Lot.ItemKind);
+        var operation = WarehouseStockId(WorldTick, actor);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"warehouse-stock:{WorldTick}:{actor}", actor, warehouse.TownId!, surplus.Lot.Id,
+            operation, actor, warehouse.TownId!, surplus.Lot.Id,
             quantity, "town_resources_stored", warehouse.InstanceId));
         RecordNonLandGoodsCompletion(actor, surplus.Lot, warehouse.TownId!, quantity, warehouse.InstanceId,
-            $"warehouse-stock:{WorldTick}:{actor}", "public_service_goods", availableBefore);
+            operation, "public_service_goods", availableBefore);
         AppendEvent("town_resources_stored", $"{actor}:{surplus.Lot.Id}:{quantity}:{warehouse.InstanceId}");
     }
 
