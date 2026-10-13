@@ -123,15 +123,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task AdvanceFinalWordsTick(WorldRuntime world)
     {
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        foreach (var name in new[] { "pendingModelCalls", "pendingWills" })
-        {
-            var field = typeof(WorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-            var tasks = pending.Values.Cast<object>().Select(item =>
-                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-            await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
-        }
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class FinalWordsRecallProvider(string heirName, string? recallOwner = null) : IDecisionProvider
