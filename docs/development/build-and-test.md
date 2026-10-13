@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Build and test
@@ -11,9 +11,9 @@ This page is for contributors building the code. Players use the Windows
 bundle; they do not need the Godot editor or a development SDK.
 See [Playing](../playing.md).
 
-The host supports only the game world. Protocol tests default to a populated
+The server supports only the game world. Protocol tests default to a populated
 native world with automatic advancement disabled; tests can also use
-fresh founder setup. `fixture` world mode is rejected at actual host startup.
+fresh founder setup. `fixture` world mode is rejected at actual server startup.
 The unused-code cleanup retires checks of the scripted fixture, its
 authoring/persistence branches, the test-only PNG normalizer and prototype
 world-level faction/law, currency and culture records. Native pairing, signed
@@ -24,7 +24,7 @@ validation keep their existing paths.
 Protocol checks obtain world and resident identities from the authenticated
 baseline. Native before/after checks encode `WorldRuntime.ExportState()`
 with `WorldRuntimeCodec`; instruction IDs and issuer IDs come from the
-host's receipt and saved native instruction. These checks exercise the
+server's receipt and saved native instruction. These checks exercise the
 world authorization and persistence boundary used by the game.
 
 Fixture-retirement replay checks cover both native starting paces. The
@@ -47,7 +47,7 @@ connection once dependencies are restored. See [How it works](how-it-works.md).
 
 The first export target is Windows 11 x64. The current export is an unsigned
 portable bundle, and [the portable package](#portable-windows-package) adds the
-game's own host to it. The [Windows installer](#windows-installer) combines the
+game's own server to it. The [Windows installer](#windows-installer) combines the
 launcher and game packages. These checks do not establish code signing or public
 release. A Windows smoke test and paired reconnect were recorded on 2026-09-21;
 that historical check does not verify every later build.
@@ -59,7 +59,7 @@ The local server relaunch fixture separates request timeout from caller cancella
 Its timeout rows keep the caller token live and bound observation separately;
 the cancellation row cancels only after the held relaunch request starts.
 A controlled row delays delivery of the actual two-second request timeout beyond
-the former five-second caller timer, retaining the real host and secret checks.
+the former five-second caller timer, retaining the real server and secret checks.
 
 The native land-transfer fixture sends each eligible adult one suggestive
 instruction when its private provider changes from waiting to reading or
@@ -74,10 +74,10 @@ The fixture answers the actual optional-identity choice by keeping the person's
 identity. A controlled row holds a real midlife reply and checks that the
 fixture waits, then retains all notice, consent, checkpoint and replay checks.
 Reading and silence still give no consent; each adult must personally accept,
-including the separately held filer. Host disk writes, unchanged permissions
+including the separately held filer. Server disk writes, unchanged permissions
 before agreement, rollback, strict reload and complete-byte replay remain checked.
 
-The Town membership deadline fixture captures the exact registered hosted
+The Town membership deadline fixture captures the exact registered model
 request at the last valid acceptance tick without waiting for the provider's
 held-request startup signal. It checks that request's acceptance choice and
 remaining world time, then observes entry of that same provider callback before
@@ -163,7 +163,7 @@ unanswered partnership and strict reload remain checked. Pause must finish the
 actual cancelled model task without changing the paused checkpoint.
 
 The initial identity-pause fixture snapshots its registered worker through the
-existing shared hosted-request wait after one committed native tick. It observes
+existing shared model-request wait after one committed native tick. It observes
 the real request and cancellation token at provider entry with the complete
 checkpoint frozen, then checks pause cancellation and the finished late reply
 without changing the paused checkpoint. The wait is captured before pause
@@ -179,7 +179,7 @@ constructing the reply and checks that the wait keeps the complete checkpoint
 unchanged. The completion wait has a five-second bound; the three-second startup,
 twenty admission ticks, retained-work checks and next-tick reload comparison remain.
 
-Paired native host checkpoint fixtures must finish matching external inputs
+Paired native server checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary model decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
 household formation also finishes ordinary and life-moment replies before
@@ -214,7 +214,7 @@ the original bounded post-cancellation polling.
 
 The held field-cancellation fixture stops at its first working frame, or after
 the deliberate two additional ticks in its deferred-entry row. It captures the
-existing shared hosted-task wait before cancelling the order, then waits for
+existing shared model-task wait before cancelling the order, then waits for
 actual provider entry without advancing the world. The deferred row also delays
 entry by one second. Waiting for entry and releasing the cancelled reply must
 keep checkpoint bytes unchanged; the original eight subsequent ticks still
@@ -222,7 +222,7 @@ check the cancelled order, unspent seed, released reservation and absent plantin
 event. Polling additional ticks for entry could finish planting before cancellation.
 
 The long-recipe tool-request fixture admits its request through the personal
-provider and saves it through the real host. For byte-for-byte continuation,
+provider and saves it through the real server. For byte-for-byte continuation,
 it pauses that world, captures one checkpoint, and restores both compared
 worlds with synchronous idle providers for every resident. The personal
 provider returns for withdrawal. Independent background reply timing is not a
@@ -387,7 +387,7 @@ the failed report and its diagnostics when investigating one.
 
 ### Trace unexpected Windows checkpoint failures
 
-For the unexplained overwrite investigation in [#778](https://github.com/compoodment/ClankerWorld/issues/778),
+For the unexplained overwrite investigation in [#778](https://github.com/ClankerWorldOrg/ClankerWorld/issues/778),
 [Trace Windows checkpoints](../../.github/workflows/windows-checkpoint-trace.yml)
 is a manual Windows job. Choose `target` for the unchanged 2,500-save test,
 with one to twenty runs, or `full-suite` for one unfiltered Release run with
@@ -490,9 +490,9 @@ and a `manifest.sha256` of every file. The launcher and the game read the
 entry points from the version they check or start, so a newer package can
 move its programs without making an installed version look damaged; a
 version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
-commit, stages the host and version from committed inputs (excluding local
-edits), and checks that the host assembly carries the same version and commit,
-since the game reuses only a host of its own exact build
+commit, stages the server and version from committed inputs (excluding local
+edits), and checks that the server assembly carries the same version and commit,
+since the game reuses only a server of its own exact build
 ([Device pairing](device-pairing.md#local-server-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
@@ -506,7 +506,7 @@ is the same Godot project exported with the `launcher` feature, which makes
 `run/main_scene.launcher` open `res://Launcher/Launcher.tscn` instead of the
 game. `bash scripts/verify-godot-windows-export.sh --launcher` exports it to
 `export/launcher-windows-x64/ClankerWorldLauncher.exe`, and
-`bash scripts/package-windows.sh --launcher` zips it, without a host, as
+`bash scripts/package-windows.sh --launcher` zips it, without a server, as
 `ClankerWorld-Launcher-<launcher version>-windows-x64.zip`. The launcher's own
 version is `Launcher.Version` in `Launcher/Launcher.cs`, separate from the game
 version. CI uploads it as the `clankerworld-launcher-windows-11-x64` artifact.
@@ -563,8 +563,9 @@ shortcuts, HKCU registration and preserved file hashes. Its older setup is a
 synthetic metadata/README fixture; it is not a published launcher release.
 The required `verify` job waits for this check whenever code checks run.
 Native logs and results are in `windows-installer-evidence`; the owner's
-Windows 11 install/play/uninstall/reinstall check remains in
-[`playtest/1567-windows-installer.md`](../../playtest/1567-windows-installer.md).
+Windows 11 install/play/uninstall/reinstall check is kept in the
+[playtest list](../../playtest/README.md), and folded into the release checklist
+before publishing.
 
 ## Compare tick equivalence
 
@@ -582,7 +583,7 @@ provider, with a wrapper that records observations and returns its response
 unchanged. It makes no model-service calls.
 
 Defaults are two seeds, sixteen ticks per seed, and both generated Small worlds
-and the populated legacy private-map setup. Generated worlds use native first-Town layout,
+and the populated legacy test map. Generated worlds use native first-Town layout,
 founder placement and Start World. Override seeds, tick count and modes with
 the fourth through sixth arguments, for example:
 
@@ -631,6 +632,12 @@ It lists each paragraph, list item or table row that names one of them and
 says something is missing, unfinished or undecided, or that sits under a
 **Still to decide** heading. Read each one: the search finds candidates, and
 only reading decides whether a sentence is still true.
+
+The script scans `docs/`, `tools/` and the root `README.md` for status wording;
+it does not report every obsolete identifier or scan `skills/`. For a rename,
+also search the affected pages and skills directly, for example with
+`rg -n 'OldType|old/path' docs/development skills`, and compare each technical
+name and command with the current code.
 
 ## Disk space
 
@@ -717,7 +724,7 @@ The [playtest list](../../playtest/README.md) holds the merged changes that
 still need trying by hand in the Windows game. Automated checks, including the
 Windows CI jobs and a passing export, do not count as a playtest.
 
-When you record a playtest result, note what you know of the client and host
+When you record a playtest result, note what you know of the client and server
 commits, the Windows build, the date, the screen resolution and the interface
 size it picked; ask the owner for missing details only when a check failed. Say
 whether each check passed, failed or could not be run, with what you did and
