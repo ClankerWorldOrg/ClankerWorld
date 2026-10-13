@@ -23,7 +23,7 @@ public sealed class OwnerClientPresenceLeaseTests
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence);
             presence.RecordAuthenticatedReconnect("owner");
             Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             var committedTick = runtime.WorldTick;
             clock.Advance(TimeSpan.FromSeconds(5));
             Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
@@ -72,13 +72,12 @@ public sealed class OwnerClientPresenceLeaseTests
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence, logger);
             presence.RecordAuthenticatedReconnect("owner");
             Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             for (var attempt = 0; attempt < 50 &&
                  !logger.Messages.Any(message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                      message.Contains("model_unavailable", StringComparison.Ordinal)); attempt++)
             {
                 await service.AdvanceWithModelWorkAsync(runtime);
-                await Task.Delay(10);
             }
             Assert.Contains(logger.Messages, message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                 message.Contains("model_unavailable", StringComparison.Ordinal));
