@@ -51,6 +51,7 @@ public sealed class ManualLoadOwnershipTests
                 new WorldJevPolicy(), NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(), saves);
             var options = new GeographyOptions("manual-load-created-world", WorldSizePreset.Small);
             var preview = operation == "create-world" ? selection.Preview(options) : null;
+            var previousPosition = saves.CurrentPosition(world.Society.WorldId);
             saves.BeginLoad(selected.Id, backup.Id);
             void InterruptAfterCheckpoint(string stage)
             {
@@ -89,7 +90,7 @@ public sealed class ManualLoadOwnershipTests
             using var reloaded = file.LoadOrCreate(world.ExportState().WorldSeed);
             Assert.Equal(expected, WorldRuntimeCodec.Encode(reloaded.ExportState()));
             Assert.Equal(settings, new WorldAutosaveStore(path, world.Society.WorldId).Capture());
-            Assert.Equal(backup.Id, saves.CurrentPosition(world.Society.WorldId).ContinuedFromId);
+            Assert.Equal(previousPosition, saves.CurrentPosition(world.Society.WorldId));
             var after = saves.Create("After recovery", reloaded, [], settings);
             saves.Delete(after.Id, reloaded.Society.WorldId, after.CreatedUtc);
         }
