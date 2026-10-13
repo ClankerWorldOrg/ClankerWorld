@@ -52,6 +52,17 @@ internal sealed class InstructionStore(IEqualityComparer<string> comparer)
             ? active.Values.Select(key => records[key]).ToArray()
             : [];
 
+    public OwnerQueuedInstruction[] PruneClosedOrders()
+    {
+        var retired = records.Values.Where(item => item.Kind == OwnerInstructionKind.Order && item.Task?.IsTerminal == true)
+            .GroupBy(item => item.TargetAgentId, comparer)
+            .SelectMany(group => group.OrderByDescending(item => item.SubmissionSequence)
+                .Skip(OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent))
+            .ToArray();
+        foreach (var instruction in retired) records.Remove(instruction.IdempotencyKey);
+        return retired;
+    }
+
     private void Index(OwnerQueuedInstruction instruction)
     {
         if (instruction.Kind != OwnerInstructionKind.Order || instruction.Task is not { IsTerminal: false }) return;

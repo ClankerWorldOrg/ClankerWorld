@@ -280,7 +280,7 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     private const int AgentKnowledgeArtifactLimit = 8;
-    private const int RecentClosedInstructionLimitPerAgent = 6;
+    private const int RecentClosedInstructionLimitPerAgent = OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent;
     public const int RecentCivicProposalLimit = 8;
     public const int RecentSettledLandHearingLimit = 8;
     public const int RecentClosedLandTransferLimit = 8;

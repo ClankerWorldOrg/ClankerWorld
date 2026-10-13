@@ -82,4 +82,28 @@ public sealed class InstructionStoreTests
         $"private-instruction-{sequence:D10}", $"request-{sequence}", "owner:test", agent,
         OwnerInstructionKind.Order, "move to 1, 1", 0, 0, sequence, OwnerInstructionState.Queued,
         Task: new("move_to", "queued", 1, 0, "arrivals", false, TargetPosition: new(1, 1)));
+
+    [Fact]
+    public void PruningKeepsSixNewestClosedOrdersPerAgentAndEveryActiveOrder()
+    {
+        var store = new InstructionStore(StringComparer.Ordinal);
+        var firstActive = Instruction(1, FirstAgent);
+        var secondActive = Instruction(2, SecondAgent);
+        store.Add(firstActive.IdempotencyKey, firstActive);
+        store.Add(secondActive.IdempotencyKey, secondActive);
+        for (var sequence = 3; sequence <= 40; sequence++)
+        {
+            var instruction = Instruction(sequence, sequence % 2 == 0 ? FirstAgent : SecondAgent);
+            store.Add(instruction.IdempotencyKey, instruction with { Task = instruction.Task!.Transition(OrderStatus.Cancelled) });
+        }
+        var retired = store.PruneClosedOrders();
+        Assert.Equal(26, retired.Length);
+        Assert.Equal(14, store.Count);
+        Assert.All(store.Values.Where(item => item.Task!.IsTerminal).GroupBy(item => item.TargetAgentId), group =>
+            Assert.Equal(OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent, group.Count()));
+        Assert.DoesNotContain(store.Values, item => item.Task!.IsTerminal && item.SubmissionSequence < 29);
+        Assert.Same(firstActive, store.FirstActiveFor(FirstAgent));
+        Assert.Same(secondActive, store.FirstActiveFor(SecondAgent));
+        Assert.Empty(store.PruneClosedOrders());
+    }
 }

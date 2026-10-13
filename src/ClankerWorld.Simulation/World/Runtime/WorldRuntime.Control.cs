@@ -19,15 +19,15 @@ public sealed partial class WorldRuntime
         try
         {
             var idempotencyKey = request.IdempotencyKey.Trim();
-            if (instructionsByIdempotency.TryGetValue(idempotencyKey, out var existing))
+            if (instructionReceipts.TryGetValue(idempotencyKey, out var existing))
             {
-                if (!Matches(existing, request))
+                if (existing.RequestDigest != InstructionRequestDigest(request))
                 {
                     throw new InvalidOperationException(
                         "An idempotency key cannot be reused for a different instruction request.");
                 }
 
-                return instructionReceipts[idempotencyKey];
+                return existing.Receipt;
             }
 
             var targetId = request.TargetAgentId.Trim();
@@ -51,7 +51,7 @@ public sealed partial class WorldRuntime
 
             var sequence = nextInstructionSequence++;
             var instruction = new OwnerQueuedInstruction(
-                $"private-instruction-{sequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}",
+                InstructionIdFor(sequence),
                 idempotencyKey,
                 request.IssuerId.Trim(),
                 targetId,
@@ -71,9 +71,10 @@ public sealed partial class WorldRuntime
                 instruction.SubmittedTick,
                 instruction.RunEpoch,
                 sequence);
-            instructionReceipts.Add(instruction.IdempotencyKey, receipt);
+            instructionReceipts.Add(instruction.IdempotencyKey, new(receipt, InstructionRequestDigest(request)));
             AppendEvent("instruction_queued", $"{instruction.InstructionId}:{ToWireValue(instruction.Kind)}");
             CloseOrdersNotUnderstood(targetId);
+            PruneClosedOrderHistory();
             return receipt;
         }
         finally
@@ -117,6 +118,7 @@ public sealed partial class WorldRuntime
             orderCancellations.Add(key, new OwnerOrderCancellation(
                 key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(),
                 request.OrderId.Trim(), receipt));
+            PruneClosedOrderHistory();
             checkpointSchemaVersion = StateSchemaVersion;
             return receipt;
         }
@@ -452,12 +454,23 @@ public sealed partial class WorldRuntime
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
-    private static bool Matches(OwnerQueuedInstruction existing, OwnerInstructionRequest request) =>
-        existing.IssuerId == request.IssuerId.Trim() &&
-        existing.TargetAgentId == request.TargetAgentId.Trim() &&
-        existing.Kind == request.Kind &&
-        existing.Text == request.Text.Trim() &&
-        existing.Queue == request.Queue;
+    private static string InstructionIdFor(long sequence) =>
+        DerivedId.Create(FormattableString.Invariant($"private-instruction-{sequence:D10}"));
+
+    private const string InstructionRequestDigestPrefix = "order-request-";
+
+    private static string InstructionRequestDigest(OwnerInstructionRequest request) =>
+        DerivedId.Hash(JsonSerializer.Serialize(request with
+        {
+            IdempotencyKey = request.IdempotencyKey.Trim(),
+            IssuerId = request.IssuerId.Trim(),
+            TargetAgentId = request.TargetAgentId.Trim(),
+            Text = request.Text.Trim(),
+        }), InstructionRequestDigestPrefix);
+
+    private static string InstructionRequestDigest(OwnerQueuedInstruction instruction) =>
+        InstructionRequestDigest(new OwnerInstructionRequest(instruction.IdempotencyKey, instruction.IssuerId,
+            instruction.TargetAgentId, instruction.Kind, instruction.Text, instruction.Queue));
 
     private static bool Matches(OwnerOrderCancellation existing, OwnerOrderCancelRequest request) =>
         existing.IssuerId == request.IssuerId.Trim() &&

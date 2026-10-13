@@ -503,12 +503,12 @@ public sealed partial class WorldRuntime
 
         using var society = SocietyRuntime.Restore(state.Society);
         if (state.SchemaVersion >= ObserverGuidanceSchemaVersion &&
-            (state.Instructions is null || state.CompletedInstructionIds is null))
+            (state.Instructions is null || state.CompletedInstructionIds is null || state.InstructionReceipts is null))
             throw new InvalidDataException($"World schema {ObserverGuidanceSchemaVersion} requires authoritative instruction state.");
         var latestWorldEventId = state.Events.Count == 0 ? state.EventHistoryFloor : state.Events[^1].EventId;
         ValidateSavedInstructions(state.Instructions ?? [], state.CompletedInstructionIds ?? [], society.Checkpoint,
             state.Society.Society.WorldId, latestWorldEventId,
-            state.OrderCancellations ?? [], state.WorldContent);
+            state.OrderCancellations ?? [], state.WorldContent, state.InstructionReceipts);
         ValidateBeliefEventSources(state.Society.Society.AllBeliefs(), state.Events, state.EventHistoryFloor);
         ValidateConversationState(state, society.Checkpoint);
         AgentMarriageValidation.Validate(state, society.Checkpoint);
@@ -648,7 +648,8 @@ public sealed partial class WorldRuntime
         string worldId,
         long latestEventId,
         IReadOnlyList<OwnerOrderCancellation> cancellations,
-        DeclarativeWorldContentState worldContent)
+        DeclarativeWorldContentState worldContent,
+        IReadOnlyList<RecordedInstructionReceipt> receipts)
     {
         var people = checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var instructionIds = new HashSet<string>(StringComparer.Ordinal);
@@ -660,7 +661,7 @@ public sealed partial class WorldRuntime
         {
             if (instruction is null || string.IsNullOrWhiteSpace(instruction.InstructionId) ||
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
-                instruction.InstructionId != $"private-instruction-{instruction.SubmissionSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}" ||
+                instruction.InstructionId != InstructionIdFor(instruction.SubmissionSequence) ||
                 !instructionIds.Add(instruction.InstructionId) ||
                 !IsValidInstructionIdentifier(instruction.IdempotencyKey) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
@@ -694,6 +695,33 @@ public sealed partial class WorldRuntime
         if (instructions.Any(item => item.Kind == OwnerInstructionKind.Suggestion &&
                 completed.Contains(item.InstructionId) && item.ObservedTick is null))
             throw new InvalidDataException("A suggestion cannot be completed before an agent's personal model observes it.");
+
+        if (instructions.Where(item => item.Kind == OwnerInstructionKind.Order && item.Task?.IsTerminal == true)
+                .GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent) ||
+            cancellations.Where(item => item is not null).GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent))
+            throw new InvalidDataException("The closed order or cancellation history exceeds its per-agent display limit.");
+
+        var receiptKeys = new HashSet<string>(StringComparer.Ordinal);
+        var receiptIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var recorded in receipts)
+        {
+            if (recorded is null || recorded.Receipt is not { } receipt ||
+                !IsValidInstructionIdentifier(receipt.IdempotencyKey) || !receiptKeys.Add(receipt.IdempotencyKey) ||
+                receipt.Revision <= 0 || receipt.InstructionId != InstructionIdFor(receipt.Revision) || !receiptIds.Add(receipt.InstructionId) ||
+                receipt.SubmittedTick < 0 || receipt.SubmittedTick > checkpoint.WorldTick ||
+                receipt.RunEpoch < 0 || receipt.RunEpoch > checkpoint.RunEpoch ||
+                recorded.RequestDigest is not { } digest || !digest.StartsWith(InstructionRequestDigestPrefix, StringComparison.Ordinal) ||
+                digest.Length != InstructionRequestDigestPrefix.Length + System.Security.Cryptography.SHA256.HashSizeInBytes * 2 ||
+                !digest[InstructionRequestDigestPrefix.Length..].All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f') ||
+                byId.TryGetValue(receipt.InstructionId, out var instruction) &&
+                    (receipt.IdempotencyKey != instruction.IdempotencyKey || receipt.SubmittedTick != instruction.SubmittedTick ||
+                     receipt.RunEpoch != instruction.RunEpoch || recorded.RequestDigest != InstructionRequestDigest(instruction)))
+                throw new InvalidDataException("The saved instruction submission receipt is invalid.");
+        }
+        if (instructions.Any(instruction => !receiptIds.Contains(instruction.InstructionId)))
+            throw new InvalidDataException("An owner instruction is missing its stable submission receipt.");
 
         var cancellationKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var cancellation in cancellations)

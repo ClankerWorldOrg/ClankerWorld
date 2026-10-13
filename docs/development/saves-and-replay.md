@@ -773,9 +773,21 @@ Orders retain their existing saved status spelling. Runtime status is an
 `OrderStatus` enum changed only through the task transition operation; closed
 orders cannot return to active work. The runtime keeps a completion set only
 for suggestions and derives order completion from status when exporting the
-existing checkpoint list. This foundation changes no saved fields or schema.
-Current-format reload, cancellation and rejected-tick checks retain the same
-physical effects and receipts.
+existing checkpoint list. The status foundation changed no saved fields or schema.
+Schema 129 bounds closed orders to the six newest submissions per agent,
+keeping all active work. Cancellation retries are also bounded to six per
+agent, ordered by world tick, event ID and idempotency key. A retired order can
+no longer be cancelled through its old ID. Compact submission receipts and
+request hashes remain authoritative: a duplicate submission returns its original
+receipt, even after its task and text have retired, and conflicting reuse is
+refused. These receipts contain no status and do not duplicate completion state.
+
+Retirement drops order-only construction evidence and clears optional owner
+order links on native work and written artifacts. It preserves the actual
+inventory, consumed reservations, buildings, artifact contents and native work
+outcomes. Loading validates retained order links and rebuilds the active index.
+Earlier alpha schemas are refused and preserved without migration. The schema
+number is provisional until merge.
 
 ## Commit and restore rules
 

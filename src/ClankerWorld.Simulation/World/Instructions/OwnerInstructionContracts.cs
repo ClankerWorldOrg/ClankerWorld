@@ -194,6 +194,7 @@ public sealed record OwnerQueuedInstruction(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Queue = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OrderTask? Task = null)
 {
+    public const int RecentClosedOrderLimitPerAgent = 6;
     public const int MaximumTextLength = 512;
     public const int MaximumIdentifierLength = DerivedId.MaximumLength;
 }
@@ -209,3 +210,6 @@ public sealed record OwnerInstructionReceipt(
     long SubmittedTick,
     long RunEpoch,
     long Revision);
+
+/// <summary>Retains submission idempotency without retaining a closed task or its text.</summary>
+public sealed record RecordedInstructionReceipt(OwnerInstructionReceipt Receipt, string RequestDigest);

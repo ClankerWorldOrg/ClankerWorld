@@ -133,6 +133,9 @@ public sealed record WorldRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HandcartHitch>? HandcartHitches = null)
 {
     [JsonRequired]
+    public IReadOnlyList<RecordedInstructionReceipt> InstructionReceipts { get; init; } = [];
+
+    [JsonRequired]
     public IReadOnlyList<WorldActionRefusal> ActionRefusals { get; init; } = [];
     [JsonRequired]
     public long RefusedActionCount { get; init; }
