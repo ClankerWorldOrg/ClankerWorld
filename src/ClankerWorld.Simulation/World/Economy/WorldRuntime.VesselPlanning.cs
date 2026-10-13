@@ -60,7 +60,8 @@ public sealed partial class WorldRuntime
                      GoodsKinds.One(InventoryContainerRules.WaterJug), ExtraUnits: 1, ContentsKind: InventoryContainerRules.FreshWater)).Matches)
         {
             var jug = match.Lot;
-            if (WaterJugStockLocation(jug, household) is not { } source ||
+            if (jug.CarrierId is not null || !CanCollectJugForRefill(actor, jug) ||
+                WaterJugStockLocation(jug, household) is not { } source ||
                 FindFreshWaterShore(actor, source.Position, match.MoveUnits, house.Position) is not { } shore) continue;
             var plan = CreateVesselPlan(actor, choice, household, house, jug, source.Position, 1, shore: shore, returnTo: house.Position);
             if (CheckVesselPlan(plan).Allowed) return plan;
@@ -70,15 +71,31 @@ public sealed partial class WorldRuntime
 
     private VesselActionPlan? PlanEmptyVesselPickup(string actor, VesselChoice choice, string household, PlacedBuilding house)
     {
+        if (!CanStartEmptyVesselReturn(actor, house.InstanceId)) return null;
         foreach (var match in FindGoods(new(GoodsUse.VesselFor, actor, GoodsOwners.One(household),
                      new GoodsKinds([InventoryContainerRules.StoragePot, InventoryContainerRules.WaterJug, InventoryContainerRules.Handcart])))
                      .Matches.Where(match => choice.StockId is null || match.Lot.Id == choice.StockId).OrderBy(match => match.Lot.Id, StringComparer.Ordinal))
         {
             var vessel = match.Lot;
-            if (worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == vessel.StorageBuildingId) is not { } source) continue;
+            if (!IsEmptyWorkplaceVessel(vessel, house.InstanceId) ||
+                worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == vessel.StorageBuildingId) is not { } source) continue;
             var plan = CreateVesselPlan(actor, choice with { StockId = vessel.Id }, household, house, vessel, source.Position, 1);
             if (CheckVesselPlan(plan).Allowed) return plan;
         }
         return null;
     }
+
+    private bool CanCollectJugForRefill(string actor, InventoryLot jug) =>
+        CarriedContainer(actor, InventoryContainerRules.WaterJug) is null &&
+        ContainerFamilyQuantity(society.Checkpoint.Inventory, jug.Id) < FreeCarryCapacity(actor) &&
+        CanRemoveWorkstationStock(society.Checkpoint.Inventory, jug, 1);
+
+    private bool CanStartEmptyVesselReturn(string actor, string houseId) =>
+        CarriedHouseDelivery(actor) is null && FreeCarryCapacity(actor) >= 1 && DestinationRoom(houseId) >= 1;
+
+    private bool IsEmptyWorkplaceVessel(InventoryLot vessel, string houseId) =>
+        vessel.CarrierId is null && vessel.GroundPosition is null && vessel.StorageBuildingId is { } storage && storage != houseId &&
+        ContainerContentsQuantity(society.Checkpoint.Inventory, vessel.Id) == 0 &&
+        worldSimulation.Buildings.Any(source => source.InstanceId == storage && source.HouseholdId == vessel.OwnerId &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == source.DefinitionId && HouseholdBuildingKind(definition) is not null));
 }
