@@ -187,7 +187,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
             groundPosition: new(point.X, point.Y));
         inventory = InventoryAuthority.AddLot(inventory, "child-personal-stone", "stone", child, 1, storageBuildingId: house);
         inventory = InventoryAuthority.AddLot(inventory, "stationary-household-wood", "wood", household, 3, storageBuildingId: house);
-        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     }
 
     private static void AssertCargo(WorldRuntime world, string child, string household, string house, bool delivered)

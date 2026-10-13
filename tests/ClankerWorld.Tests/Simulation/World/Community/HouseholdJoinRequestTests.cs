@@ -200,7 +200,7 @@ public sealed class HouseholdJoinRequestTests
             "housing-review-expansion-wood", "wood", builder, 4);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         state = ExpansionLandFixture.WithRights(state, house, Enumerable.Range(-1, 3).SelectMany(dy =>
             Enumerable.Range(-1, 3).Select(dx => new GridPoint(house.Position.X + dx, house.Position.Y + dy))).Where(state.Map.IsLand));
@@ -500,7 +500,7 @@ public sealed class HouseholdJoinRequestTests
         {
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
         using var world = WorldRuntime.Restore(
@@ -592,7 +592,7 @@ public sealed class HouseholdJoinRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "no-house-farm-stone", "stone", Alpha, 2);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ScriptedProvider());
@@ -731,7 +731,7 @@ public sealed class HouseholdJoinRequestTests
         {
             Agents = state.Agents.Select(person => person.AgentId == agent
                 ? person with { Position = placed.Position } : person).ToArray(),
-            Society = state.Society with { Society = state.Society.Society with { Inventory = fillStock } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(fillStock) } },
         };
         using var crowded = WorldRuntime.Restore(state, _ => provider);
         // Each placement may lay a short Road, so the free tiles are found again each time.

@@ -135,7 +135,7 @@ public sealed partial class ParenthoodTests
             "readiness-food", 2, "other household use", society.WorldTick + 100, isExclusive: false);
         return state with
         {
-            Society = state.Society with { Society = society with { Inventory = inventory } },
+            Society = state.Society with { Society = society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with { FullnessBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
         };
     }

@@ -26,7 +26,7 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "full-personal-load", "iron", buyer, 8);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? new GridPoint(124, 44) : person.Position,
@@ -373,7 +373,7 @@ public sealed partial class ToolMakingRequestTests
             };
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-a", "wood", shop.HouseholdId!, 2, storageBuildingId: shop.InstanceId);
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-b", "wood", shop.HouseholdId!, 1, storageBuildingId: shop.InstanceId);
-            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         }
         using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
         await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
@@ -412,7 +412,7 @@ public sealed partial class ToolMakingRequestTests
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = changedPurpose } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(changedPurpose) } },
         }));
     }
 
@@ -747,7 +747,7 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "request-payment", "wood", buyer, 3);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? customerPosition : person.AgentId == seller ? sellerPosition : person.Position,

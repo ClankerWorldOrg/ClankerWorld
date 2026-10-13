@@ -216,7 +216,7 @@ public sealed class FarmFieldTests
         {
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
                 Cognition = state.Society.Cognition with
                 {
                     Queue = [],
@@ -932,7 +932,7 @@ public sealed class FarmFieldTests
 
     internal static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
     internal static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new IdleProvider());
     internal static IDecisionProvider HaulProvider() => new ChooseProvider("haul_farm_grain", "haul_household_stock");

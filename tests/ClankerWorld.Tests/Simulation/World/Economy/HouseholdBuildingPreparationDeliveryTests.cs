@@ -36,7 +36,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         Assert.Equal(4, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment: null));
         initial = initial with
         {
-            Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
+            Society = initial.Society with { Society = initial.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = initial.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = house.Position,

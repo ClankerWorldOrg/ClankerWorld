@@ -22,6 +22,7 @@ public sealed partial class WorldRuntime
         var actor = request.Actor!;
         if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         var root = index.Root(lot);
+        if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } promise) return promise;
         if (request.Use == GoodsUse.StorePersonal)
         {
             // Storing physical property keeps damage/spoilage, just as relocation

@@ -773,7 +773,7 @@ public sealed partial class RestaurantShopPipelineTests
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
 
     private static int Distance(GridPoint left, GridPoint right) => Math.Abs(left.X - right.X) + Math.Abs(left.Y - right.Y);
