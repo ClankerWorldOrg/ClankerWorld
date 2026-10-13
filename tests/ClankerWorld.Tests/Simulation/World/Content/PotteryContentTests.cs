@@ -210,6 +210,7 @@ public sealed class PotteryContentTests
                 PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
         }
+        inventory = StockHoldTestState.Custody(inventory);
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         using var eating = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new IdleProvider());
@@ -886,6 +887,7 @@ public sealed class PotteryContentTests
                     ? lot with { DeliveryBuildingId = house.InstanceId } : lot).ToArray(),
             };
         }
+        inventory = StockHoldTestState.Custody(inventory);
         var totalBefore = inventory.Lots.Sum(lot => lot.Quantity);
         state = SetActorCondition(state with
         {
