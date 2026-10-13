@@ -80,13 +80,8 @@ public sealed partial class WorldRuntime
         {
             if (FreeCarryCapacity(plan.Actor) <= 0 || HasCarriedEquipmentAtLeast(plan.Actor, pickup.ItemKind))
                 return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected tool is no longer needed or cannot be carried");
-            if (RecheckGoods(SharedCollectionRequest(plan.Actor, pickup.OwnerId, pickup.ItemKind), pickup.StockId) is not { Lot: var selected } ||
-                selected.ContainerLotId is not null || selected.CarrierId is not null ||
-                HouseholdStockPosition(selected) != pickup.Position || HouseholdStockInteractionRange(selected) != pickup.InteractionRange)
-                return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected shared tool is no longer available");
-            if (!IsWithinInteractionRange(agents[plan.Actor].Position, pickup.Position, pickup.InteractionRange) &&
-                Reach(plan.Actor, pickup.Position, ReachPurpose.MaterialGathering, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
-                return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected tool is out of reach now");
+            var sharedTool = CheckGatheringToolPickup(plan.Actor, pickup);
+            if (!sharedTool.Allowed) return sharedTool;
         }
         else if (FreeCarryCapacity(plan.Actor) < plan.PhysicalQuantity)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected harvest");
@@ -107,17 +102,7 @@ public sealed partial class WorldRuntime
         var state = agents[plan.Actor];
         if (plan.ToolPickup is { } pickup)
         {
-            if (!IsWithinInteractionRange(state.Position, pickup.Position, pickup.InteractionRange))
-            {
-                MoveToward(plan.Actor, state, pickup.Position, "equipment", pickup.InteractionRange);
-                return;
-            }
-            ApplyInventoryTransition(inventory => pickup.OwnerId == plan.HouseholdId
-                ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{plan.Actor}:{pickup.ItemKind}", pickup.StockId,
-                    pickup.OwnerId, 1, plan.Actor, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor))
-                : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{plan.Actor}:{pickup.ItemKind}", pickup.OwnerId,
-                    plan.Actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
-            AppendEvent("equipment_collected", $"{plan.Actor}:{pickup.ItemKind}");
+            ApplyGatheringToolPickup(plan.Actor, pickup);
             return;
         }
         GatherPlannedProjectMaterial(plan.Actor, state, plan.Choice.ItemKind, plan.Source, plan.Harvest!);

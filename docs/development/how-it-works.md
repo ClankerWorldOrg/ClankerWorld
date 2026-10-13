@@ -184,8 +184,13 @@ Blacksmith gathering uses `SmithGatherActionPlan` to retain the source, tool
 and complete harvest. A preparation step binds either the shared tool pickup
 or the spare cargo, its quantities and storage destination. The same check
 revalidates that step without selecting replacements, and ordinary gathering
-applies the frozen harvest through the common material commit. Tool collection
-and repair choices remain separate action areas.
+applies the frozen harvest through the common material commit. Repair choices remain a separate action area.
+
+Tool collection uses `ToolCollectionActionPlan` for the exact shared tool and
+its pickup route. It retains family eligibility, carried-tool tiers and room
+for a pending whole harvest, including the captured cargo that could make
+room after an upgrade. Its check and commit share the gathering-tool pickup
+boundary; application does not select another tool.
 
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
