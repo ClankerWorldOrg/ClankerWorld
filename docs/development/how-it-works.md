@@ -142,6 +142,14 @@ and vessel family. The shared check revalidates that exact shipment and named
 hold authorization before any movement or transfer. `GoodsPlanFamily` supplies
 one immutable family capture for both Town salvage and household shipments.
 
+Food-space recovery uses `FoodCargoActionPlan` to bind every cargo lot and quantity,
+the original storage destination and any orchard reservation release. It checks
+the same cargo at offer, admission and application. New spare stock never replaces
+the selected load; only the captured orchard units are released when set down.
+The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physical
+stock separate from the urgent adult seed exception. Tool and blacksmith cargo
+callers retain their existing forwarders until their action area moves.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -409,7 +417,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 247 references across 68 files. Named delivery, hold and cargo operations
+is 238 references across 65 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;

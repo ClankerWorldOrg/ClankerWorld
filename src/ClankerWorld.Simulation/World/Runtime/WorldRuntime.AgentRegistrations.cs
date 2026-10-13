@@ -130,7 +130,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "make_room_for_food", [], ["make_room_for_food"], static (runtime, action) =>
     {
-        runtime.MakeRoomForFood(action.AgentId, action.State);
+        runtime.ApplyFoodCargoPlan(action.Plan as FoodCargoActionPlan ?? runtime.PlanFoodCargo(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "store_town_resources", [], ["store_town_resources"], static (runtime, action) =>

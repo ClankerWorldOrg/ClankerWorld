@@ -51,6 +51,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
+        if (request.Use is GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery) return SpareCargoGoodsExclusion(request, index, lot);
         if (request.Use == GoodsUse.CarriedDelivery) return CarriedDeliveryGoodsExclusion(request.Actor!, index, lot);
         if (request.Use == GoodsUse.Salvage) return SalvageGoodsExclusion(request.Actor!, index, lot);
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
