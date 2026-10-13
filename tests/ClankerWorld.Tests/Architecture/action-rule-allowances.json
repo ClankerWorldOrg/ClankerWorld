@@ -209,10 +209,6 @@
     "item.AgeBand != SocietyAgeBand.Infant",
     "person.AgeBand == SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.InputCollection.cs": [
-    "FindUnoccupiedRoute(actor, position, input.Position, input.Range, additionalCarriedUnits: addedUnits)",
-    "FindUnoccupiedRoute(actor, position, returnTo.Value, returnRange, additionalCarriedUnits: addedUnits)"
-  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.MaterialOrders.cs": [
     "FindUnoccupiedRoute(actor, position, target, ResourceInteractionRange)"
   ],

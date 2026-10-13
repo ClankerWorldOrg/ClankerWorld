@@ -8,12 +8,9 @@ public sealed record SmithGatherChoice(string ItemKind)
     public string Encode() => ItemKind == "iron_ore" ? "gather_smith_ore" : InputPrefix + ItemKind;
 }
 
-public sealed record PlannedGatheringTool(string StockId, string OwnerId, string ItemKind,
-    GridPoint Position, int InteractionRange);
-
 public sealed record SmithGatherActionPlan(string ActorId, SmithGatherChoice Choice, string HouseholdId,
     string SmithId, GridPoint Destination, MapResource Source, ToolGatheringPlan? Harvest,
-    string? ToolOwnerId, string? ToolKind, PlannedGatheringTool? ToolPickup,
+    string? ToolOwnerId, string? ToolKind, PlannedEquipmentPickup? ToolPickup,
     PlannedCargoStorage? CargoPreparation, IReadOnlyList<GridPoint> Route,
     IReadOnlyList<GridPoint> ReturnRoute) : ActionPlan(ActorId, Choice.Encode())
 {

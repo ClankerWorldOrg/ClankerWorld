@@ -57,7 +57,7 @@ public sealed partial class WorldRuntime
         return plan.FutureCargoStorage is { } cargo ? CheckCargoStorage(cargo) : new();
     }
 
-    private ActionCheck CheckGatheringToolPickup(string actor, PlannedGatheringTool pickup)
+    private ActionCheck CheckGatheringToolPickup(string actor, PlannedEquipmentPickup pickup)
     {
         if (FreeCarryCapacity(actor) <= 0)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected tool");
@@ -77,19 +77,5 @@ public sealed partial class WorldRuntime
         ApplyGatheringToolPickup(plan.Actor, plan.Pickup);
     }
 
-    private void ApplyGatheringToolPickup(string actor, PlannedGatheringTool pickup)
-    {
-        var state = agents[actor];
-        if (!IsWithinInteractionRange(state.Position, pickup.Position, pickup.InteractionRange))
-        {
-            MoveToward(actor, state, pickup.Position, "equipment", pickup.InteractionRange);
-            return;
-        }
-        ApplyInventoryTransition(inventory => pickup.OwnerId == HouseholdFor(actor)
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId,
-                pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.OwnerId,
-                actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
-    }
+    private void ApplyGatheringToolPickup(string actor, PlannedEquipmentPickup pickup) => ApplyPlannedEquipmentPickup(actor, pickup);
 }

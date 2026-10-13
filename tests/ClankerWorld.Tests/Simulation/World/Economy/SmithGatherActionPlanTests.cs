@@ -84,7 +84,7 @@ public sealed class SmithGatherActionPlanTests
         using var world = WorldRuntime.Restore(state, _ => choices);
         for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.IsType<SmithGatherActionPlan>(choices.Plan);
-        var pickup = Assert.IsType<PlannedGatheringTool>(plan.ToolPickup);
+        var pickup = Assert.IsType<PlannedEquipmentPickup>(plan.ToolPickup);
         Assert.Equal("gather-plan-axe", pickup.StockId);
         Assert.Null(plan.Harvest);
         var checkpoint = world.ExportState();

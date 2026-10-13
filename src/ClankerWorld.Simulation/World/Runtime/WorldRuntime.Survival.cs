@@ -328,15 +328,26 @@ public sealed partial class WorldRuntime
             return;
         }
         if (RecheckGoods(SharedCollectionRequest(actor, item.OwnerId, kind), item.Id) is null) return;
+        ApplyPlannedEquipmentPickup(actor, new(item.Id, item.OwnerId, kind, storage, interactionRange));
+    }
+
+    private void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup)
+    {
+        var state = agents[actor];
+        if (!IsWithinInteractionRange(state.Position, pickup.Position, pickup.InteractionRange))
+        {
+            MoveToward(actor, state, pickup.Position, "equipment", pickup.InteractionRange);
+            return;
+        }
         // Personal equipment changes custody; household work tools are borrowed.
-        var borrowedTool = item.ItemKind == "tool" || ToolProgressionRules.Find(item.ItemKind) is not null;
-        var keepOwner = item.OwnerId == actor ||
-            borrowedTool && item.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
+        var borrowedTool = pickup.ItemKind == "tool" || ToolProgressionRules.Find(pickup.ItemKind) is not null;
+        var keepOwner = pickup.OwnerId == actor ||
+            borrowedTool && pickup.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
         ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{kind}",
-                item.OwnerId, actor, item.Id, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("equipment_collected", $"{actor}:{kind}");
+            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
+            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}",
+                pickup.OwnerId, actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
     }
 
     private bool HasCarriedEquipmentAtLeast(string actor, string kind)

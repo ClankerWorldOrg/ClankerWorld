@@ -152,7 +152,8 @@ the original storage destination and any orchard reservation release. It checks
 the same cargo at offer, admission and application. New spare stock never replaces
 the selected load; only the captured orchard units are released when set down.
 The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physical
-stock separate from the urgent adult seed exception. Tool callers retain their existing forwarders until their action area moves.
+stock separate from the urgent adult seed exception. Legacy order and project callers retain their existing forwarders; planned
+tool preparation shares captured cargo storage.
 Blacksmith preparation shares the captured cargo check and storage commit.
 
 Farm stock choices use `FarmStockActionPlan` for grain and seeds going to private
@@ -184,13 +185,22 @@ Blacksmith gathering uses `SmithGatherActionPlan` to retain the source, tool
 and complete harvest. A preparation step binds either the shared tool pickup
 or the spare cargo, its quantities and storage destination. The same check
 revalidates that step without selecting replacements, and ordinary gathering
-applies the frozen harvest through the common material commit. Repair choices remain a separate action area.
+applies the frozen harvest through the common material commit. Repair choices also keep their selected materials and preparation.
 
 Tool collection uses `ToolCollectionActionPlan` for the exact shared tool and
 its pickup route. It retains family eligibility, carried-tool tiers and room
 for a pending whole harvest, including the captured cargo that could make
 room after an upgrade. Its check and commit share the gathering-tool pickup
 boundary; application does not select another tool.
+
+Tool repair uses `ToolRepairActionPlan` to bind the worn tool, carried materials,
+missing stock or resource/tool/harvest, and any cargo storage step. Input routing
+selects an order once and checks that same order with its complete load. The
+repair commit consumes the captured material IDs; personal and borrowed tools
+retain their original split, gift, reservation and receipt rules. Legacy order
+forwarders choose a fresh step and share that commit. Planned and legacy
+collection use one exact equipment pickup operation, preserving the distinction
+between borrowing tools and transferring repair materials into personal custody.
 
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.

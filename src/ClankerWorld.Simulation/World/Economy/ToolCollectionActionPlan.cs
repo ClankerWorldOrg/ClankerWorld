@@ -20,7 +20,7 @@ public sealed record ToolCollectionChoice(string ItemKind)
 }
 
 public sealed record ToolCollectionActionPlan(string ActorId, ToolCollectionChoice Choice,
-    string? HouseholdId, PlannedGatheringTool Pickup, int MinimumFreeAfterPickup,
+    string? HouseholdId, PlannedEquipmentPickup Pickup, int MinimumFreeAfterPickup,
     PlannedCargoStorage? FutureCargoStorage, IReadOnlyList<GridPoint> Route) : ActionPlan(ActorId, Choice.Encode())
 {
     public override string Activity => $"collect the {Choice.ItemKind.Replace('_', ' ')}";
