@@ -207,5 +207,8 @@ test('the workflow API flags paginate with the installed gh binary', async t => 
   const collected = spawnSync('jq', ['-s', '.'], { input: actual.stdout, encoding: 'utf8' });
   assert.equal(collected.status, 0, collected.stderr);
   assert.deepEqual(JSON.parse(collected.stdout).flat(), [...alphaPage, ...nightlies]);
-  assert.deepEqual(requested, ['/releases', '/releases?page=2']);
+  assert.deepEqual(requested.map(value => {
+    const request = new URL(value, endpoint);
+    return [request.pathname, request.searchParams.get('page') || '1'];
+  }), [['/releases', '1'], ['/releases', '2']]);
 });
