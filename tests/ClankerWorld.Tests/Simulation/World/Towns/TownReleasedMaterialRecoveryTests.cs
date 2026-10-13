@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -295,7 +296,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         // released goods remain Town-owned and reserved for a separate job.
         foreach (var other in inventory.Lots.Where(item => item.Id != lot.Id && released.Contains(item.Id) &&
                      item.GroundPosition is not null && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
-            inventory = InventoryAuthority.Reserve(inventory, "recovery:fixture-claim:" + other.Id, other.OwnerId,
+            inventory = InventoryAuthority.Reserve(inventory, DerivedId.Create("recovery:fixture-claim:" + other.Id), other.OwnerId,
                 other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
