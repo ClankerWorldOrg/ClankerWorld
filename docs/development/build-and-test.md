@@ -599,7 +599,9 @@ headings in every Markdown file, that each entry in `changes/` starts with
 a `- ` bullet, and that game-design chapters don't describe what is built,
 such as "not built yet" or "remains unfinished". They do not check that any particular page exists. The
 documentation test reads each page with both LF and CRLF line endings, and CI
-also runs it on a Windows checkout. That job is separate from a Windows game
+also runs it on a Windows checkout. When the change needs code checks, that
+job also runs `IdentityTextBoundaryTests` against the native checkout paths and
+the base commit's identity/text allowances. That job is separate from a Windows game
 playtest and from the native provider-storage checks.
 
 To find sentences a change may have made false, search every page for the
