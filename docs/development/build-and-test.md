@@ -468,8 +468,10 @@ self-contained `win-x64` world server in `server/` (`dotnet publish`, no .NET in
 needed on the player's PC), a short `README.txt`, a `package.json` naming its entry points
 (`{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}`)
 and a `manifest.sha256` of every file. The launcher and the game read the
-entry points from the version they check or start, so a newer package can
-move its programs without making an installed version look damaged; a
+entry points relative to the version's package root. When the game is in a
+subfolder, it finds the enclosing manifest that names its executable; local
+developer runs use the same root for the server and options marker. A newer
+package can move its programs without making an installed version look damaged; a
 version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
 commit, stages the server and version from committed inputs (excluding local
 edits), and checks that the server assembly carries the same version and commit,

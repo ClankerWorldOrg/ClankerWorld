@@ -77,6 +77,7 @@ public sealed class LocalServerTests
             var layout = LocalServerLayout.FindBundled(game, localAppData);
 
             Assert.NotNull(layout);
+            Assert.Null(LocalServerLayout.FindBundled(Path.Combine(Path.GetDirectoryName(game)!, "AnotherGame.exe"), localAppData));
             Assert.Equal(Path.Combine(Path.GetDirectoryName(game)!, "server", "ClankerWorld.Server.exe"), layout.FileName);
             Assert.Equal(Path.Combine(Path.GetDirectoryName(game)!, "server"), layout.ServerDirectory);
             Assert.Equal(Path.Combine(localAppData, "ClankerWorld"), layout.DataDirectory);
