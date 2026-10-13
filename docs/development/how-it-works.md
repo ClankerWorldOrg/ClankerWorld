@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # How the game works
@@ -2232,8 +2232,9 @@ so each can be checked on its own
    35% tree chance; meadows have a 2% chance. Seeded ranking spreads trees
    through any chunk that reaches its budget instead of filling one edge.
 
-The running world places starter clay on unoccupied, reachable buildable dry
-ground beside a river or lake. A rocky mountain shore can be walkable but is
+The running world places starter clay on unoccupied buildable dry ground beside
+a river or lake, reachable on foot from the accepted Town's Warehouse. Placement
+and strict reload use the same bank rule. A rocky mountain shore can be walkable but is
 not a valid clay resource site. If no valid bank exists, the runtime records
 `starting_resource_blocked` for clay and keeps advancing and saving.
 
