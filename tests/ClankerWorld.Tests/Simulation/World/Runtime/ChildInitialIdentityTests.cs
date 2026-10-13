@@ -284,7 +284,7 @@ public sealed class ChildInitialIdentityTests
             state = firstGeneration.ExportState();
         }
 
-        const string partnerId = "founder:00000000000000000000000000000003";
+        const string partnerId = NormalPathWorld.Founder3;
         Assert.Equal(SocietyAgeBand.Adult, state.Society.Society.GetAgent(partnerId).AgeBand);
         var household = state.Society.Society.GetAgent(parentId).HouseholdId!;
         var home = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&

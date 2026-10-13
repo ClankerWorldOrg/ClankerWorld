@@ -15,7 +15,7 @@ public sealed partial class PortBoatRuntimeTests
     private static readonly Lazy<Task<byte[]>> PaidBoat = new(() => BuildPaidBoatAsync());
     private static readonly Lazy<Task<byte[]>> Underway = new(StartVoyageAsync);
     private static readonly string[] ReservedKinds = ["wood", "stone", "rope", "iron"];
-    private const string Follower = "founder:00000000000000000000000000000002";
+    private const string Follower = NormalPathWorld.Founder2;
     private const string Visitor = "agent:00000000000000000000000000000010";
     private static readonly string[] Blockers = ["agent:00000000000000000000000000000011", "agent:00000000000000000000000000000012",
         "agent:00000000000000000000000000000013", "agent:00000000000000000000000000000014"];
@@ -640,7 +640,7 @@ public sealed partial class PortBoatRuntimeTests
 
     private sealed class BoatPolicy
     {
-        internal const string Author = "founder:00000000000000000000000000000001";
+        internal const string Author = NormalPathWorld.Founder1;
         internal WorldRuntime? World { get; set; }
         internal bool Build { get; set; }
         internal bool Freshwater { get; set; }

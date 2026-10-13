@@ -2,7 +2,7 @@
 title: Derived identities
 type: architecture
 status: active
-updated: 2026-10-11
+updated: 2026-10-13
 ---
 
 # Derived identities
@@ -92,3 +92,14 @@ recomputation together.
 
 See [Saves and replay](saves-and-replay.md#bounded-derived-identities) for the
 schema boundary and older-save behavior.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.

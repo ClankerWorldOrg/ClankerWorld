@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class SwimmingRuntimeTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
 
 
     [Theory]

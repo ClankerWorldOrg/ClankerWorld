@@ -15,8 +15,8 @@ namespace ClankerWorld.Tests;
 public sealed class TownCouncilRuntimeTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private const string FirstAuthor = "founder:00000000000000000000000000000001";
-    private const string SecondAuthor = "founder:00000000000000000000000000000003";
+    private const string FirstAuthor = NormalPathWorld.Founder1;
+    private const string SecondAuthor = NormalPathWorld.Founder3;
     private const string FirstText = "Harvest dates: Publish harvest dates for our Town.";
     private const string SecondText = "Storm notices: Share notices about storms in our Town.";
 
@@ -431,7 +431,7 @@ public sealed class TownCouncilRuntimeTests
         {
             var observation = request.Observation;
             Observations.Enqueue(observation);
-            var ownTown = actor is FirstAuthor or "founder:00000000000000000000000000000002" ? "town:first" : "town:second";
+            var ownTown = actor is FirstAuthor or NormalPathWorld.Founder2 ? "town:first" : "town:second";
             var legal = observation.Candidates.Where(c => c.Id.StartsWith("civic|" + ownTown + "|", StringComparison.Ordinal)).ToArray();
             var text = proposalOverride ?? (ownTown == "town:first" ? FirstText : SecondText);
             var author = actor is FirstAuthor or SecondAuthor;

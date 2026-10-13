@@ -12,8 +12,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class NewbornModelBindingCheckpointTests
 {
-    private const string First = "founder:00000000000000000000000000000001";
-    private const string Second = "founder:00000000000000000000000000000002";
+    private const string First = NormalPathWorld.Founder1;
+    private const string Second = NormalPathWorld.Founder2;
     private static readonly ConcurrentDictionary<(int SeedSuffix, bool SeedIdentified), Lazy<Task<byte[]>>> Prepared = new();
 
     [Theory]

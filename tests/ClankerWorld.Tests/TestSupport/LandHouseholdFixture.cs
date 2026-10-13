@@ -14,7 +14,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         WorldRuntimeState state, string actor, bool quietFirstRefusal = false, bool heldIdentityReply = false,
         bool cancelFoundReply = false)
     {
-        const string identityActor = "founder:00000000000000000000000000000001";
+        const string identityActor = NormalPathWorld.Founder1;
         var choices = new NativeLandFormationChoices(actor, quietFirstRefusal)
         { HeldIdentityId = heldIdentityReply ? identityActor : null, HoldFoundReply = cancelFoundReply };
         Func<WorldRuntime, Task> awaitRequests = WaitForTransferChoices;

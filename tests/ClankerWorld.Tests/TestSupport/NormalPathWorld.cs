@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
@@ -11,6 +12,28 @@ namespace ClankerWorld.Tests;
 /// </summary>
 internal static class NormalPathWorld
 {
+    internal const string Founder1 = "founder:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
+    internal const string Founder2 = "founder:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002";
+    internal const string Founder3 = "founder:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003";
+    internal const string Founder4 = "founder:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004";
+
+    internal static string FounderId(int ordinal) => ordinal switch
+    {
+        1 => Founder1,
+        2 => Founder2,
+        3 => Founder3,
+        4 => Founder4,
+        _ => throw new ArgumentOutOfRangeException(nameof(ordinal)),
+    };
+
+    internal static string FounderName(int ordinal) => ordinal switch
+    {
+        1 => "Élodie 🌿 Vale",
+        2 => "Jose\u0301 🧭 Reed",
+        3 => "Åsa 🐎 Birch",
+        4 => "Noe\u0308l ⛵ Moss",
+        _ => throw new ArgumentOutOfRangeException(nameof(ordinal)),
+    };
     public static WorldRuntime CreateGenerated(string seed, Func<string, IDecisionProvider> providerFactory,
         GridPoint? roughTownSite = null, WorldSizePreset size = WorldSizePreset.Small, int? ticksPerDay = null, int calendarOffsetTicks = 0)
     {
@@ -33,6 +56,48 @@ internal static class NormalPathWorld
             .Take(WorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
         for (var index = 0; index < placements.Length; index++)
             world.PlaceFounder($"founder:{index + 1:D32}", placements[index]);
+        // Placement itself has a GUID grammar. Prepare maximum-length saved identities
+        // with the Society operations, without widening the game's placement contract.
+        var placed = world.ExportState();
+        var societyBefore = placed.Society.Society;
+        var hardened = societyBefore with
+        {
+            Agents = [],
+            Relationships = [],
+            Households = societyBefore.Households.Select(home => home with { MemberIds = [] }).ToArray(),
+        };
+        for (var index = 0; index < placements.Length; index++)
+        {
+            var original = societyBefore.Agents[index];
+            var founder = SocietyRules.CreateFounder(FounderId(index + 1), FounderName(index + 1),
+                config: hardened.Config, startingAge: societyBefore.AgeAt(original, 0));
+            hardened = SocietyRules.PlaceFounder(hardened, founder, original.HouseholdId!).Checkpoint;
+        }
+        string ReplaceFounder(string text)
+        {
+            for (var index = 0; index < placements.Length; index++)
+                text = text.Replace(societyBefore.Agents[index].Id, FounderId(index + 1), StringComparison.Ordinal);
+            return text;
+        }
+        var preparedFounders = WorldRuntime.Restore(placed with
+        {
+            Society = placed.Society with { Society = hardened },
+            FounderSetup = placed.FounderSetup! with { FounderIds = Enumerable.Range(1, placements.Length).Select(FounderId).ToArray() },
+            Agents = placed.Agents.Select(person => person with { AgentId = ReplaceFounder(person.AgentId) }).ToArray(),
+            Towns = placed.Towns!.Select(town => town with
+            {
+                ResidentIds = town.ResidentIds.Select(ReplaceFounder).ToArray(),
+                Council = town.Council is { } council ? council with
+                {
+                    Members = council.Members.Select(ReplaceFounder).ToArray(),
+                    ElectionHistory = council.ElectionHistory.Select(election => election with
+                    { Voters = election.Voters.Select(ReplaceFounder).ToArray() }).ToArray(),
+                } : null,
+            }).ToArray(),
+            Events = placed.Events.Select(entry => entry with { Detail = ReplaceFounder(entry.Detail) }).ToArray(),
+        }, providerFactory);
+        world.Dispose();
+        world = preparedFounders;
         if (ticksPerDay is { } day)
         {
             // Controlled short-day fixtures choose their clock before Start World opens its first election.

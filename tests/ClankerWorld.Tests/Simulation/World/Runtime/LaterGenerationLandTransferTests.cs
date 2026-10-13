@@ -77,7 +77,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         }
         var policy = new NativeTransferChoices(actor, target, source.Tiles.ToArray())
-        { HeldIdentityId = heldIdentityReply ? "founder:00000000000000000000000000000003" : null };
+        { HeldIdentityId = heldIdentityReply ? NormalPathWorld.Founder3 : null };
         using var world = WorldRuntime.Restore(state, _ => policy);
         world.Resume();
         world.SubmitInstruction(new("native-transfer-guidance", "owner:test", actor, OwnerInstructionKind.Suggestion,
