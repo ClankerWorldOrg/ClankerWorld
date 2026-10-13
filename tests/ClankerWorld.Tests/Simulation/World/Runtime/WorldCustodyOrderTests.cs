@@ -525,7 +525,7 @@ public sealed class WorldCustodyOrderTests
         for (var tick = 0; tick < 3; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == unknown.InstructionId ||
             request.ObserverGuidance?.Any(message => message.InstructionId == unknown.InstructionId) == true);
-        Assert.Contains(unknown.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
     }
 

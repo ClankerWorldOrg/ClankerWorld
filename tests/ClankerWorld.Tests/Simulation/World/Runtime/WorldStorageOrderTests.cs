@@ -440,7 +440,7 @@ public sealed partial class WorldStorageOrderTests
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
             var invoked = await AwaitStorageSignal(provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
             {
                 Assert.False(provider.Started.Task.IsCompleted);

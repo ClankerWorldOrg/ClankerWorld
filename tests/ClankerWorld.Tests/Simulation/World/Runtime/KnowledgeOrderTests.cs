@@ -132,7 +132,7 @@ public sealed class KnowledgeOrderTests
         Assert.Equal(0, Order(world, second).CompletedUnits);
         await FinishTogether(world, second);
         var final = world.ExportState();
-        Assert.Equal(new[] { first.InstructionId, second.InstructionId },
+        Assert.Equal(new[] { first.InstructionId.Value, second.InstructionId.Value },
             final.Knowledge!.Artifacts.Select(item => item.OrderInstructionId));
         Assert.Equal(1, Quantity(final, actor, "paper"));
         AssertReload(final);
@@ -299,7 +299,7 @@ public sealed class KnowledgeOrderTests
         Assert.Equal(original.Id, current.Id);
         if (matching)
         {
-            Assert.Equal(receipt.InstructionId, current.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, current.OrderInstructionId);
             // Continue through the normal built-in order path after admission.
             using var resumed = Restore(world.ExportState());
             await FinishTogether(resumed, receipt);

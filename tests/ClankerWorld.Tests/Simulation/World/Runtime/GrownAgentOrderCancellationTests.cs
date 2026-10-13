@@ -71,7 +71,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal("queued", Assert.Single(cancelled.Instructions!, item => item.InstructionId == queued.InstructionId).Task!.Status);
         var savedCancellation = Assert.Single(cancelled.OrderCancellations!);
         Assert.Equal(actor, savedCancellation.TargetAgentId);
-        Assert.Equal(instruction.InstructionId, savedCancellation.OrderId);
+        Assert.Equal(instruction.InstructionId.Value, savedCancellation.OrderId);
         Assert.Equal(world.Society.WorldId, savedCancellation.WorldId);
         Assert.Equal(receipt, savedCancellation.Receipt);
         var saved = WorldRuntimeCodec.Encode(cancelled);

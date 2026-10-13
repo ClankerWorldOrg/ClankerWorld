@@ -58,6 +58,14 @@ so a raw interpolated string cannot be credited. Existing string factories are
 parsed explicitly at these boundaries; their digest and prefix spellings stay
 the same. Optional handles retain null, and JSON still writes strings.
 
+Inventory reservations and offers, native remedy/market/owner/land-transfer
+receipt handles, and their saved reservation/offer links and input lists also
+use `Identity`. Ordinal ordering and equality use the identity's saved value;
+complete lot, owner and other provenance references remain strings. Asset
+reservations identify content assets under their separate content contract.
+Typed handles reject oversized or control-bearing saved values visibly during
+strict loading. Earlier alpha spellings outside that bound are not migrated.
+
 The Town, animal, knowledge, trade and belief validators use these shared
 rules. The five prior excerpt implementations in law labels, memory summaries,
 Town Council/hearing text and memory retrieval are removed; their callers name

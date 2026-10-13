@@ -266,7 +266,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Society = state.Society with
             {
-                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray() },
+                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray() },
             },
         };
         // A controlled helper exercises the runtime's age and memory boundary.

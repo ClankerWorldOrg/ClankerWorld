@@ -201,7 +201,7 @@ internal sealed partial class TownSystem
                     var materials = NonLandRepairMaterials(receipt.ItemKind);
                     if (materials.Count == 0 || receipt.RepairInputs.Count != materials.Count ||
                         receipt.RepairInputs.Any(input => input is null || input.Reservation is null) ||
-                        receipt.RepairInputs.Select(input => input.Reservation.Id).Distinct(StringComparer.Ordinal).Count() != receipt.RepairInputs.Count ||
+                        receipt.RepairInputs.Select(input => input.Reservation.Id.Value).Distinct(StringComparer.Ordinal).Count() != receipt.RepairInputs.Count ||
                         receipt.RepairInputs.Any(input => input.Reservation.State != InventoryReservationState.Completed ||
                             !consumedRepairInputs.Add(input.Reservation.Id) ||
                             input.Reservation.Purpose != "equipment_repair" || input.Reservation.OwnerId != receipt.PreviousOwnerId ||

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -399,7 +400,7 @@ public sealed partial class ToolMakingRequestTests
             WorldSimulation = state.WorldSimulation with
             {
                 ProductionJobs = state.WorldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
-                    ? candidate with { InputReservationIds = ids } : candidate).ToArray(),
+                    ? candidate with { InputReservationIds = (ids).Select(Identity.Parse).ToArray() } : candidate).ToArray(),
             },
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithReceiptIds([])));

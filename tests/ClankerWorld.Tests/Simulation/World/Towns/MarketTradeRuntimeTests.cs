@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -221,8 +222,8 @@ internal static class MarketTradeScenario
         var changed = receipt with
         {
             OwnerId = falseOwner,
-            Id = MarketTradeRules.ReceiptId(receipt.OccupancyId,
-            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt))
+            Id = Identity.Parse(MarketTradeRules.ReceiptId(receipt.OccupancyId,
+            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt)))
         };
         var damaged = state with
         {

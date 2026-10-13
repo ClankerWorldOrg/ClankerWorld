@@ -255,7 +255,7 @@ public sealed class PrivateMemorySummaryTests
                 "I walked along a familiar path and remembered the weather that afternoon " + index, "private", 0))
                 .Append(new(Identity.Parse("foreign"), other, owner, "Another person's secret supply location.", "private", 0))
                 .Append(new(Identity.Parse("permanent"), owner, other, "My learned skill remains dependable.", "private", 0) { Kind = SocietyMemoryKind.Skill })
-                .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
             Beliefs = [new(Identity.Parse("rumor"), owner, "Someone told me the familiar path was muddy; I have not seen it myself.",
                 SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other)],
         };

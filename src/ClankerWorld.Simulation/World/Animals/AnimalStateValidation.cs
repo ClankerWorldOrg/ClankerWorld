@@ -28,7 +28,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("Animal identities and permissions must be unique, short identifiers.");
         }
         Unique(world.Animals.Select(animal => animal.Id));
-        Unique(world.Offers.Select(offer => offer.Id));
+        Unique(world.Offers.Select(offer => offer.Id.Value));
         UniqueAgents(world.SupplyTrips.Select(trip => trip.ActorId));
         UniqueAgents(world.Animals.Select(animal => animal.RiderId).OfType<string>());
         UniqueAgents(world.Animals.Select(animal => animal.LeaderId).OfType<string>());

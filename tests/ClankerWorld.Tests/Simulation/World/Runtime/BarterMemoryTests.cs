@@ -73,7 +73,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(SocietyMemoryKind.Relationship, memory.Kind);
             Assert.Equal("public", memory.Visibility);
             Assert.Equal("Completed a mutually accepted exchange with " + checkpoint.GetAgent(memory.SubjectId).Name + ".", memory.Summary);
-            if (!nativeBorn) Assert.Equal("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId, memory.Id);
+            if (!nativeBorn) Assert.Equal("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId, memory.Id.Value);
             Assert.Equal(beforeTrust[memory.OwnerId] + 1, world.Agents.Single(person => person.AgentId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }

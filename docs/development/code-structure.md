@@ -46,8 +46,9 @@ Follow these now. A refactor step that lands turns a rule into a check.
 
 1. **Never build an ID or cut text by hand.** Build IDs only through the
    derived-identity helpers ([Derived identities](derived-identities.md)).
-   Don't add another length check, character check or excerpt function; until
-   step 5 gives them one home, reuse the one the area already has.
+   Use `Identity` at the storage boundaries and `IdentityRules.Reference`
+   for complete references. Text checks and excerpts use `BoundedText`.
+   The source allowance can only shrink; do not add another local rule.
 2. **One definition per action.** An action's offer works out its plan once:
    which goods, target, route and quantity. Its execution checks that same plan
    again instead of choosing again. Apply candidate caps only after filtering.

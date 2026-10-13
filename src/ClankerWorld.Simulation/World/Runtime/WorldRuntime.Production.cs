@@ -569,7 +569,7 @@ public sealed partial class WorldRuntime
         long targetTick)
     {
         var inventoryState = society.Checkpoint.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
+        var inputs = job.InputReservationIds.Select(id => inventoryState.GetReservation(id)).ToArray();
         var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
             job.WorkerId, ToolFamily.Knife, job.ToolLotId);
         var inputUnusable = inputs.Any(reservation =>
@@ -597,7 +597,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var current = inventory;
-            foreach (var reservationId in job.InputReservationIds.Order(StringComparer.Ordinal))
+            foreach (var reservationId in job.InputReservationIds.Order())
             {
                 current = InventoryAuthority.ConsumeReservation(current, reservationId);
             }

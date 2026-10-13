@@ -307,7 +307,7 @@ public sealed class KnowledgeCopyOrderTests
         Assert.Equal(job.Id, current.Id);
         if (matching)
         {
-            Assert.Equal(receipt.InstructionId, current.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, current.OrderInstructionId);
             Assert.Equal(source.Id, Order(world, receipt).KnowledgeCopySourceArtifactId);
             using var resumed = Restore(world.ExportState());
             await FinishTogether(resumed, receipt);

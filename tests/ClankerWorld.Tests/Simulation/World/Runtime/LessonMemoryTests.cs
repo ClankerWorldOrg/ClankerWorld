@@ -50,7 +50,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal("public", memory.Visibility);
         Assert.Equal(SocietyMemoryKind.Skill, memory.Kind);
         Assert.Equal(skill.LearnedTick, memory.SourceTick);
-        if (!nativeBorn) Assert.Equal($"lesson-gratitude:{student}:{teacher}:Crafting", memory.Id);
+        if (!nativeBorn) Assert.Equal($"lesson-gratitude:{student}:{teacher}:Crafting", memory.Id.Value);
 
         // Set both continuations at the public external-call cancellation boundary.
         // Nothing is filtered from the saved bytes or inserted into the memory ledger.

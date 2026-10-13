@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -283,7 +284,7 @@ public sealed class PersonalEquipmentTests
             Assert.True((await ordered.AdvanceOneTickAsync()).Advanced);
 
         var after = ordered.ExportState();
-        Assert.Contains(order.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, after.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(after.Society.Society.Inventory.Lots, lot => lot.Id == "order-berries");
         Assert.Null(after.Agents.Single(item => item.AgentId == actor).Equipment?.Repair);
         Assert.Equal(2, ordered.Society.Inventory.GetLot("order-cloth").Quantity);
@@ -322,7 +323,7 @@ public sealed class PersonalEquipmentTests
                 Project = pausedPlan,
                 LastDecisionContext = null,
                 Equipment = new(ClothingLotId: coatId,
-                    Repair: new(coatId, shopId, started, 0, [reservationId])),
+                    Repair: new(coatId, shopId, started, 0, [Identity.Parse(reservationId)])),
             } : person).ToArray(),
         };
         var provider = new HeldRepairPlanningProvider();
@@ -342,7 +343,7 @@ public sealed class PersonalEquipmentTests
         Assert.Equal(1, provider.Calls);
         Assert.True(world.WorldTick - started > 120);
         var final = world.ExportState();
-        Assert.DoesNotContain(receipt.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(receipt.InstructionId.Value, final.CompletedInstructionIds ?? []);
         var saved = WorldRuntimeCodec.Encode(final);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Choices([]));
         Assert.Null(restored.Agents.Single(person => person.AgentId == actor).Equipment?.Repair);
@@ -381,7 +382,7 @@ public sealed class PersonalEquipmentTests
         inventory = InventoryAuthority.AddLot(inventory, clothId, "cloth", actor, 2);
         inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, clothId, 1,
             "equipment_repair", started + 120);
-        var repair = new EquipmentRepairWork(coatId, shopId, started, 0, [reservationId]);
+        var repair = new EquipmentRepairWork(coatId, shopId, started, 0, [Identity.Parse(reservationId)]);
         state = WithWeather(WithInventory(state, inventory), WeatherKind.Clear) with
         {
             Conversations = [AgentConversationRules.Propose(conversationId, other, actor,

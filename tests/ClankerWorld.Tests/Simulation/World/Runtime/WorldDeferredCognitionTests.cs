@@ -512,7 +512,7 @@ public sealed class WorldDeferredCognitionTests
         var initialObservation = Assert.Single(staleProvider.ObservedRequests);
         Assert.Equal(world.Society.WorldId, initialObservation.WorldId);
         Assert.Equal(targetId, initialObservation.AgentId);
-        Assert.Equal(first.InstructionId, Assert.Single(initialObservation.ObserverGuidance!).InstructionId);
+        Assert.Equal(first.InstructionId.Value, Assert.Single(initialObservation.ObserverGuidance!).InstructionId);
 
         world.Pause();
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
@@ -544,18 +544,18 @@ public sealed class WorldDeferredCognitionTests
         var secondSaved = Assert.Single(final.Instructions!, item => item.InstructionId == second.InstructionId);
         Assert.NotNull(firstSaved.ObservedTick);
         Assert.Equal("Fresh reply for the first message.", firstSaved.ObserverReply);
-        Assert.Contains(first.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.Contains(first.InstructionId.Value, final.CompletedInstructionIds ?? []);
         Assert.NotNull(secondSaved.ObservedTick);
         Assert.Null(secondSaved.ObserverReply);
-        Assert.Contains(second.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.Contains(second.InstructionId.Value, final.CompletedInstructionIds ?? []);
 
         using var roundtripped = WorldRuntime.Restore(final);
         var projection = new OwnerWorldObservationStore(roundtripped).GetSnapshot();
         var targetMessages = projection.Instructions.Where(item => item.TargetAgentId == targetId).ToArray();
         Assert.Equal(2, targetMessages.Length);
-        Assert.Equal(first.InstructionId, targetMessages[0].InstructionId);
+        Assert.Equal(first.InstructionId.Value, targetMessages[0].InstructionId);
         Assert.Equal(firstSaved.ObserverReply, targetMessages[0].ObserverReply);
-        Assert.Equal(second.InstructionId, targetMessages[1].InstructionId);
+        Assert.Equal(second.InstructionId.Value, targetMessages[1].InstructionId);
         Assert.NotNull(targetMessages[1].ObservedTick);
         Assert.Null(targetMessages[1].ObserverReply);
         Assert.DoesNotContain(projection.Instructions, item => item.TargetAgentId != targetId);

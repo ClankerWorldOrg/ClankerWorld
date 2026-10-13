@@ -425,7 +425,7 @@ public sealed partial class OwnerWorldObservationStore
                     recipe.Outputs.Any(output => output.ResourceId == "food")))
             .ToLookup(recipe => recipe.WorkstationBuildingId!, recipe => productionRecipes![recipe.CanonicalId], StringComparer.Ordinal);
         var inventoryLots = state.Society.Society.Inventory.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
-        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id, StringComparer.Ordinal);
+        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id.Value, StringComparer.Ordinal);
         var activeAgents = state.Society.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active)
             .OrderBy(item => item.Id, StringComparer.Ordinal)

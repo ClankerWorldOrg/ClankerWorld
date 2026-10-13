@@ -38,7 +38,7 @@ public sealed record WorldProductionJob(
     long StartedTick,
     long CompletionTick,
     WorldProductionJobState State,
-    IReadOnlyList<string> InputReservationIds,
+    IReadOnlyList<Identity> InputReservationIds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolMakingRequestId = null)
 {
@@ -182,7 +182,7 @@ public static class WorldContentSimulationRules
                 job.CompletionTick <= job.StartedTick || job.CompletionTick < worldTick &&
                 job.State == WorldProductionJobState.Running ||
                 job.InputReservationIds is null ||
-                job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
+                job.InputReservationIds.Count != job.InputReservationIds.Distinct().Count() ||
                 job.ToolLotId is { } toolLotId && (string.IsNullOrWhiteSpace(toolLotId) ||
                     toolLotId.Any(char.IsControl) || !ToolProgressionRules.UsesKnife(recipe)))
             {

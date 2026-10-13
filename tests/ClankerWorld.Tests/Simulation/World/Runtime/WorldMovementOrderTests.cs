@@ -314,7 +314,7 @@ public sealed partial class WorldRuntimeTests
             // physical frame fixed while waiting for this exact held call.
             var call = CaptureHeldHarvestCall(world);
             Assert.Equal(HarvestInstructionActor, call.Request.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, call.Request.Observation.OperativeOrderInstructionId);
             Assert.False(call.Task.IsCompleted);
             var position = CancellationActorPosition(world.ExportState());
             var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());

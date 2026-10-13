@@ -111,7 +111,7 @@ public sealed record OwnerShelterBinding(
 public sealed record OwnerShelterCompletion(
     long WorldTick,
     GridPoint Position,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? FuelReservationId = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Identity? FuelReservationId = null);
 
 public sealed record OwnerBuildingExpansionBinding(
     string BuildingInstanceId,
@@ -131,7 +131,7 @@ public sealed record OwnerOrderCancelRequest(
     string OrderId);
 
 public sealed record OwnerOrderControlReceipt(
-    string OrderId,
+    Identity OrderId,
     string Status,
     bool Changed,
     long WorldTick,
@@ -175,7 +175,7 @@ public sealed record OwnerQueuedInstruction(
 /// second event.
 /// </summary>
 public sealed record OwnerInstructionReceipt(
-    string InstructionId,
+    Identity InstructionId,
     string IdempotencyKey,
     long SubmittedTick,
     long RunEpoch,

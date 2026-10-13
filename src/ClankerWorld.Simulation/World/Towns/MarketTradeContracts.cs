@@ -31,7 +31,7 @@ public static class MarketTradeValidation
 {
     internal static bool HasExactOpenClaim(InventoryCheckpoint inventory, DirectBarterOffer offer, bool first) =>
         inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
-        new InventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")),
+        new InventoryReservation(Identity.Parse(DerivedId.Create(offer.Id + (first ? ":first" : ":second"))),
             first ? offer.FirstPartyId : offer.SecondPartyId, first ? offer.FirstLotId : offer.SecondLotId,
             first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick,
             true, InventoryReservationState.Reserved);
@@ -115,7 +115,7 @@ public static class MarketTradeValidation
                             throw Invalid("A live seller must borrow one existing stall for their actual household.");
                     }
                 }
-                if (market.Trades.Select(trade => trade.OfferId).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count)
+                if (market.Trades.Select(trade => trade.OfferId.Value).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count)
                     throw Invalid("A Market cannot record the same exchange twice.");
                 if (!market.StockReceipts.Select(receipt => receipt.Sequence).SequenceEqual(
                         market.StockReceipts.Select(receipt => receipt.Sequence).Distinct().Order()))
@@ -172,7 +172,7 @@ public static class MarketTradeValidation
                     var sourceReceipt = trade is null ? null : market.StockReceipts.FirstOrDefault(item =>
                         item.Sequence == trade.StockReceiptSequence);
                     if (trade is null || trade.OfferId is null || !trades.Add(trade.OfferId) || occupancy is null || stall is null || offer is null ||
-                        !trade.OfferId.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) ||
+                        !trade.OfferId.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) ||
                         occupancy.StallBuildingId != stall.BuildingId || occupancy.SellerAgentId != trade.SellerAgentId ||
                         occupancy.SellerHouseholdId != trade.PaymentOwnerId ||
                         trade.GoodsOwnerId != occupancy.SellerAgentId && trade.GoodsOwnerId != occupancy.SellerHouseholdId ||
@@ -230,7 +230,7 @@ public static class MarketTradeValidation
                 }
             }
         }
-        if (inventory.Offers.Any(offer => offer.Id.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) &&
+        if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) &&
             !trades.Contains(offer.Id)))
             throw Invalid("A Market offer is missing its named physical stall binding.");
     }
@@ -253,15 +253,15 @@ public sealed record MarketStallOccupancy(string Id, string StallBuildingId, str
 }
 
 /// <summary>OwnerId records the deposit; the live lot remains authoritative after inheritance or collection.</summary>
-public sealed record MarketStockReceipt(string Id, string OccupancyId, string SellerAgentId, string OwnerId,
+public sealed record MarketStockReceipt(Identity Id, string OccupancyId, string SellerAgentId, string OwnerId,
     string SourceLotId, string LotId, string ItemKind, int Quantity, long DepositedTick,
-    long InventoryEventId, string? TradeOfferId = null)
+    long InventoryEventId, Identity? TradeOfferId = null)
 {
     [JsonRequired]
     public long Sequence { get; init; }
 }
 
-public sealed record MarketTradeState(string OfferId, string OccupancyId, string StallBuildingId,
+public sealed record MarketTradeState(Identity OfferId, string OccupancyId, string StallBuildingId,
     string SellerAgentId, string GoodsOwnerId, string PaymentOwnerId, string BuyerId, GridPoint Position,
     long ProposedTick, string GoodsKind, string PaymentKind, long? SettledTick = null,
     string? CancellationReason = null)

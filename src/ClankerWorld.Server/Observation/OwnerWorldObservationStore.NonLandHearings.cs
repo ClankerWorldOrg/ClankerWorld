@@ -57,7 +57,7 @@ public sealed partial class OwnerWorldObservationStore
                 var law = town.Government?.Laws.FirstOrDefault(candidate => candidate.Id == allegation.LawId)?
                     .Versions.FirstOrDefault(version => version.Version == allegation.LawVersion);
                 var offers = ledger.Offers.Where(offer => offer.CaseId == item.Id).ToArray();
-                var offerIds = offers.Select(offer => offer.Id).ToHashSet(StringComparer.Ordinal);
+                var offerIds = offers.Select(offer => offer.Id.Value).ToHashSet(StringComparer.Ordinal);
                 return new TownNonLandCaseView(item.Id, item.Status, item.FiledTick, item.SettledTick,
                     allegation.SubjectId, Name(allegation.SubjectId), allegation.ConductKind, ToPosition(allegation.Position),
                     allegation.ConductTick, Readable(allegation.Statement), law is null ? null :

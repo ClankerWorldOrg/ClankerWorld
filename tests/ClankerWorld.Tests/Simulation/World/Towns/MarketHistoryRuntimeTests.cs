@@ -152,7 +152,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
         Assert.Equal(32, retained.Trades.Count);
         Assert.DoesNotContain(retained.StockReceipts, receipt => receipt.Id == sourceReceipt);
         Assert.Equal(48, retained.StockReceipts.Count);
-        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
+        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
         Assert.Equal(64, state.Society.Society.Inventory.Reservations.Count(claim => offers.Any(id => claim.Id == id + ":first" || claim.Id == id + ":second")));
         foreach (var trade in retained.Trades)
         {

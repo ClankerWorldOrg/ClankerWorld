@@ -43,7 +43,7 @@ public sealed partial class WorldRuntimeTests
         var savedOrder = Assert.Single(after.Instructions!, item => item.InstructionId == order.InstructionId);
         Assert.Equal("interrupted", savedOrder.Task!.Status);
         Assert.Equal(0, savedOrder.Task.CompletedUnits);
-        Assert.DoesNotContain(order.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(order.InstructionId.Value, after.CompletedInstructionIds ?? []);
         world.Validate();
     }
 
@@ -197,7 +197,7 @@ public sealed partial class WorldRuntimeTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var after = world.ExportState();
-        Assert.Contains(order.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, after.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(after.Society.Society.Inventory.Lots, item => item.Id == "requested-kind-berries");
         var otherFood = Assert.Single(after.Society.Society.Inventory.Lots, item => item.Id == "wrong-kind-fruit");
         Assert.Equal(("fruit", householdId, 1), (otherFood.ItemKind, otherFood.OwnerId, otherFood.Quantity));
@@ -269,7 +269,7 @@ public sealed partial class WorldRuntimeTests
             item => item.Id == "repeat-eat-carried-berries");
         Assert.Equal(1, Assert.Single(resumed.Society.Society.Inventory.Lots,
             item => item.Id == "repeat-eat-household-berries").Quantity);
-        Assert.DoesNotContain(order.InstructionId, resumed.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(order.InstructionId.Value, resumed.CompletedInstructionIds ?? []);
         restored.Validate();
     }
 
@@ -556,7 +556,7 @@ public sealed partial class WorldRuntimeTests
 
         var recovered = restored.ExportState();
         Assert.Equal(2, provider.CallCount);
-        Assert.Contains(order.InstructionId, recovered.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, recovered.CompletedInstructionIds ?? []);
         Assert.Single(recovered.Events, item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
         Assert.False(Assert.Single(recovered.Instructions!, item => item.InstructionId == order.InstructionId)

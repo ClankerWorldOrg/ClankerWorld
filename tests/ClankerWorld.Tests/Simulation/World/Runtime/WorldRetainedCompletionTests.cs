@@ -75,7 +75,7 @@ public sealed partial class WorldRuntimeTests
             HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var call = CaptureHeldHarvestCall(world);
-        Assert.Equal(order.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
+        Assert.Equal(order.InstructionId.Value, call.Request.Observation.OperativeOrderInstructionId);
         Assert.False(call.Task.IsCompleted);
         var frame = WorldRuntimeCodec.Encode(world.ExportState());
         var entered = AwaitHarvestPhase(provider.Started.Task, "retained-order provider entry");
@@ -133,7 +133,7 @@ public sealed partial class WorldRuntimeTests
         // Only the held reply for the order that has since finished is set aside.
         Assert.Single(final.Events, item => item.Kind == "instruction_order_stale_decision" &&
             item.Detail == HarvestInstructionActor);
-        Assert.Contains(suggestion.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.Contains(suggestion.InstructionId.Value, final.CompletedInstructionIds ?? []);
         Assert.Equal(2, provider.CallCount);
     }
 
@@ -276,7 +276,7 @@ public sealed partial class WorldRuntimeTests
             request.ObserverGuidance?.Any(message => message.InstructionId == suggestion.InstructionId) == true);
         Assert.Contains(requests, request => request.OperativeOrderInstructionId is null &&
             request.ObserverGuidance?.Any(message => message.InstructionId == suggestion.InstructionId) == true);
-        Assert.Contains(suggestion.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
+        Assert.Contains(suggestion.InstructionId.Value, world.ExportState().CompletedInstructionIds ?? []);
     }
 
     private static async Task AwaitRetainedHarvestCall(WorldRuntime world)

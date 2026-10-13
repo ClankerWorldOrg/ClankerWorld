@@ -1830,8 +1830,8 @@ public static partial class SocietyRules
                     InventoryReservationState.Committed
                 ? reservation with { State = InventoryReservationState.Released }
                 : reservation)
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        var offers = inventory.Offers.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        var offers = inventory.Offers.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
         var events = inventory.Events.ToList();
         events.Add(new InventoryEvent(
             checked(inventory.EventHistoryFloor + events.Count + 1L),

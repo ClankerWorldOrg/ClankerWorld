@@ -62,6 +62,13 @@ The [generator inventory](derived-identities.md#executable-generator-inventory)
 describes the native transition, factory, save and recall evidence.
 
 
+Typed memory, reservation, offer and receipt handles retain their existing JSON
+string spelling, including strings in saved input lists. Their parser rejects
+blank, control-bearing or oversized handles without hashing a saved value.
+Complete provenance references keep their own limits. No fields or schema
+change; unsupported earlier alpha handle spellings are refused and preserved,
+with no migration. See [Derived identities](derived-identities.md).
+
 ## Save-space warning
 
 The host samples available free space on the active checkpoint, manual/autosave,

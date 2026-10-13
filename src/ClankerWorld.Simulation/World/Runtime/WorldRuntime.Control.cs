@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
                     new OrderTask("unknown", "not_understood", 0, 0, "none", false));
             instructionsByIdempotency.Add(instruction.IdempotencyKey, instruction);
             var receipt = new OwnerInstructionReceipt(
-                instruction.InstructionId,
+                Identity.Parse(instruction.InstructionId),
                 instruction.IdempotencyKey,
                 instruction.SubmittedTick,
                 instruction.RunEpoch,
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
                 status = "cancelled";
             }
             var receipt = new OwnerOrderControlReceipt(
-                instruction.InstructionId, status, changed, WorldTick, nextEventId - 1);
+                Identity.Parse(instruction.InstructionId), status, changed, WorldTick, nextEventId - 1);
             orderCancellations.Add(key, new OwnerOrderCancellation(
                 key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(),
                 request.OrderId.Trim(), receipt));
