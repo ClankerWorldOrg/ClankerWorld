@@ -5,6 +5,7 @@ namespace ClankerWorld.Tests;
 public sealed class ManualModelWorkScheduler : IModelWorkScheduler
 {
     private readonly Queue<Action> pending = new();
+    public Func<bool>? CanStart { get; set; }
     public int PendingCount => pending.Count;
     public Task<T> Schedule<T>(Func<Task<T>> work, bool startInline = false)
     {
@@ -22,6 +23,7 @@ public sealed class ManualModelWorkScheduler : IModelWorkScheduler
 
     public void RunPendingWork()
     {
+        if (CanStart?.Invoke() == false) return;
         // Provider continuations use inline gates; xUnit's context must not decide their order.
         var context = SynchronizationContext.Current;
         SynchronizationContext.SetSynchronizationContext(null);

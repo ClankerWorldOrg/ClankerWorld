@@ -32,8 +32,8 @@ public sealed class ChildInitialIdentityTests
 
         using var handler = new ChildReplyHandler
         {
-            Release = new(TaskCreationOptions.RunContinuationsAsynchronously),
-            StartGate = delayRequestStart ? new(TaskCreationOptions.RunContinuationsAsynchronously) : null,
+            Release = new(TaskCreationOptions.None),
+            StartGate = delayRequestStart ? new(TaskCreationOptions.None) : null,
         };
         using var client = new HttpClient(handler);
         var model = PersonalModel(client);
@@ -41,9 +41,9 @@ public sealed class ChildInitialIdentityTests
         // Normal aging is already restored before the first ordinary child
         // request. Delaying its start must not age this child into an adult.
         for (var tick = 0; tick < 24 && !handler.Started.Task.IsCompleted; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         handler.StartGate?.TrySetResult(true);
-        await handler.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await handler.Started.Task;
         Assert.Equal(SocietyAgeBand.Child, world.Society.GetAgent(childId).AgeBand);
         var observation = Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == childId).Observation;
         var background = Assert.IsAssignableFrom<IReadOnlyList<CognitionParentIdentity>>(observation.Self!.FamilyBackground);
@@ -64,7 +64,7 @@ public sealed class ChildInitialIdentityTests
             handler.Release.TrySetResult(true);
             await WaitForActualRequests(world);
             for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             var child = world.Agents.Single(person => person.AgentId == childId);
             Assert.False(child.IdentityChoicePending);
             Assert.Equal(("Inventive and independent", "Study the hills"), (child.Personality, child.Aspiration));
@@ -130,9 +130,9 @@ public sealed class ChildInitialIdentityTests
         Assert.Empty(handler.Bodies);
         for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForActualRequests(world);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             await WaitForActualRequests(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -163,7 +163,7 @@ public sealed class ChildInitialIdentityTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
             id => id == childId ? model : new QuietProvider());
-        Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await restored.TickModelWorkAsync()).Advanced);
         await WaitForActualRequests(restored);
         Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Single(handler.Bodies);
@@ -200,7 +200,7 @@ public sealed class ChildInitialIdentityTests
         // identity retry. Other ordinary triggers may still prompt earlier.
         for (var tick = 0; tick < 310 && restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
-            Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await restored.TickModelWorkAsync()).Advanced);
             await WaitForActualRequests(restored);
         }
         Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
@@ -216,16 +216,16 @@ public sealed class ChildInitialIdentityTests
     {
         var state = await BeforeChildhoodAsync();
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
-        using var held = new ChildReplyHandler { Release = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        using var held = new ChildReplyHandler { Release = new(TaskCreationOptions.None) };
         using var client = new HttpClient(held);
         var model = PersonalModel(client);
         using var world = WorldRuntime.Restore(state, id => id == childId ? model : new QuietProvider());
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await held.Started.Task;
         world.Pause();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         held.Release.TrySetResult(true);
-        await held.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await held.Returned.Task;
         Assert.True(world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
         using var reply = new ChildReplyHandler();
@@ -245,7 +245,7 @@ public sealed class ChildInitialIdentityTests
     {
         for (var tick = 0; tick < 8; tick++)
         {
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
             await WaitForActualRequests(world);
             if (step.Decisions.Any(decision => decision.AgentId == childId)) return;
@@ -255,10 +255,7 @@ public sealed class ChildInitialIdentityTests
 
     private static async Task WaitForActualRequests(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private static async Task<WorldRuntimeState> BeforeChildhoodAsync() => WorldRuntimeCodec.Decode(await InfancyEnds.Value);
@@ -396,10 +393,10 @@ public sealed class ChildInitialIdentityTests
     {
         public ConcurrentQueue<string> Bodies { get; } = new();
         public string Reply { get; set; } = "valid";
-        public TaskCompletionSource<bool>? Release { get; init; }
-        public TaskCompletionSource<bool>? StartGate { get; init; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool>? Release { get; init; }
+        public InlineCompletionSource<bool>? StartGate { get; init; }
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (StartGate is not null) await StartGate.Task.WaitAsync(cancellationToken);

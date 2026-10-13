@@ -92,7 +92,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             using var service = new WorldRuntimeService(world, file, presence);
             async Task AdvanceTick()
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
                 await WaitForTransferChoices(world);
                 Assert.False(world.Society.IsPaused);
                 Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
@@ -112,10 +112,10 @@ public sealed partial class GrownAgentHelperMemoryTests
                 // Start it through the host, holding one actual personal reply.
                 for (var tick = 0; tick < 4 && !policy.IdentityCalled.Task.IsCompleted; tick++)
                 {
-                    Assert.True(await service.TryAdvanceOnceAsync());
+                    Assert.True(await service.AdvanceWithModelWorkAsync(world));
                     await WaitForRequests(world);
                 }
-                var request = await policy.IdentityCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                var request = await policy.IdentityCalled.Task;
                 Assert.Equal(policy.HeldIdentityId, request.Observation.AgentId);
                 Assert.NotNull(request.Observation.IdentityMoment);
                 Assert.Contains(world.Agents.Single(person => person.AgentId == policy.HeldIdentityId).IdentityMoments!,
@@ -237,7 +237,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             policy.Read = policy.Accept = false;
             world.Pause();
             world.Resume();
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             await WaitForTransferChoices(world);
             using var reload = file.LoadOrCreate(state.WorldSeed);
             var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -257,19 +257,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task WaitForTransferChoices(WorldRuntime world)
     {
-        // A native life-moment request defers that adult's ordinary choices.
-        // Finish both local reply lanes before spending the next fixture tick.
-        var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingModelCalls", "pendingIdentityMoments" })
-        {
-            var field = typeof(WorldRuntime).GetField(name,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.NotNull(field);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field.GetValue(world));
-            tasks.AddRange(pending.Values.Cast<object>().Select(item =>
-                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))));
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private static void AssertMalformedTransferHouseholds(WorldRuntimeState state, TownLandTransferRequest request)
@@ -366,8 +354,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ConcurrentQueue<(string Actor, string Id)> Selected { get; } = new();
         public ConcurrentQueue<(CognitionDecisionRequest Request, CognitionDecisionResponse Response)> Replies { get; } = new();
         public string? HeldIdentityId { get; init; }
-        public TaskCompletionSource<CognitionDecisionRequest> IdentityCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ReleaseIdentity { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> IdentityCalled { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ReleaseIdentity { get; } = new(TaskCreationOptions.None);
         private async ValueTask<CognitionDecisionResponse> KeepIdentityAsync(CognitionDecisionRequest request, CancellationToken cancellationToken)
         {
             var observation = request.Observation;

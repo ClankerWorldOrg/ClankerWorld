@@ -18,7 +18,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var scenario = GuardianPlacementTestFixture.Prepared(1, 0);
         var choices = new DeliveryChoices(scenario.Children[0], scenario.Guardians[0], guardian: true)
         {
-            IdentityResponseGate = new(TaskCreationOptions.RunContinuationsAsynchronously),
+            IdentityResponseGate = new(TaskCreationOptions.None),
         };
         using var world = WorldRuntime.Restore(scenario.State, _ => choices);
         using var host = new CheckpointHost(world, choices);
@@ -28,14 +28,14 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var step = ReachIdentityCheckpoint(host);
         try
         {
-            await choices.IdentityEntered.Task.WaitAsync(TimeSpan.FromSeconds(30));
-            await Assert.ThrowsAsync<TimeoutException>(() => step.WaitAsync(TimeSpan.FromSeconds(1)));
+            await choices.IdentityEntered.Task;
+            await Assert.ThrowsAsync<TimeoutException>(() => step);
             await ReachIdentityCheckpoint(replayHost);
             var requested = world.Agents.SelectMany(person => (person.IdentityMoments ?? [])
                 .Where(moment => moment.Outcome == "requested").Select(moment => (person.AgentId, moment.Kind))).ToArray();
             Assert.NotEmpty(requested);
             choices.IdentityResponseGate.SetResult();
-            await step.WaitAsync(TimeSpan.FromSeconds(30));
+            await step;
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             await host.Step();
             await replayHost.Step();
@@ -47,7 +47,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         finally
         {
             choices.IdentityResponseGate.TrySetResult();
-            await step.WaitAsync(TimeSpan.FromSeconds(30));
+            await step;
         }
 
         static async Task ReachIdentityCheckpoint(CheckpointHost checkpointHost)
@@ -256,13 +256,9 @@ public sealed class ChildDeliveryHouseholdChangeTests
                 Assert.Equal(before, WorldRuntimeCodec.Encode(World.ExportState()));
                 RefusedArrival = true;
             }
-            Assert.True(await service.TryAdvanceOnceAsync(), $"Native host halted at tick {World.WorldTick}.");
+            Assert.True(await service.AdvanceWithModelWorkAsync(World), $"Native host halted at tick {World.WorldTick}.");
             // Replies are sampled by the next tick. Match every external input before either continuation advances.
-            var tasks = PendingInputQueues.SelectMany(name => ((IDictionary)typeof(WorldRuntime)
-                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(World)!).Values.Cast<object>())
-                .Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!);
-            await Task.WhenAll(tasks)
-                .WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.WaitForExistingAsync(World);
             var bytes = File.ReadAllBytes(file.Path);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(World.ExportState()));
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => choices.Copy());
@@ -282,8 +278,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
 
     private sealed class DeliveryChoices(string child, string caregiver, bool guardian = false) : IDecisionProvider
     {
-        public TaskCompletionSource? IdentityResponseGate { get; init; }
-        public TaskCompletionSource IdentityEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource? IdentityResponseGate { get; init; }
+        public InlineCompletionSource IdentityEntered { get; } = new(TaskCreationOptions.None);
         public bool Pickup { get; init; } = true;
         public bool Deliver { get; set; }
         public bool ChangeHousehold { get; set; }
