@@ -40,6 +40,6 @@ public static class OrderStatusRules
         "finished" => OrderStatus.Finished,
         "cancelled" => OrderStatus.Cancelled,
         "not_understood" => OrderStatus.NotUnderstood,
-        _ => throw new ArgumentException("The order status is unknown.", nameof(value)),
+        _ => throw new System.Text.Json.JsonException("The order status is unknown."),
     };
 }

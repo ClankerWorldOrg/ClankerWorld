@@ -5,6 +5,14 @@ namespace ClankerWorld.Tests;
 
 public sealed class OrderStatusTests
 {
+    [Fact]
+    public void UnknownSavedStatusIsRefusedAsDamagedJson()
+    {
+        var order = new OrderTask("move_to", "queued", 1, 0, "arrivals", false);
+        var json = JsonSerializer.Serialize(order).Replace("\"queued\"", "\"unknown\"", StringComparison.Ordinal);
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<OrderTask>(json));
+    }
+
     [Theory]
     [InlineData(OrderStatus.Finished)]
     [InlineData(OrderStatus.Cancelled)]

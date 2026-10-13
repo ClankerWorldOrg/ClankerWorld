@@ -206,7 +206,7 @@ public sealed class AnimalSystemTests
         public int PhysicalUnreservedQuantity(InventoryLot lot) => throw new NotSupportedException();
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => throw new NotSupportedException();
-        public void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false) => throw new NotSupportedException();
+        public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason, bool waitForDecision = false) => throw new NotSupportedException();
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => throw new NotSupportedException();
         public bool VesselFits(InventoryLot lot, int room) => throw new NotSupportedException();
         public IReadOnlyList<ContentPackageRecord> Packages => throw new NotSupportedException();
