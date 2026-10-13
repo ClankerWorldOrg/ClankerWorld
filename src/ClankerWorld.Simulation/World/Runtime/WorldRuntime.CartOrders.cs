@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
                 if (!subject.StartsWith(noun + " ", StringComparison.OrdinalIgnoreCase)) continue;
                 var id = subject[(noun.Length + 1)..].Trim();
                 // Consume the whole target. Extra words and nonexistent IDs are not guessed away.
-                if (IsValidInstructionIdentifier(id) && society.Checkpoint.Inventory.Lots.Any(lot => lot.Id == id && lot.ItemKind == InventoryContainerRules.Handcart))
+                if (IdentityRules.Reference(id, OwnerQueuedInstruction.MaximumIdentifierLength) && society.Checkpoint.Inventory.Lots.Any(lot => lot.Id == id && lot.ItemKind == InventoryContainerRules.Handcart))
                     return new(action, "queued", 1, 0, "cart_tasks", false) { TargetCartLotId = id };
                 if (id.StartsWith("at ", StringComparison.OrdinalIgnoreCase) &&
                     OrderTaskParser.Parse("move to " + id[3..], map.Resources, FoodKnowledgeKind) is
@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
                 {
                     var carts = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
                         lot.OwnerId == actor && CartPosition(lot) == position).ToArray();
-                    if (carts.Length == 1 && IsValidInstructionIdentifier(carts[0].Id))
+                    if (carts.Length == 1 && IdentityRules.Reference(carts[0].Id, OwnerQueuedInstruction.MaximumIdentifierLength))
                         return new(action, "queued", 1, 0, "cart_tasks", false) { TargetCartLotId = carts[0].Id };
                 }
             }
@@ -53,7 +53,7 @@ public sealed partial class WorldRuntime
         if (order.Action == "park_handcart") return AttachedHandcart(actor);
         if (order.Action == "repair_handcart") return CartForRepairOrder(actor, person);
         return society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && IsValidInstructionIdentifier(lot.Id) && CanPullHandcart(lot) && !handcartHitches.Any(hitch => hitch.CartLotId == lot.Id))
+                lot.OwnerId == actor && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) && CanPullHandcart(lot) && !handcartHitches.Any(hitch => hitch.CartLotId == lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
     }
@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
         ApplyHandcartCandidate(instruction.TargetAgentId, person, parking ? "park_handcart" : AttachCartPrefix + cart.Id);
         var isAttached = AttachedHandcart(instruction.TargetAgentId)?.Id == cart.Id;
         if (parking ? wasAttached && !isAttached : !wasAttached && isAttached)
-            CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
+            CreditOrderEffect(instruction, Identity.Parse(CartOrderEffectId(instruction)), 1);
     }
 
     private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
@@ -135,7 +135,7 @@ public sealed partial class WorldRuntime
             if (order.TargetCartLotId is { } id && !carts.Contains(id))
                 throw new InvalidDataException("A cart order references a missing handcart.");
             if (order.Action != "repair_handcart" || order.CompletedUnits == 0) continue;
-            repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id, StringComparer.Ordinal);
+            repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
             if (CartRepairOrderReceiptTick(instruction, inventory.WorldTick) is not { } tick ||
                 !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetAgentId, kind), out var input) &&
                     input.OwnerId == instruction.TargetAgentId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&

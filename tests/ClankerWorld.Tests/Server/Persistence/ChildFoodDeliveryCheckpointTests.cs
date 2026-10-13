@@ -9,8 +9,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class ChildFoodDeliveryCheckpointTests
 {
-    private const string Adult = "founder:00000000000000000000000000000001";
-    private const string Child = "founder:00000000000000000000000000000002";
+    private const string Adult = NormalPathWorld.Founder1;
+    private const string Child = NormalPathWorld.Founder2;
     private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private const string Food = "child-spare-food";

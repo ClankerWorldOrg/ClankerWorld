@@ -293,7 +293,7 @@ public sealed partial class WorldRuntime
     }
 
     private sealed record SpareCargoMove(InventoryLot Lot, int TransferQuantity, int PhysicalQuantity,
-        string? OrchardReservationId = null);
+        Identity? OrchardReservationId = null);
 
     private List<SpareCargoMove> SpareCargoForFood(string actor, int missing, string? protectedLotId = null,
         params string[] additionallyProtectedLotIds)

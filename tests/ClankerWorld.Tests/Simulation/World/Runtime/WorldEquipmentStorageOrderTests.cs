@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -108,9 +109,9 @@ public sealed partial class WorldStorageOrderTests
             valid with { TargetCropKind = "greens" }, valid with { TargetResourceId = "stone" },
             valid with { TargetPosition = new(10_000_001, 1) }, valid with { RequestedUnits = 0 },
             valid with { CompletedUnits = -1 }, valid with { ProgressUnit = "collection_loads" },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "store:personal:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("store:personal:unearned") },
             valid with { QuantityIsExplicit = false, ProgressUnit = "storage_loads" },
-            valid with { CompletedUnits = 1, LastEffectId = "collect:personal:wrong-action" },
+            valid with { CompletedUnits = 1, LastEffectId = Identity.Parse("collect:personal:wrong-action") },
         })
         {
             var corrupt = saved with

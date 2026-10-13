@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -323,7 +324,7 @@ public sealed class FarmFieldTests
         state = WithInventory(state, inventory) with
         {
             Fields = [state.Fields!.Single() with { Stage = FarmFieldStage.Harvested, Cycle = 1,
-                ReplantingReservationId = "old-replanting" }],
+                ReplantingReservationId = Identity.Parse("old-replanting") }],
         };
         using var starting = Restore(state);
         Assert.True(starting.StartFieldWork(actor, point, FarmWorkKind.Plant, crop, "new-crop-seed").Accepted);
