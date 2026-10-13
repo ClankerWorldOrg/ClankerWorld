@@ -255,6 +255,7 @@ public partial class Main
                 !TileCardText().Contains("Household\nFarm household", StringComparison.Ordinal) ||
                 !TileCardText().Contains("3 cultivated greens", StringComparison.Ordinal))
                 throw new InvalidOperationException("Field ownership, crop and soil inspection must show on the tile card and fit at 200% interface size: " + TileCardText());
+            await VerifyCrowdedTileCardsAsync(fieldMap, displayWindow);
             householdPropertyFilter.ButtonPressed = false;
             selectedTile = null;
             selectedTilePanel.Hide();
