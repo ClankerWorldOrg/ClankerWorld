@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
@@ -311,7 +312,7 @@ public sealed partial class WorldStorageOrderTests
         var receipt = Submit(world, actor, "long-lot", "store wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));

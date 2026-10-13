@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
@@ -373,18 +374,18 @@ public sealed partial class WorldConversationTests
         }
 
         var oldClaim = new SocietyAgentBelief(
-            oldBeliefId, ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
+            Identity.Parse(oldBeliefId), ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
             5_000, old.Turn.WorldTick, old.Turn.SpeakerId, SourceTurnId: old.Turn.Id);
         society = SocietyRules.RecordAgentBelief(society, oldClaim);
         var correctedClaim = SocietyRules.CorrectAgentBelief(society, ListenerId, oldClaim.Id,
             new SocietyAgentBelief(
-                correctionId, ListenerId, "I later learned the speaker had been mistaken about the trail.",
+                Identity.Parse(correctionId), ListenerId, "I later learned the speaker had been mistaken about the trail.",
                 SocietyBeliefProvenance.Hearsay, 7_500, old.Turn.WorldTick,
                 old.Turn.SpeakerId, SourceTurnId: old.Turn.Id));
         society = SocietyRules.RecordAgentMemoryCompaction(correctedClaim, ListenerId,
         [
             new SocietyAgentMemoryImportance(
-                correctionId, SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
+                Identity.Parse(correctionId), SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
                 old.Turn.WorldTick),
         ]);
 
@@ -394,7 +395,7 @@ public sealed partial class WorldConversationTests
             society = SocietyRules.AdvanceTo(society, archiveTick).Checkpoint;
             society = SocietyMemoryArchiveRules.Archive(society,
                 new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal));
-            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id);
+            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id.Value);
             var systems = initial.WorldSystems!;
             while (systems.WorldTick < archiveTick) systems = WorldSystemsRules.AdvanceOneTick(systems);
             initial = initial with { WorldSystems = systems };
@@ -424,8 +425,8 @@ public sealed partial class WorldConversationTests
         Assert.Null(retainedCorrection.SourceTurnId);
         Assert.Equal(old.Turn.SpeakerId, retainedCorrection.SourceAgentId);
         Assert.Equal("I later learned the speaker had been mistaken about the trail.", retainedCorrection.Statement);
-        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId);
-        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId);
+        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId?.Value);
+        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId?.Value);
         Assert.Contains(Assert.Single(afterTrim.MemoryCompactions!, item => item.OwnerId == ListenerId).Sources,
             item => item.Kind == SocietyMemorySourceKind.Belief && item.SourceId == correctionId);
 

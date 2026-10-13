@@ -504,7 +504,7 @@ public sealed class TownProjectRuntimeTests
 
 internal sealed class TownProjectScenario : IDisposable
 {
-    internal const string Author = "founder:00000000000000000000000000000001";
+    internal const string Author = NormalPathWorld.Founder1;
     internal const string PlayableSeed = "town-project-real-donation";
     internal const string Name = "Communal Hall";
     internal const string LaterNotice = "Harvest dates: Post the next harvest dates at our Hall.";
@@ -729,9 +729,9 @@ internal sealed class TownProjectPolicy
             {
                 var workerMaterial = actor switch
                 {
-                    "founder:00000000000000000000000000000002" => "wood",
+                    NormalPathWorld.Founder2 => "wood",
                     TownProjectScenario.Author => "stone",
-                    "founder:00000000000000000000000000000003" when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
+                    NormalPathWorld.Founder3 when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
                     _ => null,
                 };
                 // Real starter tools, collected by separate people so a whole harvest fits.

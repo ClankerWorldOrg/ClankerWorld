@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
 })
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
-        CreditOrderEffect(current, KnowledgeReadOrderEffectId(current), 1);
+        CreditOrderEffect(current, Identity.Parse(KnowledgeReadOrderEffectId(current)), 1);
     }
 
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)

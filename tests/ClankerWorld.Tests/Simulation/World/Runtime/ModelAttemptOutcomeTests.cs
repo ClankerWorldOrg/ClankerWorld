@@ -10,7 +10,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ModelAttemptOutcomeTests
 {
-    private const string TargetId = "founder:00000000000000000000000000000001";
+    private const string TargetId = NormalPathWorld.Founder1;
     private static readonly JsonSerializerOptions ClientJson = new() { PropertyNameCaseInsensitive = true };
 
     [Theory]

@@ -86,7 +86,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
             var summary = "I remember society" + generator.Replace("-", "", StringComparison.Ordinal) + " work.";
-            var checkpoint = SocietyRules.RecordSocialMemory(society, new(id, actor, relative, summary,
+            var checkpoint = SocietyRules.RecordSocialMemory(society, new(Identity.Parse(id), actor, relative, summary,
                 "private", society.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

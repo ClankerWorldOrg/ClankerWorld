@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 internal sealed class InstructionStore(IEqualityComparer<string> comparer)
 {
     private readonly Dictionary<string, OwnerQueuedInstruction> records = new(comparer);
-    private readonly Dictionary<string, SortedDictionary<long, string>> activeByAgent = new(comparer);
+    private readonly Dictionary<string, SortedDictionary<(bool Queued, long Sequence), string>> activeByAgent = new(comparer);
 
     public Dictionary<string, OwnerQueuedInstruction>.ValueCollection Values => records.Values;
     public int Count => records.Count;
@@ -68,13 +68,13 @@ internal sealed class InstructionStore(IEqualityComparer<string> comparer)
         if (instruction.Kind != OwnerInstructionKind.Order || instruction.Task is not { IsTerminal: false }) return;
         if (!activeByAgent.TryGetValue(instruction.TargetAgentId, out var active))
             activeByAgent.Add(instruction.TargetAgentId, active = []);
-        active.Add(instruction.SubmissionSequence, instruction.IdempotencyKey);
+        active.Add((instruction.Task!.LifecycleStatus == OrderStatus.Queued, instruction.SubmissionSequence), instruction.IdempotencyKey);
     }
 
     private void Unindex(OwnerQueuedInstruction instruction)
     {
         if (!activeByAgent.TryGetValue(instruction.TargetAgentId, out var active)) return;
-        active.Remove(instruction.SubmissionSequence);
+        active.Remove((instruction.Task!.LifecycleStatus == OrderStatus.Queued, instruction.SubmissionSequence));
         if (active.Count == 0) activeByAgent.Remove(instruction.TargetAgentId);
     }
 }

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -53,7 +54,7 @@ public sealed partial class WorldDeliveryOrderTests
         Assert.Equal(("finished", 2), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
         Assert.Null(Order(world, receipt).DeliveryLotId);
         Assert.Null(Order(world, receipt).DeliveryQuantity);
-        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId!);
+        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId!.Value);
         var delivered = world.Society.Inventory.GetLot(shipment.Id);
         Assert.Equal((Alpha, House, 2, 6_000), (delivered.OwnerId, delivered.StorageBuildingId, delivered.Quantity, delivered.ConditionBasisPoints));
         Assert.Null(delivered.DeliveryBuildingId);
@@ -375,7 +376,7 @@ public sealed partial class WorldDeliveryOrderTests
     private static async Task FinishTogether(WorldRuntime world, WorldRuntime replay, OwnerInstructionReceipt receipt)
     {
         for (var tick = 0; tick < 48 && Order(world, receipt).Status != "finished"; tick++) await TickTogether(world, replay);
-        Assert.Equal("finished", Order(world, receipt).Status);
+        Assert.True(Order(world, receipt).Status == "finished", JsonSerializer.Serialize(Order(world, receipt)));
     }
     private sealed class DeliveryChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false,
         string? farmHaulActor = null) : IDecisionProvider

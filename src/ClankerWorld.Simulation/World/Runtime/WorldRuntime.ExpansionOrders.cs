@@ -238,7 +238,7 @@ public sealed partial class WorldRuntime
         var instruction = instructionsByIdempotency.Values.SingleOrDefault(item => item.InstructionId == id);
         if (instruction is null || BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Completed } completed ||
             completed.JobId != job.JobId) return;
-        CreditOrderEffect(instruction, ExpansionOrderReceipt(job.JobId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(ExpansionOrderReceipt(job.JobId)), 1);
     }
 
     private static string ExpansionOrderReceipt(string jobId) =>
