@@ -83,6 +83,8 @@ Do not recognize a hashed ID by searching its old concatenated prefix. The
 birth-food, production-input, market/payment, inheritance, orchard and civic
 bindings recompute their exact generated handle. A provenance field identifies
 the original source even when the new opaque ID no longer embeds that source.
+Ordinary Town donations and public-service deliveries share `WarehouseStockId`
+for both the inventory transfer and its native remedy receipt.
 
 The named work, Society and Town factories expose their existing shapes to the
 inventory. They introduce no second bound or hashing policy. When adding a
