@@ -480,7 +480,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ConversationSchemaVersion} requires conversation state and daily budgets.");
         if (state.SchemaVersion >= OrderLifecycleSchemaVersion && state.OrderCancellations is null)
             throw new InvalidDataException($"World schema {OrderLifecycleSchemaVersion} requires order-cancellation retry state.");
-        var hasArchivedEvents = state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
+        var hasArchivedEvents = WorldHistory.RequiredRecordCounts(state).Count > 0 || state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
             state.Society.Society.Inventory.EventHistoryFloor > 0 || state.Society.Cognition.EventHistoryFloor > 0 ||
             state.Society.Cognition.Runtimes.Any(runtime => runtime.EventHistoryFloor > 0);
         if ((hasArchivedEvents && state.HistoryArchiveHead is null) ||
@@ -663,9 +663,9 @@ public sealed partial class WorldRuntime
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
                 instruction.InstructionId != InstructionIdFor(instruction.SubmissionSequence) ||
                 !instructionIds.Add(instruction.InstructionId) ||
-                !IsValidInstructionIdentifier(instruction.IdempotencyKey) ||
+                !IdentityRules.Reference(instruction.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
-                !IsValidInstructionIdentifier(instruction.IssuerId) ||
+                !IdentityRules.Reference(instruction.IssuerId, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !people.Contains(instruction.TargetAgentId) ||
                 instruction.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order) ||
                 instruction.State != OwnerInstructionState.Queued ||
@@ -752,7 +752,7 @@ public sealed partial class WorldRuntime
         order.Definition is not null &&
         (order.LifecycleStatus != OrderStatus.Queued || instruction.Queue) &&
         order.BlockedReason is not { Length: > 256 } && order.BlockedReason?.Any(char.IsControl) != true &&
-        order.LastEffectId is not { Length: > DerivedId.MaximumLength } && order.LastEffectId?.Any(char.IsControl) != true &&
+        (order.LastEffectId is null || IdentityRules.Reference(order.LastEffectId.Value, DerivedId.MaximumLength)) &&
         order.TargetResourceId is not { Length: > ContentPackageRules.MaximumContentIdLength } && order.TargetResourceId?.Any(char.IsControl) != true &&
         (order.TargetFoodKind is null or "berries" or "fruit" or "wild_greens" ||
             order.Action is "consume_food" or "collect_food" && IsEdibleFood(order.TargetFoodKind)) &&

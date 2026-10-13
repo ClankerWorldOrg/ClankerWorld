@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -7,6 +8,36 @@ namespace ClankerWorld.Tests;
 
 public sealed class PrivateMemorySummaryTests
 {
+    [Theory]
+    [InlineData("control\u0000source")]
+    [InlineData(" padded-source ")]
+    public async Task ExistingSourceSpellingSurvivesNativeSummaryAdmissionAndReload(string key)
+    {
+        var state = await ArchivedState();
+        var owner = state.Agents[0].AgentId;
+        var original = state.Society.Society.ArchivedMemories.First(item => item.Memory.OwnerId == owner);
+        var memories = state.Society.Society.ArchivedMemories.Select(item => item == original
+            ? item with { Memory = item.Memory with { Id = Identity.ParseStoredMemory(key) } } : item)
+            .OrderBy(item => item.Memory.Id.Value, StringComparer.Ordinal).ToArray();
+        state = state with
+        {
+            JevEnabled = true,
+            RoutineHelper = new("jev", "jev-1.13.0"),
+            Society = state.Society with { Society = state.Society.Society with { ArchivedMemories = memories } },
+        };
+        using var world = WorldRuntime.Restore(state,
+            id => new SummaryProvider(id == owner ? DecisionProviderKind.Jev : DecisionProviderKind.Deterministic));
+        for (var tick = 0; tick < 8 && world.Society.MemorySummaries.Count == 0; tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var summary = Assert.Single(world.Society.MemorySummaries);
+        Assert.Contains(summary.Sources, source => source.Id.Value == key);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
+        Assert.Equal(summary.Sources, Assert.Single(loaded.Society.MemorySummaries).Sources);
+        Assert.Equal(memories, loaded.Society.ArchivedMemories);
+    }
+
     [Theory]
     [InlineData(45)]
     [InlineData(46)]
@@ -47,7 +78,7 @@ public sealed class PrivateMemorySummaryTests
         var config = new SocietyConfig { TicksPerWorldDay = 1, BaseNaturalMortalityBasisPoints = 0 };
         var society = SocietyRules.CreateGenesis("long-summary", [SocietyRules.CreateFounder(owner, "Aster Vale", config: config)], config: config);
         for (var index = 0; index < 4; index++)
-            society = SocietyRules.RecordSocialMemory(society, new("old-" + index, owner, owner,
+            society = SocietyRules.RecordSocialMemory(society, new(Identity.Parse("old-" + index), owner, owner,
                 "I remember a long walk along the old familiar path and the weather that afternoon " + index, "private", 0)).Checkpoint;
         society = SocietyRules.AdvanceTo(SocietyRules.Resume(society).Checkpoint, 4).Checkpoint;
         society = SocietyMemoryArchiveRules.Archive(society, new HashSet<string>(), new HashSet<string>());
@@ -144,8 +175,8 @@ public sealed class PrivateMemorySummaryTests
         Assert.Equal(summary.Text, memory.Summary);
         Assert.Single(replay.Society.MemorySummaries);
         var correction = replay.CorrectAgentBelief(owner, rumor.Id,
-            new("corrected", owner, "I saw the path was dry.", SocietyBeliefProvenance.Firsthand, 9_000, replay.WorldTick));
-        Assert.Equal(rumor.Id, correction.SupersedesBeliefId);
+            new(Identity.Parse("corrected"), owner, "I saw the path was dry.", SocietyBeliefProvenance.Firsthand, 9_000, replay.WorldTick));
+        Assert.Equal(rumor.Id, correction.SupersedesBeliefId?.Value);
         var correctedBytes = WorldRuntimeCodec.Encode(replay.ExportState());
         using var corrected = WorldRuntime.Restore(WorldRuntimeCodec.Decode(correctedBytes));
         Assert.Equal(correctedBytes, WorldRuntimeCodec.Encode(corrected.ExportState()));
@@ -250,12 +281,12 @@ public sealed class PrivateMemorySummaryTests
                 BirthTick = item.BirthTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
                 BirthLifeTick = item.BirthLifeTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
             }).ToArray(),
-            Memories = Enumerable.Range(0, 4).Select(index => new SocietySocialMemory("old-" + index, owner, other,
+            Memories = Enumerable.Range(0, 4).Select(index => new SocietySocialMemory(Identity.Parse("old-" + index), owner, other,
                 "I walked along a familiar path and remembered the weather that afternoon " + index, "private", 0))
-                .Append(new("foreign", other, owner, "Another person's secret supply location.", "private", 0))
-                .Append(new("permanent", owner, other, "My learned skill remains dependable.", "private", 0) { Kind = SocietyMemoryKind.Skill })
+                .Append(new(Identity.Parse("foreign"), other, owner, "Another person's secret supply location.", "private", 0))
+                .Append(new(Identity.Parse("permanent"), owner, other, "My learned skill remains dependable.", "private", 0) { Kind = SocietyMemoryKind.Skill })
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            Beliefs = [new("rumor", owner, "Someone told me the familiar path was muddy; I have not seen it myself.",
+            Beliefs = [new(Identity.Parse("rumor"), owner, "Someone told me the familiar path was muddy; I have not seen it myself.",
                 SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other)],
         };
         var systems = WorldSystemsRules.CreateGenesis(state.WorldSeed, state.WorldSystems!.Config with { TicksPerDay = 2, CalendarOffsetTicks = 0 },

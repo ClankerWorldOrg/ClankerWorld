@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Reflection;
 using System.Text.Json;
 using System.Collections.Concurrent;
@@ -229,7 +230,7 @@ public sealed partial class WorldConversationTests
         var finished = Assert.Single(completed.Instructions!);
         Assert.Equal(1, finished.Task!.CompletedUnits);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [finished with { Task = finished.Task with { LastEffectId = "talk-order:forged" } }] }));
+        { Instructions = [finished with { Task = finished.Task with { LastEffectId = Identity.Parse("talk-order:forged") } }] }));
         using var finalReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(completed)), _ => provider);
         for (var tick = 0; tick < 4; tick++) await AdvanceTalkOrderTick(finalReload);
         Assert.Single(finalReload.Conversations);

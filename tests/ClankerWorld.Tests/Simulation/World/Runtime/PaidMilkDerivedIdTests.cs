@@ -80,7 +80,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var marker = "milkresale" + (char)('a' + round / 26) + (char)('a' + round % 26);
             var summary = "I remember " + marker + " paid work.";
             society = SocietyRules.RecordSocialMemory(society with { Inventory = inventory },
-                new(transferred.Id, people[0], people[1], summary, "private", society.WorldTick)).Checkpoint;
+                new(Identity.Parse(transferred.Id), people[0], people[1], summary, "private", society.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = society } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));

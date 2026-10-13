@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Kernel;
@@ -183,7 +184,7 @@ public sealed partial class WorldConstructionOrderTests
         var forged = (order with
         {
             CompletedUnits = 1,
-            LastEffectId = "construction:building:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(order.ConstructionInstanceId!))),
+            LastEffectId = Identity.Parse("construction:building:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(order.ConstructionInstanceId!)))),
         }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => Restore(state with
         {

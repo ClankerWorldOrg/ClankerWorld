@@ -178,7 +178,7 @@ public sealed partial class WorldRuntime
 })
             };
             instructionsByIdempotency[current.IdempotencyKey] = current;
-            CreditOrderEffect(current, TalkOrderEffectId(current), 1);
+            CreditOrderEffect(current, Identity.Parse(TalkOrderEffectId(current)), 1);
         }
     }
 

@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
         if (effect is not null)
         {
             var receipt = MaterialGatherReceipt(effect.LotId);
-            CreditOrderEffect(instruction, receipt,
+            CreditOrderEffect(instruction, Identity.Parse(receipt),
                 instruction.Task.ProgressUnit == "harvests" ? 1 : effect.Quantity);
         }
     }
