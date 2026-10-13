@@ -132,9 +132,7 @@ public sealed partial class WorldRuntime
         foreach (var field in savedFields)
         {
             if (field.Work is not { OrderInstructionId: { } orderId } work) continue;
-            var instruction = instructions.Where(item => item.TargetAgentId == work.WorkerId &&
-                    item.Kind == OwnerInstructionKind.Order && item.Task is { } order && IsActiveOrder(order.Status))
-                .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+            var instruction = FirstActiveOrderFor(instructions, work.WorkerId);
             if (instruction is null || instruction.InstructionId != orderId || instruction.Task is not { } task ||
                 !IsFieldOrder(task.Action) || task.Status == "queued" || FieldOrderKind(task.Action) != work.Kind ||
                 work.LastWorkedTick < instruction.SubmittedTick ||

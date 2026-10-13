@@ -677,11 +677,7 @@ public static partial class SocietyRules
             combined[$"{score.Kind}:{score.SourceId}"] = score with { AssessedTick = checkpoint.WorldTick };
         }
 
-        var boundedSources = combined.Values
-            .OrderByDescending(item => item.SourceTick)
-            .ThenBy(item => item.Kind)
-            .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
-            .Take(256)
+        var boundedSources = RetainedMemoryImportanceSources(combined.Values)
             .OrderBy(item => item.Kind)
             .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         var compactions = (checkpoint.MemoryCompactions ?? [])
@@ -690,6 +686,13 @@ public static partial class SocietyRules
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
         return checkpoint with { MemoryCompactions = compactions };
     }
+
+    internal static IEnumerable<SocietyAgentMemoryImportance> RetainedMemoryImportanceSources(
+        IEnumerable<SocietyAgentMemoryImportance> sources) => sources
+        .OrderByDescending(item => item.SourceTick)
+        .ThenBy(item => item.Kind)
+        .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
+        .Take(256);
 
     public static SocietyOperationResult CreateOrganization(
         SocietyCheckpoint checkpoint,
@@ -1239,7 +1242,7 @@ public static partial class SocietyRules
         EnsureCanonicalIds(checkpoint.Households.Select(item => item.Id), "households");
         EnsureCanonicalIds(checkpoint.Relationships.Select(item => item.Id), "relationships");
         EnsureCanonicalIds(checkpoint.Organizations.Select(item => item.Id), "organizations");
-        EnsureCanonicalIds(checkpoint.Memories.Select(item => item.Id.Value), "memories");
+        EnsureCanonicalIds(checkpoint.Memories.Select(item => (string?)item.Id), "memories");
         ValidateMemoryArchive(checkpoint);
         foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.Value.StartsWith("player-rename:", StringComparison.Ordinal)))
         {
@@ -1328,9 +1331,9 @@ public static partial class SocietyRules
 
     private static void ValidateAgentBeliefs(SocietyCheckpoint checkpoint)
     {
-        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => item.Id.Value), "agent beliefs");
+        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => (string?)item.Id), "agent beliefs");
         var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
-        EnsureCanonicalIds(beliefs.Select(item => item.Id.Value), "agent beliefs");
+        EnsureCanonicalIds(beliefs.Select(item => (string?)item.Id), "agent beliefs");
         if (beliefs.Length == 0) return;
         var byId = beliefs.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         var index = new SocietyBeliefValidationIndex(checkpoint, byId);
@@ -1369,7 +1372,7 @@ public static partial class SocietyRules
                 throw new InvalidDataException("An agent memory compaction is malformed.");
 
             var expected = compaction.Sources.OrderBy(item => item.Kind)
-                .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
+                .ThenBy(item => (string?)item.SourceId, StringComparer.Ordinal).ToArray();
             if (!compaction.Sources.SequenceEqual(expected) ||
                 compaction.Sources.Select(item => $"{item.Kind}:{item.SourceId}")
                     .Distinct(StringComparer.Ordinal).Count() != compaction.Sources.Count)
@@ -1545,9 +1548,12 @@ public static partial class SocietyRules
                 relationship.ProposerId == agent.Id || relationship.TargetId == agent.Id
                     ? relationship with
                     {
-                        State = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
-                            ? SocietyRelationshipState.EndedByDeath
-                            : relationship.State,
+                        State = relationship.State switch
+                        {
+                            SocietyRelationshipState.Accepted => SocietyRelationshipState.EndedByDeath,
+                            SocietyRelationshipState.Proposed => SocietyRelationshipState.Revoked,
+                            _ => relationship.State,
+                        },
                         Consent = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
                             ? SocietyConsentState.Revoked
                             : relationship.Consent,
@@ -1782,7 +1788,10 @@ public static partial class SocietyRules
                     nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
                     current.Inventory.Reservations,
                     current.Inventory.Offers,
-                    inventoryEvents, current.Inventory.EventHistoryFloor),
+                    inventoryEvents, current.Inventory.EventHistoryFloor)
+                {
+                    ArchivedRepairReservationCount = current.Inventory.ArchivedRepairReservationCount,
+                },
                 Estates = current.Estates.Select(item =>
                         item.Id == estate.Id ? item with { Settled = true } : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -1838,7 +1847,8 @@ public static partial class SocietyRules
             targetTick,
             "estate_escrow_created",
             estateId));
-        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor);
+        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor)
+        { ArchivedRepairReservationCount = inventory.ArchivedRepairReservationCount };
     }
 
     private static InventoryCheckpoint WithInventoryTick(
@@ -2255,7 +2265,7 @@ public static partial class SocietyRules
     }
 
     private static void EnsureCanonicalIds(
-        IEnumerable<string> ids,
+        IEnumerable<string?> ids,
         string name)
     {
         var actual = ids.ToArray();

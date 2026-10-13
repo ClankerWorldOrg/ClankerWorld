@@ -13,7 +13,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class LongInventoryActionCheckpointTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
     private const string House = "first-town-house-a";
     private const string Cart = "lineage-cart";
     private static readonly Lazy<Task<byte[]>> StartingCheckpoint = new(async () =>

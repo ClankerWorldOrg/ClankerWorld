@@ -7,9 +7,9 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class TownLandTransferRuntimeTests
 {
-    private const string Filer = "founder:00000000000000000000000000000003";
-    private const string SourcePartner = "founder:00000000000000000000000000000004";
-    private const string Beneficiary = "founder:00000000000000000000000000000001";
+    private const string Filer = NormalPathWorld.Founder3;
+    private const string SourcePartner = NormalPathWorld.Founder4;
+    private const string Beneficiary = NormalPathWorld.Founder1;
     private const string Newcomer = "agent:00000000000000000000000000000093";
     private const int Day = 40;
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);

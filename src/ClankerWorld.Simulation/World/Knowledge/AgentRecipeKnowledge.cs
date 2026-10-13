@@ -41,9 +41,9 @@ internal static partial class AgentKnowledgeRules
                 throw new InvalidDataException("Writing recipes must come from the writer's existing knowledge.");
 
         bool ValidRecipe(AgentRecipeKnowledge recipe, long latestTick) =>
-BoundedText.IsValid(recipe.Id, 160) && agents.Contains(recipe.OwnerId) && agents.Contains(recipe.DiscovererId) &&
+            BoundedText.IsValid(recipe.Id, 160) && agents.Contains(recipe.OwnerId) && agents.Contains(recipe.DiscovererId) &&
             definitions.Contains(recipe.RecipeId) && recipe.LearnedTick >= 0 && recipe.LearnedTick <= latestTick &&
-BoundedText.IsValid(recipe.SourceProductionJobId, 128) && jobs.TryGetValue(recipe.SourceProductionJobId, out var job) && job.State == WorldProductionJobState.Completed &&
+            BoundedText.IsValid(recipe.SourceProductionJobId, 128) && jobs.TryGetValue(recipe.SourceProductionJobId, out var job) && job.State == WorldProductionJobState.Completed &&
             job.WorkerId == recipe.DiscovererId && job.RecipeId == recipe.RecipeId && job.CompletionTick <= recipe.LearnedTick &&
             (recipe.Acquisition == "practice" && recipe.OwnerId == recipe.DiscovererId && recipe.SourceAgentId is null && recipe.SourceArtifactId is null ||
              recipe.Acquisition is "read" or "shared" && recipe.SourceAgentId is { } source && agents.Contains(source) &&

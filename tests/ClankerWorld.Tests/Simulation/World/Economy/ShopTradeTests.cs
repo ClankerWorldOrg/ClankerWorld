@@ -26,7 +26,7 @@ public sealed partial class ShopTradeTests
         for (var index = 1; index <= 8; index++)
         {
             var proposed = open.ProposedTick + index;
-            var id = $"shop-trade:{proposed}:{buyer}:{shopId}";
+            var id = DerivedId.Create($"shop-trade:{proposed}:{buyer}:{shopId}");
             inventory = InventoryAuthority.CreateDirectBarterOffer(inventory,
                 new(Identity.Parse(id), 1, open.SellerHouseholdId, buyer, "shop-axe", 1, "buyer-payment", 3,
                     state.Society.Society.WorldTick + 120));
@@ -636,7 +636,7 @@ public sealed partial class ShopTradeTests
         if (pendingExchange)
         {
             var proposedTick = state.Society.Society.WorldTick;
-            offerId = $"shop-trade:{proposedTick}:{buyer}:{shopId}";
+            offerId = DerivedId.Create($"shop-trade:{proposedTick}:{buyer}:{shopId}");
             inventory = InventoryAuthority.AcceptDirectBarterOffer(
                 InventoryAuthority.CreateDirectBarterOffer(inventory,
                     new(Identity.Parse(offerId), 1, shop.HouseholdId!, buyer, "shop-axe", 1, "buyer-payment", 3,

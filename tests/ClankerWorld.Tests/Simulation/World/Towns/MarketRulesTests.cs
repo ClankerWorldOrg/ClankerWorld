@@ -10,10 +10,10 @@ namespace ClankerWorld.Tests;
 /// <summary>Rules of a paid Market checked from one shared, genuinely built Market instead of the long construction run.</summary>
 public sealed class MarketRulesTests
 {
-    private const string Founder1 = "founder:00000000000000000000000000000001";
-    private const string Founder2 = "founder:00000000000000000000000000000002";
-    private const string Founder3 = "founder:00000000000000000000000000000003";
-    private const string Founder4 = "founder:00000000000000000000000000000004";
+    private const string Founder1 = NormalPathWorld.Founder1;
+    private const string Founder2 = NormalPathWorld.Founder2;
+    private const string Founder3 = NormalPathWorld.Founder3;
+    private const string Founder4 = NormalPathWorld.Founder4;
     private const string StallProposalPrefix = "civic|town:first|project|market-stall-1x1|";
 
     [Fact]

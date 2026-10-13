@@ -58,6 +58,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             var file = new WorldStateFile(Path.Combine(folder.FullName, "world.json"), _ => new QuietProvider());
             file.Save(world);
+            // Saving may compact civic history; refusal preserves that committed checkpoint.
+            before = WorldRuntimeCodec.Encode(world.ExportState());
             Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(before, File.ReadAllBytes(file.Path));
             Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));

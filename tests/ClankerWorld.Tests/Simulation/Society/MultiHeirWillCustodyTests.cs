@@ -1,6 +1,8 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
@@ -181,6 +183,50 @@ public sealed class MultiHeirWillCustodyTests
         Assert.Equal(("bob", "alice", "private", "Alice's final words were: 'Share the harvest.'"),
             (memory.OwnerId, memory.SubjectId, memory.Visibility, memory.Summary));
         AssertRoundtrip(settled);
+    }
+
+    [Theory]
+    [InlineData(255)]
+    [InlineData(256)]
+    [InlineData(300)]
+    public void SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(int newerRecords)
+    {
+        var checkpoint = Genesis();
+        checkpoint = checkpoint with
+        {
+            Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "wood", "wood", "alice", 1),
+        };
+        checkpoint = Settle(Accept(SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Accident).Checkpoint,
+            ["bob"], "Keep the orchard going."));
+        var words = Assert.Single(checkpoint.Memories);
+        Assert.False(words.Permanent);
+        Assert.Equal(SocietyMemoryKind.LifeEvent, words.Kind);
+        Assert.True(SocietyMemoryArchiveRules.IsPermanent(words));
+
+        checkpoint = SocietyRules.AdvanceTo(checkpoint, checkpoint.WorldTick + 1).Checkpoint;
+        for (var index = 0; index < newerRecords; index++)
+            checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
+                Identity.Parse($"walk-{index:D3}"), "bob", "bob", "A quiet walk along the riverbank.", "private", checkpoint.WorldTick)).Checkpoint;
+        var rename = new SocietySocialMemory(Identity.Parse("rename:bob"), "bob", "bob", "I was renamed Bob.", "private", 0, Permanent: true);
+        checkpoint = SocietyRules.RecordSocialMemory(checkpoint, rename).Checkpoint;
+        var bytes = SocietyCheckpointCodec.Encode(checkpoint);
+        checkpoint = SocietyCheckpointCodec.Decode(bytes);
+        Assert.Equal(bytes, SocietyCheckpointCodec.Encode(checkpoint));
+        var candidates = new[] { new CognitionCandidate("remember", "Remember Alice's final words about keeping the orchard going.") };
+
+        var recalled = WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [], null,
+            "bob", checkpoint.WorldTick, candidates, checkpoint);
+
+        Assert.Equal(4, recalled.Count);
+        var finalWords = Assert.Single(recalled, item => item.Id == words.Id);
+        Assert.Equal((words.OwnerId, words.SubjectId, words.Summary, words.Visibility, words.SourceTick),
+            (finalWords.OwnerId, finalWords.SubjectId, finalWords.Summary, finalWords.Visibility, finalWords.SourceTick));
+        Assert.Equal("experience", finalWords.Kind);
+        Assert.Contains(recalled, item => item.Id == rename.Id);
+        Assert.DoesNotContain(WorldMemoryRetrieval.Unassessed(checkpoint.Memories, checkpoint.Beliefs ?? [], null,
+            "bob", checkpoint.WorldTick), item => item.Id == words.Id || item.Id == rename.Id);
+        Assert.DoesNotContain(WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [], null,
+            "cara", checkpoint.WorldTick, candidates, checkpoint), item => item.Id == words.Id);
     }
 
     private static SocietyCheckpoint StoredAcceptedWill()

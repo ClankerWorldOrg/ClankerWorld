@@ -90,6 +90,9 @@ public sealed record InventoryCheckpoint(
     IReadOnlyList<InventoryEvent> Events,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0)
 {
+    [JsonRequired]
+    public long ArchivedRepairReservationCount { get; init; }
+
     public InventoryLot GetLot(string id) => Lots.Single(lot => string.Equals(lot.Id, id, StringComparison.Ordinal));
     public InventoryReservation GetReservation(Identity id) => GetReservation(id.Value);
     public InventoryReservation GetReservation(string id) => Reservations.Single(reservation => string.Equals(reservation.Id, id, StringComparison.Ordinal));
@@ -999,7 +1002,10 @@ public static partial class InventoryAuthority
             lots ?? checkpoint.Lots,
             reservations ?? checkpoint.Reservations,
             offers ?? checkpoint.Offers,
-            events, checkpoint.EventHistoryFloor);
+            events, checkpoint.EventHistoryFloor)
+        {
+            ArchivedRepairReservationCount = checkpoint.ArchivedRepairReservationCount,
+        };
         ValidateCheckpoint(next);
         return InventoryStorageHistory.RecordTransition(checkpoint, next);
     }
@@ -1007,7 +1013,7 @@ public static partial class InventoryAuthority
     private static void ValidateCheckpoint(InventoryCheckpoint checkpoint)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
-        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0)
+        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0 || checkpoint.ArchivedRepairReservationCount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(checkpoint));
         }
@@ -1155,7 +1161,10 @@ public static class InventoryCheckpointCodec
         InventoryReservation[] Reservations,
         DirectBarterOffer[] Offers,
         InventoryEvent[] Events,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0)
+    {
+        [JsonRequired] public long ArchivedRepairReservationCount { get; init; }
+    }
 
     public static byte[] Encode(InventoryCheckpoint checkpoint)
     {
@@ -1172,7 +1181,8 @@ public static class InventoryCheckpointCodec
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
                 })
                 .ToArray(),
-            checkpoint.Events.OrderBy(item => item.EventId).ToArray(), checkpoint.EventHistoryFloor);
+            checkpoint.Events.OrderBy(item => item.EventId).ToArray(), checkpoint.EventHistoryFloor)
+        { ArchivedRepairReservationCount = checkpoint.ArchivedRepairReservationCount };
         return Encoding.UTF8.GetBytes($"{Header}\n{JsonSerializer.Serialize(document, JsonOptions)}");
     }
 
@@ -1224,7 +1234,8 @@ public static class InventoryCheckpointCodec
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
                 })
                 .ToArray(),
-            document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor);
+            document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor)
+        { ArchivedRepairReservationCount = document.ArchivedRepairReservationCount };
         InventoryAuthority.ValidateCheckpointForCodec(checkpoint);
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;

@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
             var hasPendingOrder = PendingInstructionFor(targetId) is not null;
             var parsedOrder = request.Kind == OwnerInstructionKind.Order ? ParseOrderTask(text, targetId) : null;
             if (parsedOrder is not null && !request.Queue)
-                ReplacePendingOrders(targetId);
+                ReplacePendingOrder(targetId);
             if (parsedOrder is not null)
                 parsedOrder = parsedOrder with { Status = request.Queue && hasPendingOrder ? "queued" : "waiting" };
 
@@ -293,24 +293,22 @@ public sealed partial class WorldRuntime
     }
 
     private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
-        instructionsByIdempotency.Values
+        FirstActiveOrderFor(instructionsByIdempotency.Values.Where(item =>
+            !completedInstructionIds.Contains(item.InstructionId)), agentId);
+
+    public static OwnerQueuedInstruction? FirstActiveOrderFor(IEnumerable<OwnerQueuedInstruction> instructions, string agentId) =>
+        instructions
             .Where(item => item.TargetAgentId == agentId &&
                 item.Kind == OwnerInstructionKind.Order &&
-                item.Task is not null && IsActiveOrder(item.Task.Status) &&
-                !completedInstructionIds.Contains(item.InstructionId))
-            .OrderBy(item => item.SubmissionSequence)
+                item.Task is not null && IsActiveOrder(item.Task.Status))
+            .OrderBy(item => item.Task!.Status == "queued")
+            .ThenBy(item => item.SubmissionSequence)
             .FirstOrDefault();
 
-    private void ReplacePendingOrders(string agentId)
+    private void ReplacePendingOrder(string agentId)
     {
-        foreach (var instruction in instructionsByIdempotency.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
-                     .OrderBy(item => item.SubmissionSequence).ToArray())
-        {
+        if (PendingInstructionFor(agentId) is { Task.Status: not "queued" } instruction)
             CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
-        }
         checkpointSchemaVersion = StateSchemaVersion;
     }
 

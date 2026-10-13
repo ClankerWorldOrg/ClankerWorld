@@ -146,12 +146,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         public async Task Advance()
         {
             await WaitForRequests(world);
-            var field = typeof(WorldRuntime).GetField("pendingIdentityMoments",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
-            var pending = (System.Collections.IDictionary)field.GetValue(world)!;
-            await Task.WhenAll(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!))
-                .WaitAsync(TimeSpan.FromSeconds(30));
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages.TakeLast(8)));
+            await ModelWorkHarness.For(world).WaitForKindAsync(ModelWorkKind.IdentityMoment);
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages.TakeLast(8)));
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
         }
         public void Dispose() { service.Dispose(); directory.Delete(recursive: true); }

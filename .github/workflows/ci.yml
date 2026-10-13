@@ -230,7 +230,7 @@ jobs:
           FILTER: ${{ needs.scope.outputs[format('filter-{0}', matrix.shard)] }}
         run: |
           test -n "$FILTER"
-          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "$FILTER" --logger "trx;LogFileName=timings.trx" --results-directory "$RUNNER_TEMP/test-results"
+          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "$FILTER" --logger "trx;LogFileName=timings.trx" --logger "console;verbosity=normal" --results-directory "$RUNNER_TEMP/test-results"
       - name: Report the slowest tests
         if: ${{ !cancelled() }}
         run: node .github/scripts/ci-plan.js slow "$RUNNER_TEMP/test-results"
@@ -297,13 +297,20 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Restore locked test dependencies
         run: dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
-      - name: Verify documentation with LF and CRLF checkout text
-        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~DocumentationTests
+      - name: Verify documentation and source boundaries on Windows
+        env:
+          SOURCE_CODE: ${{ needs.scope.outputs.code }}
+        run: |
+          $filter = 'FullyQualifiedName~DocumentationTests'
+          if ($env:SOURCE_CODE -ne 'false') { $filter += '|FullyQualifiedName~IdentityTextBoundaryTests' }
+          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter $filter
 
   # Skipped when scope skips the test suite; GitHub counts a skipped required job as passed.
   windows-provider-storage:

@@ -162,6 +162,7 @@ internal static partial class OwnerEndpoints
             OwnerSignedHttpRequest<OwnerCredentialSlotDeletionAction> request,
             OwnerRequestAuthorizer authorizer,
             ProviderConfigurationStore providers,
+            WorldRuntime runtime,
             ILogger<ProviderConfigurationStore> logger) =>
         {
             if (request?.Action is null)
@@ -190,7 +191,9 @@ internal static partial class OwnerEndpoints
 
             try
             {
-                var status = providers.DeleteCredentialSlot(request.Action.CredentialSlotId);
+                OwnerProviderConfigurationStatus status;
+                lock (providers.WorldMutationGate)
+                    status = providers.DeleteCredentialSlot(request.Action.CredentialSlotId, runtime.RoutineHelper);
                 OwnerCredentialSlotTelemetry.Deleted(logger, "deleted", request.Action.CredentialSlotId);
                 return Results.Ok(status);
             }

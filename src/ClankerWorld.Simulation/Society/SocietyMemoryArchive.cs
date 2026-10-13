@@ -55,12 +55,12 @@ public static partial class SocietyRules
             checkpoint.ArchivedMemories.Any(item => item is null || item.Memory is null) ||
             checkpoint.ArchivedBeliefs.Any(item => item is null || item.Belief is null))
             throw new InvalidDataException("An agent memory archive is missing or incomplete.");
-        EnsureCanonicalIds(checkpoint.ArchivedMemories.Select(item => item.Memory.Id.Value), "archived memories");
-        EnsureCanonicalIds(checkpoint.ArchivedBeliefs.Select(item => item.Belief.Id.Value), "archived beliefs");
+        EnsureCanonicalIds(checkpoint.ArchivedMemories.Select(item => (string?)item.Memory.Id), "archived memories");
+        EnsureCanonicalIds(checkpoint.ArchivedBeliefs.Select(item => (string?)item.Belief.Id), "archived beliefs");
         if (checkpoint.Memories.Any(item => !Enum.IsDefined(item.Kind)) ||
-            checkpoint.AllMemories().Select(item => item.Id.Value).Distinct(StringComparer.Ordinal).Count() !=
+            checkpoint.AllMemories().Select(item => (string?)item.Id).Distinct(StringComparer.Ordinal).Count() !=
                 checkpoint.Memories.Count + checkpoint.ArchivedMemories.Count ||
-            checkpoint.AllBeliefs().Select(item => item.Id.Value).Distinct(StringComparer.Ordinal).Count() !=
+            checkpoint.AllBeliefs().Select(item => (string?)item.Id).Distinct(StringComparer.Ordinal).Count() !=
                 (checkpoint.Beliefs?.Count ?? 0) + checkpoint.ArchivedBeliefs.Count)
             throw new InvalidDataException("An agent source must be stored exactly once with a known kind.");
         var owners = checkpoint.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);

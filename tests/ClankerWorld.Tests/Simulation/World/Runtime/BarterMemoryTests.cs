@@ -73,7 +73,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(SocietyMemoryKind.Relationship, memory.Kind);
             Assert.Equal("public", memory.Visibility);
             Assert.Equal("Completed a mutually accepted exchange with " + checkpoint.GetAgent(memory.SubjectId).Name + ".", memory.Summary);
-            if (!nativeBorn) Assert.Equal("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId, memory.Id.Value);
+            Assert.Equal(DerivedId.Create("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId, "trust-memory:sha256:"), memory.Id);
             Assert.Equal(beforeTrust[memory.OwnerId] + 1, world.Agents.Single(person => person.AgentId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
@@ -122,16 +122,20 @@ public sealed partial class GrownAgentHelperMemoryTests
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
         if (nativeBorn)
-            await RepeatNativeBarterWithoutReplacingMemory(reload.ExportState(), first, second, payment.Id, beforeTrust);
+            await RepeatNativeBarterPreservingSavedMemoryKeys(reload.ExportState(), first, second, payment.Id, beforeTrust, legacyKeys: recallFirst);
     }
 
-    private static async Task RepeatNativeBarterWithoutReplacingMemory(WorldRuntimeState state,
-        string first, string second, string paymentId, Dictionary<string, int> beforeTrust)
+    private static async Task RepeatNativeBarterPreservingSavedMemoryKeys(WorldRuntimeState state,
+        string first, string second, string paymentId, Dictionary<string, int> beforeTrust, bool legacyKeys)
     {
         var checkpoint = state.Society.Society;
-        // Repeat with the actual saved handles. Older alpha key spellings do
-        // not need a compatibility fixture; no migration runs during loading.
-        var savedMemories = checkpoint.Memories.ToArray();
+        // Retain the actual earned memories, including the supported older pair
+        // spelling. Only the keys change in this controlled compatibility row.
+        var savedMemories = checkpoint.Memories.Select(memory => legacyKeys &&
+            memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
+            (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)
+                ? memory with { Id = Identity.ParseStoredMemory("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId) } : memory)
+            .OrderBy(memory => memory.Id.Value, StringComparer.Ordinal).ToArray();
         var previous = savedMemories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();
         Assert.Equal(2, previous.Length);

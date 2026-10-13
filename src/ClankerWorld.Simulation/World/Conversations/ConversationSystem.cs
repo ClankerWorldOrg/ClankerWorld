@@ -466,17 +466,17 @@ public sealed class ConversationSystem(ConversationState state)
         return hearers;
     }
 
-    public void ApplyConversationTurnOutcome(IConversationWorld world,
+    public bool ApplyConversationTurnOutcome(IConversationWorld world,
         AgentConversationTurnRequest request,
         AgentConversationTurnResponse? response, Exception? failure,
         long worldTick,
         Func<bool> providerRouteIsCurrent)
     {
         var index = ConversationIndex(item => item.Id == request.ConversationId);
-        if (index < 0) return;
+        if (index < 0) return false;
         var current = conversations[index];
         if (current.Status != AgentConversationStatus.AwaitingSpeaker || current.Revision != request.Revision)
-            return;
+            return false;
 
         // The provider route may change independently of runtime events while
         // a proposed tick is being prepared. Reject the reply before it can
@@ -487,7 +487,7 @@ public sealed class ConversationSystem(ConversationState state)
                 current, AgentConversationInterruption.ProviderUnavailable, worldTick));
 
             world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_unavailable");
-            return;
+            return false;
         }
 
         if (failure is not null || response is null)
@@ -498,7 +498,7 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, AgentConversationRules.Suspend(current, interruption, worldTick));
 
             world.AppendEvent("conversation_interrupted", $"{current.Id}:{ToWire(interruption)}");
-            return;
+            return false;
         }
 
         if (!AgentConversationRules.IsParticipant(current, response.SpeakerId))
@@ -507,7 +507,7 @@ public sealed class ConversationSystem(ConversationState state)
                 current, AgentConversationInterruption.ProviderRejected, worldTick));
 
             world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_rejected");
-            return;
+            return false;
         }
 
         var listeners = ConversationListeners(world, current, response.SpeakerId);
@@ -515,7 +515,7 @@ public sealed class ConversationSystem(ConversationState state)
         {
             SetConversationAt(index, AgentConversationRules.Suspend(current, AgentConversationInterruption.Disconnected, worldTick));
             world.AppendEvent("conversation_interrupted", $"{current.Id}:separated");
-            return;
+            return false;
         }
         if (!AgentConversationRules.TryAdmitTurn(current, request, response, listeners,
                 worldTick, world.Society.RunEpoch, out var admitted, out var appended) || appended is null)
@@ -524,7 +524,7 @@ public sealed class ConversationSystem(ConversationState state)
                 current, AgentConversationInterruption.ProviderRejected, worldTick));
 
             world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_rejected");
-            return;
+            return false;
         }
 
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed &&
@@ -533,7 +533,7 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, AgentConversationRules.Suspend(current, AgentConversationInterruption.ProviderRejected, worldTick));
 
             world.AppendEvent("marriage_surname_blocked", current.Id);
-            return;
+            return false;
         }
 
         SetConversationAt(index, admitted);
@@ -542,6 +542,7 @@ public sealed class ConversationSystem(ConversationState state)
         world.AppendEvent("conversation_turn_admitted", $"{current.Id}:{appended.Id}");
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed)
             CompleteMarriageSurname(world, admitted);
+        return true;
     }
 
     public static void ExtractConversationMemoryClaims(IConversationWorld world, AgentConversationTurn turn)

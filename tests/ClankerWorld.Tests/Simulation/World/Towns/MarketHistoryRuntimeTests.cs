@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
 {
-    private const string Seller = "founder:00000000000000000000000000000001";
+    private const string Seller = NormalPathWorld.Founder1;
     private const string Stock = "history-personal-cloth";
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
 
     private static async Task<byte[]> BuildClosedTradeStateAsync()
     {
-        const string buyer = "founder:00000000000000000000000000000003";
+        const string buyer = NormalPathWorld.Founder3;
         const string axes = "history-personal-axes";
         var state = await PaidMarketWorld.StateAsync();
         var market = PaidMarketWorld.Market(state);
