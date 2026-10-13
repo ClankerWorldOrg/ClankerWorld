@@ -875,3 +875,30 @@ public sealed record TownStockSalvagedEventPayload(string? ActorId, [property: J
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => TownId is not null && ItemKind is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record TownCivicCandidateEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "town_civic_candidate";
+    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [TownId, SubjectId];
+    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record TownCivicNominationEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "town_civic_nomination";
+    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [TownId, SubjectId];
+    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record TownCivicLandUseEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "town_civic_land_use";
+    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [TownId, SubjectId];
+    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
+}
