@@ -480,7 +480,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ConversationSchemaVersion} requires conversation state and daily budgets.");
         if (state.SchemaVersion >= OrderLifecycleSchemaVersion && state.OrderCancellations is null)
             throw new InvalidDataException($"World schema {OrderLifecycleSchemaVersion} requires order-cancellation retry state.");
-        var hasArchivedEvents = state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
+        var hasArchivedEvents = WorldHistory.RequiredRecordCounts(state).Count > 0 || state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
             state.Society.Society.Inventory.EventHistoryFloor > 0 || state.Society.Cognition.EventHistoryFloor > 0 ||
             state.Society.Cognition.Runtimes.Any(runtime => runtime.EventHistoryFloor > 0);
         if ((hasArchivedEvents && state.HistoryArchiveHead is null) ||
@@ -660,9 +660,9 @@ public sealed partial class WorldRuntime
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
                 instruction.InstructionId != $"private-instruction-{instruction.SubmissionSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}" ||
                 !instructionIds.Add(instruction.InstructionId) ||
-                !IsValidInstructionIdentifier(instruction.IdempotencyKey) ||
+                !IdentityRules.Reference(instruction.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
-                !IsValidInstructionIdentifier(instruction.IssuerId) ||
+                !IdentityRules.Reference(instruction.IssuerId, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !people.Contains(instruction.TargetAgentId) ||
                 instruction.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order) ||
                 instruction.State != OwnerInstructionState.Queued ||
@@ -739,7 +739,7 @@ public sealed partial class WorldRuntime
             return false;
         if (!knownStatus || (order.Status == "queued" && !instruction.Queue) ||
             order.BlockedReason is { Length: > 256 } || order.BlockedReason?.Any(char.IsControl) == true ||
-            order.LastEffectId is { Length: > DerivedId.MaximumLength } || order.LastEffectId?.Any(char.IsControl) == true ||
+            order.LastEffectId is { } effectId && !IdentityRules.Reference(effectId, DerivedId.MaximumLength) ||
             order.TargetResourceId is { Length: > ContentPackageRules.MaximumContentIdLength } || order.TargetResourceId?.Any(char.IsControl) == true ||
             order.Action != "produce_item" && (order.TargetRecipeId is not null || order.TargetOutputKind is not null ||
                 order.ProductionBuildingId is not null || order.ProductionJobId is not null || order.ProductionProjectStartedTick is not null) ||
@@ -788,12 +788,12 @@ public sealed partial class WorldRuntime
                 (order.KnowledgeWritingProjectId is null || !terminal && order.Status != "queued" &&
                     IsValidProductionBindingId(order.KnowledgeWritingProjectId)) &&
                 (order.CompletedUnits == 0 ? order.LastEffectId is null :
-                    order.LastEffectId is { } receipt && receipt.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
-                    receipt.Length <= DerivedId.MaximumLength && IsValidProductionBindingId(receipt["writing:artifact:".Length..]));
+                    order.LastEffectId is { } receipt && receipt.Value.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
+                    receipt.Value.Length <= DerivedId.MaximumLength && IsValidProductionBindingId(receipt.Value["writing:artifact:".Length..]));
 
         if (IsCartCargoOrder(order.Action)) return IsValidCartCargoOrder(instruction);
         if (IsCartOrder(order.Action))
-            return (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            return (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
                 order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
                 order.ProgressUnit == "cart_tasks" && order.TargetFoodKind is null && order.TargetAgentId is null && order.TargetResourceId is null && order.TargetPosition is null &&
                 order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
@@ -807,7 +807,7 @@ public sealed partial class WorldRuntime
                 order.TargetResourceId is null && order.TargetAgentId is null && order.TargetPosition is null &&
                 order.Status != "not_understood" &&
                 (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("animal-order:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("animal-order:", StringComparison.Ordinal) == true);
         if (order.Action == "unknown")
             return order.Status == "not_understood" && order.RequestedUnits == 0 && order.CompletedUnits == 0 &&
                 order.ProgressUnit == "none" && !order.RepeatUntilCancelled && order.TargetFoodKind is null &&
@@ -929,7 +929,7 @@ public sealed partial class WorldRuntime
                 (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
                 order.Status != "not_understood" &&
                 (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("field:work:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("field:work:", StringComparison.Ordinal) == true);
 
         if (order.Action is "repair_equipment" or "repair_tool")
             return (order.Action == "repair_tool" ? OrderTaskParser.IsToolKind(order.TargetEquipmentKind) :
@@ -940,7 +940,7 @@ public sealed partial class WorldRuntime
                 (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
                 order.Status != "not_understood" &&
                 (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
 
         if (order.Action is "collect_material" or "collect_food" or "collect_equipment")
             return (order.Action switch
@@ -960,7 +960,7 @@ public sealed partial class WorldRuntime
                     "collect_equipment" => "equipment_items",
                     _ => "material_items",
                 }) : order.ProgressUnit == "collection_loads" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
 
         if (order.Action is "store_material" or "store_equipment")
             return (order.Action == "store_equipment"
@@ -974,7 +974,7 @@ public sealed partial class WorldRuntime
                 (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                 (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action == "store_equipment" ? "equipment_items" : "material_items")
                     : order.ProgressUnit == "storage_loads" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("store:personal:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("store:personal:", StringComparison.Ordinal) == true);
 
         if (order.Action == "gather_material")
             return OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) &&
@@ -983,7 +983,7 @@ public sealed partial class WorldRuntime
                 order.Status != "not_understood" &&
                 (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                 (order.QuantityIsExplicit ? order.ProgressUnit == "material_items" : order.ProgressUnit == "harvests" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("gather:material:", StringComparison.Ordinal) == true);
+                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("gather:material:", StringComparison.Ordinal) == true);
 
         if (order.Action == "travel_by_boat") return IsValidBoatOrderShape(order);
 

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -28,7 +29,7 @@ public sealed partial class WorldRuntimeTests
             (order.Action, order.Status, order.CompletedUnits, order.ProgressUnit, order.TargetMaterialKind));
         var lot = Assert.Single(world.Society.Inventory.Lots, item => item.OwnerId == HarvestInstructionActor && item.ItemKind == kind);
         Assert.Equal(quantity, lot.Quantity);
-        Assert.Equal("gather:" + lot.Id, order.LastEffectId);
+        Assert.Equal("gather:" + lot.Id, order.LastEffectId?.Value);
         Assert.Equal(0, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
         if (tool is not null)
             Assert.Equal(10_000 - ToolProgressionRules.Find(tool)!.WearLossBasisPoints,
@@ -236,7 +237,7 @@ public sealed partial class WorldRuntimeTests
         foreach (var invalid in new[] { order with { TargetMaterialKind = null }, order with { TargetMaterialKind = "cloth" },
                      order with { TargetFoodKind = "berries" }, order with { TargetAgentId = HarvestInstructionActor },
                      order with { ProgressUnit = "food_items" },
-                     order with { LastEffectId = "gather:material:fake" }, order with { CompletedUnits = 1 } })
+                     order with { LastEffectId = Identity.Parse("gather:material:fake") }, order with { CompletedUnits = 1 } })
         {
             var damaged = saved with
             {

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -48,8 +49,10 @@ public sealed class WorldRepairOrderTests
         world.Validate();
     }
 
-    [Fact]
-    public async Task CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts(bool replace)
     {
         var state = Prepared("sack");
         var actor = Actor(state);
@@ -60,6 +63,13 @@ public sealed class WorldRepairOrderTests
         using var world = Restore(WithInventory(state, inventory));
         var first = Submit(world, actor, "two", "repair two sacks");
         var second = Submit(world, actor, "queued", "repair a basic garment", queue: true);
+        if (replace)
+        {
+            var original = first;
+            first = Submit(world, actor, "replacement", "repair two sacks");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, second).Status);
+        }
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, first).CompletedUnits);
         Assert.Equal("queued", Order(world, second).Status);
@@ -227,7 +237,7 @@ public sealed class WorldRepairOrderTests
             valid with { TargetEquipmentKind = "sword" }, valid with { TargetEquipmentKind = "basket" },
             valid with { TargetMaterialKind = "wood" }, valid with { TargetFoodKind = "berries" },
             valid with { TargetResourceId = "tree" }, valid with { TargetPosition = new(1, 1) },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "repair:equipment:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("repair:equipment:unearned") },
             valid with { TargetAgentId = actor },
         })
         {
@@ -350,7 +360,7 @@ public sealed class WorldRepairOrderTests
         var receipt = Submit(world, actor, "long", "repair one garment");
         await Finish(world, receipt);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var restored = Restore(WorldRuntimeCodec.Decode(bytes));

@@ -81,7 +81,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Contains(travel.InstructionId, arrived.CompletedInstructionIds ?? []);
         Assert.Equal("finished", CancellationOrder(arrived, travel.InstructionId).Status);
         Assert.Equal(1, CancellationOrder(arrived, travel.InstructionId).CompletedUnits);
-        Assert.StartsWith("arrival:berry-patch:", CancellationOrder(arrived, travel.InstructionId).LastEffectId);
+        Assert.StartsWith("arrival:berry-patch:", CancellationOrder(arrived, travel.InstructionId).LastEffectId?.Value);
         var arrivalPosition = arrived.Agents.Single(person => person.AgentId == HarvestInstructionActor).Position;
         Assert.NotEqual(start, arrivalPosition);
         Assert.InRange(arrived.Map.FootDistance(arrivalPosition, source.Position), 0, 1);

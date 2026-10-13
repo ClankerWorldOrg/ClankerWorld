@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class RetainedCognitionCostTests
 {
-    private const string TargetId = "founder:00000000000000000000000000000001";
+    private const string TargetId = NormalPathWorld.Founder1;
 
     // Ordinary peers change the world while a reply is held, so some choices
     // disappear. That leaves the accepted reply valid and needs no second call.

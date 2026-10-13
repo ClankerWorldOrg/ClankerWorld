@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -11,7 +12,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class WorldProductionOrderTests
+public sealed partial class WorldProductionOrderTests
 {
     private const string Household = "household:first";
     private const string House = "first-town-house-a";
@@ -440,7 +441,7 @@ public sealed class WorldProductionOrderTests
             order with
             {
                 CompletedUnits = 1,
-                LastEffectId = "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId))),
+                LastEffectId = Identity.Parse("produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId)))),
             },
             order with { ProductionJobId = "production-9999999999" },
             order with { ProductionBuildingId = Shop },

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -500,7 +501,7 @@ public sealed class WorldCustodyOrderTests
         var completedOrder = Order(world, receipt);
         var wrongAction = completedOrder with
         {
-            LastEffectId = "collect:personal:" + completedOrder.LastEffectId!["store:personal:".Length..],
+            LastEffectId = Identity.Parse("collect:personal:" + completedOrder.LastEffectId!.Value["store:personal:".Length..]),
         };
         Assert.Throws<InvalidDataException>(() => Restore(finished with
         {

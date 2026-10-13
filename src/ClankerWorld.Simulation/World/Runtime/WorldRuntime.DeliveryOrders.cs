@@ -223,7 +223,7 @@ public sealed partial class WorldRuntime
         var operation = $"order-delivery:{WorldTick}:{actor}:{plan.Carrier.Id}";
         var movedSource = plan.TakeFromContainer ? plan.Resource : plan.Carrier;
         var movedId = plan.TransferQuantity == movedSource.Quantity ? movedSource.Id :
-            $"{movedSource.Id}#{(plan.TakeFromContainer ? "taken" : "transfer")}:{operation}";
+            DerivedId.Create($"{movedSource.Id}#{(plan.TakeFromContainer ? "taken" : "transfer")}:{operation}");
         ApplyInventoryTransition(inventory => plan.TakeFromContainer
             ? InventoryAuthority.TakeFromContainer(inventory, operation, plan.Carrier.OwnerId, actor,
                 plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity, destinationDeliveryBuildingId: plan.Destination.InstanceId)
@@ -260,7 +260,7 @@ public sealed partial class WorldRuntime
             BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route, effect.LotId, effect.Quantity);
             return;
         }
-        CreditOrderEffect(instruction, StockDeliveryReceipt(effect.OperationId),
+        CreditOrderEffect(instruction, Identity.Parse(StockDeliveryReceipt(effect.OperationId)),
             instruction.Task!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with

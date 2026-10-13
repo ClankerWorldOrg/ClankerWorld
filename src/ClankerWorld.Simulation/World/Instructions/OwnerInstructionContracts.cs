@@ -50,7 +50,7 @@ public sealed record OrderTask(
     string? TargetResourceId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null,
     string? BlockedReason = null,
-    string? LastEffectId = null,
+    Identity? LastEffectId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaitForDecisionAfterFailure = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetMaterialKind = null,

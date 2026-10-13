@@ -499,19 +499,8 @@ public sealed partial class WorldRuntime
     {
         if (IsPreparedMeal(lot.ItemKind)) return lot.ItemKind;
         var inventory = society.Checkpoint.Inventory;
-        var visited = new HashSet<string>(StringComparer.Ordinal);
-        var originId = lot.Id;
-        while (lot.ProvenanceLotId is { } parent && visited.Add(lot.Id))
-        {
-            originId = parent;
-            if (inventory.Lots.FirstOrDefault(item => item.Id == parent) is not { } source)
-            {
-                break;
-            }
-            lot = source;
-        }
-        var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
-            .FirstOrDefault(job => originId.StartsWith(job.JobId + ":output:", StringComparison.Ordinal));
+        (lot, var originId) = InventoryIndex.For(inventory).ProvenanceOrigin(lot);
+        var job = WorldProductionJob.OutputSource(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? []), originId);
         if (job is not null)
         {
             return worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == job.RecipeId)?.IsCrop == true ? "crops" : "cooked";

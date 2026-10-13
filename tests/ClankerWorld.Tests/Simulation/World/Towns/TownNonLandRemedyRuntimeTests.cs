@@ -195,7 +195,9 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-fiber").Quantity);
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-rope").Quantity);
         Assert.All(resumedRepair.MaterialReservationIds, id => Assert.Equal(InventoryReservationState.Completed, replay.Society.Inventory.GetReservation(id).State));
-        NonLandRuntimeFixture.Strict(replay.ExportState());
+        var compacted = RepairHistoryTests.SaveAfterLaterRepairs(replay.ExportState());
+        Assert.All(receipt.RepairInputs, input => Assert.Contains(input.Reservation, compacted.Society.Society.Inventory.Reservations));
+        NonLandRuntimeFixture.Strict(compacted);
     }
 
     [Fact]

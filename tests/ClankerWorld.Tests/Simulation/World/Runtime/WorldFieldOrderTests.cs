@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -149,13 +150,22 @@ public sealed partial class WorldFieldOrderTests
         tending.Validate();
     }
 
-    [Fact]
-    public async Task QueuedFieldWorkReplaysFromAPartialPlantingWithoutDuplicateSeedUse()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task QueuedFieldWorkReplaysFromAPartialPlantingWithoutDuplicateSeedUse(bool replace)
     {
         var state = WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared));
         using var world = Restore(state);
         var plant = Submit(world, "plant", "plant a field of grain");
         var tend = Submit(world, "tend", "tend grain", queue: true);
+        if (replace)
+        {
+            var original = plant;
+            plant = Submit(world, "replacement", "plant a field of grain");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, tend).Status);
+        }
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("queued", Order(world, tend).Status);
         Assert.Equal(0, Order(world, plant).CompletedUnits);
@@ -379,7 +389,7 @@ public sealed partial class WorldFieldOrderTests
             Order(world, receipt) with { TargetAgentId = Actor },
             Order(world, receipt) with { TargetPosition = new(1, 2) },
             Order(world, receipt) with { ProgressUnit = "food_items" },
-            Order(world, receipt) with { LastEffectId = "field:work:unearned" },
+            Order(world, receipt) with { LastEffectId = Identity.Parse("field:work:unearned") },
         })
             Assert.Throws<InvalidDataException>(() => Restore(state with
             { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));

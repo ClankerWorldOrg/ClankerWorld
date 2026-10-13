@@ -48,11 +48,12 @@ public sealed partial class WorldRuntime
         // Ownership changes now, location does not. Collection remains a separate physical action.
         var nextInventory = society.Checkpoint.Inventory;
         // Food sealed in a storage pot stays with the household; the allowance takes loose portions.
-        foreach (var lot in nextInventory.Lots.Where(lot => lot.OwnerId == householdId && lot.CarrierId is null &&
-                     lot.ContainerLotId is null && IsEdibleFood(lot.ItemKind)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray())
+        foreach (var match in FindGoods(nextInventory, new(GoodsUse.Holdings, null,
+                     GoodsOwners.One(householdId), EdibleFoodGoods)).Matches.Where(match =>
+                     match.Lot.CarrierId is null && match.Lot.ContainerLotId is null))
         {
-            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(nextInventory), lot));
-            var quantity = Math.Min(2 - allowance, available);
+            var lot = match.Lot;
+            var quantity = Math.Min(2 - allowance, match.Quantity);
             if (quantity <= 0) continue;
             var transferId = DepartureTransferId(actor, WorldTick, agents[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null

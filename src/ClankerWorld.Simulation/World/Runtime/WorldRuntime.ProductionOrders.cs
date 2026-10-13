@@ -217,7 +217,7 @@ public sealed partial class WorldRuntime
             recipe.Outputs.Where(output => output.ResourceId == order.TargetOutputKind).Sum(output => output.Amount);
         var receipt = ProductionOrderReceipt(job.JobId);
         SetProject(job.WorkerId, person.Project! with { Stage = "completed", Blocker = null });
-        CreditOrderEffect(instruction, receipt, units);
+        CreditOrderEffect(instruction, Identity.Parse(receipt), units);
     }
 
     private static string ProductionOrderReceipt(string jobId) =>

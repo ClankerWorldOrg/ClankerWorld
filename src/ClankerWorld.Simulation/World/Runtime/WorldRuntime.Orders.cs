@@ -331,14 +331,14 @@ public sealed partial class WorldRuntime
                 if (agents[actor].Position == destination)
                 {
                     RecordKnowledgeFact(actor, destination);
-                    CreditOrderEffect(instruction, MovementOrderEffectId(destination), 1);
+                    CreditOrderEffect(instruction, Identity.Parse(MovementOrderEffectId(destination)), 1);
                 }
                 return;
             case "consume_food":
                 if (ConsumeFood(actor, person, order.TargetFoodKind) is { } consumedLotId)
                 {
                     var receipt = ConsumptionOrderReceipt(WorldTick, actor, consumedLotId);
-                    CreditOrderEffect(instruction, receipt, 1);
+                    CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 else
                     SetOrderStatus(instruction, OrderStatus.Blocked, "No matching food is available to eat.");
@@ -363,7 +363,7 @@ public sealed partial class WorldRuntime
                     {
                         if (order.Action == "seek_food")
                             CreditOrderEffect(instruction,
-                                FoodArrivalReceipt(target.Id, current.Position), 1);
+                                Identity.Parse(FoodArrivalReceipt(target.Id, current.Position)), 1);
                         return;
                     }
                     MoveToward(actor, current, target.Position, "owner_order_food", ResourceInteractionRange);
@@ -371,7 +371,7 @@ public sealed partial class WorldRuntime
                     if (order.Action == "seek_food" &&
                         IsWithinInteractionRange(current.Position, target.Position, ResourceInteractionRange))
                         CreditOrderEffect(instruction,
-                            FoodArrivalReceipt(target.Id, current.Position), 1);
+                            Identity.Parse(FoodArrivalReceipt(target.Id, current.Position)), 1);
                     return;
                 }
             case "harvest_food":
@@ -389,7 +389,7 @@ public sealed partial class WorldRuntime
                     }
                     if (HarvestFood(actor, agents[actor], source) is { } effect &&
                         (order.TargetFoodKind is null || effect.ItemKind == order.TargetFoodKind))
-                        CreditOrderEffect(instruction, FoodHarvestReceipt(effect.LotId),
+                        CreditOrderEffect(instruction, Identity.Parse(FoodHarvestReceipt(effect.LotId)),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
                     else
                         SetOrderStatus(instruction, OrderStatus.Blocked, "The requested food site did not yield the requested food.");
@@ -401,7 +401,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units)
+    private void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units)
     {
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         var order = current.Task!;
