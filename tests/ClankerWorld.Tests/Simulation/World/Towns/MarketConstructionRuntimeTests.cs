@@ -87,11 +87,11 @@ public sealed class MarketConstructionRuntimeTests
         policy.HoldDonationForActor = traveler.Actor;
         for (var tick = 0; tick < 100 && !policy.DonationStarted.Task.IsCompleted; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
+            await scenario.World.TickModelWorkAsync();
             ledger.Observe(scenario.World.ExportState());
-            await Task.Delay(2);
+
         }
-        await policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await policy.DonationStarted.Task;
         Assert.Equal(scenario.Project.Plan.Site,
             scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         var freshChoice = policy.Choices.Last(choice => choice.Actor == traveler.Actor &&
@@ -100,7 +100,7 @@ public sealed class MarketConstructionRuntimeTests
         Assert.True(freshChoice.Tick > travelChoice.Tick);
         for (var tick = 0; tick < 3; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
+            await scenario.World.TickModelWorkAsync();
             ledger.Observe(scenario.World.ExportState());
             Assert.Equal(traveler.Actor, scenario.World.Society.Inventory.GetLot(carried.Id).OwnerId);
             Assert.DoesNotContain(scenario.Project.Deliveries, delivery => delivery.SourceLotId == carried.Id);

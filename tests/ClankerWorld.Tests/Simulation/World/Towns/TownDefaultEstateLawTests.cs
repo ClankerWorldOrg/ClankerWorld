@@ -188,12 +188,12 @@ public sealed class TownDefaultEstateLawTests
             Towns = [town],
             Agents = state.Agents.Select(person => person with { Equipment = null }).ToArray(),
         }, Provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == Author);
         for (var attempt = 0; attempt < 40 && estate.WillStatus == "pending"; attempt++)
         {
-            await Task.Delay(10);
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             estate = world.Society.GetEstate(estate.Id);
         }
         Assert.Equal("default", estate.WillStatus);

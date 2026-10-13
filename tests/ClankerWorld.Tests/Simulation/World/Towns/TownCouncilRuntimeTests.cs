@@ -135,8 +135,8 @@ public sealed class TownCouncilRuntimeTests
             using var service = new WorldRuntimeService(world, file, presence, logger);
             for (var tick = 0; tick < 80 && world.Towns.Any(t => !t.Council!.Proposals.Any(p => p.Status == "passed")); tick++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
-                await Task.Delay(2);
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
+
             }
             Assert.All(world.Towns, town =>
             {
@@ -331,10 +331,10 @@ public sealed class TownCouncilRuntimeTests
         using var generated = NormalPathWorld.CreateGenerated("council-stale-held-vote", id => id == FirstAuthor ? provider : new ActionCoverageRecorder(chooseIdle: true));
         for (var tick = 0; tick < 80 && !provider.VoteStarted.Task.IsCompleted; tick++)
         {
-            await generated.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            await generated.TickModelWorkAsync();
+
         }
-        await provider.VoteStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await provider.VoteStarted.Task;
         var original = Assert.Single(generated.Towns[0].Council!.Proposals);
         var state = generated.ExportState();
         var site = state.Towns![0].BorderTiles.First(p => state.Map.IsBuildable(p) &&
@@ -345,8 +345,8 @@ public sealed class TownCouncilRuntimeTests
         provider.ReleaseVote.TrySetResult(true);
         for (var tick = 0; tick < 8; tick++)
         {
-            await generated.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            await generated.TickModelWorkAsync();
+
         }
         var cancelled = generated.Towns[0].Council!.Proposals.Single(p => p.Id == original.Id);
         Assert.Empty(cancelled.Votes);
@@ -423,8 +423,8 @@ public sealed class TownCouncilRuntimeTests
     private sealed class CivicProvider(string actor, bool holdVote = false, string? proposalOverride = null) : IDecisionProvider
     {
         public ConcurrentQueue<AgentObservation> Observations { get; } = new();
-        public TaskCompletionSource<bool> VoteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> VoteStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)

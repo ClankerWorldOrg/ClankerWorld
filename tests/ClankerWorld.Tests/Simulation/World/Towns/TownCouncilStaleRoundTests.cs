@@ -73,14 +73,14 @@ public sealed class TownCouncilStaleRoundTests
         {
             for (var tick = 0; tick < 5 && !control.Started.Task.IsCompleted; tick++)
             {
-                await world.AdvanceOneTickNonBlockingAsync();
-                await Task.Delay(5);
+                await world.TickModelWorkAsync();
+                await ModelWorkHarness.For(world).SettleAsync();
             }
-            await control.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await control.Started.Task;
             while (world.WorldTick < Day + 5 && !HasRunoffRelay(world, heldActor, reader))
             {
-                await world.AdvanceOneTickNonBlockingAsync();
-                await Task.Delay(5);
+                await world.TickModelWorkAsync();
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.Equal("runoff", world.Towns[0].Council!.Election!.Stage);
             Assert.Equal(contestId, world.Towns[0].Council!.Election!.Id);
@@ -90,8 +90,8 @@ public sealed class TownCouncilStaleRoundTests
             control.Release.TrySetResult(true);
             while (world.WorldTick < Day + 8)
             {
-                await world.AdvanceOneTickNonBlockingAsync();
-                await Task.Delay(5);
+                await world.TickModelWorkAsync();
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             var runoff = world.Towns[0].Council!.Election!;
             Assert.Equal("runoff", runoff.Stage);
@@ -122,8 +122,8 @@ public sealed class TownCouncilStaleRoundTests
         public string Reader { get; } = reader;
         public string Target { get; } = target;
         public bool Structured { get; } = structured;
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
         public string? MainAction { get; set; }
         public string? FreshAction { get; set; }
     }

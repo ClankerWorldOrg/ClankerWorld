@@ -176,10 +176,10 @@ public sealed partial class TownLandTransferRuntimeTests
             for (var attempt = 0; attempt < 40 && (!provider.Started.Task.IsCompleted ||
                      world.Towns[0].LandRecords.Transfers.Count == 0 || world.Towns[0].LandRecords.Transfers[0].Responses.Count < 3); attempt++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
-                await Task.Delay(10);
+                Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
-            await provider.Started.Task.WaitAsync(Deadline);
+            await provider.Started.Task;
             var pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
             Assert.Equal(3, pending.Responses.Count);
@@ -193,8 +193,8 @@ public sealed partial class TownLandTransferRuntimeTests
             provider.Release();
             for (var attempt = 0; attempt < 20 && world.Towns[0].LandRecords.Transfers[0].Responses.Count < 4; attempt++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
-                await Task.Delay(10);
+                Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
@@ -398,9 +398,9 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private sealed class TransferProvider(DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> release = new(TaskCreationOptions.None);
         private CognitionDecisionResponse? held;
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public ConcurrentQueue<string> Selected { get; } = new();
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
