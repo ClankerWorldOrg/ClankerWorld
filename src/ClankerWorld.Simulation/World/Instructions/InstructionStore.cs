@@ -73,6 +73,7 @@ internal sealed class InstructionStore(IEqualityComparer<string> comparer)
 
     private void Unindex(OwnerQueuedInstruction instruction)
     {
+        if (instruction.Kind != OwnerInstructionKind.Order || instruction.Task is not { IsTerminal: false }) return;
         if (!activeByAgent.TryGetValue(instruction.TargetAgentId, out var active)) return;
         active.Remove((instruction.Task!.LifecycleStatus == OrderStatus.Queued, instruction.SubmissionSequence));
         if (active.Count == 0) activeByAgent.Remove(instruction.TargetAgentId);
