@@ -36,15 +36,15 @@ public sealed class QueuedIdentityRoutingTests
         using var world = Restore(state, provider);
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var original = Assert.Single(provider.ModelRequests);
             Assert.True(original.NeedsPersonality);
             Assert.True(original.NeedsAspiration);
             Assert.DoesNotContain(original.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
 
             for (var tick = 0; tick < 6; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
                 entry => entry.AgentId == Actor).Observation.Candidates,
                 candidate => candidate.Id is "seek_food" or "harvest_food");
@@ -55,24 +55,24 @@ public sealed class QueuedIdentityRoutingTests
             var completion = WaitForModelCompletion(world);
             if (deferReturn)
             {
-                await provider.Replied.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                await ModelWorkHarness.For(world).WaitAsync(provider.Replied.Task);
                 Assert.False(completion.IsCompleted);
-                Assert.False(world.ModelDecisionsFinished(Actor));
+                Assert.False(Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == Actor).Completion.IsCompleted);
                 Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
                 provider.Complete.TrySetResult(true);
             }
             await completion;
             Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using var deadline = new CancellationTokenSource();
             var admitted = false;
             for (var tick = 0; tick < 20 && !admitted; tick++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token);
+                var step = await world.TickModelWorkAsync(cancellationToken: deadline.Token);
                 Assert.True(step.Advanced);
                 var decisions = step.Decisions.Where(item => item.AgentId == Actor).ToArray();
                 if (decisions.Length == 0)
                 {
-                    await Task.Delay(5, deadline.Token);
+                    await ModelWorkHarness.For(world).SettleAsync();
                     continue;
                 }
                 var decision = Assert.Single(decisions);
@@ -90,9 +90,9 @@ public sealed class QueuedIdentityRoutingTests
             var restoredProvider = new IdentityPlanningProvider();
             using var restored = Restore(WorldRuntimeCodec.Decode(saved), restoredProvider);
             Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
-            foreach (var current in new[] { world, restored })
+            var (firstStep, replayStep) = await ModelWorkHarness.For(world).AdvanceTogetherAsync(ModelWorkHarness.For(restored));
+            foreach (var (current, step) in new[] { (world, firstStep), (restored, replayStep) })
             {
-                var step = await current.AdvanceOneTickNonBlockingAsync();
                 var decision = Assert.Single(step.Decisions, item => item.AgentId == Actor);
                 Assert.True(decision.Admission.Accepted);
                 Assert.Equal(DecisionProviderKind.Deterministic, decision.Admission.Intention!.Provider);
@@ -121,11 +121,8 @@ public sealed class QueuedIdentityRoutingTests
         }
     }
 
-    private static async Task WaitForModelCompletion(WorldRuntime world)
-    {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        while (!world.ModelDecisionsFinished(Actor)) await Task.Delay(1, deadline.Token);
-    }
+    private static Task WaitForModelCompletion(WorldRuntime world) =>
+        Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == Actor).Completion;
 
     private static WorldRuntime Restore(WorldRuntimeState state, IdentityPlanningProvider provider) =>
         WorldRuntime.Restore(state, id => id == Actor ? provider : new QuietProvider());
@@ -138,10 +135,10 @@ public sealed class QueuedIdentityRoutingTests
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> ModelRequests { get; } = new();
         public ConcurrentQueue<AgentObservation> RoutineRequests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Complete { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Replied { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Complete { get; } = new(TaskCreationOptions.None);
 
         public DecisionProviderKind KindFor(AgentObservation observation) =>
             observation.NeedsPersonality || observation.NeedsAspiration

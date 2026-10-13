@@ -45,15 +45,15 @@ public sealed class QueuedLifeMomentIdentityTests
         var provider = new LifeMomentProvider();
         using var world = WorldRuntime.Restore(state, id => id == Actor
             ? provider : new ActionCoverageRecorder(chooseIdle: true));
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var deadline = new CancellationTokenSource();
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+            Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             await provider.InitialStarted.Task.WaitAsync(deadline.Token);
             var original = Assert.Single(provider.InitialRequests);
             Assert.DoesNotContain(original.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             for (var tick = 0; tick < 2; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
                 entry => entry.AgentId == Actor).Observation.Candidates,
                 candidate => candidate.Id is "seek_food" or "harvest_food");
@@ -62,8 +62,8 @@ public sealed class QueuedLifeMomentIdentityTests
             provider.ReleaseInitial.TrySetResult();
             for (var tick = 0; tick < 20 && world.Agents.Single(person => person.AgentId == Actor).IdentityChoicePending; tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
-                await Task.Delay(5, deadline.Token);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.False(world.Agents.Single(person => person.AgentId == Actor).IdentityChoicePending);
             Assert.Equal(FirstPersonality, world.Agents.Single(person => person.AgentId == Actor).Personality);
@@ -76,7 +76,7 @@ public sealed class QueuedLifeMomentIdentityTests
                 Assert.Equal("requested", Assert.Single(world.Agents.Single(person => person.AgentId == Actor).IdentityMoments!).Outcome);
                 for (var tick = 0; tick < 2; tick++)
                 {
-                    var step = await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token);
+                    var step = await world.TickModelWorkAsync(cancellationToken: deadline.Token);
                     Assert.True(step.Advanced);
                     Assert.DoesNotContain(step.Decisions, decision => decision.AgentId == Actor);
                     Assert.Empty(provider.RoutineRequests);
@@ -85,15 +85,15 @@ public sealed class QueuedLifeMomentIdentityTests
                 provider.ReleaseMoment.TrySetResult();
                 for (var tick = 0; tick < 20 && world.Agents.Single(person => person.AgentId == Actor).Personality != LaterPersonality; tick++)
                 {
-                    Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
-                    await Task.Delay(5, deadline.Token);
+                    Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
+                    await ModelWorkHarness.For(world).SettleAsync();
                 }
                 Assert.Equal(LaterPersonality, world.Agents.Single(person => person.AgentId == Actor).Personality);
                 Assert.Single(provider.MomentRequests);
             }
             else Assert.Empty(provider.MomentRequests);
 
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+            Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             var fresh = Assert.Single(provider.RoutineRequests);
             Assert.Equal(midlife ? LaterPersonality : FirstPersonality, fresh.Self!.Personality);
             Assert.Equal(world.WorldTick, fresh.WorldTick);
@@ -115,10 +115,10 @@ public sealed class QueuedLifeMomentIdentityTests
         public ConcurrentQueue<AgentObservation> InitialRequests { get; } = new();
         public ConcurrentQueue<AgentObservation> MomentRequests { get; } = new();
         public ConcurrentQueue<AgentObservation> RoutineRequests { get; } = new();
-        public TaskCompletionSource InitialStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource MomentStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ReleaseInitial { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ReleaseMoment { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource InitialStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource MomentStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ReleaseInitial { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ReleaseMoment { get; } = new(TaskCreationOptions.None);
 
         public DecisionProviderKind KindFor(AgentObservation observation) =>
             observation.NeedsPersonality || observation.NeedsAspiration
