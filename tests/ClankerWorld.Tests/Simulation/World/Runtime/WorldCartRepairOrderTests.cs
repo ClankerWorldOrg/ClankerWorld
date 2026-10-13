@@ -60,6 +60,9 @@ public sealed class WorldCartRepairOrderTests
             item.OwnerId == actor && item.State == InventoryReservationState.Completed));
         Assert.Single(final.Events, item => item.Kind == "handcart_repaired" && item.Detail == actor + ":z-cart");
         Assert.Single(final.Events, item => item.Kind == "instruction_order_finished");
+        var repairInputs = final.Society.Society.Inventory.Reservations.Where(item => item.Purpose == "equipment_repair").ToArray();
+        final = RepairHistoryTests.SaveAfterLaterRepairs(final);
+        Assert.All(repairInputs, input => Assert.Contains(input, final.Society.Society.Inventory.Reservations));
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new IdleProvider());
         Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Single(loaded.ExportState().Events, item => item.Kind == "instruction_order_finished");

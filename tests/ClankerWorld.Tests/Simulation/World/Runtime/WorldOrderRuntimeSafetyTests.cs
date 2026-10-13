@@ -303,11 +303,11 @@ public sealed partial class WorldRuntimeTests
             : new DeterministicDecisionProvider());
         var order = restoredWorld.SubmitInstruction(new OwnerInstructionRequest("held-harvest", "owner:test",
             HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
-        Assert.True((await restoredWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await restoredWorld.TickModelWorkAsync()).Advanced);
         var enteredFrame = WorldRuntimeCodec.Encode(restoredWorld.ExportState());
-        var call = CaptureHeldHarvestCall(restoredWorld);
+        var call = HeldHarvestWork(restoredWorld);
         Assert.False(call.Task.IsCompleted);
-        await AwaitHarvestPhase(provider.Started.Task, "provider entry");
+        await ModelWorkHarness.For(restoredWorld).WaitAsync(provider.Started.Task);
         Assert.Equal(enteredFrame, WorldRuntimeCodec.Encode(restoredWorld.ExportState()));
 
         var initialRequest = Assert.Single(provider.Requests);
@@ -322,7 +322,7 @@ public sealed partial class WorldRuntimeTests
 
         for (var tick = 0; tick < 80 && Assert.Single(restoredWorld.ExportState().Instructions!,
                  item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
-            Assert.True((await restoredWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await restoredWorld.TickModelWorkAsync()).Advanced);
 
         var finished = restoredWorld.ExportState();
         var finishedInstruction = Assert.Single(finished.Instructions!, item => item.InstructionId == order.InstructionId);
@@ -336,10 +336,10 @@ public sealed partial class WorldRuntimeTests
         var finishedFrame = WorldRuntimeCodec.Encode(finished);
         Assert.False(call.Task.IsCompleted);
         provider.Release.TrySetResult(true);
-        var completedCall = AwaitHarvestPhase(call.Task, "the captured hosted call to complete");
+        var completedCall = ModelWorkHarness.For(restoredWorld).WaitAsync(call.Task);
         if (deferReturn)
         {
-            await AwaitHarvestPhase(provider.Returned.Task, "response construction before deferred return");
+            await ModelWorkHarness.For(restoredWorld).WaitAsync(provider.Returned.Task);
             Assert.False(call.Task.IsCompleted);
             Assert.False(completedCall.IsCompleted);
             Assert.Equal(finishedFrame, WorldRuntimeCodec.Encode(restoredWorld.ExportState()));
@@ -351,7 +351,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal((call.Request.RequestId, HarvestInstructionActor, initialRequest.ObservationDigest, "seek_food"),
             (reply.RequestId, reply.AgentId, reply.ObservationDigest, reply.SelectedCandidateId));
         Assert.Equal(finishedFrame, WorldRuntimeCodec.Encode(restoredWorld.ExportState()));
-        var admittedTick = await restoredWorld.AdvanceOneTickNonBlockingAsync();
+        var admittedTick = await restoredWorld.TickModelWorkAsync();
         Assert.True(admittedTick.Advanced);
         var admittedDecision = Assert.Single(admittedTick.Decisions,
             item => item.AgentId == HarvestInstructionActor);
@@ -402,8 +402,8 @@ public sealed partial class WorldRuntimeTests
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-urgent-order", "owner:test",
             HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
 
         var afterOneTick = world.ExportState();
         Assert.Single(afterOneTick.Events, item => item.Kind == "food_consumed" &&
@@ -419,13 +419,12 @@ public sealed partial class WorldRuntimeTests
     }
 
     [Theory]
-    [InlineData(false, 0)]
-    [InlineData(true, 0)]
-    [InlineData(true, 4000)]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(
-        bool delayedStartup, int entryDelayMilliseconds)
+        bool delayedStartup)
     {
-        var provider = new HeldOrderReplyProvider(entryDelayMilliseconds: entryDelayMilliseconds);
+        var provider = new HeldOrderReplyProvider();
         using var setup = CreateKnownBerryOrderWorld(_ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
         state = state with
@@ -444,13 +443,13 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
-        var preparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var preparation = new InlineCompletionSource<bool>(TaskCreationOptions.None);
         if (delayedStartup) provider.PreparationGate = preparation.Task;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-urgent-harvest", "owner:test",
             HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var call = CaptureHeldHarvestCall(world);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        var call = HeldHarvestWork(world);
         Assert.False(call.Task.IsCompleted);
         try
         {
@@ -464,7 +463,7 @@ public sealed partial class WorldRuntimeTests
             Assert.Null(Assert.Single(afterHarvestTick.Instructions!,
                 item => item.InstructionId == order.InstructionId).ObservedTick);
 
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             var afterFollowingTick = world.ExportState();
             Assert.Single(afterFollowingTick.Events, item => item.Kind == "food_harvested" &&
                 item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
@@ -479,22 +478,22 @@ public sealed partial class WorldRuntimeTests
             Assert.False(call.Task.IsCompleted);
             var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
             preparation.TrySetResult(true);
-            await AwaitHarvestPhase(provider.Started.Task, "provider entry after the two physical frames");
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
-            var enteredCall = CaptureHeldHarvestCall(world);
+            var enteredCall = HeldHarvestWork(world);
             Assert.Same(call.Request, enteredCall.Request);
             Assert.Same(call.Task, enteredCall.Task);
             Assert.Equal(1, provider.CallCount);
             Assert.Equal(call.Request.Observation.ObservationDigest, Assert.Single(provider.Requests).ObservationDigest);
 
             provider.Release.TrySetResult(true);
-            await AwaitHarvestPhase(call.Task, "the captured eating-check hosted call to complete");
+            await ModelWorkHarness.For(world).WaitAsync(call.Task);
             Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.True(provider.Returned.Task.IsCompletedSuccessfully);
             Assert.Equal(call.Request.RequestId, (await provider.Returned.Task).RequestId);
             for (var tick = 0; tick < 5 && !world.ExportState().Events.Any(item =>
                      item.Kind == "hosted_decision_completed" && item.Detail == HarvestInstructionActor); tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
 
             var final = world.ExportState();
             var savedOrder = Assert.Single(final.Instructions!, item => item.InstructionId == order.InstructionId);
@@ -520,7 +519,7 @@ public sealed partial class WorldRuntimeTests
             provider.Release.TrySetResult(true);
             provider.ReturnAllowed.TrySetResult(true);
             world.CancelPendingModelCalls();
-            await AwaitHarvestPhase(call.Task, "cancelled eating-check cleanup");
+            await ModelWorkHarness.For(world).WaitAsync(call.Task);
         }
     }
 
@@ -635,24 +634,14 @@ public sealed partial class WorldRuntimeTests
             ObserverReplies: replies);
     }
 
-    private static (CognitionDecisionRequest Request, Task Task) CaptureHeldHarvestCall(WorldRuntime world)
+    private static (CognitionDecisionRequest Request, Task Task) HeldHarvestWork(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var call = pending[HarvestInstructionActor];
-        Assert.NotNull(call);
-        return (Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call)),
-            Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call)));
+        var pending = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
+            item.Transition.ActorId == HarvestInstructionActor);
+        return (Assert.IsType<CognitionDecisionRequest>(pending.DecisionRequest), pending.Completion);
     }
 
-    private static async Task AwaitHarvestPhase(Task signal, string phase)
-    {
-        try { await signal.WaitAsync(TimeSpan.FromSeconds(30)); }
-        catch (TimeoutException) { Assert.Fail("Timed out waiting for held order " + phase + "."); }
-    }
-
-    private sealed class HeldOrderReplyProvider(bool deferReturn = false, int entryDelayMilliseconds = 0) : IDecisionProvider
+    private sealed class HeldOrderReplyProvider(bool deferReturn = false) : IDecisionProvider
     {
         private int callCount;
 
@@ -660,10 +649,10 @@ public sealed partial class WorldRuntimeTests
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> ReturnAllowed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> ReturnAllowed { get; } = new(TaskCreationOptions.None);
         public Task? PreparationGate { get; set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(
@@ -671,8 +660,7 @@ public sealed partial class WorldRuntimeTests
             CancellationToken cancellationToken = default)
         {
             if (PreparationGate is { } preparation) await preparation.WaitAsync(cancellationToken);
-            // The controlled entry row outlives the former three-second wait.
-            if (entryDelayMilliseconds > 0) await Task.Delay(entryDelayMilliseconds, cancellationToken);
+
             request.Validate();
             Interlocked.Increment(ref callCount);
             Requests.Enqueue(request.Observation);

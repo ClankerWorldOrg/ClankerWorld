@@ -66,11 +66,13 @@
     "modelWork"
   ],
   "scratch": [
+    "<RouteSearchesCreated>k__BackingField",
     "guardianPlacementActions",
     "lastTickMilliseconds",
     "nonLandRemedySelection",
     "plannedRoutes",
     "previousPlannedRoutes",
+    "reachabilitySearches",
     "routeSearches",
     "attemptedActions",
     "withheldActions",

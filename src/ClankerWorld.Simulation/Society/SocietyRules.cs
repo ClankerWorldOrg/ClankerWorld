@@ -1788,7 +1788,10 @@ public static partial class SocietyRules
                     nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
                     current.Inventory.Reservations,
                     current.Inventory.Offers,
-                    inventoryEvents, current.Inventory.EventHistoryFloor),
+                    inventoryEvents, current.Inventory.EventHistoryFloor)
+                {
+                    ArchivedRepairReservationCount = current.Inventory.ArchivedRepairReservationCount,
+                },
                 Estates = current.Estates.Select(item =>
                         item.Id == estate.Id ? item with { Settled = true } : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -1844,7 +1847,8 @@ public static partial class SocietyRules
             targetTick,
             "estate_escrow_created",
             estateId));
-        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor);
+        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor)
+        { ArchivedRepairReservationCount = inventory.ArchivedRepairReservationCount };
     }
 
     private static InventoryCheckpoint WithInventoryTick(

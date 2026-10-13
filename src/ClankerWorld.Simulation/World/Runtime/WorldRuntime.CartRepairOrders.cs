@@ -93,4 +93,9 @@ public sealed partial class WorldRuntime
             tick >= instruction.SubmittedTick && tick <= worldTick &&
             receipt == CartRepairOrderReceipt(instruction, tick) ? tick : null;
     }
+
+    internal static IEnumerable<string> RequiredCartRepairReservations(IEnumerable<OwnerQueuedInstruction> instructions, long tick) =>
+        instructions.Where(instruction => instruction.Task is { Action: "repair_handcart", CompletedUnits: > 0 })
+            .SelectMany(instruction => CartRepairOrderReceiptTick(instruction, tick) is { } repairedTick
+                ? CartRepairKinds.Select(kind => CartRepairReservationId(repairedTick, instruction.TargetAgentId, kind)) : []);
 }

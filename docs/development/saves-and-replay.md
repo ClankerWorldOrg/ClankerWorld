@@ -1912,6 +1912,19 @@ version is provisional until merge.
 
 ## Checkpoints, history and backups
 
+Schema 130 adds the required inventory `ArchivedRepairReservationCount`.
+Checkpoint compaction keeps the latest 32 completed or released repair-input
+reservations, ordered by their deadline and identity, plus the exact receipts
+required by retained cart orders and native hearing remedies. Active claims and
+other consumption purposes remain intact. Full older repair records enter the
+existing digest-addressed archive before the smaller checkpoint is published
+or installed in memory. Loading verifies the cumulative count against that
+archive; failed writes leave the previous live ledger and save intact.
+Inventory transitions and estate handling preserve the count. New repair
+identities still derive from the advancing world clock and complete actor/input
+scope. Earlier alpha checkpoints are refused and preserved without migration.
+The schema number is provisional until merge.
+
 The active recovery checkpoint is encoded and fsync-written after every advanced
 one-second tick. Older history is compacted into digest-addressed segments.
 Hot event lists are bounded, but long-term segment retention is not yet measured.

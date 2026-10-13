@@ -69,6 +69,13 @@ aliases. Content package identifiers retain their import rules.
 
 ## Core rules
 
+`WorldHistory.Repairs.cs` partitions closed repair-input reservations into a
+32-record recent window, retained cart-order and hearing proof, and older audit
+records. The normal checkpoint writer archives the audit records before
+installing the smaller live inventory. Active claims and physical goods stay
+with inventory authority; [Saves and replay](saves-and-replay.md#checkpoints-history-and-backups)
+owns the archive count and recovery contract.
+
 - **The server commits world state.** Client requests, model replies, mods and
   save files are untrusted input. Deterministic rules validate movement, work,
   resources, occupancy, ownership and effects. Use seeded random paths and
@@ -2116,6 +2123,15 @@ swimming eligibility alongside terrain, Roads and occupancy. Swimming is
 projected from the actual water position, and the map alternates existing approved poses and displays
 **Swimming** beside the agent. No sprite atlas or saved movement-mode field
 changes.
+
+Loaded pickup and harvest checks need return reachability, rather than a
+particular route. They share one reverse search per destination, interaction
+range, immutable map, occupied tiles and current swimming eligibility. This
+keeps a blocked passage from starting a whole-map search from every resource
+site. The weighted pickup search still selects the actual interaction tile;
+tools, complete harvest loads and swimming capacity retain their checks. Carts
+keep their own route planner. Tests can recompute a shared reachability answer
+through `DerivedVerification.RecomputeOnHit`; no search is saved.
 
 Book writing, selected-cart repair and tool repair plan their remaining
 material pickups as a sequence. A transient search tries the existing input

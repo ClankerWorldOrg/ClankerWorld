@@ -290,7 +290,8 @@ beside a small picture of it. Click a tile to open its card: the ground with a
 picture of the tile, its height, climate, weather and soil, its Town, any land
 title, household use right, pending use request or dispute, the household that
 owns it, and anything on it, such as a tree, a field or goods left on the
-ground.
+ground. Crowded cards scroll through their facts and goods, with Close always
+visible above them.
 
 When a building finishes on screen at close or mid zoom, a ring of dust
 settles around it and a few twinkles appear over the roof. The moment plays
