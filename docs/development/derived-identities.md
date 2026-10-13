@@ -54,6 +54,11 @@ Route new handles through the factories and text/reference checks through the
 shared rules. The remaining allowances track work outside the first typed
 storage boundaries of [#1819](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1819).
 
+The Town, animal, knowledge, trade and belief validators use these shared
+rules. The five prior excerpt implementations in law labels, memory summaries,
+Town Council/hearing text and memory retrieval are removed; their callers name
+the same limits, normalization and suffixes as before.
+
 ## Executable generator inventory
 
 The native inventory uses three actual accepted births. Its milk trace performs

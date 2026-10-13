@@ -160,12 +160,12 @@ internal static class WorldMemoryRetrieval
         var experiences = socialMemories
             .Where(memory => string.Equals(memory.OwnerId, ownerId, StringComparison.Ordinal) &&
                 memory.TombstonedTick is null && memory.SourceTick >= 0 && memory.SourceTick <= worldTick &&
-                IsValidId(memory.Id) && IsCanonicalId(memory.SubjectId) && !string.IsNullOrWhiteSpace(memory.Summary))
+IdentityRules.Reference(memory.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(memory.SubjectId, int.MaxValue, requireTrimmed: true) && !string.IsNullOrWhiteSpace(memory.Summary))
             .Select(memory => new SourceRecord(
                 memory.Id,
                 ownerId,
                 CognitionAgentId(memory.SubjectId),
-                Bounded(memory.Summary, MaximumSummaryLength),
+BoundedText.Excerpt(memory.Summary, MaximumSummaryLength, "", TextNormalization.Whitespace),
                 memory.SourceTick,
                 "experience",
                 BoundedOptional(memory.Visibility, 32),
@@ -179,12 +179,12 @@ internal static class WorldMemoryRetrieval
         var privateBeliefs = beliefs
             .Where(belief => string.Equals(belief.OwnerId, ownerId, StringComparison.Ordinal) &&
                 belief.FormedTick >= 0 && belief.FormedTick <= worldTick &&
-                IsValidId(belief.Id) && !string.IsNullOrWhiteSpace(belief.Statement))
+IdentityRules.Reference(belief.Id, DerivedId.MaximumLength, requireTrimmed: true) && !string.IsNullOrWhiteSpace(belief.Statement))
             .Select(belief => new SourceRecord(
                 belief.Id,
                 ownerId,
                 CognitionAgentId(belief.AboutAgentId ?? ownerId),
-                Bounded(belief.Statement, MaximumSummaryLength),
+BoundedText.Excerpt(belief.Statement, MaximumSummaryLength, "", TextNormalization.Whitespace),
                 belief.FormedTick,
                 "belief",
                 null,
@@ -217,26 +217,11 @@ internal static class WorldMemoryRetrieval
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
-    private static bool IsValidId(string? value) => value is { Length: <= DerivedId.MaximumLength } && IsCanonicalId(value);
-
-    private static bool IsCanonicalId(string? value) => value is { Length: > 0 } &&
-        value == value.Trim() && !value.Any(char.IsControl);
-
     private static string CognitionAgentId(string agentId) => DerivedId.Create(agentId, "agent-sha256:");
 
     private static string? BoundedOptional(string? value, int limit) => value is null
         ? null
-        : Bounded(value, limit);
-
-    private static string Bounded(string value, int limit)
-    {
-        var normalized = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        var length = Math.Min(limit, normalized.Length);
-        if (length > 0 && length < normalized.Length &&
-            char.IsHighSurrogate(normalized[length - 1]) && char.IsLowSurrogate(normalized[length]))
-            length--;
-        return normalized[..length];
-    }
+        : BoundedText.Excerpt(value, limit, "", TextNormalization.Whitespace).Value;
 
     private static HashSet<string> Terms(string text)
     {
