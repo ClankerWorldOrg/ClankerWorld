@@ -21,6 +21,7 @@ public sealed class OwnerActionBodyDeadlineTests
 
     private static async Task AssertStalledBodyReleasesGateAsync(bool challengeBody, bool callerCancels)
     {
+        var clock = new ManualTimeProvider();
         using var handler = new HeldBodyHandler(challengeBody);
         using var client = new HttpClient(handler)
         {
@@ -28,15 +29,16 @@ public sealed class OwnerActionBodyDeadlineTests
         };
         using var signer = new Signer();
         using var cancellation = new CancellationTokenSource();
-        var api = new OwnerWorldApi(client);
+        var api = new OwnerWorldApi(client, clock);
         var gate = new OwnerActionGate();
         var first = gate.RunAsync(async () =>
             await api.SetPausedAsync(new("http://127.0.0.1:5188"), new("server", "world"), "device", true, signer, cancellation.Token));
-        await handler.Body.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await handler.Body.Started.Task;
         if (callerCancels) cancellation.Cancel();
+        else clock.Advance(TimeSpan.FromMilliseconds(500));
         try
         {
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(5)));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
             Assert.True(handler.Body.ReadToken.IsCancellationRequested);
             Assert.Equal(callerCancels, cancellation.IsCancellationRequested);
         }
@@ -74,12 +76,12 @@ public sealed class OwnerActionBodyDeadlineTests
 
     private sealed class HeldBody : Stream
     {
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public bool Cancelled { get; private set; }
         public CancellationToken ReadToken { get; private set; }
         // Complete the read from cancellation itself, without a second queued
         // fixture continuation competing with the outer diagnostic deadline.
-        private readonly TaskCompletionSource<int> read = new();
+        private readonly InlineCompletionSource<int> read = new();
         private CancellationTokenRegistration cancellation;
         private bool began;
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)

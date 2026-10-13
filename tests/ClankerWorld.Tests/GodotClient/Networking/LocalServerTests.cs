@@ -320,36 +320,39 @@ public sealed class LocalServerTests
             var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true, deferTimeout: deferTimeout);
             using var delayedHttp = new HttpClient(handler);
-            var relaunch = new LocalServer(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100));
+            var clock = new ManualTimeProvider();
+            var relaunch = new LocalServer(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100), timeProvider: clock);
             using var cancellation = new CancellationTokenSource();
             var starting = relaunch.StartAsync(version, revision, cancellation.Token);
             try
             {
                 if (cancelCaller)
                 {
-                    await handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    await handler.Entered.Task;
                     cancellation.Cancel();
-                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(30)));
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
                 }
                 else
                 {
+                    await handler.Entered.Task;
+                    clock.Advance(TimeSpan.FromSeconds(2));
                     if (deferTimeout)
                     {
-                        await handler.TimedOut.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                        await handler.TimedOut.Task;
                         Assert.False(cancellation.IsCancellationRequested);
                         // Hold the actual request-timeout continuation beyond the
                         // old caller timer, without changing the host or response.
-                        await Task.Delay(TimeSpan.FromSeconds(6));
+                        clock.Advance(TimeSpan.FromSeconds(6));
                     }
                     handler.ResumeTimeout.TrySetResult();
-                    Assert.Equal(LocalServerStartOutcome.TimedOut, (await starting.WaitAsync(TimeSpan.FromSeconds(30))).Outcome);
+                    Assert.Equal(LocalServerStartOutcome.TimedOut, (await starting).Outcome);
                 }
             }
             finally
             {
                 cancellation.Cancel();
                 handler.ResumeTimeout.TrySetResult();
-                try { await starting.WaitAsync(TimeSpan.FromSeconds(30)); }
+                try { await starting; }
                 catch (OperationCanceledException) { }
             }
             Assert.True(handler.TargetRequests > 0);
@@ -370,9 +373,9 @@ public sealed class LocalServerTests
         private readonly HttpMessageInvoker inner = new(new HttpClientHandler());
         private int targetRequests;
         public int TargetRequests => Volatile.Read(ref targetRequests);
-        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource TimedOut { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ResumeTimeout { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Entered { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource TimedOut { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ResumeTimeout { get; } = new(TaskCreationOptions.None);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -385,7 +388,7 @@ public sealed class LocalServerTests
                 catch (OperationCanceledException) when (deferTimeout)
                 {
                     TimedOut.TrySetResult();
-                    await ResumeTimeout.Task.WaitAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+                    await ResumeTimeout.Task;
                     throw;
                 }
             }
@@ -412,7 +415,7 @@ public sealed class LocalServerTests
         {
             Assert.True((await game.StartAsync(version, revision, CancellationToken.None)).IsReady);
             handler.Refusal = refusal;
-            Assert.False(await game.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.False(await game.StopAsync(CancellationToken.None));
             Assert.True(game.StartedServer);
             Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
             handler.Refusal = null;

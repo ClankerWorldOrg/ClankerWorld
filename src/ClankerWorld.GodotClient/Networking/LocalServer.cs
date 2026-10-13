@@ -163,6 +163,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly int port;
     private readonly int approvalPort;
     private readonly TimeSpan readyTimeout;
+    private readonly TimeProvider timeProvider;
     private readonly bool detailedLogs;
     private Process? process;
     private StreamWriter? log;
@@ -170,13 +171,14 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null)
     {
         this.layout = layout;
         this.http = http;
         this.port = port;
         this.approvalPort = approvalPort;
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         this.detailedLogs = detailedLogs;
     }
 
@@ -199,7 +201,7 @@ public sealed class LocalServer : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         if (process is { HasExited: false }) return new LocalServerStart(LocalServerStartOutcome.Started);
-        var deadline = DateTimeOffset.UtcNow + readyTimeout;
+        var deadline = timeProvider.GetUtcNow() + readyTimeout;
         while (true)
         {
             var existing = await ProbeAsync(expectedVersion, expectedRevision, cancellationToken);
@@ -221,8 +223,8 @@ public sealed class LocalServer : IAsyncDisposable
             // A request deadline supplies no evidence of another build or an
             // invalid secret. Retry within the existing startup window before
             // reporting an unresponsive server, without starting a second host.
-            if (DateTimeOffset.UtcNow >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
-            await Task.Delay(250, cancellationToken);
+            if (timeProvider.GetUtcNow() >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
 
         try
@@ -238,7 +240,7 @@ public sealed class LocalServer : IAsyncDisposable
             return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
         }
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (timeProvider.GetUtcNow() < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (process.HasExited)
@@ -258,7 +260,7 @@ public sealed class LocalServer : IAsyncDisposable
                     await StopAsync(cancellationToken);
                     return new LocalServerStart(LocalServerStartOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
             }
-            await Task.Delay(250, cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
         await StopAsync(cancellationToken);
         return new LocalServerStart(LocalServerStartOutcome.TimedOut);
@@ -309,8 +311,8 @@ public sealed class LocalServer : IAsyncDisposable
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(ApprovalOrigin, "api/v1/approval/shutdown"));
                 request.Headers.Add(SecretHeader, secret);
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                deadline.CancelAfter(TimeSpan.FromSeconds(5));
+                using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
                 using var response = await http.SendAsync(request, deadline.Token);
                 // The host explicitly refused to exit: preserve its paused world
                 // and our process handle so the player can repair and retry.
@@ -324,8 +326,8 @@ public sealed class LocalServer : IAsyncDisposable
         }
         if (process is { HasExited: false } running)
         {
-            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            wait.CancelAfter(TimeSpan.FromSeconds(30));
+            using var waitTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30), timeProvider);
+            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitTimeout.Token);
             try
             {
                 await running.WaitForExitAsync(wait.Token);
@@ -349,8 +351,8 @@ public sealed class LocalServer : IAsyncDisposable
     {
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, "api/v1/approval/launch-check"));
             request.Headers.Add(SecretHeader, value);
             using var response = await http.SendAsync(request, deadline.Token);
@@ -369,8 +371,8 @@ public sealed class LocalServer : IAsyncDisposable
     {
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var handshake = await http.GetAsync(new Uri(Origin, "api/v1/handshake"), deadline.Token);
             if (!handshake.IsSuccessStatusCode) return Probe.NotClankerWorld;
             var status = await http.GetFromJsonAsync<ServerStatus>(new Uri(Origin, "api/v1/status"), deadline.Token);

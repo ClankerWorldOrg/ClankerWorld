@@ -51,3 +51,9 @@ public sealed class ManualTimeProvider : TimeProvider
         public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
     }
 }
+
+public static class TestClockWaits
+{
+    public static Task DelayAsync(this TimeProvider clock, TimeSpan duration, CancellationToken cancellationToken = default) =>
+        Task.Delay(duration, clock, cancellationToken);
+}
