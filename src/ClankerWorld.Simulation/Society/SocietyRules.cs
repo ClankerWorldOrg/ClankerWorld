@@ -1242,7 +1242,7 @@ public static partial class SocietyRules
         EnsureCanonicalIds(checkpoint.Households.Select(item => item.Id), "households");
         EnsureCanonicalIds(checkpoint.Relationships.Select(item => item.Id), "relationships");
         EnsureCanonicalIds(checkpoint.Organizations.Select(item => item.Id), "organizations");
-        EnsureCanonicalIds(checkpoint.Memories.Select(item => item.Id.Value), "memories");
+        EnsureCanonicalIds(checkpoint.Memories.Select(item => (string?)item.Id), "memories");
         ValidateMemoryArchive(checkpoint);
         foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.Value.StartsWith("player-rename:", StringComparison.Ordinal)))
         {
@@ -1331,9 +1331,9 @@ public static partial class SocietyRules
 
     private static void ValidateAgentBeliefs(SocietyCheckpoint checkpoint)
     {
-        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => item.Id.Value), "agent beliefs");
+        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => (string?)item.Id), "agent beliefs");
         var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
-        EnsureCanonicalIds(beliefs.Select(item => item.Id.Value), "agent beliefs");
+        EnsureCanonicalIds(beliefs.Select(item => (string?)item.Id), "agent beliefs");
         if (beliefs.Length == 0) return;
         var byId = beliefs.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         var index = new SocietyBeliefValidationIndex(checkpoint, byId);
@@ -1372,7 +1372,7 @@ public static partial class SocietyRules
                 throw new InvalidDataException("An agent memory compaction is malformed.");
 
             var expected = compaction.Sources.OrderBy(item => item.Kind)
-                .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
+                .ThenBy(item => (string?)item.SourceId, StringComparer.Ordinal).ToArray();
             if (!compaction.Sources.SequenceEqual(expected) ||
                 compaction.Sources.Select(item => $"{item.Kind}:{item.SourceId}")
                     .Distinct(StringComparer.Ordinal).Count() != compaction.Sources.Count)
@@ -2261,7 +2261,7 @@ public static partial class SocietyRules
     }
 
     private static void EnsureCanonicalIds(
-        IEnumerable<string> ids,
+        IEnumerable<string?> ids,
         string name)
     {
         var actual = ids.ToArray();

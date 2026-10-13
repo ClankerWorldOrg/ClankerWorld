@@ -4,7 +4,9 @@ using System.Text.Json;
 
 namespace ClankerWorld.Simulation.Society;
 
-public sealed record SocietyMemorySummarySource(Identity Id, SocietyMemorySourceKind Kind, long SourceTick);
+public sealed record SocietyMemorySummarySource(
+    [property: System.Text.Json.Serialization.JsonConverter(typeof(StoredMemoryIdentityJsonConverter))] Identity Id,
+    SocietyMemorySourceKind Kind, long SourceTick);
 public sealed record SocietyAgentMemorySummary(Identity Id, string OwnerId, string Choice, string Text,
     long CreatedTick, IReadOnlyList<SocietyMemorySummarySource> Sources);
 public sealed record SocietyMemorySummaryOption(string Choice, string Text, IReadOnlyList<SocietyMemorySummarySource> Sources);
@@ -97,7 +99,7 @@ public static partial class SocietyRules
     {
         if (checkpoint.MemorySummaries is null || checkpoint.MemorySummaries.Any(item => item is null))
             throw new InvalidDataException("Private memory summaries are missing or incomplete.");
-        EnsureCanonicalIds(checkpoint.MemorySummaries.Select(item => item.Id.Value), "private memory summaries");
+        EnsureCanonicalIds(checkpoint.MemorySummaries.Select(item => (string?)item.Id), "private memory summaries");
         var used = new HashSet<string>(StringComparer.Ordinal);
         foreach (var summary in checkpoint.MemorySummaries)
         {
@@ -105,7 +107,7 @@ public static partial class SocietyRules
                 summary.Sources.Count is < SocietyMemorySummaryRules.MinimumSources or > SocietyMemorySummaryRules.MaximumSources ||
                 summary.CreatedTick < 0 || summary.CreatedTick > checkpoint.WorldTick || summary.Sources.Any(source => source is null) ||
                 summary.Id != SocietyMemorySummaryRules.Id(summary.OwnerId, summary.Sources) ||
-                !summary.Sources.SequenceEqual(summary.Sources.OrderBy(source => source.Kind).ThenBy(source => source.Id.Value, StringComparer.Ordinal)))
+                !summary.Sources.SequenceEqual(summary.Sources.OrderBy(source => source.Kind).ThenBy(source => (string?)source.Id, StringComparer.Ordinal)))
                 throw new InvalidDataException("A private summary needs its canonical owner, time and exact sources.");
             var records = SocietyMemorySummaryRules.Records(checkpoint, summary.OwnerId).ToDictionary(source => SocietyMemorySummaryRules.Key(source.Source), StringComparer.Ordinal);
             var sources = new List<SocietyMemorySummaryRules.SourceRecord>();

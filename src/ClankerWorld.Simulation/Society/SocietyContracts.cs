@@ -254,7 +254,7 @@ public enum SocietyMemoryKind
 }
 
 public sealed record SocietySocialMemory(
-    Identity Id,
+    [property: JsonConverter(typeof(StoredMemoryIdentityJsonConverter))] Identity Id,
     string OwnerId,
     string SubjectId,
     string Summary,

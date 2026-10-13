@@ -58,7 +58,11 @@ Saved social-memory and belief handles, correction links, summary/source keys
 and order effect credits use `Identity`. Credit operations accept the type,
 so a raw interpolated string cannot be credited. Existing string factories are
 parsed explicitly at these boundaries; their digest and prefix spellings stay
-the same. Optional handles retain null, and JSON still writes strings.
+the same. Optional handles retain null, and JSON still writes strings. The
+stored-memory reader retains existing nonblank key spellings, including older
+oversized or malformed keys. Recall keeps its existing exclusions, and a later
+barter still recognizes the original pair key. Generated keys stay bounded.
+
 The Town, animal, knowledge, trade and belief validators use these shared
 rules. The five prior excerpt implementations in law labels, memory summaries,
 Town Council/hearing text and memory retrieval are removed; their callers name

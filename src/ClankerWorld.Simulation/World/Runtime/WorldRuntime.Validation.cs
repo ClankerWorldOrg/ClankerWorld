@@ -739,6 +739,7 @@ public sealed partial class WorldRuntime
             return false;
         if (!knownStatus || (order.Status == "queued" && !instruction.Queue) ||
             order.BlockedReason is { Length: > 256 } || order.BlockedReason?.Any(char.IsControl) == true ||
+            order.LastEffectId is { } effectId && !IdentityRules.Reference(effectId, DerivedId.MaximumLength) ||
             order.TargetResourceId is { Length: > ContentPackageRules.MaximumContentIdLength } || order.TargetResourceId?.Any(char.IsControl) == true ||
             order.Action != "produce_item" && (order.TargetRecipeId is not null || order.TargetOutputKind is not null ||
                 order.ProductionBuildingId is not null || order.ProductionJobId is not null || order.ProductionProjectStartedTick is not null) ||
