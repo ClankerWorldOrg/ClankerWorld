@@ -29,7 +29,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         try
         {
             await choices.IdentityEntered.Task;
-            await Assert.ThrowsAsync<TimeoutException>(() => step);
+            Assert.False(step.IsCompleted, "The host must wait for the held identity input without advancing another tick.");
             await ReachIdentityCheckpoint(replayHost);
             var requested = world.Agents.SelectMany(person => (person.IdentityMoments ?? [])
                 .Where(moment => moment.Outcome == "requested").Select(moment => (person.AgentId, moment.Kind))).ToArray();
