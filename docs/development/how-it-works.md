@@ -4704,7 +4704,9 @@ actor's tile, input selection accepts only physically carried supplies. This
 keeps the existing supply path collecting feed and enough usable jug water before
 approaching the animal, including after a partial pickup. Water may be split
 across jugs or content lots; fetching counts the usable water already carried
-and rechecks each whole jug against reservations and free carrying space.
+and rechecks each whole jug against reservations and the loaded route to the
+animal. Care and saddle pickups use `PickupCarryCapacity` for the animal's
+current position, keeping the whole vessel family within that route's load limit.
 At the animal's tile, permitted local yard stock remains usable directly.
 Supply pickup leaves household sale stock on an actively borrowed Market stall.
 Once borrowing ends, that stock can be collected through the normal ownership,
