@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
-
 namespace ClankerWorld.Simulation.World;
 
 public static partial class WorldHistory
@@ -37,15 +35,8 @@ public static partial class WorldHistory
         var orderIds = instructions.Select(instruction => instruction.InstructionId).ToHashSet(StringComparer.Ordinal);
         required.UnionWith(simulation.ProductionJobs.Where(job => job.OrderInstructionId is { } id && orderIds.Contains(id))
             .Select(job => job.JobId));
-        var inventory = state.Society.Society.Inventory;
-        var index = InventoryIndex.For(inventory);
-        foreach (var lot in inventory.Lots.Where(lot => lot.FreshnessBasisPoints > 0 && lot.ConditionBasisPoints > 0 &&
-                     FoodRules.IsEdible(lot.ItemKind) &&
-                     !FoodRules.PreparedKinds.Contains(lot.ItemKind, StringComparer.Ordinal)))
-        {
-            var origin = index.ProvenanceOrigin(lot);
-            if (WorldProductionJob.OutputSource(simulation.ProductionJobs, origin.Id) is { } source) required.Add(source.JobId);
-        }
+        required.UnionWith(GoodsInventoryQuery.FindFoodProductionSources(state.Society.Society.Inventory, simulation.ProductionJobs)
+            .Select(job => job.JobId));
         var retired = Retire(ClosedProductionJobs(simulation), RecentProductionJobLimit, job => required.Contains(job.JobId));
         if (retired.Length == 0) return simulation;
         var retiredIds = retired.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
