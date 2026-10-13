@@ -23,8 +23,7 @@ server's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
 ## Source layout
 
-Paths in the runtime-system descriptions below are relative to
-`src/ClankerWorld.Simulation/World/`. The current code is split by area, with
+The current code is split by area, with
 `WorldRuntime` partials forwarding to the systems already extracted. The
 [code structure](code-structure.md) page describes the refactor target.
 

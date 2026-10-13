@@ -47,9 +47,11 @@ action is compatible.
 Before distribution, use an approved test device and a disposable world to
 preview and create with the accepted Advanced settings at the real signed HTTP
 boundary. Verify an older server produces the update explanation, preserves the
-pairing and cannot receive a downgraded action. The New World client now requires
-the server's authenticated v2 action advertisement, including on servers that
-already verified v2 before they advertised it. See [Device pairing](device-pairing.md#client-and-server-updates).
+pairing and cannot receive a downgraded action. New World preview and creation
+require the server's authenticated `clankerworld.owner-world-creation.v3`
+advertisement. A server advertising only v2, or no matching format, needs an
+update; the client keeps the pairing and never sends a downgraded action.
+See [Device pairing](device-pairing.md#client-and-server-updates).
 
 ## Save and content compatibility
 
