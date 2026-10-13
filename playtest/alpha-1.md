@@ -112,7 +112,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Let a slow reply work, and cancel a request. → Neither adds an Event Log line.
   - Save and load after a bad reply. → The unfinished decision and its Event Log line are kept, with no copies.
   - In Settings → Game → Model calls, type a limit and click away. → The typed limit stays while the screen refreshes.
-  - Use Set limit, then clear the field. → Set limit applies it, and an empty field removes it.
+  - Enter a limit and press **Set limit**, then clear the field and press **Set limit** again. → Each applies the edit; the blank field removes the limit.
   - Let the agents reach a limit. → Time pauses at the limit.
   - Choose Allow 100 more calls and resume. → The world keeps running.
   - Save and reload. → The count and allowance are still there.
@@ -408,7 +408,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Hover over Send for an adult. → The tooltip reads "Send this message to the agent."
 - [ ] **Routine helper and children's models.** ([#455](https://github.com/compoodment/ClankerWorld/issues/455), [#501](https://github.com/compoodment/ClankerWorld/pull/501), [#1302](https://github.com/compoodment/ClankerWorld/issues/1302))
   - Pause and open Settings → World → Routine helper; look at Jev, OpenAI Decisions and Off. → Each choice shows its own model list, and Off hides it.
-  - Try to change it during play. → **Apply helper** is unavailable during play.
+  - Close Settings, resume, then reopen Settings. → The world pauses before **Apply helper** becomes available.
   - Choose OpenAI Decisions with a saved key and gpt-6-luna, press **Apply helper** while paused, and resume. → Paid calls rise once per combined call, and agents keep their own models.
   - Save and reload. → The choice survives.
   - Switch while a reply is pending. → An old pending reply never overwrites later choices.
@@ -1262,7 +1262,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Look at long names, and scroll the timeline. → Long names stay inside their controls with the full name on hover; the timeline fits and scrolls with names and seasons in view.
   - Judge Save World's layout overall. → Say if it feels cramped.
 - [ ] **Load World and saves from other versions.** ([#445](https://github.com/compoodment/ClankerWorld/issues/445), [#487](https://github.com/compoodment/ClankerWorld/issues/487), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#565](https://github.com/compoodment/ClankerWorld/issues/565), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#584](https://github.com/compoodment/ClankerWorld/issues/584), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#595](https://github.com/compoodment/ClankerWorld/pull/595), [#625](https://github.com/compoodment/ClankerWorld/issues/625), [#683](https://github.com/compoodment/ClankerWorld/issues/683), [#767](https://github.com/compoodment/ClankerWorld/issues/767), [#971](https://github.com/compoodment/ClankerWorld/issues/971), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1534](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1534), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566), [#1771](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1771))
-  - Restart the server and play straight away, then open Load World with several worlds. → The world runs and saves normally while the list is checked.
+  - Restart the server and press **Continue**, then use **Quit to Menu → Load World** with several worlds. → Play and saving work before opening the list; the world stays paused while the list is checked.
   - Wait for the first check. → It may be slow, but it lists every world.
   - Press Back, reopen it, open a different world and check once more. → The list appears almost at once, with the same marks.
   - Look at each card, on every visit. → Each shows its name, save time, seed and a small map of its land and water, older worlds too; the current world is tagged.
