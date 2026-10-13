@@ -2,13 +2,13 @@
 title: Planned game content
 type: game-design-content
 status: active
-updated: 2026-10-10
+updated: 2026-10-13
 ---
 
 # Planned game content
 
-This is the **agreed base-content list for the intended finished game**,
-including things not in the prototype. Computment accepted the initial draft's
+This is the **agreed base-content list for the intended finished game**.
+Computment accepted the initial draft's
 unmentioned entries and corrected the entries called out below. The
 [game design](README.md) records the owner's decisions; this
 numbered list is its detailed content list. The
@@ -21,9 +21,9 @@ development order unless stated explicitly. The owner approved the complete
 including their sources, work sites, uses and ownership. Their numbers remain
 provisional. Approval is not a claim of implementation.
 
-**Status key:** **Agreed** = accepted for the finished-game base roster (not
-necessarily built yet). **Leaning toward** = a provisional choice inside an
-agreed row, to be tuned in playtests. **Still to decide** = explicitly deferred or unresolved choice, not
+**Status key:** **Agreed** = accepted for the finished-game base roster.
+**Leaning toward** = a provisional choice inside an agreed row, to be tuned in
+playtests. **Still to decide** = explicitly deferred or unresolved choice, not
 accepted as a specific asset. “Late-development” means accepted but staged
 later. The row description controls scope: acceptance of a family is
 not acceptance of every possible variant or a detailed mechanic.
@@ -142,7 +142,7 @@ permissions are recorded there.
 | # | Status | Carryable item / visual | Source and role |
 | --- | --- | --- | --- |
 | 5.1 | Agreed | Wild berries; wild greens | Gathered food; distinct fresh-food icons. |
-| 5.2 | Agreed | Raw universal grain; potatoes; cultivated greens; orchard fruit | Harvested farm foods, each with its own item/icon; farmed greens satisfy more hunger than wild greens. |
+| 5.2 | Agreed | Raw universal grain; potatoes; cultivated greens; orchard fruit | Harvested farm foods, each with its own item/icon; farmed greens restore more fullness than wild greens. |
 | 5.3 | Agreed | Flour | Farmhouse-processed grain; real intermediate that can be sold directly, including at the Market. |
 | 5.4 | Agreed | Simple cooked meal | House-cooked potatoes, wild greens or cultivated greens with wood fuel; one specific meal item with a generic icon. |
 | 5.5 | Agreed | Porridge; bread; vegetable stew | Grain/water/fuel porridge; flour/water/fuel bread; potato/cultivated-greens/water/fuel stew. House or Restaurant; quantities and nutrition are provisional in the [approved pipelines](towns.md#item-and-resource-pipelines). |

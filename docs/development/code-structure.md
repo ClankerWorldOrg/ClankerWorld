@@ -10,7 +10,7 @@ updated: 2026-10-12
 The owner asked on October 12 for a structure that stops the same kinds of
 bugs coming back. This page records which bugs keep happening, why the current
 structure lets them happen, and the structure we are moving to. The refactor is
-tracked in [#1814](https://github.com/compoodment/ClankerWorld/issues/1814); follow the rules below in new code now, even
+tracked in [#1814](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1814); follow the rules below in new code now, even
 before a step lands.
 
 [How the game works](how-it-works.md) describes the code as it is today. Where
@@ -87,7 +87,7 @@ Follow these now. A refactor step that lands turns a rule into a check.
   threads. Tests use a manual scheduler that shows each call's stage, from
   started to accepted at a tick, and a guard test blocks timer-based waits.
 - **One definition per action** in the ordered action tables of
-  [#1387](https://github.com/compoodment/ClankerWorld/issues/1387). Each row
+  [#1387](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1387). Each row
   plans once, checks the same plan when the choice is offered, accepted and
   applied, declares the life stages and states it allows, and owns one ID
   codec. Reach is one service that starts from the agent's position and names
@@ -111,31 +111,31 @@ Follow these now. A refactor step that lands turns a rule into a check.
 
 ## Order of the steps
 
-The scripted rename ([#1364](https://github.com/compoodment/ClankerWorld/issues/1364)) merges first, so the refactor works on the
-final names. [#1814](https://github.com/compoodment/ClankerWorld/issues/1814) tracks the steps, in this order:
+The scripted rename ([#1364](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1364)) merges first, so the refactor works on the
+final names. [#1814](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1814) tracks the steps, in this order:
 
-1. [#1815](https://github.com/compoodment/ClankerWorld/issues/1815) Test every offered choice against hard worlds and a strict save,
+1. [#1815](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1815) Test every offered choice against hard worlds and a strict save,
    using the trial copy the server already uses to refuse a failing action
-   ([#1756](https://github.com/compoodment/ClankerWorld/issues/1756)).
-2. [#1816](https://github.com/compoodment/ClankerWorld/issues/1816) Make the default test worlds hard.
-3. [#1817](https://github.com/compoodment/ClankerWorld/issues/1817) Run model calls through a scheduler tests can control.
-4. [#1818](https://github.com/compoodment/ClankerWorld/issues/1818) Move the timer-based tests onto it and block new ones.
-5. [#1819](https://github.com/compoodment/ClankerWorld/issues/1819) Make IDs and bounded text types, with a source check. This builds
-   on the bounded generated IDs from [#1704](https://github.com/compoodment/ClankerWorld/issues/1704).
-6. [#1820](https://github.com/compoodment/ClankerWorld/issues/1820) One request lifecycle in the game, and full names that fit
-   everywhere. [#1812](https://github.com/compoodment/ClankerWorld/issues/1812) fixes the lost-reply case on its own first.
-7. [#1821](https://github.com/compoodment/ClankerWorld/issues/1821) Promises held on the stock in the inventory core.
-8. [#1822](https://github.com/compoodment/ClankerWorld/issues/1822) One definition per action, one system at a time, with shared
+   ([#1756](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1756)).
+2. [#1816](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1816) Make the default test worlds hard.
+3. [#1817](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1817) Run model calls through a scheduler tests can control.
+4. [#1818](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1818) Move the timer-based tests onto it and block new ones.
+5. [#1819](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1819) Make IDs and bounded text types, with a source check. This builds
+   on the bounded generated IDs from [#1704](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1704).
+6. [#1820](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1820) One request lifecycle in the game, and full names that fit
+   everywhere. [#1812](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1812) fixes the lost-reply case on its own first.
+7. [#1821](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1821) Promises held on the stock in the inventory core.
+8. [#1822](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1822) One definition per action, one system at a time, with shared
    life-stage, need and reach rules. This extends the ordered action tables of
-   [#1387](https://github.com/compoodment/ClankerWorld/issues/1387).
-9. [#1823](https://github.com/compoodment/ClankerWorld/issues/1823) Typed orders with one status machine and a bounded history.
-10. [#1824](https://github.com/compoodment/ClankerWorld/issues/1824) Events with typed payloads.
-11. [#1825](https://github.com/compoodment/ClankerWorld/issues/1825) One copy of the server–game contracts, with labels from the
+   [#1387](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1387).
+9. [#1823](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1823) Typed orders with one status machine and a bounded history.
+10. [#1824](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1824) Events with typed payloads.
+11. [#1825](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1825) One copy of the server–game contracts, with labels from the
     server.
-12. [#1826](https://github.com/compoodment/ClankerWorld/issues/1826) One writer per piece of state, with write-time checks, as the
-    remaining runtime areas move into systems after [#1387](https://github.com/compoodment/ClankerWorld/issues/1387), continuing
-    [#1377](https://github.com/compoodment/ClankerWorld/issues/1377).
+12. [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826) One writer per piece of state, with write-time checks, as the
+    remaining runtime areas move into systems after [#1387](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1387), continuing
+    [#1377](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1377).
 
-The shared goods query ([#1366](https://github.com/compoodment/ClankerWorld/issues/1366)) and the runtime split ([#1377](https://github.com/compoodment/ClankerWorld/issues/1377)) continue as
+The shared goods query ([#1366](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1366)) and the runtime split ([#1377](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1377)) continue as
 planned; these steps build on them rather than replacing them. Removing the
-old fixture world is covered separately by [#1708](https://github.com/compoodment/ClankerWorld/issues/1708).
+old fixture world is covered separately by [#1708](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1708).
