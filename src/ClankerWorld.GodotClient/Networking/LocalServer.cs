@@ -30,17 +30,16 @@ public sealed record LocalServerLayout(
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
 
     /// <summary>
-    /// Finds the world server that the package.json beside the game names. A
+    /// Finds the world server named by the game's package root. A
     /// development build or a server-only setup has none, and keeps
     /// connecting to whatever server the player chose.
     /// </summary>
     public static LocalServerLayout? FindBundled(string gameExecutablePath, string localApplicationData)
     {
-        var gameDirectory = Path.GetDirectoryName(Path.GetFullPath(gameExecutablePath));
-        if (gameDirectory is null || string.IsNullOrWhiteSpace(localApplicationData) ||
-            PackageEntryPoints.ReadInstalled(gameDirectory) is not { } entryPoints)
+        if (string.IsNullOrWhiteSpace(localApplicationData) ||
+            PackageEntryPoints.FindInstalledForGame(gameExecutablePath) is not { } package)
             return null;
-        var serverExecutable = Path.Combine(gameDirectory, entryPoints.Server);
+        var serverExecutable = Path.Combine(package.Directory, package.EntryPoints.Server);
         return File.Exists(serverExecutable)
             ? new LocalServerLayout(serverExecutable, [], Path.GetDirectoryName(serverExecutable)!,
                 Path.Combine(localApplicationData, "ClankerWorld"))
