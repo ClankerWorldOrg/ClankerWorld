@@ -708,8 +708,8 @@ public sealed record WorldSnapshotView(
     public IReadOnlyList<ConversationView> Conversations { get; init; } = [];
 
     /// <summary>
-    /// Present for the fixture world's host. Its separate topology revision
-    /// makes it clear when paused authoring differs from the protected fixture.
+    /// Native world metadata, including pause state, run epoch, event revision,
+    /// map identity, weather and season. The world projection supplies it.
     /// </summary>
     public AuthoringStateView? Authoring { get; init; }
 

@@ -7,10 +7,9 @@ using ClankerWorld.Simulation.Kernel;
 namespace ClankerWorld.Server.Observation;
 
 /// <summary>
-/// Server-side projection of the world runtime and the fixture world. It converts the
-/// protected simulation records into stable view DTOs while retaining the
-/// distinction between the live fixture topology, cognition state, and paused
-/// authoring state.
+/// Server-side projection of the supported world runtime. It converts protected
+/// simulation records into stable owner views, including cognition and native
+/// world metadata.
 /// </summary>
 public sealed partial class OwnerWorldObservationStore
 {
