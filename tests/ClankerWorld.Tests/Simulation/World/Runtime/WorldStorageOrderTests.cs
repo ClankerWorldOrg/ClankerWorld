@@ -166,6 +166,7 @@ public sealed partial class WorldStorageOrderTests
         };
         if (boundary == "reserved")
             inventory = InventoryAuthority.Reserve(inventory, "storage-reserved", actor, "storage-boundary", 2, "other_work", 120);
+        inventory = StockHoldTestState.Custody(inventory);
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "blocked", $"store {kind}");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);

@@ -59,12 +59,13 @@ public sealed partial class WorldRuntime
         }
         var lot = society.Checkpoint.Inventory.GetLot(plan.Choice.StockId);
         var availableBefore = PersonalWarehouseAvailableQuantity(plan.Actor, plan.ItemKind);
+        var operation = WarehouseStockId(WorldTick, plan.Actor);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"warehouse-stock:{WorldTick}:{plan.Actor}", plan.Actor, plan.Choice.TownId, plan.Choice.StockId,
+            operation, plan.Actor, plan.Choice.TownId, plan.Choice.StockId,
             plan.Quantity, "town_resources_stored", plan.WarehouseId,
             holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.WarehouseId)));
         RecordNonLandGoodsCompletion(plan.Actor, lot, plan.Choice.TownId, plan.Quantity, plan.WarehouseId,
-            $"warehouse-stock:{WorldTick}:{plan.Actor}", "public_service_goods", availableBefore);
+            operation, "public_service_goods", availableBefore);
         AppendEvent("town_resources_stored", $"{plan.Actor}:{plan.Choice.StockId}:{plan.Quantity}:{plan.WarehouseId}");
     }
 }

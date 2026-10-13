@@ -126,7 +126,8 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
                     {
                         foreach (var lot in items.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood" && lot.CarrierId == Seller).ToArray())
                             items = InventoryAuthority.Relocate(items, "history-store-payment:" + cycle + ":" + lot.Id,
-                                lot.Id, household, lot.Quantity, storageBuildingId: house);
+                                lot.Id, household, lot.Quantity, storageBuildingId: house,
+                                holdAccess: InventoryHoldRules.BorrowedBy(Seller));
                         return items;
                     });
                     if (cycle < 39)
