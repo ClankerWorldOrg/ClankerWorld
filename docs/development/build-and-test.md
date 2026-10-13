@@ -86,9 +86,13 @@ bound and preserves complete checkpoint bytes. Private release gates complete
 inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
 uses the same request; another row delays real provider entry for six seconds.
-Reply and actual wrapper-completion waits retain their
-five-second bounds; the completion loop retains eight world ticks. The remaining
-deadline, stale-generation, thought exclusion, physical-property, later ordinary
+Reply and actual wrapper-completion waits retain their five-second bounds.
+Completion reuses the shared request-task wait, which also finishes when no
+call is pending; saved attempt status is not a live task boundary. A deferred-return
+row holds the provider after reply construction and checks that the shared wait
+remains incomplete with checkpoint bytes unchanged. The completion loop retains
+eight world ticks. The remaining deadline, stale-generation, thought exclusion,
+physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held quantified-harvest fixture captures the actor's exact outstanding
