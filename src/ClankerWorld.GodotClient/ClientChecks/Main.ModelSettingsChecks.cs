@@ -17,7 +17,7 @@ public partial class Main
     private void VerifyModelSettingsLayout()
     {
         static string[] Captions(Control panel) => panel.FindChildren("*", nameof(Label), recursive: true, owned: false)
-            .OfType<Label>().Where(label => label.ThemeTypeVariation == "DimLabel").Select(label => label.Text).ToArray();
+            .OfType<Label>().Where(label => label.ThemeTypeVariation == "DimLabel").Select(CaptionForChecks).ToArray();
         foreach (var (name, panel) in new (string, Control)[] { ("Agent model", agentModelPanel), ("Add an agent", founderSetupPanel) })
         {
             var captions = Captions(panel);

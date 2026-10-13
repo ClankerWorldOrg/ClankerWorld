@@ -325,7 +325,8 @@ public partial class Main
                 return;
             }
 
-            if (timelineChanged || renderedObservationGeneration != observationSession.RequestGeneration)
+            var sameContext = !timelineChanged && renderedObservationGeneration == observationSession.RequestGeneration;
+            if (!sameContext)
             {
                 ResetDisplayedWorldContext();
             }
@@ -333,7 +334,7 @@ public partial class Main
             {
                 knownEvents.Clear();
             }
-            using (var draft = timelineChanged ? null : new PanelDraft(this))
+            using (var draft = sameContext ? new PanelDraft(this) : null)
                 Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);
             renderedObservationGeneration = observationSession.RequestGeneration;
             successfulRefreshCount++;

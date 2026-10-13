@@ -5,6 +5,9 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    // Content checks read the whole caption; font/layout checks read Label.Text.
+    private static string CaptionForChecks(Label label) => label is FittedLabel fitted ? fitted.FullText : label.Text;
+
     private void VerifyPanelDraftPreservation()
     {
         using var panel = new VBoxContainer();

@@ -102,7 +102,7 @@ public partial class Main
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(snapshot.WorldTick, 0, []))), 0, out var failure))
                 throw new InvalidOperationException("Save-timeline observation fixture was refused: " + failure);
             string Details() => string.Join(" | ", manualSaveDetails.FindChildren("*", nameof(Label), true, false)
-                .OfType<Label>().Select(label => label.Text));
+                .OfType<Label>().Select(label => label is FittedLabel fitted ? fitted.FullText : label.Text));
             var rows = manualSaveTimeline.Rows;
             void Click(string id, bool twice = false) => rows._GuiInput(new InputEventMouseButton
             {

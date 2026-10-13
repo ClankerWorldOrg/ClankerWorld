@@ -298,7 +298,7 @@ public partial class Main
     {
         var rows = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ToArray();
         return index < rows.Length
-            ? string.Join(" ", rows[index].FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text))
+            ? string.Join(" ", rows[index].FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks))
             : string.Empty;
     }
 
@@ -334,7 +334,7 @@ public partial class Main
     /// <summary>The controls list draws keys as keycaps in the current theme's colours, grouped by what they do.</summary>
     private void VerifyControlsKeycaps()
     {
-        var texts = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+        var texts = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
         foreach (var section in new[] { "MAP", "TIME AND AGENTS", "MOUSE", "PANELS" })
             if (!texts.Contains(section))
                 throw new InvalidOperationException($"The controls list must group keys under {section}.");
