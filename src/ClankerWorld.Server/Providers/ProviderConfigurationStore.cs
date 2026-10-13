@@ -281,13 +281,25 @@ public sealed class ProviderConfigurationStore
         }
     }
 
-    /// <summary>Preflight a saved world's required local credentials without changing the active routing.</summary>
-    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
+    /// <summary>Preflight saved agent and helper credentials without changing the active routing.</summary>
+    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments,
+        RoutineHelperSettings? helper = null)
     {
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
-            try { ValidateState(PreparedWorldAssignments(assignments)); return true; }
+            try
+            {
+                ValidateState(PreparedWorldAssignments(assignments));
+                helper?.Validate();
+                // Decisions always routes through its saved OpenAI selection.
+                // A named key must not fall back to the installation default.
+                return helper?.Provider != PlayerDecisionProviders.Decisions ||
+                    !string.IsNullOrWhiteSpace(helper.CredentialSlotId is { } slotId
+                        ? state.CredentialSlots?.FirstOrDefault(slot => slot.Id == slotId &&
+                            slot.Provider == PlayerDecisionProviders.OpenAi)?.ApiKey
+                        : state.OpenAi.ApiKey);
+            }
             catch (Exception exception) when (exception is ArgumentException or InvalidDataException or OverflowException)
             { return false; }
         }
