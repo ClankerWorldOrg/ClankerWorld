@@ -26,10 +26,10 @@ public sealed class TownLandTransferProjectionTests
         if (kind == "named-content")
         {
             var digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            var version = ContentVersion.Parse("1.0.0");
-            var definition = new ContentDefinition("item", "moon-pearl", version, name!, digest);
+            var contentVersion = ContentVersion.Parse("1.0.0");
+            var definition = new ContentDefinition("item", "moon-pearl", contentVersion, name!, digest);
             var registry = ContentPackageRegistry.Restore(initial.Content);
-            registry.Propose(new("named-sale-goods", version, digest, [], [definition], []));
+            registry.Propose(new("named-sale-goods", contentVersion, digest, [], [definition], []));
             initial = initial with { Content = registry.ExportState() };
             kind = definition.CanonicalId(digest);
         }
