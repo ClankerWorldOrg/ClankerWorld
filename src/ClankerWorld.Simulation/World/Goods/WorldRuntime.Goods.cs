@@ -51,6 +51,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
+        if (request.Use == GoodsUse.Salvage) return SalvageGoodsExclusion(request.Actor!, index, lot);
         if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } promise) return promise;
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
         if (request.Use is GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal)

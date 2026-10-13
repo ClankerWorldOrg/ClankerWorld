@@ -102,6 +102,18 @@ are excluded from prompts, observation digests and saved state. A stale plan
 appends one `choice_refused` Event Log line with a plain refusal reason.
 The private child forwarders remain for existing callers.
 
+Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
+their selected lot, load and Warehouse; salvage keeps the selected communal
+stock and, for a vessel, its complete family of lot identities, owners, kinds
+and quantities. The ordered routes apply those values after the same offer,
+admission and application check. Neither path selects replacement goods during
+application. Private forwarders retain their original signatures.
+
+`ActorCapabilities` checks each action's declared life stages, boat, mounted,
+urgent-need and active-order policy against a current read-only actor snapshot.
+Systems receive that snapshot per call; it is neither saved nor cached. Reach
+keeps the original swimming and carried-load rules, with a named purpose.
+
 `Actions/LifeStageRules.cs` owns action age eligibility, and
 `Actions/NeedThresholds.cs` names the shared food thresholds. Child routes use
 one per-call reach service with an explicit swimming policy and separate
@@ -438,6 +450,12 @@ goods and broken carts, but excludes a family reserved for another job. Actions
 recheck the same query before unloading; load selection uses `ConsumeAt` and
 retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
 single food catalog: ingredients can be stored without becoming edible servings.
+
+`Salvage` reads unreserved physical communal stock at an abandoned Town from
+the actor's current interaction point. It retains damaged or spoiled property
+and whole-vessel load limits, excludes held families and grants no private
+building access. Its action plan checks the selected quantity and vessel
+contents again before moving them.
 
 The remaining uses belong to later steps of
 [#1366](https://github.com/compoodment/ClankerWorld/issues/1366). Unsupported

@@ -95,6 +95,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
     GridPoint HouseholdStockPosition(InventoryLot lot);
     bool ReadyForBriefInteraction(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
     int PhysicalUnreservedQuantity(InventoryLot lot);
     IEnumerable<PlacedBuilding> WarehousesForTown(string townId);
     bool VesselFits(InventoryLot lot, int room);

@@ -1,0 +1,1 @@
+- Town stock choices keep their selected goods, load and Warehouse. If the goods, vessel contents or place change before the action runs, the Event Log explains why the agent waited.

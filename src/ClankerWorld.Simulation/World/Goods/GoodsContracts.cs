@@ -2,7 +2,7 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Spend, Sell, StorePersonal, Deliver, Eat, VesselFor, ReturnVessel, Cargo }
+public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Spend, Sell, StorePersonal, Deliver, Eat, VesselFor, ReturnVessel, Cargo, Salvage }
 
 public enum GoodsDeliveryPurpose { Stock, FarmStock, Expansion, TownProject }
 

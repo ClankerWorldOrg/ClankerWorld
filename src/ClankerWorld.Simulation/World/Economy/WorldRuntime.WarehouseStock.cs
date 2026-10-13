@@ -100,38 +100,15 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void AddWarehouseStockCandidate(List<CognitionCandidate> candidates, string actor,
-        AgentState state)
+    private void AddWarehouseStockCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (WarehouseForResident(actor) is not { } warehouse || DestinationRoom(warehouse.InstanceId) == 0 || PersonalWarehouseSurplus(actor) is not { } surplus ||
-            state.Position != warehouse.Position &&
-            FindUnoccupiedRoute(actor, state.Position, warehouse.Position, 0).Count == 0)
-            return;
+        if (PlanWarehouseSurplus(actor) is not { } plan || !CheckActionPlan(plan).Allowed) return;
         candidates.Add(new CognitionCandidate("store_town_resources",
-            $"Carry spare {surplus.Lot.ItemKind} to the Town Warehouse as communal stock for residents.",
-            32, warehouse.InstanceId));
+            $"Carry spare {plan.ItemKind} to the Town Warehouse as communal stock for residents.",
+            32, plan.WarehouseId) { ActionPlan = plan });
     }
 
-    private void StoreTownResources(string actor, AgentState state)
-    {
-        if (!IsAdult(actor) || WarehouseForResident(actor) is not { } warehouse ||
-            PersonalWarehouseSurplus(actor) is not { } surplus)
-            return;
-        if (state.Position != warehouse.Position)
-        {
-            MoveToward(actor, state, warehouse.Position, "town_warehouse", 0);
-            return;
-        }
-        var quantity = Math.Min(DestinationRoom(warehouse.InstanceId), Math.Min(WarehouseLoadQuantity, surplus.Quantity));
-        if (quantity == 0) return;
-        var availableBefore = PersonalWarehouseAvailableQuantity(actor, surplus.Lot.ItemKind);
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"warehouse-stock:{WorldTick}:{actor}", actor, warehouse.TownId!, surplus.Lot.Id,
-            quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
-        RecordNonLandGoodsCompletion(actor, surplus.Lot, warehouse.TownId!, quantity, warehouse.InstanceId,
-            $"warehouse-stock:{WorldTick}:{actor}", "public_service_goods", availableBefore);
-        AppendEvent("town_resources_stored", $"{actor}:{surplus.Lot.Id}:{quantity}:{warehouse.InstanceId}");
-    }
+    private void StoreTownResources(string actor, AgentState state) => ApplyTownStockPlan(PlanWarehouseSurplus(actor));
 
     private DeliveryOrderPlan? GetTownOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)
