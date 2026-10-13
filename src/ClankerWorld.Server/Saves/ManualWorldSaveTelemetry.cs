@@ -45,4 +45,8 @@ public static partial class ManualWorldSaveTelemetry
     [LoggerMessage(EventId = 2262, Level = LogLevel.Warning,
         Message = "manual_save outcome=cleanup_pending save={SaveId} error_type={ErrorType} published=true")]
     public static partial void SupersededCheckpointRetained(ILogger logger, string saveId, string errorType);
+
+    [LoggerMessage(EventId = 2280, Level = LogLevel.Warning,
+        Message = "autosave_rotation outcome=retained save={SaveId} error_type={ErrorType} verified=false files_preserved=true")]
+    public static partial void UnverifiedAutosaveRetained(ILogger logger, string saveId, string errorType);
 }

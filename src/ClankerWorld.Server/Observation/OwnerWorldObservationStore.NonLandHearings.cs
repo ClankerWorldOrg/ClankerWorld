@@ -40,7 +40,7 @@ public sealed partial class OwnerWorldObservationStore
         CaseElectionView Election(TownCaseJudgeContest contest) => new(contest.Id, contest.Stage, contest.Round,
             contest.RoundDeadlineTick, contest.Candidates.Select(id => new CivicCandidateView(id, Name(id),
                 contest.Ballots.Count(ballot => ballot.CandidateId == id))).ToArray(),
-            contest.WinnerId is { } winner ? Name(winner) : null, contest.Reason);
+            contest.WinnerId is { } winner ? Name(winner) : null, HearingReasonText.Describe(contest.Reason));
         RemedyTermView Term(TownRemedyTerm term) => new(term.Id, term.Kind, term.ContributorId, Name(term.ContributorId),
             term.BeneficiaryId, term.BeneficiaryId is { } beneficiary ? Name(beneficiary) : null,
             term.ItemKind, term.Quantity, term.TargetId, Target(term.TargetId));
@@ -85,7 +85,7 @@ public sealed partial class OwnerWorldObservationStore
                         Readable(finding.Uncertainty), finding.Consequence, finding.Parties.Select(party => Party(party,
                             item.Revisions.Single(revision => revision.Number == finding.Revision), finding.Tick)).ToArray())).ToArray(),
                     item.Judge is { } judge ? Judge(judge) : null,
-                    item.JudgeHistory.Select(term => new CaseJudgeTermView(Judge(term.Judge), term.EndedTick, term.Reason)).ToArray(),
+                    item.JudgeHistory.Select(term => new CaseJudgeTermView(Judge(term.Judge), term.EndedTick, HearingReasonText.Describe(term.Reason)!)).ToArray(),
                     item.Contest is { } contest ? Election(contest) : null,
                     item.ContestHistory.Count > 0 ? Election(item.ContestHistory[^1]) : null,
                     item.ReopenRequests.Select(request => new CaseReopenRequestView(request.Id, Name(request.AgentId), request.Tick,
