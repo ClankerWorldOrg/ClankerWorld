@@ -255,7 +255,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private static async Task WaitForTransferChoices(WorldRuntime world)
+    internal static async Task WaitForTransferChoices(WorldRuntime world)
     {
         // A native life-moment request defers that adult's ordinary choices.
         // Finish both local reply lanes before spending the next fixture tick.
