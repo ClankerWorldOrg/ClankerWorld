@@ -91,34 +91,12 @@ five-second bounds; the completion loop retains eight world ticks. The remaining
 deadline, stale-generation, thought exclusion, physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
-The held quantified-harvest fixture captures the actor's exact outstanding
-model request and task. After one native harvest finishes, it releases the
-provider and waits for that task to complete before the admission tick. A
-provider's response-construction signal can precede task completion. A private
-deferred-return row holds this boundary explicitly; complete checkpoint bytes
-stay unchanged during each wait. Thirty-second phase deadlines diagnose a
-stalled request without polling native ticks. The check retains one harvest,
-unchanged completion units, the actual late reply and strict checkpoint reload.
-
 The held housing-reply fixture captures the registered request before waiting
 for provider startup. Its deferred-start rows keep that same request pending
 through lesson progress, then observe entry with the world frozen. It retains
 the unapproved housing request, no admission or completed reply, refused-tick
 preservation and strict reload. The thirty-second entry bound is diagnostic;
 waiting for it spends no native ticks.
-
-The held harvest/eating check keeps its two adjacent physical frames: one
-harvest without consumption, then consumption on the following tick. Its
-deferred-entry row holds a private preparation gate until both frames are
-checked. It then waits for validated provider entry with the world frozen,
-preserving checkpoint bytes and the same registered request and task. A controlled
-row delays validated entry for four seconds, beyond the former startup deadline.
-Entry, actual task completion and cancellation cleanup reuse the shared
-thirty-second harvest-phase diagnostic bound. After releasing
-the reply, it waits for the captured model task rather than only the provider's
-response-construction signal. The original five admission ticks and finished-order,
-single-harvest, stale-response, observer-reply and reload checks remain. Its
-finally block opens held gates, cancels pending calls and awaits the captured task.
 
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
@@ -173,12 +151,6 @@ late personality, aspiration or identity event applied. Immediate, deferred and
 four-second entry cases use thirty-second phase diagnostic bounds; no extra
 native tick is spent on scheduling.
 
-The held identity-routing fixture waits for the runtime's model task to finish
-before polling admission. Its deferred-return case holds the provider after
-constructing the reply and checks that the wait keeps the complete checkpoint
-unchanged. The completion wait has a five-second bound; the three-second startup,
-twenty admission ticks, retained-work checks and next-tick reload comparison remain.
-
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary model decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
@@ -203,14 +175,6 @@ signal has a thirty-second diagnostic deadline. Advancing native ticks during
 this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
-
-The held movement-cancellation fixture captures the actual registered request
-and task after its first committed tick, before waiting for provider entry.
-Its deferred-entry row keeps preparation held until that pending call is
-checked. Entry and reply signals use the shared thirty-second diagnostic
-bound while checkpoint bytes and position stay fixed. Cancellation still
-keeps the order cancelled with zero progress and the agent stationary through
-the original bounded post-cancellation polling.
 
 The held field-cancellation fixture stops at its first working frame, or after
 the deliberate two additional ticks in its deferred-entry row. It captures the
