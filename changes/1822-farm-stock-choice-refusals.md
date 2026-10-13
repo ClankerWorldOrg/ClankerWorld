@@ -1,0 +1,1 @@
+- Farm stock choices keep the selected load and storage destination. If that stock or trip becomes unavailable, the Event Log explains why the agent waited.

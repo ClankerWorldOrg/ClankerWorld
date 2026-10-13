@@ -150,6 +150,12 @@ The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physi
 stock separate from the urgent adult seed exception. Tool and blacksmith cargo
 callers retain their existing forwarders until their action area moves.
 
+Farm stock choices use `FarmStockActionPlan` for grain and seeds going to private
+farm storage and flour going to the House. The plan keeps the source, destination,
+resource amount and whole-vessel or partial-load transfer form. Its shared check
+revalidates that load, the trip, capacity and any milling deficit; it never selects
+replacement stock or a different store. Existing delivery-order forwarders remain.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -417,7 +423,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 238 references across 65 files. Named delivery, hold and cargo operations
+is 236 references across 64 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;

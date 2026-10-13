@@ -40,8 +40,8 @@ public sealed partial class WorldRuntime
         return FarmStorageFor(householdId, choice.Resource.ItemKind, requestedBuildingId, destination =>
             PlanFarmStockHaul(actor, destination.InstanceId, choice, maximumQuantity) is not null &&
             (IsWithinInteractionRange(position, source, range) ||
-             FindUnoccupiedRoute(actor, position, source, range).Count > 0) &&
-            FindUnoccupiedRoute(actor, source, destination.Position, 0).Count > 0);
+             Reach(actor, source, ReachPurpose.FarmStockPickup, range, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
+            ReachLeg(actor, source, destination.Position, ReachPurpose.FarmStockDelivery, 0, 0, SwimmingPolicy.WhenCapable).Count > 0);
     }
 
     /// <summary>
@@ -78,18 +78,8 @@ public sealed partial class WorldRuntime
             destinationId is not null && destinationId != farmhouse.InstanceId ||
             !agents.TryGetValue(actor, out var person))
             return null;
-        var inputTarget = worldContent.Recipes.Where(recipe =>
-                recipe.WorkstationBuildingId == farmhouse.DefinitionId && !recipe.IsCrop &&
-                NeedsRecipeOutput(recipe, householdId))
-            .SelectMany(recipe => recipe.Inputs).Where(input => input.ResourceId == FarmFieldRules.Grain)
-            .Select(input => input.Amount).DefaultIfEmpty(0).Max() * SupplyBatches;
         var inventory = society.Checkpoint.Inventory;
-        var supplied = inventory.Lots.Where(lot => lot.OwnerId == householdId &&
-                lot.StorageBuildingId == farmhouse.InstanceId && lot.ItemKind == FarmFieldRules.Grain)
-            .Sum(AvailableLotQuantity);
-        var incoming = inventory.Lots.Where(lot => lot.DeliveryBuildingId == farmhouse.InstanceId &&
-                lot.ItemKind == FarmFieldRules.Grain).Sum(AvailableLotQuantity);
-        var missing = inputTarget - supplied - incoming;
+        var missing = FarmhouseGrainDeficit(householdId, farmhouse);
         if (missing <= 0 || DestinationRoom(inventory, farmhouse.InstanceId) <= 0)
             return null;
         var silos = worldSimulation.Buildings.Where(building => building.HouseholdId == householdId && building.InstanceId != farmhouse.InstanceId &&
@@ -169,73 +159,23 @@ public sealed partial class WorldRuntime
 
     private void AddFarmGrainCandidate(List<CognitionCandidate> candidates, string actor)
     {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
-            FarmhouseForHousehold(householdId) is null ||
-            FarmGrainForDelivery(householdId, actor) is not { } grain ||
-            FarmStorageForHaul(householdId, actor, grain) is not { } farmhouse)
-            return;
-        candidates.Add(new CognitionCandidate("haul_farm_grain",
-            "Carry household crops and seeds from their actual location to farm storage.", 24, farmhouse.InstanceId));
+        if (PlanFarmStockAction(actor, FarmStockActionKind.Grain) is { } plan && CheckActionPlan(plan).Allowed)
+            candidates.Add(new CognitionCandidate("haul_farm_grain",
+                "Carry household crops and seeds from their actual location to farm storage.", 24, plan.DestinationId)
+            { ActionPlan = plan });
     }
 
-    private void HaulFarmGrain(string actor, AgentState state)
+    private void HaulFarmGrain(string actor, AgentState state) => ApplyFarmStockAction(PlanFarmStockAction(actor, FarmStockActionKind.Grain));
+
+    private void AddFarmFlourCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
-            FarmhouseForHousehold(householdId) is null ||
-            FarmGrainForDelivery(householdId, actor) is not { } grain ||
-            FarmStorageForHaul(householdId, actor, grain) is not { } farmhouse)
-            return;
-        var source = HouseholdStockPosition(grain.Carrier);
-        var range = HouseholdStockInteractionRange(grain.Carrier);
-        if (!IsWithinInteractionRange(state.Position, source, range))
-        {
-            MoveToward(actor, state, source, "farm_grain", range);
-            return;
-        }
-        if (PlanFarmStockHaul(actor, farmhouse.InstanceId, grain) is not { } plan)
-            return;
-        ApplyFarmStockHaul(actor, householdId, farmhouse.InstanceId, plan,
-            $"farm-grain-pickup:{WorldTick}:{actor}", "farm_grain_picked_up");
+        if (PlanFarmStockAction(actor, FarmStockActionKind.Flour) is { } plan && CheckActionPlan(plan).Allowed)
+            candidates.Add(new CognitionCandidate("haul_farm_flour",
+                "Carry household flour from its Farmhouse to its House.", 25, plan.DestinationId)
+            { ActionPlan = plan });
     }
 
-    private void AddFarmFlourCandidate(List<CognitionCandidate> candidates, string actor,
-        AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
-            FarmhouseForHousehold(householdId) is not { } farmhouse ||
-            HouseForHousehold(householdId) is not { } house ||
-            FarmFlourForHouse(householdId, farmhouse.InstanceId, actor, house.InstanceId) is not { } flour ||
-            PlanFarmStockHaul(actor, house.InstanceId, flour) is null)
-            return;
-        if ((!IsWithinInteractionRange(state.Position, farmhouse.Position, 0) &&
-             FindUnoccupiedRoute(actor, state.Position, farmhouse.Position, 0).Count == 0) ||
-            FindUnoccupiedRoute(actor, farmhouse.Position, house.Position, 0).Count == 0)
-            return;
-        candidates.Add(new CognitionCandidate("haul_farm_flour",
-            "Carry household flour from its Farmhouse to its House.", 25, house.InstanceId));
-    }
-
-    private void HaulFarmFlour(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
-            FarmhouseForHousehold(householdId) is not { } farmhouse ||
-            HouseForHousehold(householdId) is not { } house ||
-            FarmFlourForHouse(householdId, farmhouse.InstanceId, actor, house.InstanceId) is not { } flour)
-            return;
-        if (state.Position != farmhouse.Position)
-        {
-            MoveToward(actor, state, farmhouse.Position, "farm_flour", 0);
-            return;
-        }
-        if (PlanFarmStockHaul(actor, house.InstanceId, flour) is not { } plan)
-            return;
-        ApplyFarmStockHaul(actor, householdId, house.InstanceId, plan,
-            $"farm-flour-pickup:{WorldTick}:{actor}", "farm_flour_picked_up");
-    }
+    private void HaulFarmFlour(string actor, AgentState state) => ApplyFarmStockAction(PlanFarmStockAction(actor, FarmStockActionKind.Flour));
 
     private void ApplyFarmStockHaul(string actor, string householdId, string destinationId,
         FarmStockHaulPlan plan, string operationId, string purpose)

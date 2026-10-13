@@ -66,11 +66,24 @@ public sealed class ReachableFarmStockTests
         var initialGrain = inventory.Lots.Where(lot => lot.ItemKind == "grain").Sum(lot => lot.Quantity);
         var movedRoot = inVessel ? reachableRoot : reachableGrain;
         var blockedFamily = inventory.Lots.Where(lot => lot.Id == blockedGrain || lot.Id == blockedRoot).ToArray();
-        using var world = Restore(initial, actor);
+        var choices = new HaulChoices(true);
+        using var world = Restore(initial, actor, choices);
+        var beforeRollback = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(beforeRollback, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var count = 0; count < 12 && !world.ExportState().Events.Any(item =>
                  item.Kind == "farm_grain_picked_up" && item.Detail ==
                  $"{actor}:{reachableGrain}:{quantity}:{farmhouse.InstanceId}"); count++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            foreach (var decision in result.Decisions.Where(decision => decision.AgentId == actor &&
+                         decision.Admission.Intention?.CandidateId == "haul_farm_grain"))
+                Assert.Same(choices.Plan, decision.ActionPlan);
+        }
+        var selectedPlan = Assert.IsType<FarmStockActionPlan>(choices.Plan);
+        Assert.Equal((reachableGrain, quantity, inVessel),
+            (selectedPlan.ResourceId, selectedPlan.ResourceQuantity, selectedPlan.MoveContainerFamily));
 
         Assert.Contains(world.ExportState().Events, item => item.Kind == "farm_grain_picked_up" &&
             item.Detail == $"{actor}:{reachableGrain}:{quantity}:{farmhouse.InstanceId}");
@@ -128,12 +141,13 @@ public sealed class ReachableFarmStockTests
         }
     }
 
-    private static WorldRuntime Restore(WorldRuntimeState state, string actor) =>
+    private static WorldRuntime Restore(WorldRuntimeState state, string actor, HaulChoices? choices = null) =>
         WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
-            id => new HaulChoices(id == actor));
+            id => id == actor && choices is not null ? choices : new HaulChoices(id == actor));
 
     private sealed class HaulChoices(bool haul) : IDecisionProvider
     {
+        public ActionPlan? Plan { get; private set; }
         private readonly DeterministicDecisionProvider chooser = new();
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -145,6 +159,7 @@ public sealed class ReachableFarmStockTests
                 candidate.Id == "haul_household_stock" && candidate.DestinationId == "first-town-farmhouse")
                 ?? request.Observation.Candidates.FirstOrDefault(candidate => haul && candidate.Id == "haul_farm_grain")
                 ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
+            if (selected.Id == "haul_farm_grain") Plan = selected.ActionPlan;
             return chooser.DecideAsync(request with { Observation = request.Observation with { Candidates = [selected] } },
                 cancellationToken);
         }
