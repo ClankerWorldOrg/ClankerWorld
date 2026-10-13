@@ -358,6 +358,9 @@ Handcart attach, park and give choices retain the exact cart, cargo family,
 attachment and recipient. One check verifies that selection at offer, admission
 and apply. Parking only detaches the cart and remains available when cargo is
 promised; attaching and giving check the existing cart and cargo access rules.
+Cart pulling retains the attachment, cargo and building destination. An absent
+route remains a wait choice with the existing movement-blocked events; changed
+stock, attachments or destinations receive a typed refusal.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

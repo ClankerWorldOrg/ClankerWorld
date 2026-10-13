@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
     private const string CollectCartMaterialPrefix = "collect_handcart_material:";
     private const string CollectCartRepairPrefix = "collect_handcart_repair:";
     private const string RepairCartPrefix = "repair_handcart:";
-    private const string PullCartPrefix = "pull_handcart:";
+    private const string PullCartPrefix = HandcartPullChoice.Prefix;
     // Generic cart controls have no delivery intention. Keep them selectable by models without
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
     private const int UnassignedCartPriority = 110;
@@ -189,14 +189,7 @@ public sealed partial class WorldRuntime
             AddHandcartControlCandidate(candidates, PlanHandcartControl(actor, new(HandcartControlKind.Park)),
                 "Park the handcart here with its cargo kept inside.");
             foreach (var building in worldSimulation.Buildings.OrderBy(item => item.InstanceId, StringComparer.Ordinal))
-            {
-                if (building.Position == person.Position) continue;
-                var reachable = FindUnoccupiedRoute(actor, person.Position, building.Position, 0).Count > 0;
-                candidates.Add(new(PullCartPrefix + building.InstanceId,
-                    reachable ? "Pull the handcart and its cargo to this building along a legal route." :
-                        "The cart's route to this building is blocked. Wait for a route or park the cart here.",
-                    UnassignedCartPriority, building.InstanceId));
-            }
+                AddHandcartPullCandidate(candidates, PlanHandcartPull(actor, new(building.InstanceId)));
         }
         var worn = inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
             lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 &&
@@ -277,11 +270,11 @@ public sealed partial class WorldRuntime
                 CollectEquipment(actor, person, kind);
             return true;
         }
-        if (candidateId.StartsWith(PullCartPrefix, StringComparison.Ordinal))
+        if (originalPlan is HandcartPullActionPlan pullPlan)
+        { ApplyHandcartPullPlan(pullPlan); return true; }
+        if (HandcartPullChoice.Decode(candidateId) is { } pull)
         {
-            var building = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == candidateId[PullCartPrefix.Length..]);
-            if (AttachedHandcart(actor) is not null && building is not null)
-                MoveToward(actor, person, building.Position, "pull_handcart");
+            if (PlanHandcartPull(actor, pull) is { } plan) ApplyHandcartPullPlan(plan);
             return true;
         }
         var isLoad = candidateId.StartsWith(LoadCartPrefix, StringComparison.Ordinal);
