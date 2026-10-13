@@ -433,8 +433,16 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var prepared = await CookedBirthFixture.PrepareAsync(inPot: true);
         using var world = CookedBirthFixture.Restore(prepared);
-        for (var tick = 0; tick < 650 && world.Society.Births.Count == 0; tick++)
+        for (var tick = 0; tick < 40 && world.Agents.Single(person => person.AgentId == prepared.First)
+                 .Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = world.Agents.Single(person => person.AgentId == prepared.First).Parenthood!;
+        Assert.Equal("preparing", plan.Stage);
+        // These checks need a native descendant, not the idle preparation ticks.
+        ParenthoodTests.PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Empty(world.Society.Births);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var birth = Assert.Single(world.Society.Births);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "child_born" && item.Detail == birth.ChildId);
         return WorldRuntimeCodec.Encode(world.ExportState());
