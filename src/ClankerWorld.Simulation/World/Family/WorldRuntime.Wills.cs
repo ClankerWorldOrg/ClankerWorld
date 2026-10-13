@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
             towns.SingleOrDefault(item => item.Id == archived.TownId)?.Name);
         var memories = WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [],
             (checkpoint.MemoryCompactions ?? []).SingleOrDefault(item => item.OwnerId == deceased.Id),
-            deceased.Id, estate.CreatedTick, candidates);
+            deceased.Id, estate.CreatedTick, candidates, checkpoint);
         var digestInput = estate.Id + "|" + string.Join("|", snapshot.Select(item =>
             $"{item.LotId}:{item.ItemKind}:{item.Quantity}")) + "|" +
             string.Join("|", candidates.Select(item => $"{item.Id}:{item.Description}")) + "|" +

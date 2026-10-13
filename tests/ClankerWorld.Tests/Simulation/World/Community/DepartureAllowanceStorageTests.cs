@@ -270,8 +270,8 @@ public sealed class DepartureAllowanceStorageTests
             id => id == actor ? will : new Choices());
         dying.Resume();
         Assert.True((await dying.TickModelWorkAsync()).Advanced);
-        await will.Called.Task;
-        await will.Completed.Task;
+        await ModelWorkHarness.WaitForSignalAsync(will.Called.Task);
+        await ModelWorkHarness.WaitForSignalAsync(will.Completed.Task);
         for (var tick = 0; tick < 8 && dying.Society.Estates.Single(item => item.DeceasedId == actor).WillStatus == "pending"; tick++)
             Assert.True((await dying.TickModelWorkAsync()).Advanced);
         var first = Assert.Single(dying.Society.Estates, item => item.DeceasedId == actor);

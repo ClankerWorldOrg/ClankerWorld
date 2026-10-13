@@ -68,8 +68,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(actor, harvested.OwnerId);
         Assert.EndsWith(":" + actor, harvested.Id, StringComparison.Ordinal);
         Assert.Equal(initialQuantity - 1, world.WorldSystems.Ecology.GetResource("settlement-fiber").Quantity);
-        Assert.InRange(order.LastEffectId!.Length, 1, DerivedId.MaximumLength);
-        Assert.Equal(DerivedId.Create("gather:" + harvested.Id, "gather:material:sha256:"), order.LastEffectId);
+        Assert.InRange(order.LastEffectId!.Value.Length, 1, DerivedId.MaximumLength);
+        Assert.Equal(DerivedId.Create("gather:" + harvested.Id, "gather:material:sha256:"), order.LastEffectId?.Value);
         Assert.Contains(choices.Selected, item => item.Actor == actor && item.Instruction == submitted.InstructionId &&
             item.Choice is "inspect_material_site" or "gather_material");
         Assert.Contains(replayChoices.Selected, item => item.Actor == actor && item.Instruction == submitted.InstructionId &&
@@ -79,8 +79,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         var completed = host.Saved();
         using var completedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(completed));
         Assert.Equal(completed, WorldRuntimeCodec.Encode(completedReload.ExportState()));
-        foreach (var invalid in new[] { order with { LastEffectId = "gather:material:" + new string('x', 513) },
-                     order with { LastEffectId = "gather:material:\0" }, order with { TargetMaterialKind = "cloth" },
+        Assert.Throws<ArgumentException>(() => Identity.Parse("gather:material:" + new string('x', 513)));
+        Assert.Throws<ArgumentException>(() => Identity.Parse("gather:material:\0"));
+        foreach (var invalid in new[] { order with { TargetMaterialKind = "cloth" },
                      order with { CompletedUnits = 0 }, order with { ProgressUnit = "food_items" } })
         {
             var damaged = world.ExportState() with

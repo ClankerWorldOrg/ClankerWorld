@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -220,7 +221,7 @@ public sealed class WorldToolRepairOrderTests
             await AdvanceUntil(world, () => provider.Started.Task.IsCompleted,
                 "The hosted repair-planning request did not start within forty native ticks.");
             if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(0, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("stop", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
@@ -283,7 +284,7 @@ public sealed class WorldToolRepairOrderTests
         await Finish(world, receipt);
         var order = Order(world, receipt);
         Assert.Equal("finished", order.Status);
-        Assert.InRange(order.LastEffectId!.Length, 1, 512);
+        Assert.InRange(order.LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));
@@ -294,7 +295,7 @@ public sealed class WorldToolRepairOrderTests
             order with { TargetMaterialKind = "iron" }, order with { TargetFoodKind = "berries" },
             order with { TargetPosition = new(1, 2) }, order with { TargetCropKind = "grain" },
             order with { TargetResourceId = "tree" }, order with { ProgressUnit = "material_items" },
-            order with { CompletedUnits = 2 }, order with { LastEffectId = "repair:equipment:wrong" },
+            order with { CompletedUnits = 2 }, order with { LastEffectId = Identity.Parse("repair:equipment:wrong") },
         })
             Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
         Assert.Throws<InvalidDataException>(() => Restore(saved with { SchemaVersion = 73 }));
@@ -576,7 +577,7 @@ public sealed class WorldToolRepairOrderTests
     {
         for (var tick = 0; tick < 40 && !done(); tick++)
         {
-            using var deadline = new CancellationTokenSource();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
                 Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
@@ -597,7 +598,6 @@ public sealed class WorldToolRepairOrderTests
         public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
-        public Func<bool>? CanStart { get; set; }
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();

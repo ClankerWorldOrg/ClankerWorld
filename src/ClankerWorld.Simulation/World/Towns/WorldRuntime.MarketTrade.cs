@@ -215,7 +215,7 @@ public sealed partial class WorldRuntime
                     if (!LiveMarketStall(town, market, stall)) continue;
                     goods ??= MarketGoodsFor(actor);
                     foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.StallBuildingId == stall.BuildingId &&
-                                 (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId, StringComparer.Ordinal))
+                                 (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId.Value, StringComparer.Ordinal))
                     {
                         if (inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open) continue;
                         yield return new(MarketChoiceId("cancel", trade.OfferId), "cancel", town, market, stall, occupancy, Trade: trade);
@@ -399,7 +399,7 @@ public sealed partial class WorldRuntime
             eventId = next.Events[^1].EventId;
             return next;
         });
-        var receipt = new MarketStockReceipt(receiptId, choice.Occupancy.Id, actor, lot.OwnerId,
+        var receipt = new MarketStockReceipt(Identity.Parse(receiptId), choice.Occupancy.Id, actor, lot.OwnerId,
             lot.Id, movedId, lot.ItemKind, choice.Quantity, WorldTick, eventId)
         {
             Sequence = choice.Market.NextStockReceiptSequence,
@@ -421,10 +421,10 @@ public sealed partial class WorldRuntime
             choice.Lot!.Id, choice.Payment!.Id, WorldTick.ToString(CultureInfo.InvariantCulture),
             choice.Market.Trades.Count.ToString(CultureInfo.InvariantCulture));
         ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
-            InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1, choice.Lot.OwnerId, buyer,
+            InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(id), 1, choice.Lot.OwnerId, buyer,
                 choice.Lot.Id, 1, choice.Payment.Id, 1, WorldTick + MarketTradeRules.OfferLifetimeTicks)),
             id, 1, buyer));
-        var trade = new MarketTradeState(id, occupancy.Id, choice.Stall.BuildingId, seller,
+        var trade = new MarketTradeState(Identity.Parse(id), occupancy.Id, choice.Stall.BuildingId, seller,
             choice.Lot.OwnerId, owner, buyer, position, WorldTick, choice.Lot.ItemKind, choice.Payment.ItemKind)
         {
             StockReceiptSequence = choice.Market.StockReceipts.Last(receipt => receipt.OccupancyId == occupancy.Id &&
@@ -508,7 +508,7 @@ public sealed partial class WorldRuntime
             eventId = settled.Events[^1].EventId;
             return settled;
         });
-        var receipt = new MarketStockReceipt(receiptId, trade.OccupancyId, actor, trade.PaymentOwnerId,
+        var receipt = new MarketStockReceipt(Identity.Parse(receiptId), trade.OccupancyId, actor, trade.PaymentOwnerId,
             paymentId, paymentId, trade.PaymentKind, offer.SecondQuantity, WorldTick, eventId, offer.Id)
         {
             Sequence = choice.Market.NextStockReceiptSequence,

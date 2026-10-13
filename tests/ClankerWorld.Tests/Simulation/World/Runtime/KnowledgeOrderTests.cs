@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -114,8 +115,10 @@ public sealed class KnowledgeOrderTests
         AssertReload(world.ExportState());
     }
 
-    [Fact]
-    public async Task QueuedWritingStartsAfterTheActiveOrderAndCreditsItsOwnItem()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task QueuedWritingStartsAfterTheActiveOrderAndCreditsItsOwnItem(bool replace)
     {
         var state = await Prepared();
         var actor = state.Agents[0].AgentId;
@@ -126,12 +129,20 @@ public sealed class KnowledgeOrderTests
         var second = Submit(world, "second-writing", "draw a map", queue: true);
         Assert.Equal("queued", Order(world, second).Status);
         Assert.Equal(JsonSerializer.Serialize(project), JsonSerializer.Serialize(Assert.Single(world.ExportState().Knowledge!.WritingProjects)));
+        if (replace)
+        {
+            var original = first;
+            first = Submit(world, "replacement", "write a record");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, second).Status);
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        }
         AssertReload(world.ExportState());
         await FinishTogether(world, first);
         Assert.Equal(0, Order(world, second).CompletedUnits);
         await FinishTogether(world, second);
         var final = world.ExportState();
-        Assert.Equal(new[] { first.InstructionId, second.InstructionId },
+        Assert.Equal(new[] { first.InstructionId.Value, second.InstructionId.Value },
             final.Knowledge!.Artifacts.Select(item => item.OrderInstructionId));
         Assert.Equal(1, Quantity(final, actor, "paper"));
         AssertReload(final);
@@ -229,7 +240,7 @@ public sealed class KnowledgeOrderTests
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
                 { Task = item.Task! with { TargetKnowledgeKind = "field_map" } } : item).ToArray() },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
+                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = Identity.Parse("writing:artifact:knowledge-artifact-000001"), RepeatUntilCancelled = true } } : item).ToArray() },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(broken));
         AssertReload(working);
     }
@@ -298,7 +309,7 @@ public sealed class KnowledgeOrderTests
         Assert.Equal(original.Id, current.Id);
         if (matching)
         {
-            Assert.Equal(receipt.InstructionId, current.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, current.OrderInstructionId);
             // Continue through the normal built-in order path after admission.
             using var resumed = Restore(world.ExportState());
             await FinishTogether(resumed, receipt);
@@ -361,7 +372,7 @@ public sealed class KnowledgeOrderTests
         world.SubmitInstruction(new("waiting-writing-guidance", "owner:test", actor,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Contains(Assert.Single(provider.Requests).Candidates, candidate => candidate.Id == original.CandidateId);
         var before = Assert.Single(world.ExportState().Knowledge!.WritingProjects);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());

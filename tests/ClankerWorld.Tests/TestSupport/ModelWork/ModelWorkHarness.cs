@@ -21,12 +21,14 @@ public sealed class ModelWorkHarness : IModelWorkObserver
         World.ConfigureModelWork(Scheduler, this, timeProvider);
     }
 
-    public static async Task WaitForExistingAsync(WorldRuntime world, Func<ModelWorkSnapshot, bool>? include = null)
+    public static async Task WaitForExistingAsync(WorldRuntime world, Func<ModelWorkSnapshot, bool>? include = null,
+        params Task[] additionalTasks)
     {
         // Blocking fixtures can still use the production scheduler. Read their
         // public snapshots without changing a scheduler after calls have started.
         if (Attached.TryGetValue(world, out var harness)) harness.RunPendingWork();
-        await Task.WhenAll(world.PendingModelWork.Where(item => include?.Invoke(item) ?? true).Select(item => item.Completion))
+        await Task.WhenAll(world.PendingModelWork.Where(item => include?.Invoke(item) ?? true)
+            .Select(item => item.Completion).Concat(additionalTasks))
             .WaitAsync(TimeSpan.FromSeconds(30));
     }
 
@@ -64,10 +66,18 @@ public sealed class ModelWorkHarness : IModelWorkObserver
     public bool DecisionsFinished(params string[] actors) => actors.All(actor => Pending.Any(item =>
         item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == actor && item.Completion.IsCompleted));
 
+    public static Task WaitForSignalAsync(Task signal) => signal.WaitAsync(TimeSpan.FromSeconds(30));
+
     public async Task WaitAsync(Task signal)
     {
         RunPendingWork();
-        await signal.WaitAsync(TimeSpan.FromSeconds(30));
+        await WaitForSignalAsync(signal);
+    }
+
+    public async Task<T> WaitAsync<T>(Task<T> signal)
+    {
+        await WaitAsync((Task)signal);
+        return await signal;
     }
 
     public async Task<WorldStepResult> TickUntilAdmittedAsync(string actor, int maxTicks)

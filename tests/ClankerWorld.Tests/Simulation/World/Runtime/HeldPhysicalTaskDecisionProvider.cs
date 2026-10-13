@@ -5,7 +5,6 @@ namespace ClankerWorld.Tests;
 
 internal sealed class HeldPhysicalTaskDecisionProvider : IDecisionProvider
 {
-    public Func<bool>? CanStart { get; set; }
     public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
     public long ProviderEpoch => 1;
     public ConcurrentQueue<AgentObservation> Requests { get; } = new();

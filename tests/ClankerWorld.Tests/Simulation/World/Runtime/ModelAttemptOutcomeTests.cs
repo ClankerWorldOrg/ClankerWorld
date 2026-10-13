@@ -10,7 +10,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ModelAttemptOutcomeTests
 {
-    private const string TargetId = "founder:00000000000000000000000000000001";
+    private const string TargetId = NormalPathWorld.Founder1;
     private static readonly JsonSerializerOptions ClientJson = new() { PropertyNameCaseInsensitive = true };
 
     [Theory]
@@ -92,7 +92,7 @@ public sealed class ModelAttemptOutcomeTests
         using var fixture = new Fixture("held");
         using var world = NormalPathWorld.CreateGenerated("model-outcomes", _ => fixture.Provider);
         await world.TickModelWorkAsync();
-        await fixture.Handler.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(fixture.Handler.Started.Task);
         Assert.Equal("waiting", Status(world));
         Assert.Equal("waiting", Status(world)); // independent refreshed projection
         Assert.Empty(ClientFailures(world));
@@ -101,7 +101,7 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Empty(ClientFailures(world));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         fixture.Handler.Release.TrySetResult(true);
-        await fixture.Handler.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(fixture.Handler.Returned.Task);
         Assert.Equal("canceled", Status(world));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => fixture.Provider);
         Assert.Equal("canceled", Status(restored));

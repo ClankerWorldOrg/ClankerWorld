@@ -67,7 +67,7 @@ public sealed class TownNonLandAuthorityRuntimeTests
         try
         {
             await AdvanceModelDecisionsUntilAsync(world, () => held.Started.Task.IsCompleted, 12);
-            await held.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(held.Started.Task);
             Assert.Contains("|law_case_find|", held.CandidateId!, StringComparison.Ordinal);
             Assert.Equal(originalAuthority, TownGovernmentRules.CurrentNonLandAuthority(world.Towns[0].Government!, world.WorldTick));
             Assert.Empty(Assert.Single(world.Towns[0].NonLandHearings.Cases).Findings);
@@ -107,11 +107,11 @@ public sealed class TownNonLandAuthorityRuntimeTests
 
             // Inline completion propagates the exact original provider reply before the next
             // admission tick; neither the case nor the request is reconstructed for this reply.
-            await Task.Run(held.Release);
+            await ModelWorkHarness.WaitForSignalAsync(Task.Run(held.Release));
             WorldStepResult? admitted = null;
             for (var attempt = 0; attempt < 12 && admitted is null; attempt++)
             {
-                var step = await world.TickModelWorkAsync().AsTask();
+                var step = await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline);
                 Assert.True(step.Advanced);
                 if (step.Decisions.Any(decision => decision.AgentId == NonLandRuntimeFixture.Judge) ||
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == NonLandRuntimeFixture.Judge))
@@ -152,7 +152,7 @@ public sealed class TownNonLandAuthorityRuntimeTests
     {
         for (var attempt = 0; attempt < limit && !complete(); attempt++)
         {
-            Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+            Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)).Advanced);
             await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(complete(), "The actual hosted civic action did not reach its bounded admission checkpoint. " +

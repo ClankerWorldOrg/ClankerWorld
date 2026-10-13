@@ -85,10 +85,15 @@ advancing to expiry. The entry wait has a separate thirty-second diagnostic
 bound and preserves complete checkpoint bytes. Private release gates complete
 inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
-uses the same request; another row delays real provider entry for six seconds.
-Reply and actual wrapper-completion waits retain their
-five-second bounds; the completion loop retains eight world ticks. The remaining
-deadline, stale-generation, thought exclusion, physical-property, later ordinary
+uses the same request; another row leaves the actual provider entry queued until
+after capturing the frozen checkpoint, then runs it without advancing the world.
+Reply and actual wrapper-completion waits retain their five-second bounds.
+Completion reuses the shared request-task wait, which also finishes when no
+call is pending; saved attempt status is not a live task boundary. A deferred-return
+row holds the provider after reply construction and checks that the shared wait
+remains incomplete with checkpoint bytes unchanged. The completion loop retains
+eight world ticks. The remaining deadline, stale-generation, thought exclusion,
+physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held housing-reply fixture captures the registered request before waiting
@@ -118,22 +123,23 @@ before cancellation. The check retains real request and order identity,
 exact saved bytes while waiting, one collection event, the untouched second
 load and strict checkpoint reload after cancellation.
 
-The retained-guidance farming and held repair-cancellation fixtures wait for
-the provider's start signal by polling the native nonblocking tick path. A
-committed tick schedules background work but does not guarantee that its worker
-has started. The checks cover immediate entry and entry after two more committed
-ticks. Their polls retain a forty-tick limit and a separate thirty-second cancellation guard
-for each tick, including after pause and reload in the farming fixture. The
-repair check also waits for the released reply before checking that cancellation
-prevents repairs. Use this pattern only where advancing ticks preserves the
-intended cancellation boundary; orders that can already complete physical work
-must keep the world at that boundary while waiting for provider entry.
+The retained-guidance farming fixture still polls the native nonblocking tick
+path for provider entry, including after pause and reload. Its deferred-entry
+row requires two more committed ticks. The held tool-repair cancellation fixture
+uses the model-work harness instead, gating the manual scheduler until two more
+ticks commit in its delayed-entry row. Both retain a forty-tick limit and a
+separate thirty-second cancellation guard for each tick. The repair check also
+waits for the released reply before checking that cancellation prevents repairs.
+Use tick polling only where advancing preserves the intended cancellation
+boundary; orders that can already complete physical work must freeze that
+boundary while waiting for provider entry.
 
 The held lesson-continuation fixture captures the actual registered request
 and model task, permits at most six additional native ticks, then observes
 provider entry at a frozen checkpoint with a thirty-second diagnostic bound.
-Its deferred-entry cases hold preparation until two more ticks commit; one also
-delays worker entry by four seconds. The same registered call must stay pending,
+Its delayed-start rows hold the manual scheduler until tick three. A separate
+row keeps entry disabled through all six additional ticks, captures the frozen
+checkpoint, then releases entry without advancing the world. The same call must stay pending,
 and waiting must leave checkpoint bytes unchanged. The progress baseline is
 captured only after entry, with room for three further lesson steps. The offered
 partnership answer stays held throughout; denied-tick bytes, continued training,
@@ -179,8 +185,9 @@ second load and exact checkpoint reload after releasing the cancelled reply.
 The held field-cancellation fixture stops at its first working frame, or after
 the deliberate two additional ticks in its deferred-entry row. It captures the
 existing shared model-task wait before cancelling the order, then waits for
-actual provider entry without advancing the world. The deferred row also delays
-entry by one second. Waiting for entry and releasing the cancelled reply must
+actual provider entry without advancing the world. The manual scheduler holds
+entry until the chosen working frame; no wall-clock startup delay is needed.
+Waiting for entry and releasing the cancelled reply must
 keep checkpoint bytes unchanged; the original eight subsequent ticks still
 check the cancelled order, unspent seed, released reservation and absent planting
 event. Polling additional ticks for entry could finish planting before cancellation.
@@ -207,7 +214,9 @@ that same tick. Pass `runPendingWork: false` to keep work registered without
 starting it, and call `RunPendingWork` when the test permits provider entry.
 `ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
 `Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
-provider gates keep reply completion independent of the thread pool.
+provider gates keep reply completion independent of the thread pool. Use the
+harness's `WaitAsync` for expected provider signals: its thirty-second bound
+diagnoses missing signals without advancing native ticks or controlling entry.
 
 `SettleAsync` starts pending work and finishes returned wrappers while held
 calls remain held. `PendingModelWork` snapshots all four live queues, with the
@@ -216,8 +225,8 @@ calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
 come from the live runtime. Admission includes its committed world tick. A
 refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
 for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
-A test clock can be passed to the runtime for identity, will and conversation
-deadlines; production uses `TimeProvider.System`.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
 
 The proof fixtures use this harness; remaining clock waits move in #1818. New
 model tests use the harness and no reflection into runtime queues.
@@ -451,8 +460,10 @@ self-contained `win-x64` world server in `server/` (`dotnet publish`, no .NET in
 needed on the player's PC), a short `README.txt`, a `package.json` naming its entry points
 (`{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}`)
 and a `manifest.sha256` of every file. The launcher and the game read the
-entry points from the version they check or start, so a newer package can
-move its programs without making an installed version look damaged; a
+entry points relative to the version's package root. When the game is in a
+subfolder, it finds the enclosing manifest that names its executable; local
+developer runs use the same root for the server and options marker. A newer
+package can move its programs without making an installed version look damaged; a
 version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
 commit, stages the server and version from committed inputs (excluding local
 edits), and checks that the server assembly carries the same version and commit,
@@ -582,7 +593,9 @@ headings in every Markdown file, that each entry in `changes/` starts with
 a `- ` bullet, and that game-design chapters don't describe what is built,
 such as "not built yet" or "remains unfinished". They do not check that any particular page exists. The
 documentation test reads each page with both LF and CRLF line endings, and CI
-also runs it on a Windows checkout. That job is separate from a Windows game
+also runs it on a Windows checkout. When the change needs code checks, that
+job also runs `IdentityTextBoundaryTests` against the native checkout paths and
+the base commit's identity/text allowances. That job is separate from a Windows game
 playtest and from the native provider-storage checks.
 
 To find sentences a change may have made false, search every page for the
@@ -701,3 +714,41 @@ the [playtest results procedure](../../playtest/README.md#keeping-the-list-curre
 Do not deploy, change credentials or modify the active playtest save just to
 run a check; that needs the owner's separate go-ahead. Use a disposable world
 for setup, placement and damaged-save cases.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.
+
+### Every offered choice
+
+`OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
+split stock, a broken vessel, a borrowed Market stall, a full carrier, occupied
+tiles, a swimmer, a mounted rider and a boat passenger. Birth, split stock and paid
+building inputs use shared native operations. Stall occupancy, mounted-animal and
+underway-boat records are controlled strict-valid fixture state. Each native queued choice
+runs in its own trusted server trial copy, through normal admission, action
+application and post-action reconciliation. The test requires a strict save
+round-trip, acceptance of the exact offered choice without fallback, and progress
+or a native refusal reason. It does not recover or skip a throwing action.
+Progress includes medical consent, treatment and supply trips; model admission metadata alone does not count.
+
+The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
+with:
+
+```sh
+CLANKERWORLD_CHOICE_SEED=1815 dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --filter FullyQualifiedName~OfferedChoiceInvariantTests
+```
+
+Failures report the seed, scenario, tick, snapshot, agent and choice ID. Set
+`CLANKERWORLD_CHOICE_TICKS` to at least the reported snapshot plus one to reach
+that case. `CLANKERWORLD_CHOICE_SEEDS` adds consecutive seeds. The independent
+`choice-invariants` nightly job checks four seeds and 32 snapshots each, even
+when no nightly release is needed. Real failures belong in separate Bug issues
+and fixes; this test waits on those fixes rather than suppressing cases.

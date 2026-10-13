@@ -29,8 +29,8 @@ internal sealed partial class TownSystem
             long? agreedEndTick, TownCouncilState council)
     {
         var priorNoticeCount = council.Notices.Count;
-        if (!ValidLandRequestText(requestId, 128) || !TownHearingProcedure.Id(requestedByAgentId) ||
-            !ValidLandRequestText(townId, 128) || requestedTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles } ||
+        if (!IdentityRules.Reference(requestId, 128, requireTrimmed: true) || !IdentityRules.Reference(requestedByAgentId, int.MaxValue, requireTrimmed: true) ||
+            !IdentityRules.Reference(townId, 128, requireTrimmed: true) || requestedTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles } ||
             requestedTiles.Distinct().Count() != requestedTiles.Count ||
             requestedTiles.Any(tile => !world.Map.IsLand(tile)))
             return (RejectedLandRequest("Choose a request ID, an adult Town resident, and one connected land plot."), council);
@@ -102,10 +102,6 @@ internal sealed partial class TownSystem
 
     internal static HouseholdLandUseRequestResult RejectedLandRequest(string failure) =>
             new(false, null, false, false, failure);
-
-    internal static bool ValidLandRequestText(string? value, int maximumLength) =>
-            !string.IsNullOrWhiteSpace(value) && value == value.Trim() && value.Length <= maximumLength &&
-            !value.Any(char.IsControl);
 
     internal static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) =>
             left.TownId == right.TownId && left.HouseholdId == right.HouseholdId &&

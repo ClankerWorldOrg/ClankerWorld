@@ -76,7 +76,7 @@ public sealed class TownCouncilStaleRoundTests
                 await world.TickModelWorkAsync();
                 await ModelWorkHarness.For(world).SettleAsync();
             }
-            await control.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(control.Started.Task);
             while (world.WorldTick < Day + 5 && !HasRunoffRelay(world, heldActor, reader))
             {
                 await world.TickModelWorkAsync();

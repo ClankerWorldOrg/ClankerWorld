@@ -150,7 +150,7 @@ public sealed class LearningTests
         }
         Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetAgent(learner).CurrentRole);
         Assert.Equal("completed", restored.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
-        Assert.Contains(restored.Society.Memories, memory => memory.OwnerId == learner && memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
+        Assert.Contains(restored.Society.Memories, memory => memory.OwnerId == learner && memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
         var completed = restored.Agents.Single(person => person.AgentId == learner);
         var skill = Assert.Single(completed.Skills!);
         Assert.Equal(SkillKind.Building, skill.Kind);
@@ -321,10 +321,12 @@ public sealed class LearningTests
         using var world = WorldRuntime.Restore(state,
             actor => actor == teacher ? provider : new LessonProvider("safe_idle"));
         var startAfter = world.WorldTick + 3;
-        ModelWorkHarness.For(world).Scheduler.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
+        var harness = ModelWorkHarness.For(world);
+        var entryAllowed = !deferSchedulerEntry;
+        harness.Scheduler.CanStart = () => entryAllowed && (!delayedStartup || world.WorldTick >= startAfter);
         world.SubmitInstruction(new("waiting-lesson-guidance", "owner:test", teacher,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
-        Assert.True((await ModelWorkHarness.For(world).TickAsync(runPendingWork: !deferSchedulerEntry)).Advanced);
+        Assert.True((await harness.TickAsync()).Advanced);
         var call = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == teacher);
         var request = Assert.IsType<CognitionDecisionRequest>(call.DecisionRequest);
         var task = call.Completion;
@@ -333,7 +335,10 @@ public sealed class LearningTests
         for (var tick = 0; tick < 6 && !provider.Started.Task.IsCompleted; tick++)
             Assert.True((await world.TickModelWorkAsync()).Advanced);
         var entering = WorldRuntimeCodec.Encode(world.ExportState());
-        await Task.WhenAny(provider.Started.Task, task);
+        if (deferSchedulerEntry) Assert.False(provider.Started.Task.IsCompleted);
+        entryAllowed = true;
+        harness.RunPendingWork();
+        await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(provider.Started.Task, task));
         Assert.True(provider.Started.Task.IsCompleted, $"Held lesson request {request.RequestId} finished before provider entry.");
         Assert.Same(task, Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == teacher).Completion);
         Assert.Same(task, call.Completion);
@@ -357,7 +362,7 @@ public sealed class LearningTests
         Assert.False(task.IsCompleted);
         world.Pause();
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        await task;
+        await ModelWorkHarness.WaitForSignalAsync(task);
         Assert.DoesNotContain(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == teacher);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
