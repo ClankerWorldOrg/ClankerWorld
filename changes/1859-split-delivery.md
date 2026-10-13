@@ -1,0 +1,1 @@
+- Partial delivery orders now keep track of their real shipment when long agent or stock identities require a shortened ID, so the goods can reach the requested building.
