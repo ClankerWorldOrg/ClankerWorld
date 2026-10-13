@@ -124,7 +124,7 @@ public sealed class WorldDeliveryOrderParserTests
         using var world = CreateWorld();
         var original = Submit(world, "save", "donate two wood to my Town Warehouse at (2, 1)");
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!["definition"]!.AsObject();
         Assert.False(orderJson.ContainsKey("deliveryRoute"));
         Assert.False(orderJson.ContainsKey("deliveryLotId"));
         Assert.False(orderJson.ContainsKey("deliveryQuantity"));
@@ -155,7 +155,7 @@ public sealed class WorldDeliveryOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
+            OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, value);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
     }
