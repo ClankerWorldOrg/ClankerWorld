@@ -244,7 +244,7 @@ public sealed class ProviderConfigurationStore
     }
 
     /// <summary>Delete an unused named key from installation-local provider storage.</summary>
-    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId)
+    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId, RoutineHelperSettings? routineHelper = null)
     {
         if (!Guid.TryParseExact(slotId, "N", out _))
             throw new ArgumentException("Choose a valid named credential slot.", nameof(slotId));
@@ -255,6 +255,8 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("That named credential slot no longer exists.", nameof(slotId));
             if ((state.Assignments ?? []).Any(item => item.CredentialSlotId == slotId && item.SelectionReason is null))
                 throw new InvalidOperationException("This key is assigned to an agent. Choose another key or world default for that agent before deleting it.");
+            if (routineHelper?.CredentialSlotId == slotId)
+                throw new InvalidOperationException("This key is used by the world's routine helper. Choose another helper key or turn the helper off before deleting it.");
 
             var next = state with
             {
