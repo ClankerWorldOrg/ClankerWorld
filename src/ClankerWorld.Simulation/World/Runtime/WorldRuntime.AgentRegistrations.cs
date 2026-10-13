@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
     {
-        runtime.ApplyMedicalCandidate(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyMedicalCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         RegisterFieldActions(),

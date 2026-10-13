@@ -5,7 +5,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
-public sealed class MedicalTreatmentConsentTests
+public sealed partial class MedicalTreatmentConsentTests
 {
     [Fact]
     public async Task OneActualMedicineDoseAddsGradualIllnessReliefAndReplaysAfterTheSourceLotIsGone()
