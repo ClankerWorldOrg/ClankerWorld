@@ -11,7 +11,7 @@ public static partial class InventoryAuthority
         if (conditionLossBasisPoints is < 1 or > 10_000)
             throw new ArgumentOutOfRangeException(nameof(conditionLossBasisPoints));
         var lot = checkpoint.GetLot(lotId);
-        EnsureHoldAccess(checkpoint, lot, holdAccess);
+        EnsureFamilyHoldAccess(checkpoint, lot, holdAccess);
         if (lot.Quantity != 1 || lot.ConditionBasisPoints == 0)
             throw new InvalidOperationException("Wear requires one selected unit with remaining condition.");
         EnsureUnreservedQuantity(checkpoint, lot, 1);
@@ -32,7 +32,7 @@ public static partial class InventoryAuthority
         if (conditionRestoredBasisPoints is < 1 or > 10_000)
             throw new ArgumentOutOfRangeException(nameof(conditionRestoredBasisPoints));
         var lot = checkpoint.GetLot(lotId);
-        EnsureHoldAccess(checkpoint, lot, holdAccess);
+        EnsureFamilyHoldAccess(checkpoint, lot, holdAccess);
         if (lot.Quantity != 1 || lot.ConditionBasisPoints >= 10_000)
             throw new InvalidOperationException("Repair requires one selected worn unit.");
         EnsureUnreservedQuantity(checkpoint, lot, 1);

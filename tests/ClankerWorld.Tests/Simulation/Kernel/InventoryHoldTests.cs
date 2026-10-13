@@ -1,9 +1,19 @@
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.World;
+using System.Text;
+using System.Text.Json.Nodes;
 
 namespace ClankerWorld.Tests.Simulation.Kernel;
 
 public sealed class InventoryHoldTests
 {
+    private static readonly Lazy<byte[]> NativeWorld = new(() =>
+    {
+        using var world = NormalPathWorld.CreateGenerated("native-stock-hold-save", _ => new DeterministicDecisionProvider());
+        return WorldRuntimeCodec.Encode(world.ExportState());
+    });
+
     [Theory]
     [InlineData(InventoryHoldPurpose.MarketStall)]
     [InlineData(InventoryHoldPurpose.Delivery)]
@@ -65,6 +75,122 @@ public sealed class InventoryHoldTests
         var held = InventoryAuthority.HoldStock(reserved, "grain", new(InventoryHoldPurpose.Delivery, "house"));
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.ConsumeReservation(held, "input"));
     }
+
+    [Theory]
+    [InlineData("storage_pot", false)]
+    [InlineData("storage_pot", true)]
+    [InlineData("water_jug", false)]
+    [InlineData("water_jug", true)]
+    [InlineData("handcart", false)]
+    [InlineData("handcart", true)]
+    public void VesselWearAndRepairRequireTheContainedStocksAuthorization(string kind, bool repair)
+    {
+        var stock = VesselStock(kind);
+        if (repair)
+        {
+            stock = InventoryAuthority.WearSingleUnit(stock, "vessel", 5_000);
+            stock = InventoryAuthority.AddLot(stock, "repair-wood", "wood", "owner", 1);
+            stock = InventoryAuthority.Reserve(stock, "repair-input", "owner", "repair-wood", 1, "equipment_repair", 10);
+        }
+        var hold = new InventoryHold(InventoryHoldPurpose.Delivery, "house");
+        stock = InventoryAuthority.HoldStock(stock, "contents", hold);
+        var before = InventoryCheckpointCodec.Encode(stock);
+        InventoryCheckpoint Apply(IReadOnlyList<InventoryHold> access) => repair
+            ? InventoryAuthority.RepairSingleUnit(stock, "vessel", 1_000, [stock.GetReservation("repair-input").Id], access)
+            : InventoryAuthority.WearSingleUnit(stock, "vessel", 10_000, access);
+        Assert.Throws<InvalidOperationException>(() => Apply([]));
+        Assert.Throws<InvalidOperationException>(() => Apply([hold with { HolderId = "other" }]));
+        Assert.Equal(before, InventoryCheckpointCodec.Encode(stock));
+        var authorized = Apply([hold]);
+        Assert.Equal(repair ? 6_000 : 0, authorized.GetLot("vessel").ConditionBasisPoints);
+        Assert.Equal(4, authorized.GetLot("contents").Quantity);
+        Assert.Equal(hold, Assert.Single(authorized.GetLot("contents").Holds!));
+        if (repair)
+        {
+            Assert.DoesNotContain(authorized.Lots, lot => lot.Id == "repair-wood");
+            Assert.Equal(InventoryReservationState.Completed, authorized.GetReservation("repair-input").State);
+        }
+    }
+
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(false, 4)]
+    [InlineData(true, 1)]
+    [InlineData(true, 4)]
+    public void DetachedContentsKeepVesselAndOwnHoldsUntilEachIsReleased(bool handcart, int quantity)
+    {
+        var rootHold = new InventoryHold(InventoryHoldPurpose.Delivery, "house");
+        var childHold = new InventoryHold(InventoryHoldPurpose.Borrowed, "loan");
+        var stock = InventoryAuthority.HoldStock(VesselStock(handcart ? "handcart" : "storage_pot"), "vessel", rootHold);
+        stock = InventoryAuthority.HoldStock(stock, "contents", childHold);
+        var detached = handcart
+            ? InventoryAuthority.UnloadHandcart(stock, "take", "owner", "vessel", "contents", quantity, holdAccess: [rootHold, childHold])
+            : InventoryAuthority.TakeFromContainer(stock, "take", "owner", "owner", "vessel", "contents", quantity, holdAccess: [rootHold, childHold]);
+        var taken = Assert.Single(detached.Lots, lot => lot.ItemKind == "berries" && lot.ContainerLotId is null);
+        Assert.Equal(quantity, taken.Quantity);
+        Assert.Equal("owner", taken.OwnerId);
+        Assert.Equal(new[] { rootHold, childHold }, taken.Holds);
+        Assert.Equal(4, detached.Lots.Where(lot => lot.ItemKind == "berries").Sum(lot => lot.Quantity));
+        var saved = InventoryCheckpointCodec.Encode(detached);
+        var restored = InventoryCheckpointCodec.Decode(saved);
+        Assert.Equal(saved, InventoryCheckpointCodec.Encode(restored));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Reserve(restored, "missing-root", "owner", taken.Id, 1, "meal", 10, holdAccess: [childHold]));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Reserve(restored, "missing-child", "owner", taken.Id, 1, "meal", 10, holdAccess: [rootHold]));
+        Assert.Equal(saved, InventoryCheckpointCodec.Encode(restored));
+        var reserved = InventoryAuthority.Reserve(restored, "authorized", "owner", taken.Id, 1, "meal", 10, holdAccess: [rootHold, childHold]);
+        Assert.Equal(3, InventoryAuthority.ConsumeReservation(reserved, "authorized").Lots.Where(lot => lot.ItemKind == "berries").Sum(lot => lot.Quantity));
+        var released = InventoryAuthority.ReleaseStock(restored, taken.Id, rootHold);
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Reserve(released, "still-held", "owner", taken.Id, 1, "meal", 10));
+        released = InventoryAuthority.ReleaseStock(released, taken.Id, childHold);
+        Assert.Equal(InventoryReservationState.Reserved, InventoryAuthority.Reserve(released, "free", "owner", taken.Id, 1, "meal", 10).GetReservation("free").State);
+        if (quantity < 4)
+        {
+            var remainder = restored.GetLot("contents");
+            Assert.Equal("vessel", remainder.ContainerLotId);
+            Assert.Equal(childHold, Assert.Single(remainder.Holds!));
+            Assert.Equal(rootHold, Assert.Single(restored.GetLot("vessel").Holds!));
+        }
+    }
+
+    [Theory]
+    [InlineData(InventoryHoldPurpose.MarketStall)]
+    [InlineData(InventoryHoldPurpose.Delivery)]
+    [InlineData(InventoryHoldPurpose.SupplyTrip)]
+    [InlineData(InventoryHoldPurpose.Borrowed)]
+    public void HoldsAndReservationAuthorizationSurviveStrictNativeWorldReload(InventoryHoldPurpose purpose)
+    {
+        var state = WorldRuntimeCodec.Decode(NativeWorld.Value);
+        const string household = "household:first";
+        var hold = new InventoryHold(purpose, "first-town-house-a");
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "native-held-grain", "grain", household, 4);
+        inventory = InventoryAuthority.HoldStock(inventory, "native-held-grain", hold);
+        inventory = InventoryAuthority.Reserve(inventory, "native-held-input", household, "native-held-grain", 1, "meal", 10, holdAccess: [hold]);
+        state = FarmFieldTests.WithInventory(state, inventory);
+        var bytes = WorldRuntimeCodec.Encode(state);
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
+        Assert.Equal(hold, Assert.Single(reloaded.Society.Inventory.GetLot("native-held-grain").Holds!));
+        Assert.Equal(hold, Assert.Single(reloaded.Society.Inventory.GetReservation("native-held-input").HoldAccess!));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(reloaded.Society.Inventory,
+            "unrelated-move", "native-held-grain", household, 1));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
+        var expected = InventoryAuthority.ConsumeReservation(inventory, "native-held-input");
+        var actual = InventoryAuthority.ConsumeReservation(reloaded.Society.Inventory, "native-held-input");
+        Assert.Equal(WorldRuntimeCodec.Encode(FarmFieldTests.WithInventory(state, expected)),
+            WorldRuntimeCodec.Encode(FarmFieldTests.WithInventory(reloaded.ExportState(), actual)));
+        var oldDocument = JsonNode.Parse(bytes)!;
+        oldDocument["state"]!["schemaVersion"] = 131;
+        var oldBytes = Encoding.UTF8.GetBytes(oldDocument.ToJsonString());
+        var originalOldBytes = oldBytes.ToArray();
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(oldBytes));
+        Assert.Equal(originalOldBytes, oldBytes);
+    }
+
+    private static InventoryCheckpoint VesselStock(string kind) => InventoryAuthority.CreateGenesis([
+        new("vessel", kind, "owner", 1, 10_000, 10_000, 0,
+            GroundPosition: kind == "handcart" ? new(0, 0) : null),
+        new("contents", kind == "water_jug" ? "fresh_water" : "berries", "owner", 4, 10_000, 10_000, 0,
+            ContainerLotId: "vessel")]);
 
     private static InventoryCheckpoint Stock() => InventoryAuthority.CreateGenesis([
         new("grain", "grain", "owner", 4, 10000, 10000, 0)]);

@@ -349,7 +349,9 @@ reservation, transfer, container operation or consumption.
 supply trips and borrowed goods. A hold covers a lot's whole physical quantity;
 vessel operations also check every member, and contents inherit their vessel's
 holds. Inventory callers must supply the exact purpose and holder for every
-hold they use. Splits retain holds on both portions. A reservation saves its
+hold they use. Splits retain holds on both portions; detached goods retain
+their inherited vessel holds. Wear and repair also check contained stock.
+A reservation saves its
 authorized holds and rechecks them when consumed or settled. Hold changes use
 `HoldStock` and `ReleaseStock`, without adding inventory events or changing stock
 history. The next part of #1821 connects the existing promise lifecycles and

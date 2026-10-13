@@ -619,6 +619,7 @@ public static partial class InventoryAuthority
         // into storage, a delivery or the carrier's own hands.
         var takenCarrier = destinationStorageBuildingId is null && destinationDeliveryBuildingId is null &&
             source.CarrierId != recipientId ? source.CarrierId : null;
+        var takenHolds = CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), source).ToArray());
         InventoryLot[] lots;
         if (quantity == source.Quantity)
         {
@@ -628,6 +629,7 @@ public static partial class InventoryAuthority
                         OwnerId = recipientId,
                         CarrierId = takenCarrier,
                         ContainerLotId = null,
+                        Holds = takenHolds,
                         StorageBuildingId = destinationStorageBuildingId,
                         DeliveryBuildingId = destinationDeliveryBuildingId,
                         GroundPosition = null,
@@ -651,6 +653,7 @@ public static partial class InventoryAuthority
                     Quantity = quantity,
                     ProvenanceLotId = source.Id,
                     ContainerLotId = null,
+                    Holds = takenHolds,
                     StorageBuildingId = destinationStorageBuildingId,
                     DeliveryBuildingId = destinationDeliveryBuildingId,
                     GroundPosition = null,
