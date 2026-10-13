@@ -258,8 +258,8 @@ connected and paired. Saving a key does not run a model or place an agent.
 Choose the saved key later in **Add Agent** or an agent's **Model** panel.
 **Open model settings** in that panel opens the agent's model in World
 Settings, where you can also delete a saved key.
-A key cannot be deleted while an agent or the routine helper uses it. Change
-their key first, or turn the helper off.
+A key used by the routine helper cannot be deleted. Choose another helper key
+or turn the helper off first.
 
 To check a selected model, press **Test model · 1 paid call** in Add Agent or
 an agent's Model panel. It uses the chosen **Thinking** setting too. This sends one real request and counts toward the
