@@ -84,7 +84,7 @@ public sealed partial class WorldRuntime
         }
         if (FieldOrderSite(instruction, person) is not { } site)
         {
-            SetOrderStatus(instruction, "blocked", FieldOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, FieldOrderBlockedReason(instruction));
             return;
         }
         ApplyFieldCandidate(actor, person, FarmCandidate(FieldOrderKind(instruction.Task!.Action), site,

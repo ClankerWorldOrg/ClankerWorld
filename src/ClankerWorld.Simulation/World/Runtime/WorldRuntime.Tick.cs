@@ -453,7 +453,7 @@ public sealed partial class WorldRuntime
         instructionsByIdempotency = proposed.instructionsByIdempotency;
         instructionReceipts = proposed.instructionReceipts;
         orderCancellations = proposed.orderCancellations;
-        completedInstructionIds = proposed.completedInstructionIds;
+        completedSuggestionIds = proposed.completedSuggestionIds;
         worldEventLog = proposed.worldEventLog;
         checkpointSchemaVersion = proposed.checkpointSchemaVersion;
         jevEnabled = proposed.jevEnabled;

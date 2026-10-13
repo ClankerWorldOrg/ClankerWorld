@@ -80,6 +80,35 @@ public sealed record OrderTask(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterBinding? ShelterBinding = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterCompletion? ShelterCompletion = null)
 {
+    private OrderStatus status = OrderStatusRules.Parse(Status);
+
+    // The string is the existing save and observation spelling. The enum is
+    // the task's authority, and only Transition can change it after creation.
+    public string Status
+    {
+        get => status.ToWireValue();
+        private init => status = OrderStatusRules.Parse(value);
+    }
+
+    [JsonIgnore] public OrderStatus LifecycleStatus => status;
+    [JsonIgnore] public bool IsTerminal => status.IsTerminal();
+
+    public OrderTask Transition(OrderStatus next, string? reason = null, bool waitForDecision = false)
+    {
+        if (!Enum.IsDefined(next)) throw new ArgumentOutOfRangeException(nameof(next));
+        if (IsTerminal && next != status)
+            throw new InvalidOperationException("A closed order cannot be reopened.");
+        if (next == OrderStatus.Blocked && string.IsNullOrWhiteSpace(reason) ||
+            waitForDecision && next != OrderStatus.Blocked)
+            throw new ArgumentException("A blocked order needs a reason; only a blocked order can wait for a new decision.");
+        return this with
+        {
+            Status = next.ToWireValue(),
+            BlockedReason = reason,
+            WaitForDecisionAfterFailure = waitForDecision,
+        };
+    }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetAnimalId { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public OwnerBoatTravelBinding? BoatTravel { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetKnowledgeKind { get; init; }

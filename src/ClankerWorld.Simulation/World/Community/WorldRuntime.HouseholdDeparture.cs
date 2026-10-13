@@ -70,17 +70,17 @@ public sealed partial class WorldRuntime
         if (PendingInstructionFor(actor) is { Task.Action: "produce_item" } productionOrder)
         {
             CancelProductionForOrder(productionOrder);
-            SetOrderStatus(productionOrder, "blocked", "The agent left the household holding the ordered workstation.");
+            SetOrderStatus(productionOrder, OrderStatus.Blocked, "The agent left the household holding the ordered workstation.");
         }
         if (PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
         {
             CancelConstructionForOrder(constructionOrder);
-            SetOrderStatus(constructionOrder, "blocked", "The agent left the household arranging the requested construction.");
+            SetOrderStatus(constructionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested construction.");
         }
         if (PendingInstructionFor(actor) is { Task: { Action: "expand_building", TargetBuildingKind: "house" } } expansionOrder)
         {
             CancelExpansionForOrder(expansionOrder);
-            SetOrderStatus(expansionOrder, "blocked", "The agent left the household arranging the requested expansion.");
+            SetOrderStatus(expansionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested expansion.");
         }
         foreach (var id in group)
         {

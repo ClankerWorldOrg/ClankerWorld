@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         var choice = BoatTripChoices(actor).FirstOrDefault(choice => choice.Destination.InstanceId == binding.DestinationPortId);
         if (choice is null)
         {
-            SetOrderStatus(instruction, "blocked", BoatOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, BoatOrderBlockedReason(instruction));
             return;
         }
         if (agents[actor].Position != choice.Origin.Entrance)
@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
                 IsActiveOrder(order.Status) && binding.RequestId == request.Id)
             : null;
 
-    private void SetBoatOrderTravelStatus(BoatTripRequest request, string status, string? reason)
+    private void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason)
     {
         if (ActiveBoatOrder(request) is { } instruction) SetOrderStatus(instruction, status, reason);
     }

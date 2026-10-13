@@ -55,13 +55,13 @@ public sealed partial class WorldRuntime
         var order = instruction.Task!;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         var entry = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
         if (entry is null || ProductionOrderCandidateFor(instruction, person)?.DestinationId is not { } buildingId)
         {
-            SetOrderStatus(instruction, "blocked", ProductionOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ProductionOrderBlockedReason(instruction));
             return;
         }
 
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
                 if (!CanResumeHeldInputs(actor, job.BuildingInstanceId, job.InputReservationIds) ||
                     !TryResumeKnife(actor, job.JobId, out var knifeId))
                 {
-                    SetOrderStatus(instruction, "blocked", "The reserved ingredients or production tool are no longer available.");
+                    SetOrderStatus(instruction, OrderStatus.Blocked, "The reserved ingredients or production tool are no longer available.");
                     return;
                 }
                 var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
@@ -123,7 +123,7 @@ public sealed partial class WorldRuntime
             };
         }
         if (currentProject.Stage is "blocked" or "cancelled")
-            SetOrderStatus(instruction, "blocked", currentProject.Blocker ?? "The requested production cannot continue yet.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, currentProject.Blocker ?? "The requested production cannot continue yet.");
     }
 
     private string ProductionOrderBlockedReason(OwnerQueuedInstruction instruction)
@@ -153,13 +153,13 @@ public sealed partial class WorldRuntime
                 !IsProductionOrderProject(instruction, person.Project))
             {
                 CancelProductionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The worker or workstation for this order is no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The worker or workstation for this order is no longer available.");
                 continue;
             }
             if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
             {
                 PauseProductionOrderJob(instruction, job);
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             }
             else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
                      instruction.Task!.WaitForDecisionAfterFailure)

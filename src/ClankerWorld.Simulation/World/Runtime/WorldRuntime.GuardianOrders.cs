@@ -36,14 +36,14 @@ public sealed partial class WorldRuntime
         var child = instruction.Task!.TargetAgentId!;
         if (candidate.Id != "guardian_accept:" + child || !CanAcceptGuardian(adult, child))
         {
-            SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(adult, child));
+            SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
             return;
         }
         ApplyDependentCareCandidate(adult, candidate.Id);
         if (society.Checkpoint.GetAgent(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
             CreditOrderEffect(instruction, GuardianOrderEffectId(adult, child), 1);
         else
-            SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(adult, child));
+            SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
     }
 
     private string GuardianOrderBlockedReason(string adult, string child)

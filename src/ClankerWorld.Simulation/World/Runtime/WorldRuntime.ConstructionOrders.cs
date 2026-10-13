@@ -112,12 +112,12 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         if (!TryConstructionOrderSite(instruction, person, out var definition, out var household, out var position, out var failure))
         {
-            SetOrderStatus(instruction, "blocked", failure);
+            SetOrderStatus(instruction, OrderStatus.Blocked, failure);
             return;
         }
         if (!IsConstructionOrderProject(instruction, person.Project) || person.Project!.Stage == "cancelled")
@@ -144,7 +144,7 @@ public sealed partial class WorldRuntime
             SetProject(actor, paused with { Stage = "acquiring", Blocker = null, RequiresFreshChoice = false });
         ContinueProject(actor, agents[actor]);
         if (agents[actor].Project is { Stage: "blocked" or "cancelled" } blocked)
-            SetOrderStatus(instruction, "blocked", blocked.Blocker ?? "The ordered construction cannot continue yet.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocked.Blocker ?? "The ordered construction cannot continue yet.");
     }
 
     private void PauseConstructionForOrder(OwnerQueuedInstruction instruction)
@@ -174,10 +174,10 @@ public sealed partial class WorldRuntime
                 society.Checkpoint.GetAgent(instruction.TargetAgentId).HouseholdId != instruction.Task!.ConstructionOwnerId)
             {
                 CancelConstructionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The worker or household for this building is no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The worker or household for this building is no longer available.");
             }
             else if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
         }
     }
 

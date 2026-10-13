@@ -224,7 +224,7 @@ public sealed partial class WorldExpansionOrderTests
             order with { ExpansionBinding = binding with { OwnerId = OtherHousehold } },
             order with { ExpansionBinding = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } },
             order with { ExpansionBinding = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } },
-            order with { Status = "finished", CompletedUnits = 1, LastEffectId = "expand:job:" + new string('0', 64) },
+            (order with { CompletedUnits = 1, LastEffectId = "expand:job:" + new string('0', 64) }).Transition(OrderStatus.Finished),
         })
         {
             var corrupt = saved with

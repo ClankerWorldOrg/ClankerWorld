@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
         var candidate = CollectionOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", CollectionOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, CollectionOrderBlockedReason(instruction, person));
             return;
         }
         var order = instruction.Task!;

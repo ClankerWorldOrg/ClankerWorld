@@ -74,17 +74,17 @@ public sealed partial class WorldRuntime
         {
             CompleteClosedTalkOrders();
             if (UnacceptedMarriageOrderBlocker(instruction) is { } eligibilityBlocker)
-                SetOrderStatus(instruction, "blocked", eligibilityBlocker);
+                SetOrderStatus(instruction, OrderStatus.Blocked, eligibilityBlocker);
             else if (ConversationForOrder(instruction)?.Status == AgentConversationStatus.Suspended)
-                SetOrderStatus(instruction, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "Conversation stopped; both people must choose to resume, or you may end it.");
             else if (instruction.Task!.Action == "propose_marriage" && marriages.Any(item => item.Consent.Id == instruction.Task.TalkConversationId && item.CompletedTick is null) &&
                 ConversationForOrder(instruction)?.Outcome == "participant_unavailable")
-                SetOrderStatus(instruction, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
             return;
         }
         if (TalkOrderBlocker(instruction, person) is { } blocker)
         {
-            SetOrderStatus(instruction, "blocked", blocker);
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
         var actor = instruction.TargetAgentId;
@@ -102,13 +102,13 @@ public sealed partial class WorldRuntime
         }
         if (!ProposeConversation(actor, target))
         {
-            SetOrderStatus(instruction, "blocked", "Waiting for a face-to-face invitation to become possible.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, "Waiting for a face-to-face invitation to become possible.");
             return;
         }
         var conversation = ConversationFor(actor)!;
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Task = current.Task! with { TalkConversationId = conversation.Id, Status = "doing", BlockedReason = null } };
+        { Task = (current.Task! with { TalkConversationId = conversation.Id }).Transition(OrderStatus.Doing) };
     }
 
     private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision)
@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
         var person = agents[actor];
         if ((NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) && IsSurvivalCandidate(actor, candidate))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                 IsMarketFoodCandidate(actor, candidate))
                 ApplyMarketCandidate(actor, person, candidate);

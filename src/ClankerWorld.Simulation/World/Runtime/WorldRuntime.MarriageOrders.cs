@@ -50,18 +50,18 @@ public sealed partial class WorldRuntime
         if (current.Task is not { Action: "propose_marriage", TalkConversationId: not null } order || !IsActiveOrder(order.Status)) return;
         if (UnacceptedMarriageOrderBlocker(current) is { } blocker)
         {
-            SetOrderStatus(current, "blocked", blocker);
+            SetOrderStatus(current, OrderStatus.Blocked, blocker);
             return;
         }
         // Clear only a recovered eligibility blocker, preserving independently owned interruptions and failures.
         if (order.Status != "blocked" || order.BlockedReason is not
             (MarriageAdultBlocker or MarriagePartnerBlocker or MarriageChangedPartnerBlocker or MarriageEligibilityBlocker)) return;
         if (ConversationForOrder(current)?.Status == AgentConversationStatus.Suspended)
-            SetOrderStatus(current, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
+            SetOrderStatus(current, OrderStatus.Blocked, "Conversation stopped; both people must choose to resume, or you may end it.");
         else if (ConversationForOrder(current)?.Outcome == "participant_unavailable")
-            SetOrderStatus(current, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
+            SetOrderStatus(current, OrderStatus.Blocked, "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
         else
-            SetOrderStatus(current, "doing", null);
+            SetOrderStatus(current, OrderStatus.Doing, null);
     }
 
     private AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction)

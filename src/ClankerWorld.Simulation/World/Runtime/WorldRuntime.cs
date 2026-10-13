@@ -77,7 +77,7 @@ public sealed partial class WorldRuntime : IDisposable
         new(StringComparer.Ordinal);
     private Dictionary<string, OwnerOrderCancellation> orderCancellations =
         new(StringComparer.Ordinal);
-    private HashSet<string> completedInstructionIds = new(StringComparer.Ordinal);
+    private HashSet<string> completedSuggestionIds = new(StringComparer.Ordinal);
     private WorldEventLog worldEventLog = new([]);
     private readonly IAgentWorld agentWorld;
     private readonly IEnvironmentAgentWorld environmentWorld;
@@ -415,7 +415,7 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.instructionsByIdempotency.Clear();
         runtime.instructionReceipts.Clear();
         runtime.orderCancellations.Clear();
-        runtime.completedInstructionIds.Clear();
+        runtime.completedSuggestionIds.Clear();
         foreach (var instruction in state.Instructions ?? [])
         {
             if (!runtime.instructionsByIdempotency.TryAdd(instruction.IdempotencyKey, instruction))
@@ -436,7 +436,8 @@ public sealed partial class WorldRuntime : IDisposable
 
         foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
         {
-            runtime.completedInstructionIds.Add(completedInstructionId);
+            if (runtime.instructionsByIdempotency.Values.Any(item => item.InstructionId == completedInstructionId && item.Kind == OwnerInstructionKind.Suggestion))
+                runtime.completedSuggestionIds.Add(completedInstructionId);
         }
 
         foreach (var cancellation in state.OrderCancellations ?? [])
@@ -532,7 +533,7 @@ public sealed partial class WorldRuntime : IDisposable
         instructionsByIdempotency.Values
             .OrderBy(item => item.SubmissionSequence)
             .ToArray(),
-        completedInstructionIds.OrderBy(item => item, StringComparer.Ordinal).ToArray(),
+        CompletedInstructionIds().OrderBy(item => item, StringComparer.Ordinal).ToArray(),
         contentRegistry.ExportState(),
         worldSystems,
         worldContent,

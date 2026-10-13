@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
     {
         if (KnowledgeReadOrderBlocker(instruction) is { } blocker)
         {
-            SetOrderStatus(instruction, "blocked", blocker);
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
         var artifact = KnowledgeReadOrderArtifact(instruction)!;
@@ -86,7 +86,7 @@ public sealed partial class WorldRuntime
         var learned = ReadIfKnowledgeArtifact(artifact.LotId, artifact.CreatorId, actor);
         if (learned <= 0)
         {
-            SetOrderStatus(instruction, "blocked", "The written item could not add any new knowledge.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, "The written item could not add any new knowledge.");
             return;
         }
         var sites = knowledge.Facts.Where(fact => fact.OwnerId == actor && !before.Contains(fact.Position) &&

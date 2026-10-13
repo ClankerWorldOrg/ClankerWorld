@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         }
         if (RepairOrderCandidateFor(instruction, person)?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", RepairOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, RepairOrderBlockedReason(instruction));
             return;
         }
         RepairEquipment(actor, person, lotId, instruction.InstructionId);

@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
             if (parsedOrder is not null && !request.Queue)
                 ReplacePendingOrders(targetId);
             if (parsedOrder is not null)
-                parsedOrder = parsedOrder with { Status = request.Queue && hasPendingOrder ? "queued" : "waiting" };
+                parsedOrder = parsedOrder.Transition(request.Queue && hasPendingOrder ? OrderStatus.Queued : OrderStatus.Waiting);
 
             var sequence = nextInstructionSequence++;
             var instruction = new OwnerQueuedInstruction(
@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
                 OwnerInstructionState.Queued,
                 Queue: request.Queue,
                 Task: request.Kind != OwnerInstructionKind.Order ? null : parsedOrder ??
-                    new OrderTask("unknown", "not_understood", 0, 0, "none", false));
+                    new OrderTask("unknown", "queued", 0, 0, "none", false));
             instructionsByIdempotency.Add(instruction.IdempotencyKey, instruction);
             var receipt = new OwnerInstructionReceipt(
                 instruction.InstructionId,
@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
                 throw new ArgumentException("The order does not belong to this active agent in this world.", nameof(request));
 
             var changed = instruction.Task is { } order && IsActiveOrder(order.Status) &&
-                !completedInstructionIds.Contains(instruction.InstructionId);
+                !IsInstructionComplete(instruction);
             var status = instruction.Task?.Status ?? "not_understood";
             if (changed)
             {
@@ -292,12 +292,19 @@ public sealed partial class WorldRuntime
         }
     }
 
+    private bool IsInstructionComplete(OwnerQueuedInstruction instruction) =>
+        instruction.Task?.IsTerminal ?? completedSuggestionIds.Contains(instruction.InstructionId);
+
+    private IEnumerable<string> CompletedInstructionIds() =>
+        completedSuggestionIds.Concat(instructionsByIdempotency.Values
+            .Where(item => item.Task?.IsTerminal == true).Select(item => item.InstructionId));
+
     private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
         instructionsByIdempotency.Values
             .Where(item => item.TargetAgentId == agentId &&
                 item.Kind == OwnerInstructionKind.Order &&
                 item.Task is not null && IsActiveOrder(item.Task.Status) &&
-                !completedInstructionIds.Contains(item.InstructionId))
+                !IsInstructionComplete(item))
             .OrderBy(item => item.SubmissionSequence)
             .FirstOrDefault();
 
@@ -306,7 +313,7 @@ public sealed partial class WorldRuntime
         foreach (var instruction in instructionsByIdempotency.Values
                      .Where(item => item.TargetAgentId == agentId &&
                          item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
+                         IsActiveOrder(order.Status) && !IsInstructionComplete(item))
                      .OrderBy(item => item.SubmissionSequence).ToArray())
         {
             CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
@@ -318,14 +325,8 @@ public sealed partial class WorldRuntime
     {
         instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
         {
-            Task = instruction.Task! with
-            {
-                Status = "cancelled",
-                BlockedReason = reason,
-                WaitForDecisionAfterFailure = false,
-            },
+            Task = instruction.Task!.Transition(OrderStatus.Cancelled, reason),
         };
-        completedInstructionIds.Add(instruction.InstructionId);
         CancelRepairForOrder(instruction);
         CancelFieldWorkForOrder(instruction);
         CancelProductionForOrder(instruction);
@@ -348,7 +349,7 @@ public sealed partial class WorldRuntime
     {
         var messages = instructionsByIdempotency.Values
             .Where(item => item.TargetAgentId == agentId &&
-                !completedInstructionIds.Contains(item.InstructionId) &&
+                !IsInstructionComplete(item) &&
                 (item.Kind == OwnerInstructionKind.Suggestion ||
                     item.InstructionId == PendingInstructionFor(agentId)?.InstructionId))
             .OrderBy(item => item.SubmissionSequence)
@@ -447,16 +448,15 @@ public sealed partial class WorldRuntime
         foreach (var order in instructionsByIdempotency.Values
                      .Where(item => item.TargetAgentId == agentId &&
                          item.Kind == OwnerInstructionKind.Order &&
-                         !completedInstructionIds.Contains(item.InstructionId) &&
+                         !IsInstructionComplete(item) &&
                          item.Task?.Action == "unknown")
                      .OrderBy(item => item.SubmissionSequence)
                      .ToArray())
         {
             instructionsByIdempotency[order.IdempotencyKey] = order with
             {
-                Task = order.Task! with { Status = "not_understood" },
+                Task = order.Task!.Transition(OrderStatus.NotUnderstood),
             };
-            completedInstructionIds.Add(order.InstructionId);
             AppendEvent("instruction_not_understood", $"{agentId}:{order.InstructionId}");
         }
         checkpointSchemaVersion = StateSchemaVersion;

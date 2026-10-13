@@ -152,7 +152,7 @@ public sealed partial class WorldRuntime
                         route, 0, WorldTick, checked(WorldTick + BoatStepTicks)),
                 });
                 SetBoatRequest(request with { Status = "underway", BoatId = boat.Id });
-                SetBoatOrderTravelStatus(request, "doing", null);
+                SetBoatOrderTravelStatus(request, OrderStatus.Doing, null);
                 agents[request.PassengerId] = agents[request.PassengerId] with
                 { Position = boat.Position, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
                 AppendEvent("boat_departed", $"{request.PassengerId}:{boat.Id}:{origin.InstanceId}:{destination.InstanceId}", boat.Position);
@@ -206,7 +206,7 @@ public sealed partial class WorldRuntime
             var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);
             SetBoatRequest(request with { Status = journey.Returning ? "returned" : "arrived", SettledTick = tick });
             if (!journey.Returning) CreditBoatOrderArrival(request);
-            else SetBoatOrderTravelStatus(request, "blocked", "The boat returned to departure; the requested destination has not been reached.");
+            else SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat returned to departure; the requested destination has not been reached.");
             AppendEvent(journey.Returning ? "boat_returned" : "boat_arrived", $"{journey.PassengerId}:{boat.Id}:{target.InstanceId}", landing.Value);
         }
         ProcessBoatQueue();
@@ -218,7 +218,7 @@ public sealed partial class WorldRuntime
         var since = journey.WaitingSinceTick ?? tick;
         SetBoat(boat with { Journey = journey with { WaitingSinceTick = since, NextMoveTick = checked(tick + BoatStepTicks) } });
         var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);
-        SetBoatOrderTravelStatus(request, "blocked", "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
+        SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
         if (journey.WaitingSinceTick is null) AppendEvent("boat_waiting", $"{journey.PassengerId}:{boat.Id}:arrival_blocked", boat.Position);
         if (!journey.Returning && tick - since < CivicDay) return;
         var recovery = Port(journey.Returning ? journey.DestinationPortId : journey.OriginPortId);

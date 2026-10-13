@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
     {
         if (ToolRepairOrderCandidateFor(instruction)?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", ToolRepairOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ToolRepairOrderBlockedReason(instruction));
             return;
         }
         var actor = instruction.TargetAgentId;

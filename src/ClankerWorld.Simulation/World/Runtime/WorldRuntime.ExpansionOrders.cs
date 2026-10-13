@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
             PauseExpansionForOrder(instruction);
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         if (BoundExpansionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
             if (ExpansionOrderCandidateFor(instruction, person) is null || ExpansionOrderBuilding(instruction) is not { } building)
             {
                 PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
+                SetOrderStatus(instruction, OrderStatus.Blocked, ExpansionOrderBlockedReason(instruction));
                 return;
             }
             if (person.Position != building.Position)
@@ -125,7 +125,7 @@ public sealed partial class WorldRuntime
         }
         if (ExpansionPlanFor(instruction, person) is not { } plan)
         {
-            SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ExpansionOrderBlockedReason(instruction));
             return;
         }
         if (instruction.Task!.ExpansionBinding is null)
@@ -179,13 +179,13 @@ public sealed partial class WorldRuntime
                 ExpansionOrderBuilding(instruction) is not { } building || !ExpansionOrderInputsAvailable(job, building))
             {
                 CancelExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The selected building, worker or committed materials are no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The selected building, worker or committed materials are no longer available.");
                 continue;
             }
             if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
             {
                 PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             }
             else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
                      instruction.Task!.WaitForDecisionAfterFailure)

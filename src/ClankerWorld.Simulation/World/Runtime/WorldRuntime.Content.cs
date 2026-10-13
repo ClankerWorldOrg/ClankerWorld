@@ -486,7 +486,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidOperationException("Content referenced by agent projects requires an explicit migration before removal.");
             }
             var remainingContent = ContentDefinitionApplicator.RemovePackage(worldContent, manifest.PackageDigest);
-            var completed = completedInstructionIds.ToArray();
+            var completed = CompletedInstructionIds().ToArray();
             var people = society.Checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
             // Cancelled orders remain checkpoint history and still need their original content targets.
             if (instructionsByIdempotency.Values.Any(instruction =>

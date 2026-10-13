@@ -230,7 +230,7 @@ public sealed partial class WorldRuntime
         CognitionCandidate candidate)
     {
         var order = instruction.Task!;
-        SetOrderStatus(instruction, "doing", null, waitForDecision: false);
+        SetOrderStatus(instruction, OrderStatus.Doing, null, waitForDecision: false);
         var actor = instruction.TargetAgentId;
         RecordAttemptedAction(actor, candidate.Id);
         if (candidate.Id != "explore" && person.Exploration?.Goal?.OrderInstructionId == instruction.InstructionId)
@@ -341,7 +341,7 @@ public sealed partial class WorldRuntime
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 else
-                    SetOrderStatus(instruction, "blocked", "No matching food is available to eat.");
+                    SetOrderStatus(instruction, OrderStatus.Blocked, "No matching food is available to eat.");
                 return;
             case "collect_shared_food":
                 CollectSharedFood(actor, person, order.TargetFoodKind);
@@ -355,7 +355,7 @@ public sealed partial class WorldRuntime
                     var target = KnownFoodSourceForOrder(instruction, agents[actor]);
                     if (target is null)
                     {
-                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, agents[actor]));
+                        SetOrderStatus(instruction, OrderStatus.Blocked, OrderBlockedReason(instruction, agents[actor]));
                         return;
                     }
                     var current = agents[actor];
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
                     var source = KnownFoodSourceForOrder(instruction, agents[actor]);
                     if (source is null)
                     {
-                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, agents[actor]));
+                        SetOrderStatus(instruction, OrderStatus.Blocked, OrderBlockedReason(instruction, agents[actor]));
                         return;
                     }
                     if (!IsWithinInteractionRange(agents[actor].Position, source.Position, ResourceInteractionRange))
@@ -392,11 +392,11 @@ public sealed partial class WorldRuntime
                         CreditOrderEffect(instruction, FoodHarvestReceipt(effect.LotId),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
                     else
-                        SetOrderStatus(instruction, "blocked", "The requested food site did not yield the requested food.");
+                        SetOrderStatus(instruction, OrderStatus.Blocked, "The requested food site did not yield the requested food.");
                     return;
                 }
             default:
-                SetOrderStatus(instruction, "blocked", "The requested task is not available right now.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The requested task is not available right now.");
                 return;
         }
     }
@@ -410,17 +410,14 @@ public sealed partial class WorldRuntime
         var finished = !order.RepeatUntilCancelled && completed >= order.RequestedUnits;
         instructionsByIdempotency[current.IdempotencyKey] = current with
         {
-            Task = order with
+            Task = (order with
             {
                 CompletedUnits = completed,
                 LastEffectId = effectId,
-                Status = finished ? "finished" : "doing",
-                BlockedReason = null,
-            },
+            }).Transition(finished ? OrderStatus.Finished : OrderStatus.Doing),
         };
         if (finished)
         {
-            completedInstructionIds.Add(current.InstructionId);
             AppendEvent("instruction_applied", $"{current.InstructionId}:{order.Action}");
             AppendEvent("instruction_order_finished", $"{current.TargetAgentId}:{current.InstructionId}:{effectId}");
         }
@@ -433,32 +430,27 @@ public sealed partial class WorldRuntime
 
     private void SetOrderStatus(
         OwnerQueuedInstruction instruction,
-        string status,
+        OrderStatus status,
         string? reason,
         bool waitForDecision = false)
     {
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         if (current.Task is not { } order || !IsActiveOrder(order.Status)) return;
-        if (status == "interrupted" && BoundProductionJob(current) is { } production)
+        if (status == OrderStatus.Interrupted && BoundProductionJob(current) is { } production)
             PauseProductionOrderJob(current, production);
-        if (status == "interrupted")
+        if (status == OrderStatus.Interrupted)
         {
             PauseConstructionForOrder(current);
             PauseExpansionForOrder(current);
         }
-        if (order.Status == status && order.BlockedReason == reason &&
+        if (order.LifecycleStatus == status && order.BlockedReason == reason &&
             order.WaitForDecisionAfterFailure == waitForDecision) return;
         instructionsByIdempotency[current.IdempotencyKey] = current with
         {
-            Task = order with
-            {
-                Status = status,
-                BlockedReason = reason,
-                WaitForDecisionAfterFailure = waitForDecision,
-            },
+            Task = order.Transition(status, reason, waitForDecision),
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_status", $"{current.TargetAgentId}:{current.InstructionId}:{status}");
+        AppendEvent("instruction_order_status", $"{current.TargetAgentId}:{current.InstructionId}:{status.ToWireValue()}");
     }
 
     private string OrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)

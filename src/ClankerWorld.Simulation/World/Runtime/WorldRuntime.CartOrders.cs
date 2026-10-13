@@ -98,7 +98,7 @@ public sealed partial class WorldRuntime
         { ExecuteCartCargoOrderStep(instruction, person); return; }
         if (CartOrderBlocker(instruction, person) is { } blocker)
         {
-            SetOrderStatus(instruction, "blocked", blocker);
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
         var cart = CartForOrder(instruction, person)!;
