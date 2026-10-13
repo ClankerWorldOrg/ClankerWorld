@@ -20,7 +20,7 @@ internal static class SecondGenerationFixture
         foreach (var id in new[] { first, second })
         {
             var person = checkpoint.GetAgent(id);
-            if (!person.HasChosenName)
+            if (!person.HasChosenName || AgentNameRules.SurnameKey(person.Name) is null)
                 checkpoint = SocietyRules.RenameAgent(checkpoint, id, person.Name +
                     (AgentNameRules.SurnameKey(person.Name) is null ? " Vale" : "")).Checkpoint;
         }
@@ -61,7 +61,7 @@ internal static class SecondGenerationFixture
             Agents = state.Agents.Append(new AgentState(child, position, 10_000, 0, "curious", "grow with the household",
                 Survival: new SurvivalCondition(WarmthBasisPoints: 10_000))).ToArray(),
         };
-        // Restore installs the same derived child-care state as a native runtime birth.
+        // Restore reconciles cognition bindings with the accepted birth's resident.
         using var normalized = WorldRuntime.Restore(prepared);
         return (normalized.ExportState(), child);
     }
