@@ -92,7 +92,7 @@ public sealed class SmithGatherActionPlanTests
             household, pickup.StockId, 1, "other_work", long.MaxValue);
         using var unavailable = WorldRuntime.Restore(FoodCapacityTestFixture.WithInventory(checkpoint, inventory));
         Assert.Equal(ActionRefusalReason.StockUnavailable, unavailable.CheckActionPlan(plan).Refusal!.Reason);
-        using var collecting = WorldRuntime.Restore(checkpoint, _ => new Choices(actor, choose: true));
+        using var collecting = WorldRuntime.Restore(state, _ => new Choices(actor, choose: true));
         for (var tick = 0; tick < 16 && !collecting.ExportState().Events.Any(item => item.Kind == "equipment_collected" &&
                  item.Detail == actor + ":" + pickup.ItemKind); tick++)
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
