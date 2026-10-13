@@ -73,7 +73,7 @@ public sealed class ChildHouseholdHelpingTests
         inventory = InventoryAuthority.Reserve(inventory, "child-stock-held", household, "child-ground-stock", 7,
             "other_work", checkpoint.WorldTick + 100);
         inventory = InventoryAuthority.AddLot(inventory, "child-personal-ballast", "stone", child, 3);
-        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var provider = new HelpingProvider("child_carry:child-ground-stock");
         using var world = Restore(state, child, provider);
         var storedBefore = Stored(world, household, house, kind);
@@ -104,7 +104,7 @@ public sealed class ChildHouseholdHelpingTests
         var household = checkpoint.GetAgent(child).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "child-waiting-stock", "wood", household, 4,
             groundPosition: new(source.Position.X, source.Position.Y));
-        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
         using var collecting = Restore(state, child, new HelpingProvider("child_carry:child-waiting-stock"));
         for (var tick = 0; tick < 12 && !collecting.Society.Inventory.Lots.Any(lot => lot.OwnerId == child && lot.DeliveryBuildingId == houseId); tick++)
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
@@ -116,7 +116,7 @@ public sealed class ChildHouseholdHelpingTests
             state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == houseId).Sum(lot => lot.Quantity);
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "child-full-house-ballast", "stone", household, room,
             storageBuildingId: houseId);
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var provider = new HelpingProvider("child_carry:");
         using var blocked = Restore(state, child, provider);
         for (var tick = 0; tick < 8; tick++) Assert.True((await blocked.AdvanceOneTickAsync()).Advanced);
@@ -129,7 +129,7 @@ public sealed class ChildHouseholdHelpingTests
         inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "free-child-delivery-room", household,
             "child-full-house-ballast", cargo.Quantity, "test_consumption", blocked.WorldTick + 100);
         inventory = InventoryAuthority.ConsumeReservation(inventory, "free-child-delivery-room");
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         using var resumed = Restore(state, child, new HelpingProvider("child_carry:"));
         using var replay = Restore(state, child, new HelpingProvider("child_carry:"));
         for (var tick = 0; tick < 35 && !resumed.ExportState().Events.Any(item => item.Kind == "child_delivered_household"); tick++)
@@ -171,7 +171,7 @@ public sealed class ChildHouseholdHelpingTests
             groundPosition: new(point.X, point.Y));
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == child
                 ? person with { Position = point } : person).ToArray(),
         };
@@ -235,7 +235,7 @@ public sealed class ChildHouseholdHelpingTests
         };
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "infant-help-stock", "wood",
             checkpoint.GetAgent(child).HouseholdId!, 4, groundPosition: new(source.Position.X, source.Position.Y));
-        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var wanted = task == "carry" ? "child_carry:infant-help-stock" : "child_gather:" + task + ":" + source.Id;
         var provider = new HelpingProvider(wanted, forge: true);
         using var world = Restore(state, child, provider);
@@ -271,7 +271,7 @@ public sealed class ChildHouseholdHelpingTests
                 groundPosition: new(point.X, point.Y));
         inventory = InventoryAuthority.Reserve(inventory, "child-denied-hold", household, "child-denied-reserved", 4,
             "other_work", checkpoint.WorldTick + 100);
-        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var provider = new HelpingProvider("child_carry:child-denied-foreign", forge: true);
         using var world = Restore(state, child, provider);
         var admissions = new List<SocietyCognitionDispatchResult>();
@@ -297,7 +297,7 @@ public sealed class ChildHouseholdHelpingTests
         inventory = InventoryAuthority.AddLot(inventory, "child-full-load", "stone", child, 4);
         inventory = InventoryAuthority.AddLot(inventory, "child-nearby-allowed", "wood", household, 4,
             groundPosition: new(source.Position.X, source.Position.Y));
-        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var fullProvider = new HelpingProvider("child_carry:child-nearby-allowed", forge: true);
         using var full = Restore(state, child, fullProvider);
         for (var tick = 0; tick < 8; tick++) Assert.True((await full.AdvanceOneTickAsync()).Advanced);

@@ -355,7 +355,10 @@ public sealed partial class WorldRuntime
             case "collect":
                 ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
                     MarketTradeRules.Identity("market-pickup:", actor, id, WorldTick.ToString(CultureInfo.InvariantCulture)),
-                    choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+                    choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor,
+                    holdAccess: choice.Kind == "collect" && choice.Occupancy is { } loan
+                        ? [new(InventoryHoldPurpose.MarketStall, loan.Id), new(InventoryHoldPurpose.Borrowed, actor)]
+                        : InventoryHoldRules.BorrowedBy(actor)));
                 AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
                     $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", destination);
                 break;

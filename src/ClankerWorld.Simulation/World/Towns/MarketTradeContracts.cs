@@ -29,12 +29,19 @@ public sealed record TownMarketState(string Id, string ProjectId, string HallBui
 /// <summary>Validates trading authority separately from the Council's paid-building receipts.</summary>
 public static class MarketTradeValidation
 {
-    internal static bool HasExactOpenClaim(InventoryCheckpoint inventory, DirectBarterOffer offer, bool first) =>
-        inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
-        new InventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")),
-            first ? offer.FirstPartyId : offer.SecondPartyId, first ? offer.FirstLotId : offer.SecondLotId,
-            first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick,
-            true, InventoryReservationState.Reserved);
+    internal static bool HasExactOpenClaim(InventoryCheckpoint inventory, DirectBarterOffer offer, bool first)
+    {
+        var lotId = first ? offer.FirstLotId : offer.SecondLotId;
+        var index = InventoryIndex.For(inventory);
+        if (index.Find(lotId) is not { } lot) return false;
+        var holds = InventoryHoldRules.For(index, lot).OrderBy(hold => hold.Purpose)
+            .ThenBy(hold => hold.HolderId, StringComparer.Ordinal).ToArray();
+        return inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
+            new InventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")),
+                first ? offer.FirstPartyId : offer.SecondPartyId, lotId,
+                first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick,
+                true, InventoryReservationState.Reserved, holds.Length == 0 ? null : new InventoryHoldSet(holds));
+    }
 
     public static void Validate(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,
         WorldMap map, WorldContentSimulationState simulation, DeclarativeWorldContentState content, long worldTick,

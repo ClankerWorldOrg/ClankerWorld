@@ -69,7 +69,7 @@ public sealed class GoodsQueryTests
         {
             Lots = inventory.Lots.Select(lot => lot.Id == "query-broken-pot" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
         };
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var saved = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Idle());
         var flour = new GoodsRequest(GoodsUse.ConsumeAt, null, GoodsOwners.One(household), GoodsKinds.One("flour"),

@@ -298,7 +298,7 @@ public sealed class BuildingExpansionTests
             state.Map.IsBuildable(point) && !state.Agents.Any(person => person.Position == point));
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == helper
                 ? person with { Position = helperPosition, FullnessBasisPoints = 9_000, LastDecisionContext = null }
                 : person.AgentId == actor ? person with
@@ -562,7 +562,7 @@ public sealed class BuildingExpansionTests
         Assert.Equal(capacity, inventory.Lots.Where(lot => lot.StorageBuildingId == building.InstanceId).Sum(lot => lot.Quantity));
         intermediate = intermediate with
         {
-            Society = intermediate.Society with { Society = intermediate.Society.Society with { Inventory = inventory } },
+            Society = intermediate.Society with { Society = intermediate.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Towns = intermediate.Towns!.Select(town => town.Id == building.TownId
                 ? town with
                 {
@@ -875,7 +875,7 @@ public sealed class BuildingExpansionTests
         var totalWood = inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null, Project = null }
                 : person).ToArray(),
@@ -898,7 +898,7 @@ public sealed class BuildingExpansionTests
             destinationGroundPosition: new InventoryGroundPosition(sourcePosition.X, sourcePosition.Y));
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         var provider = new IdleProvider("expand_building:" + house.InstanceId);
         using var ready = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
@@ -982,7 +982,7 @@ public sealed class BuildingExpansionTests
             .Select(resource => resource.Id).ToHashSet(StringComparer.Ordinal);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Resources = state.Resources.Select(resource => woodResourceIds.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted }
                 : resource).ToArray(),
@@ -1238,7 +1238,7 @@ public sealed class BuildingExpansionTests
                 {
                     Buildings = state.WorldSimulation.Buildings.Select(item => item.InstanceId == buildingId ? placed : item).ToArray(),
                 },
-                Society = state.Society with { Society = state.Society.Society with { Inventory = probeInventory } },
+                Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(probeInventory) } },
                 Towns = state.Towns!.Select(town => town.Id == placed.TownId
                     ? town with
                     {
@@ -1254,7 +1254,7 @@ public sealed class BuildingExpansionTests
             {
                 Society = candidate.Society with
                 {
-                    Society = candidate.Society.Society with { Inventory = inventory },
+                    Society = candidate.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
                 },
             };
             building = placed;
