@@ -1230,7 +1230,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 129. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 130. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1877,6 +1877,19 @@ latest visible outcomes and learned sources. Earlier alpha schemas are refused
 and preserved without migration. The version is provisional until merge.
 
 ## Checkpoints, history and backups
+
+Schema 130 adds the required inventory `ArchivedRepairReservationCount`.
+Checkpoint compaction keeps the latest 32 completed or released repair-input
+reservations, ordered by their deadline and identity, plus the exact receipts
+required by retained cart orders and native hearing remedies. Active claims and
+other consumption purposes remain intact. Full older repair records enter the
+existing digest-addressed archive before the smaller checkpoint is published
+or installed in memory. Loading verifies the cumulative count against that
+archive; failed writes leave the previous live ledger and save intact.
+Inventory transitions and estate handling preserve the count. New repair
+identities still derive from the advancing world clock and complete actor/input
+scope. Earlier alpha checkpoints are refused and preserved without migration.
+The schema number is provisional until merge.
 
 The active recovery checkpoint is encoded and fsync-written after every advanced
 one-second tick. Older history is compacted into digest-addressed segments.

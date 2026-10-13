@@ -1787,12 +1787,12 @@ public static partial class SocietyRules
             current = current with
             {
                 WorldTick = targetTick,
-                Inventory = new InventoryCheckpoint(
-                    targetTick,
-                    nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-                    current.Inventory.Reservations,
-                    current.Inventory.Offers,
-                    inventoryEvents, current.Inventory.EventHistoryFloor),
+                Inventory = current.Inventory with
+                {
+                    WorldTick = targetTick,
+                    Lots = nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                    Events = inventoryEvents,
+                },
                 Estates = current.Estates.Select(item =>
                         item.Id == estate.Id ? item with { Settled = true } : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -1848,7 +1848,7 @@ public static partial class SocietyRules
             targetTick,
             "estate_escrow_created",
             estateId));
-        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor);
+        return inventory with { WorldTick = targetTick, Lots = lots, Reservations = reservations, Offers = offers, Events = events };
     }
 
     private static InventoryCheckpoint WithInventoryTick(
