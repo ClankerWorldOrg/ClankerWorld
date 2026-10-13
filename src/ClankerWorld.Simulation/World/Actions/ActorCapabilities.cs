@@ -2,7 +2,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum ActionLifeStages { Children, Adults, NonInfants }
+public enum ActionLifeStages { Children, Adults, NonInfants, Dependents }
 
 public sealed record ActorCapabilityState(SocietyAgeBand Age, bool Aboard, bool Mounted,
     bool UrgentFood, bool UrgentWarmth, bool ActiveOrder);
@@ -20,6 +20,7 @@ public static class ActorCapabilities
         {
             ActionLifeStages.Children => LifeStageRules.IsChild(state.Age),
             ActionLifeStages.Adults => LifeStageRules.IsAdult(state.Age),
+            ActionLifeStages.Dependents => LifeStageRules.IsDependent(state.Age),
             _ => !LifeStageRules.IsInfant(state.Age),
         };
         if (!ageAllowed || !LifeStageRules.Permits(state.Age, candidate))

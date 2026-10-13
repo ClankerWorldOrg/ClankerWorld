@@ -1,0 +1,1 @@
+- Guardian journeys keep their selected child, accepted care and home through choice checks, and explain when that journey is no longer available.
