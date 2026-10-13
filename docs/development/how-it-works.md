@@ -353,10 +353,8 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
-outside `Goods/` and validation code. The recorded baseline in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 243 references across 67 files, after household building-material counts
-moved to `Holdings` and the workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
+outside `Goods/` and validation code. The per-file baseline is recorded in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json).
 The guard binds C# property symbols, including aliases and conditional access;
 comments, strings and unrelated `Lots` properties do not count. It exempts files
 ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
@@ -1436,6 +1434,10 @@ the entire change. An absent, declined, failed or interrupted reply consumes
 the opportunity without retry. With no selected personal model it keeps the
 identity without a call.
 
+Death revokes unanswered relationship proposals. Only an accepted partnership
+ends by death, giving the survivor the partner-loss opportunity and identifying
+them as a partner in the deceased's will context.
+
 Life-moment replies are admitted at the live tick commit boundary, rechecking
 the actor, current identity, run epoch and selected provider. Pause and presence
 loss cancel outstanding requests. A saved in-flight opportunity becomes
@@ -1736,7 +1738,8 @@ cannot write a summary. The server rechecks the batch and attribution before
 applying an awaited reply. No original record is deleted or replaced.
 
 Saved owner-private summaries compete with active source records for the same
-four-excerpt recall budget. Each recalled summary includes bounded source
+four-excerpt recall budget, including the deceased agent's final will request.
+Each recalled summary includes bounded source
 attribution: subject, firsthand/hearsay/inference, confidence, speaker, event and
 correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
@@ -2275,8 +2278,9 @@ so each can be checked on its own
    35% tree chance; meadows have a 2% chance. Seeded ranking spreads trees
    through any chunk that reaches its budget instead of filling one edge.
 
-The running world places starter clay on unoccupied, reachable buildable dry
-ground beside a river or lake. A rocky mountain shore can be walkable but is
+The running world places starter clay on unoccupied buildable dry ground beside
+a river or lake, reachable on foot from the accepted Town's Warehouse. Placement
+and strict reload use the same bank rule. A rocky mountain shore can be walkable but is
 not a valid clay resource site. If no valid bank exists, the runtime records
 `starting_resource_blocked` for clay and keeps advancing and saving.
 
@@ -3119,6 +3123,10 @@ action or player discard control is added.
 `InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryAuthority.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
 
 Each departure allocates at most two unreserved ready-to-eat portions once. Ownership changes at allocation while the existing storage/ground location stays fixed. Saved departure records retain the allocation and collection right; retries with no current membership cannot allocate again. Caregiver IDs and ancestry stay unchanged. Dependents follow the caregiver in physical steps, and a traveling caregiver waits when a dependent falls behind. Housing, ownership, collection and care facts use normal personal-model observations and player inspection; no extra acknowledgement request is made.
+
+Departure food selection uses the shared `Holdings` query, excluding unusable
+stock, delivery promises and food on actively borrowed Market stalls. It keeps
+the existing loose-food rule and leaves other people's carried loads alone.
 
 Work-tool choices use the same physical collection checks. Collecting the
 actor's own stored or ground tool relocates it into carried custody without
@@ -4721,7 +4729,9 @@ actor's tile, input selection accepts only physically carried supplies. This
 keeps the existing supply path collecting feed and enough usable jug water before
 approaching the animal, including after a partial pickup. Water may be split
 across jugs or content lots; fetching counts the usable water already carried
-and rechecks each whole jug against reservations and free carrying space.
+and rechecks each whole jug against reservations and the loaded route to the
+animal. Care and saddle pickups use `PickupCarryCapacity` for the animal's
+current position, keeping the whole vessel family within that route's load limit.
 At the animal's tile, permitted local yard stock remains usable directly.
 Supply pickup leaves household sale stock on an actively borrowed Market stall.
 Once borrowing ends, that stock can be collected through the normal ownership,

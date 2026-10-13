@@ -128,8 +128,8 @@ public sealed partial class ParenthoodTests
     [Fact]
     public async Task OutsideHouseholdRelativeGetsFirstOfferDuringAContinuingProject()
     {
-        const string relativeId = "founder:00000000000000000000000000000003";
-        const string householdAdultId = "founder:00000000000000000000000000000004";
+        const string relativeId = NormalPathWorld.Founder3;
+        const string householdAdultId = NormalPathWorld.Founder4;
         const int testDay = 120;
         var buildProvider = new ParentProvider("build:building:");
         using var generated = NormalPathWorld.CreateGenerated("guardian-relative-priority-project", _ => new ParentProvider("safe_idle"),

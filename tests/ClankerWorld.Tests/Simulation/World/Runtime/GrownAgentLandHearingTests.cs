@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class GrownAgentHelperMemoryTests
 {
-    private const string NativeHearingJudge = "founder:00000000000000000000000000000002";
+    private const string NativeHearingJudge = NormalPathWorld.Founder2;
     private const string NativeHearingHouse = "first-town-house-b";
     private const int NativeHearingDay = 40;
     private static readonly Lazy<Task<byte[]>> NativeHearingGovernment = new(() => CreateNativeHearingGovernmentAsync(false));
@@ -273,7 +273,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public string Judge { get; init; } = NativeHearingJudge;
-        public string Filer { get; init; } = "founder:00000000000000000000000000000001";
+        public string Filer { get; init; } = NormalPathWorld.Founder1;
         public string? IgnoredLandObserver { get; init; }
         public bool Elect { get; init; }
         public bool Request { get; set; }

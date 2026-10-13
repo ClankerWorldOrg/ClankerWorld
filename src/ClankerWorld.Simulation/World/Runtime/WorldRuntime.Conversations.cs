@@ -104,9 +104,12 @@ public sealed partial class WorldRuntime
         ConversationSystem.ConversationListeners(conversationWorld, conversation, speakerId);
 
     private void ApplyConversationTurnOutcome(PendingConversationTurn pending,
-        ConversationTurnOutcome outcome, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent) =>
-        conversationSystem.ApplyConversationTurnOutcome(conversationWorld, pending.Request, outcome.Response, outcome.Failure,
-            worldTick, () => providerRouteIsCurrent(pending));
+        ConversationTurnOutcome outcome, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent)
+    {
+        if (conversationSystem.ApplyConversationTurnOutcome(conversationWorld, pending.Request, outcome.Response, outcome.Failure,
+            worldTick, () => providerRouteIsCurrent(pending)))
+            admittedModelReplies.Add(pending.Request.RequestId);
+    }
 
     private void ExtractConversationMemoryClaims(AgentConversationTurn turn) =>
         ConversationSystem.ExtractConversationMemoryClaims(conversationWorld, turn);
@@ -196,7 +199,9 @@ public sealed partial class WorldRuntime
             Task<ConversationTurnOutcome> task;
             try
             {
-                task = RunConversationProviderAsync(provider, request, cancellation.Token);
+                task = ScheduleModelWork(ModelWorkKind.Conversation, speakerId, request.RequestId,
+                    () => RunConversationProviderAsync(provider, request, cancellation.Token),
+                    conversation: request, startInline: true);
             }
             finally
             {
@@ -247,7 +252,7 @@ public sealed partial class WorldRuntime
         };
     }
 
-    private static async Task<ConversationTurnOutcome> RunConversationProviderAsync(
+    private async Task<ConversationTurnOutcome> RunConversationProviderAsync(
         IAgentConversationProvider provider,
         AgentConversationTurnRequest request,
         CancellationToken cancellationToken)
@@ -255,7 +260,7 @@ public sealed partial class WorldRuntime
         try
         {
             var response = await AgentConversationProviderExecution.SpeakAsync(
-                provider, request, ConversationProviderTimeout, cancellationToken).ConfigureAwait(false);
+                provider, request, ConversationProviderTimeout, modelTimeProvider, cancellationToken).ConfigureAwait(false);
             return new ConversationTurnOutcome(response, null);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -277,6 +282,7 @@ public sealed partial class WorldRuntime
         bool underRuntimeGate = true)
     {
         if (!pendingConversationTurns.Remove(conversationId, out var pending)) return;
+        FinishModelWork(pending.Request.SpeakerId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
         _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);
         if (suspendCurrent && conversations.FirstOrDefault(item => item.Id == conversationId) is
