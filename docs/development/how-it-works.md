@@ -229,6 +229,13 @@ return. One check revalidates capacity, source reserves, promises, food policy
 and the same trip before the captured operation applies. Shore searches use
 the shared reach service with explicit origins and complete prospective loads.
 
+Clothing and carrying-aid choices carry `PrivateEquipmentActionPlan` with the
+selected stock, owner, pickup and previous slot. One upgrade rule serves both
+selection and checking. The `Equip` goods use checks custody, promises, place
+permission and reach while leaving room calculations to the equipment swap:
+an upgrade may make space even when ordinary collection has no free room.
+The commit keeps the existing one-unit split or transfer and displaced item.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach

@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
     private GoodsAnswer FindGoods(InventoryCheckpoint inventory, GoodsRequest request)
     {
         GoodsInventoryQuery.Validate(request);
-        var routes = request.Use is GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Recover or GoodsUse.Deliver
+        var routes = request.Use is GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Recover or GoodsUse.Deliver or GoodsUse.Equip
             ? new Dictionary<(GridPoint Position, int Range), bool>() : null;
         var deliveries = request.Use == GoodsUse.Deliver ? new Dictionary<string, int>(StringComparer.Ordinal) : null;
         return GoodsInventoryQuery.FindGoods(inventory, request,
@@ -51,6 +51,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
+        if (request.Use == GoodsUse.Equip) return EquippingGoodsExclusion(request, index, lot, routes);
         if (request.Use == GoodsUse.TreePlanting) return TreePlantingGoodsExclusion(request, index, lot);
         if (request.Use == GoodsUse.FieldPlanting) return FieldPlantingGoodsExclusion(request, index, lot);
         if (request.Use == GoodsUse.CarriedInputs) return CarriedInputGoodsExclusion(request.Actor!, index, lot);

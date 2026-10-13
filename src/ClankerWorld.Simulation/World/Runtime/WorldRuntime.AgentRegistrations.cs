@@ -312,12 +312,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "wear_clothing", [], ["wear_clothing"], static (runtime, action) =>
     {
-        runtime.EquipPrivateItem(action.AgentId, action.State, carryAid: false);
+        runtime.ApplyPrivateEquipmentPlan(action.Plan as PrivateEquipmentActionPlan ?? runtime.PlanPrivateEquipment(action.AgentId, false));
         return true;
     }),
         new(ActionPhase.Ordinary, "equip_carry_aid", [], ["equip_carry_aid"], static (runtime, action) =>
     {
-        runtime.EquipPrivateItem(action.AgentId, action.State, carryAid: true);
+        runtime.ApplyPrivateEquipmentPlan(action.Plan as PrivateEquipmentActionPlan ?? runtime.PlanPrivateEquipment(action.AgentId, true));
         return true;
     }),
         new(ActionPhase.Ordinary, "repair_equipment", [], ["repair_equipment"], static (runtime, action) =>
