@@ -19,17 +19,17 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal(new ExplorationGoal("resource", "wood"), goal);
         Assert.Equal(choice, world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == actor).CurrentIntention!.CandidateId);
         world.SubmitInstruction(new("held-scout-suggestion", "owner:test", actor, OwnerInstructionKind.Suggestion, "Think about your next task."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Started.Task;
         var pending = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(pending, WorldRuntimeCodec.Encode(world.ExportState()));
         var position = Person(world, actor).Position;
         var count = Person(world, actor).Exploration!.OutingPath.Count;
         var completions = world.ExportState().Events.Count(item => item.Kind == "hosted_decision_completed");
         for (var tick = 0; tick < 5; tick++)
         {
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
             Assert.DoesNotContain(step.Decisions, item => item.AgentId == actor);
             Assert.Equal(goal, Person(world, actor).Exploration!.Goal);
@@ -43,7 +43,7 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal(0, Person(world, actor).Project!.WorkDone);
         world.Pause();
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.False((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(paused, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = Restore(WorldRuntimeCodec.Decode(paused));
         Assert.Equal(paused, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -55,8 +55,8 @@ public sealed partial class PurposefulExplorationTests
         duplicate.Resume();
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.True((await duplicate.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
+            Assert.True((await duplicate.TickModelWorkAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(replay.ExportState()), WorldRuntimeCodec.Encode(duplicate.ExportState()));
         }
         replay.Validate();
@@ -86,7 +86,7 @@ public sealed partial class PurposefulExplorationTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

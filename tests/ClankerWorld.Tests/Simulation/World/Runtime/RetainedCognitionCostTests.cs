@@ -20,10 +20,10 @@ public sealed class RetainedCognitionCostTests
         using var world = NormalPathWorld.CreateGenerated("review-cost", id =>
             id == TargetId ? provider : new DeterministicDecisionProvider());
         for (var tick = 0; tick < 400 && provider.Requests.IsEmpty; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Started.Task;
         for (var tick = 0; tick < heldTicks; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         var original = provider.Requests.First().Observation.Candidates.Select(candidate => candidate.Id).ToHashSet(StringComparer.Ordinal);
         var current = (List<CognitionCandidate>)typeof(WorldRuntime)
             .GetMethod("CreateCandidates", BindingFlags.Instance | BindingFlags.NonPublic)!
@@ -32,20 +32,20 @@ public sealed class RetainedCognitionCostTests
         Assert.True(original.Except(current.Select(candidate => candidate.Id)).Any(),
             "The held observation must actually lose an offered choice.");
         provider.Release.TrySetResult();
-        await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await provider.Returned.Task;
         var admitted = false;
         for (var tick = 0; tick < 20 && !admitted; tick++)
         {
-            await Task.Delay(20);
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            await ModelWorkHarness.For(world).SettleAsync();
+            var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
             admitted = step.Decisions.Any(decision => decision.AgentId == TargetId);
         }
         Assert.True(admitted);
         for (var tick = 0; tick < 6; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(20);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         // A later call is justified only by a choice the first request lacked.
         var requests = provider.Requests.ToArray();
@@ -61,9 +61,9 @@ public sealed class RetainedCognitionCostTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<CognitionDecisionRequest> Requests { get; } = new();
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource Returned { get; } = new(TaskCreationOptions.None);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)

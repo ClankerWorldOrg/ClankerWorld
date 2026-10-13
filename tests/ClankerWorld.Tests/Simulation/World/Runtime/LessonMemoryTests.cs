@@ -139,7 +139,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         public async Task Step()
         {
             await WaitForRequests(world);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             await WaitForRequests(world);
             var saved = Saved();
             Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));

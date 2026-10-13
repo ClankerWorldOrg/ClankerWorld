@@ -30,9 +30,9 @@ public sealed class ModelRequestWordingTests
             }).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
-        await world.AdvanceOneTickNonBlockingAsync();
+        await world.TickModelWorkAsync();
         for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)
-            await Task.Delay(10);
+            await ModelWorkHarness.For(world).SettleAsync();
         Assert.NotEmpty(handler.Bodies);
         foreach (var body in handler.Bodies)
         {
@@ -82,9 +82,9 @@ public sealed class ModelRequestWordingTests
         foreach (var person in state.Agents)
             world.SubmitInstruction(new OwnerInstructionRequest("recipe-context:" + person.AgentId, "owner:test",
                 person.AgentId, OwnerInstructionKind.Suggestion, "Tell me what you have learned."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)
-            await Task.Delay(10);
+            await ModelWorkHarness.For(world).SettleAsync();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var body in handler.Bodies)
         {

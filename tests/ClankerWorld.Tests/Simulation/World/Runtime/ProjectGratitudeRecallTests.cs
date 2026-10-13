@@ -96,7 +96,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             using var host = new WorldRuntimeService(world, file, presence);
             async Task Step()
             {
-                Assert.True(await host.TryAdvanceOnceAsync());
+                Assert.True(await host.AdvanceWithModelWorkAsync(world));
                 await WaitForRequests(world);
                 Assert.False(world.Society.IsPaused);
                 Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
@@ -150,7 +150,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             for (var tick = 0; tick < 12 && !capture.Observations.Any(observation => observation.AgentId == requester &&
                      observation.WorldTick > memory.SourceTick); tick++)
             {
-                Assert.True(await resumedHost.TryAdvanceOnceAsync());
+                Assert.True(await resumedHost.AdvanceWithModelWorkAsync(restored));
                 await WaitForRequests(restored);
             }
             var observation = capture.Observations.First(item => item.AgentId == requester && item.WorldTick > memory.SourceTick);
