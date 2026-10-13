@@ -5,6 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public static class LifeStageRules
 {
     public static bool IsAdult(SocietyAgeBand age) => age is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+    public static bool IsDependent(SocietyAgeBand age) => IsInfant(age) || IsChild(age);
     public static bool IsChild(SocietyAgeBand age) => age is SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
     public static bool IsInfant(SocietyAgeBand age) => age == SocietyAgeBand.Infant;
 

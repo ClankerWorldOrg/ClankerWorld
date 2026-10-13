@@ -390,6 +390,9 @@ dose; the shared check never looks up a distant patient's current position.
 Conversation choices retain the selected person or conversation revision and
 participants. The same check prepares existing pure transitions at offer,
 admission and apply; the conversation system keeps its native writers.
+Dependent-care authority choices retain the proposal or relationship receipt,
+guardian search and intended household/family. The same check runs at offer,
+admission and apply; owner guardian orders carry that plan too.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

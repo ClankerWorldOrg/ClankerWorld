@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
     {
         if (!runtime.HasGuardianPlacementTask(action.AgentId))
             return false;
-        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], static (runtime, action) =>
     {
-        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "parent_", ["parent_", "care:"], [], static (runtime, action) =>
