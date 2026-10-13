@@ -101,6 +101,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - name: Verify the workflow scripts and the label list
         run: |
           node --test .github/scripts/*.test.js
@@ -166,6 +168,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/download-artifact@v4
         with:
           name: clankerworld-windows-11-x64-portable
@@ -218,6 +222,8 @@ jobs:
         shard: ${{ fromJSON(needs.scope.outputs.shards) }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -254,6 +260,8 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - name: Download this run's test timings
         uses: actions/download-artifact@v4
         with:
@@ -295,6 +303,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -310,6 +320,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json

@@ -55,142 +55,9 @@ that historical check does not verify every later build.
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
 
-The local server relaunch fixture separates request timeout from caller cancellation.
-Its timeout rows keep the caller token live and bound observation separately;
-the cancellation row cancels only after the held relaunch request starts.
-A controlled row delays delivery of the actual two-second request timeout beyond
-the former five-second caller timer, retaining the real server and secret checks.
-
-The native land-transfer fixture sends each eligible adult one suggestive
-instruction when its private provider changes from waiting to reading or
-consenting. Changing a test provider's flags does not wake an admitted idle
-intention. A controlled row reserves the actual garment stock to keep an
-unrelated clothing choice from waking the readers, then verifies their exact
-requested guidance, offered reading choice and admitted idle reply. Each phase
-keeps its forty-tick limit and waits for ordinary and life-moment identity
-replies before admission. Parenthood and midlife requests use a separate task
-queue and defer that adult's ordinary choices until their replies are admitted.
-The fixture answers the actual optional-identity choice by keeping the person's
-identity. A controlled row holds a real midlife reply and checks that the
-fixture waits, then retains all notice, consent, checkpoint and replay checks.
-Reading and silence still give no consent; each adult must personally accept,
-including the separately held filer. Server disk writes, unchanged permissions
-before agreement, rollback, strict reload and complete-byte replay remain checked.
-
-The Town membership deadline fixture captures the exact registered model
-request at the last valid acceptance tick without waiting for the provider's
-held-request startup signal. It checks that request's acceptance choice and
-remaining world time, then observes entry of that same provider callback before
-advancing to expiry. The entry wait has a separate thirty-second diagnostic
-bound and preserves complete checkpoint bytes. Private release gates complete
-inline, so releasing the late reply does not queue extra provider continuations.
-A private deferred-entry row gates that startup signal until expiry and checks that the late reply
-uses the same request; another row delays real provider entry for six seconds.
-Reply and actual wrapper-completion waits retain their
-five-second bounds; the completion loop retains eight world ticks. The remaining
-deadline, stale-generation, thought exclusion, physical-property, later ordinary
-sponsorship, pause, replay, rollback and strict-reload checks remain.
-
-The held housing-reply fixture captures the registered request before waiting
-for provider startup. Its deferred-start rows keep that same request pending
-through lesson progress, then observe entry with the world frozen. It retains
-the unapproved housing request, no admission or completed reply, refused-tick
-preservation and strict reload. The thirty-second entry bound is diagnostic;
-waiting for it spends no native ticks.
-
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
-
-The owner-action body-deadline fixture completes its stalled read directly from
-the actual read token's cancellation callback. It retains the initial partial
-JSON, both body locations and both cancellation sources, the 500 ms client
-setting and five-second diagnostic waits. The stream adds no asynchronous
-continuation between cancellation and read completion. The following real pause
-must still acquire the released action gate.
-
-The held collection-cancellation check keeps the first collected load fixed
-while waiting for actual provider invocation, the validated operative request
-and the constructed late reply. Its deferred-entry case opens a preparation
-gate only after checking that first frame. Each signal has a thirty-second
-diagnostic deadline; advancing ticks to poll it could collect another load
-before cancellation. The check retains real request and order identity,
-exact saved bytes while waiting, one collection event, the untouched second
-load and strict checkpoint reload after cancellation.
-
-The retained-guidance farming and held repair-cancellation fixtures wait for
-the provider's start signal by polling the native nonblocking tick path. A
-committed tick schedules background work but does not guarantee that its worker
-has started. The checks cover immediate entry and entry after two more committed
-ticks. Their polls retain a forty-tick limit and a separate thirty-second cancellation guard
-for each tick, including after pause and reload in the farming fixture. The
-repair check also waits for the released reply before checking that cancellation
-prevents repairs. Use this pattern only where advancing ticks preserves the
-intended cancellation boundary; orders that can already complete physical work
-must keep the world at that boundary while waiting for provider entry.
-
-The held lesson-continuation fixture captures the actual registered request
-and model task, permits at most six additional native ticks, then observes
-provider entry at a frozen checkpoint with a thirty-second diagnostic bound.
-Its deferred-entry cases hold preparation until two more ticks commit; one also
-delays worker entry by four seconds. The same registered call must stay pending,
-and waiting must leave checkpoint bytes unchanged. The progress baseline is
-captured only after entry, with room for three further lesson steps. The offered
-partnership answer stays held throughout; denied-tick bytes, continued training,
-unanswered partnership and strict reload remain checked. Pause must finish the
-actual cancelled model task without changing the paused checkpoint.
-
-The initial identity-pause fixture snapshots its registered worker through the
-existing shared model-request wait after one committed native tick. It observes
-the real request and cancellation token at provider entry with the complete
-checkpoint frozen, then checks pause cancellation and the finished late reply
-without changing the paused checkpoint. The wait is captured before pause
-removes the live pending call; no new private-field reflection is added.
-The saved identity opportunity remains unconsumed on strict restore, with no
-late personality, aspiration or identity event applied. Immediate, deferred and
-four-second entry cases use thirty-second phase diagnostic bounds; no extra
-native tick is spent on scheduling.
-
-Paired native host checkpoint fixtures must finish matching external inputs
-before advancing either continuation. Ordinary model decisions, life-moment
-identity replies, wills and conversation turns use separate task queues. Native
-household formation also finishes ordinary and life-moment replies before
-counting its next bounded tick, using the shared land-transfer wait. Formation
-succeeds only from committed membership; constructing a provider reply does
-not end the fixture's offered choices. Waiting
-only for ordinary decisions can compare a requested identity in one checkpoint
-with a kept identity in the other. The child household-change fixture awaits all
-four queues without advancing another tick, retaining complete checkpoint bytes,
-strict file reload, cargo and refused-arrival checks. Its controlled identity
-check holds a real provider request to verify that the fixture waits at this boundary.
-Town food-inheritance checks likewise await the registered will task at the death
-checkpoint before its next admission tick, so polling a background worker cannot
-advance the will deadline.
-
-The held storage-cancellation check keeps the world at its first committed
-load while waiting for actual provider invocation, the validated operative
-request and the late reply. Its deferred-entry row holds provider preparation
-until that first frame is checked and the test opens the entry gate. Each
-signal has a thirty-second diagnostic deadline. Advancing native ticks during
-this wait could store another load before cancellation, because chosen work
-continues while a model waits. The check retains one stored load, the untouched
-second load and exact checkpoint reload after releasing the cancelled reply.
-
-The held field-cancellation fixture stops at its first working frame, or after
-the deliberate two additional ticks in its deferred-entry row. It captures the
-existing shared model-task wait before cancelling the order, then waits for
-actual provider entry without advancing the world. The deferred row also delays
-entry by one second. Waiting for entry and releasing the cancelled reply must
-keep checkpoint bytes unchanged; the original eight subsequent ticks still
-check the cancelled order, unspent seed, released reservation and absent planting
-event. Polling additional ticks for entry could finish planting before cancellation.
-
-The long-recipe tool-request fixture admits its request through the personal
-provider and saves it through the real server. For byte-for-byte continuation,
-it pauses that world, captures one checkpoint, and restores both compared
-worlds with synchronous idle providers for every resident. The personal
-provider returns for withdrawal. Independent background reply timing is not a
-matching replay input, even when both providers choose idle.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
@@ -219,8 +86,22 @@ for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
 A test clock can be passed to the runtime for identity, will and conversation
 deadlines; production uses `TimeProvider.System`.
 
-The proof fixtures use this harness; remaining clock waits move in #1818. New
-model tests use the harness and no reflection into runtime queues.
+Host fixtures use `AdvanceWithModelWorkAsync(world)` to keep the real host save
+and commit path while controlling the same work queues. Use `WaitForAllAsync`
+when every pending input must complete before a paired continuation, and select
+one kind or actor when a different reply is deliberately held. Inline completion
+sources keep provider gates independent of xUnit's synchronization context.
+
+Client and local-server deadline tests pass `ManualTimeProvider` to the client
+or server and advance it after the actual request or body read enters. This
+covers startup/relaunch, pairing, signed actions and the world catalog; normal
+clients and hosts keep system time and the existing deadline values.
+
+`AsyncWaitBoundaryTests` bans new clock waits, timeout cancellations, runtime
+reflection and asynchronous provider gates outside `TestSupport/ModelWork/`.
+Its expression-specific legacy allowance list must match the source and can only
+shrink relative to the checkout's parent. Fetch two commits when running the
+guard. The nightly workflow also runs harness tests with one processor.
 
 ## Which checks to run
 

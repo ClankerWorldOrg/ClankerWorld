@@ -607,7 +607,7 @@ public sealed partial class ToolMakingRequestTests
         // The host schedules personal choices without blocking. Wait for the
         // actual offered choice before asking a later tick to admit its reply.
         await host.Advance();
-        await choices.Chosen.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await choices.Chosen.Task;
         for (var step = 0; step < 8 && world.ToolMakingRequests.Count == 0; step++) await host.Advance();
         var request = Assert.Single(world.ToolMakingRequests);
         Assert.Equal((recipe.CanonicalId, buyer, shop.HouseholdId, shop.InstanceId),
@@ -668,7 +668,7 @@ public sealed partial class ToolMakingRequestTests
 
         public async Task Advance()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
@@ -788,7 +788,7 @@ public sealed partial class ToolMakingRequestTests
         public DecisionProviderKind Kind { get; }
         public long ProviderEpoch => 0;
         public List<CognitionCandidate> Offered { get; } = [];
-        public TaskCompletionSource Chosen { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Chosen { get; } = new(TaskCreationOptions.None);
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Offered.AddRange(request.Observation.Candidates);

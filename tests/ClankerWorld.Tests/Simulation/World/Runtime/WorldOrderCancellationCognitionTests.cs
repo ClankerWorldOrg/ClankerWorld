@@ -143,11 +143,10 @@ public sealed partial class WorldRuntimeTests
             resumeWorld.Resume();
             // Dispatch does not establish admission. Hold the resumed response
             // so this boundary is exercised on both fast and loaded runners.
-            var dispatchWait = System.Diagnostics.Stopwatch.StartNew();
-            while (!provider.FreshStarted.Task.IsCompleted && dispatchWait.Elapsed < TimeSpan.FromSeconds(5))
+            for (var dispatchTick = 0; dispatchTick < 20 && !provider.FreshStarted.Task.IsCompleted; dispatchTick++)
             {
                 Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
-                await ModelWorkHarness.For(world).SettleAsync();
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
             }
             Assert.True(provider.FreshStarted.Task.IsCompleted, "The resumed order request was not dispatched.");
 
@@ -156,7 +155,7 @@ public sealed partial class WorldRuntimeTests
             for (var tick = 0; tick < 200 &&
                  !provider.Requests.Any(request => request.RunEpoch != originalRequest.RunEpoch); tick++)
             {
-                await ModelWorkHarness.For(world).SettleAsync();
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
                 Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
             }
 
@@ -167,13 +166,11 @@ public sealed partial class WorldRuntimeTests
             Assert.Null(Assert.Single(resumeWorld.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);
             provider.ReleaseFresh.TrySetResult(true);
-            await ModelWorkHarness.For(world).WaitAsync(provider.FreshReturned.Task);
-            var admissionWait = System.Diagnostics.Stopwatch.StartNew();
-            while (Assert.Single(resumeWorld.ExportState().Instructions!,
-                       instruction => instruction.InstructionId == order.InstructionId).ObservedTick is null &&
-                   admissionWait.Elapsed < TimeSpan.FromSeconds(5))
+            await ModelWorkHarness.For(resumeWorld).WaitAsync(provider.FreshReturned.Task);
+            for (var admissionTick = 0; admissionTick < 20 && Assert.Single(resumeWorld.ExportState().Instructions!,
+                     instruction => instruction.InstructionId == order.InstructionId).ObservedTick is null; admissionTick++)
             {
-                await ModelWorkHarness.For(world).SettleAsync();
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
                 Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
             }
             Assert.NotNull(Assert.Single(resumeWorld.ExportState().Instructions!,

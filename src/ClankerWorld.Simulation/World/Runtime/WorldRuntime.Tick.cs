@@ -406,10 +406,6 @@ public sealed partial class WorldRuntime
         string.Equals(observation.ConversationChoiceContext,
             ConversationChoiceContextFor(observation.AgentId), StringComparison.Ordinal);
 
-    internal bool ModelDecisionsFinished(params string[] agentIds) => agentIds.All(id =>
-        PendingModelWork.Any(item => item.Transition.Kind == ModelWorkKind.Decision &&
-            item.Transition.ActorId == id && item.Completion.IsCompleted));
-
     private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true)
     {
         if (!pendingModelCalls.Remove(agentId, out var pending)) return;
