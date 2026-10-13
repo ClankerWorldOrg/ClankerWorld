@@ -40,7 +40,7 @@ public static partial class WorldHistory
         var world = Window("world", state.Events, item => item.EventId, state.EventHistoryFloor, archived);
         var society = state.Society.Society;
         var social = Window("society", society.Events, item => item.EventId, society.EventHistoryFloor, archived);
-        var inventory = society.Inventory;
+        var inventory = CompactRepairReservations(state, archived);
         var items = Window("inventory", inventory.Events, item => item.EventId, inventory.EventHistoryFloor, archived);
         var cognition = state.Society.Cognition;
         var scheduler = Window("scheduler", cognition.Events, item => item.EventId, cognition.EventHistoryFloor, archived);

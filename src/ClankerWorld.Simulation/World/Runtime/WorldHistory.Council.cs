@@ -25,7 +25,7 @@ public static partial class WorldHistory
 
     public static bool IsRecordStream(string name) =>
         name.StartsWith("council-elections:", StringComparison.Ordinal) ||
-        name.StartsWith("council-notices:", StringComparison.Ordinal);
+        name.StartsWith("council-notices:", StringComparison.Ordinal) || name == "repair-reservations";
 
     public static IReadOnlyDictionary<string, long> RequiredRecordCounts(WorldRuntimeState state)
     {
@@ -36,6 +36,8 @@ public static partial class WorldHistory
             if (council.ArchivedElectionCount > 0) counts.Add("council-elections:" + town.Id, council.ArchivedElectionCount);
             if (council.ArchivedNoticeCount > 0) counts.Add("council-notices:" + town.Id, council.ArchivedNoticeCount);
         }
+        if (state.Society.Society.Inventory.ArchivedRepairReservationCount > 0)
+            counts.Add("repair-reservations", state.Society.Society.Inventory.ArchivedRepairReservationCount);
         return counts;
     }
 

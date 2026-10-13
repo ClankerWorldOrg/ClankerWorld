@@ -69,6 +69,13 @@ aliases. Content package identifiers retain their import rules.
 
 ## Core rules
 
+`WorldHistory.Repairs.cs` partitions closed repair-input reservations into a
+32-record recent window, retained cart-order and hearing proof, and older audit
+records. The normal checkpoint writer archives the audit records before
+installing the smaller live inventory. Active claims and physical goods stay
+with inventory authority; [Saves and replay](saves-and-replay.md#checkpoints-history-and-backups)
+owns the archive count and recovery contract.
+
 - **The server commits world state.** Client requests, model replies, mods and
   save files are untrusted input. Deterministic rules validate movement, work,
   resources, occupancy, ownership and effects. Use seeded random paths and
