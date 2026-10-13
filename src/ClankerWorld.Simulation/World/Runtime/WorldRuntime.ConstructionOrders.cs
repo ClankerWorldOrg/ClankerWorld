@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
             ConstructionReceipts = (worldSimulation.ConstructionReceipts ?? []).Append(receipt)
                 .OrderBy(item => item.InstructionId, StringComparer.Ordinal).ToArray(),
         };
-        CreditOrderEffect(instruction, ConstructionOrderReceipt(receipt.BuildingInstanceId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(ConstructionOrderReceipt(receipt.BuildingInstanceId)), 1);
     }
 
     private static void ValidateConstructionOrderBindings(WorldContentSimulationState? simulation,
@@ -215,15 +215,15 @@ public sealed partial class WorldRuntime
         IEnumerable<AgentState> agents, IEnumerable<OwnerQueuedInstruction> instructions, long worldTick)
     {
         var savedInstructions = instructions.ToArray();
-        if (savedInstructions.Any(item => item is null || !ValidConstructionIdentity(item.InstructionId)) ||
+        if (savedInstructions.Any(item => item is null || !IdentityRules.Reference(item.InstructionId, int.MaxValue, requireTrimmed: true)) ||
             savedInstructions.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != savedInstructions.Length)
             throw new InvalidDataException("Construction orders require unique instruction IDs.");
         var instructionById = savedInstructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
         var receipts = simulation?.ConstructionReceipts ?? [];
-        if (receipts.Any(item => item is null || !ValidConstructionIdentity(item.InstructionId) ||
-                !ValidConstructionIdentity(item.ActorId) || !ValidConstructionIdentity(item.BuildingInstanceId) ||
-                !ValidConstructionIdentity(item.DefinitionId) || !ValidConstructionIdentity(item.OwnerId) ||
-                !ValidConstructionIdentity(item.MaterialOwnerId)) ||
+        if (receipts.Any(item => item is null || !IdentityRules.Reference(item.InstructionId, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(item.ActorId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.BuildingInstanceId, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(item.DefinitionId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.OwnerId, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(item.MaterialOwnerId, int.MaxValue, requireTrimmed: true)) ||
             receipts.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != receipts.Count ||
             receipts.Select(item => item.BuildingInstanceId).Distinct(StringComparer.Ordinal).Count() != receipts.Count)
             throw new InvalidDataException("Construction completion receipts must be unique.");
@@ -242,7 +242,7 @@ public sealed partial class WorldRuntime
                 WorldBuildingOrderCatalog.Find(content, receipt.DefinitionId) is not { } catalog ||
                 !WorldBuildingOrderCatalog.Supports("construct_building", catalog.BuildingKind) ||
                 receipt.MaterialOwnerId == receipt.ActorId && !catalog.Definition.Tags.Contains("house", StringComparer.Ordinal) ||
-                receipt.InputReservationIds is null || receipt.InputReservationIds.Any(id => !ValidConstructionIdentity(id)) ||
+                receipt.InputReservationIds is null || receipt.InputReservationIds.Any(id => !IdentityRules.Reference(id, int.MaxValue, requireTrimmed: true)) ||
                 receipt.InputReservationIds.Distinct(StringComparer.Ordinal).Count() != receipt.InputReservationIds.Count)
                 throw new InvalidDataException("A construction receipt does not match its completed owner order.");
             var purpose = "building:" + receipt.BuildingInstanceId;
@@ -284,7 +284,4 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("An ordered construction project does not match its saved order.");
         }
     }
-
-    private static bool ValidConstructionIdentity(string? value) =>
-        !string.IsNullOrWhiteSpace(value) && value == value.Trim() && !value.Any(char.IsControl);
 }

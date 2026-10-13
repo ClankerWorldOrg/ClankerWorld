@@ -126,13 +126,19 @@ test('API errors fail both decision and cleanup without attempting a deletion', 
 });
 
 test('only the steps that call gh get the token, and checkout keeps no credentials', () => {
-  const [head, body] = workflow.split('\n    steps:\n');
+  const [head, jobs] = workflow.split('\njobs:\n');
   assert.doesNotMatch(head, /^\s*GH_TOKEN:/m);
-  const steps = body.split(/\n(?=      - )/);
+  const steps = jobs.split(/\n(?=  [\w-]+:\n)/).flatMap(job => {
+    const [settings, body] = job.split('\n    steps:\n');
+    assert.doesNotMatch(settings, /^\s*GH_TOKEN:/m);
+    assert.ok(body, 'Each nightly job has steps');
+    return body.split(/\n(?=      - )/);
+  });
   const withToken = steps.filter(step => /^\s*GH_TOKEN:/m.test(step)).map(step => step.match(/^      - name: (.+)$/m)?.[1]);
   assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Publish the nightly pre-release', 'Remove older nightly builds']);
   for (const step of steps.filter(step => /\bgh (api|run|release) /.test(step))) assert.match(step, /\n        env:\n          GH_TOKEN: \$\{\{ github\.token \}\}\n/);
-  assert.match(steps.find(step => step.includes('actions/checkout@')), /\n          persist-credentials: false(\n|$)/);
+  for (const step of steps.filter(step => step.includes('actions/checkout@')))
+    assert.match(step, /\n          persist-credentials: false(\n|$)/);
 });
 
 test('a failed deletion stops retention before deleting another tag', t => {

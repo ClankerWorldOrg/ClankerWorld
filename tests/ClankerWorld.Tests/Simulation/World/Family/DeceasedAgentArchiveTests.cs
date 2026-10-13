@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -26,10 +27,10 @@ public sealed class DeceasedAgentArchiveTests
         {
             Config = config,
             Memories = society.Agents.Select(person => new SocietySocialMemory(
-                $"last-memory:{person.Id}", person.Id, "founder-scout",
+                Identity.Create($"last-memory:{person.Id}"), person.Id, "founder-scout",
                 "I remember the first harvest.", "private", 0)).ToArray(),
             Beliefs = society.Agents.Select(person => new SocietyAgentBelief(
-                $"last-belief:{person.Id}", person.Id, person.Id + " saw the first harvest.",
+                Identity.Create($"last-belief:{person.Id}"), person.Id, person.Id + " saw the first harvest.",
                 SocietyBeliefProvenance.Firsthand, 7_000, 0)).ToArray(),
             Agents = society.Agents.Select(person => person with
             {
@@ -134,13 +135,13 @@ public sealed class DeceasedAgentArchiveTests
                 {
                     Memories = new[]
                     {
-                        new SocietySocialMemory("secret", "founder-scout", "founder-mira",
+                        new SocietySocialMemory(Identity.Parse("secret"), "founder-scout", "founder-mira",
                             "I hid a tool behind the storehouse.", "private", 0),
-                        new SocietySocialMemory("other", "founder-mira", "founder-scout",
+                        new SocietySocialMemory(Identity.Parse("other"), "founder-mira", "founder-scout",
                             "Scout helped me harvest.", "public", 0),
-                        new SocietySocialMemory("forgotten", "founder-scout", "founder-mira",
+                        new SocietySocialMemory(Identity.Parse("forgotten"), "founder-scout", "founder-mira",
                             "An old abandoned belief.", "private", 0, TombstonedTick: 0),
-                    }.OrderBy(memory => memory.Id, StringComparer.Ordinal).ToArray(),
+                    }.OrderBy(memory => memory.Id.Value, StringComparer.Ordinal).ToArray(),
                 },
             },
         };

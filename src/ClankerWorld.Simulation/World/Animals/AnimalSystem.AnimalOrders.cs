@@ -100,9 +100,9 @@ internal sealed partial class AnimalSystem
                 _ => animal.RiderId is null,
             };
             if (!finished) return false;
-            world.CreditOrderEffect(instruction, AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
+            world.CreditOrderEffect(instruction, Identity.Parse(AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
                 (action == "care" ? animal.CareUntilTick.ToString(System.Globalization.CultureInfo.InvariantCulture) :
-                 action == "collect" ? oldProduct : world.WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture))), 1);
+                 action == "collect" ? oldProduct : world.WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture)))), 1);
             return true;
         }
     }

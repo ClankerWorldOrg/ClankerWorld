@@ -213,7 +213,7 @@ public sealed partial class WorldRuntime
             var memoryId = LessonGratitudeMemoryId(student.AgentId, actor, lesson.Skill);
             if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
             {
-                society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(memoryId, student.AgentId, actor,
+                society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(memoryId), student.AgentId, actor,
                     $"Learned {lesson.Skill.ToString().ToLowerInvariant()} with {checkpoint.GetAgent(actor).Name}.", "public", WorldTick)
                 { Kind = SocietyMemoryKind.Skill }));
             }

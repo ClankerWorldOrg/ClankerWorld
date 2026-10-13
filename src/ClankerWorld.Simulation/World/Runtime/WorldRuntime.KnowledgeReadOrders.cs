@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
             { TargetKnowledgeArtifactId = artifact.Id, KnowledgeReadCompletion = new(WorldTick, sites) { LearnedRecipes = recipes } }
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
-        CreditOrderEffect(current, KnowledgeReadOrderEffectId(current), 1);
+        CreditOrderEffect(current, Identity.Parse(KnowledgeReadOrderEffectId(current)), 1);
     }
 
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)

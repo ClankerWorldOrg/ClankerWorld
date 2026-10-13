@@ -32,9 +32,14 @@ public sealed class WorldCatalogDeadlineTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CatalogHonorsListDeadlineAndScreenCancellationAfterASlowChallenge(bool screenCancels)
+    public Task CatalogHonorsListDeadlineAndScreenCancellationAfterASlowChallenge(bool screenCancels) =>
+        // Keep the request's completion independent of the runner's synchronization context.
+        Task.Run(() => AssertCatalogCancellationAsync(screenCancels));
+
+    private static async Task AssertCatalogCancellationAsync(bool screenCancels)
     {
-        using var handler = new CatalogHandler(Timeout.InfiniteTimeSpan, TimeSpan.FromSeconds(1));
+        var challengeRelease = new TaskCompletionSource();
+        using var handler = new CatalogHandler(Timeout.InfiniteTimeSpan) { FirstChallengeGate = challengeRelease.Task };
         using var client = new HttpClient(handler);
         using var signer = new Signer();
         using var request = new WorldListRequest();
@@ -48,20 +53,30 @@ public sealed class WorldCatalogDeadlineTests
         });
         try
         {
-            var first = await Task.WhenAny(handler.Started.Task, loading).WaitAsync(TimeSpan.FromSeconds(5));
+            await handler.ChallengeStarted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.True(request.IsLoading);
+            Assert.False(loading.IsCompleted);
+            Assert.False(handler.Started.Task.IsCompleted);
+            Assert.False(listDeadline.IsCancellationRequested);
+            challengeRelease.TrySetResult();
+            var first = await Task.WhenAny(handler.Started.Task, loading).WaitAsync(TimeSpan.FromSeconds(30));
             if (first == loading)
             {
                 await loading;
                 Assert.Fail($"Catalog request completed before the list request began: {request.Failure}");
             }
             Assert.True(request.IsLoading);
-            // Keep the short deadline out of the challenge exchange. The delay above
-            // reproduces the old client-wide timeout without depending on runner load.
+            // Arm the real short deadline only after the held challenge has returned
+            // and the list handler has registered cancellation.
             if (screenCancels) request.Cancel();
             else listDeadline.CancelAfter(TimeSpan.FromMilliseconds(500));
-            await loading.WaitAsync(TimeSpan.FromSeconds(5));
+            await loading.WaitAsync(TimeSpan.FromSeconds(30));
         }
-        finally { listDeadline.Cancel(); }
+        finally
+        {
+            challengeRelease.TrySetResult();
+            listDeadline.Cancel();
+        }
         Assert.True(handler.Cancelled);
         Assert.False(request.IsLoading);
         Assert.Null(request.Catalog);
@@ -72,9 +87,11 @@ public sealed class WorldCatalogDeadlineTests
         Assert.True(receipt.IsPaused);
     }
 
-    private sealed class CatalogHandler(TimeSpan delay, TimeSpan firstChallengeDelay = default) : HttpMessageHandler
+    private sealed class CatalogHandler(TimeSpan delay) : HttpMessageHandler
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource ChallengeStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task? FirstChallengeGate { get; init; }
         public bool Cancelled { get; private set; }
         private bool firstChallenge = true;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -84,15 +101,28 @@ public sealed class WorldCatalogDeadlineTests
                 if (firstChallenge)
                 {
                     firstChallenge = false;
-                    await Task.Delay(firstChallengeDelay, cancellationToken).ConfigureAwait(false);
+                    ChallengeStarted.TrySetResult();
+                    if (FirstChallengeGate is { } gate) await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 }
                 return Reply(new OwnerChallenge(new("server", "world"), "device", "challenge", "nonce", DateTimeOffset.UtcNow.AddMinutes(1)));
             }
             if (request.RequestUri.AbsolutePath != OwnerPairingEndpoints.OwnerWorldList)
                 return Reply(new OwnerControlReceipt("pause", true, true, 1, 1, 1));
+            if (delay == Timeout.InfiniteTimeSpan)
+            {
+                // Cancellation itself finishes the held HTTP call, without a queued
+                // delay continuation competing with the diagnostic wait.
+                var cancelled = new TaskCompletionSource<HttpResponseMessage>();
+                using var registration = cancellationToken.Register(() =>
+                {
+                    Cancelled = true;
+                    cancelled.TrySetCanceled(cancellationToken);
+                });
+                Started.TrySetResult();
+                return await cancelled.Task.ConfigureAwait(false);
+            }
             Started.TrySetResult();
-            try { await Task.Delay(delay, cancellationToken).ConfigureAwait(false); }
-            catch (OperationCanceledException) { Cancelled = true; throw; }
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             return Reply(new WorldCatalogSnapshot("active",
                 [new CatalogWorld("blocked", "Blocked world", "world", "seed", DateTimeOffset.UnixEpoch, [], null,
                     "incompatible", "Cannot restore this checkpoint.")]));

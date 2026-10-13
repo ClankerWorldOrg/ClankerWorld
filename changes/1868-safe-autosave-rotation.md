@@ -1,0 +1,1 @@
+- Reducing autosave rotation or turning it off keeps usable recovery copies when a newer autosave is damaged. Damaged copies stay preserved.

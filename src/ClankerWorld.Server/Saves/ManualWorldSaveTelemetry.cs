@@ -2,6 +2,10 @@ namespace ClankerWorld.Server.Saves;
 
 public static partial class ManualWorldSaveTelemetry
 {
+    [LoggerMessage(EventId = 2263, Level = LogLevel.Information,
+        Message = "manual_save outcome=restart_recovered direction={Direction} save={SaveId} tick={WorldTick}")]
+    public static partial void LoadRecovered(ILogger logger, string direction, string saveId, long worldTick);
+
     [LoggerMessage(EventId = 2257, Level = LogLevel.Warning,
         Message = "manual_save outcome=excluded_from_list save={SaveId} reason={Reason} files_preserved=true")]
     public static partial void InvalidMetadata(ILogger logger, string saveId, string reason);
@@ -45,4 +49,8 @@ public static partial class ManualWorldSaveTelemetry
     [LoggerMessage(EventId = 2262, Level = LogLevel.Warning,
         Message = "manual_save outcome=cleanup_pending save={SaveId} error_type={ErrorType} published=true")]
     public static partial void SupersededCheckpointRetained(ILogger logger, string saveId, string errorType);
+
+    [LoggerMessage(EventId = 2280, Level = LogLevel.Warning,
+        Message = "autosave_rotation outcome=retained save={SaveId} error_type={ErrorType} verified=false files_preserved=true")]
+    public static partial void UnverifiedAutosaveRetained(ILogger logger, string saveId, string errorType);
 }
