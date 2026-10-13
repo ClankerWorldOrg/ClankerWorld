@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -8,7 +9,7 @@ public partial class Main
     private readonly Button recoveryCleanupButton = new();
     private readonly SpinBox recoveryKeepCount = new() { MinValue = 1, MaxValue = 10, Step = 1, Value = 3 };
     private readonly ConfirmationDialog recoveryCleanupConfirmation = new();
-    private readonly Label recoveryCleanupSummary = new();
+    private readonly FittedLabel recoveryCleanupSummary = new();
     private RecoveryCleanupPreview? pendingRecoveryCleanup;
 
     private void BuildRecoveryCleanup(VBoxContainer body)

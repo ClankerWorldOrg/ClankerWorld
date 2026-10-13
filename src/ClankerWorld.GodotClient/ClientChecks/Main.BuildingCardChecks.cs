@@ -58,7 +58,7 @@ public partial class Main
             .OfType<Label>().Select(label => label.Text));
         if (!buildingQuickCard.Visible || buildingDetailsPanel.Visible || selectedTilePanel.Visible ||
             terrainLayer.SelectedBuilding != new Rect2I(2, 2, 2, 1) ||
-            buildingQuickHeader.NameLabel.Text != "House" ||
+            buildingQuickHeader.NameLabel.FullText != "House" ||
             buildingQuickHeader.OwnerLabel.Text != "Founder's household · First Town" ||
             !quickText.Contains("Wooden axe", StringComparison.Ordinal) ||
             !quickText.Contains("50%", StringComparison.Ordinal) ||

@@ -104,7 +104,7 @@ public partial class Main
             ExpectBrowsing(people[2].Id, "A new row above the selection");
             await KeyAsync(Key.Enter);
             if (!agentProfilePanel.Visible || selectedAgentId != people[2].Id ||
-                !selectedActorNameLabel.Text.Contains(people[2].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[2].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("Enter must open the keyboard-selected agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
@@ -117,7 +117,7 @@ public partial class Main
             await LayoutAsync();
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.Text.Contains(people[0].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("A double-click must still open the clicked agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
@@ -129,7 +129,7 @@ public partial class Main
             ExpectBrowsing(people[0].Id, "Returning to a row with the keyboard before a double-click");
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.Text.Contains(people[0].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("Double-clicking the keyboard-selected row must open that agent's Profile.");
         }
         finally

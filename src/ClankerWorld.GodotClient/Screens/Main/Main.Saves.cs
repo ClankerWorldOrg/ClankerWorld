@@ -429,6 +429,8 @@ public partial class Main
             {
                 Text = ShortBranchTag(lane.Title),
                 TooltipText = lane.Title,
+                TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming,
+                SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
                 ThemeTypeVariation = "TagLabel",
                 SizeFlagsVertical = SizeFlags.ShrinkCenter,
                 MouseFilter = MouseFilterEnum.Pass,
@@ -447,11 +449,7 @@ public partial class Main
             if (chosen.IsAutosave) titleRow.AddChild(new Label { Text = "AUTOMATIC", ThemeTypeVariation = "TagNoteLabel", SizeFlagsVertical = SizeFlags.ShrinkCenter });
             text.AddChild(titleRow);
             var name = chosen.IsAutosave ? "Autosave" : chosen.Name;
-            var font = title.GetThemeFont("font");
-            var size = title.GetThemeFontSize("font_size");
-            title.Text = SaveTimelineLayout.Shorten(name, Math.Max(120, manualSaveCard.CustomMinimumSize.X - 300),
-                value => font.GetStringSize(value, HorizontalAlignment.Left, -1, size).X);
-            if (title.Text != name) title.TooltipText = name;
+            title.FullText = name;
             var began = lane.Branch?.StartedFromName ?? lane.ForkSave?.Name;
             var origin = began is null ? string.Empty : $" · {lane.Title} began at \"{began}\"";
             text.AddChild(Line($"{DisplayWorldClock(chosen.WorldTick)} · Saved {GameUiText.SavedAgo(chosen.CreatedUtc, DateTimeOffset.Now)}{origin}", "DimLabel"));

@@ -52,7 +52,7 @@ public partial class Main
             buildingDetailsRequested = true;
             RenderBuildingCard(snapshot);
             var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
-            if (buildingDetailsHeader.NameLabel.Text != "River Blacksmith" ||
+            if (buildingDetailsHeader.NameLabel.FullText != "River Blacksmith" ||
                 !facts.Contains("Mira · Stone pickaxe", StringComparison.Ordinal) ||
                 !facts.Contains("Household accepted", StringComparison.Ordinal) || !facts.Contains(missing, StringComparison.Ordinal) ||
                 facts.Contains(requestId, StringComparison.Ordinal) || facts.Contains(recipeId, StringComparison.Ordinal))
