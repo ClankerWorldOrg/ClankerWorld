@@ -111,6 +111,8 @@ public sealed partial class WorldRuntime
                     if (RecheckGoods(ChildHelpingGoodsRequest(actor, owner), plan.StockId!) is not { } goods ||
                         goods.Lot.ItemKind != plan.ItemKind || AvailableLotQuantity(goods.Lot) < plan.Quantity || plan.Quantity <= 0)
                         return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods are no longer available");
+                    if (!ChildGoodsCanMove(goods, plan.IsDelivery ? InventoryHoldRules.DeliveryFor(actor, house.InstanceId) : InventoryHoldRules.BorrowedBy(actor)))
+                        return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods are held for another purpose");
                     var lot = goods.Lot;
                     if (plan.IsDelivery)
                     {
@@ -165,7 +167,7 @@ public sealed partial class WorldRuntime
             }
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"child-help:{WorldTick}:{plan.Actor}", plan.Actor, HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity,
-                "child_household_help", plan.HouseId));
+                "child_household_help", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
             AppendEvent("child_helped_household", plan.Actor);
         }
         else ApplyChildHelpingPlan(plan);

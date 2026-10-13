@@ -88,7 +88,7 @@ internal sealed partial class TownSystem
         if (lot.ItemKind == "food") quantity = Math.Min(quantity, SharedFoodCollectionAllowance(world, actor));
         if (quantity <= 0) return;
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"land-sale-collect:{world.WorldTick}:{actor}:{request.Id}",
-            lot.OwnerId, actor, lot.Id, quantity, "land_sale_payment_collected"));
+            lot.OwnerId, actor, lot.Id, quantity, "land_sale_payment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
     }
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) SettleLandSale(ITownWorld world, TownRuntimeState town,

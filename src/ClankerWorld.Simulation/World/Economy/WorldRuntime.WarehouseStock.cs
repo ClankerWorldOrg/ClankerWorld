@@ -127,7 +127,7 @@ public sealed partial class WorldRuntime
         var availableBefore = PersonalWarehouseAvailableQuantity(actor, surplus.Lot.ItemKind);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"warehouse-stock:{WorldTick}:{actor}", actor, warehouse.TownId!, surplus.Lot.Id,
-            quantity, "town_resources_stored", warehouse.InstanceId));
+            quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
         RecordNonLandGoodsCompletion(actor, surplus.Lot, warehouse.TownId!, quantity, warehouse.InstanceId,
             $"warehouse-stock:{WorldTick}:{actor}", "public_service_goods", availableBefore);
         AppendEvent("town_resources_stored", $"{actor}:{surplus.Lot.Id}:{quantity}:{warehouse.InstanceId}");

@@ -35,7 +35,9 @@ public sealed partial class WorldRuntime
     private static bool ChildHelpingItem(string kind) => kind == "wood" || IsEdibleFood(kind);
 
     private InventoryLot? ChildHelpingDelivery(string actor, PlacedBuilding house) =>
-        FindGoods(ChildHelpingGoodsRequest(actor, actor)).Matches.Select(match => match.Lot).Where(lot => lot.OwnerId == actor &&
+        FindGoods(ChildHelpingGoodsRequest(actor, actor)).Matches
+            .Where(match => ChildGoodsCanMove(match, InventoryHoldRules.DeliveryFor(actor, house.InstanceId)))
+            .Select(match => match.Lot).Where(lot => lot.OwnerId == actor &&
             PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
             lot.DeliveryBuildingId == house.InstanceId && ChildHelpingItem(lot.ItemKind) &&
             lot.Quantity <= ChildHelpingLoad &&
@@ -43,7 +45,9 @@ public sealed partial class WorldRuntime
             CanDeliverHouseDelivery(lot)).OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private InventoryLot? ChildHelpingStock(string actor, PlacedBuilding house) =>
-        FindGoods(ChildHelpingGoodsRequest(actor, house.HouseholdId!)).Matches.Select(match => match.Lot).Where(lot => lot.OwnerId == house.HouseholdId &&
+        FindGoods(ChildHelpingGoodsRequest(actor, house.HouseholdId!)).Matches
+            .Where(match => ChildGoodsCanMove(match, InventoryHoldRules.BorrowedBy(actor)))
+            .Select(match => match.Lot).Where(lot => lot.OwnerId == house.HouseholdId &&
             lot.CarrierId is null && lot.ContainerLotId is null && lot.StorageBuildingId is null &&
             lot.DeliveryBuildingId is null && ChildHelpingItem(lot.ItemKind) && !OnBorrowedMarketStall(lot) &&
             AvailableLotQuantity(lot) > 0 && ChildHelpingReachable(actor, HouseholdStockPosition(lot),
@@ -52,6 +56,9 @@ public sealed partial class WorldRuntime
 
     private static GoodsRequest ChildHelpingGoodsRequest(string actor, string owner) =>
         new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(owner), new([.. FoodRules.EdibleKinds, "wood"]));
+
+    private static bool ChildGoodsCanMove(GoodsMatch goods, IReadOnlyList<InventoryHold> access) =>
+        goods.RequiredHolds.All(access.Contains);
 
     private bool ChildHelpingSourceAvailable(string actor, PlacedBuilding house, MapResource source, string kind) =>
         resources.GetValueOrDefault(source.Id) == ResourceState.Available &&
@@ -104,14 +111,14 @@ public sealed partial class WorldRuntime
             {
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                     $"child-delivery:{WorldTick}:{actor}", actor, plan.HouseholdId!, plan.StockId!, plan.Quantity,
-                    "child_household_delivery", plan.HouseId));
+                    "child_household_delivery", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.HouseId)));
                 AppendEvent("child_delivered_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
             }
             else
             {
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                     $"child-pickup:{WorldTick}:{actor}", plan.HouseholdId!, actor, plan.StockId!, plan.Quantity,
-                    "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId));
+                    "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                 AppendEvent("child_collected_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}");
             }
             return;

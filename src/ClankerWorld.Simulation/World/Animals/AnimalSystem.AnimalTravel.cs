@@ -24,10 +24,10 @@ internal sealed partial class AnimalSystem
         var unitId = saddle.Quantity == 1 ? saddle.Id : DerivedId.Create(saddle.Id + "#move:" + operation);
         var reservationId = AnimalSaddleReservationId(operation);
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(InventoryAuthority.Relocate(inventory, operation,
-            saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
-            saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue));
+            saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y), holdAccess: InventoryHoldRules.SupplyTripFor(actor)), reservationId,
+            saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
         SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = reservationId });
-        FinishAnimalSupplyTrip(actor);
+        FinishAnimalSupplyTrip(world, actor);
         world.AppendEvent("animal_saddled", actor + ":" + animal.Id, animal.Position);
     }
 
@@ -52,7 +52,8 @@ internal sealed partial class AnimalSystem
                 if (quantity <= 0) continue;
                 world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
                     AnimalCargoDismountId(rider, world.WorldTick, world.NextEventId, lot.Id),
-                    lot.Id, lot.OwnerId, quantity, groundPosition: new(person.Position.X, person.Position.Y)));
+                    lot.Id, lot.OwnerId, quantity, groundPosition: new(person.Position.X, person.Position.Y),
+                    holdAccess: InventoryHoldRules.SupplyTripFor(rider)));
             }
         }
         world.AppendEvent("horse_dismounted", rider + ":" + animal.Id + ":" + reason, animal.Position);
