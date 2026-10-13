@@ -219,6 +219,10 @@ public sealed class SaveBranchTests : IDisposable
         var firstOld = store.CreateAutosave(runtime, [], settings);
         await PlayAsync();
         var firstNewest = store.CreateAutosave(runtime, [], settings);
+        await PlayAsync();
+        var firstDamaged = store.CreateAutosave(runtime, [], settings);
+        var damagedPath = Path.Combine(ManualDirectory, firstDamaged.Id + ".save");
+        File.WriteAllText(damagedPath, "damaged checkpoint");
         Load(start);
         await PlayAsync();
         var secondOld = store.CreateAutosave(runtime, [], settings);
@@ -231,6 +235,8 @@ public sealed class SaveBranchTests : IDisposable
         var ids = store.List(WorldId).Select(save => save.Id).ToArray();
         Assert.Contains(start.Id, ids);
         Assert.Contains(firstNewest.Id, ids);
+        Assert.Contains(firstDamaged.Id, ids);
+        Assert.Equal("damaged checkpoint", File.ReadAllText(damagedPath));
         Assert.Contains(secondNewest.Id, ids);
         Assert.DoesNotContain(firstOld.Id, ids);
         Assert.DoesNotContain(secondOld.Id, ids);

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
 
@@ -193,7 +194,7 @@ public sealed partial class PortBoatRuntimeTests
         var inventedArrival = (underwayInstruction.Task! with
         {
             CompletedUnits = 1,
-            LastEffectId = "boat-arrival:" + request.Id
+            LastEffectId = Identity.Parse("boat-arrival:" + request.Id)
         }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {

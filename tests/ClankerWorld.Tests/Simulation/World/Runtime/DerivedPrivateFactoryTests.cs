@@ -365,7 +365,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             };
         var summary = "I remember factory" + factory + " work.";
         var subject = factory == "RenameMemoryId" ? actor : relative;
-        var checkpoint = SocietyRules.RecordSocialMemory(society, new(id, actor, subject, summary,
+        var checkpoint = SocietyRules.RecordSocialMemory(society, new(Identity.Parse(id), actor, subject, summary,
             "private", society.WorldTick, Permanent: factory == "RenameMemoryId")).Checkpoint;
         var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

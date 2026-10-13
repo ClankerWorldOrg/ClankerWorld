@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -283,7 +284,7 @@ public sealed class WorldToolRepairOrderTests
         await Finish(world, receipt);
         var order = Order(world, receipt);
         Assert.Equal("finished", order.Status);
-        Assert.InRange(order.LastEffectId!.Length, 1, 512);
+        Assert.InRange(order.LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));

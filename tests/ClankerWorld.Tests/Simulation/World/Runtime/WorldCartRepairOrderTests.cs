@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -60,6 +61,9 @@ public sealed class WorldCartRepairOrderTests
             item.OwnerId == actor && item.State == InventoryReservationState.Completed));
         Assert.Single(final.Events, item => item.Kind == "handcart_repaired" && item.Detail == actor + ":z-cart");
         Assert.Single(final.Events, item => item.Kind == "instruction_order_finished");
+        var repairInputs = final.Society.Society.Inventory.Reservations.Where(item => item.Purpose == "equipment_repair").ToArray();
+        final = RepairHistoryTests.SaveAfterLaterRepairs(final);
+        Assert.All(repairInputs, input => Assert.Contains(input, final.Society.Society.Inventory.Reservations));
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new IdleProvider());
         Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Single(loaded.ExportState().Events, item => item.Kind == "instruction_order_finished");
@@ -270,7 +274,7 @@ public sealed class WorldCartRepairOrderTests
         var forged = final with
         {
             Instructions = final.Instructions.Select(item => item with
-            { Task = item.Task! with { LastEffectId = "cart-repair-order:0:" + new string('0', 64) } }).ToArray()
+            { Task = item.Task! with { LastEffectId = Identity.Parse("cart-repair-order:0:" + new string('0', 64)) } }).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forged));
         var missingInputs = final.Society.Society.Inventory with

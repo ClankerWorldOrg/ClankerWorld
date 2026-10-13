@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
         }
         ApplyDependentCareCandidate(adult, candidate.Id);
         if (society.Checkpoint.GetAgent(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
-            CreditOrderEffect(instruction, GuardianOrderEffectId(adult, child), 1);
+            CreditOrderEffect(instruction, Identity.Parse(GuardianOrderEffectId(adult, child)), 1);
         else
             SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
     }

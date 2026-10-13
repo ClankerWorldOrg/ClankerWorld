@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         if (ReturnBorrowedGoods(instruction.TargetAgentId, lotId, remaining,
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is not { } effect) return;
         var receipt = BorrowedReturnReceipt(effect.MoveId);
-        CreditOrderEffect(instruction, receipt, order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
+        CreditOrderEffect(instruction, Identity.Parse(receipt), order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
         // Another load may use another lot, but it must keep the original owner and House.
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[instruction.IdempotencyKey] = current with

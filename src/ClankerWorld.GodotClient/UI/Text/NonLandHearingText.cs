@@ -67,7 +67,7 @@ public static class NonLandHearingText
             : item.Status == "pending" ? "Waiting for a judge: no eligible adult willing to judge has been assigned yet. Council mediation is still voluntary."
             : "Each recorded finding names its judge.");
         foreach (var term in item.JudgeHistory)
-            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
+            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + term.Reason);
         if (item.JudgeElection is { } election) Election(lines, election, clock, false);
         else if (item.LatestJudgeElection is { } latest) Election(lines, latest, clock, true);
         var evidenceNames = item.Evidence.Select((evidence, index) => (evidence.Id, Name: "Evidence " + (index + 1)))
@@ -184,7 +184,7 @@ public static class NonLandHearingText
         if (election.Stage == "waiting") lines.Add("Waiting for the Town's other election to finish.");
         if (election.Candidates.Count > 0) lines.Add(string.Join(" · ", election.Candidates.Select(candidate => $"{candidate.Name}: {candidate.Votes} votes")));
         if (election.WinnerName is { } winner) lines.Add("Selected for this case: " + winner);
-        if (election.Reason is { } reason) lines.Add(Words(reason));
+        if (election.Reason is { } reason) lines.Add(reason);
     }
     private static string Words(string value) => value.Replace('_', ' ');
 }

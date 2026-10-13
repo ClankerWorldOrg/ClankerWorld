@@ -100,7 +100,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             var result = world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == order.InstructionId).Task!;
             Assert.Equal(("finished", 1), (result.Status, result.CompletedUnits));
-            ids.Add(Assert.IsType<string>(result.LastEffectId));
+            ids.Add(Assert.IsType<Identity>(result.LastEffectId).Value);
         }
         world.Pause();
         state = world.ExportState();
@@ -109,7 +109,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
             const string summary = "I remember nativereservationrepair work.";
             var checkpoint = SocietyRules.RecordSocialMemory(state.Society.Society,
-                new(id, actor, relative, summary, "private", world.WorldTick)).Checkpoint;
+                new(Identity.Parse(id), actor, relative, summary, "private", world.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));

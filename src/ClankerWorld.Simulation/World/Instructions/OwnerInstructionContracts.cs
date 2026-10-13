@@ -48,7 +48,7 @@ public sealed record OrderTask(
     bool RepeatUntilCancelled,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool QuantityIsExplicit = false,
     string? BlockedReason = null,
-    string? LastEffectId = null,
+    Identity? LastEffectId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaitForDecisionAfterFailure = false)
 {
     private OrderStatus status = OrderStatusRules.Parse(Status);

@@ -59,7 +59,7 @@ public sealed class ChildhoodActionsTests
             Assert.Contains(world.ExportState().Events, item => item.Kind == eventKind);
             Assert.Equal(original.Personality, world.Agents.Single(person => person.AgentId == Child).Personality);
             var memory = Assert.Single(world.Society.Memories, item =>
-                item.OwnerId == Child && item.Id.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
+                item.OwnerId == Child && item.Id.Value.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
             Assert.Equal($"child-social:{kind}:{Child}:{memory.SubjectId}:{memory.SourceTick}", memory.Id);
             Assert.True(world.Agents.Single(item => item.AgentId == Child).SocialStanding?.Any() == true);
             var saved = WorldRuntimeCodec.Encode(world.ExportState());

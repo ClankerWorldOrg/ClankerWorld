@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
         public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => runtime.CanRemoveWorkstationStock(inventory, root, quantity);
-        public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
+        public void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
         public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);

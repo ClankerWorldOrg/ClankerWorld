@@ -151,6 +151,11 @@ public partial class Main
             SetStatus("An agent is still using this key. Give that agent another key first.", good: false);
             return;
         }
+        if (observationSession.Current?.Baseline.Snapshot.RoutineHelperCredentialSlotId == slotId)
+        {
+            SetStatus("The world's routine helper is using this key. Choose another helper key or turn the helper off first.", good: false);
+            return;
+        }
 
         await RunOwnerActionAsync(async () =>
         {
