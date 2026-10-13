@@ -7,7 +7,7 @@ public sealed partial class ParenthoodTests
 {
     // These tests exercise the next real runtime transition. Move only the fixture
     // clock past idle waiting; do not manufacture a birth, plan transition or action.
-    private static void PositionFamilyFixtureAt(WorldRuntime world, long targetTick)
+    internal static void PositionFamilyFixtureAt(WorldRuntime world, long targetTick)
     {
         Assert.True(targetTick >= world.WorldTick);
         var resume = !world.Society.IsPaused;

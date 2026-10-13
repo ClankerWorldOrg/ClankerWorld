@@ -215,9 +215,10 @@ public sealed class NewbornModelBindingCheckpointTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = world.Agents.Single(person => person.AgentId == First).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
-        // Advance the real waiting ticks; no clock, preparation or birth is fabricated.
-        while (world.WorldTick < plan.LastTransitionTick + 599)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        // Binding starts at the native birth boundary; the parenthood tests
+        // cover the waiting period. Keep a real unborn tick before the birth.
+        ParenthoodTests.PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Empty(world.Society.Births);
         return WorldRuntimeCodec.Encode(world.ExportState());
     }

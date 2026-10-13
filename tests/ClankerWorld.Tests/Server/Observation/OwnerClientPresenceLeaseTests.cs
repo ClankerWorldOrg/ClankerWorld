@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
@@ -109,35 +110,62 @@ public sealed class OwnerClientPresenceLeaseTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing(bool manualPause)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing(bool manualPause, bool deferCancellation)
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-presence-cancel-{Guid.NewGuid():N}");
         try
         {
             var clock = new ManualTimeProvider();
             var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), clock);
-            var provider = new WaitingProvider();
+            using var provider = new WaitingProvider(deferCancellation);
             using var runtime = new WorldRuntime("presence-cancel", _ => provider);
             using var service = new WorldRuntimeService(runtime,
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence);
+            using var lifetime = new CancellationTokenSource();
             presence.RecordAuthenticatedReconnect("owner");
-            var tick = service.TryAdvanceOnceAsync().AsTask();
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            if (manualPause)
+            var tick = service.TryAdvanceOnceAsync(lifetime.Token).AsTask();
+            // This deterministic provider belongs to the uncommitted tick itself.
+            var completion = GrownAgentHelperMemoryTests.WaitForRequests(runtime, tick);
+            try
             {
-                runtime.Pause();
+                await Task.WhenAny(provider.Started.Task, completion).WaitAsync(TimeSpan.FromSeconds(30));
+                Assert.True(provider.Started.Task.IsCompleted, "The tick finished before provider entry.");
+                Assert.False(completion.IsCompleted);
+                if (manualPause)
+                {
+                    runtime.Pause();
+                }
+                else
+                {
+                    clock.Advance(TimeSpan.FromSeconds(5));
+                }
+                var expected = WorldRuntimeCodec.Encode(runtime.ExportState());
+                await provider.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                Assert.True(provider.ReceivedCancellation.IsCancellationRequested);
+                if (deferCancellation)
+                {
+                    Assert.False(tick.IsCompleted);
+                    Assert.False(completion.IsCompleted);
+                    Assert.Equal(expected, WorldRuntimeCodec.Encode(runtime.ExportState()));
+                    provider.CompleteCancellation();
+                }
+                await completion;
+                Assert.False(await tick);
+                Assert.Equal(0, runtime.WorldTick);
+                Assert.Equal(expected, WorldRuntimeCodec.Encode(runtime.ExportState()));
+                Assert.Equal(manualPause, runtime.Society.IsPaused);
             }
-            else
+            finally
             {
-                clock.Advance(TimeSpan.FromSeconds(5));
+                lifetime.Cancel();
+                provider.CompleteCancellation();
+                try { await completion; }
+                catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
             }
-            var expected = WorldRuntimeCodec.Encode(runtime.ExportState());
-            Assert.False(await tick.WaitAsync(TimeSpan.FromSeconds(3)));
-            Assert.Equal(0, runtime.WorldTick);
-            Assert.Equal(expected, WorldRuntimeCodec.Encode(runtime.ExportState()));
-            Assert.Equal(manualPause, runtime.Society.IsPaused);
         }
         finally
         {
@@ -148,16 +176,37 @@ public sealed class OwnerClientPresenceLeaseTests
         }
     }
 
-    private sealed class WaitingProvider : IDecisionProvider
+    private sealed class WaitingProvider(bool deferCancellation) : IDecisionProvider, IDisposable
     {
+        private readonly TaskCompletionSource<CognitionDecisionResponse> response = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly ConcurrentBag<CancellationTokenRegistration> registrations = [];
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public CancellationToken ReceivedCancellation { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
+            ReceivedCancellation = cancellationToken;
+            registrations.Add(cancellationToken.Register(() =>
+            {
+                Cancelled.TrySetResult(true);
+                if (!deferCancellation) CompleteCancellation();
+            }));
             Started.TrySetResult(true);
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-            throw new InvalidOperationException("The test provider must be cancelled.");
+            return new ValueTask<CognitionDecisionResponse>(response.Task);
+        }
+
+        public void CompleteCancellation()
+        {
+            if (ReceivedCancellation.IsCancellationRequested)
+                response.TrySetCanceled(ReceivedCancellation);
+        }
+
+        public void Dispose()
+        {
+            foreach (var registration in registrations) registration.Dispose();
         }
     }
 
