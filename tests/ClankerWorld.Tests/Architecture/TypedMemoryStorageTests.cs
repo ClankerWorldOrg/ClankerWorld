@@ -16,7 +16,7 @@ public sealed class TypedMemoryStorageTests
             class StorageControl
             {
                 object Memory(string owner) => new SocietySocialMemory($"memory:{owner}", owner, owner, "Text", "private", 0);
-                object Order(string owner) => new OrderTask("move_to", "doing", 1, 0, "moves", false, LastEffectId: $"effect:{owner}");
+                object Order(string owner) => new OrderTask(new MoveToOrderDefinition(new(1, 1)), "doing", 1, 0, "arrivals", false, LastEffectId: $"effect:{owner}");
             }
             """;
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
