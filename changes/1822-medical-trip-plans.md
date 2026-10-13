@@ -1,0 +1,1 @@
+- Medicine collection and return choices retain the selected dose and last-seen patient destination, and explain when that plan is no longer available.

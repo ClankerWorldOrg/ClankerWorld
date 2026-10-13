@@ -384,6 +384,9 @@ Medicine treatment also retains its patient and exact dose source and place.
 The shared dose query matches native reservation access; public treatment keeps
 its existing results and lower illness threshold, while offered care uses the
 shared medical need threshold.
+Medicine collection retains the patient, last-seen position, original trip and
+selected pickup dose. Return travel keeps that recorded destination and carried
+dose; the shared check never looks up a distant patient's current position.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

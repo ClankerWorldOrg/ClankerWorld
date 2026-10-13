@@ -4,7 +4,7 @@ using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
-public sealed class MedicalSupplyJourneyTests
+public sealed partial class MedicalSupplyJourneyTests
 {
     [Theory]
     [InlineData(false, false)]
@@ -206,12 +206,14 @@ public sealed class MedicalSupplyJourneyTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
+        public MedicalSupplyActionPlan? Plan { get; private set; }
         public HashSet<string> Offered { get; } = new(StringComparer.Ordinal);
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
             foreach (var candidate in request.Observation.Candidates) Offered.Add(candidate.Id);
+            if (request.Observation.Candidates.FirstOrDefault(item => item.ActionPlan is MedicalSupplyActionPlan) is { ActionPlan: MedicalSupplyActionPlan plan }) Plan = plan;
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("medical_treat:", StringComparison.Ordinal))?.Id ??
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("medical_collect:", StringComparison.Ordinal))?.Id ?? "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
