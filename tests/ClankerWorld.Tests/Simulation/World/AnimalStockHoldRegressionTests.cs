@@ -152,6 +152,15 @@ public sealed partial class AnimalPipelineTests
         {
             AnimalWorld = state.AnimalWorld with
             { Animals = state.AnimalWorld.Animals.Select(animal => animal with { CareUntilTick = supplying.WorldTick + 1 }).ToArray() },
+            // Isolate automatic dismount from repeating the saved pickup choice.
+            Society = state.Society with
+            {
+                Cognition = state.Society.Cognition with
+                {
+                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.AgentId == actor
+                        ? runtime with { CurrentIntention = null } : runtime).ToArray(),
+                },
+            },
         };
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new AnimalChooser());
