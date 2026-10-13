@@ -122,16 +122,16 @@ before cancellation. The check retains real request and order identity,
 exact saved bytes while waiting, one collection event, the untouched second
 load and strict checkpoint reload after cancellation.
 
-The retained-guidance farming and held repair-cancellation fixtures wait for
-the provider's start signal by polling the native nonblocking tick path. A
-committed tick schedules background work but does not guarantee that its worker
-has started. The checks cover immediate entry and entry after two more committed
-ticks. Their polls retain a forty-tick limit and a separate thirty-second cancellation guard
-for each tick, including after pause and reload in the farming fixture. The
-repair check also waits for the released reply before checking that cancellation
-prevents repairs. Use this pattern only where advancing ticks preserves the
-intended cancellation boundary; orders that can already complete physical work
-must keep the world at that boundary while waiting for provider entry.
+The retained-guidance farming fixture still polls the native nonblocking tick
+path for provider entry, including after pause and reload. Its deferred-entry
+row requires two more committed ticks. The held tool-repair cancellation fixture
+uses the model-work harness instead, gating the manual scheduler until two more
+ticks commit in its delayed-entry row. Both retain a forty-tick limit and a
+separate thirty-second cancellation guard for each tick. The repair check also
+waits for the released reply before checking that cancellation prevents repairs.
+Use tick polling only where advancing preserves the intended cancellation
+boundary; orders that can already complete physical work must freeze that
+boundary while waiting for provider entry.
 
 The held lesson-continuation fixture captures the actual registered request
 and model task, permits at most six additional native ticks, then observes
@@ -183,8 +183,9 @@ second load and exact checkpoint reload after releasing the cancelled reply.
 The held field-cancellation fixture stops at its first working frame, or after
 the deliberate two additional ticks in its deferred-entry row. It captures the
 existing shared model-task wait before cancelling the order, then waits for
-actual provider entry without advancing the world. The deferred row also delays
-entry by one second. Waiting for entry and releasing the cancelled reply must
+actual provider entry without advancing the world. The manual scheduler holds
+entry until the chosen working frame; no wall-clock startup delay is needed.
+Waiting for entry and releasing the cancelled reply must
 keep checkpoint bytes unchanged; the original eight subsequent ticks still
 check the cancelled order, unspent seed, released reservation and absent planting
 event. Polling additional ticks for entry could finish planting before cancellation.
@@ -211,7 +212,9 @@ that same tick. Pass `runPendingWork: false` to keep work registered without
 starting it, and call `RunPendingWork` when the test permits provider entry.
 `ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
 `Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
-provider gates keep reply completion independent of the thread pool.
+provider gates keep reply completion independent of the thread pool. Use the
+harness's `WaitAsync` for expected provider signals: its thirty-second bound
+diagnoses missing signals without advancing native ticks or controlling entry.
 
 `SettleAsync` starts pending work and finishes returned wrappers while held
 calls remain held. `PendingModelWork` snapshots all four live queues, with the
