@@ -456,12 +456,12 @@ internal sealed partial class TownSystem
     }
 
     internal void RecordNonLandRepairCompletion(ITownWorld world, string actor, InventoryLot originalTarget, string repairedLotId,
-        string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds)
+        string nativeReceiptId, GridPoint position, IReadOnlyList<Identity> reservationIds)
     {
         var result = world.Society.Inventory.GetLot(repairedLotId);
         if (result.ConditionBasisPoints <= originalTarget.ConditionBasisPoints) return;
         nativeReceiptId = DerivedId.Create(nativeReceiptId);
-        var receipt = new TownNativeRemedyReceipt(nativeReceiptId, "repair_equipment", actor, world.WorldTick,
+        var receipt = new TownNativeRemedyReceipt(Identity.Parse(nativeReceiptId), "repair_equipment", actor, world.WorldTick,
             originalTarget.OwnerId, originalTarget.ItemKind, 1, originalTarget.Id, originalTarget.Id,
             repairedLotId, originalTarget.OwnerId, result.OwnerId, position,
             originalTarget.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),
@@ -476,7 +476,7 @@ internal sealed partial class TownSystem
     {
         var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : DerivedId.Create(sourceLot.Id + "#transfer:" + nativeReceiptId);
         var result = world.Society.Inventory.GetLot(resultId);
-        var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, world.WorldTick, recipientId,
+        var receipt = new TownNativeRemedyReceipt(Identity.Parse(nativeReceiptId), kind, actor, world.WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,
             sourceLot.OwnerId, result.OwnerId, world.Agents[actor].Position,
             sourceLot.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),

@@ -147,7 +147,7 @@ internal sealed partial class AnimalSystem
                         productId, definition.Product!, animal.HouseholdId, definition.ProductQuantity, tick,
                         groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
                         animal.HouseholdId, productId, definition.ProductQuantity, "animal-product:" + animal.Id, long.MaxValue));
-                    animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = reservationId };
+                    animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = Identity.Parse(reservationId) };
                     world.AppendEvent("animal_product_ready", animal.Id + ":" + definition.Product, animal.Position);
                 }
                 else animal = animal with { ProductProgressTicks = progress };

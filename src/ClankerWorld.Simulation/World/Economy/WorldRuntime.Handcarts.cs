@@ -370,10 +370,10 @@ public sealed partial class WorldRuntime
                     updated = InventoryAuthority.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     reservations.Add(id);
                 }
-                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
             });
             RecordNonLandRepairCompletion(actor, cartHere, cartHere.Id,
-                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations);
+                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations.Select(Identity.Parse).ToArray());
             AppendEvent("handcart_repaired", $"{actor}:{cartHere.Id}");
         }
         else if (isTransfer && AttachedHandcart(actor) is null)

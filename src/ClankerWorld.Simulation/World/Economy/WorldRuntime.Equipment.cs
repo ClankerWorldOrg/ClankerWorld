@@ -218,7 +218,7 @@ public sealed partial class WorldRuntime
         agents[actor] = agents[actor] with
         {
             Equipment = (person.Equipment ?? new PersonalEquipment()) with
-            { Repair = new(target.Id, site.InstanceId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
+            { Repair = new(target.Id, site.InstanceId, WorldTick, 0, (ids.ToArray()).Select(Identity.Parse).ToArray(), orderInstructionId) },
         };
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("equipment_repair_started", $"{actor}|{target.Id}|{site.InstanceId}");

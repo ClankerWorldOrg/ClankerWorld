@@ -26,7 +26,7 @@ internal sealed partial class AnimalSystem
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(InventoryAuthority.Relocate(inventory, operation,
             saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y), holdAccess: InventoryHoldRules.SupplyTripFor(actor)), reservationId,
             saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
-        SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = reservationId });
+        SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = Identity.Parse(reservationId) });
         FinishAnimalSupplyTrip(world, actor);
         world.AppendEvent("animal_saddled", actor + ":" + animal.Id, animal.Position);
     }

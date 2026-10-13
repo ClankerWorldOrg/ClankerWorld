@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
             var hasPendingOrder = PendingInstructionFor(targetId) is not null;
             var parsedOrder = request.Kind == OwnerInstructionKind.Order ? ParseOrderTask(text, targetId) : null;
             if (parsedOrder is not null && !request.Queue)
-                ReplacePendingOrders(targetId);
+                ReplacePendingOrder(targetId);
             if (parsedOrder is not null)
                 parsedOrder = parsedOrder with { Status = request.Queue && hasPendingOrder ? "queued" : "waiting" };
 
@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
                     new OrderTask("unknown", "not_understood", 0, 0, "none", false));
             instructionsByIdempotency.Add(instruction.IdempotencyKey, instruction);
             var receipt = new OwnerInstructionReceipt(
-                instruction.InstructionId,
+                Identity.Parse(instruction.InstructionId),
                 instruction.IdempotencyKey,
                 instruction.SubmittedTick,
                 instruction.RunEpoch,
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
                 status = "cancelled";
             }
             var receipt = new OwnerOrderControlReceipt(
-                instruction.InstructionId, status, changed, WorldTick, nextEventId - 1);
+                Identity.Parse(instruction.InstructionId), status, changed, WorldTick, nextEventId - 1);
             orderCancellations.Add(key, new OwnerOrderCancellation(
                 key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(),
                 request.OrderId.Trim(), receipt));
@@ -293,24 +293,22 @@ public sealed partial class WorldRuntime
     }
 
     private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
-        instructionsByIdempotency.Values
+        FirstActiveOrderFor(instructionsByIdempotency.Values.Where(item =>
+            !completedInstructionIds.Contains(item.InstructionId)), agentId);
+
+    public static OwnerQueuedInstruction? FirstActiveOrderFor(IEnumerable<OwnerQueuedInstruction> instructions, string agentId) =>
+        instructions
             .Where(item => item.TargetAgentId == agentId &&
                 item.Kind == OwnerInstructionKind.Order &&
-                item.Task is not null && IsActiveOrder(item.Task.Status) &&
-                !completedInstructionIds.Contains(item.InstructionId))
-            .OrderBy(item => item.SubmissionSequence)
+                item.Task is not null && IsActiveOrder(item.Task.Status))
+            .OrderBy(item => item.Task!.Status == "queued")
+            .ThenBy(item => item.SubmissionSequence)
             .FirstOrDefault();
 
-    private void ReplacePendingOrders(string agentId)
+    private void ReplacePendingOrder(string agentId)
     {
-        foreach (var instruction in instructionsByIdempotency.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
-                     .OrderBy(item => item.SubmissionSequence).ToArray())
-        {
+        if (PendingInstructionFor(agentId) is { Task.Status: not "queued" } instruction)
             CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
-        }
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
@@ -498,9 +496,9 @@ public sealed partial class WorldRuntime
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IssuerId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetAgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Text);
-        if (!IsValidInstructionIdentifier(request.IdempotencyKey.Trim()))
+        if (!IdentityRules.Reference(request.IdempotencyKey.Trim(), OwnerQueuedInstruction.MaximumIdentifierLength))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction idempotency key must be at most 128 characters without control characters.");
-        if (!IsValidInstructionIdentifier(request.IssuerId.Trim()))
+        if (!IdentityRules.Reference(request.IssuerId.Trim(), OwnerQueuedInstruction.MaximumIdentifierLength))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction issuer ID must be at most 128 characters without control characters.");
         if (request.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction kind must be suggestion or order.");
@@ -508,11 +506,6 @@ public sealed partial class WorldRuntime
         if (text.Length > OwnerQueuedInstruction.MaximumTextLength || text.Any(char.IsControl))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction text must be at most 512 characters without control characters.");
     }
-
-    private static bool IsValidInstructionIdentifier(string? value) =>
-        !string.IsNullOrWhiteSpace(value) &&
-        value.Length <= OwnerQueuedInstruction.MaximumIdentifierLength &&
-        !value.Any(char.IsControl);
 
     private static string ToWireValue(OwnerInstructionKind kind) => kind switch
     {

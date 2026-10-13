@@ -395,10 +395,10 @@ public sealed partial class WorldRuntime
                 reservations.Add(reservationId);
             }
 
-            return InventoryAuthority.RepairSingleUnit(updated, repairId, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+            return InventoryAuthority.RepairSingleUnit(updated, repairId, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
         });
         RecordNonLandRepairCompletion(actor, tool, repairId,
-            $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations);
+            $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations.Select(Identity.Parse).ToArray());
         AppendEvent("tool_repaired", $"{actor}:{repairId}:{blacksmith.InstanceId}");
         return repairId;
     }

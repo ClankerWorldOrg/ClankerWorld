@@ -1,4 +1,4 @@
-using System.Reflection;
+using ClankerWorld.Simulation;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Cognition;
@@ -272,7 +272,7 @@ public sealed class WorldMarriageOrderTests
         {
             await WaitForWork(world);
             var before = WorldRuntimeCodec.Encode(world.ExportState());
-            Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+            Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
             Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
             await Tick(world);
             await Tick(replay);
@@ -291,7 +291,7 @@ public sealed class WorldMarriageOrderTests
         var finished = Assert.Single(completed.Instructions!);
         Assert.Equal("married", finished.Task!.TalkOutcome);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [finished with { Task = finished.Task with { LastEffectId = "marriage-order:forged" } }] }));
+        { Instructions = [finished with { Task = finished.Task with { LastEffectId = Identity.Parse("marriage-order:forged") } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Marriages = completed.Marriages!.Select(item => item with { CompletedTick = null, ChosenSurname = null, SurnameReceipt = null }).ToArray() }));
         Assert.Single(world.ExportState().Events, item => item.Kind == "marriage_accepted");
@@ -309,7 +309,7 @@ public sealed class WorldMarriageOrderTests
         var changedOutcome = finished with { Task = finished.Task! with { TalkOutcome = "proposal_declined" } };
         var forgedReceipt = "marriage-order:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{changedOutcome.InstructionId}|{changedOutcome.TargetAgentId}|{changedOutcome.Task!.TargetAgentId}|{changedOutcome.Task.TalkConversationId}|{changedOutcome.Task.TalkOutcome}")));
-        changedOutcome = changedOutcome with { Task = changedOutcome.Task! with { LastEffectId = forgedReceipt } };
+        changedOutcome = changedOutcome with { Task = changedOutcome.Task! with { LastEffectId = Identity.Parse(forgedReceipt) } };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Instructions = [changedOutcome] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Marriages = [] }));
     }
@@ -326,19 +326,12 @@ public sealed class WorldMarriageOrderTests
     private static async Task Tick(WorldRuntime world)
     {
         await WaitForWork(world);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
     }
 
     private static async Task WaitForWork(WorldRuntime world)
     {
-        var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingModelCalls", "pendingConversationTurns" })
-        {
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world));
-            tasks.AddRange(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!));
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class PersonalProvider(string owner) : IDecisionProvider, IAgentConversationProvider

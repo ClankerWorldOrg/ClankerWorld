@@ -23,6 +23,7 @@ public sealed class ActionRefusalTests
         {
             var provider = new ExploringProvider(idleForOrder: idleForOrder);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider, ticksPerDay: 8);
+            var harness = ModelWorkHarness.For(world);
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             var actorId = world.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal).First().AgentId;
             if (ordered) world.SubmitInstruction(new("refused-native-order", "owner:test", actorId,
@@ -204,12 +205,12 @@ public sealed class ActionRefusalTests
         {
             var provider = new ExploringProvider(usesModel: true);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider);
+            var harness = ModelWorkHarness.For(world);
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             Assert.True((await world.AdvanceOneTickWithCheckpointAsync(file.PrepareSave,
                 failurePolicy: WorldTickFailurePolicy.RefuseSingleAction)).Advanced);
             var ids = world.Agents.Select(person => person.AgentId).ToArray();
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            while (!world.ModelDecisionsFinished(ids)) await Task.Delay(10, deadline.Token);
+            await harness.WaitForAllAsync();
             Assert.Equal(4, provider.Calls);
             file.Save(world);
             var actor = world.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal).First();

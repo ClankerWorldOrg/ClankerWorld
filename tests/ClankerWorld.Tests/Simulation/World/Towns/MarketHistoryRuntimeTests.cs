@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
 {
-    private const string Seller = "founder:00000000000000000000000000000001";
+    private const string Seller = NormalPathWorld.Founder1;
     private const string Stock = "history-personal-cloth";
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
 
     private static async Task<byte[]> BuildClosedTradeStateAsync()
     {
-        const string buyer = "founder:00000000000000000000000000000003";
+        const string buyer = NormalPathWorld.Founder3;
         const string axes = "history-personal-axes";
         var state = await PaidMarketWorld.StateAsync();
         var market = PaidMarketWorld.Market(state);
@@ -153,7 +153,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
         Assert.Equal(32, retained.Trades.Count);
         Assert.DoesNotContain(retained.StockReceipts, receipt => receipt.Id == sourceReceipt);
         Assert.Equal(48, retained.StockReceipts.Count);
-        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
+        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
         Assert.Equal(64, state.Society.Society.Inventory.Reservations.Count(claim => offers.Any(id => claim.Id == id + ":first" || claim.Id == id + ":second")));
         foreach (var trade in retained.Trades)
         {

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -296,7 +297,7 @@ public sealed class WorldCartCargoOrderTests
         Assert.Equal(3, CartCargo(loaded, "z-cart"));
         var completed = loaded.ExportState();
         var valid = Assert.Single(completed.Instructions!).Task!;
-        foreach (var invalid in new[] { valid with { CompletedUnits = 2 }, valid with { LastEffectId = "cart-cargo-order:" + new string('0', 64) },
+        foreach (var invalid in new[] { valid with { CompletedUnits = 2 }, valid with { LastEffectId = Identity.Parse("cart-cargo-order:" + new string('0', 64)) },
             valid with { TargetItemKind = "storage_pot" }, valid with { TargetLotId = " bad " }, valid with { TargetCartLotId = "cargo" } })
         {
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(completed with

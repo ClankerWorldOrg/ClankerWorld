@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -249,9 +250,9 @@ public sealed partial class HouseToolsBehaviorTests
             Order(world, second) with { ProgressUnit = "fields" },
             Order(world, second) with { CompletedUnits = 2 },
             Order(world, second) with { LastEffectId = null },
-            Order(world, second) with { LastEffectId = "tree:plant:planted-tree-made-up" },
-            Order(world, second) with { LastEffectId = "tree:plant:planted-tree-+1-2" },
-            Order(world, second) with { TargetPosition = new(-1, -2), LastEffectId = "tree:plant:planted-tree--1--2" },
+            Order(world, second) with { LastEffectId = Identity.Parse("tree:plant:planted-tree-made-up") },
+            Order(world, second) with { LastEffectId = Identity.Parse("tree:plant:planted-tree-+1-2") },
+            Order(world, second) with { TargetPosition = new(-1, -2), LastEffectId = Identity.Parse("tree:plant:planted-tree--1--2") },
             Order(world, second) with { TargetCropKind = "grain" },
             Order(world, second) with { TargetAgentId = actor },
         })

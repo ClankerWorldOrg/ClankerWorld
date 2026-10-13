@@ -163,7 +163,7 @@ public sealed partial class WorldRuntime
                 var reservationId = WritingMaterialReservationId(id, materials.Count);
                 inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, lot.Id, quantity,
                     AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                materials.Add(new(reservationId, lot.Id, input.Kind, quantity));
+                materials.Add(new(Identity.Parse(reservationId), lot.Id, input.Kind, quantity));
                 remaining -= quantity;
                 if (remaining == 0) break;
             }

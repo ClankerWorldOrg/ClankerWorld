@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -97,19 +98,18 @@ public sealed partial class WorldFireOrderTests
         var receipt = Submit(world, actor, "held-fire", "light a fire");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("stop-held-fire", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            var deadline = Stopwatch.StartNew();
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
-            while (!admitted && deadline.Elapsed < TimeSpan.FromSeconds(5))
+            for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync();
+                var step = await world.TickModelWorkAsync();
                 Assert.True(step.Advanced);
                 admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
-                if (!admitted) await Task.Delay(10);
+                if (!admitted) await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -230,7 +230,7 @@ public sealed partial class WorldFireOrderTests
         foreach (var bad in new[]
         {
             order with { ShelterCompletion = null },
-            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = "missing-fuel-payment" } },
+            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = Identity.Parse("missing-fuel-payment") } },
             order with { ShelterCompletion = order.ShelterCompletion with { WorldTick = world.WorldTick + 1 } },
             order with { ShelterBinding = order.ShelterBinding! with { OwnerId = Beta } },
         })

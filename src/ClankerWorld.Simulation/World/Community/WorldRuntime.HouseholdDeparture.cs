@@ -48,11 +48,12 @@ public sealed partial class WorldRuntime
         // Ownership changes now, location does not. Collection remains a separate physical action.
         var nextInventory = society.Checkpoint.Inventory;
         // Food sealed in a storage pot stays with the household; the allowance takes loose portions.
-        foreach (var lot in nextInventory.Lots.Where(lot => lot.OwnerId == householdId && lot.CarrierId is null &&
-                     lot.ContainerLotId is null && IsEdibleFood(lot.ItemKind)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray())
+        foreach (var match in FindGoods(nextInventory, new(GoodsUse.Holdings, null,
+                     GoodsOwners.One(householdId), EdibleFoodGoods)).Matches.Where(match =>
+                     match.Lot.CarrierId is null && match.Lot.ContainerLotId is null))
         {
-            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(nextInventory), lot));
-            var quantity = Math.Min(2 - allowance, available);
+            var lot = match.Lot;
+            var quantity = Math.Min(2 - allowance, match.Quantity);
             if (quantity <= 0) continue;
             var transferId = DepartureTransferId(actor, WorldTick, agents[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null
@@ -130,7 +131,7 @@ public sealed partial class WorldRuntime
             .SelectMany(job => job.InputReservationIds)
             .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.WorkerId == actor &&
                 job.OwnerId == householdId && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            .Distinct().Order().ToArray();
         if (heldReservations.Length > 0)
             ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, heldReservations));
         foreach (var id in group) RestoreHouseholdDeliveries(id, householdId, "depart");
@@ -190,7 +191,7 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor)
     {
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null) yield break;
@@ -203,7 +204,7 @@ public sealed partial class WorldRuntime
             yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
     }
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds)
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds)
     {
         var building = worldSimulation.Buildings.Single(item => item.InstanceId == buildingId);
         var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
@@ -261,7 +262,7 @@ public sealed partial class WorldRuntime
 
     private void ReconcilePausedHouseholdWork()
     {
-        bool Available(IReadOnlyList<string> ids) => ids.All(id =>
+        bool Available(IReadOnlyList<Identity> ids) => ids.All(id =>
         {
             var reservation = society.Checkpoint.Inventory.Reservations.SingleOrDefault(item => item.Id == id);
             var lot = reservation is null ? null : society.Checkpoint.Inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);

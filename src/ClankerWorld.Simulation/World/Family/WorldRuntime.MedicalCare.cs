@@ -123,7 +123,7 @@ public sealed partial class WorldRuntime
             MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
         agents[patient] = person with
         {
-            MedicalTreatment = new(caregiver, supply.Id, supply.OwnerId, id, kind, WorldTick, WorldTick,
+            MedicalTreatment = new(caregiver, supply.Id, supply.OwnerId, Identity.Parse(id), kind, WorldTick, WorldTick,
                 MedicalCareRules.TreatmentTicks),
         };
         if (agents[caregiver].MedicalSupplyTrip?.PatientId == patient)
@@ -319,7 +319,7 @@ public sealed partial class WorldRuntime
                 treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
                 treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick) ||
                 string.IsNullOrWhiteSpace(treatment.SupplyLotId) || string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) ||
-                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Length > DerivedId.MaximumLength ||
+                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Value.Length > DerivedId.MaximumLength ||
                 !doses.Add(treatment.DoseReservationId) ||
                 checkpoint.Inventory.Lots.Any(lot => lot.Id == treatment.SupplyLotId && lot.ItemKind != "medicine") ||
                 !checkpoint.Inventory.Reservations.Any(reservation => reservation.Id == treatment.DoseReservationId &&

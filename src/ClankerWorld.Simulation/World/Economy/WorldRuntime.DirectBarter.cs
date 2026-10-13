@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
     private const string DirectBarterPrefix = "direct-barter:";
 
     private bool HasTradeResponse(string actor) => !NeedsUrgentWarmth(agents[actor]) && society.Checkpoint.Inventory.Offers.Any(offer =>
-        offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+        offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
         offer.State == DirectBarterState.Open && offer.ExpiryTick >= WorldTick &&
         (offer.FirstPartyId == actor || offer.SecondPartyId == actor) &&
         !offer.AcceptedBy.Contains(actor, StringComparer.Ordinal));
@@ -97,7 +97,7 @@ public sealed partial class WorldRuntime
             society.Checkpoint.Inventory.Offers.Any(offer =>
                 offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == actor || offer.SecondPartyId == actor || offer.FirstPartyId == other || offer.SecondPartyId == other) ||
-                offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) && offer.ExpiryTick + 120 >= WorldTick &&
+                offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) && offer.ExpiryTick + 120 >= WorldTick &&
                 (offer.FirstPartyId == actor && offer.SecondPartyId == other || offer.FirstPartyId == other && offer.SecondPartyId == actor)))
         {
             return null;
@@ -129,7 +129,7 @@ public sealed partial class WorldRuntime
             return;
         }
         foreach (var offer in society.Checkpoint.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                     offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+                     offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
                      offer.ExpiryTick >= WorldTick && (offer.FirstPartyId == actor || offer.SecondPartyId == actor)))
         {
             if (offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))
@@ -174,7 +174,7 @@ public sealed partial class WorldRuntime
             }
             var id = DirectBarterOfferId(WorldTick, actor, other);
             society.Apply(checkpoint => SocietyRules.CreateBarterOffer(checkpoint,
-                new DirectBarterProposal(id, 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, WorldTick + 120)));
+                new DirectBarterProposal(Identity.Parse(id), 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, WorldTick + 120)));
             society.Apply(checkpoint => SocietyRules.AcceptBarterOffer(checkpoint, id, 1, actor));
             AppendEvent("barter_offered", actor + ":" + other);
             return;
@@ -227,7 +227,7 @@ public sealed partial class WorldRuntime
                 var memoryId = TrustMemoryId(owner, subject);
                 if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
                 {
-                    society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(memoryId, owner, subject,
+                    society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(memoryId), owner, subject,
                         $"Completed a mutually accepted exchange with {checkpoint.GetAgent(subject).Name}.", "public", WorldTick)
                     { Kind = SocietyMemoryKind.Relationship }));
                 }
@@ -252,7 +252,7 @@ public sealed partial class WorldRuntime
     private void MaintainDirectBarters()
     {
         foreach (var offer in society.Checkpoint.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                     offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal)).ToArray())
+                     offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal)).ToArray())
         {
             var currentInventory = society.Checkpoint.Inventory;
             var parties = new[]
@@ -273,9 +273,9 @@ public sealed partial class WorldRuntime
                 AppendEvent("barter_cancelled", offer.FirstPartyId);
             }
         }
-        var stale = society.Checkpoint.Inventory.Offers.Where(offer => offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+        var stale = society.Checkpoint.Inventory.Offers.Where(offer => offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
                 offer.State != DirectBarterState.Open && offer.ExpiryTick + 120 < WorldTick)
-            .OrderByDescending(offer => offer.ExpiryTick).Skip(16).Select(offer => offer.Id).ToHashSet(StringComparer.Ordinal);
+            .OrderByDescending(offer => offer.ExpiryTick).Skip(16).Select(offer => offer.Id).ToHashSet();
         if (stale.Count > 0)
         {
             ApplyInventoryTransition(inventory => inventory with

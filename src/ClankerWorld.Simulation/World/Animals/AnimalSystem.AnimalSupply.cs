@@ -59,8 +59,10 @@ internal sealed partial class AnimalSystem
                             root.ItemKind == InventoryContainerRules.WaterJug && water.Any(content => content.Root.Id == root.Id) &&
                             carriedWater < definition.DailyWater ? 1 : 0,
                     };
-                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), world.FreeCarryCapacity(actor)));
-                    if (quantity <= 0 || !world.VesselFits(root, world.FreeCarryCapacity(actor)) ||
+                    if (wanted <= 0) continue;
+                    var capacity = world.PickupCarryCapacity(actor, root, animal.Position);
+                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), capacity));
+                    if (quantity <= 0 || !world.VesselFits(root, capacity) ||
                         AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(world, actor, animal, root, quantity)) continue;
                     yield return new(root, yard, quantity, animal.Id, action);
                 }
