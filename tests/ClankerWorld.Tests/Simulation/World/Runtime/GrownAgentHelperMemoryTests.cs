@@ -423,9 +423,10 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
     }
 
-    internal static async Task WaitForRequests(WorldRuntime world)
+    internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
         await ModelWorkHarness.WaitForExistingAsync(world, item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision);
+        await Task.WhenAll(additionalTasks);
     }
 
     private static async Task<byte[]> CreateBornAsync()
