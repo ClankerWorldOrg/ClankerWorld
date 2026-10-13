@@ -296,7 +296,7 @@ public sealed partial class WorldRuntime
                     lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
                     foreach (var item in completedIdentityMoments)
                     {
-                        FinishModelWork(item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                        FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                             ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                         pendingIdentityMoments.Remove(item.Request.Observation.AgentId);
                         item.Cancellation.Dispose();
@@ -307,7 +307,7 @@ public sealed partial class WorldRuntime
                     if (deferModelCalls)
                     {
                         foreach (var item in completedWills)
-                            FinishModelWork(item.Request.RequestId,
+                            FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId,
                                 proposed.admittedModelReplies.Contains(item.Request.RequestId)
                                     ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                         foreach (var id in pendingWills.Keys.Where(id =>
@@ -317,7 +317,7 @@ public sealed partial class WorldRuntime
                         foreach (var item in completed)
                         {
                             var decision = result.Decisions.FirstOrDefault(decision => decision.AgentId == item.Request.Observation.AgentId);
-                            FinishModelWork(item.Request.RequestId, decision?.Admission is { Accepted: true, FellBack: false }
+                            FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, decision?.Admission is { Accepted: true, FellBack: false }
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingModelCalls.Remove(item.Request.Observation.AgentId);
                             item.Cancellation.Dispose();
@@ -329,7 +329,7 @@ public sealed partial class WorldRuntime
                         }
                         foreach (var item in completedConversationTurns)
                         {
-                            FinishModelWork(item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                            FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingConversationTurns.Remove(item.Request.ConversationId);
                             item.Cancellation.Dispose();
@@ -345,7 +345,7 @@ public sealed partial class WorldRuntime
                     {
                         foreach (var item in completedConversationTurns)
                         {
-                            FinishModelWork(item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                            FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingConversationTurns.Remove(item.Request.ConversationId);
                             item.Cancellation.Dispose();
@@ -413,7 +413,7 @@ public sealed partial class WorldRuntime
     private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true)
     {
         if (!pendingModelCalls.Remove(agentId, out var pending)) return;
-        FinishModelWork(pending.Request.RequestId, ModelWorkStage.Cancelled);
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         RecordModelAttempt(agentId, "canceled");
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
         _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);

@@ -220,7 +220,7 @@ public sealed partial class WorldRuntime
     private void CancelIdentityMoment(string id, bool underRuntimeGate = true)
     {
         if (!pendingIdentityMoments.Remove(id, out var pending)) return;
-        FinishModelWork(pending.Request.RequestId, ModelWorkStage.Cancelled);
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         if (agents.TryGetValue(id, out var physical) &&
             (physical.IdentityMoments ?? []).Any(moment => moment.Kind == pending.Kind && moment.Outcome == "requested"))
             FinishIdentityMoment(id, pending.Kind, "interrupted");
