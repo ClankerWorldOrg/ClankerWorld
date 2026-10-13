@@ -14,7 +14,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class AgentLifeMomentIdentityTests
 {
-    private const string ActorId = "founder:00000000000000000000000000000001";
+    private const string ActorId = NormalPathWorld.Founder1;
     private const string Personality = "Patient and curious";
     private const string Aspiration = "Explore the riverbanks";
 

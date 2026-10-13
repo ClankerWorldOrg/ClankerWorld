@@ -41,9 +41,11 @@ choose their existing normalization and suffix explicitly: unchanged text,
 collapsed whitespace, or controls replaced by spaces; an ellipsis is optional
 and counts toward the limit. Names and source text keep their original values.
 
-`IdentityTextBoundaryTests` scans production source for hand-built IDs in
+`IdentityTextBoundaryTests` uses semantic binding to scan production source for hand-built IDs in
 identity-valued assignments, returns and arguments, and for literal length
-comparisons and relational length patterns. Existing expressions are recorded
+comparisons and relational length patterns. It scans each source file once,
+including with Windows paths, and checks method candidates when a framework
+assembly is unavailable. Existing expressions are recorded
 in `tests/ClankerWorld.Tests/Architecture/identity-text-uses.json`. Each
 allowance belongs to its exact file and expression; it cannot fund a new use.
 The check requires obsolete allowances to be removed and compares the file
@@ -57,7 +59,6 @@ and order effect credits use `Identity`. Credit operations accept the type,
 so a raw interpolated string cannot be credited. Existing string factories are
 parsed explicitly at these boundaries; their digest and prefix spellings stay
 the same. Optional handles retain null, and JSON still writes strings.
-
 The Town, animal, knowledge, trade and belief validators use these shared
 rules. The five prior excerpt implementations in law labels, memory summaries,
 Town Council/hearing text and memory retrieval are removed; their callers name
@@ -73,21 +74,22 @@ world, then recalls a memory keyed by its new payment ID. This is a
 controlled-stock kernel trace. The admitted Store and Market purchase workflows
 have separate native regression coverage.
 
-The following matrices list the production generators they exercise. Pure
-factory rows invoke the production method, rather than copying its formula.
+These files extend the partial `GrownAgentHelperMemoryTests` class; their file
+names are not test-class filters. The following matrices list the production
+generators they exercise. Pure factory rows invoke the production method, rather than copying its formula.
 They save the generated ID as a real social-memory key in the native world,
 strictly reload to identical checkpoint bytes, retrieve that memory for its
 actual owner and validate the resulting cognition observation. Controlled
 factory-input records do not represent model-admitted civic or owner orders.
 
-| Inventory | Production generators and variants |
+| Test file | Production generators and variants |
 | --- | --- |
-| `DerivedInventoryIdTests` | Partial transfer, containment, take, relocation, handcart load/unload, barter holds and settlement, milk and payment splits |
-| `PaidMilkDerivedIdTests` | Fifty successive ordinary milk barters, both consents, payment quantities, stable milk identity, completed reservations, complete payment source links and recall after every barter |
-| `DerivedSocietyIdTests` | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
-| `DerivedWorkIdTests` | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
-| `DerivedCivicIdTests` | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
-| `DerivedPrivateFactoryTests` | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices |
+| [DerivedInventoryIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedInventoryIdTests.cs) | Partial transfer, containment, take, relocation, handcart load/unload, barter holds and settlement, milk and payment splits |
+| [PaidMilkDerivedIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/PaidMilkDerivedIdTests.cs) | Fifty successive ordinary milk barters, both consents, payment quantities, stable milk identity, completed reservations, complete payment source links and recall after every barter |
+| [DerivedSocietyIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedSocietyIdTests.cs) | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
+| [DerivedWorkIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedWorkIdTests.cs) | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
+| [DerivedCivicIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs) | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
+| [DerivedPrivateFactoryTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs) | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices |
 
 The civic matrix preserves a named saved Town with a 128-character ID and a
 120-character name, a 128-character household name and an 80-character project
@@ -107,7 +109,7 @@ contents, current source tick and the owner as subject.
 
 A child born in the world gets `DerivedId.Create("{worldId}:agent:{request}")`
 from its accepted birth request. Saves made before the
-[#1364](https://github.com/compoodment/ClankerWorld/issues/1364) rename spelled
+[#1364](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1364) rename spelled
 it `:inhabitant:`; those saves are refused by schema, so no producer or reader
 accepts the old spelling. The same rename changed the text of these
 generators: `direct-barter:` (direct barter offers), `shop-trade:` (shop
@@ -121,6 +123,8 @@ Do not recognize a hashed ID by searching its old concatenated prefix. The
 birth-food, production-input, market/payment, inheritance, orchard and civic
 bindings recompute their exact generated handle. A provenance field identifies
 the original source even when the new opaque ID no longer embeds that source.
+Ordinary Town donations and public-service deliveries share `WarehouseStockId`
+for both the inventory transfer and its native remedy receipt.
 
 The named work, Society and Town factories expose their existing shapes to the
 inventory. They introduce no second bound or hashing policy. When adding a
@@ -130,3 +134,10 @@ recomputation together.
 
 See [Saves and replay](saves-and-replay.md#bounded-derived-identities) for the
 schema boundary and older-save behavior.
+
+## Hard test worlds
+
+The shared builders default to maximum-length founder IDs and Unicode names.
+The second-generation helper retains the child ID generated by an accepted
+Society birth. See [Hard test worlds](build-and-test.md#hard-test-worlds) for
+the fixture operations and how to use them.

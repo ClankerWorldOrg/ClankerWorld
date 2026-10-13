@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # How the game works
@@ -16,10 +16,35 @@ boundaries; [game design](../game-design/README.md) owns the intended experience
 | `src/ClankerWorld.Server` | Headless server, signed owner API, clock, provider adapters and private installation stores |
 | `src/ClankerWorld.GodotClient` | Windows game view, local preferences, observations and signed requests |
 
-The host references the simulation, never the reverse. The simulation runs and
+The server references the simulation, never the reverse. The simulation runs and
 tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
-host's versioned HTTP contract. Legacy web assets are diagnostic tools.
+server's versioned HTTP contract. Legacy web assets are diagnostic tools.
+
+## Source layout
+
+The current code is split by area, with
+`WorldRuntime` partials forwarding to the systems already extracted. The
+[code structure](code-structure.md) page describes the refactor target.
+
+| Area | Current code |
+| --- | --- |
+| Tick preparation, commit, model admission and owner orders | [World/Runtime](../../src/ClankerWorld.Simulation/World/Runtime/), including `WorldRuntime.Tick.cs`, `WorldRuntime.Cognition.cs`, `WorldRuntime.Orders.cs` and `OrderTaskParser.cs`; request contracts live in [World/Instructions](../../src/ClankerWorld.Simulation/World/Instructions/) |
+| Saved world encoding and history | `WorldRuntimeState.cs`, `WorldRuntimeCodec.cs` and `WorldHistory.cs` in `World/Runtime`; [server Saves](../../src/ClankerWorld.Server/Saves/) owns files and recovery |
+| Inventory authority, goods and food | [Kernel](../../src/ClankerWorld.Simulation/Kernel/); [World/Goods](../../src/ClankerWorld.Simulation/World/Goods/) owns selection and rechecks |
+| People, relationships and household transactions | [Society](../../src/ClankerWorld.Simulation/Society/); [World/Family](../../src/ClankerWorld.Simulation/World/Family/) integrates care, birth, continuity, medicine and wills |
+| Housing, household departure, skills and lessons | [World/Community](../../src/ClankerWorld.Simulation/World/Community/) |
+| Production, equipment, barter, shops, containers and handcarts | [World/Economy](../../src/ClankerWorld.Simulation/World/Economy/), with production and order coordination in `World/Runtime` |
+| Town membership, land, law, councils and setup | [World/Civic](../../src/ClankerWorld.Simulation/World/Civic/) owns `TownSystem`; [World/Towns](../../src/ClankerWorld.Simulation/World/Towns/) holds its coordinator forwarders, contracts, layout, roads, projects and boats |
+| Weather, ecology, chunks and exposure | [World/Environment](../../src/ClankerWorld.Simulation/World/Environment/); map generation and terrain live in [World/Map](../../src/ClankerWorld.Simulation/World/Map/) |
+| Field work, crops and forestry | [World/Farming](../../src/ClankerWorld.Simulation/World/Farming/); `World/Economy` and `World/Runtime` retain planner and order adapters |
+| Animals, riding and physical supply trips | [World/Animals](../../src/ClankerWorld.Simulation/World/Animals/) |
+| Conversations and marriage | [World/Conversations](../../src/ClankerWorld.Simulation/World/Conversations/); pending model work stays in `World/Runtime` |
+| Memories, beliefs, exploration and writing | [World/Knowledge](../../src/ClankerWorld.Simulation/World/Knowledge/); model requests and reply validation use [Cognition](../../src/ClankerWorld.Simulation/Cognition/) |
+| Content definitions, recipes and imports | [Content](../../src/ClankerWorld.Simulation/Content/) owns declarative validation and imports; [World/Content](../../src/ClankerWorld.Simulation/World/Content/) owns built-in definitions and world-content simulation |
+| Shared physical obstacles | [World/Queries](../../src/ClankerWorld.Simulation/World/Queries/) owns `GroundOccupancy` and its runtime adapter |
+| HTTP, pairing, clock, models and observations | [server Endpoints](../../src/ClankerWorld.Server/Endpoints/), [Pairing](../../src/ClankerWorld.Server/Pairing/), [Runtime](../../src/ClankerWorld.Server/Runtime/), [Providers](../../src/ClankerWorld.Server/Providers/) and [Observation](../../src/ClankerWorld.Server/Observation/); [Worlds](../../src/ClankerWorld.Server/Worlds/) owns world selection and [Content](../../src/ClankerWorld.Server/Content/) owns approved assets and owner content requests |
+| Game screens, requests, local server and launcher | [client Screens/Main](../../src/ClankerWorld.GodotClient/Screens/Main/), [UI](../../src/ClankerWorld.GodotClient/UI/), [Networking](../../src/ClankerWorld.GodotClient/Networking/), [Protocol](../../src/ClankerWorld.GodotClient/Protocol/), [Pairing](../../src/ClankerWorld.GodotClient/Pairing/), [ClientState](../../src/ClankerWorld.GodotClient/ClientState/), [Launcher](../../src/ClankerWorld.GodotClient/Launcher/) and [Diagnostics](../../src/ClankerWorld.GodotClient/Diagnostics/) |
 
 ## Derived identities
 
@@ -53,7 +78,7 @@ aliases. Content package identifiers retain their import rules.
   action. Pause and loss of authenticated client presence invalidate in-flight
   work. A failed or unusable reply uses only explicit `safe_idle`;
   it cannot execute a strategic candidate or complete an instruction.
-- **Time and spending require presence.** The host remains reachable while
+- **Time and spending require presence.** The server remains reachable while
   paused. Ticks and model calls require an authenticated presence lease;
   the last disconnect closes the gate after about five seconds. Reconnecting
   performs no offline catch-up and does not clear a manual pause.
@@ -105,7 +130,7 @@ To add a new obstacle kind, define its layer here and explicitly select it in
 the queries whose rules need it.
 
 The approved runtime refactor is tracked in
-[#1377](https://github.com/compoodment/ClankerWorld/issues/1377). The runtime
+[#1377](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1377). The runtime
 coordinates the simulation through a partial class. `Conversations/ConversationSystem.cs`
 owns conversations, daily budgets and marriages in one immutable
 `ConversationState`. Every write replaces the affected read-only collection
@@ -212,7 +237,7 @@ and retains no coordinator reference.
 stock-position and urgent-need rules. Its live adapter supplies the current
 society, positions, distance, building storage and warmth calculation. The
 adapter stays on the coordinator across tick commits; physical queries are
-never cached. Named ground-occupancy layers remain a later refactor step; the
+never cached. Ground occupancy uses the named layers described above; the
 goods query is described below. Snapshot-keyed
 derived values must be pure, unsaved and absent from digests. Immutable
 snapshots can pass through the trusted tick copy by reference; replacing a
@@ -328,10 +353,8 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
-outside `Goods/` and validation code. The recorded baseline in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 244 references across 67 files, down from 245 before the remaining
-workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
+outside `Goods/` and validation code. The per-file baseline is recorded in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json).
 The guard binds C# property symbols, including aliases and conditional access;
 comments, strings and unrelated `Lots` properties do not count. It exempts files
 ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
@@ -405,7 +428,7 @@ retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
 single food catalog: ingredients can be stored without becoming edible servings.
 
 The remaining uses belong to later steps of
-[#1366](https://github.com/compoodment/ClankerWorld/issues/1366). Unsupported
+[#1366](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1366). Unsupported
 origin/destination combinations are refused rather than silently ignored. Extra
 units and a contents kind apply only to `VesselFor`.
 
@@ -453,7 +476,7 @@ unit; household custody, storage and free-cargo guards remain additional filters
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
-of [#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
+of [#1370](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1370).
 
 Personal recovery uses `RecoveryHoldings` for property awaiting retrieval and
 `Recover` for a load the agent can fetch now. Both include damaged and spoiled
@@ -471,7 +494,7 @@ and borrowed Market-stall exclusions remain birth filters. Birth rechecks its
 selected food before forming the contributions. It reserves and consumes food
 where stored, including usable pots with other reserved contents; it adds no
 route or carrying-room requirement. The owner's October 11 clarification is
-recorded in [#1676](https://github.com/compoodment/ClankerWorld/pull/1676).
+recorded in [#1676](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1676).
 
 Warehouse stock uses Holdings before route checks and ReachableHoldings
 for reachable stock, keeping the resident-Town/abandoned-Town and Warehouse
@@ -516,7 +539,7 @@ its saved world systems. It does not generate a disposable initial ecology,
 chunk set or weather state. New worlds still generate those systems normally;
 ordinary loads still validate saved data and check deterministic map identity.
 
-The host supports only the world runtime. Configuring the removed
+The server supports only the world runtime. Configuring the removed
 `fixture` world mode refuses startup with a clear error. The scripted one-agent
 fixture and its persistence/projection branches are gone; map generators,
 terrain codecs and routing remain shared by the native world.
@@ -526,9 +549,9 @@ faction/law, currency and culture records are removed. Physical goods,
 ownership/access checks and actual Town laws keep their existing systems.
 Currency and culture remain intended features to build against those systems.
 The test-only PNG asset normalizer is also removed; mod import, canonical asset
-IDs, reservation budgets and the host-owned approved-asset catalog remain.
+IDs, reservation budgets and the server-owned approved-asset catalog remain.
 
-The current host aims for one tick per real second. New worlds save 360 ticks
+The current server aims for one tick per real second. New worlds save 360 ticks
 per day and a 40-day year with four ten-day seasons; lifecycle thresholds are
 3/15/45/60 days. Newly created playable worlds start at 06:00 on Spring 1,
 Year 1. A saved 90-tick calendar offset sets that clock while elapsed world
@@ -538,7 +561,7 @@ displayed midnight. Load can affect real-time pace. The old development calendar
 is not silently reinterpreted; the observation carries the saved clock values.
 Its calendar pace includes the saved season lengths and clock offset, so the game names dates
 such as Autumn 2, Year 1 from the world's own calendar instead of a copy. With
-no season lengths, from an older host, the game shows numeric dates.
+no season lengths, from an older server, the game shows numeric dates.
 
 Model requests are dispatched after a committed tick and resolved at a later
 tick boundary. The unresolved queue entry is saved; the HTTP task is not save
@@ -806,8 +829,11 @@ satisfy it. Each transfer still uses one exact source lot, its unreserved
 quantity and the destination's available room.
 
 The order binds a native route, building identity, owner and listed position,
-then the exact carried lot and requested-kind quantity. Household pickup uses
-the existing ownership transfer and `DeliveryBuildingId` promise; a Town
+then the exact carried lot and requested-kind quantity. Partial pickup derives
+the lot handle through the same `DerivedId.Create` factory as the inventory
+transition, preserving the binding when the complete split identity is hashed.
+Household pickup uses the existing ownership transfer and `DeliveryBuildingId`
+promise; a Town
 Warehouse never becomes a household delivery destination. A matching carried
 shipment can be explicitly bound before its final delivery. Continuing a bound
 shipment does not repeat ingredient-demand selection, because inbound stock
@@ -1010,8 +1036,10 @@ count goods acquired or food consumed. Food-source travel finishes on arrival wi
 interaction range of the requested food site; exact-tile travel requires the
 tile itself. Counted travel is refused.
 An unrelated action, blocked movement or unavailable food leaves the instruction
-pending, including across reload. A recognized new order replaces outstanding
-orders unless `Queue` is true; queued orders run in submission order. Cancel
+pending, including across reload. A recognized new order replaces the current
+non-queued task unless `Queue` is true, preserving the queue. Pending selection
+and saved work bindings prefer that current task, then queued tasks in submission
+order. Cancel
 retains an idempotent receipt, including a no-op cancellation of a closed order.
 Receipt-only owner changes supersede a concurrently prepared tick too.
 Cancellation matches the complete native agent identity to its saved order,
@@ -1039,7 +1067,7 @@ remains available after the conversation. It also waits for a life-event
 identity reply, then uses the accepted identity in its refreshed observation.
 Ordinary changes to the clock or need values do
 not by themselves request another paid decision. Pending work is kept only for
-a choice the earlier request lacked, a change in urgent hunger or warmth, or new
+a choice the earlier request lacked, a change in urgent food need or warmth, or new
 observer guidance; choices that merely disappeared leave the accepted reply
 valid. An agent whose reply was accepted takes no extra waiting routine in that
 tick, and pending work with no call in flight is rebuilt before it is sent.
@@ -1099,17 +1127,17 @@ answer. Restore can retry a still-relevant saved decision. Synchronous fixture
 methods remain for isolated tests; they are not the live scheduling path.
 
 Tick-boundary faults in live play discard the failed proposal before publishing
-its checkpoint. The host retries isolated copies with groups of agent actions
+its checkpoint. The server retries isolated copies with groups of agent actions
 withheld, bisecting only after a failure. Received replies stay frozen across
 these trials, and trial worlds make no checkpoint writes. If withholding one
-actor's action alone makes the entire tick and save check succeed, the host
+actor's action alone makes the entire tick and save check succeed, the server
 refuses that action, makes the actor wait and cancels their current order. A
 saved refusal blocks the same choice for that actor for one world day. The
 Event Log explains the refusal, Developer tools show the cumulative count,
 and the server records a bounded check name without exception text or paths.
 Healthy ticks make one attempt and one checkpoint preparation and write.
 The strict setting `ClankerWorld:Clock:StrictTickFailures` keeps test and CI
-hosts halting on the first failure. Global faults or failures that cannot be
+servers halting on the first failure. Global faults or failures that cannot be
 isolated to one action hold the last good state and pause the world.
 Active checkpoint I/O/access failures retry only the retained save while paused;
 success still requires a later explicit Resume. Other faults latch for operator
@@ -1128,7 +1156,7 @@ relocation, a move longer than three tiles, a new world or a checkpoint rewind
 snaps and clears the phase. Wrapped targets use the nearest world copy and
 camera/zoom changes retain intermediate tile coordinates. Pointer targets,
 names, conversation badges and the selected agent card follow the drawn
-control. Despawn removes the local entry. The host's positions, routes,
+control. Despawn removes the local entry. The server's positions, routes,
 observations, clock and save schema are unchanged.
 
 The Godot World Info page refreshes its date, season, camera-local weather,
@@ -1145,9 +1173,9 @@ Time of day is worked out from the elapsed tick and the world's saved calendar
 (ticks per day, season lengths and calendar offset). Darkness itself is not
 saved. `DaylightRules` follows the 24-hour clock the game shows, where a tick's
 clock minute is its tick of day × 1,440 ÷ ticks per day. Night follows the
-seasons ([#891](https://github.com/compoodment/ClankerWorld/issues/891),
+seasons ([#891](https://github.com/ClankerWorldOrg/ClankerWorld/issues/891),
 replacing the same-all-year night of
-[#641](https://github.com/compoodment/ClankerWorld/issues/641)):
+[#641](https://github.com/ClankerWorldOrg/ClankerWorld/issues/641)):
 `DaylightRules.NightShare` gives 30% of the day on the first day of summer,
 50% on the first day of winter and 40% on the first days of spring and autumn,
 with an even daily step between them across each season's own length. Night is
@@ -1197,7 +1225,7 @@ It grants no hearth or stock access and does not satisfy the family housing gate
 or change birth placement. Unfinished orders recheck permission; completed
 arrivals remain historical after the storm or Hall disappears.
 
-The owner snapshot carries `darknessBasisPoints`, decided by the host from the
+The owner snapshot carries `darknessBasisPoints`, decided by the server from the
 same rule. The Godot client's `NightLayer` draws a deep blue wash, at most 40%
 opaque, over the visible map just above the ground, roads, buildings and trees,
 and below map labels, agent markers, weather and panels. It eases between the
@@ -1207,21 +1235,21 @@ the same in both themes. The World Map panel is not darkened.
 `GoldenHourLayer` draws one click-through multiply immediately above that
 wash and below night lights, map labels, moving figures and weather. It uses
 the approved rose E9A3A0 at dawn and gold F2B160 at dusk, up to 22%. Strength
-is `4 × darkness × (1 − darkness)`, so the host's existing seasonal twilight
+is `4 × darkness × (1 − darkness)`, so the server's existing seasonal twilight
 determines its timing, with zero effect at full day or night. Morning versus
 evening comes from the accepted world tick, ticks per day and saved calendar
 offset; the client never computes another night-length rule. The local
 strength eases between reports in up to half a second. Pause freezes it;
 world changes, rewind, clock-half changes and gaps over a game hour settle
 directly to the current reading. It is unsaved display state and adds no
-host fields, events, game effects or new night tint.
+server fields, events, game effects or new night tint.
 
-Night lights ([#890](https://github.com/compoodment/ClankerWorld/issues/890))
+Night lights ([#890](https://github.com/ClankerWorldOrg/ClankerWorld/issues/890))
 are drawn by `NightLightsLayer`, above the night and golden-hour washes and under labels and
 agents. It takes each placed building's family, footprint, door side and the
 roof, yard and door spots from `BuildingSprites.Plan`, and decides from the
 snapshot whether it is occupied (a living agent stands within its footprint)
-or working (a production job runs there); nothing new comes from the host and
+or working (a production job runs there); nothing new comes from the server and
 nothing is saved. `NightLightShapes` turns that into rows of light in the
 building's 32-unit tile space: spills from windows on the front and both
 sides, never the back, and from the door; a forge pool in a Blacksmith's yard;
@@ -1233,7 +1261,7 @@ brightens the ground and pulls its hue toward the light, so the ground keeps
 its texture. At overview zoom a lit building is a warm speck. The same shapes
 draw the art preview's night proposal (`tools/ArtPreview/Proposed/NightLights.md`),
 including designs not in the game yet and the street lanterns of
-[#892](https://github.com/compoodment/ClankerWorld/issues/892).
+[#892](https://github.com/ClankerWorldOrg/ClankerWorld/issues/892).
 
 `SmokeLayer` uses the same living, non-draft occupancy and running-job facts,
 restricted to occupied Houses and working Blacksmith forges. `SmokeArt` anchors
@@ -1241,7 +1269,7 @@ the approved B column to the building atlas’s actual flue or ember pixels at
 16 and 32 px. It groups translucent pixels into horizontal rows, draws only
 camera-visible sources (including wrapped copies), and steps the existing
 weather clock at 12 frames per second. Pausing freezes that clock. Smoke adds
-no host fields, fuel use, heating rules or saved state.
+no server fields, fuel use, heating rules or saved state.
 
 `StoredStockLayer` draws approved stock A below the night wash and below map
 labels, agents and weather. `StoredStockPiles` reads accepted per-building
@@ -1259,7 +1287,7 @@ sites are excluded, along with water, mountains and unknown ground. No suitable
 tile means no pile for that group. Native world-pixel primitives preserve the
 approved casts, colours and paint order at both atlas sizes. Drawing is bounded
 to visible tiles and wrapped copies; unchanged piles reuse their commands.
-No host fields, inventory transitions, saved state or collision rules change.
+No server fields, inventory transitions, saved state or collision rules change.
 
 ### Building completion moments
 
@@ -1358,7 +1386,7 @@ sends the same three needs as flat fields after `fullness_basis_points`:
 their scales explained in its instructions.
 
 `ModelNeedWords` holds the agreed alternative from
-[#646](https://github.com/compoodment/ClankerWorld/issues/646): each need as a
+[#646](https://github.com/ClankerWorldOrg/ClankerWorld/issues/646): each need as a
 word followed by its whole scale, worst to best, with no exact value, such as
 `"fullness": "hungry (starving, hungry, fine, full; starving is worst, full is best)"`.
 Fullness is *full* from 70%, *fine* from 40%, *hungry* from 20% and *starving*
@@ -1366,7 +1394,7 @@ below that, matching the comfortable and urgent food references. Warmth is
 *warm* from 60%, *chilly* from 35% and *freezing* below that. Illness is *well*
 below 25%, *unwell* below 50%, *ill* below 75% and *very ill* from there: each
 step is where illness slows work further (the owner's choice on
-[#672](https://github.com/compoodment/ClankerWorld/issues/672)). In words, the
+[#672](https://github.com/ClankerWorldOrg/ClankerWorld/issues/672)). In words, the
 personal request sends `fullness`, `self.warmth` and `self.illness` in place of
 the three `_basis_points` fields, in the same positions, and drops the numeric
 scale sentences; Jev's routine request sends `fullness`, `warmth` and `illness`
@@ -1405,6 +1433,10 @@ The request has a 15-second timeout; accepted optional fields are limited to
 the entire change. An absent, declined, failed or interrupted reply consumes
 the opportunity without retry. With no selected personal model it keeps the
 identity without a call.
+
+Death revokes unanswered relationship proposals. Only an accepted partnership
+ends by death, giving the survivor the partner-loss opportunity and identifying
+them as a partner in the deceased's will context.
 
 Life-moment replies are admitted at the live tick commit boundary, rechecking
 the actor, current identity, run epoch and selected provider. Pause and presence
@@ -1457,7 +1489,7 @@ name-specific explanation. The Profile's open name field keeps unsubmitted
 edits through ordinary refreshes, regardless of keyboard focus. Submitted and
 refused attempts also stay in the field (`RefusedAgentRename`). Closing the
 editor, renaming successfully, or showing another agent or world drops the
-attempt; its name labels always follow the host's snapshot. An unchanged chosen
+attempt; its name labels always follow the server's snapshot. An unchanged chosen
 name is a no-op; deliberately choosing the exact displayed placeholder makes
 it a chosen name and reserves its first token. No name check rewrites saved
 dialogue or identity references, and player choices still supersede late model
@@ -1512,7 +1544,7 @@ transport failures do not trigger a repair call or an unstructured alternate
 request. Every billable attempt is reserved in the durable usage store before
 HTTP; an absent key or exhausted limit sends no request. Future world decisions
 still follow the normal reevaluation rules. The separate, explicitly agreed
-duplicate-name request in [#456](https://github.com/compoodment/ClankerWorld/issues/456)
+duplicate-name request in [#456](https://github.com/ClankerWorldOrg/ClankerWorld/issues/456)
 is not a repair of an action reply.
 
 The owner agent card reports a bounded model status: ready, waiting, canceled,
@@ -1524,14 +1556,14 @@ messages, provider bodies and keys do not enter these fields.
 
 For OpenAI and Ollama Cloud, the personal adapter sends JSON-object response
 mode and omits temperature and output-token limits. The owner's 16-call sample in
-[#457](https://github.com/compoodment/ClankerWorld/issues/457) used 44,285 output
+[#457](https://github.com/ClankerWorldOrg/ClankerWorld/issues/457) used 44,285 output
 tokens (about 2,768 per call), nearly its 43,576 input tokens. This does not
 establish a safe universal output cap, so the cap stays unset; output billing
 and truncation remain model-dependent. There is no smaller candidate list or
 wider Jev role in this change.
 
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
-and the same reply validation. `AnthropicModelClient` in the host sends them to
+and the same reply validation. `AnthropicModelClient` in the server sends them to
 Anthropic's Messages API through Anthropic's official C# client
 (`IModelClient` is the seam in the simulation). The game's instructions
 are the system prompt, marked for prompt caching: calls that repeat them cost
@@ -1548,7 +1580,7 @@ Markdown code fence is removed before the game reads the text.
   error keeps its status, so a 400 is an unsupported request, as on the
   chat-completions path.
 - The client never retries, because a retry is another paid call. It sends
-  only the owner's key: it never falls back to the host's own Anthropic token
+  only the owner's key: it never falls back to the server's own Anthropic token
   or login profile.
 - A refused or cut-off reply still records its reported token counts as a
   failed call, for decisions, conversations and Test model checks. Decision
@@ -1583,11 +1615,11 @@ unrelated duplicate turns and dangling or cyclic correction chains are
 rejected. The indexes are rebuilt for each validation, are never saved and
 discard no beliefs or provenance.
 
-Ordinary conversation is a host-controlled activity, not free-form world
+Ordinary conversation is a server-controlled activity, not free-form world
 commands. The normal provider router requires an explicit personal planning
 assignment for the current speaker and sends only that speaker's identity and
 the accepted public history. A proposal and acceptance each use that agent's
-saved daily allowance. The host admits at most two pending conversation calls
+saved daily allowance. The server admits at most two pending conversation calls
 per world tick and six alternating public turns per conversation, followed by
 one wrap-up. Responses must match the saved conversation revision, run epoch,
 request and speaker; stale or malformed replies are not admitted. Public turns
@@ -1655,7 +1687,8 @@ either participant is talking. Conversation logs record only purpose, bounded
 turn count, latency and usage totals, including reported usage for rejected speech.
 
 Personal requests retrieve at most four own-memory/belief excerpts and sixteen
-recent own-map facts. Permanent rename experiences take precedence, newest first,
+recent own-map facts. Social memories protected by `SocietyMemoryArchiveRules`,
+including final words and permanent rename experiences, take precedence, newest first,
 including before the 256-source scan limit; ordinary sources retain their
 relevance and salience ranking. The owner's bounded 16-entry Memories projection
 also keeps permanent entries first and marks them Permanent. All rename source
@@ -1664,7 +1697,10 @@ Excerpts use at most 160 UTF-16 units and keep complete Unicode characters;
 the saved source text and evidence stay unchanged.
 An existing Jev routine call may score up to twelve previously unassessed
 ordinary records; permanent entries are excluded from scoring and cannot fade
-through a low assessment. Only linked salience/confidence values are saved.
+through a low assessment. Candidates must fit the writer's latest-256 scoring
+window, including scores already saved for protected sources, so the helper
+does not repeatedly assess entries the index cannot retain.
+Only linked salience/confidence values are saved.
 The same Jev or OpenAI Decisions request may include a `memory_summary`
 choice over source-derived recent, earliest or varied extracts, plus
 `keep_records`. It adds no separate paid request or free-form model prose. Local retrieval works with
@@ -1696,13 +1732,14 @@ records owned by that actor, at least three world days old and below the same
 importance cutoff. Corrected, permanent and event-backed records are excluded.
 Each option combines two labeled excerpts into at most 160 characters and is
 shorter than its complete source batch. The helper chooses only an offered ID;
-the host saves its exact extract and canonical typed source links. It can decline
+the server saves its exact extract and canonical typed source links. It can decline
 or omit the choice. Invalid, failed, cancelled, stale or personal-model replies
-cannot write a summary. The host rechecks the batch and attribution before
+cannot write a summary. The server rechecks the batch and attribution before
 applying an awaited reply. No original record is deleted or replaced.
 
 Saved owner-private summaries compete with active source records for the same
-four-excerpt recall budget. Each recalled summary includes bounded source
+four-excerpt recall budget, including the deceased agent's final will request.
+Each recalled summary includes bounded source
 attribution: subject, firsthand/hearsay/inference, confidence, speaker, event and
 correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
@@ -1873,7 +1910,7 @@ facts remain personal knowledge.
 The owner's model picker shows the game's own list for each provider,
 `ProviderModelCatalog.Curated`: newest generation first and, within a generation,
 larger models first. Add new models there in their place. When a key is known,
-the host checks it against the provider's model-list route (OpenAI
+the server checks it against the provider's model-list route (OpenAI
 `/v1/models`; Ollama Cloud `/api/tags`, then `/v1/models`; Anthropic
 `/v1/models` through its official client, with its own key header) using
 the saved key, a named key slot, or a key pasted for that check only, which is
@@ -1897,7 +1934,7 @@ panel. It sends one request through the same personal decision adapter used in
 play, at the chosen thinking level: chat completions with the required JSON
 response format for OpenAI and Ollama Cloud, and the Messages API for
 Anthropic. It sends no temperature, and an output-token limit only to
-Anthropic, which requires one. The host durably reserves a
+Anthropic, which requires one. The server durably reserves a
 paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
@@ -1926,7 +1963,7 @@ The reservation that brings the total to 80% of the cap, rounded up
 (`ProviderUsageStore.WarningMark`), raises `WarningReached` once at that
 installation-wide crossing. No additional durable warning marker is saved:
 totals only grow, one per reservation, and a changed cap sets a new mark that
-only later reservations can cross. In game-world mode the host acquires the
+only later reservations can cross. In game-world mode the server acquires the
 world mutation gate, then appends a player-facing `model_call_warning` event
 (`used:<count>:limit:<cap>`) to the world active at that time. A concurrent world
 switch can change which world receives it.
@@ -1955,7 +1992,7 @@ runs at once, so a model decision's late reply cannot be admitted before the
 pause. `provider_usage_limit_reached` logs `paused`, `paused_unsaved`,
 `superseded` or `failed`.
 
-Unreadable or inconsistent accounting leaves the host reachable with paid work
+Unreadable or inconsistent accounting leaves the server reachable with paid work
 blocked. Preserve the damaged file; changing the cap cannot bypass it. Writes
 use unique private temporary files flushed before replacement. Failed reservation
 writes do not increment the in-memory total or dispatch a model call. This does
@@ -1973,7 +2010,7 @@ the interval until the next observation uses that last reported weather.
 One game hour of snowfall fills the cover and two hours without snow melt it.
 Calendar pace converts ticks to hours; local frame time never ages it. A new
 view begins empty, including when a checkpoint is loaded. World, map and
-timeline changes and tick rewinds clear the history. It adds no host fields,
+timeline changes and tick rewinds clear the history. It adds no server fields,
 saved state, events or movement effects.
 
 Short observed outdoor agent and animal moves leave pressed footprints on
@@ -1996,7 +2033,7 @@ rules; comparison with an undecorated roof excludes flues, signs and other
 fittings. Roof outlines, open yards and grass shadows remain clear. Each roof
 is clipped by weather region before drawing, including wrapped copies, so a
 snowy side does not whiten a dry neighbour. At most 256 textures are cached;
-cover changes reuse them. No extra node, host field, event or saved state is added.
+cover changes reuse them. No extra node, server field, event or saved state is added.
 
 Small and Medium generated maps are connected to the normal world path. The
 older tiny map remains a populated native test setup; generation is no longer
@@ -2126,7 +2163,7 @@ frames, keeps zoom anchored to the cursor and uses the shortest wrapped travel.
 New requests start at the shown position/scale; drag and keyboard input cancel
 motion and apply immediately. Quick cards hold their screen position through
 travel. Zoom refreshes map sprites only when integer tile size changes; opening
-another world discards old motion. No observation, host request or save is added.
+another world discards old motion. No observation, server request or save is added.
 
 Autumn ground leaves use the shared `AutumnLeaves` drawing promoted from the
 approved October 9 art review. The observed season enables the leaf pass,
@@ -2171,7 +2208,7 @@ bonuses use the same weight scale. Custom profile totals may reach
 `int.MaxValue`; climate conversion uses wider intermediate arithmetic, and
 episode weights remain wide through persistence bonuses and storm cooldown.
 These adjustments cannot wrap into negative weights. Further tuning remains provisional in
-[#204](https://github.com/compoodment/ClankerWorld/issues/204).
+[#204](https://github.com/ClankerWorldOrg/ClankerWorld/issues/204).
 Wet neighbors add at most four rain-weight points;
 a reduction to base precipitation weights offsets that bonus. The fixed-seed
 comparison is recorded in [the prototype report](weather-episode-prototype.md).
@@ -2194,7 +2231,7 @@ starts from the last displayed amount. The linear masks retain full coverage
 at regional junctions without changing an unchanged neighbour when a fade ends.
 Pausing holds both clocks, and a new world shows its recorded weather at once.
 Cloud haze, storm flashes and their settings remain available. Nothing new is
-saved or sent by the host.
+saved or sent by the server.
 
 The generator vendors [FastNoiseLite](../../src/ClankerWorld.Simulation/ThirdParty/FastNoiseLite/README.md).
 Its drainage approach draws on [Red Blob's noise guide](https://www.redblobgames.com/maps/terrain-from-noise/),
@@ -2206,7 +2243,7 @@ explain the approach; they do not settle open terrain design or performance.
 
 `GeneratedWorldMapGenerator` builds a map in four separate, deterministic passes,
 so each can be checked on its own
-([#461](https://github.com/compoodment/ClankerWorld/issues/461)):
+([#461](https://github.com/ClankerWorldOrg/ClankerWorld/issues/461)):
 
 1. **Elevation and water** come from the geography generator.
 2. **Surface.** Sand comes from two explicit rules, never from simply touching
@@ -2232,8 +2269,9 @@ so each can be checked on its own
    35% tree chance; meadows have a 2% chance. Seeded ranking spreads trees
    through any chunk that reaches its budget instead of filling one edge.
 
-The running world places starter clay on unoccupied, reachable buildable dry
-ground beside a river or lake. A rocky mountain shore can be walkable but is
+The running world places starter clay on unoccupied buildable dry ground beside
+a river or lake, reachable on foot from the accepted Town's Warehouse. Placement
+and strict reload use the same bank rule. A rocky mountain shore can be walkable but is
 not a valid clay resource site. If no valid bank exists, the runtime records
 `starting_resource_blocked` for clay and keeps advancing and saving.
 
@@ -2296,8 +2334,8 @@ worlds (wrapped and bounded), hills cover about 3–8% of dry land.
 ### Mountain massifs
 
 Mountains form as **a few large massifs** instead of scattered patches
-([#683](https://github.com/compoodment/ClankerWorld/issues/683), following the
-owner's choice on [#628](https://github.com/compoodment/ClankerWorld/issues/628)).
+([#683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/683), following the
+owner's choice on [#628](https://github.com/ClankerWorldOrg/ClankerWorld/issues/628)).
 `MountainMassifs` shapes them after water is classified and before rivers are
 routed:
 
@@ -2392,7 +2430,7 @@ godot --headless --path src/ClankerWorld.GodotClient -- --measure-map-draw /tmp/
 ```
 
 Use the pinned engine and build the client scripts first. The draw probe exits
-with an error if the engine never calls `_Draw`. It does not start a host or
+with an error if the engine never calls `_Draw`. It does not start a server or
 use private saves. Across a separate four-seed, 160-day episode sample, wet
 time fell to 78.1% of the previous Tropical level, 70.9% Dry, 75.4% Temperate,
 73.3% Cold and 75.7% Polar. Episode durations and neighboring weather explain
@@ -2421,7 +2459,7 @@ Production jobs project the same recipe facts and `HeldInputs` grouped from
 the job's own active inventory reservations. Completed or released
 reservations contribute nothing; building storage remains a separate view.
 Godot Details refreshes these facts even when work progress stays unchanged.
-Missing fields from an older host leave recipe facts unavailable rather than
+Missing fields from an older server leave recipe facts unavailable rather than
 fabricating them. This projection changes neither world state nor agent
 knowledge and needs no save-schema change.
 
@@ -2746,8 +2784,12 @@ Saved notice receipts enter a bounded `CognitionSelfContext.CivicNote` excerpt
 with read/relay provenance and readable names/world days. An actor receives no
 unseen civic dump. Owner observations project each council, its latest eight
 proposals, the current election and the latest archived election onto the normal
-Godot Towns page. Failed and cancelled outcomes remain visible; the complete
-authoritative proposal and election history stays in the checkpoint. Long Town
+Godot Towns page. Failed and cancelled outcomes remain visible. The checkpoint keeps eight recent
+elections plus elections referenced by government changes. It keeps 32 recent
+notices, each agent's three recent learned sources with their relay receipts,
+and notices needed by retained elections or other civic systems. Older election
+outcomes and notices move to the durable history archive before retirement.
+The complete authoritative proposal ledger stays in the checkpoint. Long Town
 readouts scroll within the available screen height. A passed structured law
 proposal records its scoped wording without creating physical or ownership
 powers. Bounded civic lifecycle telemetry records Town identity and
@@ -3007,7 +3049,9 @@ for matched native results and allocation/timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
-owns anywhere, plus what its members carry. Each kind is planned at most once
+owns anywhere, plus its members' stock. The shared `Holdings` query excludes
+reservations, delivery promises and borrowed Market sale stock from both this
+gate and the missing-material count. Each kind is planned at most once
 at a time and a household never holds two of a kind; a second member choosing
 the same kind in the same tick is refused, and a project stops if its household
 comes to hold that kind. Only a household holding a Farmhouse plans a Silo, and
@@ -3074,6 +3118,10 @@ action or player discard control is added.
 `InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryAuthority.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
 
 Each departure allocates at most two unreserved ready-to-eat portions once. Ownership changes at allocation while the existing storage/ground location stays fixed. Saved departure records retain the allocation and collection right; retries with no current membership cannot allocate again. Caregiver IDs and ancestry stay unchanged. Dependents follow the caregiver in physical steps, and a traveling caregiver waits when a dependent falls behind. Housing, ownership, collection and care facts use normal personal-model observations and player inspection; no extra acknowledgement request is made.
+
+Departure food selection uses the shared `Holdings` query, excluding unusable
+stock, delivery promises and food on actively borrowed Market stalls. It keeps
+the existing loose-food rule and leaves other people's carried loads alone.
 
 Work-tool choices use the same physical collection checks. Collecting the
 actor's own stored or ground tool relocates it into carried custody without
@@ -3224,7 +3272,7 @@ within a 256-unit text budget without splitting Unicode characters. The complete
 child name and accepted care and House references stay saved.
 
 **Continuity rule** (`PopulationContinuity`). The owner's answer on
-[#1266](https://github.com/compoodment/ClankerWorld/issues/1266) replaces the
+[#1266](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1266) replaces the
 original headcount trigger with eligible couples. The provisional threshold
 is four couples, retaining the original scale of eight adult partners for
 playtesting. A couple may still say "not yet" for two world days
@@ -3442,7 +3490,7 @@ travel, using current borrowing.
 Usable loose surplus (the food
 reserve counts the owner's other usable stock of that kind), actual
 carrying and stall room, active claims, current household rights and protected
-equipment constrain the offered choices. During urgent hunger, Market candidates
+equipment constrain the offered choices. During urgent food need, Market candidates
 include only collection of edible food the adult may legally retrieve. This
 filter runs before the candidate limit; normal Market choices retain their
 existing order. Collection still needs a fresh personal LLM choice and the
@@ -3538,7 +3586,7 @@ come from reachable renewable patches. Ingredients must arrive at the actual
 workplace; medicine reserves water from a real reusable jug and leaves the
 vessel intact. Injury causes and bandage treatment remain deferred.
 
-The [#749](https://github.com/compoodment/ClankerWorld/issues/749) fix
+The [#749](https://github.com/ClankerWorldOrg/ClankerWorld/issues/749) fix
 returns empty household pots and jugs from a workstation to the household's
 House using physical pickup and the existing delivery path. It keeps inventory
 ownership and reservations authoritative and checks carrying room, the walking
@@ -3965,7 +4013,7 @@ entered from the side.
 
 Events are `bridge_built` (`road:<bridge>:<route>` or `traffic:<bridge>`),
 `traffic_bridge_not_built`, `town_road_unconnected` and, if a run-on fails its
-final check, `town_road_extension_refused`. The host logs them as
+final check, `town_road_extension_refused`. The server logs them as
 `bridge` and `road_route` lines with IDs and reason codes only.
 
 ## Council-approved street lanterns
@@ -3988,7 +4036,7 @@ and a visible fitting can be selected for its paid project details.
 
 ## Approved authored assets
 
-The immutable host-approved catalog is loaded at startup. Its reference policy
+The immutable server-approved catalog is loaded at startup. Its reference policy
 accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` digest;
 a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
@@ -4072,7 +4120,7 @@ These notes add no saved fields, events or birth authority.
 
 The F12 panel submits one signed `POST /api/v1/owner/developer-edit` command for
 the selected agent. The signature binds the world ID, expected latest event ID,
-agent, operation, value, amount and optional other agent. The host shares the
+agent, operation, value, amount and optional other agent. The server shares the
 world-selection mutation gate, then the runtime checks that the world is paused
 and the observation is current. Changes are prepared on an isolated checkpoint,
 fully validated, and persisted before the live runtime accepts them. Failed
@@ -4101,7 +4149,7 @@ read back by the simulation, so they cannot change a tick, a save or replay.
   count. An agent waiting out a slow step keeps the route it was walking; one
   that arrived, was blocked or did something else that tick has none. Each
   proposed tick starts without routes and its commit replaces them. Loading a
-  checkpoint, switching worlds or restarting the host clears them until the
+  checkpoint, switching worlds or restarting the server clears them until the
   next tick.
 - **`LastTickMilliseconds`** on the snapshot is the wall-clock time to prepare
   and advance the latest committed tick, including synchronous reply admission,
@@ -4119,7 +4167,7 @@ measured in the client.
 The world server runs the authoritative simulation; the game draws it and
 sends the player's choices. By default the game starts its own world server on
 the player's Windows PC, with local saves and keys, as a separate bundled
-process ([#468](https://github.com/compoodment/ClankerWorld/issues/468)). The
+process ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)). The
 game can also connect to a world server on another machine, such as the
 development VPS, whose logs the agent there reads. Both ways run the same
 server. See [where the game runs](../game-design/world.md#where-the-game-runs).
@@ -4357,9 +4405,9 @@ ordinary priorities; an already attached cart still follows ordinary movement.
 
 Each tree is one map resource with one saved growth record
 (`EcologyResource`). Growth, harvest, tile inspection and map art all read that
-same record: `TreeGrowthRules.StageOf` turns it into the stage the host sends
-as `TreeStage`, and the client draws whatever the host sends. Every tree number
-lives in `TreeGrowthRules` and is provisional ([#462](https://github.com/compoodment/ClankerWorld/issues/462)).
+same record: `TreeGrowthRules.StageOf` turns it into the stage the server sends
+as `TreeStage`, and the client draws whatever the server sends. Every tree number
+lives in `TreeGrowthRules` and is provisional ([#462](https://github.com/ClankerWorldOrg/ClankerWorld/issues/462)).
 
 - **Wood trees** are `sapling`, `mature` or `stump`. Felling a mature tree gives
   wood and one `tree_seed`; the stump regrows in spring. One tree-seed item
@@ -4416,9 +4464,9 @@ lives in `TreeGrowthRules` and is provisional ([#462](https://github.com/compood
   conifer mature, sapling and stump sprites and the three established orchard
   sprites are approved art from the October 1 review. Orchard saplings reuse
   the approved growing sprite with a separate terrain code, preserving the
-  host's saved stage; the tree-seed item has no art yet. The
+  server's saved stage; the tree-seed item has no art yet. The
   [pixel-art style guide](art-style.md) explains how art is reviewed.
-- **Logs.** The host logs `tree_planting` outcomes (planted, refused,
+- **Logs.** The server logs `tree_planting` outcomes (planted, refused,
   replanted, seed collected) with the agent ID and a bounded detail.
 
 ## Advanced generation controls
@@ -4526,7 +4574,7 @@ This is separate from the saved lesson record, which now stores a skill.
 
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
-`%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; host saves, provider settings,
+`%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; server saves, provider settings,
 usage, authority, launch secret and logs all derive from that root. Client
 preferences, registration and pending submissions use its `client/` folder,
 and the Windows signing key uses a separate `.TestData` name. Usual client
@@ -4556,7 +4604,7 @@ Launcher handoffs carry the catalog entry ID with the requested game version.
 Both process boundaries use separate arguments; `--choose-world` accepts only
 the catalog's 32-character hexadecimal ID, never a path or a display name.
 Quit to Launcher obtains the active ID through the existing signed, read-only
-catalog request before stopping the host. A failed read keeps the game open;
+catalog request before stopping the server. A failed read keeps the game open;
 retry repeats the read. Failed stopping or launcher startup retains the
 resolved version and ID together.
 
@@ -4568,7 +4616,7 @@ A missing ID leaves every row unselected with an explanation. Existing
 compatibility and action-availability checks apply. Selection sends no pause,
 select-world, load, save or delete request, and never enters a world.
 
-The private host can retain an untouched, nongenerated bootstrap checkpoint
+The private server can retain an untouched, nongenerated bootstrap checkpoint
 before the player creates a world. Its founder observation reports
 `requiresWorldCreation`; this is derived from the saved state, independent of
 whether the response includes cached terrain. Continue and Load World route
@@ -4583,7 +4631,7 @@ owner action to finish. Menu visibility, observation generation and preview
 revision still fence the waiting work, so only the current options are
 requested and closing or switching screens discards the old refresh.
 
-The host serializes read-only preview generation and terrain packing on a
+The server serializes read-only preview generation and terrain packing on a
 separate coordinator gate. A running configured world can keep ticking and
 saving while a preview computes; preview requests never hold its provider/world
 mutation gate. Concurrent previews on that coordinator still run one at a time.
@@ -4607,11 +4655,11 @@ new save remains available while listing is slow.
 Load World keeps a visible checking state until its signed catalog request
 finishes. Back cancels the client request; a late response cannot overwrite a
 newer list or New World screen. Results trigger layout after population so the
-first opening can display them. The host checks inactive checkpoints once per
+first opening can display them. The server checks inactive checkpoints once per
 unchanged file in each process, then reuses only that structural result. It
 hashes the file bytes to notice replacements and still checks required history
 and model configuration every time; selecting a world performs a fresh restore.
-When a private host starts, a background task makes those checks for every
+When a private server starts, a background task makes those checks for every
 inactive world, so the first list can reuse them. It holds the world-mutation
 lock only to read the catalog and each file, never while decoding or restoring,
 and a world it cannot check is left for the list to report as usual.
@@ -4621,7 +4669,7 @@ Delete share the owner-action gate; selecting a different row cannot re-enable
 Open or Delete until the current action finishes. Cleanup checks the current
 selection rather than a row retained across an await.
 
-Client cancellation stops the host between world assessments. It does not
+Client cancellation stops the server between world assessments. It does not
 interrupt one restore already holding the mutation lock.
 
 World Settings reads autosaves for its current opening, paired device and
@@ -4631,7 +4679,7 @@ replace a newer opening's controls. A reply must name the observed world
 before Apply becomes available, and Apply checks that context again before
 sending the displayed interval and rotation.
 
-The host checks rotating autosaves after an advancing tick. A UTC sample older
+The server checks rotating autosaves after an advancing tick. A UTC sample older
 than the schedule's anchor resets and persists that anchor before checking the
 interval. It keeps the last saved world tick and creates no copy at the reset;
 the next due save still requires an advancing world. Disabled schedules return
@@ -4676,7 +4724,9 @@ actor's tile, input selection accepts only physically carried supplies. This
 keeps the existing supply path collecting feed and enough usable jug water before
 approaching the animal, including after a partial pickup. Water may be split
 across jugs or content lots; fetching counts the usable water already carried
-and rechecks each whole jug against reservations and free carrying space.
+and rechecks each whole jug against reservations and the loaded route to the
+animal. Care and saddle pickups use `PickupCarryCapacity` for the animal's
+current position, keeping the whole vessel family within that route's load limit.
 At the animal's tile, permitted local yard stock remains usable directly.
 Supply pickup leaves household sale stock on an actively borrowed Market stall.
 Once borrowing ends, that stock can be collected through the normal ownership,

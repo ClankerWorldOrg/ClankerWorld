@@ -677,11 +677,7 @@ public static partial class SocietyRules
             combined[$"{score.Kind}:{score.SourceId}"] = score with { AssessedTick = checkpoint.WorldTick };
         }
 
-        var boundedSources = combined.Values
-            .OrderByDescending(item => item.SourceTick)
-            .ThenBy(item => item.Kind)
-            .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
-            .Take(256)
+        var boundedSources = RetainedMemoryImportanceSources(combined.Values)
             .OrderBy(item => item.Kind)
             .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         var compactions = (checkpoint.MemoryCompactions ?? [])
@@ -690,6 +686,13 @@ public static partial class SocietyRules
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
         return checkpoint with { MemoryCompactions = compactions };
     }
+
+    internal static IEnumerable<SocietyAgentMemoryImportance> RetainedMemoryImportanceSources(
+        IEnumerable<SocietyAgentMemoryImportance> sources) => sources
+        .OrderByDescending(item => item.SourceTick)
+        .ThenBy(item => item.Kind)
+        .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
+        .Take(256);
 
     public static SocietyOperationResult CreateOrganization(
         SocietyCheckpoint checkpoint,
@@ -1545,9 +1548,12 @@ public static partial class SocietyRules
                 relationship.ProposerId == agent.Id || relationship.TargetId == agent.Id
                     ? relationship with
                     {
-                        State = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
-                            ? SocietyRelationshipState.EndedByDeath
-                            : relationship.State,
+                        State = relationship.State switch
+                        {
+                            SocietyRelationshipState.Accepted => SocietyRelationshipState.EndedByDeath,
+                            SocietyRelationshipState.Proposed => SocietyRelationshipState.Revoked,
+                            _ => relationship.State,
+                        },
                         Consent = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
                             ? SocietyConsentState.Revoked
                             : relationship.Consent,

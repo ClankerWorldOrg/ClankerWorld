@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class TownLandHearingRuntimeTests
 {
-    private const string PropertyFiler = "founder:00000000000000000000000000000002";
+    private const string PropertyFiler = NormalPathWorld.Founder2;
     private const string PropertyHouse = "first-town-house-b";
     private static readonly JsonSerializerOptions PropertyJsonOptions = new(JsonSerializerDefaults.Web);
 

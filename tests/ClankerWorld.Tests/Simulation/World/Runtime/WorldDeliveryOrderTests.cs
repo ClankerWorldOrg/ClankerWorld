@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -375,7 +376,7 @@ public sealed partial class WorldDeliveryOrderTests
     private static async Task FinishTogether(WorldRuntime world, WorldRuntime replay, OwnerInstructionReceipt receipt)
     {
         for (var tick = 0; tick < 48 && Order(world, receipt).Status != "finished"; tick++) await TickTogether(world, replay);
-        Assert.Equal("finished", Order(world, receipt).Status);
+        Assert.True(Order(world, receipt).Status == "finished", JsonSerializer.Serialize(Order(world, receipt)));
     }
     private sealed class DeliveryChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false,
         string? farmHaulActor = null) : IDecisionProvider

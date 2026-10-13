@@ -112,16 +112,20 @@ internal static class WorldMemoryRetrieval
         string ownerId,
         long worldTick)
     {
-        var assessed = (compaction?.Sources ?? [])
-            .Select(item => $"{ToWireKind(item.Kind)}:{item.SourceId}")
-            .ToHashSet(StringComparer.Ordinal);
-        var batch = SourceRecords(socialMemories, beliefs, ownerId, worldTick)
+        var existing = compaction?.Sources ?? [];
+        var assessed = existing.Select(item => (item.Kind, item.SourceId)).ToHashSet();
+        var unassessed = SourceRecords(socialMemories, beliefs, ownerId, worldTick)
             .Where(source => !source.Permanent)
-            // The persisted salience index is bounded to the latest 256
-            // sources. Keep the candidate domain aligned with that retention
-            // window so entries it cannot retain are not scored forever.
             .Take(MaximumScanned)
-            .Where(source => !assessed.Contains($"{source.Kind}:{source.Id}"))
+            .Where(source => !assessed.Contains(ImportanceKey(source)))
+            .ToArray();
+        if (unassessed.Length < MinimumCompactionBatch) return [];
+        // Older saves can contain protected sources' scores. Include those
+        // occupied slots when checking which new assessments the writer retains.
+        var retainable = SocietyRules.RetainedMemoryImportanceSources(existing.Concat(unassessed.Select(source =>
+                new SocietyAgentMemoryImportance(source.Id, ImportanceKey(source).Kind, source.SourceTick, 0, 0, worldTick))))
+            .Select(item => (item.Kind, item.SourceId)).ToHashSet();
+        var batch = unassessed.Where(source => retainable.Contains(ImportanceKey(source)))
             .OrderBy(item => item.SourceTick)
             .ThenBy(item => KindOrder(item.Kind))
             .ThenBy(item => item.Id, StringComparer.Ordinal)
@@ -143,6 +147,9 @@ internal static class WorldMemoryRetrieval
             source.SourceEventId,
             source.IsCorrected)).ToArray();
     }
+
+    private static (SocietyMemorySourceKind Kind, string Id) ImportanceKey(SourceRecord source) =>
+        ((SocietyMemorySourceKind)KindOrder(source.Kind), source.Id);
 
     private static IEnumerable<SourceRecord> SourceRecords(
         IEnumerable<SocietySocialMemory> socialMemories,
@@ -167,7 +174,7 @@ BoundedText.Excerpt(memory.Summary, MaximumSummaryLength, "", TextNormalization.
                 null,
                 null,
                 false,
-                memory.Permanent));
+                SocietyMemoryArchiveRules.IsPermanent(memory)));
 
         var privateBeliefs = beliefs
             .Where(belief => string.Equals(belief.OwnerId, ownerId, StringComparison.Ordinal) &&

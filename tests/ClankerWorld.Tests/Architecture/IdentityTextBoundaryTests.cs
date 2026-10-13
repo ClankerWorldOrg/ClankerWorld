@@ -17,16 +17,96 @@ public sealed class IdentityTextBoundaryTests
         var root = RuntimeWriterScan.RepositoryRoot;
         var compilation = RuntimeWriterScan.CreateCompilation(root);
         var actual = Scan(compilation.SyntaxTrees, compilation, root);
+        var scannedPaths = compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0)
+            .Select(tree => tree.FilePath.Replace('\\', '/')).ToHashSet(StringComparer.Ordinal);
         var otherTrees = Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories)
-            .Where(path => !path.Contains("/ClankerWorld.Simulation/", StringComparison.Ordinal) &&
-                !path.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj" or ".godot"))
+            .Where(path => IsAdditionalSource(path, scannedPaths))
             .Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path));
-        foreach (var (key, count) in Scan(otherTrees, null, root)) actual[key] = count;
+        foreach (var (key, count) in ScanAdditionalSource(otherTrees, compilation, root)) actual[key] = count;
         var recorded = JsonSerializer.Deserialize<SortedDictionary<string, int>>(File.ReadAllText(Path.Combine(root, BudgetPath)))!;
         AssertWithinBudget(recorded, actual);
         foreach (var (key, count) in recorded)
             Assert.True(count == actual.GetValueOrDefault(key), $"Remove or lower obsolete identity/text allowance: {key}");
         AssertAllowanceDidNotGrow(root, recorded);
+    }
+
+    [Theory]
+    [InlineData("/source/src/ClankerWorld.Simulation/World/State.cs", false)]
+    [InlineData("/source/src\\ClankerWorld.Simulation\\World\\State.cs", false)]
+    [InlineData("/source/src/ClankerWorld.Shared/AgentPlacementRules.cs", false)]
+    [InlineData("/source/src\\ClankerWorld.Shared\\AgentPlacementRules.cs", false)]
+    [InlineData("/source/src/ClankerWorld.Server/Actions.cs", true)]
+    [InlineData("/source/src\\ClankerWorld.GodotClient\\Actions.cs", true)]
+    [InlineData("/source/src\\ClankerWorld.Server\\obj\\Generated.cs", false)]
+    public void AdditionalSourceNeverRescansKnownTreesOrBuildOutput(string path, bool expected)
+    {
+        var scanned = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/source/src/ClankerWorld.Simulation/World/State.cs",
+            "/source/src/ClankerWorld.Shared/AgentPlacementRules.cs",
+        };
+        Assert.Equal(expected, IsAdditionalSource(path, scanned));
+    }
+
+    [Theory]
+    [InlineData("ClankerWorld.Server")]
+    [InlineData("ClankerWorld.GodotClient")]
+    public void AdditionalSourceChecksExplicitAndTargetTypedConstructorsAndMethodArguments(string project)
+    {
+        var shared = CSharpSyntaxTree.ParseText("record Request(string IssuerId, string Label);",
+            path: "/source/src/ClankerWorld.Simulation/Request.cs");
+        var tree = CSharpSyntaxTree.ParseText("""
+            class Actions
+            {
+                Request Explicit(string actor) => new Request($"owner-device:{actor}", $"Hello {actor}");
+                Request Inferred(string actor) => new($"owner-device:{actor}", $"Hello {actor}");
+                Request Safe(string actor) => new(DerivedId.Create($"owner-device:{actor}"), $"Hello {actor}");
+                void Send(string issuerId, string label) { }
+                void Invoke(string actor) => Send($"owner-device:{actor}", $"Hello {actor}");
+            }
+            static class DerivedId { public static string Create(string value) => value; }
+            """, path: "/source/src/" + project + "/Actions.cs");
+        var compilation = CSharpCompilation.Create("AdditionalSourceControl", [shared],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+        var actual = ScanAdditionalSource([tree], compilation, "/source");
+        Assert.Equal(3, actual.Values.Sum());
+        Assert.ThrowsAny<Exception>(() => AssertWithinBudget(new(StringComparer.Ordinal), actual));
+    }
+
+    private static bool IsAdditionalSource(string path, HashSet<string> scannedPaths)
+    {
+        var normalized = path.Replace('\\', '/');
+        return !scannedPaths.Contains(normalized) &&
+            !normalized.Split('/').Any(part => part is "bin" or "obj" or ".godot");
+    }
+
+    [Fact]
+    public void AdditionalSourceChecksIdentityArgumentsWhenFrameworkInheritanceIsUnavailable()
+    {
+        // Godot's Marker -> Button -> Control inheritance is absent from the source-only scan.
+        var tree = CSharpSyntaxTree.ParseText("""
+            class Marker : Button { }
+            class Actions
+            {
+                void PresentMovingMarker(string id, Control marker, Vector2 offset) { }
+                void Invoke(string actor, Marker marker) => PresentMovingMarker("agent:" + actor, marker, new(4, 4));
+                void Label(string text, Control marker) { }
+                void Show(string actor, Marker marker) => Label($"Hello {actor}", marker);
+            }
+            """, path: "/source/src/ClankerWorld.GodotClient/Actions.cs");
+        var compilation = CSharpCompilation.Create("MissingFrameworkControl", references:
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+        var actual = ScanAdditionalSource([tree], compilation, "/source");
+        Assert.Single(actual);
+        Assert.Equal(1, actual.Values.Sum());
+        Assert.ThrowsAny<Exception>(() => AssertWithinBudget(new(StringComparer.Ordinal), actual));
+    }
+
+    private static SortedDictionary<string, int> ScanAdditionalSource(IEnumerable<SyntaxTree> trees,
+        CSharpCompilation compilation, string root)
+    {
+        var additional = trees.ToArray();
+        return Scan(additional, compilation.AddSyntaxTrees(additional), root);
     }
 
     [Fact]
@@ -130,10 +210,15 @@ public sealed class IdentityTextBoundaryTests
                         return (call.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText != "Create";
                 }
                 if (argument.NameColon is { } named) return IdentityName(named.Name.Identifier.ValueText);
-                if (model?.GetSymbolInfo(argument.Parent!.Parent!).Symbol is IMethodSymbol method)
+                if (model is not null)
                 {
+                    var info = model.GetSymbolInfo(arguments.Parent!);
                     var index = arguments.Arguments.IndexOf(argument);
-                    return index < method.Parameters.Length && IdentityName(method.Parameters[index].Name);
+                    // Missing framework assemblies can leave a declared method as a candidate.
+                    // Check every candidate rather than silently allowing a new identity there.
+                    var methods = info.Symbol is IMethodSymbol resolved
+                        ? [resolved] : info.CandidateSymbols.OfType<IMethodSymbol>();
+                    return methods.Any(method => index < method.Parameters.Length && IdentityName(method.Parameters[index].Name));
                 }
                 return false;
             }

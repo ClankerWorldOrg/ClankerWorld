@@ -63,7 +63,7 @@ internal sealed partial class TownSystem
         foreach (var item in state.Cases.Where(item => item.Status == "pending").ToArray())
         {
             var before = NonLandRevision(item).Number;
-            state = TownNonLandRules.ReviseParties(state, item.Id, NonLandParties(world, town, item), world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1));
+            state = TownNonLandRules.ReviseParties(state, item.Id, NonLandParties(world, town, item), world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council));
             var revised = state.Cases.Single(current => current.Id == item.Id);
             if (NonLandRevision(revised).Number != before) council = PostNonLandNotice(council, revised);
         }

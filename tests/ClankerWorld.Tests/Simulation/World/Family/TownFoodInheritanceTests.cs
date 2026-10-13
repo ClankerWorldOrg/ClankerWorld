@@ -20,7 +20,7 @@ public sealed class TownFoodInheritanceTests
     [InlineData("cooked_eggs", null, true, true)]
     public async Task NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels(string kind, string? vesselKind, bool household, bool holdWill)
     {
-        const string deceased = "founder:00000000000000000000000000000001";
+        const string deceased = NormalPathWorld.Founder1;
         var will = new PostDeathWillTests.WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([observation.Will!.Heirs.Single(heir => heir.Key.StartsWith("will:town:", StringComparison.Ordinal)).Key],
                 CognitionWillContext.EqualSplit), hold: holdWill, ignoreCancellation: holdWill);
