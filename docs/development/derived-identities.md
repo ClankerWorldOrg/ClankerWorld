@@ -41,9 +41,10 @@ choose their existing normalization and suffix explicitly: unchanged text,
 collapsed whitespace, or controls replaced by spaces; an ellipsis is optional
 and counts toward the limit. Names and source text keep their original values.
 
-`IdentityTextBoundaryTests` scans production source for hand-built IDs in
+`IdentityTextBoundaryTests` uses semantic binding to scan production source for hand-built IDs in
 identity-valued assignments, returns and arguments, and for literal length
-comparisons and relational length patterns. Existing expressions are recorded
+comparisons and relational length patterns. It scans each source file once,
+including with Windows paths. Existing expressions are recorded
 in `tests/ClankerWorld.Tests/Architecture/identity-text-uses.json`. Each
 allowance belongs to its exact file and expression; it cannot fund a new use.
 The check requires obsolete allowances to be removed and compares the file
