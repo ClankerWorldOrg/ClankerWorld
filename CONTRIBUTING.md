@@ -20,7 +20,7 @@ The [documentation guide](docs/README.md) points to the right page:
 
 ## Issues and design questions
 
-[GitHub Issues](https://github.com/compoodment/ClankerWorld/issues) is the only
+[GitHub Issues](https://github.com/ClankerWorldOrg/ClankerWorld/issues) is the only
 place for bugs, work, experiments and open decisions; there is no bug list in
 the repository. Search open and closed issues before opening one. If a closed
 issue's fix did not work, reopen it with the new evidence instead of opening a
@@ -78,7 +78,7 @@ one and what the label workflows do on their own. Never create a label by hand.
 | Kind | Labels |
 | --- | --- |
 | Type | `type:bug`, `type:feature` (agreed work), `type:decision`, `type:experiment`, `type:docs`, `type:tooling` (CI, tests, build, refactors and how-we-work changes) |
-| Area | `area:agents` (models, memories, personality, families, conversations), `area:towns` (buildings, households, land, work, trade), `area:world` (map, terrain, weather, plants, survival, time), `area:saves`, `area:interface` (screens, controls, art), `area:server` (host, pairing, keys, deployment), `area:tooling` (CI, tests, build, workflow) |
+| Area | `area:agents` (models, memories, personality, families, conversations), `area:towns` (buildings, households, land, work, trade), `area:world` (map, terrain, weather, plants, survival, time), `area:saves`, `area:interface` (screens, controls, art), `area:server` (server, pairing, keys, deployment), `area:tooling` (CI, tests, build, workflow) |
 | Priority | `priority:p0` to `priority:p3`; see [Priorities](#priorities) |
 | Issue status | `status:needs-pr` (agreed and unblocked; only on issues that need a pull request, never on decisions or owner tasks), `status:in-progress` ([claimed](#claims)), `status:has-pr` (a pull request closes it), `status:parked` (closed for a later stage) |
 | Pull request status | `status:needs-review` (ready for review), `status:reviewing` ([claimed by a reviewer](#claims)) |
@@ -125,7 +125,7 @@ searches find it.
   normal game that could reach it counts as normal. Security problems keep
   their own rule.
 - **Security problems:** a problem someone could exploit now, such as reading
-  keys or private saves, getting past pairing or controlling a host, is P0.
+  keys or private saves, getting past pairing or controlling a server, is P0.
   The repository is public, so never describe it in an issue, pull request or
   comment. Agents tell the owner in chat ([how](AGENTS.md#ask-the-owner-in-chat))
   and open an issue titled `Security report waiting for the owner`, with only
@@ -463,6 +463,6 @@ body when needed. A closing keyword in a commit that reaches main also closes
 the issue, so do not write one for an issue the change does not complete.
 Report vulnerabilities privately, never in an issue, pull request or comment
 ([Security problems](#priorities)): agents tell the owner in chat, and people
-use [private vulnerability reporting](https://github.com/compoodment/ClankerWorld/security/advisories/new),
+use [private vulnerability reporting](https://github.com/ClankerWorldOrg/ClankerWorld/security/advisories/new),
 without credentials, pairing material or private saves. Be respectful, assume
 good faith, and argue with evidence about the design rather than the person.
