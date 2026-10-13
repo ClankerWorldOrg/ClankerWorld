@@ -74,8 +74,11 @@ public sealed class ProductionHistoryTests
                     ProductionJobs = saved.WorldSimulation.ProductionJobs.Select(job => job.JobId == running.JobId
                         ? job with { State = WorldProductionJobState.Paused, PausedAtTick = saved.Society.Society.WorldTick } : job).ToArray(),
                 },
-                Society = saved.Society with { Society = saved.Society.Society with
-                    { Inventory = InventoryAuthority.HoldReservations(saved.Society.Society.Inventory, running.InputReservationIds) } },
+                Society = saved.Society with
+                {
+                    Society = saved.Society.Society with
+                    { Inventory = InventoryAuthority.HoldReservations(saved.Society.Society.Inventory, running.InputReservationIds) }
+                },
             });
             file.Save(world);
             Assert.Equal(33, new OwnerWorldObservationStore(world).GetSnapshot().ProductionJobs.Count);
@@ -125,9 +128,12 @@ public sealed class ProductionHistoryTests
         var state = WorldRuntimeCodec.Decode(await NativeHistory.Value);
         var job = state.WorldSimulation!.ProductionJobs[1];
         var recipe = state.WorldContent!.Recipes.Single(recipe => recipe.CanonicalId == job.RecipeId);
-        state = state with { Agents = state.Agents.Select(person => person.AgentId == job.WorkerId
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == job.WorkerId
             ? person with { Project = new AgentProject("build:recipe:" + job.RecipeId, recipe.DisplayName, 0, "waiting", 10, JobId: job.JobId) }
-            : person).ToArray() };
+            : person).ToArray()
+        };
         using var world = WorldRuntime.Restore(state);
         var plan = WorldHistory.Prepare(world.ExportState());
         Assert.Contains(job, plan.State.WorldSimulation!.ProductionJobs);
@@ -145,7 +151,7 @@ public sealed class ProductionHistoryTests
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "history-food-transfer",
             original.OwnerId, older.WorkerId, original.Id, 1, "test_food_transfer");
         state = FarmFieldTests.WithInventory(state, inventory) with
-        { Agents = state.Agents.Select(person => person.AgentId == older.WorkerId ? person with { FullnessBasisPoints = 7_000 } : person).ToArray() };
+        { Agents = state.Agents.Select(person => person.AgentId == older.WorkerId ? person with { FullnessBasisPoints = 3_000 } : person).ToArray() };
         using var world = WorldRuntime.Restore(state, _ => new EatingProvider());
         var directory = Directory.CreateTempSubdirectory("clanker-food-job-proof-");
         try
@@ -158,7 +164,8 @@ public sealed class ProductionHistoryTests
                 OwnerInstructionKind.Order, "eat one fruit"));
             for (var tick = 0; tick < 4 && world.ExportState().Instructions!.Single(item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal("finished", world.ExportState().Instructions!.Single(item => item.InstructionId == order.InstructionId).Task!.Status);
+            var outcome = world.ExportState().Instructions!.Single(item => item.InstructionId == order.InstructionId).Task!;
+            Assert.True(outcome.Status == "finished", $"{outcome.Status}: {outcome.BlockedReason}; fullness {world.ExportState().Agents.Single(person => person.AgentId == older.WorkerId).FullnessBasisPoints}");
             Assert.Equal("cooked", world.ExportState().Agents.Single(person => person.AgentId == older.WorkerId).Survival!.LastMealKind);
         }
         finally { directory.Delete(recursive: true); }
@@ -170,7 +177,7 @@ public sealed class ProductionHistoryTests
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "eat")?.Id ?? "safe_idle";
+            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id is "consume_food" or "collect_shared_food")?.Id ?? "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
