@@ -104,8 +104,8 @@ public sealed class ApprovalListenerTests
             using var service = new WorldRuntimeService(runtime, new WorldStateFile(path),
                 new OwnerClientPresenceLease(TimeSpan.FromMinutes(1)), logger);
             // Ticks committed in memory but not yet written, as when the host stops mid-loop.
-            Assert.True((await runtime.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await runtime.TickModelWorkAsync()).Advanced);
+            await provider.Started.Task;
             var tick = runtime.WorldTick;
 
             Assert.Equal(ShutdownSaveOutcome.Saved, service.SaveBeforeShutdown(pauseWorld: true));
@@ -114,7 +114,7 @@ public sealed class ApprovalListenerTests
             using var reloaded = new WorldStateFile(path).LoadOrCreate("shutdown-save");
             Assert.Equal(tick, reloaded.WorldTick);
             Assert.True(reloaded.Society.IsPaused);
-            Assert.False((await reloaded.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await reloaded.TickModelWorkAsync()).Advanced);
             Assert.Equal(tick, reloaded.WorldTick);
             Assert.Contains(logger.Messages, message => message.Contains("server_shutdown outcome=saved", StringComparison.Ordinal));
         }
@@ -126,7 +126,7 @@ public sealed class ApprovalListenerTests
 
     private sealed class WaitingModelProvider : IDecisionProvider
     {
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public CancellationToken Cancellation { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;

@@ -108,7 +108,7 @@ public sealed class WorldPreviewConcurrencyTests
                 return coordinator.Preview(options);
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             Assert.True(secondStarted.Wait(TimeSpan.FromSeconds(30)));
-            tick = Task.Factory.StartNew(() => service.TryAdvanceOnceAsync().AsTask(), CancellationToken.None,
+            tick = Task.Factory.StartNew(() => service.AdvanceWithModelWorkAsync(world).AsTask(), CancellationToken.None,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             Assert.True(await tick.WaitAsync(TimeSpan.FromSeconds(20)), "The configured host did not advance.");
             Assert.False(first.IsCompleted);

@@ -35,10 +35,10 @@ public sealed class InvalidModelDecisionTests
             var wait = Stopwatch.StartNew();
             while (admission is null && wait.Elapsed < TimeSpan.FromSeconds(10))
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync();
+                var result = await world.TickModelWorkAsync();
                 started |= result.Events.Any(item => item.Kind == "hosted_decision_started" && item.Detail == "founder-scout");
                 admission = result.Decisions.FirstOrDefault(item => item.AgentId == "founder-scout")?.Admission;
-                await Task.Delay(30);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.True(started);
             Assert.NotNull(admission);

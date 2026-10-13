@@ -334,10 +334,10 @@ public sealed class PersonalEquipmentTests
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == actor && lot.ItemKind == "stone");
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("planning-probe-order", "owner:test",
             actor, OwnerInstructionKind.Order, "store stone"));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Started.Task;
         for (var tick = 0; tick < 120; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         Assert.Equal(1, provider.Calls);
         Assert.True(world.WorldTick - started > 120);
@@ -401,14 +401,14 @@ public sealed class PersonalEquipmentTests
         var provider = new HeldRepairConversationProvider(new HashSet<string>([actor, other], StringComparer.Ordinal));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), _ => provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await provider.Started.Task;
         Assert.Contains(world.ExportState().Events, item => item.Kind == "conversation_accepted" &&
             item.Detail.StartsWith(conversationId, StringComparison.Ordinal));
         const int pendingProviderTicks = 12;
         for (var tick = 0; tick < pendingProviderTicks; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(AgentConversationStatus.AwaitingSpeaker, Assert.Single(world.Conversations).Status);
         }
         Assert.True(world.WorldTick - started > pendingProviderTicks);
@@ -425,12 +425,12 @@ public sealed class PersonalEquipmentTests
         Assert.Equal(2_000, world.Society.Inventory.GetLot(coatId).ConditionBasisPoints);
 
         provider.ReleaseHeldTurn();
-        using var completionDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var completionDeadline = new CancellationTokenSource();
         while (Assert.Single(world.Conversations).Status != AgentConversationStatus.Closed)
         {
             // Held responses resume asynchronously; give them time to reach a later tick's admission.
-            await Task.Delay(10, completionDeadline.Token);
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: completionDeadline.Token)).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
+            Assert.True((await world.TickModelWorkAsync(cancellationToken: completionDeadline.Token)).Advanced);
         }
         var completedConversation = Assert.Single(world.Conversations);
         Assert.Equal(AgentConversationStatus.Closed, completedConversation.Status);
@@ -1136,8 +1136,8 @@ public sealed class PersonalEquipmentTests
 
     private sealed class HeldRepairPlanningProvider : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> held = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> held = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public int Calls;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -1154,10 +1154,10 @@ public sealed class PersonalEquipmentTests
         : IDecisionProvider, IAgentConversationProvider
     {
         private readonly Choices planner = new(["conversation_accept:", "conversation_wrapup_accept:"]);
-        private readonly TaskCompletionSource<AgentConversationTurnResponse> held = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<AgentConversationTurnResponse> held = new(TaskCreationOptions.None);
         private AgentConversationTurnRequest? heldRequest;
         private int released;
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => planner.Kind;
         public long ProviderEpoch => planner.ProviderEpoch;
         public bool CanSpeakAs(string agentId) => participants.Contains(agentId);

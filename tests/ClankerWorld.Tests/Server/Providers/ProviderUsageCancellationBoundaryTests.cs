@@ -77,13 +77,13 @@ public sealed class ProviderUsageCancellationBoundaryTests
         public async Task StartHeldRequestAsync()
         {
             Assert.True((await TickAsync()).Advanced);
-            await handler.Started.Task.WaitAsync(Deadline);
+            await handler.Started.Task;
             // Started is deliberately early: SendAsync has not returned yet.
             // Only the configured provider's returned incomplete operation proves
             // that its full HTTP/usage chain has suspended on the held response.
             Assert.False(provider.AwaitingReply.Task.IsCompleted);
             handler.AllowReturn.Set();
-            await provider.AwaitingReply.Task.WaitAsync(Deadline);
+            await provider.AwaitingReply.Task;
             // No second request may spend another call while the first is held.
             Assert.True((await TickAsync()).Advanced);
             Assert.Equal(1, handler.RequestCount);
@@ -93,7 +93,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
         }
 
         public Task<WorldStepResult> TickAsync() => RunWithDeadlineAsync(() =>
-            World.AdvanceOneTickNonBlockingAsync().AsTask());
+            World.TickModelWorkAsync().AsTask());
 
         public Task<bool> CompleteResponseAsync() => RunWithDeadlineAsync(() =>
         {
@@ -105,7 +105,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
         {
             var task = Task.Run(operation);
             runningOperation = task;
-            return await task.WaitAsync(Deadline);
+            return await task;
         }
 
         public void Dispose()
@@ -124,7 +124,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
 
     private sealed class AwaitingDecisionProvider(IDecisionProvider inner) : IDecisionProvider
     {
-        public TaskCompletionSource AwaitingReply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource AwaitingReply { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => inner.ProviderEpoch;
         public DecisionProviderKind KindFor(AgentObservation observation) => inner.KindFor(observation);
@@ -148,11 +148,11 @@ public sealed class ProviderUsageCancellationBoundaryTests
     {
         // Default options intentionally permit inline continuations. This is a
         // legal HTTP handler behavior that the runtime must tolerate.
-        private readonly TaskCompletionSource<HttpResponseMessage> response = new();
+        private readonly InlineCompletionSource<HttpResponseMessage> response = new();
         private CancellationTokenRegistration cancellation;
         private int requestCount;
 
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public int RequestCount => Volatile.Read(ref requestCount);
         public ManualResetEventSlim AllowReturn { get; } = new();
 

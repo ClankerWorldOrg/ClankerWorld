@@ -207,7 +207,7 @@ public sealed partial class LongInventoryActionCheckpointTests
 
         public async Task AdvanceAndCheckSaved()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             var saved = File.ReadAllBytes(file.Path);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(saved).Society.Society.WorldTick);
