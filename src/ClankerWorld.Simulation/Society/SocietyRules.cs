@@ -1555,9 +1555,12 @@ public static partial class SocietyRules
                 relationship.ProposerId == agent.Id || relationship.TargetId == agent.Id
                     ? relationship with
                     {
-                        State = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
-                            ? SocietyRelationshipState.EndedByDeath
-                            : relationship.State,
+                        State = relationship.State switch
+                        {
+                            SocietyRelationshipState.Accepted => SocietyRelationshipState.EndedByDeath,
+                            SocietyRelationshipState.Proposed => SocietyRelationshipState.Revoked,
+                            _ => relationship.State,
+                        },
                         Consent = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
                             ? SocietyConsentState.Revoked
                             : relationship.Consent,
