@@ -339,6 +339,10 @@ retain their ordered input lots and quantities, preparation pickup or mount,
 and work duration. Taming also retains its yard and current work count. The
 same check verifies physical access, named trip holds, meal reserves and reach
 at all three action boundaries; native commits keep their existing identities.
+Retained animal trips also bind their carried load, family, yard and delivery,
+work or release step. A work step carries the same exact work plan. Partial or
+already completed work releases its original trip without spending cargo;
+delivery checks the named trip hold, fixed quantity, room and route.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
