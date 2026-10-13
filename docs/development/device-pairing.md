@@ -354,9 +354,15 @@ The game does this itself when the `package.json` in its folder names a world
 server that is there, and no `--server-url` argument is given (`LocalServer`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
-apart from a server pairing. Before starting the server it checks the port: a
-running server of the exact same version and source revision, started by an
-earlier launch, is reused only after a side-effect-free `GET /api/v1/approval/launch-check`
+apart from a server pairing. The game holds an exclusive per-installation
+`server/startup.lock` handle from the port check through launch and readiness.
+An overlapping game refuses startup
+before changing the secret or logs. The empty lock file stays in place; process
+exit releases its handle, so a crash leaves no stale lock. A failed launch
+restores the prior secret, and cancellation settles its own starting child
+before releasing the handle. A running server of the exact same version and
+source revision, started by an earlier launch, is reused only after a
+side-effect-free `GET /api/v1/approval/launch-check`
 confirms the secret already in its file on the approval listener. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
