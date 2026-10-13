@@ -6,7 +6,8 @@ public sealed partial class WorldRuntime
 {
     private int GoodsQuantity(InventoryIndex index, InventoryLot lot, GoodsRequest request)
     {
-        var quantity = GoodsInventoryQuery.Quantity(index, lot, request.Use);
+        var quantity = request.Use == GoodsUse.FieldPlanting ? FieldPlantingGoodsQuantity(request, index, lot)
+            : GoodsInventoryQuery.Quantity(index, lot, request.Use);
         if (request.Use is not (GoodsUse.Collect or GoodsUse.Recover) || PersonalEquipmentRules.IsCarried(index.Root(lot), request.Actor!))
             return quantity;
         var room = FreeCarryCapacity(request.Actor!);

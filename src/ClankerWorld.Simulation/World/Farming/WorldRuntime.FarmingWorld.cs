@@ -20,6 +20,11 @@ public sealed partial class WorldRuntime
         public WorldSystemsState Environment => runtime.worldSystems;
         public GroundOccupancy Ground => runtime.Ground;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
+        public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
+        public IReadOnlyList<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load,
+            SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) => runtime.Reach(actor, target, purpose, range, load, swimming, obstacles);
+        public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
+        public GoodsMatch? RecheckGoods(GoodsRequest request, string stockId) => runtime.RecheckGoods(request, stockId);
         public PlacedBuilding? FarmhouseForHousehold(string householdId) => runtime.FarmhouseForHousehold(householdId);
         public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);

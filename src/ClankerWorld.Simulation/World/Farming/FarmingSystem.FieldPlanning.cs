@@ -8,7 +8,7 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class FarmingSystem
 {
     internal static string FarmCandidate(FarmWorkKind kind, GridPoint point, string? crop = null) =>
-        $"farm:{kind}:{point.X}:{point.Y}:{crop ?? "-"}";
+        new FieldChoice(kind, point, crop).Encode();
 
     internal void AddFieldCandidates(IFarmingWorld world, List<CognitionCandidate> candidates, string actor, AgentState state)
     {
@@ -23,20 +23,19 @@ internal sealed partial class FarmingSystem
         {
             if (!CanReachField(world, actor, state.Position, field.Position)) continue;
             if (field.Stage == FarmFieldStage.Ready)
-                candidates.Add(new(FarmCandidate(FarmWorkKind.Harvest, field.Position), "Harvest the ready crop; it stays on the ground until carried.", 12));
+                AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Harvest, field.Position), "Harvest the ready crop; it stays on the ground until carried.", 12);
             else if (hasHoe && field.Stage == FarmFieldStage.Growing && !field.Tended)
-                candidates.Add(new(FarmCandidate(FarmWorkKind.Tend, field.Position), "Tend the growing crop with a hoe.", 13));
+                AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Tend, field.Position), "Tend the growing crop with a hoe.", 13);
             else if (field.Stage is FarmFieldStage.Prepared or FarmFieldStage.Harvested && demand.MissingMeals > 0)
             {
                 if (HasOtherAgentClaimedPlanting(world, field, actor)) continue;
                 var priority = 14;
-                foreach (var crop in PlantableCrops(world, actor, field))
-                    candidates.Add(new(FarmCandidate(FarmWorkKind.Plant, field.Position, crop),
-                        $"Carry {FarmFieldRules.PlantingItem(crop).Replace('_', ' ')} to the field and plant {crop.Replace('_', ' ')}.", priority++));
+                foreach (var (crop, seed) in PlannedPlantingStock(world, actor, field))
+                    AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Plant, field.Position, crop),
+                        $"Carry {FarmFieldRules.PlantingItem(crop).Replace('_', ' ')} to the field and plant {crop.Replace('_', ' ')}.", priority++, seed);
             }
         }
-        var expectedYield = Math.Max(1, FarmFieldRules.HarvestQuantity(FarmFieldRules.Grain, fertility.At(farmhouse.Position)));
-        var wantedFields = (int)Math.Ceiling(demand.MissingMeals / (demand.FarmingHouseholds * (double)expectedYield));
+        var wantedFields = WantedFields(world, householdId);
         if (!hasHoe || fields.Count(field => field.HouseholdId == householdId) >= wantedFields) return;
         var heldByOthers = world.HouseholdLandHeldByOthers(householdId);
         var site = NearbyFarmTiles(world, farmhouse.Position)
@@ -46,8 +45,23 @@ internal sealed partial class FarmingSystem
             .ThenBy(point => point.Y).ThenBy(point => point.X)
             .Cast<GridPoint?>().FirstOrDefault(point => CanReachField(world, actor, state.Position, point!.Value));
         if (site is { } chosen)
-            candidates.Add(new(FarmCandidate(FarmWorkKind.Till, chosen),
-                $"Prepare {World.LandFertility.Description(fertility.At(chosen)).ToLowerInvariant()} land for another household field.", 17));
+            AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Till, chosen),
+                $"Prepare {World.LandFertility.Description(fertility.At(chosen)).ToLowerInvariant()} land for another household field.", 17);
+    }
+
+    private void AddPlannedFieldCandidate(IFarmingWorld world, List<CognitionCandidate> candidates, string actor,
+        FieldChoice choice, string description, int priority, InventoryLot? selectedSeed = null)
+    {
+        if (PlanFieldAction(world, actor, choice, selectedSeed) is { } plan && CheckFieldPlan(world, plan).Allowed)
+            candidates.Add(new(plan.CandidateId, description, priority) { ActionPlan = plan });
+    }
+
+    private int WantedFields(IFarmingWorld world, string householdId)
+    {
+        var demand = FarmFoodDemand(world, householdId);
+        var farmhouse = world.FarmhouseForHousehold(householdId)!;
+        var expectedYield = Math.Max(1, FarmFieldRules.HarvestQuantity(FarmFieldRules.Grain, Fertility(world.Map).At(farmhouse.Position)));
+        return (int)Math.Ceiling(demand.MissingMeals / (demand.FarmingHouseholds * (double)expectedYield));
     }
 
     internal static IEnumerable<GridPoint> NearbyFarmTiles(IFarmingWorld world, GridPoint origin)
@@ -87,7 +101,8 @@ internal sealed partial class FarmingSystem
     // the field and seed choice legal while they pass so the selected task can
     // retry its physical route instead of being replaced by another crop.
     internal static bool CanReachField(IFarmingWorld world, string actor, GridPoint from, GridPoint destination) =>
-        from == destination || world.CanReachByFootOrSwimming(actor, from, destination);
+        from == destination || world.Reach(actor, destination, ReachPurpose.FieldWork, 0, 0,
+            SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0;
 
     internal static bool FarmNeedsFood(IFarmingWorld world, string householdId) => FarmFoodDemand(world, householdId).MissingMeals > 0;
 
@@ -131,33 +146,31 @@ internal sealed partial class FarmingSystem
     }
 
     internal IEnumerable<string> PlantableCrops(IFarmingWorld world, string actor, FarmFieldState field) =>
+        PlannedPlantingStock(world, actor, field).Select(item => item.Crop);
+
+    private IEnumerable<(string Crop, InventoryLot Seed)> PlannedPlantingStock(IFarmingWorld world, string actor, FarmFieldState field) =>
         new[] { FarmFieldRules.Greens, FarmFieldRules.Grain, FarmFieldRules.Potatoes }
             .OrderBy(crop => field.Crop == crop ? -1 : fields.Count(item => item.HouseholdId == field.HouseholdId &&
                 (item.Work?.Crop ?? item.Crop) == crop))
-            .Where(crop => PlantingStock(world, actor, field, crop) is not null);
+            .Select(crop => (Crop: crop, Seed: PlantingStock(world, actor, field, crop)))
+            .Where(item => item.Seed is not null).Select(item => (item.Crop, item.Seed!));
 
     // Orders need a usable pickup now; autonomous crop claims keep terrain eligibility
     // while a temporary occupant passes and their existing physical route retries.
     internal static InventoryLot? PlantingStock(IFarmingWorld world, string actor, FarmFieldState field, string crop, bool requirePickupRoute = false)
     {
         var kind = FarmFieldRules.PlantingItem(crop);
-        var inventory = world.Society.Inventory;
-        var reserve = inventory.Reservations.FirstOrDefault(item => item.Id == field.ReplantingReservationId &&
-            item.State == InventoryReservationState.Reserved);
-        // Potatoes in a storage pot move only with the pot, so they are not planting stock.
-        return inventory.Lots.Where(lot => lot.ItemKind == kind && lot.DeliveryBuildingId is null &&
-                lot.ContainerLotId is null &&
-                (lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) ||
-                    lot.OwnerId == field.HouseholdId && lot.CarrierId is null && world.FreeCarryCapacity(actor) > 0 &&
-                    !world.OnBorrowedMarketStall(lot)) &&
-                (world.AvailableLotQuantity(lot) > 0 || reserve?.LotId == lot.Id))
-            .OrderBy(lot => lot.OwnerId == actor ? 0 : reserve?.LotId == lot.Id ? 1 : 2)
+        var request = new GoodsRequest(GoodsUse.FieldPlanting, actor, new([actor, field.HouseholdId]), GoodsKinds.One(kind),
+            ReservationId: field.ReplantingReservationId);
+        return world.FindGoods(request).Matches.Select(match => match.Lot)
+            .OrderBy(lot => lot.OwnerId == actor ? 0 : field.ReplantingReservationId is { } id &&
+                world.Society.Inventory.Reservations.Any(item => item.Id == id && item.LotId == lot.Id && item.State == InventoryReservationState.Reserved) ? 1 : 2)
             .ThenBy(lot => lot.Id, StringComparer.Ordinal)
-            .FirstOrDefault(lot => lot.OwnerId == actor ||
-                world.PickupCarryCapacity(actor, lot, field.Position, 1) >= 1 && (requirePickupRoute
-                    ? world.CanWalkToFieldOrderSite(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot),
-                        WorldRuntime.FarmingSharedRules.HouseholdStockInteractionRange(lot))
-                    : world.CanReachByFootOrSwimming(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot))));
+            .FirstOrDefault(lot => lot.OwnerId == actor || world.PickupCarryCapacity(actor, lot, field.Position, 1) >= 1 &&
+                (requirePickupRoute ? world.CanWalkToFieldOrderSite(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot),
+                    WorldRuntime.FarmingSharedRules.HouseholdStockInteractionRange(lot)) :
+                world.Reach(actor, world.HouseholdStockPosition(lot), ReachPurpose.FieldSeedPickup, 0, 0,
+                    SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0));
     }
 
     internal void ApplyFieldCandidate(IFarmingWorld world, string actor, AgentState state, string candidate, string? orderInstructionId = null)

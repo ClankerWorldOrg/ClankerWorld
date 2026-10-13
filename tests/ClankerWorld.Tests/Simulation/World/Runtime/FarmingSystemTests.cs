@@ -139,6 +139,11 @@ public sealed class FarmingSystemTests
         public IEnumerable<GridPoint> RoadAndBridgeTiles() => Roads;
         public SocietyCognitionSchedulerState Cognition => throw new NotSupportedException();
         public bool IsAdult(string actor) => throw new NotSupportedException();
+        public ActorCapabilityState? CapabilitiesFor(string actor) => throw new NotSupportedException();
+        public IReadOnlyList<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load,
+            SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) => throw new NotSupportedException();
+        public GoodsAnswer FindGoods(GoodsRequest request) => throw new NotSupportedException();
+        public GoodsMatch? RecheckGoods(GoodsRequest request, string stockId) => throw new NotSupportedException();
         public PlacedBuilding? FarmhouseForHousehold(string householdId) => throw new NotSupportedException();
         public bool NeedsUrgentFood(AgentState person) => throw new NotSupportedException();
         public bool NeedsUrgentWarmth(AgentState person) => throw new NotSupportedException();
