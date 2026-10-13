@@ -648,7 +648,9 @@ reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
 Shutdown completes pending newborn bindings in installation provider storage
-before acknowledging a saved world. A failed binding refuses shutdown for a
+before acknowledging a saved world. Frozen bindings are staged before a prepared
+birth becomes visible, so shutdown during tick publication retains the original key.
+A failed binding refuses shutdown for a
 paused retry, retaining the frozen original default key even if that default
 changes. Key bytes never enter the world checkpoint; its format is unchanged.
 
