@@ -13,7 +13,7 @@ public partial class FittedLabel : Label
     private string automaticTooltip = string.Empty;
 
     // Ordinary label assignments use the same fitting path as FullText.
-    public new string Text { get => base.Text; set => FullText = value; }
+    public new string Text { get => fullText; set => FullText = value; }
 
     public FittedLabel()
     {
