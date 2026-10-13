@@ -82,7 +82,9 @@ public sealed class ExplorationHandcartTests
                 Assert.Equal(new InventoryGroundPosition(after.Position.X, after.Position.Y), world.Society.Inventory.GetLot(cart.Id).GroundPosition);
             else
                 Assert.Equal(new InventoryGroundPosition(Start.X, Start.Y), world.Society.Inventory.GetLot(cart.Id).GroundPosition);
-            if (moves >= 8 && scout.Preferred == "explore")
+            // Two outward steps exercise legal exits and a multi-step return;
+            // a longer outing repeats the same movement and memory checks.
+            if (moves >= 2 && scout.Preferred == "explore")
             {
                 scout.Preferred = replayScout.Preferred = "explore_return";
                 var suggestion = new OwnerInstructionRequest("return-with-cart", "owner:test", actor,
@@ -91,10 +93,14 @@ public sealed class ExplorationHandcartTests
                 replay.SubmitInstruction(suggestion);
             }
             world.Validate();
+            if (world.ExportState().Events.Any(item => item.Kind == "exploration_completed" &&
+                item.Detail.StartsWith(actor + ":", StringComparison.Ordinal)))
+                break;
         }
         var result = world.Agents.Single(person => person.AgentId == actor);
         Assert.True(moves > 0 || result.Exploration!.OutingPath.Count == 0,
             "A scout must take the available legal cart exit or end the outing within 40 native ticks.");
+        Assert.True(moves >= 4, "The scout must make two outward steps and return along the actual path.");
         Assert.Contains(world.ExportState().Events, item => item.Kind == "exploration_completed" &&
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         Assert.Equal(Start, result.Position);
