@@ -37,6 +37,20 @@ public sealed class ModelWorkHarnessTests
             harness.Transitions.Select(item => item.Stage));
     }
 
+    [Fact]
+    public async Task DifferentActorsCanShareARequestIdWithoutLosingAnyQueueEntry()
+    {
+        using var world = new WorldRuntime("model-work-actor-keys", _ => new ScriptedProvider());
+        var harness = ModelWorkHarness.For(world);
+        await harness.TickAsync(runPendingWork: false);
+        Assert.Equal(4, harness.Pending.Count);
+        Assert.Equal(4, harness.Pending.Select(item => item.Transition.ActorId).Distinct().Count());
+        Assert.Single(harness.Pending.Select(item => item.Transition.RequestId).Distinct());
+        await harness.SettleAsync();
+        await harness.TickAsync();
+        Assert.Equal(4, harness.Transitions.Count(item => item.Stage == ModelWorkStage.Admitted));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

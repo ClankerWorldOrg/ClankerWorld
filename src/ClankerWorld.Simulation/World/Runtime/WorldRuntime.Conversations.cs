@@ -282,7 +282,7 @@ public sealed partial class WorldRuntime
         bool underRuntimeGate = true)
     {
         if (!pendingConversationTurns.Remove(conversationId, out var pending)) return;
-        FinishModelWork(pending.Request.RequestId, ModelWorkStage.Cancelled);
+        FinishModelWork(pending.Request.SpeakerId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
         _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);
         if (suspendCurrent && conversations.FirstOrDefault(item => item.Id == conversationId) is

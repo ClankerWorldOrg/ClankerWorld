@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
     {
         var estateIsPending = society.Checkpoint.Estates.Any(item => item.Id == estateId && item.WillStatus == "pending");
         if (!pendingWills.Remove(estateId, out var pending)) return;
-        FinishModelWork(pending.Request.RequestId, ModelWorkStage.Cancelled);
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         if (estateIsPending) pendingWillCancellationReasons[estateId] = reason;
         else pendingWillCancellationReasons.Remove(estateId);
         CancelProviderCall(pending.Cancellation, underRuntimeGate);

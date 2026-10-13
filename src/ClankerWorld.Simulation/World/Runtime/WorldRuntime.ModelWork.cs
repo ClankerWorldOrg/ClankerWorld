@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
     private IModelWorkObserver? modelWorkObserver;
     private TimeProvider modelTimeProvider = TimeProvider.System;
     private readonly HashSet<string> admittedModelReplies = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, TrackedModelWork> modelWork = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(string ActorId, string RequestId), TrackedModelWork> modelWork = new();
 
     private sealed class TrackedModelWork(ModelWorkTransition transition,
         CognitionDecisionRequest? decision, AgentConversationTurnRequest? conversation)
@@ -62,7 +62,7 @@ public sealed partial class WorldRuntime
     {
         var tracked = new TrackedModelWork(new(requestId, actorId, kind, ModelWorkStage.Registered, WorldTick),
             decision, conversation);
-        if (!modelWork.TryAdd(requestId, tracked)) throw new InvalidOperationException("Duplicate model work request.");
+        if (!modelWork.TryAdd((actorId, requestId), tracked)) throw new InvalidOperationException("Duplicate model work request.");
         modelWorkObserver?.OnModelWork(tracked.Transition);
         var task = modelWorkScheduler.Schedule(async () =>
         {
@@ -84,9 +84,9 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void FinishModelWork(string requestId, ModelWorkStage stage, long? admittedTick = null)
+    private void FinishModelWork(string actorId, string requestId, ModelWorkStage stage, long? admittedTick = null)
     {
-        if (!modelWork.TryRemove(requestId, out var tracked)) return;
+        if (!modelWork.TryRemove((actorId, requestId), out var tracked)) return;
         TransitionModelWork(tracked, stage, admittedTick);
     }
 }
