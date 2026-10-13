@@ -55,7 +55,7 @@ public partial class Main
         });
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var quickText = string.Join('\n', buildingQuickStatus.FindChildren("*", "Label", owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (!buildingQuickCard.Visible || buildingDetailsPanel.Visible || selectedTilePanel.Visible ||
             terrainLayer.SelectedBuilding != new Rect2I(2, 2, 2, 1) ||
             buildingQuickHeader.NameLabel.FullText != "House" ||
@@ -71,7 +71,7 @@ public partial class Main
 
         buildingDetailsButton.EmitSignal(BaseButton.SignalName.Pressed);
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+        var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
         if (!buildingDetailsPanel.Visible || buildingQuickCard.Visible ||
             !facts.Contains("Owner\nFounder's household", StringComparison.Ordinal) ||
             !facts.Contains("Used by\nFounder's household", StringComparison.Ordinal) ||
@@ -129,7 +129,7 @@ public partial class Main
                     ? town with { LandHearings = outcomeKind == "grant" ? [recovery, hearing] : [hearing] } : town).ToArray(),
             };
             RenderBuildingCard(hearingMap);
-            var hearingFacts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            var hearingFacts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             var currentOwner = currentBuilding.HouseholdId is null ? "First Town" : "Founder's household";
             if (!hearingFacts.Contains("Owner\n" + currentOwner, StringComparison.Ordinal) ||
                 (kind == "property" && (hearingFacts.Contains("This hearing does not change", StringComparison.Ordinal) ||
@@ -192,7 +192,7 @@ public partial class Main
         RenderBuildingCard(buildingMap);
 
         string Labels(Node node) => string.Join('\n', node.FindChildren("*", nameof(Label), owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (!buildingRecipeSection.Visible || buildingRecipeRows.GetChildCount() != 1 ||
             !Labels(buildingRecipeRows).Contains("Wooden axe\nUses: 3 Wood\nMakes: 1 Wooden axe", StringComparison.Ordinal) ||
             !Labels(buildingWorkRows).Contains("Materials held for this work: 3 Wood", StringComparison.Ordinal))
@@ -259,7 +259,7 @@ public partial class Main
             buildingWorkSection.Visible || SpaceMeter(buildingDetailsStorage).Percent != 4 ||
             SpaceText(buildingDetailsStorage) != "11 / 256 used")
             throw new InvalidOperationException("Building Details must follow the building's latest storage and work.");
-        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
         if (!facts.Contains("Footprint\n2 × 2 tiles", StringComparison.Ordinal) ||
             !facts.Contains("Storage\n11 / 256 items", StringComparison.Ordinal) ||
             !facts.Contains("Permanent residents\n17 / 16 places", StringComparison.Ordinal) ||
@@ -285,9 +285,9 @@ public partial class Main
         };
         var storeMap = buildingMap with { PlacedBuildings = [store], ProductionJobs = [] };
         RenderBuildingCard(storeMap);
-        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
         quickText = string.Join('\n', buildingQuickStatus.FindChildren("*", "Label", owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (buildingRecipeSection.Visible || !facts.Contains("1 Wooden axe for 3 Wood", StringComparison.Ordinal) ||
             !facts.Contains("waiting for both traders at the shop", StringComparison.Ordinal) ||
             !facts.Contains("household stock and other uses remain private", StringComparison.Ordinal) ||
@@ -319,9 +319,9 @@ public partial class Main
             PlacedBuildings = [store with { Trades = [store.Trades[0] with { Status = "settled" }] }],
         });
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+        facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
         quickText = string.Join('\n', buildingQuickStatus.FindChildren("*", "Label", owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (!facts.Contains("completed · purchase carried away, payment stored here", StringComparison.Ordinal) ||
             quickText.Contains("customer exchange waiting", StringComparison.Ordinal) ||
             !GetViewportRect().Grow(1).Encloses(buildingDetailsPanel.GetGlobalRect()))
@@ -483,7 +483,7 @@ public partial class Main
         RenderBuildingCard(changed);
         facts = Facts();
         var quick = string.Join('\n', buildingQuickStatus.FindChildren("*", nameof(Label), owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (!TownListText().Contains("borrowed by Mika", StringComparison.Ordinal) ||
             !facts.Contains("completed · buyer carries the purchase", StringComparison.Ordinal) ||
             !facts.Contains("1 Wood · owner: Sam's household", StringComparison.Ordinal) ||
@@ -513,7 +513,7 @@ public partial class Main
         RenderMap(baseMap);
         RenderTownList(baseMap);
 
-        string Facts() => string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+        string Facts() => string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
 
         static OwnerWorldAgent MarketPerson(string id, string name, OwnerWorldPosition position) =>
             new(id, name, "active", position, 8_000, [], [], new("idle", null, null, [], string.Empty),

@@ -51,7 +51,7 @@ public partial class Main
             selectedBuildingId = buildingId;
             buildingDetailsRequested = true;
             RenderBuildingCard(snapshot);
-            var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (buildingDetailsHeader.NameLabel.FullText != "River Blacksmith" ||
                 !facts.Contains("Mira · Stone pickaxe", StringComparison.Ordinal) ||
                 !facts.Contains("Household accepted", StringComparison.Ordinal) || !facts.Contains(missing, StringComparison.Ordinal) ||
@@ -63,7 +63,7 @@ public partial class Main
                 PlacedBuildings = [shop with
                 { ToolMakingRequests = [request with { Blocker = full }] }]
             });
-            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (!facts.Contains(full, StringComparison.Ordinal) || facts.Contains(missing, StringComparison.Ordinal))
                 throw new InvalidOperationException("Refreshing a tool request must replace its missing-input reason with the actual full-storage reason.");
             RenderBuildingCard(snapshot with
@@ -71,7 +71,7 @@ public partial class Main
                 PlacedBuildings = [shop with
                 { ToolMakingRequests = [request with { Status = "ready", Blocker = null }] }]
             });
-            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (!facts.Contains("Tool ready · payment still to be agreed", StringComparison.Ordinal) || facts.Contains(full, StringComparison.Ordinal))
                 throw new InvalidOperationException("A finished tool must clear the blocker while preserving that payment still needs agreement.");
 

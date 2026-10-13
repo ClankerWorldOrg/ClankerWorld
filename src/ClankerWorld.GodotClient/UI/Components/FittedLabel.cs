@@ -46,11 +46,14 @@ public partial class FittedLabel : Label
 
     private void Fit()
     {
+        if (AutowrapMode != TextServer.AutowrapMode.Off)
+            TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
         var width = Size.X;
         var font = GetThemeFont("font");
         var size = GetThemeFontSize("font_size");
         // A hidden label keeps only its minimum width, so keep the whole text until it is shown and laid out.
-        base.Text = width <= 0 || font is null || !IsVisibleInTree()
+        base.Text = width <= 0 || font is null || !IsVisibleInTree() ||
+            AutowrapMode == TextServer.AutowrapMode.Off && TextOverrunBehavior == TextServer.OverrunBehavior.NoTrimming
             ? fullText
             : AutowrapMode != TextServer.AutowrapMode.Off
                 ? MaxLinesVisible <= 0 ? fullText : Shorten(fullText, font.GetHeight(size) * MaxLinesVisible,

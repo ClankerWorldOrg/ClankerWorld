@@ -20,8 +20,8 @@ public sealed class PanelDraft : IDisposable
             case LineEdit line when line.Editable:
                 var text = line.Text;
                 var caret = line.CaretColumn;
-                var from = line.GetSelectionFromColumn();
-                var to = line.GetSelectionToColumn();
+                var from = line.HasSelection() ? line.GetSelectionFromColumn() : 0;
+                var to = line.HasSelection() ? line.GetSelectionToColumn() : 0;
                 restore.Add(() =>
                 {
                     if (!GodotObject.IsInstanceValid(line)) return;
@@ -35,10 +35,10 @@ public sealed class PanelDraft : IDisposable
                 var row = edit.GetCaretLine();
                 var column = edit.GetCaretColumn();
                 var selected = edit.HasSelection();
-                var startRow = edit.GetSelectionFromLine();
-                var startColumn = edit.GetSelectionFromColumn();
-                var endRow = edit.GetSelectionToLine();
-                var endColumn = edit.GetSelectionToColumn();
+                var startRow = selected ? edit.GetSelectionFromLine() : 0;
+                var startColumn = selected ? edit.GetSelectionFromColumn() : 0;
+                var endRow = selected ? edit.GetSelectionToLine() : 0;
+                var endColumn = selected ? edit.GetSelectionToColumn() : 0;
                 restore.Add(() =>
                 {
                     if (!GodotObject.IsInstanceValid(edit)) return;
