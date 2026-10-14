@@ -2,11 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckMarketStock(MarketStockActionPlan plan)
+    private ActionCheck CheckMarketStock(MarketStockActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: plan.Choice.Kind == MarketStockKind.Collect && IsEdibleFood(plan.ItemKind),
-                AllowUrgentWarmth: plan.Choice.Kind == MarketStockKind.Collect, AllowActiveOrder: true));
+            policy ?? MarketStockCapabilities(plan));
         if (!capability.Allowed) return capability;
         if (!MarketAdult(plan.Actor) || HouseholdFor(plan.Actor) != plan.HouseholdId ||
             towns.SingleOrDefault(town => town.Id == plan.TownId) is not { } town ||
@@ -37,7 +36,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyMarketStock(MarketStockActionPlan plan)
     {
-        if (CheckMarketStock(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedMarketStock(plan);
+    }
+
+    private void ApplyCheckedMarketStock(MarketStockActionPlan plan)
+    {
         if (!plan.Choice.AtSite) { MoveToward(plan.Actor, agents[plan.Actor], plan.Target, "market_" + plan.Choice.Kind.ToString().ToLowerInvariant(), plan.InteractionRange); return; }
         var town = towns.Single(item => item.Id == plan.TownId);
         var market = town.Markets.Single(item => item.Id == plan.Choice.MarketId);

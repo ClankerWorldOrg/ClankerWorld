@@ -11,12 +11,6 @@ public sealed partial class WorldRuntime
     {
         ProjectInputActionPlan projectInput => CheckProjectInput(projectInput),
         FoodPolicyActionPlan foodPolicy => townSystem.CheckFoodPolicy(civicWorld, foodPolicy),
-        ShopResponseActionPlan shopResponse => CheckShopResponse(shopResponse),
-        ShopBuyActionPlan shopBuy => CheckShopBuy(shopBuy),
-        DirectBarterActionPlan directBarter => CheckDirectBarter(directBarter),
-        MarketExchangeActionPlan marketExchange => CheckMarketExchange(marketExchange),
-        MarketStockActionPlan marketStock => CheckMarketStock(marketStock),
-        MarketOccupancyActionPlan marketOccupancy => CheckMarketOccupancy(marketOccupancy),
         TownProjectRecoveryActionPlan projectRecovery => CheckTownProjectRecovery(projectRecovery),
         TownProjectWorkActionPlan projectWork => CheckTownProjectWork(projectWork),
         TownProjectLoadActionPlan projectLoad => CheckTownProjectLoad(projectLoad),

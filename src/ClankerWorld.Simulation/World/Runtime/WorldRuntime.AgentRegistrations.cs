@@ -30,6 +30,9 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "market_occupancy", [], [], Definition: MarketOccupancyDefinition),
+        new(ActionPhase.FreshAdmission, "market_stock", [], [], Definition: MarketStockDefinition),
+        new(ActionPhase.FreshAdmission, "market_exchange", [], [], Definition: MarketExchangeDefinition),
         new(ActionPhase.FreshAdmission, "ornament", [], [], Definition: OrnamentDefinition),
         new(ActionPhase.FreshAdmission, "tool_request_consent", [], [], Definition: ToolRequestConsentDefinition),
         new(ActionPhase.FreshAdmission, "animal_agreement", ["animal:agreement:"], [], Definition: AnimalAgreementDefinition),
@@ -84,17 +87,10 @@ public sealed partial class WorldRuntime
         return IsMarketCandidate(action.CandidateId);
     }),
         RegisterFoodPolicyActions(),
-        new(ActionPhase.Ordinary, "trade_", ["trade_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyTradeCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "trade_", ["trade_"], [], Definition: DirectBarterDefinition),
         new(ActionPhase.Ordinary, "shop_stock_store", [], [StoreStockChoice.Candidate], Definition: StoreStockDefinition),
-        new(ActionPhase.Ordinary, "shop_", ["shop_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "shop_buy", [ShopBuyChoice.Prefix], [], Definition: ShopBuyDefinition),
+        new(ActionPhase.Ordinary, "shop_", ["shop_"], [], Definition: ShopResponseDefinition),
         new(ActionPhase.Ordinary, "haul_household_stock", [], [new HouseholdStockRequest(HouseholdStockRequestKind.Haul).Encode()], Definition: HouseholdHaulingDefinition),
         new(ActionPhase.Ordinary, "recover_household_delivery", [], [new HouseholdStockRequest(HouseholdStockRequestKind.RecoverDelivery).Encode()], Definition: HouseholdRecoveryDefinition),
         new(ActionPhase.Ordinary, "store_household_food", [], [new HouseholdStockRequest(HouseholdStockRequestKind.StoreFood).Encode()], Definition: HouseholdFoodStorageDefinition),
