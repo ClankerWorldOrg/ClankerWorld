@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        KnowledgeStorageActionPlan knowledgeStorage => CheckKnowledgeStorage(knowledgeStorage),
         KnowledgeReadingActionPlan knowledgeReading => CheckKnowledgeReading(knowledgeReading),
         KnowledgeWritingActionPlan knowledgeWriting => CheckKnowledgeWriting(knowledgeWriting),
         FoodPolicyActionPlan foodPolicy => townSystem.CheckFoodPolicy(civicWorld, foodPolicy),

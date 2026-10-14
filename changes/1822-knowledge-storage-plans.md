@@ -1,0 +1,1 @@
+- Knowledge collection and storage retain their exact artifact, custody and House destination through shared checks.

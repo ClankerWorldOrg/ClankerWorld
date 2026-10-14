@@ -212,7 +212,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "ApplyKnowledgeStorageCandidate", [], [], static (runtime, action) =>
     {
-        return runtime.ApplyKnowledgeStorageCandidate(action.AgentId, action.State, action.CandidateId);
+        return runtime.ApplyKnowledgeStorageCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
     }),
         new(ActionPhase.Ordinary, "KnowledgeSharePrefix", [KnowledgeSharePrefix], [], static (runtime, action) =>
     {
