@@ -4,13 +4,13 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FarmingSystem
 {
-    private static ActorCapabilityPolicy TreePolicy => new(ActionLifeStages.Adults,
+    internal static ActorCapabilityPolicy TreePolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
     internal static TreeActionPlan? PlanTreeAction(IFarmingWorld world, string actor, TreeChoice choice,
-        GridPoint? selectedSite = null, MapResource? selectedStump = null)
+        GridPoint? selectedSite = null, MapResource? selectedStump = null, ActorCapabilityPolicy? capabilityPolicy = null)
     {
-        if (!ActorCapabilities.Check(world.CapabilitiesFor(actor), TreeActionPlan.Candidate(choice), TreePolicy).Allowed) return null;
+        if (!ActorCapabilities.Check(world.CapabilitiesFor(actor), TreeActionPlan.Candidate(choice), capabilityPolicy ?? TreePolicy).Allowed) return null;
         var origin = world.Agents[actor].Position;
         var stump = choice == TreeChoice.Replant ? selectedStump ?? ReplantableTree(world, actor, origin) : null;
         var position = choice == TreeChoice.Replant ? stump?.Position : selectedSite ?? PlantingSite(world, actor, origin);
@@ -31,9 +31,9 @@ internal sealed partial class FarmingSystem
         return claim is null ? null : new(claim.Id, claim.Quantity);
     }
 
-    internal static ActionCheck CheckTreePlan(IFarmingWorld world, TreeActionPlan plan)
+    internal static ActionCheck CheckTreePlan(IFarmingWorld world, TreeActionPlan plan, ActorCapabilityPolicy? capabilityPolicy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId, TreePolicy);
+        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId, capabilityPolicy ?? TreePolicy);
         if (!capability.Allowed) return capability;
         var seed = plan.Seed;
         var use = seed.OwnerId == plan.Actor ? GoodsUse.TreePlanting : GoodsUse.Collect;

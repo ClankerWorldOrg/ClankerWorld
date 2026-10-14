@@ -122,6 +122,9 @@ and load in the plan; hashed salvage requests keep their original identity.
 Household recovery, hauling and spare-food storage also own separate
 definitions. Their existing urgency policies and selected physical steps share
 one codec, plan check and native effect with legacy entry points.
+Field work, tree planting and farm-stock hauling bind their existing shared
+capability policies and plan checks to typed definitions. Field and tree rows
+call the Farming system's native effects directly after those checks.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

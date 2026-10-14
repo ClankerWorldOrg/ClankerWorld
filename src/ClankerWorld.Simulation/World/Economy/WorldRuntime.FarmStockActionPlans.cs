@@ -7,10 +7,10 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy FarmStockPolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
-    private FarmStockActionPlan? PlanFarmStockAction(string actor, FarmStockActionKind kind)
+    private FarmStockActionPlan? PlanFarmStockAction(string actor, FarmStockActionKind kind, ActorCapabilityPolicy? policy = null)
     {
-        var candidateId = kind == FarmStockActionKind.Grain ? "haul_farm_grain" : "haul_farm_flour";
-        if (!ActorCapabilities.Check(CapabilitiesFor(actor), candidateId, FarmStockPolicy).Allowed ||
+        var candidateId = FarmStockActionPlan.Candidate(kind);
+        if (!ActorCapabilities.Check(CapabilitiesFor(actor), candidateId, policy ?? FarmStockPolicy).Allowed ||
             HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
             FarmhouseForHousehold(household) is not { } farmhouse)
             return null;
@@ -43,9 +43,9 @@ public sealed partial class WorldRuntime
             haul.MoveContainerFamily ? GoodsPlanFamily.Capture(inventory, choice.Carrier) : null, route, returnRoute);
     }
 
-    private ActionCheck CheckFarmStockAction(FarmStockActionPlan plan)
+    private ActionCheck CheckFarmStockAction(FarmStockActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, FarmStockPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? FarmStockPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || FarmhouseForHousehold(plan.HouseholdId) is not { } farmhouse ||
             CarriedHouseDelivery(plan.Actor) is not null)
@@ -88,7 +88,12 @@ public sealed partial class WorldRuntime
     private void ApplyFarmStockAction(FarmStockActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckFarmStockAction(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedFarmStockAction(plan);
+    }
+
+    private void ApplyCheckedFarmStockAction(FarmStockActionPlan plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Source, plan.SourceRange))
         {
