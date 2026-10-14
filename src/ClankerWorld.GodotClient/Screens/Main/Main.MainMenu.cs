@@ -1015,8 +1015,8 @@ public partial class Main
                 await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
-                await observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
-                    createAction, signer, OwnerRequestToken));
+                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
+                    createAction, signer, OwnerRequestToken)));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
             }
@@ -1051,8 +1051,8 @@ public partial class Main
                 await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
-                await observationSession.ChangeTimelineAsync(() => ownerApi.SelectWorldAsync(server, authority, deviceId,
-                    worldId, signer, OwnerRequestToken));
+                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.SelectWorldAsync(server, authority, deviceId,
+                    worldId, signer, OwnerRequestToken)));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
             }

@@ -131,15 +131,16 @@ public partial class Main
                 {
                     await RefreshSaveDiskSpaceAsync(force: true);
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    ownerRequestContext.Value!.EnsureCurrent();
                     if (!ReferenceEquals(owner, registration) || registeredEndpointInvalid)
-                        throw new ObsoleteWorldRequestException();
+                        throw new ObsoleteOwnerRequestException();
                     observationSession.ResetAfterLoad();
-                    await ownerApi.RecoverAutosaveAsync(server, owner.Authority, owner.DeviceId, save.Id,
-                        signer, OwnerRequestToken);
+                    await AwaitCurrentWorldResultAsync(ownerApi.RecoverAutosaveAsync(server, owner.Authority, owner.DeviceId, save.Id,
+                        signer, OwnerRequestToken));
                     startupRecovery = null;
                     ShowMainMenu();
                     var previousRefreshCount = successfulRefreshCount;
-                    await RefreshAsync();
+                    await AwaitCurrentWorldResultAsync(RefreshAsync());
                     if (successfulRefreshCount != previousRefreshCount && !observationSession.AwaitingFreshBaseline)
                     {
                         mainMenuOverlay.Hide();

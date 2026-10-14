@@ -322,18 +322,18 @@ public partial class Main
     {
         foreach (var panel in new Control[] { agentProfilePanel, agentQuickCard, buildingDetailsPanel,
             buildingQuickCard, settingsPanel, agentModelPanel, usageLimitPanel, worldMenuCard,
-            mainMenuCard, startupRecoveryCard, pendingSubmissionPanel })
+            mainMenuCard, startupRecoveryCard, pendingSubmissionPanel, manualSaveCard, founderSetupPanel,
+            developerPanel, apiKeysPanel, pauseMenuPanel, gameSettingsContent, worldSettingsContent })
         {
             ownerPanelRevisions[panel] = 0;
             panel.VisibilityChanged += () => ownerPanelRevisions[panel]++;
         }
     }
 
-    private Func<bool> CaptureOwnerRequestPanel()
+    private Func<bool> CaptureOwnerRequestPanel(Control? sendingPanel = null)
     {
-        var panel = GetViewport().GuiGetFocusOwner();
+        var panel = sendingPanel ?? GetViewport().GuiGetFocusOwner();
         while (panel is not null && !ownerPanelRevisions.ContainsKey(panel)) panel = panel.GetParent() as Control;
-        panel ??= ownerPanelRevisions.Keys.LastOrDefault(control => control.IsVisibleInTree());
         var revision = panel is null ? 0 : ownerPanelRevisions[panel];
         var agent = selectedAgentId;
         var building = selectedBuildingId;
@@ -342,11 +342,11 @@ public partial class Main
     }
 
     private async Task<T> RunOwnerLifecycleAsync<T>(Func<Task<T>> action, Action<bool> setBusy,
-        bool bindPanel = true, bool bindWorld = true)
+        bool bindPanel = true, bool bindWorld = true, Control? sendingPanel = null)
     {
         var generation = observationSession.RequestGeneration;
         var owner = registration;
-        var panelIsCurrent = CaptureOwnerRequestPanel();
+        var panelIsCurrent = CaptureOwnerRequestPanel(sendingPanel);
         var runner = new OwnerRequest<T>(() => ReferenceEquals(owner, registration) &&
             (!bindWorld || IsCurrentWorldRequest(generation)) && (!bindPanel || panelIsCurrent()), setBusy);
         return await runner.RunAsync(async context =>
@@ -365,11 +365,13 @@ public partial class Main
             (pending.OrderCancel is not { } cancellation || cancellation.CanRetryIn(worldId));
     }
 
-    private async Task RunOwnerActionAsync(Func<Task<string>> action, bool waitForTurn = false,
-        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null, bool changesTimeline = false)
+    // A skipped or obsolete request cannot authorize follow-up UI changes.
+    private async Task<bool> RunOwnerActionAsync(Func<Task<string>> action, bool waitForTurn = false,
+        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null, bool changesTimeline = false, Control? sendingPanel = null)
     {
         var generation = observationSession.RequestGeneration;
-        if (!IsCurrentWorldRequest(generation)) return;
+        if (!IsCurrentWorldRequest(generation)) return false;
+        var contextRetained = false;
         await ownerActionGate.RunAsync(async () =>
         {
             if (!IsCurrentWorldRequest(generation)) return;
@@ -383,9 +385,9 @@ public partial class Main
                     SetStatus(detail, good: true);
                     await RefreshAsync();
                     return true;
-                }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline);
+                }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline, sendingPanel: sendingPanel);
             }
-            catch (ObsoleteOwnerRequestException) { }
+            catch (ObsoleteOwnerRequestException) { return; }
             catch (System.Net.Http.HttpRequestException exception)
                 when (exception.StatusCode == System.Net.HttpStatusCode.Conflict && conflictMessage is not null)
             {
@@ -411,6 +413,8 @@ public partial class Main
             {
                 SetStatus($"Could not complete that action · {FriendlyFailure(exception)}", good: false);
             }
+            contextRetained = true;
         }, waitForTurn);
+        return contextRetained;
     }
 }
