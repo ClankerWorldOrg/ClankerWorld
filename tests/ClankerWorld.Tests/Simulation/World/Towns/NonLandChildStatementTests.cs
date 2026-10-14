@@ -41,14 +41,18 @@ public sealed class NonLandChildStatementTests
                 .Append(new(child, start, 9_000, 0, "curious", "consider the public case")).ToArray(),
             Towns = [town with { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() }]
         };
+        var destination = state.Map.FootNeighbors(board).Where(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point))
+            .OrderBy(point => state.Map.FootDistance(start, point)).First();
         var follower = new NonLandTestProvider
         {
             Choose = observation => observation.AgentId == child
-                ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(GuardianTravelChoice.FollowPrefix, StringComparison.Ordinal)) : null
+                ? observation.Candidates.FirstOrDefault(candidate => candidate.Id == "move_to") : null
         };
         using (var walking = NonLandRuntimeFixture.Create(state, follower))
         {
-            await NonLandRuntimeFixture.UntilAsync(walking, () => walking.Towns[0].NonLandHearings.ConductRecords.Any(record => record.ActorId == child), 8);
+            walking.SubmitInstruction(new("child-public-passage", "owner:test", child, OwnerInstructionKind.Order, $"Move to ({destination.X}, {destination.Y})"));
+            await NonLandRuntimeFixture.UntilAsync(walking, () => walking.Agents.Single(person => person.AgentId == child).Position == destination &&
+                walking.Towns[0].NonLandHearings.ConductRecords.Any(record => record.ActorId == child), 8);
             state = NonLandRuntimeFixture.Strict(walking.ExportState());
         }
         var reporter = NonLandRuntimeFixture.FilingProvider();

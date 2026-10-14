@@ -204,7 +204,9 @@ internal static class NonLandRuntimeFixture
         await UntilAsync(prepared, () => TownNonLandRules.ReadCurrent(prepared.Towns[0].NonLandHearings.Cases[0], Judge, prepared.WorldTick) &&
             prepared.Towns[0].NonLandHearings.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].NonLandHearings.Cases[0].Allegation.SubjectId), 16, result =>
         {
-            materialPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandEvidenceActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+            materialPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandEvidenceActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                    result.Events.Any(item => item.Kind == (plan.Choice.Verb == "law_case_answer" ? "law_case_response" : "law_case_inspected") &&
+                        item.Detail == town.Id + "|" + plan.CaseId + "|" + plan.Actor))
                 .Select(decision => Assert.IsType<NonLandEvidenceActionPlan>(decision.ActionPlan)));
         });
         var actual = prepared.Towns[0].NonLandHearings.Cases[0];

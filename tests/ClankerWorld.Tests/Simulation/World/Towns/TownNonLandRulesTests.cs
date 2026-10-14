@@ -11,7 +11,7 @@ public sealed class TownNonLandRulesTests
         var state = Settled();
         var item = state.Cases[0];
         var selected = item.Reads.Last(read => read.AgentId == "judge");
-        state = TownNonLandRules.RequestReopen(state, item.Id, "subject", "procedural_error", [],
+        state = TownNonLandRules.RequestReopen(state, item.Id, "subject", "procedural_error", [item.Evidence[0].Id],
             "I ask for an independent assessment of the procedure.", 22);
         state = TownNonLandRules.Inspect(state, item.Id, 1, "judge", 23);
         var request = Assert.Single(state.Cases[0].ReopenRequests);
