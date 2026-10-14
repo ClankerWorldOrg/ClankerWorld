@@ -173,13 +173,14 @@ public sealed class TownLawRuntimeTests
         council = TownCouncilRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
         using var updated = WorldRuntime.Restore(initial with { Towns = [town with { Council = council, Government = government }] });
         var unchanged = updated.ExportState();
+        var originalEvents = unchanged.Events.ToArray();
         var before = WorldRuntimeCodec.Encode(unchanged);
         Assert.Equal(ActionRefusalReason.TargetUnavailable, updated.CheckActionPlan(stalePlan).Refusal!.Reason);
         typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .Invoke(updated, [adults[0], stale, null, null, null, null, null]);
         var refused = updated.ExportState();
         Assert.Equal("choice_refused", refused.Events[^1].Kind);
-        Assert.Equal(before, WorldRuntimeCodec.Encode(refused with { Events = unchanged.Events }));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(refused with { Events = originalEvents }));
     }
 
     private sealed class LawProvider(string actor) : IDecisionProvider
