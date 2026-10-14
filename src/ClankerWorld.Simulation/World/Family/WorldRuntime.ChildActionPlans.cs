@@ -5,15 +5,37 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    private static ActionDefinition<ChildChoice, ChildActionPlan> ChildDefinition => ChildActions.Definition;
+
+    private static class ChildActions
+    {
+        internal static readonly ActionDefinition<ChildChoice, ChildActionPlan> Definition = new(
+            static (string candidate, out ChildChoice choice) =>
+            {
+                var decoded = ChildChoice.Parse(candidate);
+                choice = decoded.GetValueOrDefault();
+                return decoded.HasValue;
+            },
+            static choice => choice.Id,
+            new(ActionLifeStages.Children),
+            static (world, actor, choice, _) => world.PlanChildChoice(actor, choice),
+            static (world, plan, policy) => world.CheckChildPlan(plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.ApplyCheckedChildPlan(plan);
+                return true;
+            });
+    }
+
     private void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice,
         string description, int priority, string? destinationId = null)
     {
-        if (PlanChildChoice(actor, choice) is { } plan && CheckActionPlan(plan).Allowed)
-            candidates.Add(new(choice.Id, description, priority, destinationId) { ActionPlan = plan });
+        if (ChildDefinition.Offer(this, actor, choice) is { } plan)
+            candidates.Add(new(ChildDefinition.Encode(choice), description, priority, destinationId) { ActionPlan = plan });
     }
 
     private ChildActionPlan? PlanChildCandidate(string actor, string candidate) =>
-        ChildChoice.Parse(candidate) is { } choice ? PlanChildChoice(actor, choice) : null;
+        ChildDefinition.Decode(candidate, out var choice) ? ChildDefinition.Plan(this, actor, choice) : null;
 
     private ChildActionPlan? PlanChildChoice(string actor, ChildChoice choice)
     {
@@ -70,10 +92,10 @@ public sealed partial class WorldRuntime
         return new(actor, choice, destination, range, route, household, house?.InstanceId, stockId, itemKind, quantity, delivery);
     }
 
-    private ActionCheck CheckChildPlan(ChildActionPlan plan)
+    private ActionCheck CheckChildPlan(ChildActionPlan plan, ActorCapabilityPolicy policy)
     {
         var actor = plan.Actor;
-        if (ChildActorCapabilities(actor, plan.CandidateId) is { Allowed: false } capabilities) return capabilities;
+        if (ActorCapabilities.Check(CapabilitiesFor(actor), plan.CandidateId, policy) is { Allowed: false } capabilities) return capabilities;
         var state = agents[actor];
         var choice = plan.Choice;
         var social = choice.Kind is ChildActionKind.Converse or ChildActionKind.Play or ChildActionKind.Learn;
@@ -155,6 +177,11 @@ public sealed partial class WorldRuntime
             RefuseChoice(plan, refusal);
             return;
         }
+        ApplyCheckedChildPlan(plan);
+    }
+
+    private void ApplyCheckedChildPlan(ChildActionPlan plan)
+    {
         if (plan.Choice.Kind is ChildActionKind.Converse or ChildActionKind.Play or ChildActionKind.Learn)
             ApplyChildSocial(plan);
         else if (plan.Choice.Kind == ChildActionKind.HelpFood)

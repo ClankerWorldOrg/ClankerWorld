@@ -7,6 +7,4 @@ public sealed partial class WorldRuntime
             RidingAnimal(actor) is not null, NeedsUrgentFood(state), NeedsUrgentWarmth(state), PendingInstructionFor(actor) is not null)
         : null;
 
-    private ActionCheck ChildActorCapabilities(string actor, string candidate) =>
-        ActorCapabilities.Check(CapabilitiesFor(actor), candidate, new(ActionLifeStages.Children));
 }
