@@ -12,10 +12,10 @@ namespace ClankerWorld.Tests;
 internal static class MarketAdditionalStallScenario
 {
     private const string Proposer = TownProjectScenario.Author;
-    private const string WoodWorker = "founder:00000000000000000000000000000002";
+    private const string WoodWorker = NormalPathWorld.Founder2;
     private static readonly int[] ExpectedStarterSlots = [0, 4];
     private static readonly string[] Sellers =
-    ["founder:00000000000000000000000000000003", "founder:00000000000000000000000000000004"];
+    [NormalPathWorld.Founder3, NormalPathWorld.Founder4];
 
     internal static async Task AssertRealBorrowingEnablesOnlyAnApprovedPaidThirdStallAsync(WorldRuntimeState paidBoundary)
     {

@@ -76,6 +76,27 @@ public sealed record PackageEntryPoints(string Game, string Server)
     public static PackageEntryPoints? ReadInstalled(string directory) =>
         Read(directory, relative => File.Exists(Path.Combine(directory, relative)));
 
+    /// <summary>Find the installed package that names this game, including a game in a subfolder.</summary>
+    public static (string Directory, PackageEntryPoints EntryPoints)? FindInstalledForGame(string executable)
+    {
+        var game = Path.GetFullPath(executable);
+        if (Path.GetDirectoryName(game) is not { } parent) return null;
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        for (var directory = new DirectoryInfo(parent); directory is not null; directory = directory.Parent)
+        {
+            var hasManifest = File.Exists(Path.Combine(directory.FullName, FileName));
+            if (ReadInstalled(directory.FullName) is not { } entryPoints)
+            {
+                if (hasManifest) return null;
+                continue;
+            }
+            if (!string.Equals(Path.GetFullPath(Path.Combine(directory.FullName, entryPoints.Game)), game, comparison) ||
+                !hasManifest && !File.Exists(Path.Combine(directory.FullName, entryPoints.Server))) continue;
+            return (directory.FullName, entryPoints);
+        }
+        return null;
+    }
+
     private static string? RelativePath(JsonElement root, string name) =>
         root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String &&
         value.GetString() is { } relative && GameVersionStore.IsSafeRelativePath(relative)
