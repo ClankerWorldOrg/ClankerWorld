@@ -225,37 +225,52 @@ public sealed partial class WorldRuntime
             FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
     }
 
+    private bool ShopQuoteContext(string buyer, PlacedBuilding building) =>
+        ActorCapabilities.Check(CapabilitiesFor(buyer), "shop_buy:",
+            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true)).Allowed &&
+        building.HouseholdId is { } seller && seller != HouseholdFor(buyer) &&
+        society.Checkpoint.Households.Any(household => household.Id == seller) &&
+        agents.Keys.Any(actor => IsAdult(actor) && HouseholdFor(actor) == seller) &&
+        IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) &&
+        !society.Checkpoint.Inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
+            (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer));
+
+    private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods)
+    {
+        if (!ShopQuoteContext(buyer, building))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shop exchange is no longer available");
+        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
+        if (ShopRules.KindOf(definition) is not { } kind || !ShopRules.MaySell(kind, quote.Goods.ItemKind) ||
+            !IsLooseShopLot(quote.Goods) || quote.Goods.ItemKind == quote.Payment.ItemKind ||
+            !SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
+                .Any(match => match.Lot == quote.Goods && match.Quantity >= quote.GoodsQuantity) ||
+            !ShopPaymentLots(buyer, building).Any(lot => lot == quote.Payment) ||
+            AvailableLotQuantity(quote.Payment) < quote.PaymentQuantity ||
+            ShopQuoteAmounts(building, quote.Goods, quote.Payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
+            !requestedGoods && (!ShopBuyerWants(buyer, quote.Goods) ||
+                !ShopBuyerWantsWithoutRestaurant(buyer, quote.Goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, quote.Goods.ItemKind)) ||
+            RestaurantInputDemand(buyer, quote.Payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, quote.Payment.ItemKind))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods or payment are no longer available");
+        return ShopReceivingSpace(buyer, building, quote.GoodsQuantity, quote.PaymentQuantity)
+            ? new() : ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected shop exchange");
+    }
+
     private ShopQuote? ShopOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false)
     {
-        var inventory = society.Checkpoint.Inventory;
-        if (!IsAdult(buyer) || NeedsUrgentWarmth(agents[buyer]) ||
-            building.HouseholdId is not { } seller || seller == HouseholdFor(buyer) ||
-            !society.Checkpoint.Households.Any(household => household.Id == seller) ||
-            !agents.Keys.Any(actor => IsAdult(actor) && HouseholdFor(actor) == seller) ||
-            !IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) ||
-            inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
-                (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer)))
-            return null;
+        if (!ShopQuoteContext(buyer, building)) return null;
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         if (ShopRules.KindOf(definition) is not { } kind) return null;
-        foreach (var goods in SpendingGoods(buyer, GoodsUse.Sell, [seller], building: building.InstanceId,
-                     inventory: inventory).Select(match => match.Lot)
-                     .Where(lot => IsLooseShopLot(lot) && ShopRules.MaySell(kind, lot.ItemKind) &&
-                     (exactGoodsLotId is null || lot.Id == exactGoodsLotId) && (requestedGoods || ShopBuyerWants(buyer, lot))).OrderBy(lot => lot.Id, StringComparer.Ordinal))
+        foreach (var goods in SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
+                     .Select(match => match.Lot).Where(lot => IsLooseShopLot(lot) && ShopRules.MaySell(kind, lot.ItemKind) &&
+                     (exactGoodsLotId is null || lot.Id == exactGoodsLotId) && (requestedGoods || ShopBuyerWants(buyer, lot)))
+                     .OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
             // Payment comes from the buyer's own goods, never borrowed household ones.
             foreach (var payment in ShopPaymentLots(buyer, building).Where(lot => lot.ItemKind != goods.ItemKind)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal))
             {
                 var amounts = ShopQuoteAmounts(building, goods, payment);
-                if (!requestedGoods && !ShopBuyerWantsWithoutRestaurant(buyer, goods) &&
-                    amounts.Goods > RestaurantInputDemand(buyer, goods.ItemKind)) continue;
-                // A satisfied input reserve can become short after payment:
-                // protect the exact quoted quantity, not just a desire flag.
-                if (RestaurantInputDemand(buyer, payment.ItemKind, amounts.Payment) >
-                    RestaurantInputDemand(buyer, payment.ItemKind)) continue;
-                if (AvailableLotQuantity(goods) >= amounts.Goods && AvailableLotQuantity(payment) >= amounts.Payment &&
-                    ShopReceivingSpace(buyer, building, amounts.Goods, amounts.Payment))
+                if (CheckSelectedShopQuote(buyer, building, new(goods, amounts.Goods, payment, amounts.Payment), requestedGoods).Allowed)
                     return new(goods, amounts.Goods, payment, amounts.Payment);
             }
         }

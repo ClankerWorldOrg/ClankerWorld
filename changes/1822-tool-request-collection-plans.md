@@ -1,0 +1,1 @@
+- Finished-tool collection keeps the quoted tool and payment when checking whether an exchange can still begin.
