@@ -54,18 +54,18 @@ public sealed record TownRemedyTerm(string Id, string Kind, string ContributorId
     string? ItemKind, int Quantity, string? TargetId);
 public sealed record TownRemedyResponse(string AgentId, int Revision, string TermsHash, string Kind, long Tick,
     string NoticeId, string? Reason = null);
-public sealed record TownRemedyOffer(string Id, string CaseId, string FindingId, int Revision,
+public sealed record TownRemedyOffer(Identity Id, string CaseId, string FindingId, int Revision,
     IReadOnlyList<TownRemedyTerm> Terms, string TermsHash, string Reason, string NoticeId, long PublishedTick,
     long ResponseDeadlineTick, long CompletionTicks, string Status, IReadOnlyList<TownRemedyResponse> Responses,
-    string? ReplacesOfferId = null, string? AgreementId = null);
-public sealed record TownRestorativeAgreement(string Id, string OfferId, int OfferRevision, string TermsHash,
+    Identity? ReplacesOfferId = null, string? AgreementId = null);
+public sealed record TownRestorativeAgreement(string Id, Identity OfferId, int OfferRevision, string TermsHash,
     IReadOnlyList<TownRemedyTerm> Terms, IReadOnlyList<TownRemedyResponse> Consents, long AcceptedTick,
     long DeadlineTick, string Status, string? ReplacesAgreementId = null);
 
 /// <summary>A receipt for actual lawful work or delivery, retained after events or used goods disappear.</summary>
 public sealed record TownRemedyEffect(string Id, string AgreementId, string TermId, string ActorId, long Tick,
     string Kind, string? BeneficiaryId, string? ItemKind, int Quantity, string? TargetId,
-    string NativeReceiptId, string NativeReceiptVersion);
+    Identity NativeReceiptId, string NativeReceiptVersion);
 public sealed partial record TownNonLandHearingState(long Sequence, IReadOnlyList<TownNonLandCase> Cases,
     IReadOnlyList<TownRemedyOffer> Offers, IReadOnlyList<TownRestorativeAgreement> Agreements,
     IReadOnlyList<TownRemedyEffect> Effects)

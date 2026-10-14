@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
             quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
         RecordNonLandGoodsCompletion(actor, surplus.Lot, warehouse.TownId!, quantity, warehouse.InstanceId,
             operation, "public_service_goods", availableBefore);
-        AppendEvent("town_resources_stored", $"{actor}:{surplus.Lot.Id}:{quantity}:{warehouse.InstanceId}");
+        AppendEvent(new TownResourcesStoredEventPayload(actor, surplus.Lot.Id, quantity, warehouse.InstanceId));
     }
 
     private DeliveryOrderPlan? GetTownOrderPlan(string actor, AgentState person,
