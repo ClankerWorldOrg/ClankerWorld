@@ -16,10 +16,10 @@ public sealed class OwnerRequestTests
         List<bool> controls = [];
         var request = new OwnerRequest<int>(() => true, controls.Add);
         using var cancellation = new CancellationTokenSource();
-        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var entered = new TaskCompletionSource();
+        var completed = new TaskCompletionSource();
         var applied = false;
-        var reply = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var reply = new TaskCompletionSource<int>();
         var running = request.RunAsync(async context =>
         {
             try
@@ -31,7 +31,7 @@ public sealed class OwnerRequestTests
             }
             finally { completed.TrySetResult(); }
         }, cancellation.Token);
-        await entered.Task;
+        await ModelWorkHarness.WaitForSignalAsync(entered.Task);
         Assert.Equal([true], controls);
         switch (outcome)
         {
@@ -45,7 +45,7 @@ public sealed class OwnerRequestTests
         Assert.Equal([true, false], controls);
         // The protected callback must finish without applying a late cancelled reply.
         reply.TrySetResult(9);
-        await completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.WaitForSignalAsync(completed.Task);
         Assert.Equal(outcome == "success", applied);
         Assert.Equal([true, false], controls);
     }
@@ -58,7 +58,7 @@ public sealed class OwnerRequestTests
         var current = true;
         var busy = false;
         var applied = false;
-        var reply = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var reply = new TaskCompletionSource<int>();
         var runner = new OwnerRequest<int>(() => current, value => busy = value);
         var running = runner.RunAsync(async context =>
         {
