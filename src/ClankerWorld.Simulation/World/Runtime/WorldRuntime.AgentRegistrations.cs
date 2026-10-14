@@ -262,7 +262,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpandBuildingPrefix], [], static (runtime, action) =>
     {
-        runtime.ApplyBuildingExpansionCandidate(action.AgentId, action.State, action.CandidateId[ExpandBuildingPrefix.Length..]);
+        runtime.ApplyBuildingExpansionCandidate(action.AgentId, action.State, action.CandidateId[ExpandBuildingPrefix.Length..], originalPlan: action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], static (runtime, action) =>
