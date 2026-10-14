@@ -13,20 +13,15 @@ namespace ClankerWorld.Server.Saves;
 /// <see cref="GameVersion"/> and <see cref="SourceRevision"/> name the host build
 /// that wrote the save; saves from before they were recorded have neither.
 /// </remarks>
-public sealed record ManualWorldSave(string Id, string Name, DateTimeOffset CreatedUtc, long WorldTick,
-    bool IsAutosave = false, SaveBranch? Branch = null, string? ContinuedFromId = null,
-    DateTimeOffset? ContinuedFromCreatedUtc = null, long BranchPosition = 0,
-    [property: JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null,
-    [property: JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
-public sealed record ManualSaveOverwriteReceipt(ManualWorldSave Saved, string BackupId);
+
+
 
 /// <summary>
 /// One version of a world's history. Playing on from an older save starts a new
 /// branch, so later saves of the original branch stay where they were. Saves
 /// made before branches existed have no branch.
 /// </summary>
-public sealed record SaveBranch(string Id, int Number, string? StartedFromId = null,
-    string? StartedFromName = null, long? StartedFromTick = null);
+
 
 /// <summary>The branch record to put back if loading a save fails part-way.</summary>
 public sealed record SaveTimelineRestorePoint(string WorldId, byte[]? Bytes);
@@ -35,8 +30,7 @@ public sealed record SaveTimelineRestorePoint(string WorldId, byte[]? Bytes);
 /// Where the running world's history continues: the save it was last loaded from
 /// or saved as, that save's branch, and whether the next save starts a new branch.
 /// </summary>
-public sealed record SaveTimelinePosition(string? ContinuedFromId, string? BranchId, bool StartsNewBranch,
-    int? NextBranchNumber = null, long? ContinuedFromTick = null);
+
 
 /// <summary>
 /// Owner-only named checkpoints for the currently active world. Opaque IDs,

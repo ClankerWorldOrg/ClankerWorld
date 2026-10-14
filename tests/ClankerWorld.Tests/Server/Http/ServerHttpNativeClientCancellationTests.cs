@@ -11,9 +11,9 @@ using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Saves;
 using Microsoft.Extensions.DependencyInjection;
-using ClientAction = ClankerWorld.GodotClient.Protocol.OwnerOrderCancelAction;
+using ClientAction = ClankerWorld.Contracts.OwnerOrderCancelAction;
 using ClientAuthority = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
-using OwnerInstructionReceipt = ClankerWorld.GodotClient.Protocol.OwnerInstructionReceipt;
+using OwnerInstructionReceipt = ClankerWorld.Contracts.OwnerInstructionReceipt;
 
 namespace ClankerWorld.Tests;
 
@@ -40,7 +40,7 @@ public sealed partial class ServerHttpTests
             var device = await StartAndActivateAsync(host, pairingClient, key);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             Assert.True(runtime.Society.IsPaused);
-            var instruction = new ClankerWorld.Server.Pairing.OwnerInstructionAction(
+            var instruction = new ClankerWorld.Contracts.OwnerInstructionAction(
                 "native-client-order", actor, "order", "Eat 1 food", runtime.Society.WorldId);
             using var submitted = await SendSignedAsync(host, pairingClient, key, device.DeviceId,
                 "/api/v1/owner/instructions", instruction, OwnerHttpBinding.InstructionPayload(instruction));

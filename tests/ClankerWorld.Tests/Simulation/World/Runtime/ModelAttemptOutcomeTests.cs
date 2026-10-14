@@ -40,7 +40,7 @@ public sealed class ModelAttemptOutcomeTests
         var payload = Assert.IsType<ModelAttemptStatusEventPayload>(failure.Payload);
         Assert.Equal(TargetId, payload.ActorId);
         Assert.Equal(expectedStatus, payload.Status);
-        var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot()),
             ClientJson)!;
         var description = ClankerWorld.GodotClient.UI.WorldEventText.Describe(failure, clientSnapshot);
@@ -113,11 +113,11 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal(1, fixture.Usage.Capture().Attempts);
     }
 
-    private static ClankerWorld.GodotClient.Protocol.OwnerWorldEvent[] ClientFailures(WorldRuntime world)
+    private static ClankerWorld.Contracts.OwnerWorldEvent[] ClientFailures(WorldRuntime world)
     {
-        var events = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldEventSlice>(
+        var events = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldEventSlice>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetEventsAfter(0)), ClientJson)!.Events;
-        return ClankerWorld.GodotClient.UI.GameUiText.PlayerEvents(events)
+        return ClankerWorld.Contracts.GameUiText.PlayerEvents(events)
             .Where(item => item.Payload is ModelAttemptStatusEventPayload payload && payload.ActorId == TargetId).ToArray();
     }
 
