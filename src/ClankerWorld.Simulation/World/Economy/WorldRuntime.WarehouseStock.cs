@@ -102,8 +102,9 @@ public sealed partial class WorldRuntime
 
     private void AddWarehouseStockCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (PlanWarehouseSurplus(actor) is not { } plan || !CheckActionPlan(plan).Allowed) return;
-        candidates.Add(new CognitionCandidate("store_town_resources",
+        var choice = new TownStockRequest(TownStockActionKind.StoreSurplus, TownStockRequest.WarehouseCandidate);
+        if (WarehouseStockDefinition.Offer(this, actor, choice) is not { } plan) return;
+        candidates.Add(new CognitionCandidate(WarehouseStockDefinition.Encode(choice),
             $"Carry spare {plan.ItemKind} to the Town Warehouse as communal stock for residents.",
             32, plan.WarehouseId)
         { ActionPlan = plan });

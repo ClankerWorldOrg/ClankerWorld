@@ -134,16 +134,8 @@ public sealed partial class WorldRuntime
         runtime.ApplyFoodCargoPlan(action.Plan as FoodCargoActionPlan ?? runtime.PlanFoodCargo(action.AgentId));
         return true;
     }),
-        new(ActionPhase.Ordinary, "store_town_resources", [], ["store_town_resources"], static (runtime, action) =>
-    {
-        runtime.ApplyTownStockPlan(action.Plan as TownStockActionPlan ?? runtime.PlanWarehouseSurplus(action.AgentId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyTownStockPlan(action.Plan as TownStockActionPlan ?? runtime.townSystem.PlanTownSalvage(runtime.civicWorld, action.AgentId, action.CandidateId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "store_town_resources", [], [TownStockRequest.WarehouseCandidate], Definition: WarehouseStockDefinition),
+        new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], Definition: SalvageStockDefinition),
         new(ActionPhase.Ordinary, "haul_farm_grain", [], ["haul_farm_grain"], static (runtime, action) =>
     {
         runtime.ApplyFarmStockAction(action.Plan as FarmStockActionPlan ?? runtime.PlanFarmStockAction(action.AgentId, FarmStockActionKind.Grain));
