@@ -62,15 +62,28 @@ public sealed partial class TownLandTransferRuntimeTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         var replayProvider = provider.ReplayPolicy();
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => replayProvider);
+        var responsePlans = new List<LandTransferResponseActionPlan>();
         for (var step = 0; step < 40 && world.Towns[0].LandRecords.Transfers[0].Status == "pending"; step++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var tick = await world.AdvanceOneTickAsync();
+            Assert.True(tick.Advanced);
+            foreach (var decision in tick.Decisions.Where(decision => decision.ActionPlan is LandTransferResponseActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<LandTransferResponseActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, LandTransferResponseChoice.Decode(plan.CandidateId));
+                Assert.Equal(proposed.Id, plan.Request.Id);
+                Assert.Equal(proposed.Tiles, plan.Request.Tiles);
+                responsePlans.Add(plan);
+            }
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
         var completed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("transferred", completed.Status);
         Assert.Equal(4, completed.Responses.Count);
+        Assert.Contains(responsePlans, plan => plan.Choice.Kind == LandTransferResponseKind.Read);
+        Assert.Equal(4, responsePlans.Count(plan => plan.Choice.Kind == LandTransferResponseKind.Accept));
+        Assert.All(responsePlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.All(completed.Responses, response =>
         {
             Assert.Equal("accept", response.Kind);

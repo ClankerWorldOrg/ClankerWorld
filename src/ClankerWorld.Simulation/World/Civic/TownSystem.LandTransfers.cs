@@ -125,18 +125,18 @@ internal sealed partial class TownSystem
             if (party is null) continue;
             var token = LandTransferActionToken(request);
             var knows = TownLandTransferRules.HasNotice(request, actor, world.WorldTick, council.Knowledge);
-            if (atBoard && !knows)
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_read", token), "Read the actual published household transfer notice. " + LandTransferTerms(world, request), 155));
+            OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Read, "",
+                "Read the actual published household transfer notice. " + LandTransferTerms(world, request), 155);
             if (!knows) continue;
-            if (request.FilerId == actor)
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_withdraw", token), "Withdraw your pending permission transfer proposal. Existing rights remain. " + LandTransferTerms(world, request), 190));
+            OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Withdraw, "",
+                "Withdraw your pending permission transfer proposal. Existing rights remain. " + LandTransferTerms(world, request), 190);
             if (TownLandTransferRules.PendingFailure(town.LandRecords, request, householdLandUseRights, householdLandUseRequests, world.WorldTick) is not null) continue;
             AddTownLandSaleCandidates(world, candidates, actor, town, request, parties, token);
             var accepted = TownLandTransferRules.AcceptedAdults(request, party, council.Knowledge, world.WorldTick).Contains(actor, StringComparer.Ordinal);
-            if (!accepted)
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_accept", token, party.HouseholdId), "Personally accept these exact permission terms for your current household; no other adult's consent is supplied. " + LandTransferTerms(world, request), 165));
-            candidates.Add(new(CivicAction(world, town.Id, "land_transfer_decline", token, party.HouseholdId),
-                (accepted ? "Revoke your acceptance and decline" : "Personally decline") + " this pending permission transfer. Silence and another member's choice give no agreement. " + LandTransferTerms(world, request), 166));
+            OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Accept, party.HouseholdId,
+                "Personally accept these exact permission terms for your current household; no other adult's consent is supplied. " + LandTransferTerms(world, request), 165);
+            OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Decline, party.HouseholdId,
+                (accepted ? "Revoke your acceptance and decline" : "Personally decline") + " this pending permission transfer. Silence and another member's choice give no agreement. " + LandTransferTerms(world, request), 166);
         }
     }
 

@@ -1,0 +1,1 @@
+- Household permission-transfer reading and personal responses retain the exact request and party through shared checks.
