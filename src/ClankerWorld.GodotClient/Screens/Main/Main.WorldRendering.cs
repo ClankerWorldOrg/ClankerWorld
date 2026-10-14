@@ -121,7 +121,7 @@ public partial class Main
         {
             knownEvents[worldEvent.EventId] = worldEvent;
         }
-        foreach (var expiredId in knownEvents.Keys.OrderByDescending(id => id).Skip(2048).ToArray())
+        foreach (var expiredId in knownEvents.Keys.OrderByDescending(id => id).Skip(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount).ToArray())
         {
             knownEvents.Remove(expiredId);
         }

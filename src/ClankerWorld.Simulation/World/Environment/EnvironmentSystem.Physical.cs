@@ -65,12 +65,12 @@ internal sealed partial class EnvironmentSystem
             {
                 world.CancelConstructionForOrder(buildingOrder);
                 world.CancelExpansionForOrder(buildingOrder);
-                world.SetOrderStatus(buildingOrder, "blocked", "The ordered building worker is no longer alive.");
+                world.SetOrderStatus(buildingOrder, OrderStatus.Blocked, "The ordered building worker is no longer alive.");
             }
             if (world.PendingInstructionFor(id) is { Task.Action: "produce_item" } productionOrder)
             {
                 world.CancelProductionForOrder(productionOrder);
-                world.SetOrderStatus(productionOrder, "blocked", "The ordered production worker is no longer alive.");
+                world.SetOrderStatus(productionOrder, OrderStatus.Blocked, "The ordered production worker is no longer alive.");
             }
             if (world.Society.Inventory.Lots.Any(lot => lot.CarrierId == id))
             {
@@ -111,7 +111,7 @@ internal sealed partial class EnvironmentSystem
             { BoatIdAtDeath = world.RecordBoatDeath(id) });
             world.RemoveAgent(id);
             world.RemoveTownResident(id);
-            world.AppendEvent("agent_removed", id);
+            world.AppendEvent(new AgentRemovedEventPayload(id));
         }
     }
 }

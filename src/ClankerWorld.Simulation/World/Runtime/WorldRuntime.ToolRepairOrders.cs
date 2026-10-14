@@ -19,13 +19,13 @@ public sealed partial class WorldRuntime
     {
         if (ToolRepairOrderCandidateFor(instruction)?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", ToolRepairOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ToolRepairOrderBlockedReason(instruction));
             return;
         }
         var actor = instruction.TargetAgentId;
         if (RepairTool(actor, person, lotId, ToolRepairOrderTargets(instruction)) is not { } repairedLotId) return;
         var receipt = ToolRepairReceipt(actor, WorldTick, repairedLotId);
-        CreditOrderEffect(instruction, receipt, 1);
+        CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
     }
 
     private string ToolRepairOrderBlockedReason(OwnerQueuedInstruction instruction)
