@@ -729,8 +729,7 @@ public sealed record OwnerWorldFoodStewardship(string? StewardName, string FoodP
 
 public sealed record OwnerObserverTimeline(string InstanceId, long Generation)
 {
-    internal bool IsValid => !string.IsNullOrWhiteSpace(InstanceId) && InstanceId.Length <= 128 &&
-        !InstanceId.Any(char.IsControl) && Generation >= 0;
+    internal bool IsValid => ClankerWorld.Simulation.BoundedText.IsValid(InstanceId, 128) && Generation >= 0;
 }
 
 public sealed record OwnerWorldReconnectBaseline(OwnerWorldSnapshot Snapshot, OwnerWorldEventSlice Events,
