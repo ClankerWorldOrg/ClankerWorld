@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         if (TreePlantingOrderPlan(instruction, person) is not { } plan)
         {
-            SetOrderStatus(instruction, "blocked", TreePlantingOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, TreePlantingOrderBlockedReason(instruction, person));
             return;
         }
         if (!plan.Carried)
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
         }
         var result = PlantTreeCore(actor, plan.Species, plan.Seed.Id, plan.Site);
         if (result.Planted) CreditOrderEffect(instruction, Identity.Parse(TreePlantingReceipt(result.TreeId!)), 1);
-        else SetOrderStatus(instruction, "blocked", "The planting site or seed is no longer available; the seed was kept.");
+        else SetOrderStatus(instruction, OrderStatus.Blocked, "The planting site or seed is no longer available; the seed was kept.");
     }
 
     private string TreePlantingOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)

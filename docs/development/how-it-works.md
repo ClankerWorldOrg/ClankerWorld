@@ -636,6 +636,12 @@ error; the world, its message numbering and its save stay unchanged. These are
 the same limits a save applies, so an accepted message cannot leave the world
 unable to save.
 
+`OrderTask` stores its lifecycle as an `OrderStatus` enum. Its one transition
+operation keeps blocked reasons and retry waits together and refuses to reopen
+closed work. The string status is derived for saves and observations. Runtime
+completion comes from that status; only suggestions need a separate completion
+set. The checkpoint's completed-instruction list is derived when exported.
+
 `ParseOrderTask` reads a complete, bounded grammar for eating food,
 seeking a food source, harvesting food, gathering supported raw materials,
 storing personal raw materials or equipment, collecting personal raw materials,
@@ -1015,8 +1021,8 @@ including cancelled history, against the remaining definitions before changing
 the registry. Retired generic cooking recipes are excluded; the catalogue uses
 the exact active named-meal recipes described above.
 
-An order with no recognized action is closed when it is submitted: it is added
-to the completed instructions with an `instruction_not_understood` event
+An order with no recognized action is closed when it is submitted, with an
+`instruction_not_understood` event
 (`<agent ID>:<instruction ID>`), which the Event Log shows. This preserves the
 active and queued recognized orders. A closed unsupported order requests no
 decision and does not block later instructions. Suggestion interpretation stays

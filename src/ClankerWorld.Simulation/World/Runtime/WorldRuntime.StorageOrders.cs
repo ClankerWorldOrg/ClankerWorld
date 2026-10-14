@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         var candidate = StorageOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", StorageOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, StorageOrderBlockedReason(instruction, person));
             return;
         }
         var house = CustodyOrderHouse(instruction, HouseholdFor(instruction.TargetAgentId))!;

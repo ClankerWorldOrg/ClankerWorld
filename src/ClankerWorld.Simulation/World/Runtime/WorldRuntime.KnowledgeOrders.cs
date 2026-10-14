@@ -56,7 +56,7 @@ public sealed partial class WorldRuntime
         var kind = instruction.Task!.TargetKnowledgeKind!;
         if (KnowledgeOrderCandidateFor(instruction) is null)
         {
-            SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, KnowledgeOrderBlockedReason(instruction));
             return;
         }
         if (KnowledgeWritingFor(actor) is null)
@@ -77,7 +77,7 @@ public sealed partial class WorldRuntime
             if (KnowledgeWritingFor(actor) is null)
             {
                 if (agents[actor].Position == person.Position && society.Checkpoint.Inventory == inventory)
-                    SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(instruction));
+                    SetOrderStatus(instruction, OrderStatus.Blocked, KnowledgeOrderBlockedReason(instruction));
                 return;
             }
         }
@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
         var updated = instructionsByIdempotency[instruction.IdempotencyKey];
         if (KnowledgeWritingFor(actor) is null && IsActiveOrder(updated.Task!.Status) &&
             updated.Task.CompletedUnits == instruction.Task!.CompletedUnits)
-            SetOrderStatus(updated, "blocked", KnowledgeOrderBlockedReason(updated));
+            SetOrderStatus(updated, OrderStatus.Blocked, KnowledgeOrderBlockedReason(updated));
     }
 
     private bool IsCurrentKnowledgeOrderProject(AgentKnowledgeWritingProject project) =>

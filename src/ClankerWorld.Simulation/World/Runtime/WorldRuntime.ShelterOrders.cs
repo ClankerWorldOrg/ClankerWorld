@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
                 if (IsWithinInteractionRange(reached, order.TargetPosition.Value, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, order.TargetPosition.Value);
             }
-            else SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            else SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (order.ShelterBinding is null)
@@ -174,7 +174,7 @@ public sealed partial class WorldRuntime
         }
         if (!ShelterBindingIsAvailable(actor, order) || !ShelterRouteIsOpen(actor, person.Position, binding.Position))
         {
-            SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (order.Action == "tend_fire" && !HasCarriedOwnItem(actor, "wood"))
@@ -188,7 +188,7 @@ public sealed partial class WorldRuntime
                 if (IsWithinInteractionRange(reached, source.Position, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, source.Position);
             }
-            else SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            else SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (person.Position != binding.Position)

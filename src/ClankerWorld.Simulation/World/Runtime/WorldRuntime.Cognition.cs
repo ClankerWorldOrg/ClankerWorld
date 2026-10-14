@@ -258,7 +258,7 @@ public sealed partial class WorldRuntime
         var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
             item.InstructionId == orderId && item.TargetAgentId == observation.AgentId &&
             item.Kind == OwnerInstructionKind.Order && item.Task?.Status == "finished" &&
-            item.ObserverReply is null && completedInstructionIds.Contains(orderId));
+            item.ObserverReply is null && IsInstructionComplete(item));
         // Local work can finish while its original personal reply is held.
         // Keep that exact message available for acknowledgement, never execution.
         return instruction is not null && observation.ObserverGuidance?.Any(message =>
@@ -446,7 +446,7 @@ public sealed partial class WorldRuntime
                 if (TryApplyWaitingRoutine(agent.Id, state))
                 {
                     orderActorsHandledThisTick.Add(agent.Id);
-                    if (order is not null) SetOrderStatus(order, "interrupted", "Caring for a nearby dependent.");
+                    if (order is not null) SetOrderStatus(order, OrderStatus.Interrupted, "Caring for a nearby dependent.");
                     continue;
                 }
             }
@@ -468,7 +468,7 @@ public sealed partial class WorldRuntime
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
-                    SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
+                    SetOrderStatus(order, OrderStatus.Interrupted, "Food or warmth needs come first.");
                     if (urgentCandidate is not null && IsMarketFoodCandidate(agent.Id, urgentCandidate.Id) &&
                         runtimes[agent.Id].CurrentIntention is { Provider: DecisionProviderKind.LargeLanguageModel } orderMarketIntention &&
                         orderMarketIntention.OperativeOrderInstructionId == order.InstructionId &&
@@ -489,7 +489,7 @@ public sealed partial class WorldRuntime
                     ExecuteOrderStep(order, state, orderCandidate);
                     continue;
                 }
-                SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
+                SetOrderStatus(order, OrderStatus.Blocked, OrderBlockedReason(order, state));
                 continue;
             }
             if (CanContinueEquipmentRepair(agent.Id))
@@ -696,7 +696,7 @@ public sealed partial class WorldRuntime
             }
             if (decision.Admission.FellBack)
             {
-                SetOrderStatus(order, "blocked", "The order will try again after a short wait.", waitForDecision: true);
+                SetOrderStatus(order, OrderStatus.Blocked, "The order will try again after a short wait.", waitForDecision: true);
                 ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
             }
             else
@@ -707,7 +707,7 @@ public sealed partial class WorldRuntime
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
-                    SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
+                    SetOrderStatus(order, OrderStatus.Interrupted, "Food or warmth needs come first.");
                     if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                         IsMarketFoodCandidate(decision.AgentId, candidateId))
                         ApplyMarketCandidate(decision.AgentId, state, candidateId);
@@ -720,7 +720,7 @@ public sealed partial class WorldRuntime
                 }
                 else
                 {
-                    SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
+                    SetOrderStatus(order, OrderStatus.Blocked, OrderBlockedReason(order, state));
                     ApplyCandidate(decision.AgentId, state, "safe_idle", reportIdle: true);
                 }
             }
@@ -786,7 +786,7 @@ public sealed partial class WorldRuntime
                  UnderstoodTaskFor(instruction.Task?.Action) != message.UnderstoodTask) ||
                 (instruction.Kind == OwnerInstructionKind.Suggestion && message.UnderstoodTask is not null) ||
                 (instruction.ObserverReply is null) != message.ReplyAllowed ||
-                completedInstructionIds.Contains(instruction.InstructionId) &&
+                IsInstructionComplete(instruction) &&
                     !(instruction.Kind == OwnerInstructionKind.Order && instruction.Task?.Status == "finished"))
                 continue;
 
@@ -803,7 +803,7 @@ public sealed partial class WorldRuntime
             // so a suggestion it carried stays open for the next fresh request.
             if (instruction.Kind == OwnerInstructionKind.Suggestion &&
                 admission.Intention.OperativeOrderInstructionId == PendingInstructionFor(agentId)?.InstructionId &&
-                completedInstructionIds.Add(instruction.InstructionId))
+                completedSuggestionIds.Add(instruction.InstructionId))
                 completedSuggestions.Add(instruction.InstructionId);
         }
 

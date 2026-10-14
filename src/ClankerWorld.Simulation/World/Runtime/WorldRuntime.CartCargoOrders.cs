@@ -95,7 +95,7 @@ public sealed partial class WorldRuntime
     private void ExecuteCartCargoOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (CartCargoOrderBlocker(instruction, person) is { } blocker)
-        { SetOrderStatus(instruction, "blocked", blocker); return; }
+        { SetOrderStatus(instruction, OrderStatus.Blocked, blocker); return; }
         var cart = CartForOrder(instruction, person)!;
         var order = instructionsByIdempotency[instruction.IdempotencyKey].Task! with { TargetCartLotId = cart.Id };
         instruction = instructionsByIdempotency[instruction.IdempotencyKey] with { Task = order };

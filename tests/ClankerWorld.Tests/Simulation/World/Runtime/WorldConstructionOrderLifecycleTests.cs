@@ -181,12 +181,11 @@ public sealed partial class WorldConstructionOrderTests
         await ReachWork(world, setup.Actor);
         var state = world.ExportState();
         var order = Order(world, receipt);
-        var forged = order with
+        var forged = (order with
         {
-            Status = "finished",
             CompletedUnits = 1,
             LastEffectId = Identity.Parse("construction:building:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(order.ConstructionInstanceId!)))),
-        };
+        }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => Restore(state with
         {
             Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId

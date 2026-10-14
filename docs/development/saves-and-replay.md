@@ -800,6 +800,16 @@ identity while its current round opening moves forward. Current-format replay
 preserves forced attempts and ordinary elections independently; old alpha
 schemas are refused and preserved without migration or inferred ownership.
 
+## Order lifecycle
+
+Orders retain their existing saved status spelling. Runtime status is an
+`OrderStatus` enum changed only through the task transition operation; closed
+orders cannot return to active work. The runtime keeps a completion set only
+for suggestions and derives order completion from status when exporting the
+existing checkpoint list. This foundation changes no saved fields or schema.
+Current-format reload, cancellation and rejected-tick checks retain the same
+physical effects and receipts.
+
 ## Commit and restore rules
 
 Canonical state is the accepted state used by the simulation. A replay checks

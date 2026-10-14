@@ -181,7 +181,7 @@ public sealed partial class PortBoatRuntimeTests
             order with { BoatTravel = null },
             order with { BoatTravel = new("unknown-port") },
             order with { BoatTravel = order.BoatTravel! with { RequestId = "boat-request:999" } },
-            order with { CompletedUnits = 1, Status = "finished" },
+            (order with { CompletedUnits = 1 }).Transition(OrderStatus.Finished),
             order with { TargetPosition = null },
             order with { TargetResourceId = "invented-food" },
             order with { RepeatUntilCancelled = true },
@@ -192,12 +192,11 @@ public sealed partial class PortBoatRuntimeTests
         var state = scenario.World.ExportState();
         var request = Assert.Single(state.BoatTransport.Requests);
         var underwayInstruction = state.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
-        var inventedArrival = underwayInstruction.Task! with
+        var inventedArrival = (underwayInstruction.Task! with
         {
-            Status = "finished",
             CompletedUnits = 1,
             LastEffectId = Identity.Parse("boat-arrival:" + request.Id)
-        };
+        }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {
             Instructions = [underwayInstruction with { Task = inventedArrival }],

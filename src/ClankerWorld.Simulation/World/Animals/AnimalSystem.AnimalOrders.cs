@@ -83,7 +83,7 @@ internal sealed partial class AnimalSystem
         }
         // A supply pickup can finish collection immediately at the animal.
         if (CreditEffect()) return;
-        if (choice is null) world.SetOrderStatus(instruction, "blocked", "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
+        if (choice is null) world.SetOrderStatus(instruction, OrderStatus.Blocked, "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
 
         bool CreditEffect()
         {

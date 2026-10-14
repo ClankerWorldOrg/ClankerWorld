@@ -248,7 +248,7 @@ public sealed partial class WorldRuntime
                 GatherProjectMaterial(actor, person, instruction.Task!.TargetItemKind!, gather.Source, returnTo: gather.Building.Position);
                 return;
             }
-            SetOrderStatus(instruction, "blocked", DeliveryOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, DeliveryOrderBlockedReason(instruction, person));
             return;
         }
         instruction = BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route,

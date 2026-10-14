@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime
         var candidate = ReturnOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", ReturnOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ReturnOrderBlockedReason(instruction, person));
             return;
         }
         var lot = ReturnOrderGoods(instruction).Single(item => item.Id == lotId);
