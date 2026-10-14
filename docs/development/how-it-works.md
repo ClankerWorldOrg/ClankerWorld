@@ -53,7 +53,9 @@ view names are aliases to those records; the game has no separate DTO copy.
 Rendering conveniences are excluded from JSON. A strict round-trip check fills
 every wire record and reads it through the actual game assembly, comparing the
 complete JSON and refusing an unmapped field. This contract belongs to the game
-and world server of the same build; it changes no saved world schema.
+and world server of the same build; it changes no saved world schema. The shared
+text validator also compiles into both programs; timeline references and
+optional build text keep their existing validation rules.
 
 The server adds need-state labels to the existing decision-factor collection
 and writes the displayed activity into the existing public-intention summary.
