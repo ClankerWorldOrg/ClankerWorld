@@ -265,8 +265,12 @@ public partial class Main
             deviceKey = signer;
             serverUrlInput.Text = host.Address;
             observationSession.ResetAfterLoad();
-            if (!observationSession.TryAccept(baseline, 0, out var failure))
-                throw new InvalidOperationException($"Lifecycle checks need a valid baseline: {failure}");
+            // Normal actions follow an accepted signed baseline. Cold JSON setup can cost one read deadline.
+            var baselineWait = System.Diagnostics.Stopwatch.StartNew();
+            while (observationSession.Current is null && baselineWait.Elapsed < TimeSpan.FromSeconds(15))
+                await RefreshAsync();
+            if (observationSession.Current?.Baseline.Snapshot.WorldId != snapshot.WorldId)
+                throw new InvalidOperationException("Lifecycle checks need their signed initial baseline before any action.");
             selectedAgentId = null;
             selectedBuildingId = null;
             Render(snapshot, []);
@@ -281,6 +285,7 @@ public partial class Main
             agentProfilePanel.Hide();
             manualSaveOverlay.Hide();
             isInWorld = true;
+            host.Requests.Clear();
             host.ReleasePause.TrySetResult();
             try
             {
