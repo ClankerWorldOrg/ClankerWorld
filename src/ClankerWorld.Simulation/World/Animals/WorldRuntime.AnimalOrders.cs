@@ -13,5 +13,5 @@ public sealed partial class WorldRuntime
     private bool HasAnimalCareOrderSupplies(string actor, AnimalState animal) => animalSystem.HasAnimalCareOrderSupplies(animalWorldAdapter, actor, animal);
     private string AnimalOrderBlockedReason(OwnerQueuedInstruction instruction) => animalSystem.AnimalOrderBlockedReason(animalWorldAdapter, instruction);
     private void ExecuteAnimalOrder(OwnerQueuedInstruction instruction) => animalSystem.ExecuteAnimalOrder(animalWorldAdapter, instruction);
-    private void CancelAnimalSupplyForOrder(OwnerQueuedInstruction instruction) => animalSystem.CancelAnimalSupplyForOrder(instruction);
+    private void CancelAnimalSupplyForOrder(OwnerQueuedInstruction instruction) => animalSystem.CancelAnimalSupplyForOrder(animalWorldAdapter, instruction);
 }

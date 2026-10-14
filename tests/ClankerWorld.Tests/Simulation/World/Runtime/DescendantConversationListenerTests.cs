@@ -180,20 +180,7 @@ public sealed class DescendantConversationListenerTests
 
     private static async Task AwaitNativeProviderWorkAsync(WorldRuntime world)
     {
-        // Native birth also starts parenthood identity work. As in the existing
-        // conversation fixture, finish pending local tasks before advancing ticks
-        // so scheduler timing cannot move the paired world's admission boundary.
-        var tasks = new List<Task>();
-        foreach (var fieldName in new[] { "pendingModelCalls", "pendingConversationTurns", "pendingIdentityMoments" })
-        {
-            var field = typeof(WorldRuntime).GetField(fieldName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.NotNull(field);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field.GetValue(world));
-            tasks.AddRange(pending.Values.Cast<object>().Select(item =>
-                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))));
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class ListenerProvider : IDecisionProvider, IAgentConversationProvider

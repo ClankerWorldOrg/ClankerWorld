@@ -333,9 +333,9 @@ public sealed partial class WorldRuntime
         var keepOwner = item.OwnerId == actor ||
             borrowedTool && item.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
         ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor)
+            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{kind}", item.Id, item.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
             : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{kind}",
-                item.OwnerId, actor, item.Id, 1, "equipment_collected"));
+                item.OwnerId, actor, item.Id, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent("equipment_collected", $"{actor}:{kind}");
     }
 
@@ -347,7 +347,7 @@ public sealed partial class WorldRuntime
         return carried is not null && ToolProgressionRules.Find(carried.ItemKind)!.Tier >= requested.Tier;
     }
 
-    private sealed record FireFuelEffect(string BuildingId, string FuelReservationId);
+    private sealed record FireFuelEffect(string BuildingId, Identity FuelReservationId);
 
     private void TendFire(string actor, AgentState person)
     {
@@ -377,7 +377,7 @@ public sealed partial class WorldRuntime
         }
         var fuel = society.Checkpoint.Inventory.Lots.First(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
             lot.DeliveryBuildingId is null && lot.ContainerLotId is null && lot.ItemKind == "wood" && AvailableLotQuantity(lot) > 0);
-        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
         var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuel.Id, 1, "heating_fuel"));
         var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id) &&
             item.OwnerId == actor && item.LotId == fuel.Id && item.Quantity == 1 && item.Purpose == "heating_fuel" &&

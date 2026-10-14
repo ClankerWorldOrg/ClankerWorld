@@ -219,7 +219,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             instruction.InstructionId, int.MaxValue, "The stock was moved.", [sourceLot]);
         var file = new TownNonLandCase(instruction.InstructionId, "key", townId, allegation, society.WorldTick, "open",
             [new(int.MaxValue, [], "notice", society.WorldTick, society.WorldTick + 1)], [], [], [], [], [], null, [], [], null, [], [], []);
-        var offer = new TownRemedyOffer(instruction.InstructionId, file.Id, sourceLot, int.MaxValue, [],
+        var offer = new TownRemedyOffer(Identity.Parse(instruction.InstructionId), file.Id, sourceLot, int.MaxValue, [],
             TownHearingProcedure.Digest(new[] { actor, relative, sourceLot }), "Return the stock.", "notice", society.WorldTick,
             society.WorldTick + 1, 1, "pending", []);
         var landFile = new TownLandCase(file.Id, "key", "request", society.WorldTick, "open",

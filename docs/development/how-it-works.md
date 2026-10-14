@@ -345,6 +345,30 @@ Physical movement may preserve damaged or spoiled property. Consumption still
 requires usable inputs. `InventoryAuthority` remains the authority for an actual
 reservation, transfer, container operation or consumption.
 
+`Kernel/InventoryHolds.cs` adds typed stock holds for Market stalls, deliveries,
+supply trips and borrowed goods. A hold covers a lot's whole physical quantity;
+vessel operations also check every member, and contents inherit their vessel's
+holds. Inventory callers must supply the exact purpose and holder for every
+hold they use. Splits retain holds on both portions; detached goods retain
+their inherited vessel holds. Wear and repair also check contained stock.
+A reservation saves its
+authorized holds and rechecks them when consumed or settled. Hold changes use
+`HoldStock` and `ReleaseStock`, without adding inventory events or changing stock
+history. Custody transitions create and release delivery and borrower holds with
+location changes. `MarketStockHolds` updates loans when stock or stall occupancy
+changes; animal supply trips hold their exact picked-up root until completion,
+cancellation or lost custody. Queries read these holds instead of searching
+Town occupancy or delivery pointers for promises. Read-only consumption plans
+report each match's required holds; an executor still states only the purposes
+and holders it is authorized to use. Saved hold collections compare by value,
+so reload retains ordinary lot and reservation equality.
+
+Supply-trip stock is excluded from unrelated goods uses. Animal care can use its
+matching trip hold and counts those servings once when protecting family meals.
+Collection and delivery permit the named borrower's complete vessel; other
+promises stay protected. A forced dismount cancels a trip if it puts down any of
+that trip's load, preserving unrelated reservations and property ownership.
+
 `World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory
@@ -360,8 +384,11 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
-outside `Goods/` and validation code. The per-file baseline is recorded in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json).
+outside `Goods/` and validation code. The recorded baseline in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
+uses per-file budgets. Named delivery, hold and cargo operations
+replace direct inventory writes; their remaining references perform inventory
+transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
 comments, strings and unrelated `Lots` properties do not count. It exempts files
 ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
@@ -394,6 +421,9 @@ looking for their committed goods in an unreserved answer.
 `StorePersonal` selects carried, unworn personal property for storage, including
 damaged or spoiled goods, and refuses delivery promises and reserved vessel
 families. Storage still checks destination room and the transfer authority.
+Whole-lot custody moves retain the source identity. Only a partial move creates
+a split identity and checks whether it already exists; an earlier split cannot
+block moving the whole remainder. Ownership and reservation checks still apply.
 Physical Market stock counts also remain physical, including damaged contents,
 so usable sale selection cannot undercount occupied space. These queries add no
 route, saved state or persistent world cache.

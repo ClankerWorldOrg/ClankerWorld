@@ -361,7 +361,7 @@ public sealed partial class WorldRuntime
         {
             var equipmentBefore = agents.Values.ToDictionary(person => person.AgentId,
                 person => person.Equipment, StringComparer.Ordinal);
-            var updated = InventoryStorageHistory.RecordTransition(checkpoint.Inventory, transition(checkpoint.Inventory));
+            var updated = InventoryStorageHistory.RecordTransition(checkpoint.Inventory, MarketStockHolds.Update(transition(checkpoint.Inventory), towns));
             foreach (var building in worldSimulation.Buildings)
             {
                 var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
@@ -423,7 +423,7 @@ public sealed partial class WorldRuntime
                     lot.Id,
                     amount,
                     purpose,
-                    current.WorldTick);
+                    current.WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(ownerId));
                 current = InventoryAuthority.ConsumeReservation(current, reservationId);
                 remaining -= amount;
             }
@@ -506,7 +506,7 @@ public sealed partial class WorldRuntime
                     lot.Id,
                     amount,
                     purpose,
-                    expiryTick);
+                    expiryTick, holdAccess: InventoryHoldRules.BorrowedBy(ownerId));
                 created.Add(reservationId);
                 remaining -= amount;
             }
@@ -564,7 +564,7 @@ public sealed partial class WorldRuntime
         long targetTick)
     {
         var inventoryState = society.Checkpoint.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
+        var inputs = job.InputReservationIds.Select(id => inventoryState.GetReservation(id)).ToArray();
         var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
             job.WorkerId, ToolFamily.Knife, job.ToolLotId);
         var inputUnusable = inputs.Any(reservation =>
@@ -592,7 +592,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var current = inventory;
-            foreach (var reservationId in job.InputReservationIds.Order(StringComparer.Ordinal))
+            foreach (var reservationId in job.InputReservationIds.Order())
             {
                 current = InventoryAuthority.ConsumeReservation(current, reservationId);
             }

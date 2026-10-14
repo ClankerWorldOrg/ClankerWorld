@@ -307,7 +307,7 @@ public sealed class KnowledgeCopyOrderTests
         Assert.Equal(job.Id, current.Id);
         if (matching)
         {
-            Assert.Equal(receipt.InstructionId, current.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, current.OrderInstructionId);
             Assert.Equal(source.Id, Order(world, receipt).KnowledgeCopySourceArtifactId);
             using var resumed = Restore(world.ExportState());
             await FinishTogether(resumed, receipt);
@@ -371,10 +371,20 @@ public sealed class KnowledgeCopyOrderTests
 {
     new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["KnowledgeCopySourceArtifactId"] = "missing-artifact" }),
     new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["KnowledgeCopySourceArtifactId"] = null }),
-    new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["Action"] = "write_knowledge", ["ProgressUnit"] = "artifacts", ["KnowledgeCopySourceArtifactId"] = null }),
     new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["RepeatUntilCancelled"] = true, ["LastEffectId"] = "writing:artifact:knowledge-artifact-000001" })
 })
             Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, changed));
+        var writingTask = instruction.Task! with
+        {
+            Definition = new WriteKnowledgeOrderDefinition(instruction.Task!.TargetKnowledgeKind!,
+                instruction.Task!.KnowledgeWritingProjectId),
+            ProgressUnit = "artifacts",
+        };
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
+        {
+            Instructions = state.Instructions!.Select(item => item.InstructionId == instruction.InstructionId
+                ? item with { Task = writingTask } : item).ToArray(),
+        }));
         AssertReload(state);
     }
 

@@ -76,7 +76,8 @@ internal sealed partial class EnvironmentSystem
             {
                 var position = world.Agents[id].Position;
                 world.ApplyInventoryTransition(inventory => InventoryAuthority.DropCarrierGoods(inventory, id,
-                    new InventoryGroundPosition(position.X, position.Y)));
+                    new InventoryGroundPosition(position.X, position.Y), holdAccess: inventory.Lots.Where(lot => lot.CarrierId == id)
+                        .SelectMany(lot => lot.Holds ?? []).Distinct().ToArray()));
             }
             var deceased = world.Society.GetAgent(id);
             var deathTick = deceased.DeathTick ?? throw new InvalidDataException("A removed agent has no committed death.");
@@ -92,7 +93,7 @@ internal sealed partial class EnvironmentSystem
                              item.StorageBuildingId is null && item.GroundPosition is null).ToArray())
                     world.ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
                         $"death:{id}:{lot.Id}", lot.Id, estate.Id, lot.Quantity,
-                        groundPosition: new InventoryGroundPosition(position.X, position.Y)));
+                        groundPosition: new InventoryGroundPosition(position.X, position.Y), holdAccess: lot.Holds));
             }
             foreach (var moment in (world.Agents[id].IdentityMoments ?? [])
                          .Where(item => item.Outcome is "waiting" or "requested").ToArray())

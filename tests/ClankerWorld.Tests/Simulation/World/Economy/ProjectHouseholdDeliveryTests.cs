@@ -180,7 +180,7 @@ public sealed class ProjectHouseholdDeliveryTests
     {
         var fixture = await Prepared(toWorkstation: true);
         var inventory = InventoryAuthority.Reserve(fixture.State.Society.Society.Inventory,
-            "project-delivery-cargo-claim", fixture.Actor, fixture.CargoId, 2, "fixture-protected-delivery", long.MaxValue);
+            "project-delivery-cargo-claim", fixture.Actor, fixture.CargoId, 2, "fixture-protected-delivery", long.MaxValue, holdAccess: StockHoldTestState.Access(fixture.State.Society.Society.Inventory, fixture.CargoId));
         using var world = Restore(FoodCapacityTestFixture.WithInventory(fixture.State, inventory));
         var claim = world.Society.Inventory.GetReservation("project-delivery-cargo-claim");
         var cargo = world.Society.Inventory.GetLot(fixture.CargoId);
@@ -264,7 +264,7 @@ public sealed class ProjectHouseholdDeliveryTests
             if (available == 0) continue;
             var id = "project-fixture-existing-wood:" + lot.Id;
             inventory = InventoryAuthority.Reserve(inventory, id, Household, lot.Id, available,
-                "fixture-other-household-work", long.MaxValue);
+                "fixture-other-household-work", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, lot.Id));
             protectedClaims.Add(inventory.GetReservation(id));
         }
         Assert.DoesNotContain(inventory.Lots, lot => lot.OwnerId == actor);
@@ -273,14 +273,14 @@ public sealed class ProjectHouseholdDeliveryTests
         inventory = InventoryAuthority.AddLot(inventory, SourceWood, "wood", Household, 3, storageBuildingId: source.InstanceId);
         inventory = InventoryAuthority.Transfer(inventory, "project-fixture-real-pickup", Household, actor, SourceWood, 2,
             toWorkstation ? "smith_input_picked_up" : "household_stock_picked_up",
-            destinationDeliveryBuildingId: destination.InstanceId);
+            destinationDeliveryBuildingId: destination.InstanceId, holdAccess: StockHoldTestState.Access(inventory, SourceWood));
         var cargo = Assert.Single(inventory.Lots, lot => lot.OwnerId == actor && lot.ProvenanceLotId == SourceWood);
         var ballast = includeAxe ? 5 : 6;
         inventory = InventoryAuthority.AddLot(inventory, Ballast, "stone", actor, ballast);
         if (includeAxe)
             inventory = InventoryAuthority.AddLot(inventory, "project-delivery-personal-axe", "wooden_axe", actor, 1);
         inventory = InventoryAuthority.Reserve(inventory, "project-delivery-ballast-claim", actor, Ballast, ballast,
-            "fixture-protected-personal-material", long.MaxValue);
+            "fixture-protected-personal-material", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, Ballast));
         protectedClaims.Add(inventory.GetReservation("project-delivery-ballast-claim"));
         var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with

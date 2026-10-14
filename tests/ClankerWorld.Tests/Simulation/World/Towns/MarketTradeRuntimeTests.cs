@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -55,7 +56,7 @@ internal static class MarketTradeScenario
         }
         var state = boundary with
         {
-            Society = boundary.Society with { Society = society with { Inventory = inventory } },
+            Society = boundary.Society with { Society = society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = boundary.Agents.Select(person => new[] { seller, buyer, successor }.Contains(person.AgentId)
                 ? person with
                 {
@@ -140,6 +141,16 @@ internal static class MarketTradeScenario
         var pending = offering.ExportState();
         var bytes = WorldRuntimeCodec.Encode(pending);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(bytes)));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(pending with
+        {
+            Towns = pending.Towns!.Select(town => town with
+            {
+                Markets = town.Markets.Select(item => item with
+                {
+                    Trades = item.Trades.Select(record => record with { OfferId = null! }).ToArray(),
+                }).ToArray(),
+            }).ToArray(),
+        }));
         var forged = pending with
         {
             Towns = pending.Towns!.Select(town => town with
@@ -221,8 +232,8 @@ internal static class MarketTradeScenario
         var changed = receipt with
         {
             OwnerId = falseOwner,
-            Id = MarketTradeRules.ReceiptId(receipt.OccupancyId,
-            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt))
+            Id = Identity.Parse(MarketTradeRules.ReceiptId(receipt.OccupancyId,
+            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt)))
         };
         var damaged = state with
         {

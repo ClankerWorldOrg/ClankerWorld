@@ -162,8 +162,8 @@ public sealed partial class WorldRuntime
                 if (quantity <= 0) continue;
                 var reservationId = WritingMaterialReservationId(id, materials.Count);
                 inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, lot.Id, quantity,
-                    AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue);
-                materials.Add(new(reservationId, lot.Id, input.Kind, quantity));
+                    AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                materials.Add(new(Identity.Parse(reservationId), lot.Id, input.Kind, quantity));
                 remaining -= quantity;
                 if (remaining == 0) break;
             }
@@ -196,7 +196,7 @@ public sealed partial class WorldRuntime
         // Resolve household/Town permission for the planned lot again at pickup time.
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             WritingMaterialTransferId(WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
-            "knowledge_material_collected"));
+            "knowledge_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent("agent_knowledge_material_collected", $"{actor}|{kind}|{quantity}");
     }
 

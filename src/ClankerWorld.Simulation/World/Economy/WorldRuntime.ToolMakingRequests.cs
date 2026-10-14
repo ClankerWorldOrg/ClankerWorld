@@ -204,7 +204,7 @@ public sealed partial class WorldRuntime
             else if (ToolRequestQuote(actor, request, shop) is { } quote)
             {
                 var offerId = OpenShopQuote(actor, shop, quote);
-                SetToolRequest(request with { Status = ToolMakingRequestStatus.Offered, OfferId = offerId, Blocker = null });
+                SetToolRequest(request with { Status = ToolMakingRequestStatus.Offered, OfferId = Identity.Parse(offerId), Blocker = null });
             }
             return;
         }

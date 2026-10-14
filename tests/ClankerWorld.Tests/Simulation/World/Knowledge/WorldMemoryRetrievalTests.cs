@@ -264,12 +264,12 @@ public sealed class WorldMemoryRetrievalTests
         using var world = WorldRuntime.Restore(state, id => id == "founder-scout"
             ? new FailingModelProvider(observed)
             : new CapturingProvider(observed));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         for (var attempt = 0; attempt < 20 &&
              !world.ExportState().Events.Any(item => item.Kind == "hosted_decision_completed"); attempt++)
         {
-            await Task.Delay(10);
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
         Assert.Contains(observed, item => item.AgentId == "founder-scout" &&
@@ -319,7 +319,7 @@ public sealed class WorldMemoryRetrievalTests
 
             for (var attempt = 0; attempt < 10 &&
                  !logger.Messages.Any(message => message.Contains("agent_memory_compaction", StringComparison.Ordinal)); attempt++)
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
 
             var message = Assert.Single(logger.Messages, item =>
                 item.Contains("agent_memory_compaction", StringComparison.Ordinal));

@@ -66,10 +66,19 @@ public sealed class ModelWorkHarness : IModelWorkObserver
     public bool DecisionsFinished(params string[] actors) => actors.All(actor => Pending.Any(item =>
         item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == actor && item.Completion.IsCompleted));
 
+    public static Task WaitForSignalAsync(Task signal, TimeSpan? deadline = null) =>
+        signal.WaitAsync(deadline ?? TimeSpan.FromSeconds(30));
+
+    public static async Task<T> WaitForSignalAsync<T>(Task<T> signal, TimeSpan? deadline = null)
+    {
+        await WaitForSignalAsync((Task)signal, deadline);
+        return await signal;
+    }
+
     public async Task WaitAsync(Task signal)
     {
         RunPendingWork();
-        await signal.WaitAsync(TimeSpan.FromSeconds(30));
+        await WaitForSignalAsync(signal);
     }
 
     public async Task<T> WaitAsync<T>(Task<T> signal)

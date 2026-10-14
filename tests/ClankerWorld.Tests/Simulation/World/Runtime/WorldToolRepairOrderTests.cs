@@ -221,7 +221,7 @@ public sealed class WorldToolRepairOrderTests
             await AdvanceUntil(world, () => provider.Started.Task.IsCompleted,
                 "The hosted repair-planning request did not start within forty native ticks.");
             if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(0, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("stop", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
@@ -570,7 +570,7 @@ public sealed class WorldToolRepairOrderTests
         foreach (var input in ToolProgressionRules.RepairMaterials(kind)) inventory = InventoryAuthority.AddLot(inventory, "input-" + input.ResourceId, input.ResourceId, actor, quantity);
         return inventory;
     }
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new RepairChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) => world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;

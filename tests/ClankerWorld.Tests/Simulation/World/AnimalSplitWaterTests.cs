@@ -80,6 +80,13 @@ public sealed partial class AnimalPipelineTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             var current = world.ExportState();
             var currentInventory = current.Society.Society.Inventory;
+            foreach (var trip in current.AnimalWorld.SupplyTrips)
+            {
+                var cargo = currentInventory.GetLot(trip.LotId);
+                Assert.Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, trip.ActorId), cargo.Holds!);
+                Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(currentInventory,
+                    "unrelated-trip-move", cargo.Id, cargo.OwnerId, 1));
+            }
             Assert.InRange(PersonalEquipmentRules.CarriedQuantity(currentInventory, actor, null), 0, 8);
             Assert.All(currentInventory.Lots.Where(lot => lot.Id.StartsWith("split-water-", StringComparison.Ordinal)),
                 lot => Assert.Equal(home, lot.OwnerId));

@@ -54,10 +54,11 @@ public sealed class WorldShelterOrderParserTests
         var order = Submit(world, "location", text);
         Assert.Equal((action, buildingKind, new GridPoint(2, 1)), (order.Action, order.TargetBuildingKind, order.TargetPosition!.Value));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var json = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!["definition"]!.AsObject();
+        var task = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var json = task["definition"]!.AsObject();
         Assert.False(json.ContainsKey("shelterBinding"));
         Assert.False(json.ContainsKey("shelterCompletion"));
-        Assert.False(json.ContainsKey("quantityIsExplicit"));
+        Assert.False(task.ContainsKey("quantityIsExplicit"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
