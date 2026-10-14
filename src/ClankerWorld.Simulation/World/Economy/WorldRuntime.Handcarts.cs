@@ -263,7 +263,7 @@ public sealed partial class WorldRuntime
                 Math.Min(match.Quantity, PickupCarryCapacity(actor, stock, smith.Position)));
             if (quantity <= 0) return true;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{WorldTick}:{actor}",
-                stock.OwnerId, actor, stock.Id, quantity, "handcart_material_collected"));
+                stock.OwnerId, actor, stock.Id, quantity, "handcart_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             return true;
         }
         if (candidateId.StartsWith(CollectCartRepairPrefix, StringComparison.Ordinal))
@@ -336,7 +336,7 @@ public sealed partial class WorldRuntime
                 {
                     var operation = $"cart-pickup:{WorldTick}:{actor}";
                     updated = InventoryAuthority.Transfer(updated, operation, lot.OwnerId, actor, lot.Id, quantity,
-                        "handcart_pickup", destinationGroundPosition: cartHere.GroundPosition);
+                        "handcart_pickup", destinationGroundPosition: cartHere.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     cargoId = quantity == lot.Quantity ? lot.Id : DerivedId.Create($"{lot.Id}#transfer:{operation}");
                 }
                 return InventoryAuthority.LoadHandcart(updated, $"load:{WorldTick}:{actor}", actor, cartHere.Id, cargoId, quantity);
@@ -367,13 +367,13 @@ public sealed partial class WorldRuntime
                     var material = SpendingGoods(actor, GoodsUse.Spend, [actor], kind, inventory: updated)
                         .First(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor)).Lot;
                     var id = CartRepairReservationId(WorldTick, actor, kind);
-                    updated = InventoryAuthority.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1);
+                    updated = InventoryAuthority.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     reservations.Add(id);
                 }
-                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations);
+                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
             });
             RecordNonLandRepairCompletion(actor, cartHere, cartHere.Id,
-                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations);
+                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations.Select(Identity.Parse).ToArray());
             AppendEvent(new HandcartRepairedEventPayload(actor, cartHere.Id));
         }
         else if (isTransfer && AttachedHandcart(actor) is null)
@@ -382,7 +382,7 @@ public sealed partial class WorldRuntime
             if (!agents.TryGetValue(recipient, out var other) || !IsAdult(recipient) ||
                 !IsWithinInteractionRange(person.Position, other.Position, 1)) return true;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{WorldTick}:{actor}",
-                actor, recipient, cartHere.Id, 1, "handcart_given", destinationGroundPosition: cartHere.GroundPosition));
+                actor, recipient, cartHere.Id, 1, "handcart_given", destinationGroundPosition: cartHere.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             AppendEvent(new HandcartTransferredEventPayload(actor, cartHere.Id, recipient));
         }
         return true;

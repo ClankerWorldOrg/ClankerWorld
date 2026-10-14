@@ -152,7 +152,7 @@ internal sealed partial class AnimalSystem
                 var definition = AnimalRules.Definition(animal.Species);
                 if (AnimalCareInputs(world, actor, animal, definition.DailyFeed, definition.DailyWater) is not { } inputs) break;
                 ConsumeAnimalInputs(world, actor, "care:" + animal.Id, inputs);
-                FinishAnimalSupplyTrip(actor);
+                FinishAnimalSupplyTrip(world, actor);
                 SetAnimal(animal with { CareUntilTick = world.WorldTick + AnimalDayTicks(world) });
                 world.AppendEvent(new AnimalCaredEventPayload(actor, animal.Id), animal.Position);
                 break;
@@ -161,8 +161,8 @@ internal sealed partial class AnimalSystem
                 if (WildAnimalHide(world, animal) is not { } hide || world.FreeCarryCapacity(actor) < 1) break;
                 world.ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(InventoryAuthority.Transfer(inventory,
                     AnimalHideTransferId(actor, animal.Id, world.WorldTick, false), animal.Id, actor,
-                    hide.Id, 1, "wild-animal-hide", destinationGroundPosition: hide.GroundPosition),
-                    AnimalHideTransferId(actor, animal.Id, world.WorldTick, true), hide.Id, actor, 1, carrierId: actor));
+                    hide.Id, 1, "wild-animal-hide", destinationGroundPosition: hide.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)),
+                    AnimalHideTransferId(actor, animal.Id, world.WorldTick, true), hide.Id, actor, 1, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                 world.AppendEvent(new AnimalHideCollectedEventPayload(actor, animal.Id), animal.Position);
                 break;
             case "lead_home": LeadAnimalHome(world, actor, animal); break;
@@ -234,7 +234,16 @@ internal sealed partial class AnimalSystem
         if (quantity == 0 || household is null) return true;
         var people = world.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var ready = world.HoldingsTotal(people.Append(household), world.EdibleFoodGoods);
+        var owners = people.Append(household).ToArray();
+        var ready = world.HoldingsTotal(owners, world.EdibleFoodGoods);
+        // General holdings exclude trip stock. Include this task's authorized
+        // servings before subtracting its consumption, so they are counted once.
+        var index = InventoryIndex.For(world.Society.Inventory);
+        var tripHold = new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
+        ready += world.FindGoods(new(GoodsUse.ConsumeAt, actor, new(owners), world.EdibleFoodGoods)).Matches
+            .Where(match => match.RequiredHolds.Contains(tripHold) &&
+                InventoryHoldRules.Allows(index, match.Lot, InventoryHoldRules.SupplyTripFor(actor)))
+            .Sum(match => (long)match.Quantity);
         return ready - quantity >= people.Count * 2 + (world.Agents.Values.Any(person => people.Contains(person.AgentId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     internal static void ConsumeAnimalInputs(IAnimalWorld world, string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)
@@ -247,7 +256,7 @@ internal sealed partial class AnimalSystem
                 var (lot, quantity) = inputs[index];
                 var id = AnimalInputReservationId(actor, world.WorldTick, world.NextEventId, purpose, index);
                 next = InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(next, id, lot.OwnerId, lot.Id,
-                    quantity, purpose, world.WorldTick), id);
+                    quantity, purpose, world.WorldTick, holdAccess: InventoryHoldRules.SupplyTripFor(actor)), id);
             }
             return next;
         });
@@ -268,9 +277,9 @@ internal sealed partial class AnimalSystem
             product.FreshnessBasisPoints == 0 || world.FreeCarryCapacity(actor) < product.Quantity) return;
         ClearAnimalProduct(world, animal, discard: false);
         world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current, "animal-collect-" + world.WorldTick + "-" + world.NextEventId,
-            product.Id, product.OwnerId, product.Quantity, carrierId: actor));
+            product.Id, product.OwnerId, product.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         SetAnimal(animal with { ReadyProductLotId = null, ReadyProductReservationId = null });
-        FinishAnimalSupplyTrip(actor);
+        FinishAnimalSupplyTrip(world, actor);
         world.AppendEvent(new AnimalProductCollectedEventPayload(actor, animal.Id, product.ItemKind, product.Quantity), animal.Position);
     }
     internal void LeadAnimalHome(IAnimalWorld world, string actor, AnimalState animal)

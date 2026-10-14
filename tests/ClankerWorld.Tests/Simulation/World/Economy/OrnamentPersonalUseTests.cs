@@ -412,7 +412,7 @@ public sealed class OrnamentPersonalUseTests
         if (instruction is not null)
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "ornament-forced-berry");
-            Assert.Contains(instruction.InstructionId, world.ExportState().CompletedInstructionIds!);
+            Assert.Contains(instruction.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         }
         using var replay = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 3; tick++) Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
@@ -600,7 +600,7 @@ public sealed class OrnamentPersonalUseTests
     private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
     private static string Recipient(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static AgentState Physical(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntime Restore(WorldRuntimeState state, string? actor = null, IDecisionProvider? provider = null) =>
         WorldRuntime.Restore(state, id => id == actor && provider is not null ? provider : new OrnamentChoices());

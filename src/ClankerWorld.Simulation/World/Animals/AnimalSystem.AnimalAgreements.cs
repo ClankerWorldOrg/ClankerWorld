@@ -125,10 +125,10 @@ internal sealed partial class AnimalSystem
         {
             var home = world.HouseholdFor(agreement.OtherId)!;
             var payment = agreement.LotId is null ? null : world.Society.Inventory.GetLot(agreement.LotId);
-            var offer = new AnimalTradeOffer(AnimalOfferId(actor, animal.Id, world.WorldTick, world.NextEventId),
+            var offer = new AnimalTradeOffer(Identity.Parse(AnimalOfferId(actor, animal.Id, world.WorldTick, world.NextEventId)),
                 animal.Id, actor, agreement.OtherId, home, AnimalYard(world, home)!.InstanceId, payment?.ItemKind, payment is null ? 0 : 1, world.WorldTick)
             { PaymentLotId = payment?.Id };
-            State = State with { Offers = State.Offers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() };
+            State = State with { Offers = State.Offers.Append(offer).OrderBy(offer => offer.Id.Value, StringComparer.Ordinal).ToArray() };
             world.AppendEvent(new AnimalTradeOfferedEventPayload(actor, offer.Id, animal.Id, (payment?.Id ?? "gift")));
         }
         else

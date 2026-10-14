@@ -103,7 +103,17 @@ internal static class GoodsInventoryQuery
 
     internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
-        : use is GoodsUse.ConsumeAt or GoodsUse.Eat ? InventoryRules.ReservableQuantity(index, lot) : InventoryRules.UsableQuantity(index, lot);
+        : use is GoodsUse.ConsumeAt or GoodsUse.Eat ? InventoryRules.ReservableQuantity(index, lot, InventoryHoldRules.For(index, lot).ToArray()) : InventoryRules.UsableQuantity(index, lot);
+
+    internal static GoodsReason? PromiseExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
+    {
+        var holds = InventoryHoldRules.For(index, lot).ToArray();
+        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo) &&
+            holds.Any(hold => hold.Purpose == InventoryHoldPurpose.Delivery)) return GoodsReason.Delivery;
+        if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Deliver or GoodsUse.Spend &&
+            holds.Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall)) return GoodsReason.MarketStall;
+        return null;
+    }
 
     internal static GoodsReason? Exclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
     {
@@ -121,16 +131,19 @@ internal static class GoodsInventoryQuery
         }
         if (lot.Quantity == 0) return GoodsReason.Empty;
         if (Quantity(index, lot, request.Use) <= 0) return GoodsReason.Reservation;
+        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo) &&
+            InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.SupplyTrip))
+            return GoodsReason.Reservation;
         if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel)
         {
             if (!InventoryContainerRules.IsContainer(lot.ItemKind) || lot.ContainerLotId is not null) return GoodsReason.Vessel;
-            if (!InventoryRules.CanMoveFamily(index, lot)) return GoodsReason.Reservation;
+            if (!InventoryRules.CanMoveFamily(index, lot, InventoryHoldRules.Family(index, lot))) return GoodsReason.Reservation;
             if (request.ContentsKind is { } kind && (!InventoryContainerRules.Allows(lot.ItemKind, kind) ||
                 index.ContentsOf(lot.Id).Any(contents => contents.ItemKind != kind))) return GoodsReason.Kind;
             if (request.ExtraUnits > InventoryContainerRules.Capacity(lot.ItemKind) - index.ContentsQuantity(lot.Id))
                 return GoodsReason.CarryRoom;
         }
-        if (request.Use == GoodsUse.Cargo && !InventoryRules.CanMoveFamily(index, index.Root(lot)))
+        if (request.Use == GoodsUse.Cargo && !InventoryRules.CanMoveFamily(index, index.Root(lot), InventoryHoldRules.Family(index, index.Root(lot))))
             return GoodsReason.Reservation;
         return null;
     }

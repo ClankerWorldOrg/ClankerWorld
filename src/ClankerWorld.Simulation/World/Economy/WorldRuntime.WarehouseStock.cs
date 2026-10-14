@@ -128,7 +128,7 @@ public sealed partial class WorldRuntime
         var operation = WarehouseStockId(WorldTick, actor);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             operation, actor, warehouse.TownId!, surplus.Lot.Id,
-            quantity, "town_resources_stored", warehouse.InstanceId));
+            quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
         RecordNonLandGoodsCompletion(actor, surplus.Lot, warehouse.TownId!, quantity, warehouse.InstanceId,
             operation, "public_service_goods", availableBefore);
         AppendEvent(new TownResourcesStoredEventPayload(actor, surplus.Lot.Id, quantity, warehouse.InstanceId));

@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Device pairing
@@ -151,6 +151,11 @@ selection and inspection state. Responses from an earlier request context or
 timeline cannot replace the new view. The usual tick, cursor and event-order
 checks still apply within one timeline. Hosts without the capability retain
 the earlier reconnect contract; signed reconnect payloads are unchanged.
+
+The game requires `owner-event-presentation.v1` on the signed owner handshake
+because Event Log descriptions come from the host. A host without it is refused
+with an update explanation, preserving the last accepted view and paired device
+registration. Update a remote host alongside the game.
 
 ## Building ownership changes
 

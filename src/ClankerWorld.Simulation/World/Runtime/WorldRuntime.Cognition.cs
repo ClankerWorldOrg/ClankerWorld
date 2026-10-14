@@ -213,7 +213,7 @@ public sealed partial class WorldRuntime
                 observation));
             if (!accepted)
             {
-                AppendEvent(new CognitionBackpressureEventPayload(null, agent.Id));
+                AppendEvent(new CognitionBackpressureEventPayload(agent.Id, agent.Id));
             }
             else
             {

@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         {
             foreach (var job in cancelled)
             {
-                foreach (var id in job.InputReservationIds.Order(StringComparer.Ordinal))
+                foreach (var id in job.InputReservationIds.Order())
                 {
                     if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
                         inventory = InventoryAuthority.ReleaseReservation(inventory, id, reason);

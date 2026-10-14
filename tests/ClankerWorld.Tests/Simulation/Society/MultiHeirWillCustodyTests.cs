@@ -19,7 +19,7 @@ public sealed class MultiHeirWillCustodyTests
         var checkpoint = Genesis();
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "wood", "wood", "alice", 5);
         inventory = Locate(inventory, "wood", 5, location);
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         var original = checkpoint.Inventory.GetLot("wood");
 
         var held = SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Accident).Checkpoint;
@@ -50,7 +50,7 @@ public sealed class MultiHeirWillCustodyTests
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "pot", InventoryContainerRules.StoragePot, "alice", 1);
         inventory = InventoryAuthority.AddLot(inventory, "berries", "berries", "alice", 3, containerLotId: "pot");
         inventory = Locate(inventory, "pot", 1, location);
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         var original = checkpoint.Inventory.Lots.ToArray();
 
         var held = SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Accident).Checkpoint;
@@ -70,7 +70,7 @@ public sealed class MultiHeirWillCustodyTests
         inventory = InventoryAuthority.AddLot(inventory, "pot", InventoryContainerRules.StoragePot, "alice", 1, storageBuildingId: "old-house");
         inventory = InventoryAuthority.AddLot(inventory, "berries", "berries", "alice", 2,
             storageBuildingId: "old-house", containerLotId: "pot");
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         var original = checkpoint.Inventory.Lots.ToArray();
 
         var held = SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Accident).Checkpoint;
@@ -171,7 +171,7 @@ public sealed class MultiHeirWillCustodyTests
         var checkpoint = Genesis();
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "pot", InventoryContainerRules.StoragePot, "alice", 1);
         inventory = InventoryAuthority.AddLot(inventory, "berries", "berries", "alice", 2, containerLotId: "pot");
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         var held = SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Accident).Checkpoint;
         var accepted = Accept(held, ["bob", "cara", "drew"], "Share the harvest.");
 
@@ -179,7 +179,7 @@ public sealed class MultiHeirWillCustodyTests
 
         Assert.All(settled.Inventory.Lots, lot => Assert.Equal("bob", lot.OwnerId));
         var memory = Assert.Single(settled.Memories, item => item.Id.Value.StartsWith("final-words:", StringComparison.Ordinal));
-        Assert.Equal($"final-words:{Assert.Single(settled.Estates).Id}:bob", memory.Id);
+        Assert.Equal($"final-words:{Assert.Single(settled.Estates).Id}:bob", memory.Id.Value);
         Assert.Equal(("bob", "alice", "private", "Alice's final words were: 'Share the harvest.'"),
             (memory.OwnerId, memory.SubjectId, memory.Visibility, memory.Summary));
         AssertRoundtrip(settled);

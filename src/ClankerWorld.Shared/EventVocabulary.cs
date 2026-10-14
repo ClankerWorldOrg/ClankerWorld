@@ -232,12 +232,15 @@ public static class EventVocabulary
             var (agentId, status) = modelStatus(item);
             if (agentId is null || status is null) continue;
             if (status == "ready") failures.Remove(agentId);
-            if (status is not ("missing_key" or "usage_limit" or "unusable_reply" or "timed_out" or "model_unavailable")) continue;
+            if (!IsPlayerFacingModelStatus(status)) continue;
             if (failures.TryGetValue(agentId, out var previous) && previous == status) continue;
             failures[agentId] = status;
             yield return item;
         }
     }
+
+    public static bool IsPlayerFacingModelStatus(string? status) =>
+        status is "missing_key" or "usage_limit" or "unusable_reply" or "timed_out" or "model_unavailable";
 
     public static bool IsPlayerFacingEvent(string kind)
     {

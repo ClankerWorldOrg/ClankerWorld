@@ -96,6 +96,65 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         Assert.True(failures.Count == 0, string.Join("\n\n", failures));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MedicalConsentChangesCountAsProgressBeyondAnAdmittedIdleControl(bool allow)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("choice-medical-progress", _ => new SweepChoiceProvider());
+        Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
+        var state = generated.ExportState();
+        var patient = NormalPathWorld.Founder1;
+        var caregiver = NormalPathWorld.Founder2;
+        var occupied = state.Map.Resources.Select(item => item.Position)
+            .Concat(state.Map.MapObjects.Select(item => item.Position))
+            .Concat(state.Agents.Select(person => person.Position))
+            .Concat(state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
+            .ToHashSet();
+        bool Free(GridPoint point) => state.Map.IsBuildable(point) && !occupied.Contains(point);
+        var center = state.Map.Tiles.Select(tile => tile.Position).First(point => Free(point) &&
+            state.Map.FootNeighbors(point).Any(neighbor => Free(neighbor) && !state.Map.IsDiagonalFootStep(point, neighbor)));
+        var adjacent = state.Map.FootNeighbors(center).First(point => Free(point) && !state.Map.IsDiagonalFootStep(center, point));
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person with
+            {
+                Position = person.AgentId == patient ? center : person.AgentId == caregiver ? adjacent : person.Position,
+                FullnessBasisPoints = 10_000,
+                LastDecisionContext = null,
+                MedicalConsent = person.AgentId == patient && !allow ? new([caregiver]) : null,
+                Survival = new(WarmthBasisPoints: 10_000, IllnessBasisPoints: person.AgentId == patient ? 4_000 : 0),
+            }).ToArray(),
+        };
+        using var baseline = WorldRuntime.Restore(state, _ => new SweepChoiceProvider());
+        var selected = (allow ? "medical_allow:" : "medical_revoke:") + caregiver;
+        var offers = baseline.PrepareChoiceTrialOffers();
+        Assert.Contains(Assert.Single(offers, observation => observation.AgentId == patient).Candidates,
+            candidate => candidate.Id == selected);
+        var original = WorldRuntimeCodec.Encode(baseline.ExportState());
+        using var control = baseline.CopyForChoiceTrial(_ => new SweepChoiceProvider());
+        var idle = Assert.Single(await control.ApplyChoiceTrialAsync(), decision => decision.AgentId == patient);
+        Assert.True(idle.Admission.Accepted);
+        Assert.False(idle.Admission.FellBack);
+        Assert.Equal("safe_idle", idle.Admission.Intention!.CandidateId);
+        StrictCheckpoint(control);
+        var controlState = ActionState(control.ExportState());
+        using var unchanged = baseline.CopyForChoiceTrial(_ => new SweepChoiceProvider());
+        Assert.All(await unchanged.ApplyChoiceTrialAsync(), decision => Assert.True(decision.Admission.Accepted));
+        StrictCheckpoint(unchanged);
+        Assert.Equal(controlState, ActionState(unchanged.ExportState()));
+        using var trial = baseline.CopyForChoiceTrial(_ => new SweepChoiceProvider(patient, selected));
+        var admitted = Assert.Single(await trial.ApplyChoiceTrialAsync(), decision => decision.AgentId == patient);
+        Assert.True(admitted.Admission.Accepted);
+        Assert.False(admitted.Admission.FellBack);
+        Assert.Equal(selected, admitted.Admission.Intention!.CandidateId);
+        StrictCheckpoint(trial);
+        Assert.Equal(allow, trial.Agents.Single(person => person.AgentId == patient).MedicalConsent?.CaregiverIds.Contains(caregiver) == true);
+        Assert.NotEqual(controlState, ActionState(trial.ExportState()));
+        Assert.Equal(original, WorldRuntimeCodec.Encode(baseline.ExportState()));
+    }
+
     private static int Setting(string name, int fallback)
     {
         var value = int.Parse(Environment.GetEnvironmentVariable(name) ?? fallback.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
@@ -124,6 +183,9 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
             person.Departures,
             person.FullnessBasisPoints,
             person.Survival,
+            person.MedicalConsent,
+            person.MedicalTreatment,
+            person.MedicalSupplyTrip,
         }),
         People = state.Society.Society.Agents,
         state.Society.Society.Inventory,

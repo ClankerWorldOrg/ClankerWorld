@@ -121,8 +121,8 @@ public sealed class ChildhoodMemoryRecallTests
         var memories = new[]
         {
             valid,
-            valid with { Id = Identity.ParseStoredMemory(new string('x', 129)) },
-            valid with { Id = Identity.ParseStoredMemory("control\0memory") },
+            valid with { Id = Identity.ParseStored(new string('x', 129)) },
+            valid with { Id = Identity.ParseStored("control\0memory") },
             valid with { Id = Identity.Parse(" padded-memory") },
         };
         state = state with

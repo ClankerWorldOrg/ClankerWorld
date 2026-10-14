@@ -57,7 +57,7 @@ public sealed class WorldCartRepairOrderTests
         Assert.Empty(final.HandcartHitches!);
         Assert.All(RepairKinds, kind =>
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "repair-input-" + kind));
-        Assert.Equal(3, world.Society.Inventory.Reservations.Count(item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal) &&
+        Assert.Equal(3, world.Society.Inventory.Reservations.Count(item => item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal) &&
             item.OwnerId == actor && item.State == InventoryReservationState.Completed));
         Assert.Single(final.Events, item => item.Kind == "handcart_repaired" && item.Detail == actor + ":z-cart");
         Assert.Single(final.Events, item => item.Kind == "instruction_order_finished");
@@ -124,7 +124,7 @@ public sealed class WorldCartRepairOrderTests
         Assert.Equal(inventory.GetLot("z-cart").ConditionBasisPoints, world.Society.Inventory.GetLot("z-cart").ConditionBasisPoints);
         Assert.Equal(3_000, world.Society.Inventory.GetLot("a-cart").ConditionBasisPoints);
         Assert.DoesNotContain(final.Events, item => item.Kind == "handcart_repaired");
-        Assert.DoesNotContain(world.Society.Inventory.Reservations, item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal));
+        Assert.DoesNotContain(world.Society.Inventory.Reservations, item => item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal));
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new IdleProvider());
         Assert.Equal(WorldRuntimeCodec.Encode(final), WorldRuntimeCodec.Encode(loaded.ExportState()));
     }
@@ -187,7 +187,7 @@ public sealed class WorldCartRepairOrderTests
         Assert.Equal(collected with { LastProcessedTick = final.Society.Society.WorldTick }, loaded.Society.Inventory.GetLot(collected.Id));
         Assert.Equal(0, loaded.Society.Inventory.GetLot("z-cart").ConditionBasisPoints);
         Assert.DoesNotContain(final.Events, item => item.Kind == "handcart_repaired");
-        Assert.DoesNotContain(loaded.Society.Inventory.Reservations, item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal));
+        Assert.DoesNotContain(loaded.Society.Inventory.Reservations, item => item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public sealed class WorldCartRepairOrderTests
         Assert.All(final.Instructions!, item => { Assert.Equal("finished", item.Task!.Status); Assert.Equal(1, item.Task.CompletedUnits); });
         Assert.Equal(10_000, world.Society.Inventory.GetLot("a-cart").ConditionBasisPoints);
         Assert.Equal(10_000, world.Society.Inventory.GetLot("z-cart").ConditionBasisPoints);
-        Assert.Equal(6, world.Society.Inventory.Reservations.Count(item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal) && item.State == InventoryReservationState.Completed));
+        Assert.Equal(6, world.Society.Inventory.Reservations.Count(item => item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal) && item.State == InventoryReservationState.Completed));
         Assert.Equal(2, final.Events.Count(item => item.Kind == "handcart_repaired"));
         Assert.Equal(4, world.Society.Inventory.GetLot("cargo").Quantity);
     }
@@ -278,11 +278,11 @@ public sealed class WorldCartRepairOrderTests
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forged));
         var missingInputs = final.Society.Society.Inventory with
-        { Reservations = final.Society.Society.Inventory.Reservations.Where(item => !item.Id.StartsWith("cart-repair:", StringComparison.Ordinal)).ToArray() };
+        { Reservations = final.Society.Society.Inventory.Reservations.Where(item => !item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal)).ToArray() };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithInventory(final, missingInputs)));
         var foreignInputs = final.Society.Society.Inventory with
         {
-            Reservations = final.Society.Society.Inventory.Reservations.Select(item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal)
+            Reservations = final.Society.Society.Inventory.Reservations.Select(item => item.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal)
             ? item with { OwnerId = state.Agents[1].AgentId } : item).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithInventory(final, foreignInputs)));

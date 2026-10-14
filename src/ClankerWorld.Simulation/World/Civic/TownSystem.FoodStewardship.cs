@@ -61,7 +61,7 @@ internal sealed partial class TownSystem
             if (successor != foodStewardship.StewardId)
             {
                 foodStewardship = foodStewardship with { StewardId = successor };
-                world.AppendEvent(new FoodStewardChangedEventPayload(null, successor ?? "none"));
+                world.AppendEvent(new FoodStewardChangedEventPayload(successor, successor ?? "none"));
             }
         }
         ResolveFoodPolicyBallot(world);

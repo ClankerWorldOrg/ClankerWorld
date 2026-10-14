@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.World;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record EventPosition(int X, int Y);
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]

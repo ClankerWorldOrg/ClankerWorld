@@ -49,7 +49,7 @@ public sealed class LiveConversationSnapshotTests
         var expiry = world.Conversations.Max(item => item.CreatedTick) + AgentConversationRules.ProposalLifetimeTicks;
         while (world.WorldTick <= expiry)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         Assert.Equal(17, world.Conversations.Count);
@@ -66,7 +66,7 @@ public sealed class LiveConversationSnapshotTests
                 OwnerInstructionKind.Suggestion, "Talk with your nearby neighbor."));
         for (var tick = 0; tick < 20 && next.Conversations.Count < 34; tick++)
         {
-            Assert.True((await next.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await next.TickModelWorkAsync()).Advanced);
             await WaitForRequests(next);
         }
         Assert.Equal(17, next.Conversations.Count(item => item.Status == AgentConversationStatus.Proposed));
@@ -127,7 +127,7 @@ public sealed class LiveConversationSnapshotTests
         world.Resume();
         for (var tick = 0; tick < 25 && world.Conversations.Count < 17; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         Assert.Equal(17, world.Conversations.Count);
@@ -137,10 +137,7 @@ public sealed class LiveConversationSnapshotTests
 
     private static async Task WaitForRequests(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world, item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision);
     }
 
     private class QuietConversationProvider : IDecisionProvider, IAgentConversationProvider

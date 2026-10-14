@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Saves and replay
@@ -10,6 +10,24 @@ updated: 2026-10-13
 This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
+
+## Stock holds
+
+World schema 132 introduced optional typed holds to inventory lots and matching
+authorization to reservations. Each hold records a purpose and an exact holder;
+the inventory core checks both, including vessel families. Splits keep their
+effective holds when goods leave a vessel, and a saved reservation rechecks its
+authorization before consumption or barter settlement.
+
+World schema 133 requires matching holds for saved custody and promises.
+Delivery holders are destination buildings, borrowers and
+supply-trip holders are their actors, and Market holders are occupancy IDs.
+Strict world validation checks each hold against its corresponding saved promise
+and refuses a missing or inconsistent link. Hold lists have unique entries in purpose/holder order and
+participate in checkpoint bytes and inventory digests. Empty lists are omitted.
+Current-format reload and continued transitions retain the holds; refused
+operations leave the supplied checkpoint unchanged. Earlier alpha worlds are
+refused and preserved without migration. This number is provisional until merge.
 
 ## Mod content identities
 
@@ -61,6 +79,14 @@ mod content identifiers and parsed action payloads retain their own contracts.
 The [generator inventory](derived-identities.md#executable-generator-inventory)
 describes the native transition, factory, save and recall evidence.
 
+
+Typed memory, reservation, offer and receipt handles retain their existing JSON
+string spelling, including strings in saved input lists. Save readers retain
+existing nonblank spellings; validation applies each record's original rules.
+This preserves legal long or control-containing inventory keys while keeping
+the stricter belief, receipt and repair-material checks. Complete provenance
+references keep their own limits. No fields, schema, spelling or migration
+change. See [Derived identities](derived-identities.md).
 
 ## Save-space warning
 
@@ -781,7 +807,7 @@ Orders retain their existing saved status spelling. Runtime status is an
 orders cannot return to active work. The runtime keeps a completion set only
 for suggestions and derives order completion from status when exporting the
 existing checkpoint list. The status foundation changed no saved fields or schema.
-Schema 132 bounds closed orders to the six newest submissions per agent,
+Schema 134 bounds closed orders to the six newest submissions per agent,
 keeping all active work. Cancellation retries are also bounded to six per
 agent, ordered by world tick, event ID and idempotency key. A retired order can
 no longer be cancelled through its old ID. Compact submission receipts and
@@ -792,11 +818,16 @@ refused. These receipts contain no status and do not duplicate completion state.
 Retirement drops order-only construction evidence and clears optional owner
 order links on native work and written artifacts. It preserves the actual
 inventory, consumed reservations, buildings, artifact contents and native work
-outcomes. Loading validates retained order links and rebuilds the active index.
+outcomes. Retired exploration purposes are cleared in live and deceased records,
+while their recorded paths and discoveries stay intact. Construction completion
+uses the actual placed building even when its order receipt retires in the same
+action. Loading validates retained order links and rebuilds the active index.
 Earlier alpha schemas are refused and preserved without migration. The schema
 number is provisional until merge.
+Current-format reload, cancellation and rejected-tick checks retain the same
+physical effects and receipts.
 
-Schema 133 stores each task's `definition` with an explicit `kind` discriminator
+Schema 135 stores each task's `definition` with an explicit `kind` discriminator
 and only that kind's fields, beside common progress and the unchanged status
 spelling. Missing required targets, unknown kinds and fields belonging to
 another kind are refused during decoding. Each task record owns its shape
@@ -1268,7 +1299,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 134. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 136. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -2363,15 +2394,16 @@ inference or migration runs.
 
 Owner event observations include server-formatted `Text`. It is derived from the
 same captured state as the event slice and is not stored in accepted history.
-The snapshot refreshes the 30 visible descriptions from its current names and
-relationships; renaming still updates existing rows. The game displays this text
-without parsing event details. This presentation step leaves
-checkpoint bytes and the current schema unchanged; typed saved payloads follow
-in the event refactor stack.
+The snapshot refreshes potentially visible descriptions from its current names
+and relationships. A transient 2,048-event observer window preserves descriptions
+for connected clients after saved history compaction; a load or world switch
+resets it. Renaming still updates existing rows. The game displays this text
+without parsing event details. Presentation text is derived from the typed saved payloads described below and
+never enters accepted history.
 
 ## Typed world events
 
-Provisional world schema 134 stores accepted events as event ID, world time and a
+World schema 136 stores accepted events as event ID, world time and a
 kind-discriminated payload. The payload carries an explicit actor when there is
 one, its captured position, and only that kind's subject references and values.
 The event log looks up the complete actor ID. It never guesses an actor from

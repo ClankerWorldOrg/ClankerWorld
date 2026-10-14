@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
             if (order.TargetCartLotId is { } id && !carts.Contains(id))
                 throw new InvalidDataException("A cart order references a missing handcart.");
             if (order.Action != "repair_handcart" || order.CompletedUnits == 0) continue;
-            repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id, StringComparer.Ordinal);
+            repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
             if (CartRepairOrderReceiptTick(instruction, inventory.WorldTick) is not { } tick ||
                 !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetAgentId, kind), out var input) &&
                     input.OwnerId == instruction.TargetAgentId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&

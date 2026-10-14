@@ -134,7 +134,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var savedMemories = checkpoint.Memories.Select(memory => legacyKeys &&
             memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)
-                ? memory with { Id = Identity.ParseStoredMemory("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId) } : memory)
+                ? memory with { Id = Identity.ParseStored("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId) } : memory)
             .OrderBy(memory => memory.Id.Value, StringComparer.Ordinal).ToArray();
         var previous = savedMemories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();

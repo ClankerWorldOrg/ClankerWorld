@@ -20,7 +20,7 @@ public sealed class FarmContentTests
         inventory = InventoryAuthority.AddLot(inventory, "field-grain", "grain", "household:first", 8);
         var state = original with
         {
-            Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
+            Society = original.Society with { Society = original.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var placing = WorldRuntime.Restore(state, _ => new CandidateProvider("safe_idle"));
         var farmhouse = placing.WorldContent.Buildings.Single(item => item.LocalId == "farmhouse-1x1");
@@ -133,7 +133,7 @@ public sealed class FarmContentTests
         {
             Society = settledState.Society with
             {
-                Society = settledState.Society.Society with { Inventory = settledInventory },
+                Society = settledState.Society.Society with { Inventory = StockHoldTestState.Custody(settledInventory) },
             },
         };
         using var settled = WorldRuntime.Restore(settledState,
@@ -237,7 +237,7 @@ public sealed class FarmContentTests
         {
             Society = initial.Society with
             {
-                Society = initial.Society.Society with { Inventory = inventory },
+                Society = initial.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
 

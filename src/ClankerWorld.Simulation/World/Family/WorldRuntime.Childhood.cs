@@ -104,7 +104,7 @@ public sealed partial class WorldRuntime
             }
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"child-help:{WorldTick}:{actor}", actor, HouseholdFor(actor), lot.Id, 1,
-                "child_household_help", house?.InstanceId));
+                "child_household_help", house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house?.InstanceId)));
             AppendEvent(new ChildHelpedHouseholdEventPayload(actor));
             return;
         }

@@ -20,6 +20,20 @@ public sealed record ExplorationGoal(string Kind, string Target, string? OrderIn
 
 public sealed partial class WorldRuntime
 {
+    private void RetireClosedOrderExplorationGoals(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person =>
+                     retired.Contains(person.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            agents[person.AgentId] = person with { Exploration = person.Exploration! with { Goal = null } };
+        foreach (var person in deceasedAgents.Values.Where(person =>
+                     retired.Contains(person.LastPhysical.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            deceasedAgents[person.AgentId] = person with
+            {
+                LastPhysical = person.LastPhysical with
+                { Exploration = person.LastPhysical.Exploration! with { Goal = null } },
+            };
+    }
+
     private const int StartingExplorationWarmthBudgetSteps = 8;
     private const int ExplorationCooldownTicks = 180;
     private const int ExplorationMemoryLimit = 256;

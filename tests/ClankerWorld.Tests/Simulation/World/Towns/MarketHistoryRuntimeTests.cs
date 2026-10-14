@@ -99,8 +99,18 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
             var trade = Assert.Single(PaidMarketWorld.Market(state).Trades, item => item.SettledTick is null && item.CancellationReason is null);
             offers.Add(trade.OfferId);
             if (cycle % 2 == 0)
+            {
+                var cancellingActor = cycle % 4 == 0 ? buyer : Seller;
                 state = await history.ChooseAsync("market_cancel:",
-                    world => world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Cancelled);
+                    world => world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Cancelled, cancellingActor);
+                var cancelled = Assert.Single(state.Events, item =>
+                    item.Payload is MarketTradeCancelledEventPayload payload && payload.OfferId == trade.OfferId);
+                Assert.Equal(cancellingActor, cancelled.Payload.ActorId);
+                Assert.Equal(trade.Position, cancelled.Position);
+                var payload = Assert.IsType<MarketTradeCancelledEventPayload>(cancelled.Payload);
+                Assert.Equal(Seller, payload.SellerId);
+                Assert.Equal(buyer, payload.BuyerId);
+            }
             else
             {
                 state = await history.ChooseAsync("market_continue:",
@@ -126,7 +136,8 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
                     {
                         foreach (var lot in items.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood" && lot.CarrierId == Seller).ToArray())
                             items = InventoryAuthority.Relocate(items, "history-store-payment:" + cycle + ":" + lot.Id,
-                                lot.Id, household, lot.Quantity, storageBuildingId: house);
+                                lot.Id, household, lot.Quantity, storageBuildingId: house,
+                                holdAccess: InventoryHoldRules.BorrowedBy(Seller));
                         return items;
                     });
                     if (cycle < 39)
@@ -152,7 +163,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
         Assert.Equal(32, retained.Trades.Count);
         Assert.DoesNotContain(retained.StockReceipts, receipt => receipt.Id == sourceReceipt);
         Assert.Equal(48, retained.StockReceipts.Count);
-        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
+        Assert.Equal(32, state.Society.Society.Inventory.Offers.Count(offer => offer.Id.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal)));
         Assert.Equal(64, state.Society.Society.Inventory.Reservations.Count(claim => offers.Any(id => claim.Id == id + ":first" || claim.Id == id + ":second")));
         foreach (var trade in retained.Trades)
         {
