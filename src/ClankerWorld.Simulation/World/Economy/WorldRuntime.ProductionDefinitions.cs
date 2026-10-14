@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
         internal static readonly ActionDefinition<RecipeChoice, RecipeProjectActionPlan> Recipe = new(
             DecodeReferenceChoice(RecipeChoice.Decode), static choice => choice.Encode(),
             new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true),
-            static (world, actor, choice, _) => world.worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == choice.DefinitionId) is { } recipe &&
+            static (world, actor, choice, policy) => world.worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == choice.DefinitionId) is { } recipe &&
                 world.TryFindRecipeSite(recipe, out var site, out _, actor)
                 ? world.PlanRecipeProject(actor, recipe, world.worldSimulation.Buildings.Single(building => building.InstanceId == site)) : null,
             static (world, plan, policy) => world.CheckRecipeProject(plan, policy),
