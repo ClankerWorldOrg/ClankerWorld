@@ -116,7 +116,7 @@ public sealed partial class HouseholdJoinRequestTests
             !unavailable.Contains(point) && !unavailable.Contains(new(point.X, point.Y - 1)) &&
             !unavailable.Contains(new(point.X, point.Y + 1)));
         var house = original with { Position = site, Entrance = new(site.X, site.Y + 1) };
-        var builder = state.Society.Society.GetHousehold(Alpha).MemberIds.First();
+        var builder = state.Society.Society.GetHousehold(Alpha).MemberIds[0];
         var stored = state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId).Sum(lot => lot.Quantity);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "housing-expansion-timber", "wood", Alpha,
             56 - stored, storageBuildingId: house.InstanceId);
