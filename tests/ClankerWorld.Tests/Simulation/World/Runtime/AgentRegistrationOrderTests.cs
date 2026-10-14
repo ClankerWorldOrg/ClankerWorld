@@ -124,6 +124,7 @@ public sealed class AgentRegistrationOrderTests
             "Ordinary|GatherBuildingMaterialPrefix|gather_building_material:|",
             "Ordinary|ExpandBuildingPrefix|expand_building:|",
             "Ordinary|InviteHouseGuestPrefix|invite_house_guest:,revoke_house_guest:|",
+            "Ordinary|recipe||",
             "Ordinary|build:|build:|",
             "Ordinary|assist:|assist:|",
             "Ordinary|replant_tree||replant_tree",

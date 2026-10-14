@@ -137,6 +137,10 @@ Smith delivery and gathering, tool collection and repair, rare mining,
 workstation supplies and Store stocking also own typed definitions. Their
 selected source, tool, stock, family and load pass the same check before the
 native effect; Store stocking has its own row beside the other shop actions.
+Recipe projects also own a typed definition. The capability policy is resolved
+from the retained recipe, preserving the garment exception during urgent cold.
+A codec-matched recipe row precedes the construction row; invalid legacy
+targets retain their existing project rejection through the fallback handler.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
