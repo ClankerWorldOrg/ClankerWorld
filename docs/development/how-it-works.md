@@ -160,6 +160,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Ornament choices and making room for food own their codecs, planners,
+capability policies, checks and native application in ordered action rows.
+Ornaments remain limited to fresh personal admission; their walking
+continuations cannot wear or give items. Food cargo keeps its selected stock
+families, quantities and orchard reservations through application.
+
 Conversation choices own their typed codec, planner, capability policy, check
 and native application in the ordered action row. ConversationSystem retains
 the shared preparation check and native writers; successful conversation

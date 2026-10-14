@@ -47,3 +47,11 @@ public sealed record GiftOrnamentActionPlan(string ActorId, GiftOrnamentChoice S
 {
     public override string Activity => "give the selected ornament";
 }
+
+public sealed record OrnamentRequestChoice(string CandidateId)
+{
+    public string Encode() => CandidateId;
+    public static OrnamentRequestChoice? Decode(string candidate) => candidate == OrnamentChoice.RemoveId ||
+        candidate.StartsWith(OrnamentChoice.WearPrefix, StringComparison.Ordinal) || candidate.StartsWith(OrnamentChoice.GiftPrefix, StringComparison.Ordinal)
+        ? new(candidate) : null;
+}

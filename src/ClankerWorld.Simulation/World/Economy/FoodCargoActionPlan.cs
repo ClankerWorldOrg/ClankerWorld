@@ -10,9 +10,20 @@ public sealed record PlannedCargoStorage(string Actor, string HouseholdId,
 
 public sealed record FoodCargoActionPlan(string ActorId, string HouseholdId,
     IReadOnlyList<PlannedCargoMove> Cargo, GridPoint Destination, int InteractionRange,
-    string? StorageBuildingId, IReadOnlyList<GridPoint> Route) : ActionPlan(ActorId, "make_room_for_food")
+    string? StorageBuildingId, IReadOnlyList<GridPoint> Route) : ActionPlan(ActorId, FoodCargoChoice.Candidate)
 {
     public override string Activity => "set down supplies to make room for food";
     public PlannedCargoStorage Storage => new(Actor, HouseholdId, Cargo, Destination,
         InteractionRange, StorageBuildingId, Route);
+}
+
+public readonly record struct FoodCargoChoice
+{
+    public const string Candidate = "make_room_for_food";
+    public static string Encode() => Candidate;
+    public static bool TryDecode(string candidate, out FoodCargoChoice choice)
+    {
+        choice = new();
+        return candidate == Candidate;
+    }
 }
