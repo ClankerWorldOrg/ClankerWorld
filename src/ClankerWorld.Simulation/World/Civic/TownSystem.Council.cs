@@ -247,6 +247,7 @@ internal sealed partial class TownSystem
         var landHearingEvidencePlan = originalPlan as LandHearingEvidenceActionPlan;
         var landHearingJudgePlan = originalPlan as LandHearingJudgeActionPlan;
         var landHearingRulingPlan = originalPlan as LandHearingRulingActionPlan;
+        var landHearingReopeningPlan = originalPlan as LandHearingReopeningActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -290,6 +291,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (LandHearingReopeningChoice.Decode(selectedId) is { } hearingReopeningChoice)
+        {
+            landHearingReopeningPlan ??= PlanLandHearingReopening(world, actor, hearingReopeningChoice);
+            if (landHearingReopeningPlan is null) return;
+            landHearingReopeningPlan = BindLandHearingReopening(landHearingReopeningPlan, hearingChoice);
+            if (CheckLandHearingReopening(world, landHearingReopeningPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingReopeningPlan, refusal); return; }
         }
         else if (LandHearingRulingChoice.Decode(selectedId) is { } hearingRulingChoice)
         {
@@ -426,7 +434,7 @@ internal sealed partial class TownSystem
             {
                 var hearingUpdate = ApplyTownLandHearingAction(world, town with { Council = state, Government = government },
                     actor, parts[2], parts[3], parts[4],
-                    proposalText, landTiles, hearingChoice, state, government, landHearingFilingPlan, landHearingEvidencePlan, landHearingJudgePlan, landHearingRulingPlan);
+                    proposalText, landTiles, hearingChoice, state, government, landHearingFilingPlan, landHearingEvidencePlan, landHearingJudgePlan, landHearingRulingPlan, landHearingReopeningPlan);
                 state = hearingUpdate.Council;
                 town = town with { LandRecords = hearingUpdate.LandRecords };
                 SetTown(world, town with { Council = state, Government = government });

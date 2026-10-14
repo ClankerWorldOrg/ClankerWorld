@@ -1,0 +1,1 @@
+- Reopening requests and assessments retain the selected ruling, grounds and assessor through shared native refusal checks.

@@ -507,6 +507,10 @@ Ruling plans retain the noticed revision, judge, affected permissions and
 applications, cited material and bound outcome/reasons. Property rulings
 retain the actual building/goods snapshot. Shared native refusal validation
 checks those inputs before the original ruling and property writers publish.
+Reopening plans retain the settled ruling, selected request, personal grounds
+or assessment and exact cited evidence. The same native refusal checks verify
+standing, informed independent assessment, established grounds and plot access.
+An accepted property rehearing retains its new-notice material snapshot.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.

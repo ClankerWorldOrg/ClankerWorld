@@ -442,9 +442,7 @@ public static class TownLandHearingRules
         string kind, IReadOnlyList<string> evidenceIds, string reasons, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
-        if (kind is not ("material_evidence" or "procedural_error") || !ValidText(reasons) ||
-            evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)))
-            throw new InvalidOperationException("Reopening requires identified material evidence or proof of a procedural error.");
+        if (RequestReopenRefusal(item, kind, evidenceIds, reasons) is { } refusal) throw new InvalidOperationException(refusal);
         var request = new TownLandReopenRequest(TownRecordIds.LandReopen(item.TownId, checked(state.Sequence + 1)), actor, tick, kind, Ordered(evidenceIds), reasons);
         return Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
@@ -459,14 +457,8 @@ public static class TownLandHearingRules
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
         var request = item.ReopenRequests.Single(r => r.Id == requestId && r.Status == "pending");
-        if (!validAuthority || item.Judge != judge || !ValidText(assessment) ||
-            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number && r.ReadTick >= request.Tick && r.ReadTick <= tick &&
-                r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))
-            throw new InvalidOperationException("An authorized independent judge must inspect and assess the reopening grounds.");
-        if (groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request, state) : DemonstratedProceduralError(item, request)))
-            throw new InvalidOperationException("Disagreement or an unsupported allegation does not establish reopening grounds.");
-        if (groundsEstablished && !ReopeningPlotIsAvailable(state, item))
-            throw new InvalidOperationException("Another pending land hearing covers this plot; reopening waits for that hearing.");
+        if (ReopeningRefusal(state, item, request, judge, groundsEstablished, assessment, tick, validAuthority) is { } refusal)
+            throw new InvalidOperationException(refusal);
         request = request with { Status = groundsEstablished ? "accepted" : "rejected", AssessedBy = judge, AssessedTick = tick, Assessment = assessment };
         item = item with { ReopenRequests = item.ReopenRequests.Select(r => r.Id == requestId ? request : r).ToArray() };
         if (groundsEstablished)
@@ -480,6 +472,26 @@ public static class TownLandHearingRules
         else if (!item.ReopenRequests.Any(r => r.Status == "pending"))
             item = item with { Judge = null, JudgeHistory = item.JudgeHistory.Append(new(judge, tick, "reopening_rejected")).ToArray() };
         return Replace(state, item);
+    }
+
+    public static string? RequestReopenRefusal(TownLandCase item, string kind, IReadOnlyList<string> evidenceIds, string reasons) =>
+        item.Status != "settled" || kind is not ("material_evidence" or "procedural_error") || !ValidText(reasons) ||
+            evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(evidence => evidence.Id == id))
+            ? "Reopening requires identified material evidence or proof of a procedural error." : null;
+
+    public static string? ReopeningRefusal(TownLandRecords state, TownLandCase item, TownLandReopenRequest request,
+        TownLandCaseJudge judge, bool groundsEstablished, string assessment, long tick, bool validAuthority)
+    {
+        if (item.Status != "settled" || request.Status != "pending") return "The selected reopening request is no longer pending on a settled case.";
+        if (!validAuthority || item.Judge != judge || !ValidText(assessment) ||
+            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number && r.ReadTick >= request.Tick && r.ReadTick <= tick &&
+                r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))
+            return "An authorized independent judge must inspect and assess the reopening grounds.";
+        if (groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request, state) : DemonstratedProceduralError(item, request)))
+            return "Disagreement or an unsupported allegation does not establish reopening grounds.";
+        if (groundsEstablished && !ReopeningPlotIsAvailable(state, item))
+            return "Another pending land hearing covers this plot; reopening waits for that hearing.";
+        return null;
     }
 
     public static bool MaterialNewEvidence(TownLandCase item, TownLandReopenRequest request, TownLandRecords? state = null)
