@@ -180,7 +180,11 @@ public sealed class TownLawRuntimeTests
             .Invoke(updated, [adults[0], stale, null, null, null, null, null]);
         var refused = updated.ExportState();
         Assert.Equal("choice_refused", refused.Events[^1].Kind);
-        Assert.Equal(before, WorldRuntimeCodec.Encode(refused with { Events = originalEvents }));
+        var cognition = refused.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == adults[0]);
+        Assert.Null(cognition.CurrentIntention);
+        Assert.Equal("cognition_intention_refused", cognition.Events[^1].Kind);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(refused with
+        { Events = originalEvents, Society = refused.Society with { Cognition = unchanged.Society.Cognition } }));
     }
 
     private sealed class LawProvider(string actor) : IDecisionProvider
