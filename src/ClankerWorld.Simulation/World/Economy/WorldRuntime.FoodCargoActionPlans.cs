@@ -34,9 +34,9 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy FoodCargoPolicy => new(ActionLifeStages.NonInfants,
         AllowUrgentWarmth: true, AllowActiveOrder: true);
 
-    private ActionCheck CheckFoodCargoPlan(FoodCargoActionPlan plan)
+    private ActionCheck CheckFoodCargoPlan(FoodCargoActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, FoodCargoPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? FoodCargoPolicy);
         if (!capability.Allowed) return capability;
         var state = agents[plan.Actor];
         if (HouseholdFor(plan.Actor) != plan.HouseholdId)
@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
     private void ApplyFoodCargoPlan(FoodCargoActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckFoodCargoPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         ApplyCargoStorage(plan.Storage);
     }
 

@@ -30,6 +30,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "ornament", [], [], Definition: OrnamentDefinition),
         new(ActionPhase.FreshAdmission, "tool_request_consent", [], [], Definition: ToolRequestConsentDefinition),
         new(ActionPhase.FreshAdmission, "animal_agreement", ["animal:agreement:"], [], Definition: AnimalAgreementDefinition),
         new(ActionPhase.FreshAdmission, "medical_consent", [MedicalConsentChoice.AllowPrefix, MedicalConsentChoice.RevokePrefix], [], Definition: MedicalConsentDefinition),
@@ -97,11 +98,7 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "haul_household_stock", [], [new HouseholdStockRequest(HouseholdStockRequestKind.Haul).Encode()], Definition: HouseholdHaulingDefinition),
         new(ActionPhase.Ordinary, "recover_household_delivery", [], [new HouseholdStockRequest(HouseholdStockRequestKind.RecoverDelivery).Encode()], Definition: HouseholdRecoveryDefinition),
         new(ActionPhase.Ordinary, "store_household_food", [], [new HouseholdStockRequest(HouseholdStockRequestKind.StoreFood).Encode()], Definition: HouseholdFoodStorageDefinition),
-        new(ActionPhase.Ordinary, "make_room_for_food", [], ["make_room_for_food"], static (runtime, action) =>
-    {
-        runtime.ApplyFoodCargoPlan(action.Plan as FoodCargoActionPlan ?? runtime.PlanFoodCargo(action.AgentId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "make_room_for_food", [], [FoodCargoChoice.Candidate], Definition: FoodCargoDefinition),
         new(ActionPhase.Ordinary, "store_town_resources", [], [TownStockRequest.WarehouseCandidate], Definition: WarehouseStockDefinition),
         new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], Definition: SalvageStockDefinition),
         new(ActionPhase.Ordinary, "haul_farm_grain", [], [FarmStockActionPlan.Candidate(FarmStockActionKind.Grain)], Definition: FarmStockDefinition),

@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
     {
         if (!LivingOrnamentAdult(actor) || BusyWithOrnamentIncompatibleWork(actor)) return;
         foreach (var plan in OrnamentSources(actor).Where(lot => lot.Id != agents[actor].Equipment?.OrnamentLotId)
-            .Select(lot => PlanOrnamentWear(actor, lot)).Where(plan => CheckOrnamentPlan(plan).Allowed).Take(8))
+            .Select(lot => PlanOrnamentWear(actor, lot)).Where(plan => CheckActionPlan(plan).Allowed).Take(8))
             candidates.Add(new(plan.CandidateId,
                 $"Choose and wear an accessible {plan.ItemKind.Replace('_', ' ')}. It stays one carried item.", 180,
                 society.Checkpoint.Inventory.GetLot(plan.Selected.StockId).StorageBuildingId)
@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
         if (agents[actor].Equipment?.OrnamentLotId is { } worn)
         {
             var plan = new RemoveOrnamentActionPlan(actor, worn);
-            if (CheckOrnamentPlan(plan).Allowed)
+            if (CheckActionPlan(plan).Allowed)
                 candidates.Add(new(RemoveOrnamentCandidate, "Remove your worn ornament and keep it among your carried goods.", 181) { ActionPlan = plan });
         }
         var recipients = LocalOrnamentRecipients(actor).ToArray();
@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
         var gifts = 0;
         foreach (var plans in PersonalOrnamentsToGive(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => recipients.Select(recipient => PlanOrnamentGift(actor, lot, recipient.AgentId))
-                .Where(plan => CheckOrnamentPlan(plan).Allowed).ToArray())
+                .Where(plan => CheckActionPlan(plan).Allowed).ToArray())
             .Where(plans => plans.Length > 0).Take(4))
             foreach (var plan in plans)
             {
@@ -124,7 +124,7 @@ public sealed partial class WorldRuntime
             BusyWithOrnamentIncompatibleWork(actor) || NeedsUrgentFood(agents[actor]) ||
             NeedsUrgentWarmth(agents[actor])) return;
         if (CurrentOrnamentPlan(actor, candidate) is not WearOrnamentActionPlan plan) return;
-        if (CheckOrnamentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var person = agents[actor];
         var stock = society.Checkpoint.Inventory.GetLot(plan.Selected.StockId);
         if (PersonalEquipmentRules.IsCarried(stock, actor) || IsWithinInteractionRange(person.Position, plan.Position, plan.InteractionRange)) return;
