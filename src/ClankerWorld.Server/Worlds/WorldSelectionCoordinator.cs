@@ -18,7 +18,8 @@ public sealed class WorldSelectionCoordinator(
     WorldAutosaveStore autosave,
     WorldJevPolicy jevPolicy,
     ILogger<WorldSelectionCoordinator> logger,
-    Func<string, IDecisionProvider> providerFactory)
+    Func<string, IDecisionProvider> providerFactory,
+    ManualWorldSaveStore saves)
 {
     private readonly object gate = providers.WorldMutationGate;
     // Bound read-only generation without blocking the current world's transactions.
@@ -37,15 +38,16 @@ public sealed class WorldSelectionCoordinator(
         WorldJevPolicy jevPolicy,
         ILogger<WorldSelectionCoordinator> logger,
         Func<string, IDecisionProvider> providerFactory,
+        ManualWorldSaveStore saves,
         Func<GeographyOptions, GeographyCandidateSelection> selectCandidates)
-        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory)
+        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory, saves)
     {
         ArgumentNullException.ThrowIfNull(selectCandidates);
         selectGeographyCandidates = selectCandidates;
     }
 
     private sealed record CachedCheckpoint(string WorldId, string Seed, string Digest,
-        string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests,
+        string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests, IReadOnlyDictionary<string, long> RecordCounts,
         bool Restorable, WorldThumbnail? Thumbnail, RoutineHelperSettings? Helper = null);
 
     public WorldCatalogSnapshot List(CancellationToken cancellationToken = default)
@@ -196,7 +198,7 @@ public sealed class WorldSelectionCoordinator(
                 return Unrestorable(world);
             // History files and provider credentials can change without a
             // checkpoint rewrite; never reuse their previous assessment.
-            stateFile.VerifyRequiredHistory(checkedCheckpoint.HistoryArchiveHead, checkedCheckpoint.RetiredRequests);
+            stateFile.VerifyRequiredHistory(checkedCheckpoint.HistoryArchiveHead, checkedCheckpoint.RetiredRequests, checkedCheckpoint.RecordCounts);
             if (!providers.CanRestoreWorldAssignments(world.Assignments, checkedCheckpoint.Helper))
                 return world with
                 {
@@ -234,13 +236,13 @@ public sealed class WorldSelectionCoordinator(
             // provider routing. Credentials and assignments are checked in Assess.
             using var verified = WorldRuntime.Restore(checkpoint);
             return new CachedCheckpoint(world.WorldId, world.Seed, digest,
-                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, true, thumbnail,
+                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint), true, thumbnail,
                 checkpoint.RoutineHelper);
         }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             System.Text.Json.JsonException or FormatException or InvalidOperationException)
         {
-            return new CachedCheckpoint(world.WorldId, world.Seed, digest, null, [], false, thumbnail);
+            return new CachedCheckpoint(world.WorldId, world.Seed, digest, null, [], new Dictionary<string, long>(), false, thumbnail);
         }
     }
 
@@ -392,6 +394,7 @@ public sealed class WorldSelectionCoordinator(
 
     private void RequirePaused()
     {
+        saves.RequireNoPendingLoad();
         if (!runtime.Society.IsPaused)
             throw new InvalidOperationException("Pause the current world before switching worlds.");
     }

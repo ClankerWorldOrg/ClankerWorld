@@ -61,17 +61,10 @@ public sealed partial class WorldRuntime
         {
             var root = index.Root(lot);
             if (!FoodRules.IsEdible(lot.ItemKind)) return GoodsReason.Kind;
-            if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
+            if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } eatingPromise) return eatingPromise;
             return PersonalEquipmentRules.IsCarried(root, request.Actor!) ? null : GoodsReason.Custody;
         }
-        if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel && index.Root(lot).DeliveryBuildingId is not null)
-            return GoodsReason.Delivery;
-        if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Deliver)
-        {
-            var root = index.Root(lot);
-            if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
-            if (OnBorrowedMarketStall(root)) return GoodsReason.MarketStall;
-        }
+        if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } promise) return promise;
         if (request.Use == GoodsUse.Deliver) return DeliveryGoodsExclusion(request, index, lot, routes, deliveries);
         if (request.Use == GoodsUse.Collect) return CollectGoodsExclusion(request.Actor!, index, lot, routes);
         if (request.Use == GoodsUse.ReachableHoldings) return GoodsRouteExclusion(request.Actor!, index.Root(lot), routes);

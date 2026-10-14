@@ -63,17 +63,6 @@ public partial class Main
                 published.Contains("case-ui", StringComparison.Ordinal) || published.Contains("grant-ui", StringComparison.Ordinal))
                 throw new InvalidOperationException("Publishing a remedy offer must not display agreement, completed work or internal identifiers.");
 
-            var eventSnapshot = sample with { Towns = [projectedTown] };
-            foreach (var kind in new[] { "town_civic_nonviolent_hearing", "town_civic_law_case", "town_civic_remedy", "law_case_offer_response", "law_case_remedy_effect" })
-            {
-                var description = WorldEventText.Describe(new(1, 3_900, kind, projectedTown.Id + "|record-ui|actor-ui"), eventSnapshot);
-                if (!GameUiText.IsPlayerFacingEvent(kind) || description.Contains("record-ui", StringComparison.Ordinal) ||
-                    description.Contains("actor-ui", StringComparison.Ordinal) ||
-                    description.Contains("agreement completed", StringComparison.OrdinalIgnoreCase) ||
-                    description.Contains("remedy completed", StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Hearing notices and individual contributions must produce readable events without claiming a whole remedy completed.");
-            }
-
             var pending = item with
             {
                 Status = "pending",

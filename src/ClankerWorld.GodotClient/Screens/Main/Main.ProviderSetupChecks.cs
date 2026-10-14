@@ -119,7 +119,7 @@ public partial class Main
                     return message;
                 }
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
-                    exception is not ObsoleteWorldRequestException)
+                    exception is not ObsoleteOwnerRequestException)
                 {
                     if (currentRevision() == testedRevision)
                         resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result arrived. Check your model-call count before trying again.";

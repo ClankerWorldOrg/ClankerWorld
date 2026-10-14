@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -213,20 +214,20 @@ public sealed class WorldToolRepairOrderTests
         var provider = new RepairChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new RepairChoices());
         var startAfter = world.WorldTick + 3;
-        provider.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
+        ModelWorkHarness.For(world).Scheduler.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
         var receipt = Submit(world, actor, "held", "repair wooden axe");
         try
         {
             await AdvanceUntil(world, () => provider.Started.Task.IsCompleted,
                 "The hosted repair-planning request did not start within forty native ticks.");
             if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(0, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("stop", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
             await AdvanceUntil(world, () => provider.Returned.Task.IsCompleted,
                 "The held repair-planning reply did not return within forty native ticks.");
-            for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 5; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(3_000, world.Society.Inventory.GetLot("target").ConditionBasisPoints);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "tool_repaired");
@@ -283,20 +284,26 @@ public sealed class WorldToolRepairOrderTests
         await Finish(world, receipt);
         var order = Order(world, receipt);
         Assert.Equal("finished", order.Status);
-        Assert.InRange(order.LastEffectId!.Length, 1, 512);
+        Assert.InRange(order.LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(resumed.ExportState()));
-        foreach (var invalid in new[]
-        {
-            order with { TargetAgentId = actor }, order with { TargetEquipmentKind = "wooden_knife" }, order with { TargetEquipmentKind = "basket" },
-            order with { TargetMaterialKind = "iron" }, order with { TargetFoodKind = "berries" },
-            order with { TargetPosition = new(1, 2) }, order with { TargetCropKind = "grain" },
-            order with { TargetResourceId = "tree" }, order with { ProgressUnit = "material_items" },
-            order with { CompletedUnits = 2 }, order with { LastEffectId = "repair:equipment:wrong" },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = actor }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "wooden_knife" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "iron" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(1, 2) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetCropKind"] = "grain" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "tree" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "material_items" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "repair:equipment:wrong" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         Assert.Throws<InvalidDataException>(() => Restore(saved with { SchemaVersion = 73 }));
     }
 
@@ -563,7 +570,7 @@ public sealed class WorldToolRepairOrderTests
         foreach (var input in ToolProgressionRules.RepairMaterials(kind)) inventory = InventoryAuthority.AddLot(inventory, "input-" + input.ResourceId, input.ResourceId, actor, quantity);
         return inventory;
     }
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new RepairChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) => world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
@@ -579,13 +586,13 @@ public sealed class WorldToolRepairOrderTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested)
             {
                 Assert.Fail($"World tick {world.WorldTick} stalled during poll {tick + 1} of 40.");
             }
-            if (!done()) await Task.Delay(5);
+            if (!done()) await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(done(), failureMessage);
     }
@@ -594,13 +601,11 @@ public sealed class WorldToolRepairOrderTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public Func<bool>? CanStart { get; set; }
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
             request.Validate();
             var observation = request.Observation;
             Requests.Enqueue(observation);

@@ -61,7 +61,8 @@ internal static class RuntimeWriterScan
         var source = Path.Combine(root, "src/ClankerWorld.Simulation");
         var paths = Directory.EnumerateFiles(source, "*.cs", SearchOption.AllDirectories)
             .Where(path => !Path.GetRelativePath(source, path).Split(Path.DirectorySeparatorChar).Any(part => part is "obj" or "bin"))
-            .Append(Path.Combine(root, "src/ClankerWorld.Shared/AgentPlacementRules.cs"));
+            .Append(Path.Combine(root, "src/ClankerWorld.Shared/AgentPlacementRules.cs"))
+            .Concat(Directory.EnumerateFiles(Path.Combine(root, "src/ClankerWorld.Shared/WorldEvents"), "*.cs"));
         var trees = paths.Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path)).ToList();
         trees.Add(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; " +
             "global using System.IO; global using System.Linq; global using System.Net.Http; " +

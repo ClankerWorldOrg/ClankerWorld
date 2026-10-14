@@ -149,13 +149,13 @@ public sealed partial class WorldRuntime
             if (item.OwnerId != actor)
             {
                 var transferId = EquipmentTransferId(WorldTick, actor, item.Id);
-                inventory = InventoryAuthority.Transfer(inventory, transferId, item.OwnerId, actor, item.Id, 1, "equipment_collected");
+                inventory = InventoryAuthority.Transfer(inventory, transferId, item.OwnerId, actor, item.Id, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 equippedId = item.Quantity == 1 ? item.Id : DerivedId.Create(item.Id + "#transfer:" + transferId);
             }
             else if (item.Quantity > 1)
             {
                 equippedId = EquippedUnitId(WorldTick, actor, item.Id);
-                inventory = InventoryAuthority.SplitLot(inventory, item.Id, 1, equippedId);
+                inventory = InventoryAuthority.SplitLot(inventory, item.Id, 1, equippedId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             }
             agents[actor] = agents[actor] with
             {
@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_equipped", $"{actor}|{equippedId}|{item.ItemKind}");
+        AppendEvent(new EquipmentEquippedEventPayload(actor, equippedId, item.ItemKind));
     }
 
     private bool CanContinueEquipmentRepair(string actor) => agents[actor].Equipment?.Repair is { } repair &&
@@ -210,7 +210,7 @@ public sealed partial class WorldRuntime
                     .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot;
                 var id = EquipmentRepairReservationId(WorldTick, actor, input.ResourceId);
                 inventory = InventoryAuthority.Reserve(inventory, id, actor, material.Id, input.Amount,
-                    "equipment_repair", WorldTick + 120);
+                    "equipment_repair", WorldTick + 120, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 ids.Add(id);
             }
             return inventory;
@@ -218,10 +218,10 @@ public sealed partial class WorldRuntime
         agents[actor] = agents[actor] with
         {
             Equipment = (person.Equipment ?? new PersonalEquipment()) with
-            { Repair = new(target.Id, site.InstanceId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
+            { Repair = new(target.Id, site.InstanceId, WorldTick, 0, (ids.ToArray()).Select(Identity.Parse).ToArray(), orderInstructionId) },
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_repair_started", $"{actor}|{target.Id}|{site.InstanceId}");
+        AppendEvent(new EquipmentRepairStartedEventPayload(actor, target.Id, site.InstanceId));
     }
 
     private EquipmentRepairWork? ContinueEquipmentRepair(string actor)
@@ -247,12 +247,12 @@ public sealed partial class WorldRuntime
             agents[actor] = person with { Equipment = person.Equipment with { Repair = repair with { WorkDone = progress } } };
             return null;
         }
-        ApplyInventoryTransition(inventory => InventoryAuthority.RepairSingleUnit(inventory, repair.LotId, 6_000, repair.MaterialReservationIds));
+        ApplyInventoryTransition(inventory => InventoryAuthority.RepairSingleUnit(inventory, repair.LotId, 6_000, repair.MaterialReservationIds, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         agents[actor] = agents[actor] with { Equipment = person.Equipment with { Repair = null } };
         GainSkill(actor, SkillKind.Crafting);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
-        AppendEvent("equipment_repaired", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairedEventPayload(actor, repair.LotId));
         return repair;
     }
 
@@ -268,7 +268,7 @@ public sealed partial class WorldRuntime
         });
         var person = agents[actor];
         agents[actor] = person with { Equipment = person.Equipment! with { Repair = null } };
-        AppendEvent("equipment_repair_interrupted", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairInterruptedEventPayload(actor, repair.LotId));
     }
 
     private void WearEquippedClothing()
@@ -281,7 +281,7 @@ public sealed partial class WorldRuntime
             // felt as lost warmth, but adds no wear the agreed design did not ask for.
             if (person.Equipment?.Repair?.LotId == person.Equipment?.ClothingLotId ||
                 WeatherExposure(person.Position) == 0 || EquippedGarment(person.AgentId) is not { } garment) continue;
-            ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, garment.Id, 10));
+            ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, garment.Id, 10, holdAccess: InventoryHoldRules.BorrowedBy(person.AgentId)));
         }
     }
 
@@ -291,6 +291,6 @@ public sealed partial class WorldRuntime
             PersonalEquipmentRules.EquippedUnit(society.Checkpoint.Inventory, actor, agents[actor].Equipment?.CarryAidLotId) is not { } aid ||
             AvailableLotQuantity(aid) == 0 || PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor,
                 agents[actor].Equipment) == 0) return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, aid.Id, 10));
+        ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, aid.Id, 10, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
     }
 }

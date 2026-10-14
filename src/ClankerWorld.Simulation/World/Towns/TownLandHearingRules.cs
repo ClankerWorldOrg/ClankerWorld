@@ -22,8 +22,6 @@ public static class TownLandHearingRules
     internal static string HearingUseRightId(string ruling, int sequence) =>
         DerivedId.Hash(ruling + ":" + sequence.ToString(CultureInfo.InvariantCulture), "household-use:hearing:", 24);
     internal static string HearingSourceId(string ruling) => DerivedId.Hash(ruling, "hearing:", 32);
-    internal static bool ValidText(string? text, int max = MaximumTextLength) =>
-        !string.IsNullOrWhiteSpace(text) && text.Length <= max && !text.Any(char.IsControl);
     internal static string[] Ordered(IEnumerable<string> ids) => ids.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     private static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
@@ -31,15 +29,15 @@ public static class TownLandHearingRules
     public static bool IsValidOutcome(TownLandRequestedOutcome outcome, long tick) =>
         outcome is not null && outcome.Kind is "confirm" or "renew" or "amend" or "end" or "reject" or "reclaim" or "grant" &&
         (outcome.Kind is "confirm" or "reject" ? outcome.HouseholdId is null && outcome.AgreedEndTick is null :
-            TownHearingProcedure.Id(outcome.HouseholdId) && (outcome.Kind is "end" or "reclaim" or "grant" ? outcome.AgreedEndTick is null :
+IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true) && (outcome.Kind is "end" or "reclaim" or "grant" ? outcome.AgreedEndTick is null :
                 outcome.AgreedEndTick is null || outcome.AgreedEndTick > tick));
 
     public static TownLandRecords File(TownLandRecords state, string townId,
         TownLandCaseFiling filing, IReadOnlyList<GridPoint> tiles, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyList<TownLandCaseParty> parties, long tick, int day, string noticeId, TownPropertyCase? property = null)
     {
-        if (filing.Kind is not ("dispute" or "expiry" or "town") || !ValidText(filing.Text) || !IsValidOutcome(filing.RequestedOutcome, tick) ||
-            filing.Tick != tick || day <= 0 || !ValidText(noticeId, 128) || tiles.Count == 0 ||
+        if (filing.Kind is not ("dispute" or "expiry" or "town") || !BoundedText.IsValid(filing.Text, 1024) || !IsValidOutcome(filing.RequestedOutcome, tick) ||
+            filing.Tick != tick || day <= 0 || !BoundedText.IsValid(noticeId, 128) || tiles.Count == 0 ||
             !tiles.SequenceEqual(TownLandRightsRules.OrderTiles(tiles.Distinct())) ||
             filing.Kind == "expiry" && filing.AgentId is not null ||
             filing.Kind == "expiry" && !currentRights.Any(r => r.Id == filing.AuthorityId && r.AgreedEndTick is { } end && end <= tick && r.Tiles.Any(tiles.Contains)) ||
@@ -137,7 +135,7 @@ public static class TownLandHearingRules
     public static TownLandRecords Inspect(TownLandRecords state, string caseId, int revision, string actor, long tick)
     {
         var item = Exact(state, caseId, revision);
-        if (tick < CurrentRevision(item).PublishedTick || !TownHearingProcedure.Id(actor)) throw new InvalidOperationException("The current case file must actually be inspected.");
+        if (tick < CurrentRevision(item).PublishedTick || !IdentityRules.Reference(actor, int.MaxValue, requireTrimmed: true)) throw new InvalidOperationException("The current case file must actually be inspected.");
         var read = new TownLandCaseRead(revision, actor, tick, Ordered(item.Evidence.Select(e => e.Id)))
         { ReopenRequestIds = Ordered(item.ReopenRequests.Select(r => r.Id)) };
         return Replace(state, item with { Reads = item.Reads.Append(read).ToArray() });
@@ -169,7 +167,7 @@ public static class TownLandHearingRules
         var party = currentParties.SingleOrDefault(p => (partyId is null || p.Id == partyId) &&
             (p.Kind == "household" ? p.AdultIds.Contains(actor, StringComparer.Ordinal) : p.RepresentativeId == actor));
         if (item.Status != "pending" || party is null || !notice.Parties.Any(p => p.Id == party.Id) || kind is not ("answer" or "waive") ||
-            !ValidText(text) || !HasNoticeReceipt(notice, actor, tick, receipts))
+            !BoundedText.IsValid(text, 1024) || !HasNoticeReceipt(notice, actor, tick, receipts))
             throw new InvalidOperationException("A response requires the current party's own informed answer or waiver.");
         var response = new TownLandCaseResponse(revision, party.Id, actor, kind, text, tick);
         return Replace(state, item with
@@ -189,12 +187,12 @@ public static class TownLandHearingRules
         return Replace(state, item with { Evidence = item.Evidence.Append(evidence).ToArray() });
     }
 
-    internal static bool ValidEvidence(TownLandEvidence e) => e is not null && ValidText(e.Id, 128) &&
-        e.Revision > 0 && ValidText(e.Text) && TownHearingProcedure.Id(e.SourceAgentId) && TownHearingProcedure.Id(e.SubmittedByAgentId) &&
+    internal static bool ValidEvidence(TownLandEvidence e) => e is not null && BoundedText.IsValid(e.Id, 128) &&
+        e.Revision > 0 && BoundedText.IsValid(e.Text, 1024) && IdentityRules.Reference(e.SourceAgentId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(e.SubmittedByAgentId, int.MaxValue, requireTrimmed: true) &&
         e.ObservedTick >= 0 && e.SubmittedTick >= e.ObservedTick &&
         (e.Kind == "allegation" && e.Acquisition is "statement" or "relay" && e.SourceRecordId is null && e.SourceVersion is null ||
             e.Kind == "observation" && e.Acquisition == "firsthand" && e.SourceAgentId == e.SubmittedByAgentId && e.SourceRecordId is null && e.SourceVersion is null ||
-            e.Kind == "record" && e.Acquisition == "record_inspection" && e.SourceAgentId == e.SubmittedByAgentId && ValidText(e.SourceRecordId, 128) && ValidText(e.SourceVersion, 128));
+            e.Kind == "record" && e.Acquisition == "record_inspection" && e.SourceAgentId == e.SubmittedByAgentId && BoundedText.IsValid(e.SourceRecordId, 128) && BoundedText.IsValid(e.SourceVersion, 128));
 
     public static bool CanCloseResponses(TownLandCase item, IReadOnlyList<TownLandCaseParty> currentParties, long tick)
     {
@@ -214,7 +212,7 @@ public static class TownLandHearingRules
     public static TownLandRecords AssignJudge(TownLandRecords state, string caseId, TownLandCaseJudge judge)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
-        if (judge.Kind is not ("land_mayor" or "case_elected") || !TownHearingProcedure.Id(judge.AgentId) || !ValidText(judge.AuthorityId, 128))
+        if (judge.Kind is not ("land_mayor" or "case_elected") || !IdentityRules.Reference(judge.AgentId, int.MaxValue, requireTrimmed: true) || !BoundedText.IsValid(judge.AuthorityId, 128))
             throw new InvalidOperationException("A case needs a recorded land mandate.");
         item = TownLandCaseJudgeRules.CancelContest(item, judge.AssignedTick, "authorized_judge_available");
         return Replace(state, item with { Judge = judge });
@@ -239,11 +237,11 @@ public static class TownLandHearingRules
         var item = Exact(state, caseId, revision);
         var notice = CurrentRevision(item);
         if (item.Status != "pending" || !validAuthority || item.Judge != judge || JudgeConflict(judge.AgentId, null, currentParties) || !CanCloseResponses(item, currentParties, tick) ||
-            !ValidText(reasons) || !IsValidOutcome(outcome, tick) ||
+            !BoundedText.IsValid(reasons, 1024) || !IsValidOutcome(outcome, tick) ||
             RequiresNewNotice(notice, notice.Tiles, currentRights, currentParties) ||
             !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == revision && r.ReadTick <= tick &&
                 item.Evidence.All(e => e.SubmittedTick <= r.ReadTick && r.EvidenceIds.Contains(e.Id, StringComparer.Ordinal))) ||
-            evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) || lawIds.Any(id => !ValidText(id, 128)))
+            evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) || lawIds.Any(id => !BoundedText.IsValid(id, 128)))
             throw new InvalidOperationException("The current authorized judge must inspect the file and revalidate the hearing before ruling.");
         var transfersProperty = outcome.Kind is "reclaim" or "grant";
         if (item.Property is null ? transfersProperty : outcome.Kind != "reject" &&
@@ -415,7 +413,7 @@ public static class TownLandHearingRules
         string kind, IReadOnlyList<string> evidenceIds, string reasons, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
-        if (kind is not ("material_evidence" or "procedural_error") || !ValidText(reasons) ||
+        if (kind is not ("material_evidence" or "procedural_error") || !BoundedText.IsValid(reasons, 1024) ||
             evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)))
             throw new InvalidOperationException("Reopening requires identified material evidence or proof of a procedural error.");
         var request = new TownLandReopenRequest(TownRecordIds.LandReopen(item.TownId, checked(state.Sequence + 1)), actor, tick, kind, Ordered(evidenceIds), reasons);
@@ -432,7 +430,7 @@ public static class TownLandHearingRules
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
         var request = item.ReopenRequests.Single(r => r.Id == requestId && r.Status == "pending");
-        if (!validAuthority || item.Judge != judge || !ValidText(assessment) ||
+        if (!validAuthority || item.Judge != judge || !BoundedText.IsValid(assessment, 1024) ||
             !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number && r.ReadTick >= request.Tick && r.ReadTick <= tick &&
                 r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))
             throw new InvalidOperationException("An authorized independent judge must inspect and assess the reopening grounds.");

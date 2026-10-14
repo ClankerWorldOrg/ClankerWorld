@@ -64,8 +64,8 @@ public sealed partial class WorldRuntime
         var physicalQuantity = HouseDeliveryPhysicalQuantity(society.Checkpoint.Inventory, stock);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"house-delivery-recovery:{WorldTick}:{actor}:{stock.Id}", actor, householdId, stock.Id, quantity,
-            "household_delivery_recovered", destinationGroundPosition: new InventoryGroundPosition(storagePosition.X, storagePosition.Y)));
-        AppendEvent("household_delivery_recovered", $"{actor}:{stock.Id}:{physicalQuantity}:pile");
+            "household_delivery_recovered", destinationGroundPosition: new InventoryGroundPosition(storagePosition.X, storagePosition.Y), holdAccess: InventoryHoldRules.DeliveryFor(actor, stock.DeliveryBuildingId)));
+        AppendEvent(new HouseholdDeliveryRecoveredEventPayload(actor, stock.Id, physicalQuantity));
     }
 
     private static int HouseDeliveryPhysicalQuantity(InventoryCheckpoint inventory, InventoryLot carried) =>
@@ -182,8 +182,8 @@ public sealed partial class WorldRuntime
         if (quantity == 0) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"house-food-storage:{WorldTick}:{actor}", actor, householdId, food.Id,
-            quantity, "household_food_stored", house.InstanceId));
-        AppendEvent("household_food_stored", $"{actor}:{food.Id}:{quantity}:{house.InstanceId}");
+            quantity, "household_food_stored", house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
+        AppendEvent(new HouseholdFoodStoredEventPayload(actor, food.Id, quantity, house.InstanceId));
     }
 
     private void HaulHouseholdStock(string actor, AgentState state)
@@ -209,9 +209,8 @@ public sealed partial class WorldRuntime
             if (deliveredQuantity == 0) return;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"house-haul-delivery:{WorldTick}:{actor}", actor, householdId,
-                carried.Id, deliveredQuantity, "household_stock_delivered", house.InstanceId));
-            AppendEvent("household_stock_delivered",
-                $"{actor}:{carried.Id}:{deliveredQuantity}:{house.InstanceId}");
+                carried.Id, deliveredQuantity, "household_stock_delivered", house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
+            AppendEvent(new HouseholdStockDeliveredEventPayload(actor, carried.Id, deliveredQuantity, house.InstanceId));
             return;
         }
         if (HouseForHousehold(householdId) is not { } houseForPickup)
@@ -227,11 +226,10 @@ public sealed partial class WorldRuntime
             if (storedQuantity == 0 || DestinationRoom(houseForPickup.InstanceId) == 0) return;
             ApplyInventoryTransition(inventory => preparationTool.OwnerId == householdId
                 ? InventoryAuthority.Relocate(inventory, $"house-preparation-tool:{WorldTick}:{actor}", preparationTool.Id,
-                    householdId, storedQuantity, storageBuildingId: houseForPickup.InstanceId)
+                    householdId, storedQuantity, storageBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, houseForPickup.InstanceId))
                 : InventoryAuthority.Transfer(inventory, $"house-preparation-tool:{WorldTick}:{actor}", actor, householdId,
-                    preparationTool.Id, storedQuantity, "household_preparation_tool_stored", destinationStorageBuildingId: houseForPickup.InstanceId));
-            AppendEvent("household_preparation_tool_stored",
-                $"{actor}:{preparationTool.ItemKind}:{storedQuantity}:{houseForPickup.InstanceId}");
+                    preparationTool.Id, storedQuantity, "household_preparation_tool_stored", destinationStorageBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, houseForPickup.InstanceId)));
+            AppendEvent(new HouseholdPreparationToolStoredEventPayload(actor, preparationTool.ItemKind, storedQuantity, houseForPickup.InstanceId));
             return;
         }
         if (UnlocatedHouseholdStock(householdId, actor, houseForPickup.InstanceId) is not { } stock)
@@ -248,9 +246,8 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"house-haul-pickup:{WorldTick}:{actor}", householdId, actor,
             stock.Id, quantity, "household_stock_picked_up",
-            destinationDeliveryBuildingId: houseForPickup.InstanceId));
-        AppendEvent("household_stock_picked_up",
-            $"{actor}:{stock.Id}:{quantity}:{houseForPickup.InstanceId}");
+            destinationDeliveryBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        AppendEvent(new HouseholdStockPickedUpEventPayload(actor, stock.Id, quantity, houseForPickup.InstanceId));
     }
 
     /// <summary>
@@ -293,7 +290,7 @@ public sealed partial class WorldRuntime
     }
 
     private sealed record SpareCargoMove(InventoryLot Lot, int TransferQuantity, int PhysicalQuantity,
-        string? OrchardReservationId = null);
+        Identity? OrchardReservationId = null);
 
     private List<SpareCargoMove> SpareCargoForFood(string actor, int missing, string? protectedLotId = null,
         params string[] additionallyProtectedLotIds)
@@ -426,12 +423,12 @@ public sealed partial class WorldRuntime
                 return lot.OwnerId == householdId
                     ? InventoryAuthority.Relocate(inventory, $"spare-cargo:{WorldTick}:{actor}:{lot.Id}", lot.Id, householdId, quantity,
                         storageBuildingId: destination.StorageBuildingId, groundPosition: destination.StorageBuildingId is null
-                            ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null)
+                            ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null, holdAccess: InventoryHoldRules.DeliveryFor(actor, destination.StorageBuildingId))
                     : InventoryAuthority.Transfer(inventory, $"spare-cargo:{WorldTick}:{actor}:{lot.Id}", actor, householdId, lot.Id, quantity,
                         "spare_cargo_stored", destination.StorageBuildingId, destinationGroundPosition: destination.StorageBuildingId is null
-                            ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null);
+                            ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null, holdAccess: InventoryHoldRules.DeliveryFor(actor, destination.StorageBuildingId));
             });
-            AppendEvent("spare_cargo_stored", $"{actor}:{lot.ItemKind}:{quantity}:{destination.StorageBuildingId ?? "pile"}");
+            AppendEvent(new SpareCargoStoredEventPayload(actor, lot.ItemKind, quantity, destination.StorageBuildingId ?? "pile"));
         }
         return true;
     }

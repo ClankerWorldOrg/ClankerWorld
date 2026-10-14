@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
@@ -22,8 +23,8 @@ internal static class PaidMarketWorld
         var inventory = state.Society.Society.Inventory;
         foreach (var person in state.Agents)
         {
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-cloak:" + person.AgentId, "rain_cloak", person.AgentId, 1);
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-sack:" + person.AgentId, "sack", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("market-rules-cloak:" + person.AgentId), "rain_cloak", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("market-rules-sack:" + person.AgentId), "sack", person.AgentId, 1);
         }
         return WithInventory(state, inventory) with
         {
@@ -33,7 +34,7 @@ internal static class PaidMarketWorld
                 Survival = new SurvivalCondition(),
                 Project = null,
                 LastDecisionContext = null,
-                Equipment = new PersonalEquipment("market-rules-cloak:" + person.AgentId, "market-rules-sack:" + person.AgentId),
+                Equipment = new PersonalEquipment(DerivedId.Create("market-rules-cloak:" + person.AgentId), DerivedId.Create("market-rules-sack:" + person.AgentId)),
             }).ToArray(),
         };
     }
@@ -47,10 +48,13 @@ internal static class PaidMarketWorld
     internal static GridPoint StallTile(WorldRuntimeState state, int slot) => MarketContent.StallSite(Market(state).Site, slot);
 
     internal static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = MarketStockHolds.Update(StockHoldTestState.Custody(inventory), state.Towns!) } } };
 
-    internal static WorldRuntimeState WithMarket(WorldRuntimeState state, Func<TownMarketState, TownMarketState> change) =>
-        state with { Towns = state.Towns!.Select(town => town with { Markets = town.Markets.Select(change).ToArray() }).ToArray() };
+    internal static WorldRuntimeState WithMarket(WorldRuntimeState state, Func<TownMarketState, TownMarketState> change)
+    {
+        var updated = state with { Towns = state.Towns!.Select(town => town with { Markets = town.Markets.Select(change).ToArray() }).ToArray() };
+        return WithInventory(updated, updated.Society.Society.Inventory);
+    }
 
     internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position) => state with
     {

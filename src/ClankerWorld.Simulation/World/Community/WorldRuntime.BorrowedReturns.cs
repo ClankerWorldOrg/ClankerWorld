@@ -38,8 +38,8 @@ public sealed partial class WorldRuntime
         if (quantity <= 0) return null;
         var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-            moveId, lot.Id, lot.OwnerId, quantity, storageBuildingId: house.InstanceId));
-        AppendEvent("borrowed_goods_returned", $"{actor}|{lot.ItemKind}|{quantity}|{lot.OwnerId}");
+            moveId, lot.Id, lot.OwnerId, quantity, storageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
+        AppendEvent(new BorrowedGoodsReturnedEventPayload(actor, lot.ItemKind, quantity, lot.OwnerId));
         return new(moveId, lot.ItemKind, quantity);
     }
 }
