@@ -1,0 +1,1 @@
+- Shop responses retain the original shop binding, exact offer terms and personal household authority through shared checks.

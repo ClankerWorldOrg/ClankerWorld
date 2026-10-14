@@ -491,6 +491,9 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Shop offer responses retain the original shop binding and barter terms.
+The same check verifies the buyer or current household responder before native
+cancellation, waiting or acceptance; changed offer state refuses reuse.
 Shop buyer choices retain the selected shop, owner and either an exact goods
 and payment quote or a Restaurant meal/ingredient trip. One check validates that
 same selection; a trip discovers private stock only on arrival, before a fresh

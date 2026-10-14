@@ -292,6 +292,19 @@ public sealed partial class WorldRuntime
         return RestaurantMealShopTrip(actor, building);
     }
 
+    private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId)
+    {
+        var trade = shopTrades.SingleOrDefault(item => item.OfferId == offerId);
+        var offer = society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == offerId);
+        return trade is null || offer is null ? null : new(actor, cancel, trade, offer);
+    }
+
+    private bool ShopResponseOfferIsCurrent(ShopResponseActionPlan plan)
+    {
+        var current = society.Checkpoint.Inventory.Offers.SingleOrDefault(offer => offer.Id == plan.Offer.Id);
+        return current is { State: DirectBarterState.Open } && TownHearingProcedure.Digest(current) == TownHearingProcedure.Digest(plan.Offer);
+    }
+
     private void AddShopCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor) || NeedsUrgentWarmth(agents[actor])) return;
@@ -302,12 +315,16 @@ public sealed partial class WorldRuntime
             if (!buyer && !MayRespondAtShop(actor, trade)) continue;
             var goods = society.Checkpoint.Inventory.GetLot(offer.FirstLotId);
             var payment = society.Checkpoint.Inventory.GetLot(offer.SecondLotId);
-            candidates.Add(new("shop_continue:" + offer.Id, buyer
+            var continuePlan = new ShopResponseActionPlan(actor, false, trade, offer);
+            var cancelPlan = new ShopResponseActionPlan(actor, true, trade, offer);
+            if (CheckShopResponse(continuePlan).Allowed) candidates.Add(new(continuePlan.CandidateId, buyer
                 ? $"Wait at the shop to receive {offer.FirstQuantity} {goods.ItemKind} for {offer.SecondQuantity} {payment.ItemKind}."
                 : $"Meet the customer at the shop and accept {offer.SecondQuantity} {payment.ItemKind} for {offer.FirstQuantity} {goods.ItemKind}.",
-                12, trade.BuildingInstanceId));
-            candidates.Add(new("shop_cancel:" + offer.Id,
-                "Cancel this exchange and release the goods and receiving space.", 65, trade.BuildingInstanceId));
+                12, trade.BuildingInstanceId)
+            { ActionPlan = continuePlan });
+            if (CheckShopResponse(cancelPlan).Allowed) candidates.Add(new(cancelPlan.CandidateId,
+                "Cancel this exchange and release the goods and receiving space.", 65, trade.BuildingInstanceId)
+            { ActionPlan = cancelPlan });
         }
         foreach (var building in worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal))
         {
@@ -325,6 +342,7 @@ public sealed partial class WorldRuntime
     private void ApplyShopCandidate(string actor, AgentState state, string candidate, ActionPlan? originalPlan = null)
     {
         if (originalPlan is ShopBuyActionPlan buyPlan) { ApplyShopBuy(buyPlan); return; }
+        if (originalPlan is ShopResponseActionPlan responsePlan) { ApplyShopResponse(responsePlan); return; }
         if (candidate == "shop_stock_store")
         {
             StockStore(actor, state);
@@ -338,8 +356,14 @@ public sealed partial class WorldRuntime
         }
         var cancel = candidate.StartsWith("shop_cancel:", StringComparison.Ordinal);
         var offerId = candidate[(cancel ? "shop_cancel:".Length : "shop_continue:".Length)..];
-        var trade = shopTrades.SingleOrDefault(item => item.OfferId == offerId);
-        var offer = society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == offerId);
+        if (PlanShopResponse(actor, cancel, offerId) is { } response) ApplyShopResponse(response);
+    }
+
+    private void ApplyRetainedShopResponse(string actor, AgentState state, ShopResponseActionPlan plan)
+    {
+        var cancel = plan.Cancel;
+        var trade = plan.Trade;
+        var offer = plan.Offer;
         if (trade is null || offer is not { State: DirectBarterState.Open } ||
             (actor != trade.BuyerId && !MayRespondAtShop(actor, trade))) return;
         if (cancel)
@@ -422,7 +446,7 @@ public sealed partial class WorldRuntime
             offer.SecondQuantity > storageRoom)
             return "There is no longer enough room to receive the goods.";
         if (!IsWithinInteractionRange(buyerState.Position, trade.Position, ResourceInteractionRange) &&
-            FindUnoccupiedRoute(trade.BuyerId, buyerState.Position, trade.Position, ResourceInteractionRange).Count == 0)
+            Reach(trade.BuyerId, trade.Position, ReachPurpose.ShopResponse, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return "The buyer can no longer reach the shop.";
         return null;
     }
