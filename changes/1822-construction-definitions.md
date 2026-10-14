@@ -1,0 +1,1 @@
+- Construction and expansion now bind their typed codecs, planners, capability policies and shared checks to ordered action rows, retaining chosen sites, footprints and inputs through native application.
