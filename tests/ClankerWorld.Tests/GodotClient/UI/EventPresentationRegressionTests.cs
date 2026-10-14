@@ -22,11 +22,11 @@ public sealed class EventPresentationRegressionTests
         var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
         session.ReplaceRegistration(registration);
         var current = Reconnect(store, 0);
-        Assert.Contains("owner-event-presentation.v1", current.Handshake.ServerCapabilities);
+        Assert.Contains("owner-event-presentation.v2", current.Handshake.ServerCapabilities);
         current = current with
         {
             Handshake = current.Handshake with
-            { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v1"] },
+            { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
         };
         Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
         var accepted = session.Current;
@@ -35,7 +35,7 @@ public sealed class EventPresentationRegressionTests
         legacy = legacy with
         {
             Handshake = legacy.Handshake with
-            { ServerCapabilities = legacy.Handshake.ServerCapabilities.Where(value => value != "owner-event-presentation.v1").ToArray() },
+            { ServerCapabilities = legacy.Handshake.ServerCapabilities.Where(value => value != "owner-event-presentation.v2").ToArray() },
             Baseline = legacy.Baseline with
             { Snapshot = legacy.Baseline.Snapshot with { EventTexts = new Dictionary<long, string>() } },
         };

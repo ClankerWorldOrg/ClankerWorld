@@ -27,7 +27,7 @@ public partial class Main
                 using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
                 using var nextHost = switchWorld ? new WorldActionSmokeHost(signer.PublicKeySpkiBase64) : null;
                 var handshake = new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1"], []);
                 var snapshot = new OwnerWorldSnapshot("pause-menu-world", 0, "pause-menu-map", [new(0, 0, "meadow")],
                     [], [], null, 0)

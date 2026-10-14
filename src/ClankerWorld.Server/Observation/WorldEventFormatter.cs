@@ -128,7 +128,7 @@ public static class WorldEventFormatter
         var marketSeller = marketFields is [_, _, _, _, ..] ? Name(snapshot, marketFields[3]) : "Someone";
         var marketBuyer = marketFields is [_, _, _, _, _, ..] ? Name(snapshot, marketFields[4]) : "a customer";
         var marketBuyerSubject = marketFields is [_, _, _, _, _, ..] ? marketBuyer : "A customer";
-        var animalName = snapshot?.Animals.FirstOrDefault(animal => payload.SubjectIds.Contains(animal.Id))?.Name ?? "An animal";
+        var animalName = snapshot?.Animals.FirstOrDefault(animal => animal.Id == PrimaryAnimalId(payload))?.Name ?? "An animal";
 
         return worldEvent.Kind switch
         {
@@ -563,9 +563,9 @@ public static class WorldEventFormatter
     private static string LandTown(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
         TownNamed(snapshot, payload, "the Town")!;
 
-    /// <summary>The Town named by a complete payload subject reference.</summary>
+    /// <summary>The Town named by its typed event fields.</summary>
     private static string? TownNamed(WorldSnapshotView? snapshot, WorldEventPayload payload, string? fallback) =>
-        snapshot?.Towns.FirstOrDefault(town => payload.SubjectIds.Contains(town.Id))?.Name ?? fallback;
+        snapshot?.Towns.FirstOrDefault(town => town.Id == EventTownId(payload))?.Name ?? fallback;
 
     /// <summary>The building named by a Town event payload.</summary>
     private static string DescribeTownBuilding(WorldSnapshotView? snapshot, WorldEventPayload payload)
@@ -577,7 +577,7 @@ public static class WorldEventFormatter
 
     /// <summary>The word for a young animal of the newborn's species, found by its payload subject reference.</summary>
     private static string YoungAnimal(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
-        snapshot?.Animals.FirstOrDefault(animal => payload.SubjectIds.Count > 0 && payload.SubjectIds[0] == animal.Id)?.Species switch
+        snapshot?.Animals.FirstOrDefault(animal => animal.Id == PrimaryAnimalId(payload))?.Species switch
         { "cow" => "calf", "sheep" => "lamb", "horse" => "foal", "chicken" => "chick", _ => "young animal" };
 
     /// <summary>A scouting trip: setting out, turning back, coming home or ending early.</summary>
@@ -671,7 +671,7 @@ public static class WorldEventFormatter
         ResidentTown(snapshot, worldEvent)?.Name ?? "a Town";
 
     private static TownView? ResidentTown(WorldSnapshotView? snapshot, EventView worldEvent) =>
-        snapshot?.Towns.FirstOrDefault(town => worldEvent.Payload?.SubjectIds.Contains(town.Id) == true);
+        snapshot?.Towns.FirstOrDefault(town => town.Id == (worldEvent.Payload is { } payload ? EventTownId(payload) : null));
 
     private static string ResidentName(WorldSnapshotView? snapshot, EventView worldEvent) =>
         Name(snapshot, worldEvent.Payload switch
@@ -746,7 +746,7 @@ public static class WorldEventFormatter
         MarketStockDeliveredEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.BuildingId ?? "", p.ActorId ?? "", p.ReceiptId ?? ""],
         MarketTradeOfferedEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.BuildingId ?? "", p.Seller ?? "", p.Buyer ?? "", p.OfferId ?? ""],
         MarketTradeCompletedEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.BuildingId ?? "", p.ActorId ?? "", p.BuyerId ?? "", p.OfferId ?? ""],
-        MarketTradeCancelledEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.StallBuildingId ?? "", p.ActorId ?? "", p.BuyerId ?? "", p.OfferId ?? ""],
+        MarketTradeCancelledEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.StallBuildingId ?? "", p.SellerId ?? "", p.BuyerId ?? "", p.OfferId ?? ""],
         MarketStallLeftEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.BuildingId ?? "", p.ActorId ?? "", p.OccupancyId ?? ""],
         ContinuityRuleOnEventPayload p => ["eligible_couples", Convert.ToString(p.EligibleCouples, CultureInfo.InvariantCulture) ?? "", "threshold", Convert.ToString(p.Threshold, CultureInfo.InvariantCulture) ?? ""],
         ContinuityRuleOffEventPayload p => ["eligible_couples", Convert.ToString(p.EligibleCouples, CultureInfo.InvariantCulture) ?? "", "threshold", Convert.ToString(p.Threshold, CultureInfo.InvariantCulture) ?? ""],
@@ -800,6 +800,41 @@ public static class WorldEventFormatter
         MarketStockCollectedEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.StallId ?? "", p.ActorId ?? "", p.LotId ?? ""],
         TownFoundedEventPayload p when !p.IsFirstTown => [p.TownId, p.ActorId ?? "", p.PreviousTownId ?? "none", p.MemberCount.ToString(CultureInfo.InvariantCulture)],
         _ => [],
+    };
+
+    private static string? PrimaryAnimalId(WorldEventPayload payload) => payload switch
+    {
+        AnimalBornEventPayload p => p.ChildId,
+        AnimalBreedingStartedEventPayload p => p.AnimalId,
+        AnimalCaredEventPayload p => p.AnimalId,
+        AnimalDiedEventPayload p => p.AnimalId,
+        AnimalHideCollectedEventPayload p => p.AnimalId,
+        AnimalPermissionChangedEventPayload p => p.AnimalId,
+        AnimalProductCollectedEventPayload p => p.AnimalId,
+        AnimalProductReadyEventPayload p => p.AnimalId,
+        AnimalSaddledEventPayload p => p.AnimalId,
+        AnimalTamedEventPayload p => p.AnimalId,
+        AnimalTradeOfferedEventPayload p => p.AnimalId,
+        AnimalTransferredEventPayload p => p.AnimalId,
+        HorseDismountedEventPayload p => p.AnimalId,
+        HorseMountedEventPayload p => p.AnimalId,
+        _ => null,
+    };
+
+    private static string? EventTownId(WorldEventPayload payload) => payload switch
+    {
+        LandUseGrantedEventPayload p => p.TownId,
+        LandUseRequestedEventPayload p => p.TownId,
+        TownAbandonedEventPayload p => p.TownId,
+        TownBorderExpandedEventPayload p => p.TownId,
+        TownBuildingAssignedEventPayload p => p.TownId,
+        TownCivicLandUseEventPayload p => p.TownId,
+        TownFoundedEventPayload p => p.TownId,
+        TownResettledEventPayload p => p.TownId,
+        TownResidentJoinedEventPayload p => p.TownId,
+        TownResidentLeftEventPayload p => p.TownId,
+        TownRevivedEventPayload p => p.TownId,
+        _ => PipeFields(payload).FirstOrDefault(),
     };
 
     private static string? DefinitionId(WorldEventPayload payload) => payload switch

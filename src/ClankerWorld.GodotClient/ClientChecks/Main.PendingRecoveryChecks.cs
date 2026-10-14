@@ -32,7 +32,7 @@ public partial class Main
         const string worldId = "lost-request-world";
         const string agentId = "lost-request-agent";
         var position = new OwnerWorldPosition(1, 1);
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1",
             "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1",
             "owner-observation-timeline.v1"], []), new(
             new(worldId, 0, "lost-request-map", [], [], [], null, 0)
