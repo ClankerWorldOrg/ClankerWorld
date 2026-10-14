@@ -132,11 +132,15 @@ public sealed partial class WorldRuntime
         {
             instruction = instruction with
             {
-                Task = instruction.Task with
-                {
-                    ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
-                    plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint),
-                }
+                Task = instruction.Task.UpdateDefinition(definition => definition switch
+{
+    ExpandBuildingOrderDefinition task => task with
+    {
+        ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
+                    plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint)
+    },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
             };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             checkpointSchemaVersion = StateSchemaVersion;
@@ -149,7 +153,11 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[instruction.IdempotencyKey] = current with
         {
-            Task = current.Task! with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ExpandBuildingOrderDefinition task => task with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
         };
     }
 

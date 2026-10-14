@@ -221,7 +221,7 @@ public sealed partial class WorldConversationTests
         Assert.Equal(Assert.Single(proposed.Conversations!).Id, instruction.Task!.TalkConversationId);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(proposed with { Conversations = [] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(proposed with
-        { Instructions = [instruction with { Task = instruction.Task with { TargetAgentId = ListenerId } }] }));
+        { Instructions = [instruction with { Task = instruction.Task.UpdateDefinition(definition => definition switch { TalkToOrderDefinition task => task with { TargetAgentId = ListenerId }, _ => throw new InvalidOperationException() }) }] }));
         using var proposedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(proposed)), _ => provider);
         for (var tick = 0; tick < 20 && Assert.Single(proposedReload.Conversations).Status != AgentConversationStatus.Closed; tick++)
             await AdvanceTalkOrderTick(proposedReload);

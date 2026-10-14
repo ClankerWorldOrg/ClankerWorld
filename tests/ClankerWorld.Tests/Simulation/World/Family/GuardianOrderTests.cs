@@ -178,22 +178,19 @@ public sealed partial class ParenthoodTests
         var state = world.ExportState();
         var instruction = Assert.Single(state.Instructions!);
         var order = instruction.Task!;
-        foreach (var damaged in new[]
-        {
-            order with { TargetAgentId = null },
-            order with { TargetAgentId = "missing-child" },
-            order with { TargetAgentId = adult },
-            order with { TargetFoodKind = "berries" },
-            order with { TargetMaterialKind = "wood" },
-            order with { RequestedUnits = 2 },
-            order with { RepeatUntilCancelled = true },
-            order with { CompletedUnits = 1 },
-            order with { LastEffectId = Identity.Parse("invented") },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-            {
-                Instructions = [instruction with { Task = damaged }],
-            }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = "missing-child" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = adult }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RequestedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "invented" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, damaged));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with { SchemaVersion = 52 }));
     }
 }

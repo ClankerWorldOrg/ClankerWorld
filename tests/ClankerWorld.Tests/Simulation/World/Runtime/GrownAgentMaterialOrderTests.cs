@@ -79,18 +79,15 @@ public sealed partial class GrownAgentHelperMemoryTests
         var completed = host.Saved();
         using var completedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(completed));
         Assert.Equal(completed, WorldRuntimeCodec.Encode(completedReload.ExportState()));
-        Assert.Throws<ArgumentException>(() => Identity.Parse("gather:material:" + new string('x', 513)));
-        Assert.Throws<ArgumentException>(() => Identity.Parse("gather:material:\0"));
-        foreach (var invalid in new[] { order with { TargetMaterialKind = "cloth" },
-                     order with { CompletedUnits = 0 }, order with { ProgressUnit = "food_items" } })
-        {
-            var damaged = world.ExportState() with
-            {
-                Instructions = world.ExportState().Instructions!.Select(item => item.InstructionId == submitted.InstructionId
-                    ? item with { Task = invalid } : item).ToArray()
-            };
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(damaged));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "gather:material:" + new string('x', 513) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "gather:material:\0" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 0 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "food_items" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(world.ExportState(), invalid));
         Assert.Throws<ArgumentOutOfRangeException>(() => world.SubmitInstruction(request with
         { IdempotencyKey = new string('x', OwnerQueuedInstruction.MaximumIdentifierLength + 1) }));
         for (var step = 0; step < 3; step++)

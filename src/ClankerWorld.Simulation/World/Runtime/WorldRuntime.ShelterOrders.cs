@@ -138,7 +138,12 @@ public sealed partial class WorldRuntime
         if (binding is null)
             return CanInspectShelterTarget(order, instruction.TargetAgentId, person)
                 ? new CognitionCandidate("inspect_shelter_site", "Travel to observe the shelter site named by this order.", 0) : null;
-        if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order with { ShelterBinding = binding }) ||
+        if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order.UpdateDefinition(definition => definition switch
+{
+    SeekShelterOrderDefinition task => task with { ShelterBinding = binding },
+    TendFireOrderDefinition task => task with { ShelterBinding = binding },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})) ||
             !ShelterRouteIsOpen(instruction.TargetAgentId, person.Position, binding.Position) ||
             order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetAgentId, person, binding.Position)) return null;
         return new CognitionCandidate(order.Action,
@@ -167,7 +172,12 @@ public sealed partial class WorldRuntime
         }
         if (order.ShelterBinding is null)
         {
-            order = order with { ShelterBinding = binding };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    SeekShelterOrderDefinition task => task with { ShelterBinding = binding },
+    TendFireOrderDefinition task => task with { ShelterBinding = binding },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             current = current with { Task = order };
             instructionsByIdempotency[current.IdempotencyKey] = current;
             checkpointSchemaVersion = StateSchemaVersion;
@@ -203,7 +213,15 @@ public sealed partial class WorldRuntime
         }
         var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, Identity.ParseOptional(payment));
         current = instructionsByIdempotency[current.IdempotencyKey];
-        current = current with { Task = current.Task! with { ShelterCompletion = completion } };
+        current = current with
+        {
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+            {
+                SeekShelterOrderDefinition task => task with { ShelterCompletion = completion },
+                TendFireOrderDefinition task => task with { ShelterCompletion = completion },
+                _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+            })
+        };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         CreditOrderEffect(current, Identity.Parse(ShelterOrderReceipt(current.InstructionId, current.Task!)), 1);
     }

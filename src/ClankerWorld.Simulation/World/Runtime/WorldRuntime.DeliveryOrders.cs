@@ -193,15 +193,11 @@ public sealed partial class WorldRuntime
         var order = current.Task!;
         current = current with
         {
-            Task = order with
-            {
-                TargetStorageBuildingId = order.TargetStorageBuildingId ?? destination.InstanceId,
-                TargetStorageOwnerId = order.TargetStorageOwnerId ?? ownerId,
-                TargetStoragePosition = order.TargetStoragePosition ?? destination.Position,
-                DeliveryRoute = order.DeliveryRoute ?? route,
-                DeliveryLotId = lotId ?? order.DeliveryLotId,
-                DeliveryQuantity = quantity ?? order.DeliveryQuantity,
-            }
+            Task = order.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => task with { TargetStorageBuildingId = order.TargetStorageBuildingId ?? destination.InstanceId, TargetStorageOwnerId = order.TargetStorageOwnerId ?? ownerId, TargetStoragePosition = order.TargetStoragePosition ?? destination.Position, DeliveryRoute = order.DeliveryRoute ?? route, DeliveryLotId = lotId ?? order.DeliveryLotId, DeliveryQuantity = quantity ?? order.DeliveryQuantity },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         checkpointSchemaVersion = StateSchemaVersion;
@@ -265,7 +261,11 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
         {
-            Task = current.Task! with { DeliveryLotId = null, DeliveryQuantity = null },
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => task with { DeliveryLotId = null, DeliveryQuantity = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
         };
     }
 

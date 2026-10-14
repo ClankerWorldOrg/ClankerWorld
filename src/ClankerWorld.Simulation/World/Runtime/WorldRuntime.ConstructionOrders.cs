@@ -130,13 +130,11 @@ public sealed partial class WorldRuntime
         {
             var order = instruction.Task!;
             var started = order.ConstructionStartedTick ?? WorldTick;
-            order = order with
-            {
-                ConstructionOwnerId = household,
-                ConstructionPosition = position,
-                ConstructionStartedTick = started,
-                ConstructionInstanceId = ConstructionInstanceId(instruction.InstructionId),
-            };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    ConstructBuildingOrderDefinition task => task with { ConstructionOwnerId = household, ConstructionPosition = position, ConstructionStartedTick = started, ConstructionInstanceId = ConstructionInstanceId(instruction.InstructionId) },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             var project = new AgentProject(TownConstructionCandidateIds.Building(definition!.CanonicalId, position),

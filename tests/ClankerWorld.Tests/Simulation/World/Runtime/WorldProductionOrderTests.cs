@@ -436,25 +436,14 @@ public sealed partial class WorldProductionOrderTests
         var job = await StartJob(world);
         var saved = world.ExportState();
         var order = Order(world, receipt);
-        foreach (var invalid in new[]
-        {
-            order with
-            {
-                CompletedUnits = 1,
-                LastEffectId = Identity.Parse("produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId)))),
-            },
-            order with { ProductionJobId = "production-9999999999" },
-            order with { ProductionBuildingId = Shop },
-            order with { TargetOutputKind = "sack" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId))) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProductionJobId"] = "production-9999999999" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProductionBuildingId"] = Shop }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetOutputKind"] = "sack" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         var missingReceipt = saved with
         {
             WorldSimulation = saved.WorldSimulation! with

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -30,6 +31,18 @@ public static class WorldRuntimeCodec
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
         };
+        var resolver = new DefaultJsonTypeInfoResolver();
+        resolver.Modifiers.Add(typeInfo =>
+        {
+            if (typeInfo.Type != typeof(OrderTask) && !typeof(OrderTaskDefinition).IsAssignableFrom(typeInfo.Type)) return;
+            // Read-only projections belong to the runtime API, not the saved
+            // contract. Removing their metadata makes extra fields fail closed.
+            for (var index = typeInfo.Properties.Count - 1; index >= 0; index--)
+                if (typeInfo.Properties[index].AttributeProvider?.GetCustomAttributes(typeof(JsonIgnoreAttribute), true)
+                    .OfType<JsonIgnoreAttribute>().Any(attribute => attribute.Condition == JsonIgnoreCondition.Always) == true)
+                    typeInfo.Properties.RemoveAt(index);
+        });
+        options.TypeInfoResolver = resolver;
         options.Converters.Add(new StoredIdentityJsonConverter());
         options.Converters.Add(new WorldTerrainChunkCodec());
         return options;

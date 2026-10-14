@@ -458,12 +458,8 @@ public sealed class WorldCustodyOrderTests
         Assert.NotEqual("unknown", Order(world, receipt).Action);
         using var valid = Restore(saved);
         Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { TargetAgentId = actor } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
+        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     [Fact]
@@ -478,22 +474,19 @@ public sealed class WorldCustodyOrderTests
         var saved = world.ExportState();
         var order = Order(world, receipt);
         AssertPinned(order, Home(state));
-        foreach (var invalid in new[]
-        {
-            order with { TargetItemKind = null }, order with { TargetItemKind = "fresh_water" },
-            order with { TargetStorageBuildingId = null }, order with { TargetStorageOwnerId = null },
-            order with { TargetStoragePosition = null }, order with { TargetStoragePosition = new(10_000_001, 0) },
-            order with { TargetLotId = "saved-cloth" }, order with { TargetEquipmentKind = "basket" },
-            order with { ProgressUnit = "production_batches" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = "fresh_water" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageBuildingId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageOwnerId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = new GridPoint(10_000_001, 0) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetLotId"] = "saved-cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "production_batches" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         using var replay = Reload(world);
         await TickTogether(world, replay);
         Assert.Equal("finished", Order(world, receipt).Status);

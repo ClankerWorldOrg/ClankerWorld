@@ -54,7 +54,13 @@ public sealed partial class WorldRuntime
         var request = QueueBoatTrip(actor, choice, instruction.InstructionId);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Task = current.Task! with { BoatTravel = binding with { RequestId = request.Id } } };
+        {
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    TravelByBoatOrderDefinition task => task with { BoatTravel = binding with { RequestId = request.Id } },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+        };
     }
 
     private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction)
@@ -118,7 +124,7 @@ public sealed partial class WorldRuntime
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 
-    private static bool IsValidBoatOrderShape(OrderTask order) =>
+    internal static bool IsValidBoatOrderShape(OrderTask order) =>
         order.BoatTravel is { DestinationPortId.Length: > 0 and <= DerivedId.MaximumLength } binding &&
         !binding.DestinationPortId.Any(char.IsControl) &&
         (binding.RequestId is null || binding.RequestId.Length is > 0 and <= DerivedId.MaximumLength && !binding.RequestId.Any(char.IsControl)) &&

@@ -636,6 +636,13 @@ error; the world, its message numbering and its save stay unchanged. These are
 the same limits a save applies, so an accepted message cannot leave the world
 unable to save.
 
+`OrderTask` holds common progress and an `OrderTaskDefinition` union. Each of
+the 50 supported kinds has its own record in `OrderTaskDefinitions.cs`, with
+only its target and binding fields. Shared families keep their shape checks on
+those records; save validation checks common progress and links to other state.
+Task-specific values exposed to runtime and display callers are read-only
+projections. Parsers and binding updates construct the matching union record.
+
 `OrderTask` stores its lifecycle as an `OrderStatus` enum. Its one transition
 operation keeps blocked reasons and retry waits together and refuses to reopen
 closed work. The string status is derived for saves and observations. Runtime

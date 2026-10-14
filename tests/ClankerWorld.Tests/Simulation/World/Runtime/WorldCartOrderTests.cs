@@ -171,7 +171,7 @@ public sealed class WorldCartOrderTests
             var malformed = queued with
             {
                 Instructions = queued.Instructions!.Select(item => item with
-                { Task = item.Task! with { TargetCartLotId = target } }).ToArray()
+                { Task = item.Task!.UpdateDefinition(definition => definition switch { AttachHandcartOrderDefinition task => task with { TargetCartLotId = target }, ParkHandcartOrderDefinition task => task with { TargetCartLotId = target }, RepairHandcartOrderDefinition task => task with { TargetCartLotId = target }, _ => throw new InvalidOperationException() }) }).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(malformed));
         }

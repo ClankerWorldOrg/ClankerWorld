@@ -289,15 +289,21 @@ public sealed class WorldToolRepairOrderTests
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(resumed.ExportState()));
-        foreach (var invalid in new[]
-        {
-            order with { TargetAgentId = actor }, order with { TargetEquipmentKind = "wooden_knife" }, order with { TargetEquipmentKind = "basket" },
-            order with { TargetMaterialKind = "iron" }, order with { TargetFoodKind = "berries" },
-            order with { TargetPosition = new(1, 2) }, order with { TargetCropKind = "grain" },
-            order with { TargetResourceId = "tree" }, order with { ProgressUnit = "material_items" },
-            order with { CompletedUnits = 2 }, order with { LastEffectId = Identity.Parse("repair:equipment:wrong") },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = actor }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "wooden_knife" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "iron" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(1, 2) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetCropKind"] = "grain" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "tree" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "material_items" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "repair:equipment:wrong" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         Assert.Throws<InvalidDataException>(() => Restore(saved with { SchemaVersion = 73 }));
     }
 

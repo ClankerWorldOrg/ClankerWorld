@@ -32,13 +32,20 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         var order = current.Task!;
         if (order.TargetStorageBuildingId is null)
-            order = order with
-            {
-                TargetStorageBuildingId = house.InstanceId,
-                TargetStorageOwnerId = house.HouseholdId,
-                TargetStoragePosition = house.Position,
-            };
-        if (lotId is not null) order = order with { TargetLotId = lotId };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    StoreMaterialOrderDefinition task => task with { TargetStorageBuildingId = house.InstanceId, TargetStorageOwnerId = house.HouseholdId, TargetStoragePosition = house.Position },
+    StoreEquipmentOrderDefinition task => task with { TargetStorageBuildingId = house.InstanceId, TargetStorageOwnerId = house.HouseholdId, TargetStoragePosition = house.Position },
+    StoreGoodsOrderDefinition task => task with { TargetStorageBuildingId = house.InstanceId, TargetStorageOwnerId = house.HouseholdId, TargetStoragePosition = house.Position },
+    ReturnBorrowedOrderDefinition task => task with { TargetStorageBuildingId = house.InstanceId, TargetStorageOwnerId = house.HouseholdId, TargetStoragePosition = house.Position },
+    DeliverStockOrderDefinition task => task with { TargetStorageBuildingId = house.InstanceId, TargetStorageOwnerId = house.HouseholdId, TargetStoragePosition = house.Position },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
+        if (lotId is not null) order = order.UpdateDefinition(definition => definition switch
+{
+    ReturnBorrowedOrderDefinition task => task with { TargetLotId = lotId },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
         current = current with { Task = order };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         checkpointSchemaVersion = StateSchemaVersion;
@@ -86,7 +93,14 @@ public sealed partial class WorldRuntime
         CreditOrderEffect(instruction, Identity.Parse(receipt), order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
         // Another load may use another lot, but it must keep the original owner and House.
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[instruction.IdempotencyKey] = current with { Task = current.Task! with { TargetLotId = null } };
+        instructionsByIdempotency[instruction.IdempotencyKey] = current with
+        {
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ReturnBorrowedOrderDefinition task => task with { TargetLotId = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+        };
     }
 
     private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)

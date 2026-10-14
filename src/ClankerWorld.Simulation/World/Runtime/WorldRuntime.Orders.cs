@@ -520,7 +520,7 @@ public sealed partial class WorldRuntime
             : "No suitable food source is known yet.";
     }
 
-    private static string MovementOrderEffectId(GridPoint destination) =>
+    internal static string MovementOrderEffectId(GridPoint destination) =>
         FormattableString.Invariant($"arrival:tile:{destination.X}:{destination.Y}");
 
     private bool MovementOrderNeedsHouseInvitation(string actor, GridPoint destination) =>

@@ -181,13 +181,13 @@ roundtrips retain loaded parked carts and mid-journey hitches; rollback retains
 the previous physical position and every cargo quantity. Earlier alpha saves
 are refused and preserved; no migration is added.
 
-Current cart repair orders retain their stable target and a completion receipt
-in the existing order fields. The receipt binds the instruction, actor, cart
+Current cart repair orders retain their stable target in a typed cart definition
+and their completion receipt in common progress. The receipt binds the instruction, actor, cart
 and native repair tick; reload requires that tick's three exact consumed wood,
 iron-fitting and rope reservations. Real carried supplies, the broken cart's
 cargo and pending order survive reload and refused-tick rollback. Cancellation
-keeps collected goods and creates no unfinished repair reservation. The schema
-version stays unchanged; a build without cart repair orders refuses saves
+keeps collected goods and creates no unfinished repair reservation. The original
+cart-repair change kept the schema unchanged; a build without those orders refuses saves
 containing that action and keeps the original file.
 
 World schema 31 records an agent's learned skills and each lesson's
@@ -827,6 +827,15 @@ number is provisional until merge.
 Current-format reload, cancellation and rejected-tick checks retain the same
 physical effects and receipts.
 
+Schema 135 stores each task's `definition` with an explicit `kind` discriminator
+and only that kind's fields, beside common progress and the unchanged status
+spelling. Missing required targets, unknown kinds and fields belonging to
+another kind are refused during decoding. Each task record owns its shape
+validation; native receipts, authority and cross-system bindings keep their
+existing checks. Current-format progress, cancellation and replay remain the
+same. Earlier alpha schemas are refused and preserved without migration; this
+version is provisional until merge.
+
 ## Commit and restore rules
 
 Canonical state is the accepted state used by the simulation. A replay checks
@@ -1290,7 +1299,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 134. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 135. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

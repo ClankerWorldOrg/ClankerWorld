@@ -152,7 +152,7 @@ public sealed partial class WorldFieldOrderTests
         Assert.Throws<InvalidDataException>(() => Restore(stateWithWork with
         {
             Instructions = stateWithWork.Instructions!.Select(item => item.InstructionId == plant.InstructionId
-                ? item with { Task = item.Task! with { TargetPosition = wrong } } : item).ToArray(),
+                ? item with { Task = item.Task!.UpdateDefinition(definition => definition switch { TillFieldOrderDefinition task => task with { TargetPosition = wrong }, PlantFieldOrderDefinition task => task with { TargetPosition = wrong }, TendFieldOrderDefinition task => task with { TargetPosition = wrong }, HarvestFieldOrderDefinition task => task with { TargetPosition = wrong }, _ => throw new InvalidOperationException() }) } : item).ToArray(),
         }));
         world.Pause();
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));

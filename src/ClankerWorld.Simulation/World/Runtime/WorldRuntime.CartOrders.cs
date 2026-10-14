@@ -23,12 +23,32 @@ public sealed partial class WorldRuntime
             foreach (var noun in new[] { "handcart", "cart" })
             {
                 if (subject.Equals(noun, StringComparison.OrdinalIgnoreCase))
-                    return new(action, "queued", 1, 0, "cart_tasks", false);
+                    return new OrderTask((action) switch
+                    {
+                        "attach_handcart" => new AttachHandcartOrderDefinition(),
+                        "park_handcart" => new ParkHandcartOrderDefinition(),
+                        "repair_handcart" => new RepairHandcartOrderDefinition(),
+                        _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+                    },
+    "queued",
+    1,
+    0,
+    "cart_tasks", false);
                 if (!subject.StartsWith(noun + " ", StringComparison.OrdinalIgnoreCase)) continue;
                 var id = subject[(noun.Length + 1)..].Trim();
                 // Consume the whole target. Extra words and nonexistent IDs are not guessed away.
                 if (IdentityRules.Reference(id, OwnerQueuedInstruction.MaximumIdentifierLength) && society.Checkpoint.Inventory.Lots.Any(lot => lot.Id == id && lot.ItemKind == InventoryContainerRules.Handcart))
-                    return new(action, "queued", 1, 0, "cart_tasks", false) { TargetCartLotId = id };
+                    return new OrderTask((action) switch
+                    {
+                        "attach_handcart" => new AttachHandcartOrderDefinition(TargetCartLotId: id),
+                        "park_handcart" => new ParkHandcartOrderDefinition(TargetCartLotId: id),
+                        "repair_handcart" => new RepairHandcartOrderDefinition(TargetCartLotId: id),
+                        _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+                    },
+    "queued",
+    1,
+    0,
+    "cart_tasks", false);
                 if (id.StartsWith("at ", StringComparison.OrdinalIgnoreCase) &&
                     OrderTaskParser.Parse("move to " + id[3..], map.Resources, FoodKnowledgeKind) is
                     { Action: "move_to", TargetPosition: { } position })
@@ -36,7 +56,17 @@ public sealed partial class WorldRuntime
                     var carts = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
                         lot.OwnerId == actor && CartPosition(lot) == position).ToArray();
                     if (carts.Length == 1 && IdentityRules.Reference(carts[0].Id, OwnerQueuedInstruction.MaximumIdentifierLength))
-                        return new(action, "queued", 1, 0, "cart_tasks", false) { TargetCartLotId = carts[0].Id };
+                        return new OrderTask((action) switch
+                        {
+                            "attach_handcart" => new AttachHandcartOrderDefinition(TargetCartLotId: carts[0].Id),
+                            "park_handcart" => new ParkHandcartOrderDefinition(TargetCartLotId: carts[0].Id),
+                            "repair_handcart" => new RepairHandcartOrderDefinition(TargetCartLotId: carts[0].Id),
+                            _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+                        },
+    "queued",
+    1,
+    0,
+    "cart_tasks", false);
                 }
             }
         }
@@ -105,7 +135,15 @@ public sealed partial class WorldRuntime
         if (instruction.Task!.TargetCartLotId is null)
         {
             instruction = instructionsByIdempotency[instruction.IdempotencyKey] with
-            { Task = instructionsByIdempotency[instruction.IdempotencyKey].Task! with { TargetCartLotId = cart.Id } };
+            {
+                Task = instructionsByIdempotency[instruction.IdempotencyKey].Task!.UpdateDefinition(definition => definition switch
+{
+    AttachHandcartOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    ParkHandcartOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    RepairHandcartOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+            };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
         }
         if (instruction.Task!.Action == "repair_handcart")
@@ -121,7 +159,7 @@ public sealed partial class WorldRuntime
             CreditOrderEffect(instruction, Identity.Parse(CartOrderEffectId(instruction)), 1);
     }
 
-    private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
+    internal static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
         DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.Action}|{instruction.Task.TargetCartLotId}", "cart-order:");
 
