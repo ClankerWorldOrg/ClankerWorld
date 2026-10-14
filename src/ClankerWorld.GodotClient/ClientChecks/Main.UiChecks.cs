@@ -1222,7 +1222,6 @@ public partial class Main
             var originalWindowChoice = windowSizeChoice.Selected;
             try
             {
-                await VerifyOwnerRequestLifecycleAsync();
                 await VerifyFirstWorldListAsync();
                 await VerifyWorldActionSelectionAsync();
                 await VerifyRefusedPendingSubmissionsAsync();
@@ -1241,6 +1240,8 @@ public partial class Main
                 await VerifyManualSaveListOwnershipAsync();
                 await VerifyRecoveryCleanupAsync();
                 await VerifySameWorldTimelineUiRecoveryAsync();
+                // Owner actions follow a loaded observation in normal play; prime its JSON metadata first.
+                await VerifyOwnerRequestLifecycleAsync();
                 VerifySaveBranchList();
                 await VerifySaveTimelineAsync();
                 await VerifySaveDiskSpaceWarningAsync();
