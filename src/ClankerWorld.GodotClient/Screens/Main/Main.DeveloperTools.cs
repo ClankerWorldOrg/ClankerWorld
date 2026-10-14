@@ -29,7 +29,7 @@ public partial class Main
     private readonly Label developerAgentCountLabel = new();
     private readonly ItemList developerAgentList = new();
     private readonly CheckBox developerPathToggle = new();
-    private readonly Label developerRouteLabel = new();
+    private readonly FittedLabel developerRouteLabel = new();
     private readonly PlannedPathLayer plannedPathLayer = new();
     private Vector2I? developerTile;
     private double developerFrameMilliseconds;

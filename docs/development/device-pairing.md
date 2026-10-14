@@ -180,6 +180,12 @@ create, select and startup recovery deliberately replace the timeline and keep
 their registration binding. Every outcome restores the controls, while the
 pending-submission store below decides whether an uncertain action can be retried.
 
+A same-world observation refresh captures a `PanelDraft` for visible controls.
+It restores editable text and its caret/selection, choice identities and scroll
+positions after updating facts. A timeline change instead resets the old world.
+Name captions use `FittedLabel`, including wrapped headings, with the complete
+caption on hover; the client source guard rejects new plain name labels.
+
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
 protocol also retains authoring batches, which the native server currently refuses

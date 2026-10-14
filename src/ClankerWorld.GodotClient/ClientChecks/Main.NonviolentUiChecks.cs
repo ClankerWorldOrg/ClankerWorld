@@ -51,7 +51,7 @@ public partial class Main
             Render(sample with { Towns = [projectedTown], WorldTick = 3_900 }, []);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             string VisibleText() => string.Join("\n", townList.FindChildren("*", nameof(Label), recursive: true, owned: false)
-                .OfType<Label>().Where(label => label.IsVisibleInTree()).Select(label => label.Text));
+                .OfType<Label>().Where(label => label.IsVisibleInTree()).Select(CaptionForChecks));
             var published = VisibleText();
             foreach (var phrase in new[] { "Non-land hearing", "Allegation:", "Law at the reported time:", "version 1",
                          "caregiver support: Sol Reed", "no record that the responding adult received this notice", "firsthand observation", "Finding 1",
