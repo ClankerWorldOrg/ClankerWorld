@@ -79,20 +79,22 @@ internal sealed partial class TownSystem
                         " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167);
             if (item.Judge is { } adjudicator && adjudicator.AgentId == actor && LandHearingJudgeValid(world, town, item, adjudicator) && LandHearingReadCurrent(world, item, actor))
             {
-                if (item.Status == "pending" && TownLandHearingRules.CanCloseResponses(item, parties, world.WorldTick))
+                var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
+                    (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
+                foreach (var kind in kinds)
                 {
-                    // A ruling that would leave a lapsed permission as it is, or end one for an unrepresented household, is not offered.
-                    var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
-                        (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
-                    foreach (var kind in kinds)
-                        candidates.Add(new(CivicAction(world, town.Id, "hearing_rule", token, kind),
+                    var id = CivicAction(world, town.Id, "hearing_rule", token, kind);
+                    if (LandHearingRulingChoice.Decode(id) is { } rulingChoice && PlanLandHearingRuling(world, actor, rulingChoice) is { } ruling &&
+                        CheckLandHearingRuling(world, ruling).Allowed)
+                        candidates.Add(new(id,
                             "Personally rule to " + kind + (item.Property is null ? " only the recorded plot permission." :
                                 " the exact noticed property transfer; accepting transfers the building, recorded shared goods and its footprint permission together.") +
                             " Supply civic_land_hearing.statement reasons, actual evidence_ids and law_ids" +
                             (kind == "end" ? ", and household_id from affected households" : kind is "renew" or "amend" ? ", household_id from affected households and any agreed_end_tick" : "") + ". " +
                             (lapsed.Length == 0 ? "" : "The permission of household " + string.Join(", ", lapsed) +
                                 " on this plot is past its agreed end, so the ruling must renew, amend or end it. Renewing also renews every lapsed permission on this plot for its own household. ") +
-                            LandHearingCaseChoices(world, town, item, actor), 165));
+                            LandHearingCaseChoices(world, town, item, actor), 165)
+                        { ActionPlan = ruling });
                 }
                 // Grounds are assessed only on a settled case; a rehearing already under way decides before any other request.
                 foreach (var request in item.ReopenRequests.Where(request => item.Status == "settled" && request.Status == "pending" &&
@@ -136,7 +138,7 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandHearingAction(ITownWorld world, TownRuntimeState town,
             string actor, string action, string subject, string choice, string? proposalText, IReadOnlyList<CognitionLandTile>? landTiles,
-            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government, LandHearingFilingActionPlan? filingPlan = null, LandHearingEvidenceActionPlan? evidencePlan = null, LandHearingJudgeActionPlan? judgePlan = null)
+            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government, LandHearingFilingActionPlan? filingPlan = null, LandHearingEvidenceActionPlan? evidencePlan = null, LandHearingJudgeActionPlan? judgePlan = null, LandHearingRulingActionPlan? rulingPlan = null)
     {
         var currentTown = town with { Council = council, Government = government };
         (council, var hearings) = AdvanceTownLandHearings(world, currentTown, council, government);
@@ -180,6 +182,16 @@ internal sealed partial class TownSystem
             if (CheckLandHearingJudge(world, judgePlan, currentTown).Refusal is { } refusal)
             { world.RefuseChoice(judgePlan, refusal); return (council, hearings); }
             item = hearings.Cases.Single(item => item.Id == judgePlan.CaseId);
+        }
+        else if (LandHearingRulingChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } rulingChoice)
+        {
+            SetTown(world, currentTown);
+            rulingPlan ??= PlanLandHearingRuling(world, actor, rulingChoice);
+            if (rulingPlan is null) return (council, hearings);
+            rulingPlan = BindLandHearingRuling(rulingPlan, hearingChoice, proposalText);
+            if (CheckLandHearingRuling(world, rulingPlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(rulingPlan, refusal); return (council, hearings); }
+            item = hearings.Cases.Single(item => item.Id == rulingPlan.CaseId);
         }
         else
         {
@@ -229,26 +241,17 @@ internal sealed partial class TownSystem
                 hearings = TownLandCaseJudgeRules.Vote(hearings, item.Id, TownLandCaseJudgeRules.RoundToken(judgePlan!.Contest!), actor, judgePlan.Candidate!, world.WorldTick);
                 break;
             case "hearing_rule":
-                var rulingOutcome = item.Property is not null && choice != "reject" ? TownPropertyRules.Outcome(item.Property.Request) : LandHearingOutcome(world, choice, hearingChoice);
-                TownPropertySnapshot? priorProperty = null;
-                if (item.Property is not null && choice != "reject")
-                {
-                    if (rulingOutcome.Kind != choice || hearingChoice?.RequestedOutcome is { } requested && requested != choice ||
-                        hearingChoice?.HouseholdId is { } supplied && supplied != rulingOutcome.HouseholdId ||
-                        hearingChoice?.AgreedEndTick is not null || !world.PropertyCanTransfer(currentTown, item))
-                        throw new InvalidOperationException("The property or a living owner's consent changed before this ruling.");
-                    priorProperty = world.CaptureProperty(currentTown, item.Property.Request, revision.Number);
-                }
-                if (rulingOutcome.HouseholdId is { } target && !parties.Any(party => party.HouseholdId == target))
-                    throw new InvalidOperationException("A ruling must concern an actual affected household.");
-                var evidenceIds = hearingChoice?.EvidenceIds ?? [];
-                var lawIds = hearingChoice?.LawIds ?? [];
-                var applicable = LandHearingApplicableLaws(world, currentTown, item).Select(pair => LandHearingLawToken(pair.Law, pair.Version)).ToHashSet(StringComparer.Ordinal);
-                if (lawIds.Any(id => !applicable.Contains(id) || !item.Evidence.Any(evidence => evidence.SourceRecordId == id && evidence.Kind == "record")))
-                    throw new InvalidOperationException("A ruling can cite only an applicable law version actually inspected in this file.");
-                (hearings, var rights) = TownLandHearingRules.Rule(hearings, world.Map, item.Id, revision.Number, item.Judge!, world.WorldTick,
-                    rulingOutcome, evidenceIds, lawIds, LandHearingText(hearingChoice?.Statement ?? proposalText), householdLandUseRights, parties,
-                    item.Judge is { } judge && LandHearingJudgeValid(world, currentTown, item, judge), householdLandUseRequests);
+                var rulingOutcome = rulingPlan!.Outcome!;
+                var priorProperty = item.Property is not null && choice != "reject" ? rulingPlan.PropertySnapshot : null;
+                if (priorProperty is not null)
+                    priorProperty = priorProperty with
+                    {
+                        Tick = world.WorldTick,
+                        SharedLots = priorProperty.SharedLots.Select(lot => world.Society.Inventory.GetLot(lot.Id)).ToArray()
+                    };
+                (hearings, var rights) = TownLandHearingRules.Rule(hearings, world.Map, item.Id, revision.Number, rulingPlan.Judge!, world.WorldTick,
+                    rulingOutcome, rulingPlan.EvidenceIds ?? [], rulingPlan.LawIds ?? [], rulingPlan.Reasons!, householdLandUseRights, parties,
+                    validAuthority: true, householdLandUseRequests);
                 householdLandUseRights = rights.ToList();
                 if (priorProperty is not null) hearings = world.TransferCaseProperty(currentTown, hearings, item.Id, priorProperty);
                 var settled = hearings.Cases.Single(c => c.Id == item.Id);

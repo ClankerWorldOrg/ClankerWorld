@@ -503,6 +503,10 @@ Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
 The same checks verify current standing and the native round deadline.
+Ruling plans retain the noticed revision, judge, affected permissions and
+applications, cited material and bound outcome/reasons. Property rulings
+retain the actual building/goods snapshot. Shared native refusal validation
+checks those inputs before the original ruling and property writers publish.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.
