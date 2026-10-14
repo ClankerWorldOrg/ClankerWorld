@@ -238,6 +238,7 @@ internal sealed partial class TownSystem
         var resettlementPlan = originalPlan as TownFoundingActionPlan;
         var noticePlan = originalPlan as CivicNoticeActionPlan;
         var proposalVotePlan = originalPlan as CivicProposalVoteActionPlan;
+        var lawPlan = originalPlan as TownLawActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -281,6 +282,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (TownLawChoice.Decode(selectedId) is { } lawChoice)
+        {
+            lawPlan ??= PlanTownLaw(world, actor, lawChoice);
+            if (lawPlan is null) return;
+            lawPlan = BindTownLawText(lawPlan, proposalText);
+            if (CheckTownLawPlan(world, lawPlan).Refusal is { } refusal) { world.RefuseChoice(lawPlan, refusal); return; }
         }
         else
         {
@@ -358,8 +366,18 @@ internal sealed partial class TownSystem
                 case "remainder": state = TownCouncilRules.Register(state, actor, false, consentPlan!.RemainderDeadline, TownAdults(world, town), world.WorldTick); break;
                 case "withdraw_candidate": state = TownCouncilRules.WithdrawCandidate(state, actor, world.WorldTick); break;
                 case "propose" or "amend" or "repeal":
-                    if (proposalText is null && parts[2] != "repeal") return;
-                    (state, government) = ApplyTownLawAction(world, town, actor, parts[2], parts[3], parts[4], proposalText, state, government);
+                    if (lawPlan!.Text is null && lawPlan.Choice.Kind != TownLawChoiceKind.Repeal) return;
+                    if (CheckTownLawPlan(world, lawPlan, town with { Council = state, Government = government }).Refusal is { } lawRefusal)
+                    { world.RefuseChoice(lawPlan, lawRefusal); return; }
+                    (state, government) = lawPlan.Choice.Kind switch
+                    {
+                        TownLawChoiceKind.Adopt => TownLawRules.ProposeAdoption(state, government, town.Id, actor, lawPlan.Text!,
+                            lawPlan.Scope, lawPlan.SiteTiles, TownAdults(world, town), world.WorldTick, CivicDay(world)),
+                        TownLawChoiceKind.Amend => TownLawRules.ProposeAmendment(state, government, town.Id, actor, lawPlan.Choice.Target,
+                            lawPlan.Text!, TownAdults(world, town), world.WorldTick, CivicDay(world), lawPlan.Version!.Version),
+                        _ => TownLawRules.ProposeRepeal(state, government, town.Id, actor, lawPlan.Choice.Target,
+                            TownAdults(world, town), world.WorldTick, CivicDay(world), lawPlan.Version!.Version),
+                    };
                     break;
                 case "boat_access":
                     var visitorId = parts[3] == "all" ? null : ResolveCivicAgentToken(world, parts[3]);

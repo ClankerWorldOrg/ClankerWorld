@@ -24,12 +24,30 @@ public sealed class TownLawRuntimeTests
             Agents = initial.Agents.Select(p => p with { Position = origin, FullnessBasisPoints = 8_000 }).ToArray(),
         }, id => providers.GetOrAdd(id, key => new LawProvider(key)));
         var before = world.ExportState();
+        var lawPlans = new List<TownLawActionPlan>();
         for (var tick = 0; tick < 120 && !(world.Towns[0].Government is { Laws: [{ Versions.Count: > 1 }, ..] }); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            foreach (var decision in step.Decisions.Where(decision => decision.ActionPlan is TownLawActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<TownLawActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, TownLawChoice.Decode(plan.CandidateId));
+                Assert.Equal(plan.Choice.Kind == TownLawChoiceKind.Adopt ? Grove : Amended, plan.Text);
+                var draft = world.Towns[0].Government!.LawDrafts[^1];
+                Assert.Equal(plan.Scope, draft.Scope);
+                Assert.Equal(plan.SiteTiles, draft.SiteTiles);
+                if (plan.Version is { } version) Assert.Equal(version.Version, draft.BaseVersion);
+                lawPlans.Add(plan);
+            }
+        }
+        Assert.Contains(lawPlans, plan => plan.Choice.Kind == TownLawChoiceKind.Adopt);
+        Assert.Contains(lawPlans, plan => plan.Choice.Kind == TownLawChoiceKind.Amend);
 
         var town = world.Towns[0];
         var law = Assert.Single(town.Government!.Laws);
         Assert.Equal(2, law.Versions.Count);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(lawPlans.Last(plan => plan.Choice.Kind == TownLawChoiceKind.Amend)).Refusal!.Reason);
         Assert.Equal(TownLawRules.Site, law.Versions[0].Scope);
         Assert.NotEmpty(law.Versions[0].SiteTiles);
         Assert.All(law.Versions[0].SiteTiles, tile => Assert.True(TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, world.ExportState().TownLandTitles!)));
@@ -142,7 +160,9 @@ public sealed class TownLawRuntimeTests
             .Invoke(world, [candidates, adults[0], town]);
         Assert.Equal(8, candidates.Count(c => c.Id.Contains("|amend|", StringComparison.Ordinal)));
         var first = government.Laws[0];
-        var stale = candidates.Single(c => c.Id.Contains("|repeal|" + first.Id + "|", StringComparison.Ordinal)).Id;
+        var staleCandidate = candidates.Single(c => c.Id.Contains("|repeal|" + first.Id + "|", StringComparison.Ordinal));
+        var stalePlan = Assert.IsType<TownLawActionPlan>(staleCandidate.ActionPlan);
+        var stale = staleCandidate.Id;
         Assert.EndsWith("|1", stale, StringComparison.Ordinal);
         (council, government) = TownLawRules.ProposeAmendment(council, government, town.Id, adults[1], first.Id,
             "Rule zero: Share the agreed work.", adults, 0, day);
@@ -152,10 +172,14 @@ public sealed class TownLawRuntimeTests
         // Even after learning the new wording, an earlier delayed action cannot become consent to repeal it.
         council = TownCouncilRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
         using var updated = WorldRuntime.Restore(initial with { Towns = [town with { Council = council, Government = government }] });
-        var before = WorldRuntimeCodec.Encode(updated.ExportState());
+        var unchanged = updated.ExportState();
+        var before = WorldRuntimeCodec.Encode(unchanged);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, updated.CheckActionPlan(stalePlan).Refusal!.Reason);
         typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .Invoke(updated, [adults[0], stale, null, null, null, null, null]);
-        Assert.Equal(before, WorldRuntimeCodec.Encode(updated.ExportState()));
+        var refused = updated.ExportState();
+        Assert.Equal("choice_refused", refused.Events[^1].Kind);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(refused with { Events = unchanged.Events }));
     }
 
     private sealed class LawProvider(string actor) : IDecisionProvider
