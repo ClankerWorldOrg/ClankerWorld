@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Device pairing

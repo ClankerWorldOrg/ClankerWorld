@@ -9,18 +9,14 @@ public sealed partial class OwnerWorldObservationStore
     private readonly SortedDictionary<long, WorldEventEntry> eventPresentationEvents = [];
     private WorldObserverTimeline? eventPresentationTimeline;
 
-    // Connected clients retain more events than a compacted checkpoint. Keep
-    // only that bounded observer window, without changing saved history.
-    private WorldEventEntry[] PresentationEvents(WorldRuntimeState state,
-        WorldObserverTimeline timeline, long latestEventId)
+    // Connected clients retain more events than a compacted checkpoint. Capture
+    // their bounded observer window with the state, before projecting either.
+    private (WorldRuntimeState State, WorldDiagnostics Diagnostics, WorldObserverTimeline Timeline,
+        WorldEventEntry[] Events) CapturePresentationObservation()
     {
         lock (eventPresentationGate)
         {
-            // Concurrent captures can finish projection out of order. An old
-            // load generation must not replace the newer observer's cache.
-            if (eventPresentationTimeline is { } current && current.InstanceId == timeline.InstanceId &&
-                current.Generation > timeline.Generation)
-                return state.Events.TakeLast(EventVocabulary.RetainedEventCount).ToArray();
+            var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
             if (eventPresentationTimeline != timeline)
             {
                 eventPresentationEvents.Clear();
@@ -30,8 +26,7 @@ public sealed partial class OwnerWorldObservationStore
                 eventPresentationEvents[item.EventId] = item;
             while (eventPresentationEvents.Count > EventVocabulary.RetainedEventCount)
                 eventPresentationEvents.Remove(eventPresentationEvents.First().Key);
-            // A later capture's events never enter an earlier snapshot.
-            return eventPresentationEvents.Values.Where(item => item.EventId <= latestEventId).ToArray();
+            return (state, diagnostics, timeline, eventPresentationEvents.Values.ToArray());
         }
     }
 

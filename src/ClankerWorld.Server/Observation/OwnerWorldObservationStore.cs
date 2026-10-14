@@ -349,14 +349,14 @@ public sealed partial class OwnerWorldObservationStore
 
     public WorldSnapshotView GetSnapshot()
     {
-        var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
-        return ToSnapshot(state, diagnostics, timeline);
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        return ToSnapshot(state, diagnostics, retainedEvents);
     }
 
     public EventSliceView GetEventsAfter(long afterEventId)
     {
-        var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
-        var snapshot = ToSnapshot(state, diagnostics, timeline);
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents);
         return new EventSliceView(
             state.Society.Society.WorldTick,
             afterEventId,
@@ -370,8 +370,8 @@ public sealed partial class OwnerWorldObservationStore
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
-        var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
-        var snapshot = ToSnapshot(state, diagnostics, timeline, knownTerrainWorldId, knownTerrainDigest,
+        var (state, diagnostics, timeline, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return new ReconnectBaselineView(
             snapshot,
@@ -408,7 +408,7 @@ public sealed partial class OwnerWorldObservationStore
             state.Society.Society.Inventory.Events.Count == 0;
     }
 
-    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldObserverTimeline timeline,
+    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldEventEntry[] retainedEvents,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
@@ -946,7 +946,7 @@ public sealed partial class OwnerWorldObservationStore
         {
             // Devices can retain different prefixes and coalesce model failures
             // differently. Refresh every potentially visible cached row.
-            EventTexts = PresentationEvents(state, timeline, snapshot.LatestEventId)
+            EventTexts = retainedEvents
                 .Where(NeedsCurrentEventText)
                 .ToDictionary(item => item.EventId, item => ToEvent(item, snapshot).Text),
         };

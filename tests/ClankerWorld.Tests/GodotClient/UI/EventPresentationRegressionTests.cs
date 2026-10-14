@@ -22,6 +22,7 @@ public sealed class EventPresentationRegressionTests
         var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
         session.ReplaceRegistration(registration);
         var current = Reconnect(store, 0);
+        Assert.Contains("owner-event-presentation.v1", current.Handshake.ServerCapabilities);
         current = current with
         {
             Handshake = current.Handshake with
@@ -127,6 +128,9 @@ public sealed class EventPresentationRegressionTests
             world.SubmitInstruction(new OwnerInstructionRequest("capture-event-text", "owner", founder, OwnerInstructionKind.Order, "dance"));
             var store = new OwnerWorldObservationStore(world);
             var initial = store.GetReconnectBaseline(0);
+            var session = new OwnerWorldObservationSession();
+            Assert.True(session.TryAccept(new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
+                RoundTrip<OwnerWorldReconnectBaseline>(initial)), 0, out var initialFailure), initialFailure);
             var row = initial.Events.Events.Last(item => item.Kind == "instruction_not_understood");
             var target = row.EventId + ClankerWorld.Presentation.EventVocabulary.RetainedEventCount - 1;
             var count = checked((int)(target - initial.Snapshot.LatestEventId));
@@ -134,6 +138,8 @@ public sealed class EventPresentationRegressionTests
                 Assert.True(world.RenameAgent(founder, index == count - 1 ? "Zoë 🌿 Vale" : index % 2 == 0 ? "Corin Vale" : "Aster Vale"));
             var held = store.GetReconnectBaseline(initial.Snapshot.LatestEventId);
             Assert.Equal(target, held.Snapshot.LatestEventId);
+            Assert.True(session.TryAccept(new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
+                RoundTrip<OwnerWorldReconnectBaseline>(held)), initial.Snapshot.LatestEventId, out var heldFailure), heldFailure);
             Assert.Contains("Zoë 🌿 Vale", held.Snapshot.EventTexts[row.EventId], StringComparison.Ordinal);
             Assert.True(new WorldStateFile(Path.Combine(directory.FullName, "world.json")).Save(world));
             Assert.DoesNotContain(world.ExportState().Events, item => item.EventId == row.EventId);
@@ -172,6 +178,8 @@ public sealed class EventPresentationRegressionTests
             Assert.Equal(target, captured.Snapshot.LatestEventId);
             Assert.False(captured.Events.ResetRequired);
             Assert.Empty(captured.Events.Events);
+            Assert.True(session.TryAccept(new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
+                RoundTrip<OwnerWorldReconnectBaseline>(captured)), held.Snapshot.LatestEventId, out var acceptedFailure), acceptedFailure);
             Assert.Contains(row.EventId, captured.Snapshot.EventTexts.Keys);
             Assert.Contains("Zoë 🌿 Vale", WorldEventText.Describe(RoundTrip<OwnerWorldEvent>(row),
                 RoundTrip<OwnerWorldSnapshot>(captured.Snapshot)), StringComparison.Ordinal);
