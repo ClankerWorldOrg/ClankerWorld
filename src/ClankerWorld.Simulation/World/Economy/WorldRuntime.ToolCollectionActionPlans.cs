@@ -41,9 +41,9 @@ public sealed partial class WorldRuntime
             minimumFree, futureStorage, Reach(actor, target, ReachPurpose.MaterialGathering, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckToolCollectionPlan(ToolCollectionActionPlan plan)
+    private ActionCheck CheckToolCollectionPlan(ToolCollectionActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, SmithDeliveryPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || ToolProgressionRules.Find(plan.Choice.ItemKind) is not { } definition ||
             !MayCollectToolFamily(plan.Actor, definition.Family))
@@ -74,7 +74,12 @@ public sealed partial class WorldRuntime
     private void ApplyToolCollectionPlan(ToolCollectionActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckToolCollectionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedToolCollectionPlan(plan);
+    }
+
+    private void ApplyCheckedToolCollectionPlan(ToolCollectionActionPlan plan)
+    {
         ApplyGatheringToolPickup(plan.Actor, plan.Pickup);
     }
 

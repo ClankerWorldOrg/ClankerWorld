@@ -41,9 +41,9 @@ public sealed partial class WorldRuntime
             Reach(actor, target, ReachPurpose.SmithDelivery, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckSmithDeliveryPlan(SmithDeliveryActionPlan plan)
+    private ActionCheck CheckSmithDeliveryPlan(SmithDeliveryActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, SmithDeliveryPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
@@ -69,7 +69,12 @@ public sealed partial class WorldRuntime
     private void ApplySmithDeliveryPlan(SmithDeliveryActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckSmithDeliveryPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedSmithDeliveryPlan(plan);
+    }
+
+    private void ApplyCheckedSmithDeliveryPlan(SmithDeliveryActionPlan plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Target, plan.InteractionRange))
         {

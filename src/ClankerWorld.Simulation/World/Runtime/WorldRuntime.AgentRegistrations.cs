@@ -106,12 +106,10 @@ public sealed partial class WorldRuntime
         runtime.ApplyTradeCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
+        new(ActionPhase.Ordinary, "shop_stock_store", [], [StoreStockChoice.Candidate], Definition: StoreStockDefinition),
         new(ActionPhase.Ordinary, "shop_", ["shop_"], [], static (runtime, action) =>
     {
-        if (action.CandidateId == "shop_stock_store")
-            runtime.ApplyStoreStockPlan(action.Plan as StoreStockActionPlan ?? runtime.PlanStoreStock(action.AgentId));
-        else
-            runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
+        runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_household_stock", [], [new HouseholdStockRequest(HouseholdStockRequestKind.Haul).Encode()], Definition: HouseholdHaulingDefinition),
@@ -126,36 +124,12 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], Definition: SalvageStockDefinition),
         new(ActionPhase.Ordinary, "haul_farm_grain", [], [FarmStockActionPlan.Candidate(FarmStockActionKind.Grain)], Definition: FarmStockDefinition),
         new(ActionPhase.Ordinary, "haul_farm_flour", [], [FarmStockActionPlan.Candidate(FarmStockActionKind.Flour)], Definition: FarmStockDefinition),
-        new(ActionPhase.Ordinary, "haul_smith_input", [], ["haul_smith_input"], static (runtime, action) =>
-    {
-        runtime.ApplySmithDeliveryPlan(action.Plan as SmithDeliveryActionPlan ?? runtime.PlanSmithDelivery(action.AgentId, SmithDeliveryKind.Input));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "gather_smith_ore", [], ["gather_smith_ore"], static (runtime, action) =>
-    {
-        runtime.ApplySmithGatherPlan(action.Plan as SmithGatherActionPlan ?? runtime.PlanSmithGather(action.AgentId, "iron_ore"));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "GatherBlacksmithInputPrefix", [GatherBlacksmithInputPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplySmithGatherPlan(action.Plan as SmithGatherActionPlan ?? runtime.PlanSmithGather(action.AgentId, action.CandidateId[GatherBlacksmithInputPrefix.Length..]));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "deliver_smith_ore", [], ["deliver_smith_ore"], static (runtime, action) =>
-    {
-        runtime.ApplySmithDeliveryPlan(action.Plan as SmithDeliveryActionPlan ?? runtime.PlanSmithDelivery(action.AgentId, SmithDeliveryKind.Ore));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "collect_wooden_axe", [], ["collect_wooden_axe", "collect_wooden_pickaxe", "collect_wooden_hoe"], static (runtime, action) =>
-    {
-        runtime.ApplyToolCollectionPlan(action.Plan as ToolCollectionActionPlan ?? runtime.PlanToolCollectionCandidate(action.AgentId, action.CandidateId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "CollectToolPrefix", [CollectToolPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyToolCollectionPlan(action.Plan as ToolCollectionActionPlan ?? runtime.PlanToolCollectionCandidate(action.AgentId, action.CandidateId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "haul_smith_input", [], [SmithDeliveryActionPlan.Candidate(SmithDeliveryKind.Input)], Definition: SmithDeliveryDefinition),
+        new(ActionPhase.Ordinary, "gather_smith_ore", [], [new SmithGatherChoice("iron_ore").Encode()], Definition: SmithGatherDefinition),
+        new(ActionPhase.Ordinary, "GatherBlacksmithInputPrefix", [SmithGatherChoice.InputPrefix], [], Definition: SmithGatherDefinition),
+        new(ActionPhase.Ordinary, "deliver_smith_ore", [], [SmithDeliveryActionPlan.Candidate(SmithDeliveryKind.Ore)], Definition: SmithDeliveryDefinition),
+        new(ActionPhase.Ordinary, "collect_wooden_axe", [], [new ToolCollectionChoice("wooden_axe").Encode(), new ToolCollectionChoice("wooden_pickaxe").Encode(), new ToolCollectionChoice("wooden_hoe").Encode()], Definition: ToolCollectionDefinition),
+        new(ActionPhase.Ordinary, "CollectToolPrefix", [ToolCollectionChoice.Prefix], [], Definition: ToolCollectionDefinition),
         new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], static (runtime, action) =>
     {
         return runtime.ApplyBoatCandidate(action.AgentId, action.CandidateId, action.Plan);
@@ -165,16 +139,8 @@ public sealed partial class WorldRuntime
     {
         return runtime.ApplyHandcartCandidate(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
     }),
-        new(ActionPhase.Ordinary, "RepairToolPrefix", [RepairToolPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyToolRepairPlan(action.Plan as ToolRepairActionPlan ?? runtime.PlanToolRepair(action.AgentId, action.CandidateId[RepairToolPrefix.Length..]));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyRareMiningPlan(action.Plan as RareMiningActionPlan ?? runtime.PlanRareMining(action.AgentId, action.CandidateId[RareMiningPrefix.Length..]));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "RepairToolPrefix", [ToolRepairChoice.Prefix], [], Definition: ToolRepairDefinition),
+        new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningChoice.Prefix], [], Definition: RareMiningDefinition),
         new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix, KnowledgeReadPrefix], ["knowledge_continue"], static (runtime, action) =>
     {
         runtime.ApplyKnowledgeWritingCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
@@ -189,12 +155,7 @@ public sealed partial class WorldRuntime
         runtime.ApplyKnowledgeShare(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "SupplyWorkstationPrefix", [SupplyWorkstationPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyWorkstationSupplyPlan(action.Plan as WorkstationSupplyActionPlan ??
-            runtime.PlanWorkstationSupplyCandidate(action.AgentId, action.CandidateId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "SupplyWorkstationPrefix", [WorkstationSupplyChoice.Prefix], [], Definition: WorkstationSupplyDefinition),
         new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [VesselChoice.EmptyPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.ReturnEmpty)),
         new(ActionPhase.Ordinary, "collect_water_jug", [], [new VesselChoice(VesselActionKind.CollectJug).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.CollectJug)),
         new(ActionPhase.Ordinary, "return_water_jug", [], [new VesselChoice(VesselActionKind.ReturnJug).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.ReturnJug)),

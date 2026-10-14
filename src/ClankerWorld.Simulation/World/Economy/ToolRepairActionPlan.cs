@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed record ToolRepairChoice(string ToolId)
 {
     public const string Prefix = "repair_tool:";
+    public static ToolRepairChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
+        ? new(candidate[Prefix.Length..]) : null;
     public string Encode() => Prefix + ToolId;
 }
 

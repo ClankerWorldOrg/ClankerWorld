@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed record RareMiningChoice(string ItemKind)
 {
     public const string Prefix = "gather_rare_material:";
+    public static RareMiningChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
+        ? new(candidate[Prefix.Length..]) : null;
     public string Encode() => Prefix + ItemKind;
 }
 

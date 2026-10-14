@@ -7,9 +7,9 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy RareMiningPolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
 
-    private ActionCheck CheckRareMiningContext(string actor, RareMiningChoice choice)
+    private ActionCheck CheckRareMiningContext(string actor, RareMiningChoice choice, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(actor), choice.Encode(), RareMiningPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(actor), choice.Encode(), policy ?? RareMiningPolicy);
         if (!capability.Allowed) return capability;
         if (agents[actor].Project is { Stage: not ("completed" or "cancelled"), RequiresFreshChoice: false })
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their ongoing work comes first");
@@ -31,9 +31,9 @@ public sealed partial class WorldRuntime
             Reach(actor, source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckRareMiningPlan(RareMiningActionPlan plan)
+    private ActionCheck CheckRareMiningPlan(RareMiningActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var context = CheckRareMiningContext(plan.Actor, plan.Choice);
+        var context = CheckRareMiningContext(plan.Actor, plan.Choice, policy);
         if (!context.Allowed) return context;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household has changed");
@@ -54,7 +54,12 @@ public sealed partial class WorldRuntime
     private void ApplyRareMiningPlan(RareMiningActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckRareMiningPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedRareMiningPlan(plan);
+    }
+
+    private void ApplyCheckedRareMiningPlan(RareMiningActionPlan plan)
+    {
         GatherPlannedProjectMaterial(plan.Actor, agents[plan.Actor], plan.Choice.ItemKind, plan.Source, plan.Harvest);
     }
 }

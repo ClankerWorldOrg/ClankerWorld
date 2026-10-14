@@ -1,0 +1,1 @@
+- Smith supplies, tool collection and repair, rare mining, workstation supplies and Store stocking now bind their codecs, planning, capability policies, shared checks and native effects to their ordered action rows.
