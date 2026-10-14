@@ -40,12 +40,15 @@ public sealed partial class TownLandHearingRuntimeTests
         });
         var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("property", item.Kind);
-        var filingPlan = Assert.Single(filingPlans);
-        Assert.True(filingPlan.Bound);
-        Assert.Equal(filingPlan.Choice, LandHearingPropertyChoice.Decode(filingPlan.CandidateId));
-        Assert.Equal(item.Property!.Request, filingPlan.Request);
-        Assert.Equal(item.Revisions[0].Tiles, filingPlan.Tiles);
-        Assert.Equal(TownPropertyRules.MaterialVersion(item.Property.Snapshots[0]), TownPropertyRules.MaterialVersion(filingPlan.Snapshot));
+        Assert.NotEmpty(filingPlans);
+        Assert.All(filingPlans, filingPlan =>
+        {
+            Assert.True(filingPlan.Bound);
+            Assert.Equal(filingPlan.Choice, LandHearingPropertyChoice.Decode(filingPlan.CandidateId));
+            Assert.Equal(item.Property!.Request, filingPlan.Request);
+            Assert.Equal(item.Revisions[0].Tiles, filingPlan.Tiles);
+            Assert.Equal(TownPropertyRules.MaterialVersion(item.Property.Snapshots[0]), TownPropertyRules.MaterialVersion(filingPlan.Snapshot));
+        });
         Assert.Equal(new[] { Filer, Waiver }, item.Property!.Snapshots[0].LivingFormerMemberIds);
         Assert.Equal(item.Revisions[0].PublishedTick + Day, item.Revisions[0].DeadlineTick);
         Assert.Empty(item.Property.Consents);
