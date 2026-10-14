@@ -1,0 +1,1 @@
+- Exploration now binds its typed codec, planner, capability policy, shared check and native application to ordered action rows, retaining selected scouting steps and return waypoints.

@@ -7,8 +7,8 @@ public sealed partial class WorldRuntime
     private void AddPlannedExplorationCandidate(List<CognitionCandidate> candidates, string actor, string candidate, string text, int rank)
     {
         if (ExplorationChoice.Decode(candidate) is not { } choice) return;
-        var plan = PlanExploration(actor, choice);
-        if (plan is not null && CheckExploration(plan).Allowed) candidates.Add(new(candidate, text, rank) { ActionPlan = plan });
+        var plan = ExplorationDefinition.Offer(this, actor, choice);
+        if (plan is not null) candidates.Add(new(candidate, text, rank) { ActionPlan = plan });
     }
 
     private (ExplorationState Prepared, bool Interrupted, bool Starting) ProjectExploration(string actor, AgentState person, ExplorationGoal? goal, bool replaceGoal)
@@ -80,10 +80,10 @@ public sealed partial class WorldRuntime
         (current.OutingDiscoveries is null || original.OutingDiscoveries is null ? current.OutingDiscoveries is null && original.OutingDiscoveries is null
             : current.OutingDiscoveries.SequenceEqual(original.OutingDiscoveries));
 
-    private ActionCheck CheckExploration(ExplorationActionPlan plan)
+    private ActionCheck CheckExploration(ExplorationActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: plan.Native, AllowUrgentFood: plan.Native, AllowUrgentWarmth: plan.Native, AllowActiveOrder: true));
+            policy ?? ExplorationCapabilities(plan.Native));
         if (!capability.Allowed) return capability;
         var person = agents[plan.Actor];
         if (person.Position != plan.Origin || !SameExplorationScope(person.Exploration, plan.Original) ||
@@ -114,10 +114,8 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected scouting step is out of reach");
     }
 
-    private void ApplyExploration(ExplorationActionPlan? plan)
+    private void ApplyCheckedExploration(ExplorationActionPlan plan)
     {
-        if (plan is null) return;
-        if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Choice.Return) ChooseExplorationReturn(plan.Actor, agents[plan.Actor], plan);
         else Explore(plan.Actor, agents[plan.Actor], plan.Choice.Goal, plan.ReplaceGoal, plan);
     }

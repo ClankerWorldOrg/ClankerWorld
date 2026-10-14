@@ -160,6 +160,10 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Exploration owns its typed codec, planner, capability policy, check and native
+application in the ordered action rows. Its policy follows the retained plan
+for automatic travel, preserving the different limits on model choices.
+
 Knowledge writing, reading, sharing and artifact storage own their codecs,
 planners, capability policies, checks and native application in the ordered
 action rows. Their retained plans keep the selected contents, supplies,
