@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
@@ -25,7 +26,7 @@ internal static partial class OwnerEndpoints
                 // mutation and durable save together so selection cannot retarget a retry.
                 var receipt = worldRuntime.SubmitInstruction(new OwnerInstructionRequest(
                     request.Action.IdempotencyKey,
-                    $"owner-device:{request.DeviceId}",
+                    DerivedId.Create($"owner-device:{request.DeviceId}"),
                     request.Action.TargetAgentId,
                     kind,
                 request.Action.Text,
@@ -64,7 +65,7 @@ internal static partial class OwnerEndpoints
             {
                 var receipt = worldRuntime.CancelOrder(new OwnerOrderCancelRequest(
                     request.Action.IdempotencyKey,
-                    $"owner-device:{request.DeviceId}",
+                    DerivedId.Create($"owner-device:{request.DeviceId}"),
                     request.Action.WorldId,
                     request.Action.TargetAgentId,
                     request.Action.OrderId));
