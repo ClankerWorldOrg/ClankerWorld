@@ -8,9 +8,9 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class TownSystem
 {
     internal TownCouncilState SubmitTownLandClaim(ITownWorld world, TownRuntimeState town, TownCouncilState state,
-            string actor, IReadOnlyList<CognitionLandTile>? requested)
+            string actor, IReadOnlyList<CognitionLandTile>? requested, TownLandClaimActionPlan? plan = null)
     {
-        var tiles = requested?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray();
+        var tiles = plan?.SelectedTiles?.ToArray() ?? requested?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray();
         if (!TownLandClaimRules.CanClaim(world.Map, town, tiles, townLandTitles))
             throw new InvalidOperationException("A land claim needs connected unclaimed land adjoining this Town's title.");
         var first = TownLandRightsRules.OrderTiles(tiles!)[0];

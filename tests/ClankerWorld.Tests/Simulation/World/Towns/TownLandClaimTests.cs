@@ -24,7 +24,16 @@ public sealed class TownLandClaimTests
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1);
+        var claimPlans = new List<TownLandClaimActionPlan>();
+        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1, result =>
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is TownLandClaimActionPlan && decision.Admission.Accepted))
+                claimPlans.Add(Assert.IsType<TownLandClaimActionPlan>(decision.ActionPlan));
+        });
+        var claimPlan = Assert.Single(claimPlans);
+        Assert.Equal(claimPlan.Choice, TownLandClaimChoice.Decode(claimPlan.CandidateId));
+        Assert.Equal(plot, claimPlan.SelectedTiles);
+        Assert.NotEmpty(claimPlan.OfferedTiles);
         choices.Plot = null;
         var proposal = Assert.Single(world.Towns[0].Council!.Proposals);
         Assert.Equal("land_claim", proposal.Kind);
@@ -63,6 +72,7 @@ public sealed class TownLandClaimTests
         Assert.True(world.Towns[0].Council!.Proposals[0].Status == "passed", string.Join("\n", choices.Selected.TakeLast(50)));
         var title = Assert.Single(world.TownLandTitles, t => t.Id == TownLandClaimRules.TitleId(proposal.Id));
         Assert.Equal(TownLandRightsRules.OrderTiles(plot), title.Tiles);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(claimPlan).Refusal!.Reason);
         Assert.All(plot, tile => Assert.Contains(tile, world.Towns[0].BorderTiles));
         Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
         Assert.Equal(initial.WorldSimulation!.Buildings, world.WorldSimulation.Buildings);
@@ -202,9 +212,13 @@ public sealed class TownLandClaimTests
         throw new InvalidOperationException("The test Town needs an adjoining unclaimed plot.");
     }
 
-    private static async Task Until(WorldRuntime world, Func<bool> reached)
+    private static async Task Until(WorldRuntime world, Func<bool> reached, Action<WorldStepResult>? observe = null)
     {
-        for (var tick = 0; tick < 60 && !reached(); tick++) await world.AdvanceOneTickAsync();
+        for (var tick = 0; tick < 60 && !reached(); tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            observe?.Invoke(result);
+        }
         Assert.True(reached());
     }
 

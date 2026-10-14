@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        TownLandClaimActionPlan claim => TownSystem.CheckTownLandClaim(civicWorld, claim),
         MayoralBallotActionPlan mayoralBallot => TownSystem.CheckMayoralBallot(civicWorld, mayoralBallot),
         GovernmentOfficeActionPlan office => TownSystem.CheckGovernmentOffice(civicWorld, office),
         GovernmentProposalActionPlan governmentProposal => TownSystem.CheckGovernmentProposal(civicWorld, governmentProposal),
@@ -84,6 +85,8 @@ public sealed partial class WorldRuntime
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is TownLandClaimActionPlan claim)
+            decision = decision with { ActionPlan = TownSystem.BindTownLandClaim(claim, decision.Admission.CivicLandTiles) };
         if (decision.ActionPlan is TownLawActionPlan law)
             decision = decision with { ActionPlan = TownSystem.BindTownLawText(law, decision.Admission.CivicProposal) };
         if (decision.ActionPlan is CouncilBallotActionPlan ballot)
