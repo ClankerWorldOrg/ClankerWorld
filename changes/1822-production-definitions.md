@@ -1,0 +1,1 @@
+- Recipe projects now own a typed codec, planner, plan-dependent capability policy and shared check in their ordered action row, retaining selected workstations, inputs and tools through native project application.

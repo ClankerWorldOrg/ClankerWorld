@@ -17,7 +17,6 @@ public sealed partial class WorldRuntime
         ConstructionActionPlan construction => CheckConstruction(construction),
         ProjectAssistanceActionPlan assistance => CheckProjectAssistance(assistance),
         BuildingMaterialActionPlan buildingMaterial => CheckBuildingMaterial(buildingMaterial),
-        RecipeProjectActionPlan recipeProject => CheckRecipeProject(recipeProject),
         KnowledgeStorageActionPlan knowledgeStorage => CheckKnowledgeStorage(knowledgeStorage),
         KnowledgeReadingActionPlan knowledgeReading => CheckKnowledgeReading(knowledgeReading),
         KnowledgeWritingActionPlan knowledgeWriting => CheckKnowledgeWriting(knowledgeWriting),
