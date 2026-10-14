@@ -3,8 +3,7 @@
     "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "world.Agents[actor].FullnessBasisPoints \u003C 4_500"
+    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingValidation.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"

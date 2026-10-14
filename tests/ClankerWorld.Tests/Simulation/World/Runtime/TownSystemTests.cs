@@ -234,6 +234,9 @@ public sealed class TownSystemTests
             };
         public HashSet<string> Urgent { get; } = new(StringComparer.Ordinal);
         public List<(string Kind, string Detail)> Events { get; } = [];
+        public ActorCapabilityState? CapabilitiesFor(string actor) => Agents.ContainsKey(actor)
+            ? new(Society.GetAgent(actor).AgeBand, false, false, false, Urgent.Contains(actor), false) : null;
+        public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => throw new InvalidOperationException(refusal.Explanation);
         public bool IsEdibleFood(string kind) => false;
         public int AvailableLotQuantity(InventoryLot lot) => lot.Quantity;
         public bool NeedsUrgentWarmth(AgentState person) => Urgent.Contains(person.AgentId);

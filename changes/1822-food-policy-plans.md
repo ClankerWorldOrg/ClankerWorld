@@ -1,0 +1,1 @@
+- Shared-food policy proposals and votes retain the original authority and ballot through shared checks.

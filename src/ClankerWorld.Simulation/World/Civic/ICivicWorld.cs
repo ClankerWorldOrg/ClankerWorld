@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal interface ICivicWorld
 {
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    void RefuseChoice(ActionPlan plan, ActionRefusal refusal);
     long WorldTick { get; }
     bool HasSurvivalState { get; }
     SocietyCheckpoint Society { get; }

@@ -4,7 +4,7 @@ public sealed partial class WorldRuntime
 {
     private static ActionRegistration RegisterFoodPolicyActions() => new(ActionPhase.Ordinary, "food_policy_", ["food_policy_"], [], static (runtime, action) =>
     {
-        runtime.ApplyFoodPolicyCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyFoodPolicyCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     });
     private static ActionRegistration RegisterCivicPersonalActions() => new(ActionPhase.Ordinary, "civic|", ["civic|"], [], static (runtime, action) =>

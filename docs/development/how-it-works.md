@@ -491,6 +491,9 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Shared-food policy proposals and votes retain the original steward, policy
+and ballot scope. One check validates the same personal authority and response;
+other votes accumulate while native expiry and living-majority resolution run.
 Shop offer responses retain the original shop binding and barter terms.
 The same check verifies the buyer or current household responder before native
 cancellation, waiting or acceptance; changed offer state refuses reuse.
