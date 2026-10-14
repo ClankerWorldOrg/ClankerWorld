@@ -1223,6 +1223,7 @@ public partial class Main
             var originalWindowChoice = windowSizeChoice.Selected;
             try
             {
+                await VerifyOwnerRequestLifecycleAsync();
                 await VerifyFirstWorldListAsync();
                 await VerifyWorldActionSelectionAsync();
                 await VerifyRefusedPendingSubmissionsAsync();
