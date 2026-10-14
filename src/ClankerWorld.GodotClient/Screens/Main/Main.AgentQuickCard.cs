@@ -13,7 +13,7 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     private const int QuickCardWidth = 206;
-    private readonly Label quickCardNameLabel = new();
+    private readonly FittedLabel quickCardNameLabel = new();
     private readonly Label quickCardActivityLabel = new();
     private readonly Label quickCardOrderLabel = new();
     private readonly VBoxContainer quickCardMeters = new();

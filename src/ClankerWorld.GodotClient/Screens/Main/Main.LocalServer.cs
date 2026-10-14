@@ -59,7 +59,7 @@ public partial class Main
         try
         {
             start = await localServer.StartAsync(BuildInformation.Version, BuildInformation.SourceRevision,
-                CancellationToken.None);
+                OwnerRequestToken);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -83,7 +83,7 @@ public partial class Main
         try
         {
             if (localServer is null || !await localServer.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode,
-                    CancellationToken.None))
+                    OwnerRequestToken))
                 return false;
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
@@ -102,7 +102,7 @@ public partial class Main
     private async Task<string?> ReadCurrentWorldForLauncherAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return null;
-        var catalog = await ownerApi.ListWorldsAsync(ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None);
+        var catalog = await ownerApi.ListWorldsAsync(ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken);
         return GameStarter.WorldId(catalog.ActiveId);
     }
 
@@ -122,7 +122,7 @@ public partial class Main
             if (localServer is not null)
             {
                 SetStatus("Saving your world…", good: true);
-                if (!await localServer.StopAsync(CancellationToken.None))
+                if (!await localServer.StopAsync(OwnerRequestToken))
                 {
                     ShowLocalServerStopFailure(requestedVersion, launcherWorld);
                     return;

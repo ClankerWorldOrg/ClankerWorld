@@ -19,7 +19,7 @@ public sealed partial class WorldRuntimeTests
         var intention = Assert.Single(admitted.Society.Cognition.Runtimes,
             item => item.AgentId == HarvestInstructionActor).CurrentIntention!;
         Assert.Equal("seek_food", intention.CandidateId);
-        Assert.Equal(order.InstructionId, intention.OperativeOrderInstructionId);
+        Assert.Equal(order.InstructionId.Value, intention.OperativeOrderInstructionId);
         var position = CancellationActorPosition(admitted);
         Assert.NotEqual(CancellationActorPosition(before), position);
         Assert.Equal("doing", CancellationOrder(admitted, order.InstructionId).Status);
@@ -49,22 +49,22 @@ public sealed partial class WorldRuntimeTests
         var order = SubmitCancellationTravelOrder(world, "held-cancel-travel");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var position = CancellationActorPosition(world.ExportState());
             Assert.Equal("doing", CancellationOrder(world.ExportState(), order.InstructionId).Status);
             CancelTravelOrder(world, order.InstructionId, "cancel-held-travel");
 
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             // The fresh ordinary request starts on a background task, so a slow runner
             // may need a few more ticks; the agent must stay put on every one of them.
             for (var tick = 0; tick < 8 || tick < 60 &&
                      !provider.Requests.Any(request => request.OperativeOrderInstructionId is null); tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 Assert.Equal(position, CancellationActorPosition(world.ExportState()));
-                if (tick >= 8) await Task.Delay(10);
+                if (tick >= 8) await ModelWorkHarness.For(world).SettleAsync();
             }
 
             Assert.Single(provider.Requests, request => request.OperativeOrderInstructionId == order.InstructionId);
@@ -87,8 +87,8 @@ public sealed partial class WorldRuntimeTests
         var order = SubmitCancellationTravelOrder(world, "unreturned-cancel-travel");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var position = CancellationActorPosition(world.ExportState());
             CancelTravelOrder(world, order.InstructionId, "cancel-unreturned-travel");
 
@@ -97,9 +97,9 @@ public sealed partial class WorldRuntimeTests
             for (var tick = 0; tick < 5 || tick < 60 &&
                      !provider.Requests.Any(request => request.OperativeOrderInstructionId is null); tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 Assert.Equal(position, CancellationActorPosition(world.ExportState()));
-                if (tick >= 5) await Task.Delay(10);
+                if (tick >= 5) await ModelWorkHarness.For(world).SettleAsync();
             }
 
             Assert.False(provider.Returned.Task.IsCompleted);
@@ -125,8 +125,8 @@ public sealed partial class WorldRuntimeTests
         WorldRuntime? restored = null;
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var originalRequest = Assert.Single(provider.Requests);
             world.Pause();
             var paused = world.ExportState();
@@ -143,11 +143,10 @@ public sealed partial class WorldRuntimeTests
             resumeWorld.Resume();
             // Dispatch does not establish admission. Hold the resumed response
             // so this boundary is exercised on both fast and loaded runners.
-            var dispatchWait = System.Diagnostics.Stopwatch.StartNew();
-            while (!provider.FreshStarted.Task.IsCompleted && dispatchWait.Elapsed < TimeSpan.FromSeconds(5))
+            for (var dispatchTick = 0; dispatchTick < 20 && !provider.FreshStarted.Task.IsCompleted; dispatchTick++)
             {
-                Assert.True((await resumeWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
-                await Task.Delay(10);
+                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
             }
             Assert.True(provider.FreshStarted.Task.IsCompleted, "The resumed order request was not dispatched.");
 
@@ -156,25 +155,23 @@ public sealed partial class WorldRuntimeTests
             for (var tick = 0; tick < 200 &&
                  !provider.Requests.Any(request => request.RunEpoch != originalRequest.RunEpoch); tick++)
             {
-                await Task.Delay(25);
-                Assert.True((await resumeWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
+                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
             }
 
             var freshRequest = Assert.Single(provider.Requests, request => request.RunEpoch != originalRequest.RunEpoch);
             Assert.Equal(resumeWorld.Society.RunEpoch, freshRequest.RunEpoch);
-            Assert.Equal(order.InstructionId, freshRequest.OperativeOrderInstructionId);
+            Assert.Equal(order.InstructionId.Value, freshRequest.OperativeOrderInstructionId);
             Assert.Contains(freshRequest.ObserverGuidance!, message => message.InstructionId == order.InstructionId);
             Assert.Null(Assert.Single(resumeWorld.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);
             provider.ReleaseFresh.TrySetResult(true);
-            await provider.FreshReturned.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            var admissionWait = System.Diagnostics.Stopwatch.StartNew();
-            while (Assert.Single(resumeWorld.ExportState().Instructions!,
-                       instruction => instruction.InstructionId == order.InstructionId).ObservedTick is null &&
-                   admissionWait.Elapsed < TimeSpan.FromSeconds(5))
+            await ModelWorkHarness.For(resumeWorld).WaitAsync(provider.FreshReturned.Task);
+            for (var admissionTick = 0; admissionTick < 20 && Assert.Single(resumeWorld.ExportState().Instructions!,
+                     instruction => instruction.InstructionId == order.InstructionId).ObservedTick is null; admissionTick++)
             {
-                await Task.Delay(10);
-                Assert.True((await resumeWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
+                await ModelWorkHarness.For(resumeWorld).SettleAsync();
+                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
             }
             Assert.NotNull(Assert.Single(resumeWorld.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);
@@ -249,19 +246,18 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> FreshStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> ReleaseFresh { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> FreshReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public Func<bool>? CanStart { get; set; }
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> FreshStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> ReleaseFresh { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> FreshReturned { get; } = new(TaskCreationOptions.None);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
             request.Validate();
-            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
+
             Requests.Enqueue(request.Observation);
             if (holdFirstOrder && Requests.Count == 1 && request.Observation.OperativeOrderInstructionId is not null)
             {

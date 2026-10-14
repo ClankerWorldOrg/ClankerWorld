@@ -134,7 +134,7 @@ public sealed partial class TownMembershipTests
         var crowded = abandoned with
         {
             Events = abandoned.Events.Concat(Enumerable.Range(0, WorldHistory.CompactionThreshold + 1)
-                .Select(index => new WorldEventEntry(next + index, tick, "owner_note", "paused"))).ToArray()
+                .Select(index => new WorldEventEntry(next + index, tick, new PausedEventPayload(null)))).ToArray()
         };
         var directory = Directory.CreateTempSubdirectory("town-weathering-");
         try
@@ -324,15 +324,15 @@ public sealed partial class TownMembershipTests
         model.OtherChoices.Scripts[settler] = [Civic(Second, "resettle")];
         using var world = Reopen(Calm(At(WithInventory(state, inventory), position, visitor, settler)), model);
         var deadline = TimeSpan.FromSeconds(10);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline)).Advanced);
+        Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(deadline)).Advanced);
         Assert.True(world.Towns.Single(town => town.Id == Second).IsAbandoned);
         // Capture the valid salvage request before another tick can commit the revival.
-        await model.WaitForPendingAsync().WaitAsync(deadline);
+        await ModelWorkHarness.WaitForSignalAsync(model.WaitForPendingAsync());
         for (var tick = 0; tick < 12 &&
                  !world.Towns.Single(town => town.Id == Second).ResidentIds.Contains(settler); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline)).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(deadline)).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.NotNull(model.Pending);
         Assert.Contains(settler, world.Towns.Single(town => town.Id == Second).ResidentIds);
@@ -341,8 +341,8 @@ public sealed partial class TownMembershipTests
         var completed = false;
         for (var tick = 0; tick < 10 && !completed; tick++)
         {
-            await Task.Delay(10);
-            var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
+            await ModelWorkHarness.For(world).SettleAsync();
+            var step = await world.TickModelWorkAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
             completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == visitor);
@@ -540,8 +540,8 @@ public sealed partial class TownMembershipTests
 
     private sealed class DeferredTownSalvageModel(string actor) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource captured = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> completion = new(TaskCreationOptions.None);
+        private readonly InlineCompletionSource captured = new(TaskCreationOptions.None);
         public Task WaitForPendingAsync() => captured.Task;
         public ScriptedModel OtherChoices { get; } = new();
         public CognitionDecisionRequest? Pending { get; private set; }
