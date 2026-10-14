@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -57,7 +56,7 @@ public sealed partial class WorldConversationTests
         await AdvanceRemarriageUntil(endingWorld, () => endingWorld.WorldTick > world.WorldTick);
         Assert.Null(endingWorld.Marriages[0].EndedTick);
         var before = WorldRuntimeCodec.Encode(endingWorld.ExportState());
-        Assert.False((await endingWorld.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await endingWorld.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(endingWorld.ExportState()));
         await AdvanceRemarriageUntil(endingWorld, () => endingWorld.Marriages[0].EndedTick is not null, maximumSteps: 340);
         Assert.Equal(names, endingWorld.Society.Agents.Select(person => person.Name));
@@ -320,14 +319,8 @@ public sealed partial class WorldConversationTests
     {
         for (var attempt = 0; attempt < maximumSteps && !finished(); attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var tasks = MarriagePendingFields.SelectMany(fieldName =>
-            {
-                var field = typeof(WorldRuntime).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-                var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-                return pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item)));
-            }).ToArray();
-            await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.WaitForExistingAsync(world);
         }
         Assert.True(finished(), MarriageProgress(world));
     }

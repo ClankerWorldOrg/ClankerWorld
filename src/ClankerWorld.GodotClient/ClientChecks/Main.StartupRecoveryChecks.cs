@@ -23,7 +23,7 @@ public partial class Main
         {
             Authoring = new(true, 0, 0, 0, "recovery-map", "recovery-map", "clear", "spring", []),
         };
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "agent-inspection.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1",
             "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1"], []),
             new(snapshot, new(0, 0, [])));
         int Requests(string path) => host.Requests.Count(request => request == path);
