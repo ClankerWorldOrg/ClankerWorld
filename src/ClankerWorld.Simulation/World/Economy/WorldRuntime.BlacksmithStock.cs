@@ -77,8 +77,7 @@ public sealed partial class WorldRuntime
         BlacksmithInputStocked(householdId, blacksmithId, "iron_ore");
 
     private int BlacksmithInputStocked(string householdId, string blacksmithId, string itemKind) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == householdId &&
-            lot.StorageBuildingId == blacksmithId && lot.ItemKind == itemKind).Sum(AvailableLotQuantity);
+        SmithStoredQuantity(householdId, blacksmithId, itemKind);
 
     private (string ItemKind, int Target)[] BlacksmithInputTargets(string blacksmithId)
     {
@@ -96,11 +95,9 @@ public sealed partial class WorldRuntime
     private int BlacksmithInputTarget(string blacksmithId, string itemKind) =>
         BlacksmithInputTargets(blacksmithId).FirstOrDefault(item => item.ItemKind == itemKind).Target;
 
-    private InventoryLot? PersonalSmithOre(string actor) => society.Checkpoint.Inventory.Lots
-        .Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.ItemKind == "iron_ore" &&
-            lot.DeliveryBuildingId is null && lot.ContainerLotId is null &&
-            AvailableLotQuantity(lot) > 0)
-        .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
+    private InventoryLot? PersonalSmithOre(string actor) => FindGoods(new(GoodsUse.CarriedInputs, actor,
+        GoodsOwners.One(actor), GoodsKinds.One("iron_ore"))).Matches.Select(match => match.Lot)
+        .Where(lot => lot.ContainerLotId is null).OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private void AddBlacksmithOreCandidates(List<CognitionCandidate> candidates, string actor,
         AgentState state)
@@ -111,12 +108,12 @@ public sealed partial class WorldRuntime
             DestinationRoom(blacksmith.InstanceId) == 0 ||
             BlacksmithOreStocked(householdId, blacksmith.InstanceId) >= BlacksmithInputTarget(blacksmith.InstanceId, "iron_ore"))
             return;
-        if (PersonalSmithOre(actor) is not null)
+        if (PersonalSmithOre(actor) is { } ore)
         {
-            if (state.Position == blacksmith.Position ||
-                FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0).Count > 0)
+            if (PlanSmithDelivery(actor, SmithDeliveryKind.Ore, ore, blacksmith) is { } plan && CheckActionPlan(plan).Allowed)
                 candidates.Add(new CognitionCandidate("deliver_smith_ore",
-                    "Carry mined iron ore into the household Blacksmith.", 22, blacksmith.InstanceId));
+                    "Carry mined iron ore into the household Blacksmith.", 22, blacksmith.InstanceId)
+                { ActionPlan = plan });
             return;
         }
         if (BlacksmithHasDeliverableInput(householdId, blacksmith, actor, "iron_ore"))
@@ -144,43 +141,17 @@ public sealed partial class WorldRuntime
             GatherProjectMaterial(actor, state, "iron_ore", source, returnTo: blacksmith.Position);
     }
 
-    private void DeliverBlacksmithOre(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null ||
-            BlacksmithForHousehold(householdId) is not { } blacksmith ||
-            PersonalSmithOre(actor) is not { } ore)
-            return;
-        var stocked = BlacksmithOreStocked(householdId, blacksmith.InstanceId);
-        var target = BlacksmithInputTarget(blacksmith.InstanceId, "iron_ore");
-        if (stocked >= target) return;
-        var quantity = Math.Min(DestinationRoom(blacksmith.InstanceId),
-            Math.Min(target - stocked, AvailableLotQuantity(ore)));
-        if (quantity <= 0) return;
-        if (state.Position != blacksmith.Position)
-        {
-            MoveToward(actor, state, blacksmith.Position, "smith_ore", 0);
-            return;
-        }
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"smith-ore-delivery:{WorldTick}:{actor}", actor, householdId, ore.Id,
-            quantity, "smith_ore_delivered", blacksmith.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, blacksmith.InstanceId)));
-        AppendEvent(new SmithOreDeliveredEventPayload(actor, ore.Id, quantity, blacksmith.InstanceId));
-    }
+    private void DeliverBlacksmithOre(string actor, AgentState state) => ApplySmithDeliveryPlan(PlanSmithDelivery(actor, SmithDeliveryKind.Ore));
 
     private InventoryLot? BlacksmithInputForDelivery(string householdId, PlacedBuilding blacksmith, string actor,
         string? itemKind = null, string? sourceLotId = null)
     {
         var blacksmithId = blacksmith.InstanceId;
-        var inventory = society.Checkpoint.Inventory;
         foreach (var (kind, target) in BlacksmithInputTargets(blacksmithId))
         {
             if (itemKind is not null && kind != itemKind) continue;
-            var stocked = inventory.Lots
-                .Where(lot => lot.OwnerId == householdId && lot.StorageBuildingId == blacksmithId &&
-                    lot.ItemKind == kind).Sum(AvailableLotQuantity);
-            var incoming = inventory.Lots.Where(lot => lot.DeliveryBuildingId == blacksmithId &&
-                    lot.ItemKind == kind).Sum(AvailableLotQuantity);
+            var stocked = SmithStoredQuantity(householdId, blacksmithId, kind);
+            var incoming = SmithIncomingQuantity(blacksmithId, kind);
             if (stocked + incoming >= target) continue;
             var personal = FindGoods(DeliveryGoodsRequest(actor, actor, kind, blacksmithId)).Matches
                 .Select(match => match.Lot)
@@ -215,16 +186,12 @@ public sealed partial class WorldRuntime
     {
         var blacksmith = worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == blacksmithId);
         if (blacksmith is null || DestinationRoom(blacksmithId) <= 0) return null;
-        var inventory = society.Checkpoint.Inventory;
         foreach (var (kind, target) in BlacksmithInputTargets(blacksmithId))
         {
             if (itemKind is not null && kind != itemKind) continue;
             if (kind == "iron_ore") continue;
-            var stocked = inventory.Lots.Where(lot => lot.OwnerId == householdId &&
-                    lot.StorageBuildingId == blacksmithId && lot.ItemKind == kind)
-                .Sum(AvailableLotQuantity);
-            var incoming = inventory.Lots.Where(lot => lot.DeliveryBuildingId == blacksmithId && lot.ItemKind == kind)
-                .Sum(AvailableLotQuantity);
+            var stocked = SmithStoredQuantity(householdId, blacksmithId, kind);
+            var incoming = SmithIncomingQuantity(blacksmithId, kind);
             if (stocked + incoming >= target || BlacksmithHasDeliverableInput(householdId, blacksmith, actor, kind))
                 continue;
             if (MaterialSource(kind, actor, blacksmith.Position) is { } source)
@@ -314,70 +281,14 @@ public sealed partial class WorldRuntime
             }
             return;
         }
-        if (input.OwnerId != actor && FreeCarryCapacity(actor) == 0)
-            return;
-
-        if (input.OwnerId == actor && state.Position != blacksmith.Position &&
-            FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0).Count == 0)
-            return;
+        if (PlanSmithDelivery(actor, SmithDeliveryKind.Input, input, blacksmith) is not { } plan || !CheckActionPlan(plan).Allowed) return;
         candidates.Add(new CognitionCandidate("haul_smith_input",
             $"Carry {input.ItemKind.Replace('_', ' ')} into the household Blacksmith for on-site work.",
-            24, blacksmith.InstanceId));
+            24, blacksmith.InstanceId)
+        { ActionPlan = plan });
     }
 
-    private void HaulBlacksmithInput(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null ||
-            BlacksmithForHousehold(householdId) is not { } blacksmith ||
-            BlacksmithInputForDelivery(householdId, blacksmith, actor) is not { } input)
-            return;
-        var room = DestinationRoom(blacksmith.InstanceId);
-        if (room == 0) return;
-        if (input.OwnerId == actor)
-        {
-            if (state.Position != blacksmith.Position)
-            {
-                MoveToward(actor, state, blacksmith.Position, "smith_input", 0);
-                return;
-            }
-            var stockedPersonal = BlacksmithInputStocked(householdId, blacksmith.InstanceId, input.ItemKind);
-            var incomingPersonal = society.Checkpoint.Inventory.Lots.Where(lot =>
-                    lot.DeliveryBuildingId == blacksmith.InstanceId && lot.ItemKind == input.ItemKind)
-                .Sum(AvailableLotQuantity);
-            var targetPersonal = BlacksmithInputTarget(blacksmith.InstanceId, input.ItemKind);
-            var personalQuantity = Math.Min(targetPersonal - stockedPersonal - incomingPersonal,
-                Math.Min(room, Math.Min(HouseHaulLoadQuantity, SpareCarriedQuantity(actor, input))));
-            if (personalQuantity <= 0) return;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"smith-input-delivery:{WorldTick}:{actor}", actor, householdId, input.Id,
-                personalQuantity, "smith_input_delivered", destinationStorageBuildingId: blacksmith.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, blacksmith.InstanceId)));
-            AppendEvent(new SmithInputDeliveredEventPayload(actor, input.Id, personalQuantity, blacksmith.InstanceId));
-            return;
-        }
-        var source = HouseholdStockPosition(input);
-        var range = HouseholdStockInteractionRange(input);
-        if (!IsWithinInteractionRange(state.Position, source, range))
-        {
-            MoveToward(actor, state, source, "smith_input", range);
-            return;
-        }
-        var stocked = society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == householdId &&
-                lot.StorageBuildingId == blacksmith.InstanceId && lot.ItemKind == input.ItemKind)
-            .Sum(AvailableLotQuantity);
-        var incoming = society.Checkpoint.Inventory.Lots.Where(lot =>
-                lot.DeliveryBuildingId == blacksmith.InstanceId && lot.ItemKind == input.ItemKind)
-            .Sum(AvailableLotQuantity);
-        var target = BlacksmithInputTarget(blacksmith.InstanceId, input.ItemKind);
-        var quantity = Math.Min(HouseHaulLoadQuantity,
-            Math.Min(target - stocked - incoming, AvailableLotQuantity(input)));
-        quantity = Math.Min(quantity, Math.Min(room, PickupCarryCapacity(actor, input, blacksmith.Position)));
-        if (quantity <= 0) return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"smith-input-pickup:{WorldTick}:{actor}", input.OwnerId, actor, input.Id,
-            quantity, "smith_input_picked_up", destinationDeliveryBuildingId: blacksmith.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent(new SmithInputPickedUpEventPayload(actor, input.Id, quantity, blacksmith.InstanceId));
-    }
+    private void HaulBlacksmithInput(string actor, AgentState state) => ApplySmithDeliveryPlan(PlanSmithDelivery(actor, SmithDeliveryKind.Input));
 
     private DeliveryOrderPlan? GetBlacksmithOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)
@@ -390,9 +301,7 @@ public sealed partial class WorldRuntime
             return null;
         var direct = input.OwnerId == actor;
         var stocked = BlacksmithInputStocked(householdId, blacksmith.InstanceId, input.ItemKind);
-        var incoming = society.Checkpoint.Inventory.Lots.Where(lot =>
-                lot.DeliveryBuildingId == blacksmith.InstanceId && lot.ItemKind == input.ItemKind)
-            .Sum(AvailableLotQuantity);
+        var incoming = SmithIncomingQuantity(blacksmith.InstanceId, input.ItemKind);
         var missing = BlacksmithInputTarget(blacksmith.InstanceId, input.ItemKind) - stocked - incoming;
         var quantity = Math.Min(maximumQuantity, Math.Min(missing,
             Math.Min(DestinationRoom(blacksmith.InstanceId),

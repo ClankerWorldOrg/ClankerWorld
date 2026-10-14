@@ -37,7 +37,7 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs": 3,
   "src/ClankerWorld.Simulation/World/Economy/PersonalEquipmentRules.cs": 4,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": 10,
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs": 3,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs": 7,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Containers.cs": 1,

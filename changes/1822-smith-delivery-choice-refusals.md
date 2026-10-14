@@ -1,0 +1,1 @@
+- Blacksmith delivery choices keep their selected ore or other supplies and load. A captured direct load must still be carried; storing it first refuses that delivery instead of moving stored goods remotely. The Event Log explains when that shipment is no longer available.

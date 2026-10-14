@@ -60,8 +60,6 @@
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": [
     "FindUnoccupiedRoute(actor, position, blacksmith.Position, 0)",
-    "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)",
-    "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)",
     "FindUnoccupiedRoute(actor, state.Position, source.Position, ResourceInteractionRange)"
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ContainerReturns.cs": [

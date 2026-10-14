@@ -158,7 +158,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "haul_smith_input", [], ["haul_smith_input"], static (runtime, action) =>
     {
-        runtime.HaulBlacksmithInput(action.AgentId, action.State);
+        runtime.ApplySmithDeliveryPlan(action.Plan as SmithDeliveryActionPlan ?? runtime.PlanSmithDelivery(action.AgentId, SmithDeliveryKind.Input));
         return true;
     }),
         new(ActionPhase.Ordinary, "gather_smith_ore", [], ["gather_smith_ore"], static (runtime, action) =>
@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "deliver_smith_ore", [], ["deliver_smith_ore"], static (runtime, action) =>
     {
-        runtime.DeliverBlacksmithOre(action.AgentId, action.State);
+        runtime.ApplySmithDeliveryPlan(action.Plan as SmithDeliveryActionPlan ?? runtime.PlanSmithDelivery(action.AgentId, SmithDeliveryKind.Ore));
         return true;
     }),
         new(ActionPhase.Ordinary, "collect_wooden_axe", [], ["collect_wooden_axe", "collect_wooden_pickaxe", "collect_wooden_hoe"], static (runtime, action) =>
