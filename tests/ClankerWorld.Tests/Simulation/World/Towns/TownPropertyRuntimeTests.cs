@@ -32,9 +32,20 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.True(stocked.DisplaceAdult(Waiver));
         var provider = new PropertyProvider { Request = true };
         using var world = WorldRuntime.Restore(stocked.ExportState(), _ => provider);
-        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20);
+        var filingPlans = new List<LandHearingPropertyActionPlan>();
+        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20, result =>
+        {
+            filingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingPropertyActionPlan { Choice.Kind: LandHearingPropertyKind.Request } &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null).Select(decision => Assert.IsType<LandHearingPropertyActionPlan>(decision.ActionPlan)));
+        });
         var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("property", item.Kind);
+        var filingPlan = Assert.Single(filingPlans);
+        Assert.True(filingPlan.Bound);
+        Assert.Equal(filingPlan.Choice, LandHearingPropertyChoice.Decode(filingPlan.CandidateId));
+        Assert.Equal(item.Property!.Request, filingPlan.Request);
+        Assert.Equal(item.Revisions[0].Tiles, filingPlan.Tiles);
+        Assert.Equal(TownPropertyRules.MaterialVersion(item.Property.Snapshots[0]), TownPropertyRules.MaterialVersion(filingPlan.Snapshot));
         Assert.Equal(new[] { Filer, Waiver }, item.Property!.Snapshots[0].LivingFormerMemberIds);
         Assert.Equal(item.Revisions[0].PublishedTick + Day, item.Revisions[0].DeadlineTick);
         Assert.Empty(item.Property.Consents);
@@ -74,11 +85,15 @@ public sealed partial class TownLandHearingRuntimeTests
         var before = world.ExportState();
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(save, WorldRuntimeCodec.Encode(world.ExportState()));
+        var consentPlans = new List<LandHearingPropertyActionPlan>();
         for (var step = 0; step < 20 && world.Towns[0].LandRecords.Cases[0].Status == "pending"; step++)
         {
             PropertyPromptAll(world);
             PropertyPromptAll(replay);
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            consentPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingPropertyActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<LandHearingPropertyActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
         var item = Assert.Single(world.Towns[0].LandRecords.Cases);
@@ -87,6 +102,16 @@ public sealed partial class TownLandHearingRuntimeTests
         var ruling = Assert.Single(item.Rulings);
         Assert.Equal(("reclaim", Judge), (ruling.Outcome.Kind, ruling.Judge.AgentId));
         Assert.All(new[] { Filer, Waiver }, actor => Assert.Contains(item.Property.Consents, consent => consent.AgentId == actor && consent.Agreed));
+        Assert.Equal(2, consentPlans.Count);
+        Assert.All(consentPlans, plan =>
+        {
+            Assert.Equal(LandHearingPropertyKind.Accept, plan.Choice.Kind);
+            Assert.Equal(plan.Choice, LandHearingPropertyChoice.Decode(plan.CandidateId));
+            Assert.Equal(item.Property.Request, plan.Request);
+            Assert.Equal(TownPropertyRules.MaterialVersion(item.Property.Snapshots[0]), TownPropertyRules.MaterialVersion(plan.Snapshot));
+            Assert.Contains(item.Property.Consents, consent => consent.AgentId == plan.Actor && consent.Revision == plan.Revision!.Number && consent.Agreed);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.Equal(PropertyHouse, transfer.ResultBuilding.InstanceId);
         Assert.Null(transfer.ResultBuilding.HouseholdId);
         Assert.NotEmpty(transfer.PriorLots);
@@ -289,12 +314,14 @@ public sealed partial class TownLandHearingRuntimeTests
         foreach (var agent in world.Towns[0].ResidentIds) Prompt(world, agent, "Consider the public property case and make your own choice.");
     }
 
-    private static async Task PropertyUntil(WorldRuntime world, Func<bool> done, int limit)
+    private static async Task PropertyUntil(WorldRuntime world, Func<bool> done, int limit, Action<WorldStepResult>? observe = null)
     {
         for (var step = 0; step < limit && !done(); step++)
         {
             PropertyPromptAll(world);
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
         }
         Assert.True(done(), "The native property-case boundary was not reached: " + JsonSerializer.Serialize(world.ExportState().Events.TakeLast(8)));
     }

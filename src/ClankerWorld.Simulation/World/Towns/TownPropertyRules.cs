@@ -67,7 +67,7 @@ public static class TownPropertyRules
         var snapshot = property.Snapshots[^1];
         var owners = property.Request.SourceHouseholdId is not null ? snapshot.LivingFormerMemberIds : snapshot.RecipientAdultIds;
         var adults = owners.Where(id => agents.Any(person => person.Id == id && person.Status == SocietyAgentStatus.Active &&
-            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).Order(StringComparer.Ordinal).ToArray();
+            LifeStageRules.IsAdult(person.AgeBand))).Order(StringComparer.Ordinal).ToArray();
         return parties.Where(party => party.HouseholdId != household)
             .Append(new(TownLandCasePartyRules.HouseholdPartyId(household), "household", household, townId, adults))
             .OrderBy(party => party.Id, StringComparer.Ordinal).ToArray();
@@ -87,6 +87,19 @@ public static class TownPropertyRules
     {
         var item = state.Cases.Single(item => item.Id == caseId);
         var revision = TownLandHearingRules.CurrentRevision(item);
+        if (ConsentRefusal(item, actor, tick, receipts, parties) is { } refusal) throw new InvalidOperationException(refusal);
+        var property = item.Property!;
+        var party = parties.Single(party => party.Kind == "household" && party.AdultIds.Contains(actor, StringComparer.Ordinal));
+        state = TownLandHearingRules.Respond(state, caseId, revision.Number, actor, "answer",
+            agreed ? "I personally agree to this exact property transfer." : "I refuse this property transfer.", tick, receipts, parties, party.Id);
+        item = state.Cases.Single(item => item.Id == caseId);
+        return Replace(state, item with { Property = property with { Consents = property.Consents.Append(new(revision.Number, actor, agreed, tick)).ToArray() } });
+    }
+
+    public static string? ConsentRefusal(TownLandCase item, string actor, long tick,
+        IReadOnlyList<TownCivicReceipt> receipts, IReadOnlyList<TownLandCaseParty> parties)
+    {
+        var revision = TownLandHearingRules.CurrentRevision(item);
         if (item.Status != "pending" || item.Property is not { Transfer: null } property ||
             !RequiredConsent(property.Snapshots.Single(snapshot => snapshot.Revision == revision.Number)).Contains(actor, StringComparer.Ordinal) ||
             !TownLandHearingRules.HasNoticeReceipt(revision, actor, tick, receipts) ||
@@ -94,12 +107,9 @@ public static class TownPropertyRules
                 read.EvidenceIds.Any(id => item.Evidence.Any(evidence => evidence.Id == id && evidence.Kind == "record" &&
                     evidence.SourceRecordId == RecordId(item, revision.Number) && evidence.SourceVersion ==
                     TownLandHearingRules.RecordVersion(property.Snapshots.Single(snapshot => snapshot.Revision == revision.Number))))))
-            throw new InvalidOperationException("Property consent must be the noticed person's own informed choice.");
-        var party = parties.Single(party => party.Kind == "household" && party.AdultIds.Contains(actor, StringComparer.Ordinal));
-        state = TownLandHearingRules.Respond(state, caseId, revision.Number, actor, "answer",
-            agreed ? "I personally agree to this exact property transfer." : "I refuse this property transfer.", tick, receipts, parties, party.Id);
-        item = state.Cases.Single(item => item.Id == caseId);
-        return Replace(state, item with { Property = property with { Consents = property.Consents.Append(new(revision.Number, actor, agreed, tick)).ToArray() } });
+            return "Property consent must be the noticed person's own informed choice.";
+        return parties.Any(party => party.Kind == "household" && party.AdultIds.Contains(actor, StringComparer.Ordinal))
+            ? null : "Property consent needs the noticed person's current household party.";
     }
 
     public static string? FilingRefusal(TownLandRecords state, IReadOnlyList<GridPoint> tiles, TownPropertyCase property)

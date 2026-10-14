@@ -91,8 +91,9 @@ public sealed partial class WorldRuntime
         public void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownPropertyCandidates(candidates, actor, town);
         public bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item) => runtime.PropertyCanTransfer(town, item);
         public bool PropertyMayReopen(TownRuntimeState town, TownLandCase item) => runtime.PropertyMayReopen(town, item);
-        public (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government);
+        public (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government, LandHearingPropertyActionPlan? plan = null) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government, plan);
         public TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) => runtime.CaptureProperty(town, request, revision);
+        public TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure) => runtime.TryCaptureProperty(town, request, revision, out failure);
         public TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
         public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);

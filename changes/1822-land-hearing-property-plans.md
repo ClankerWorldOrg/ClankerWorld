@@ -1,0 +1,1 @@
+- Property filings and personal consent retain their exact assets, authority and noticed material through shared checks.

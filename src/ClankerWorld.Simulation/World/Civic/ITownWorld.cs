@@ -92,8 +92,9 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item);
     bool PropertyMayReopen(TownRuntimeState town, TownLandCase item);
-    (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government);
+    (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government, LandHearingPropertyActionPlan? plan = null);
     TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision);
+    TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure);
     TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior);
     int CaregiverFoodCarryRequirement(string actor, AgentState parent);
     InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0);

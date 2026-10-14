@@ -511,6 +511,10 @@ Reopening plans retain the settled ruling, selected request, personal grounds
 or assessment and exact cited evidence. The same native refusal checks verify
 standing, informed independent assessment, established grounds and plot access.
 An accepted property rehearing retains its new-notice material snapshot.
+Property filing retains the building, ownership/recipient, recorded goods,
+plot and governing authority. Its shared nonthrowing capture check validates
+that material before publication. Personal consent retains the exact noticed
+snapshot and previous personal response, reusing the native consent validator.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.
