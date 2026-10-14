@@ -778,18 +778,35 @@ public sealed class BuildingExpansionTests
     }
 
     [Fact]
-    public void AnotherHouseholdCannotExpandTheHouseOrUseItsGuestInvitations()
+    public async Task AnotherHouseholdCannotExpandTheHouseOrUseItsGuestInvitations()
     {
         using var world = PreparedWorld("first-town-house-a", out var actor, out var building);
         var outsider = world.Society.Agents.First(person => person.HouseholdId != building.HouseholdId).Id;
         Assert.False(world.StartBuildingExpansion(outsider, building.InstanceId).Applied);
         Assert.False(world.SetHouseGuestInvitation(outsider, building.InstanceId, actor, true).Applied);
         Assert.True(world.SetHouseGuestInvitation(actor, building.InstanceId, outsider, true).Applied);
-        using var restored = Reload(world);
+        var provider = new IdleProvider(HouseGuestChoice.RevokePrefix + outsider);
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
+            id => id == actor ? provider : new IdleProvider());
         var visible = new OwnerWorldObservationStore(restored).GetSnapshot().PlacedBuildings.Single(item => item.InstanceId == building.InstanceId);
         Assert.Contains(restored.Society.Agents.Single(person => person.Id == outsider).Name, visible.InvitedGuests!);
         var recipe = restored.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         Assert.False(restored.StartProduction(recipe.CanonicalId, building.InstanceId, outsider).Applied);
+        HouseGuestActionPlan? revokePlan = null;
+        for (var tick = 0; tick < 20 && revokePlan is null; tick++)
+        {
+            var step = await restored.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            revokePlan = step.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => decision.ActionPlan).OfType<HouseGuestActionPlan>()
+                .SingleOrDefault(plan => plan.Actor == actor && !plan.Choice.Invited);
+        }
+        Assert.NotNull(revokePlan);
+        var revokedInvitation = Assert.Single(restored.WorldSimulation.GuestInvitations!, invitation =>
+            invitation.HouseInstanceId == building.InstanceId && invitation.GuestId == outsider);
+        Assert.Equal((revokePlan.House.InstanceId, revokePlan.Choice.GuestId, revokePlan.Actor, revokePlan.Choice.Invited),
+            (revokedInvitation.HouseInstanceId, revokedInvitation.GuestId, revokedInvitation.InvitedById, revokedInvitation.Active));
+        Assert.False(restored.CheckActionPlan(revokePlan).Allowed);
         Assert.True(restored.SetHouseGuestInvitation(actor, building.InstanceId, outsider, false).Applied);
         using var revoked = Reload(restored);
         Assert.Empty(new OwnerWorldObservationStore(revoked).GetSnapshot().PlacedBuildings.Single(item => item.InstanceId == building.InstanceId).InvitedGuests!);

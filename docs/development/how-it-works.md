@@ -152,6 +152,10 @@ and Warehouse pickup retain their lot, quantity and destination; gathering
 retains its source and carried tool, or the shared tool pickup needed first.
 These steps reuse the contribution, equipment pickup and harvest checks while
 keeping the native waiting stages and transfer events.
+House guest choices retain the selected House, household and named guest.
+The same check validates membership, invitation state and the proximity needed
+to invite; revocations retain their existing remote behavior. Invitation caps
+follow filtering. Direct access requests keep their idempotent results.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same

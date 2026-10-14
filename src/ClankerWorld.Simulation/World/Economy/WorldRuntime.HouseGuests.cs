@@ -9,8 +9,8 @@ public sealed record BuildingAccessResult(bool Applied, string? Failure = null);
 
 public sealed partial class WorldRuntime
 {
-    private const string InviteHouseGuestPrefix = "invite_house_guest:";
-    private const string RevokeHouseGuestPrefix = "revoke_house_guest:";
+    private const string InviteHouseGuestPrefix = HouseGuestChoice.InvitePrefix;
+    private const string RevokeHouseGuestPrefix = HouseGuestChoice.RevokePrefix;
 
     public BuildingAccessResult SetHouseGuestInvitation(string actor, string houseId, string guestId, bool invited)
     {
@@ -19,17 +19,14 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
-    private BuildingAccessResult SetHouseGuestInvitationCore(string actor, string houseId, string guestId, bool invited)
+    private BuildingAccessResult SetHouseGuestInvitationCore(string actor, string houseId, string guestId, bool invited,
+        HouseGuestActionPlan? originalPlan = null)
     {
-        var house = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == houseId);
-        if (!IsAdult(actor) || house?.HouseholdId is null ||
-            house.HouseholdId != society.Checkpoint.GetAgent(actor).HouseholdId ||
-            !worldContent.Buildings.Any(item => item.CanonicalId == house.DefinitionId &&
-                item.Tags.Contains("house", StringComparer.Ordinal)))
-            return new(false, "Only an adult member of the House's household can invite or revoke a guest.");
-        if (!agents.ContainsKey(guestId)) return new(false, "Choose a living named guest.");
-        if (society.Checkpoint.GetAgent(guestId).HouseholdId == house.HouseholdId)
-            return new(false, "Household members already have access to their own House.");
+        var plan = originalPlan ?? PlanHouseGuest(actor, new(guestId, invited), houseId, offeredChoice: false);
+        if (plan is null) return new(false, "Only an adult member of the House's household can invite or revoke a guest.");
+        if (CheckHouseGuest(plan).Refusal is { } refusal)
+            return new(false, refusal.Reason is ActionRefusalReason.ActorUnavailable or ActionRefusalReason.LifeStage
+                ? "Only an adult member of the House's household can invite or revoke a guest." : refusal.Explanation);
         var existing = (worldSimulation.GuestInvitations ?? []).SingleOrDefault(item =>
             item.HouseInstanceId == houseId && item.GuestId == guestId);
         if (existing?.Active == invited || existing is null && !invited) return new(true);
@@ -54,17 +51,25 @@ public sealed partial class WorldRuntime
     {
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null || HouseForHousehold(household) is not { } house) return;
-        foreach (var guest in agents.Values.Where(person => person.AgentId != actor &&
+        foreach (var plan in agents.Values.Where(person => person.AgentId != actor &&
                      society.Checkpoint.GetAgent(person.AgentId).HouseholdId != household &&
                      !HasHouseGuestInvitation(person.AgentId, house.InstanceId) &&
                      IsWithinInteractionRange(agents[actor].Position, person.Position, 2))
-                 .OrderBy(person => person.AgentId, StringComparer.Ordinal).Take(4))
-            candidates.Add(new(InviteHouseGuestPrefix + guest.AgentId,
-                $"Invite {society.Checkpoint.GetAgent(guest.AgentId).Name} to shelter in the House during storms, without stock or cooking access.",
-                110, guest.AgentId));
+                 .OrderBy(person => person.AgentId, StringComparer.Ordinal)
+                 .Select(person => PlanHouseGuest(actor, new(person.AgentId, true)))
+                 .Where(plan => plan is not null && CheckHouseGuest(plan).Allowed).Take(4))
+            candidates.Add(new(plan!.CandidateId,
+                $"Invite {plan.GuestName} to shelter in the House during storms, without stock or cooking access.",
+                110, plan.Choice.GuestId)
+            { ActionPlan = plan });
         foreach (var invitation in (worldSimulation.GuestInvitations ?? []).Where(item =>
                      item.HouseInstanceId == house.InstanceId && item.Active && agents.ContainsKey(item.GuestId)))
-            candidates.Add(new(RevokeHouseGuestPrefix + invitation.GuestId,
-                $"End {society.Checkpoint.GetAgent(invitation.GuestId).Name}'s invitation to shelter in the House.", 110, invitation.GuestId));
+        {
+            var plan = PlanHouseGuest(actor, new(invitation.GuestId, false));
+            if (plan is not null && CheckHouseGuest(plan).Allowed)
+                candidates.Add(new(plan.CandidateId,
+                    $"End {plan.GuestName}'s invitation to shelter in the House.", 110, invitation.GuestId)
+                { ActionPlan = plan });
+        }
     }
 }
