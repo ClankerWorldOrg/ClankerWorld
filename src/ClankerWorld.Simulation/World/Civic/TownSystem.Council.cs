@@ -176,17 +176,17 @@ internal sealed partial class TownSystem
             {
                 var draft = town.Government?.LawDrafts.SingleOrDefault(d => d.ProposalId == proposal.Id);
                 var voteText = draft is not null ? TownLawRules.VoteText(draft) : proposal.Text;
-                if (proposal.AuthorId == actor)
-                    candidates.Add(new(CivicAction(world, town.Id, "withdraw_proposal", proposal.Id), $"Withdraw your pending proposal: {voteText}", 190));
-                if (!proposal.Voters.Contains(actor, StringComparer.Ordinal) || proposal.Votes.Any(v => v.AgentId == actor) ||
-                    proposal.Kind == "admission" && proposal.SubjectId == actor) continue;
+                OfferCivicProposalVote(world, candidates, actor, town, proposal, CivicProposalVoteKind.Withdraw,
+                    $"Withdraw your pending proposal: {voteText}", 190);
                 var plot = proposal.LandClaimTiles is { } tiles ? " Exact tiles: " + TownLandClaimRules.DescribeTiles(tiles) + "." :
                     proposal.Kind == "land_use" && world.HouseholdLandUseRequests.SingleOrDefault(r => r.Id == proposal.SubjectId) is { } request
                         ? " " + LandUseTerms(world, request) : proposal.LandHearingRequest is { } hearingRequest
                             ? " " + TownLandGovernmentFilingRules.Describe(hearingRequest) : proposal.NonLandRequest is { } nonLandRequest
                                 ? " " + TownNonLandGovernmentFilingRules.Describe(nonLandRequest) : "";
-                candidates.Add(new(CivicAction(world, town.Id, "yes", proposal.Id), $"Cast your final yes vote on {voteText} in {town.Name}. {proposal.RequiredYes} yes votes required.{plot}", 165));
-                candidates.Add(new(CivicAction(world, town.Id, "no", proposal.Id), $"Cast your final no vote on {voteText} in {town.Name}.{plot}", 166));
+                OfferCivicProposalVote(world, candidates, actor, town, proposal, CivicProposalVoteKind.Yes,
+                    $"Cast your final yes vote on {voteText} in {town.Name}. {proposal.RequiredYes} yes votes required.{plot}", 165);
+                OfferCivicProposalVote(world, candidates, actor, town, proposal, CivicProposalVoteKind.No,
+                    $"Cast your final no vote on {voteText} in {town.Name}.{plot}", 166);
             }
             if (state.Election is { } election)
             {
@@ -237,6 +237,7 @@ internal sealed partial class TownSystem
         var admissionPlan = originalPlan as TownAdmissionActionPlan;
         var resettlementPlan = originalPlan as TownFoundingActionPlan;
         var noticePlan = originalPlan as CivicNoticeActionPlan;
+        var proposalVotePlan = originalPlan as CivicProposalVoteActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -274,6 +275,12 @@ internal sealed partial class TownSystem
             noticePlan ??= PlanCivicNotice(world, actor, noticeChoice);
             if (noticePlan is null) return;
             if (CheckCivicNoticePlan(world, noticePlan).Refusal is { } refusal) { world.RefuseChoice(noticePlan, refusal); return; }
+        }
+        else if (CivicProposalVoteChoice.Decode(selectedId) is { } proposalResponse)
+        {
+            proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
+            if (proposalVotePlan is null) return;
+            if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
         }
         else
         {
@@ -323,6 +330,11 @@ internal sealed partial class TownSystem
             if (ballotPlan is not null && CheckCouncilBallot(world, ballotPlan, town with { Council = state, Government = government }).Refusal is { } ballotRefusal)
             {
                 world.RefuseChoice(ballotPlan, ballotRefusal);
+                return;
+            }
+            if (proposalVotePlan is not null && CheckCivicProposalVote(world, proposalVotePlan, town with { Council = state, Government = government }).Refusal is { } proposalRefusal)
+            {
+                world.RefuseChoice(proposalVotePlan, proposalRefusal);
                 return;
             }
             switch (parts[2])
@@ -389,8 +401,8 @@ internal sealed partial class TownSystem
                         $"Admit {world.Society.GetAgent(actor).Name} as a Town resident.", "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
-                case "yes": case "no": state = TownCouncilRules.VoteProposal(state, parts[3], actor, parts[2] == "yes", world.WorldTick); break;
-                case "withdraw_proposal": state = TownCouncilRules.WithdrawProposal(state, parts[3], actor, world.WorldTick); break;
+                case "yes": case "no": state = TownCouncilRules.VoteProposal(state, proposalVotePlan!.Proposal.Id, actor, proposalVotePlan.Choice.Kind == CivicProposalVoteKind.Yes, world.WorldTick); break;
+                case "withdraw_proposal": state = TownCouncilRules.WithdrawProposal(state, proposalVotePlan!.Proposal.Id, actor, world.WorldTick); break;
                 case "ballot":
                     if (ballotPlan!.Selected is null) return;
                     state = TownCouncilRules.VoteElection(state, ballotPlan.ElectionId, actor, ballotPlan.Selected, world.WorldTick); break;

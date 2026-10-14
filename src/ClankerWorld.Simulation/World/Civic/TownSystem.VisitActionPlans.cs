@@ -30,6 +30,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (CivicProposalVoteChoice.Decode(candidate.Id) is { } response)
+            {
+                if ((candidate.ActionPlan as CivicProposalVoteActionPlan ?? PlanCivicProposalVote(world, actor, response)) is { } answering &&
+                    CheckCivicProposalVote(world, answering).Allowed)
+                    candidates[index] = candidate with { ActionPlan = answering };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (CivicNoticeChoice.Decode(candidate.Id) is { } notice)
             {
                 if ((candidate.ActionPlan as CivicNoticeActionPlan ?? PlanCivicNotice(world, actor, notice)) is { } sharing &&

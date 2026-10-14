@@ -453,6 +453,9 @@ that selection after the shared check confirms it remains available.
 Public notice reading and relay retain the exact notices and recipient. The
 shared check confirms the notices still exist and the source knows them;
 native receipt ordering and recorded source attribution remain unchanged.
+Proposal votes and withdrawal retain the original proposal, voting window and
+electorate. Shared checks allow other votes to accumulate while refusing a
+settled, cancelled or changed proposal before its native response applies.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
