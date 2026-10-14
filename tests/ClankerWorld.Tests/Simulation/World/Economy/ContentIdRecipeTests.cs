@@ -24,10 +24,14 @@ public sealed partial class ToolMakingRequestTests
         world.ValidateContent(package.PackageId, resolution);
         world.ApproveContent(package.PackageId);
         world.StageContent(package.PackageId);
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plans = new List<RecipeProjectActionPlan>();
+        var activation = await world.AdvanceOneTickAsync();
+        Assert.True(activation.Advanced);
+        plans.AddRange(activation.Decisions.Where(decision => decision.ActionPlan is RecipeProjectActionPlan plan && plan.Actor == smith &&
+                plan.Recipe.PackageDigest == package.PackageDigest && decision.Admission.Accepted && decision.PlanRefusal is null)
+            .Select(decision => Assert.IsType<RecipeProjectActionPlan>(decision.ActionPlan)));
         var recipe = Assert.Single(world.WorldContent.Recipes, item => item.PackageDigest == package.PackageDigest);
         world.SubmitInstruction(new("native-recipe", "owner:test", smith, OwnerInstructionKind.Suggestion, "Consider crafting tools."));
-        var plans = new List<RecipeProjectActionPlan>();
         for (var tick = 0; tick < 8 && world.ExportState().Agents.Single(person => person.AgentId == smith).Project is null; tick++)
         {
             var result = await world.AdvanceOneTickAsync();
