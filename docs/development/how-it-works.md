@@ -4165,9 +4165,12 @@ data folder (or `user://reports` without a local server), keeping the five
 newest.
 
 `WorldEventFormatter` in the server builds descriptions from one owner snapshot.
-The observation sends its derived `Text` on each event. Each snapshot also refreshes
-text for the 30 visible rows, using the same retained-event filter as the game, so
-renames and changed Town or content names update existing rows. The game displays
+The observation sends its derived `Text` on each event. An observer-only window
+keeps the newest 2,048 observed events, matching connected clients even after saved
+history compacts to 1,024. Each snapshot refreshes potentially visible rows in that
+window, including model failures that different clients may coalesce differently.
+The window resets on a load or world switch and never enters saved state. Renames
+and changed Town or content names therefore update existing rows. The game displays
 that text and keeps its event filtering and location controls. Descriptions resolve
 complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. Food yields and Town membership

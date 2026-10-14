@@ -152,6 +152,11 @@ timeline cannot replace the new view. The usual tick, cursor and event-order
 checks still apply within one timeline. Hosts without the capability retain
 the earlier reconnect contract; signed reconnect payloads are unchanged.
 
+The game requires `owner-event-presentation.v1` on the signed owner handshake
+because Event Log descriptions come from the host. A host without it is refused
+with an update explanation, preserving the last accepted view and paired device
+registration. Update a remote host alongside the game.
+
 ## Building ownership changes
 
 Building removal and reassignment payloads require the observed simulation world

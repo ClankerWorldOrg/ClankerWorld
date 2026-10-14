@@ -22,6 +22,7 @@ public sealed class OwnerWorldObservationSession
     private static readonly string[] RequiredCapabilities =
     [
         "owner-observation.read.v1",
+        "owner-event-presentation.v1",
         "agent-inspection.read.v1",
         "spatial-knowledge.read.v1",
         "owner-control.request.v1",

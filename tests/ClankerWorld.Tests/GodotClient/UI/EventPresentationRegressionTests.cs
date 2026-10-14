@@ -1,0 +1,123 @@
+using System.Text.Json;
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Protocol;
+using ClankerWorld.GodotClient.UI;
+using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.World;
+
+namespace ClankerWorld.Tests;
+
+public sealed class EventPresentationRegressionTests
+{
+    private static readonly JsonSerializerOptions Wire = new(JsonSerializerDefaults.Web);
+
+    [Fact]
+    public void OlderHostWithoutEventPresentationKeepsTheAcceptedViewAndPairing()
+    {
+        using var world = new WorldRuntime("event-presentation-capability");
+        var store = new OwnerWorldObservationStore(world);
+        var session = new OwnerWorldObservationSession();
+        var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
+        session.ReplaceRegistration(registration);
+        var current = Reconnect(store, 0);
+        current = current with
+        {
+            Handshake = current.Handshake with
+            { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v1"] },
+        };
+        Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
+        var accepted = session.Current;
+        var cursor = session.EventCursor;
+        var legacy = Reconnect(store, cursor);
+        legacy = legacy with
+        {
+            Handshake = legacy.Handshake with
+            { ServerCapabilities = legacy.Handshake.ServerCapabilities.Where(value => value != "owner-event-presentation.v1").ToArray() },
+            Baseline = legacy.Baseline with
+            { Snapshot = legacy.Baseline.Snapshot with { EventTexts = new Dictionary<long, string>() } },
+        };
+
+        Assert.False(session.TryAccept(legacy, cursor, out var failure));
+        Assert.Contains("Update the world server", failure, StringComparison.Ordinal);
+        Assert.Same(accepted, session.Current);
+        Assert.Same(registration, session.Registration);
+        Assert.Equal(cursor, session.EventCursor);
+    }
+
+    [Fact]
+    public void ConnectedRetainedRowsRefreshNamesAfterNativeHistoryCompaction()
+    {
+        var directory = Directory.CreateTempSubdirectory("clanker-event-presentation-history-");
+        try
+        {
+            using var world = NormalPathWorld.CreateGenerated("event-presentation-history", _ => new DeterministicDecisionProvider());
+            world.Pause();
+            var reset = world.ExportState();
+            var founder = NormalPathWorld.Founder1;
+            for (var index = 0; index < 1025; index++)
+                world.RenameAgent(founder, index % 2 == 0 ? "Aster Vale" : "Corin Vale");
+            world.SubmitInstruction(new OwnerInstructionRequest("retained-event-text", "owner", founder, OwnerInstructionKind.Order, "dance"));
+            var store = new OwnerWorldObservationStore(world);
+            var initial = store.GetReconnectBaseline(0);
+            var row = initial.Events.Events.Last(item => item.Kind == "instruction_not_understood");
+            Assert.Contains("Aster Vale", row.Text, StringComparison.Ordinal);
+            var known = initial.Events.Events.ToDictionary(item => item.EventId);
+            for (var index = 0; index < 3; index++)
+                world.RenameAgent(founder, index % 2 == 0 ? "Corin Vale" : "Aster Vale");
+            var held = store.GetReconnectBaseline(initial.Snapshot.LatestEventId);
+            foreach (var item in held.Events.Events) known[item.EventId] = item;
+            for (var index = 0; index < 1022; index++)
+                world.RenameAgent(founder, index % 2 == 0 ? "Aster Vale" : "Corin Vale");
+            Assert.True(new WorldStateFile(Path.Combine(directory.FullName, "world.json")).Save(world));
+            var saved = WorldRuntimeCodec.Encode(world.ExportState());
+            var current = store.GetReconnectBaseline(held.Snapshot.LatestEventId);
+            foreach (var item in current.Events.Events) known[item.EventId] = item;
+            foreach (var id in known.Keys.OrderDescending().Skip(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount).ToArray()) known.Remove(id);
+
+            Assert.Equal(WorldHistory.RecentEventLimit, world.ExportState().Events.Count);
+            Assert.True(current.Events.EventHistoryFloor > row.EventId);
+            Assert.False(current.Events.ResetRequired);
+            Assert.DoesNotContain(world.ExportState().Events, item => item.EventId == row.EventId);
+            Assert.Contains(row.EventId, known.Keys);
+            Assert.Contains(row.EventId, current.Snapshot.EventTexts.Keys);
+            var snapshot = RoundTrip<OwnerWorldSnapshot>(current.Snapshot);
+            var clientRow = RoundTrip<OwnerWorldEvent>(row);
+            var visible = GameUiText.PlayerEvents(known.Values.Select(RoundTrip<OwnerWorldEvent>))
+                .OrderByDescending(item => item.EventId).Take(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount).ToArray();
+            Assert.Contains(visible, item => item.EventId == row.EventId);
+            Assert.Contains("Corin Vale", WorldEventText.Describe(clientRow, snapshot), StringComparison.Ordinal);
+            Assert.InRange(snapshot.EventTexts.Count, 1, ClankerWorld.Presentation.EventVocabulary.RetainedEventCount);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+            _ = store.GetSnapshot();
+            _ = store.GetEventsAfter(held.Snapshot.LatestEventId);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+
+            var compacted = world.ExportState();
+            world.LoadPausedCheckpoint(compacted);
+            var reloaded = store.GetReconnectBaseline(0);
+            Assert.Empty(reloaded.Snapshot.EventTexts);
+            Assert.DoesNotContain(row.EventId, reloaded.Snapshot.EventTexts.Keys);
+            Assert.NotEqual(current.Timeline, reloaded.Timeline);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+
+            world.LoadPausedCheckpoint(reset);
+            var restored = store.GetReconnectBaseline(0);
+            Assert.DoesNotContain(row.EventId, restored.Snapshot.EventTexts.Keys);
+            Assert.NotEqual(current.Timeline, restored.Timeline);
+            Assert.Equal(WorldRuntimeCodec.Encode(reset), WorldRuntimeCodec.Encode(world.ExportState()));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
+        new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
+            RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));
+
+    private static T RoundTrip<T>(object value) =>
+        JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Wire), Wire)!;
+}

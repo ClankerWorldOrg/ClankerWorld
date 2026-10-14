@@ -109,7 +109,7 @@ public partial class Main
                     return captured;
                 };
                 host.Reconnect = new(new(new(1, 1),
-                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1"], []),
                     new(new("usage-world", 0, "usage-map", [new(0, 0, "meadow")], [], [], null, 0)
                     { Authoring = new(true, 0, 0, 0, "usage-map", "usage-map", "clear", "spring", []) }, new(0, 0, [])));

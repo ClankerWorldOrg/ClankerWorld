@@ -66,7 +66,7 @@ public partial class Main
                 .Select(id => new OwnerWorldEvent(id, tick, "timeline_smoke", $"generation:{generation}") { Text = "An event was recorded." })
                 .ToArray();
             return new(new(new(1, 1),
-                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1", "owner-observation-timeline.v1"], []),
                 new(snapshot, new(tick, 0, events), new("timeline-ui-host", generation)));
         }
