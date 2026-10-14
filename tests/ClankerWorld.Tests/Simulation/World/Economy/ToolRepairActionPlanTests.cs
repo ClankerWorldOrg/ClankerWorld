@@ -46,7 +46,9 @@ public sealed class ToolRepairActionPlanTests
             } : town).ToArray(),
         };
         using var changed = WorldRuntime.Restore(resettled);
-        Assert.Equal(ActionRefusalReason.StockUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
+        var check = changed.CheckActionPlan(plan);
+        Assert.False(check.Allowed);
+        Assert.Equal(ActionRefusalReason.StockUnavailable, check.Refusal!.Reason);
         Assert.Equal(checkpoint.Society.Society.Inventory.GetLot("repair-plan-warehouse-wood"),
             changed.Society.Inventory.GetLot("repair-plan-warehouse-wood"));
         changed.Validate();
