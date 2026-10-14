@@ -4,15 +4,19 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy CivicMembershipCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    internal static ActorCapabilityPolicy CivicVisitCapabilities =>
+        new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static CivicVisitActionPlan? PlanCivicVisit(ITownWorld world, string actor, CivicVisitChoice choice) =>
         world.Agents.ContainsKey(actor) && world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is { } town &&
         CivicBoard(world, town) is { } board
             ? new(actor, choice, board, world.ReachCivicNoticePlace(actor, board)) : null;
 
-    internal ActionCheck CheckCivicVisit(ITownWorld world, CivicVisitActionPlan plan)
+    internal ActionCheck CheckCivicVisit(ITownWorld world, CivicVisitActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CivicVisitCapabilities);
         if (!capability.Allowed) return capability;
         var town = world.Towns.SingleOrDefault(item => item.Id == plan.Choice.TownId);
         return town?.Council is not null && CivicBoard(world, town) == plan.NoticePlace &&
@@ -271,7 +275,7 @@ internal sealed partial class TownSystem
                 continue;
             }
             if (CivicVisitChoice.Decode(candidate.Id) is not { } choice) continue;
-            if (PlanCivicVisit(world, actor, choice) is { } plan && CheckCivicVisit(world, plan).Allowed)
+            if ((candidate.ActionPlan as CivicVisitActionPlan ?? PlanCivicVisit(world, actor, choice)) is { } plan && CheckCivicVisit(world, plan).Allowed)
                 candidates[index] = candidate with { ActionPlan = plan };
             else candidates.RemoveAt(index);
         }

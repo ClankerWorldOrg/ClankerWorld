@@ -20,7 +20,12 @@ internal sealed partial class TownSystem
         var atBoard = NearCivicBoard(world, actor, town);
         var history = CivicHistory(town);
         if (!atBoard && MayVisitNonLandCase(world, actor, town) && !candidates.Any(candidate => candidate.Id == CivicAction(world, town.Id, "visit")))
-            candidates.Add(new(CivicAction(world, town.Id, "visit"), "Visit the public notice place for a reported act you actually know about. Visiting grants no membership or private access.", 175));
+        {
+            var choice = new CivicVisitChoice(town.Id);
+            if (PlanCivicVisit(world, actor, choice) is { } plan && CheckCivicVisit(world, plan).Allowed)
+                candidates.Add(new(choice.Encode(), "Visit the public notice place for a reported act you actually know about. Visiting grants no membership or private access.", 175)
+                { ActionPlan = plan });
+        }
         if (adult && atBoard)
             foreach (var report in NonLandKnownReports(world, town, actor).Where(report => !town.NonLandHearings.Cases.Any(item =>
                          item.Key == TownNonLandRules.CaseKey(town.Id, report.Allegation) &&

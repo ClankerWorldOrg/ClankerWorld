@@ -87,6 +87,34 @@ public sealed class NonLandChildStatementTests
             candidate => candidate.Id.Contains("|law_case_answer|", StringComparison.Ordinal));
         Assert.Equal(parents[0], actual.Revisions[^1].Parties.Single(party => party.SubjectId == child).RespondingAdultId);
         state = NonLandRuntimeFixture.Strict(world.ExportState());
+        Assert.Contains(state.Towns![0].Council!.Knowledge,
+            receipt => receipt.AgentId == child && receipt.NoticeId == actual.Revisions[^1].NoticeId);
+        var away = TownCivicVisitContinuationTests.ReachableDistantPosition(state, child, board, allowOccupiedBoard: true);
+        var visitor = new NonLandTestProvider
+        {
+            Choose = observation => observation.AgentId == child ? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|visit|", StringComparison.Ordinal)) : null
+        };
+        using (var visiting = NonLandRuntimeFixture.Create(state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == child || person.AgentId == parents[0]
+                ? person with { Position = away, TravelCooldownTicks = 0 } : person).ToArray()
+        }, visitor))
+        {
+            NonLandRuntimeFixture.Wake(visiting, child, "child-known-case-visit");
+            var step = await visiting.AdvanceOneTickAsync();
+            var visit = Assert.Single(step.Decisions, decision => decision.AgentId == child);
+            Assert.True(visit.ActionPlan is CivicVisitActionPlan,
+                "Offered child choices: " + string.Join(", ", visitor.Observations.Where(observation => observation.AgentId == child)
+                    .SelectMany(observation => observation.Candidates).Select(candidate => candidate.Id)));
+            var plan = Assert.IsType<CivicVisitActionPlan>(visit.ActionPlan);
+            Assert.True(visit.Admission.Accepted);
+            Assert.False(visit.Admission.FellBack);
+            Assert.Null(visit.PlanRefusal);
+            Assert.Same(plan, visitor.Observations.Single(observation => observation.AgentId == child)
+                .Candidates.Single(candidate => candidate.Id == plan.CandidateId).ActionPlan);
+            Assert.NotEqual(away, visiting.Agents.Single(person => person.AgentId == child).Position);
+        }
         var adults = state.Towns![0].ResidentIds.Where(id => LifeStageRules.IsAdult(state.Society.Society.GetAgent(id).AgeBand)).ToArray();
         var adjudicator = adults.First(id => id != NonLandRuntimeFixture.Witness && state.Society.Society.GetAgent(id).HouseholdId != household.Id);
         town = state.Towns[0];

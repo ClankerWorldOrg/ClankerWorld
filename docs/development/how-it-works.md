@@ -3165,6 +3165,12 @@ mayoral ballots also have fresh-admission definitions. They reuse the existing
 TownSystem planners and checks, preserve bound law wording and original terms,
 and apply through the original civic writer after the same personal guards.
 
+Notice visits, reading and relay, Town founding/resettlement and admission have
+fresh-admission definitions too. They keep the original notice place/history,
+recipient, founding site and dependent group. The visit policy admits non-infants;
+existing reason checks restrict child visits to known non-land cases. Child case
+visits retain their offered plan and use the same check before native walking.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may
