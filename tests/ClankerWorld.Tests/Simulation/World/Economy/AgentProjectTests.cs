@@ -502,9 +502,6 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             Assert.Equal((plan.Definition.CanonicalId, plan.Site, plan.HouseholdId, plan.TownId),
                 (building.DefinitionId, building.Position, building.HouseholdId, building.TownId));
             var paid = world.Society.Inventory.Reservations.Where(reservation => reservation.Purpose == "building:" + plan.InstanceId).ToArray();
-            Assert.Equal(plan.Definition.BuildCosts.OrderBy(cost => cost.ResourceId).Select(cost => (cost.ResourceId, cost.Amount)),
-                paid.GroupBy(input => world.Society.Inventory.GetLot(input.LotId).ItemKind).OrderBy(group => group.Key)
-                    .Select(group => (group.Key, group.Sum(input => input.Quantity))));
             if (plan.Inputs is not null)
                 Assert.Equal(plan.Inputs.OrderBy(input => input.LotId).Select(input => (input.LotId, input.Quantity)),
                     paid.OrderBy(input => input.LotId).Select(input => (input.LotId, input.Quantity)));

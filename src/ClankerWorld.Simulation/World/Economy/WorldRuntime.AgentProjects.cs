@@ -558,12 +558,6 @@ public sealed partial class WorldRuntime
                 constructionPlan = PlanConstruction(agentId, building, plannedSite);
                 constructionProjectPlans[agentId] = (project.StartedTick, constructionPlan);
             }
-            if (CheckConstruction(constructionPlan).Refusal is { } refusal)
-            {
-                RefuseChoice(constructionPlan, refusal);
-                SetProject(agentId, project with { Stage = "paused", Blocker = refusal.Explanation, RequiresFreshChoice = true });
-                return;
-            }
         }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
         {
@@ -609,6 +603,12 @@ public sealed partial class WorldRuntime
                 Stage = "cancelled",
                 Blocker = "This Town already has a Warehouse, or the builder is no longer a resident.",
             });
+            return;
+        }
+        if (constructionPlan is not null && CheckConstruction(constructionPlan, checkDestination: false).Refusal is { } constructionRefusal)
+        {
+            RefuseChoice(constructionPlan, constructionRefusal);
+            SetProject(agentId, project with { Stage = "paused", Blocker = constructionRefusal.Explanation, RequiresFreshChoice = true });
             return;
         }
         var inputs = building?.BuildCosts ?? recipe!.Inputs;

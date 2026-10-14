@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
         return selected.ToArray();
     }
 
-    private ActionCheck CheckConstruction(ConstructionActionPlan plan)
+    private ActionCheck CheckConstruction(ConstructionActionPlan plan, bool checkDestination = true)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
             new(ActionLifeStages.Adults, AllowUrgentFood: false,
@@ -72,11 +72,11 @@ public sealed partial class WorldRuntime
             (plan.TownId is null || worldSimulation.Buildings.Any(building => building.TownId == plan.TownId &&
                 worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("warehouse", StringComparer.Ordinal)))))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected Town already has a Warehouse or is unavailable");
-        if (!TownLayoutService.TryEvaluateConstructionSite(CreateTownLayoutContext(plan.Actor, plan.Site, plan.Definition), plan.Definition, plan.Site, out _))
+        if (checkDestination && !TownLayoutService.TryEvaluateConstructionSite(CreateTownLayoutContext(plan.Actor, plan.Site, plan.Definition), plan.Definition, plan.Site, out _))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected building footprint is no longer legal");
         var inputs = CheckConstructionInputs(plan.MaterialOwnerId, plan.Inputs);
         if (!inputs.Allowed) return inputs;
-        return agents[plan.Actor].Position == plan.Site || Reach(plan.Actor, plan.Site, ReachPurpose.Construction, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
+        return !checkDestination || agents[plan.Actor].Position == plan.Site || Reach(plan.Actor, plan.Site, ReachPurpose.Construction, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected construction site is out of reach");
     }
 
