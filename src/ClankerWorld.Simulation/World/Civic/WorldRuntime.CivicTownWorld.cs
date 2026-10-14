@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
         public void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor) => runtime.AddToolRepairCandidates(candidates, actor);
         public void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownProjectProposalCandidates(candidates, actor, town);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);

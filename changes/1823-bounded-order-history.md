@@ -1,0 +1,2 @@
+- Saves keep typed tasks for each agent's current orders and six most recent ended orders. Older alpha saves are kept on disk but cannot be loaded.
+- Retiring an old order preserves valid exploration saves and marks paid construction complete even when its receipt leaves recent history.

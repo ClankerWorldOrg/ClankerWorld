@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
@@ -33,7 +34,7 @@ public sealed partial class WorldConversationTests
         {
             var replacement = previous with
             {
-                Id = $"belief:validation-correction:{correction:D3}",
+                Id = Identity.Create($"belief:validation-correction:{correction:D3}"),
                 Statement = $"A private clarification of the heard claim, version {correction}.",
                 SourceTurnId = correction % 2 == 0 ? original.SourceTurnId : null,
             };
@@ -56,11 +57,11 @@ public sealed partial class WorldConversationTests
         Assert.Equal(fullBytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(fullBytes)));
 
         Assert.Throws<InvalidDataException>(() => SocietyRules.RecordAgentBelief(checkpoint,
-            original with { Id = "belief:unrelated-duplicate", SupersededByBeliefId = null, SupersededTick = null }));
-        var duplicate = original with { Id = "belief:unrelated-duplicate", SupersededByBeliefId = null, SupersededTick = null };
+            original with { Id = Identity.Parse("belief:unrelated-duplicate"), SupersededByBeliefId = null, SupersededTick = null }));
+        var duplicate = original with { Id = Identity.Parse("belief:unrelated-duplicate"), SupersededByBeliefId = null, SupersededTick = null };
         Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(checkpoint with
         {
-            Beliefs = checkpoint.Beliefs.Append(duplicate).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            Beliefs = checkpoint.Beliefs.Append(duplicate).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
         }));
         void Reject(SocietyAgentBelief changed) => Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(checkpoint with
         {
@@ -69,13 +70,13 @@ public sealed partial class WorldConversationTests
         Reject(original with { OwnerId = "unknown-owner" });
         Reject(original with { SourceAgentId = "unknown-reporter" });
         Reject(original with { AboutAgentId = "unknown-subject" });
-        Reject(original with { SupersedesBeliefId = "belief:missing" });
-        Reject(original with { SupersededByBeliefId = "belief:missing", SupersededTick = checkpoint.WorldTick });
+        Reject(original with { SupersedesBeliefId = Identity.Parse("belief:missing") });
+        Reject(original with { SupersededByBeliefId = Identity.Parse("belief:missing"), SupersededTick = checkpoint.WorldTick });
 
         // Even equal-tick reciprocal links must not admit a correction cycle.
         var pair = state.Society.Society;
         pair = SocietyRules.CorrectAgentBelief(pair, original.OwnerId, original.Id,
-            original with { Id = "belief:cyclic-correction" });
+            original with { Id = Identity.Parse("belief:cyclic-correction") });
         var ids = new[] { original.Id, "belief:cyclic-correction" };
         var cyclic = pair with
         {
@@ -83,8 +84,8 @@ public sealed partial class WorldConversationTests
             {
                 SourceTurnId = null,
                 FormedTick = pair.WorldTick,
-                SupersedesBeliefId = item.Id == ids[0] ? ids[1] : ids[0],
-                SupersededByBeliefId = item.Id == ids[0] ? ids[1] : ids[0],
+                SupersedesBeliefId = Identity.Parse(item.Id == ids[0] ? ids[1] : ids[0]),
+                SupersededByBeliefId = Identity.Parse(item.Id == ids[0] ? ids[1] : ids[0]),
                 SupersededTick = pair.WorldTick,
             } : item).ToArray(),
         };
@@ -107,10 +108,10 @@ public sealed partial class WorldConversationTests
         Assert.Contains(checkpoint.ArchivedBeliefs, item => item.Belief == original);
 
         checkpoint = SocietyRules.CorrectAgentBelief(checkpoint, original.OwnerId, original.Id,
-            original with { Id = "belief:archived-first-correction", Statement = "The archived claim needed a correction." });
+            original with { Id = Identity.Parse("belief:archived-first-correction"), Statement = "The archived claim needed a correction." });
         var first = Assert.Single(checkpoint.Beliefs!);
         checkpoint = SocietyRules.CorrectAgentBelief(checkpoint, original.OwnerId, first.Id,
-            original with { Id = "belief:archived-second-correction", Statement = "A further correction keeps the original source." });
+            original with { Id = Identity.Parse("belief:archived-second-correction"), Statement = "A further correction keeps the original source." });
         checkpoint = SocietyRules.RecordAgentMemoryCompaction(checkpoint, original.OwnerId,
             [new(original.Id, SocietyMemorySourceKind.Belief, original.FormedTick, 8_000, 8_500, checkpoint.WorldTick)]);
         var archived = Assert.Single(checkpoint.ArchivedBeliefs, item => item.Belief.Id == original.Id);
@@ -120,7 +121,7 @@ public sealed partial class WorldConversationTests
         Assert.Equal(state.Society.Society.Beliefs!.Count + 2, checkpoint.AllBeliefs().Count());
         var bytes = SocietyCheckpointCodec.Encode(checkpoint);
         Assert.Throws<InvalidDataException>(() => SocietyRules.RecordAgentBelief(checkpoint,
-            original with { Id = "belief:archived-unrelated-duplicate" }));
+            original with { Id = Identity.Parse("belief:archived-unrelated-duplicate") }));
         Assert.Equal(bytes, SocietyCheckpointCodec.Encode(checkpoint));
         Assert.Equal(bytes, SocietyCheckpointCodec.Encode(SocietyCheckpointCodec.Decode(bytes)));
     }
@@ -135,8 +136,7 @@ public sealed partial class WorldConversationTests
         world.StartWorld();
         for (var attempt = 0; attempt < 80 && (world.Society.Beliefs ?? []).Count(item => item.SourceTurnId is not null) < 12; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
         var beliefs = world.Society.Beliefs!;
         Assert.True(beliefs.Count(item => item.SourceTurnId is not null) >= 12,

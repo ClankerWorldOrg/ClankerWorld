@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
             if (!EligibleCaregiver(edge.ProposerId, edge.TargetId) || WorldTick - edge.ProposedTick > 120)
             {
                 society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, edge.Id, edge.ProposerId));
-                AppendEvent("caregiver_proposal_expired", edge.TargetId);
+                AppendEvent(new CaregiverProposalExpiredEventPayload(edge.TargetId, edge.TargetId));
             }
         }
 
@@ -77,7 +77,7 @@ public sealed partial class WorldRuntime
             {
                 search = NewGuardianSearch(child, WorldTick);
                 SetGuardianSearch(child, search);
-                AppendEvent("guardian_needed", child);
+                AppendEvent(new GuardianNeededEventPayload(child));
                 continue;
             }
 
@@ -291,7 +291,7 @@ public sealed partial class WorldRuntime
             if (edge is not null && EligibleCaregiver(edge.ProposerId, actor))
             {
                 society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, edge.Id, edge.Revision, actor));
-                AppendEvent("caregiver_accepted", actor);
+                AppendEvent(new CaregiverAcceptedEventPayload(actor));
             }
             return;
         }
@@ -302,7 +302,7 @@ public sealed partial class WorldRuntime
                 (edge.State == SocietyRelationshipState.Accepted || edge.State == SocietyRelationshipState.Proposed && edge.ProposerId == actor));
             if (existing is null) return;
             society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, target, actor));
-            AppendEvent("caregiver_ended", actor);
+            AppendEvent(new CaregiverEndedEventPayload(actor));
             ReconcileGuardianPlacements();
             return;
         }
@@ -311,7 +311,7 @@ public sealed partial class WorldRuntime
             if (!CanAssumePrimaryCare(actor, target)) return;
             var result = society.Apply(checkpoint => SocietyRules.AssumePrimaryCare(checkpoint, actor, target));
             if (result.NewEvents?.Any(item => item.Kind == "primary_caregiver_assumed") == true)
-                AppendEvent("primary_caregiver_assigned", target);
+                AppendEvent(new PrimaryCaregiverAssignedEventPayload(target));
             ReconcileGuardianPlacements();
             return;
         }
@@ -321,14 +321,14 @@ public sealed partial class WorldRuntime
             if (society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant)
             {
                 var result = society.Apply(checkpoint => SocietyRules.AssumeInfantCare(checkpoint, actor, target));
-                if (result.CreatedId is not null) AppendEvent("caregiver_assigned", target);
+                if (result.CreatedId is not null) AppendEvent(new CaregiverAssignedEventPayload(target));
             }
             else
             {
                 society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
                     new(NewCareRelationshipId(actor, target, WorldTick), 1, SocietyRelationshipType.Caregiver,
                         actor, target, WorldTick, PrivacyClass: "public", HouseholdId: HouseholdFor(actor))));
-                AppendEvent("caregiver_proposed", target);
+                AppendEvent(new CaregiverProposedEventPayload(target));
             }
             return;
         }
@@ -337,7 +337,7 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("guardian_refuse:", StringComparison.Ordinal))
         {
             society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, proposal.Id, proposal.Revision, actor));
-            AppendEvent("caregiver_refused", actor);
+            AppendEvent(new CaregiverRefusedEventPayload(actor));
         }
     }
 
@@ -359,7 +359,7 @@ public sealed partial class WorldRuntime
         SetGuardianSearch(child, null);
         BeginGuardianPlacement(child, adult, result.CreatedId!);
         SetHousing(child, (agents[child].Housing ?? new()) with { Blocker = HousingBlocker(child) });
-        AppendEvent("guardian_assigned", child);
+        AppendEvent(new GuardianAssignedEventPayload(child));
     }
 
     private static void ValidateDependentCare(
@@ -419,6 +419,6 @@ public sealed partial class WorldRuntime
             },
         };
         agents[dependent] = recipient;
-        AppendEvent("dependent_cared_for", dependent);
+        AppendEvent(new DependentCaredForEventPayload(dependent));
     }
 }

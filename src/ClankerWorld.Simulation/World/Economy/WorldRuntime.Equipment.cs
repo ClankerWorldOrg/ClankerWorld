@@ -146,7 +146,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_equipped", $"{actor}|{equippedId}|{item.ItemKind}");
+        AppendEvent(new EquipmentEquippedEventPayload(actor, equippedId, item.ItemKind));
     }
 
     private bool CanContinueEquipmentRepair(string actor) => agents[actor].Equipment?.Repair is { } repair &&
@@ -180,10 +180,10 @@ public sealed partial class WorldRuntime
         agents[actor] = agents[actor] with
         {
             Equipment = (person.Equipment ?? new PersonalEquipment()) with
-            { Repair = new(targetId, buildingId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
+            { Repair = new(targetId, buildingId, WorldTick, 0, ids.Select(Identity.Parse).ToArray(), orderInstructionId) },
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_repair_started", $"{actor}|{targetId}|{buildingId}");
+        AppendEvent(new EquipmentRepairStartedEventPayload(actor, targetId, buildingId));
     }
 
     private EquipmentRepairWork? ContinueEquipmentRepair(string actor)
@@ -214,7 +214,7 @@ public sealed partial class WorldRuntime
         GainSkill(actor, SkillKind.Crafting);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
-        AppendEvent("equipment_repaired", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairedEventPayload(actor, repair.LotId));
         return repair;
     }
 
@@ -230,7 +230,7 @@ public sealed partial class WorldRuntime
         });
         var person = agents[actor];
         agents[actor] = person with { Equipment = person.Equipment! with { Repair = null } };
-        AppendEvent("equipment_repair_interrupted", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairInterruptedEventPayload(actor, repair.LotId));
     }
 
     private void WearEquippedClothing()

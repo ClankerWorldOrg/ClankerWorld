@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Kernel;
 
@@ -42,7 +43,7 @@ public sealed partial class TownLandTransferRuntimeTests
         using var restored = WorldRuntime.Restore(saved, _ => provider);
         provider.PaySales = true;
         foreach (var actor in offered.Parties.SelectMany(party => party.AdultIds))
-            restored.SubmitInstruction(new("mod-land-pay-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestion, "Consider completing the agreed goods payment."));
+            restored.SubmitInstruction(new(DerivedId.Create("mod-land-pay-" + actor), "owner:test", actor, OwnerInstructionKind.Suggestion, "Consider completing the agreed goods payment."));
         await UntilAsync(restored, () => restored.Towns[0].LandRecords.Transfers[0].Status == "transferred", 100, provider);
         var completed = Assert.Single(restored.Towns[0].LandRecords.Transfers);
         var payment = Assert.IsType<TownLandSalePayment>(completed.Receipt!.Payment);
