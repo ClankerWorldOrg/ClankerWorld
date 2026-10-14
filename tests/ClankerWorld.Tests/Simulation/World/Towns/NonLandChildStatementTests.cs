@@ -100,16 +100,33 @@ public sealed class NonLandChildStatementTests
         var judgeProvider = new NonLandTestProvider
         {
             Choose = observation => observation.AgentId == adjudicator ? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|visit|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id.Contains("|read|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id.Contains("|law_case_find|", StringComparison.Ordinal) && candidate.Id.EndsWith("|unsupported", StringComparison.Ordinal)) : null,
             Payload = (_, choice) => choice.Id.Contains("|law_case_find|", StringComparison.Ordinal)
                 ? new(Statement: "The record does not establish an adverse finding.", Uncertainty: "I do not infer a child's intent from this passage.") : null
         };
+        using (var clock = NonLandRuntimeFixture.Create(state, new NonLandTestProvider()))
+        {
+            await NonLandRuntimeFixture.UntilAsync(clock, () => TownGovernmentRules.CurrentNonLandAuthority(clock.Towns[0].Government!, clock.WorldTick)?.HolderId == adjudicator,
+                NonLandRuntimeFixture.Day + 3);
+            state = NonLandRuntimeFixture.Strict(clock.ExportState());
+        }
         using (var adjudicating = NonLandRuntimeFixture.Create(state, judgeProvider))
         {
+            NonLandRuntimeFixture.Wake(adjudicating, adjudicator, "consider-child-case-with-current-mayor-authority");
+            var attempts = 0;
             await NonLandRuntimeFixture.UntilAsync(adjudicating, () => adjudicating.Towns[0].NonLandHearings.Cases.Any(item => item.Id == actual.Id && item.Status == "settled"),
-                NonLandRuntimeFixture.Day * 3);
+                12, result =>
+                {
+                    if (++attempts == 12)
+                    {
+                        var file = adjudicating.Towns[0].NonLandHearings.Cases.Single(item => item.Id == actual.Id);
+                        Assert.True(file.Status == "settled", "Judge: " + file.Judge + "; read: " + TownNonLandRules.ReadCurrent(file, adjudicator, adjudicating.WorldTick) +
+                            "; selected: " + string.Join(", ", judgeProvider.Selected.TakeLast(8)) + "; refusals: " + string.Join(", ", result.Events.Where(item => item.Kind == "choice_refused").Select(item => item.Detail)));
+                    }
+                });
             state = NonLandRuntimeFixture.Strict(adjudicating.ExportState());
         }
         var requesting = new NonLandTestProvider

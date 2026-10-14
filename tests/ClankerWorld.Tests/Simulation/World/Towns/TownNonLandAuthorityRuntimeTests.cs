@@ -123,8 +123,10 @@ public sealed class TownNonLandAuthorityRuntimeTests
             if (repealWhileHeld)
             {
                 Assert.True(admitted.Decisions.Any(decision => decision.AgentId == NonLandRuntimeFixture.Judge &&
-                        (!decision.Admission.Accepted || decision.Admission.FellBack)) ||
+                        (!decision.Admission.Accepted || decision.Admission.FellBack || decision.PlanRefusal is not null)) ||
                     admitted.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == NonLandRuntimeFixture.Judge));
+                if (admitted.Decisions.Any(decision => decision.AgentId == NonLandRuntimeFixture.Judge && decision.PlanRefusal is not null))
+                    Assert.Contains(admitted.Events, item => item.Kind == "choice_refused");
                 Assert.Equal("pending", file.Status);
                 Assert.Empty(file.Findings);
                 Assert.Empty(world.Towns[0].NonLandHearings.Agreements);
