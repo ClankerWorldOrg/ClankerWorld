@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Market stock loads, deposits and collections retain their exact lot, owner,
+quantity, origin, stall, occupancy and arrival phase. Shared checks preserve
+surplus reserves and physical spoiled-stock collection, including jug families,
+before the original inventory move or deposit receipt writer runs.
 Market borrowing and leaving retain their selected stall, household, personal
 qualifying stock and original occupancy. Shared checks keep borrowing at a fresh
 personal arrival and send leaving to the same native cancellation/release writer.

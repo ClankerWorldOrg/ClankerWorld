@@ -182,6 +182,49 @@ public sealed partial class WorldRuntime
         return null;
     }
 
+    private bool CanCollectMarketStock(string actor, InventoryLot lot, MarketStallOccupancy? occupancy, InventoryCheckpoint inventory) =>
+        (MarketTradeRules.IsLoose(lot) || lot.ItemKind == InventoryContainerRules.WaterJug &&
+            VesselFits(lot, FreeCarryCapacity(actor)) && !HasActiveContainerReservation(inventory, lot.Id)) && OwnMarketGoods(actor, lot) &&
+        (lot.OwnerId == actor || occupancy is null || occupancy.SellerHouseholdId != lot.OwnerId || occupancy.SellerAgentId == actor) &&
+        PhysicalUnreservedQuantity(lot) > 0 && CanCarryMarketGoods(actor, lot);
+
+    private MarketStockActionPlan PlanMarketStock(string actor, MarketChoice choice)
+    {
+        var kind = choice.Kind == "load" ? MarketStockKind.Load : choice.Kind == "deposit" ? MarketStockKind.Deposit : MarketStockKind.Collect;
+        var target = kind == MarketStockKind.Load ? HouseholdStockPosition(choice.Lot!) : MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
+        var range = kind == MarketStockKind.Load ? HouseholdStockInteractionRange(choice.Lot!) : ResourceInteractionRange;
+        return new(actor, new(kind, choice.Market.Id, choice.Stall.BuildingId, choice.Lot!.Id, choice.Quantity, choice.Occupancy?.Id,
+            IsWithinInteractionRange(agents[actor].Position, target, range)), choice.Town.Id, HouseholdFor(actor), choice.Market.Site,
+            choice.Stall.SlotIndex, choice.Lot.OwnerId, choice.Lot.ItemKind, target, range, choice.Lot.CarrierId,
+            choice.Lot.StorageBuildingId, choice.Lot.GroundPosition, choice.Occupancy,
+            InventoryContainerRules.IsContainer(choice.Lot.ItemKind) ? GoodsPlanFamily.Capture(society.Checkpoint.Inventory, choice.Lot) : null,
+            Reach(actor, target, ReachPurpose.MarketStock, range, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private bool MarketStockFamilyMatches(InventoryLot lot, IReadOnlyList<PlannedStockMember>? family) =>
+        GoodsPlanFamily.Matches(society.Checkpoint.Inventory, lot, family);
+
+    private InventoryLot? CurrentMarketStock(MarketStockActionPlan plan, TownMarketState market, MarketStallState stall, MarketStallOccupancy? occupancy)
+    {
+        if (plan.Choice.Kind == MarketStockKind.Collect)
+        {
+            var stock = MarketTradeRules.StockAt(market, stall.BuildingId, MarketContent.StallSite(market.Site, stall.SlotIndex), society.Checkpoint.Inventory)
+                .SingleOrDefault(lot => lot.Id == plan.Choice.StockId);
+            return stock is not null && CanCollectMarketStock(plan.Actor, stock, occupancy, society.Checkpoint.Inventory) &&
+                Math.Min(MarketTradeRules.LoadQuantity, Math.Min(PhysicalUnreservedQuantity(stock), FreeCarryCapacity(plan.Actor))) >= plan.Choice.Quantity ? stock : null;
+        }
+        var goods = MarketGoodsFor(plan.Actor);
+        var lot = goods.Matches.Select(match => match.Lot).SingleOrDefault(item => item.Id == plan.Choice.StockId);
+        if (lot is null) return null;
+        if (plan.Choice.Kind == MarketStockKind.Load)
+            return MarketLoadSources(plan.Actor, goods).Any(item => item.Id == lot.Id) && !PersonalEquipmentRules.IsCarried(lot, plan.Actor) &&
+                Math.Min(MarketTradeRules.LoadQuantity, Math.Min(MarketSurplus(plan.Actor, lot, goods), FreeCarryCapacity(plan.Actor))) >= plan.Choice.Quantity &&
+                MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) < MarketTradeRules.StallCapacity ? lot : null;
+        var room = MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall) - MarketIncomingPayment(market, stall);
+        return MarketTradeRules.IsLoose(lot) && PersonalEquipmentRules.IsCarried(lot, plan.Actor) && !ProtectedMarketItem(plan.Actor, lot) &&
+            Math.Min(MarketTradeRules.LoadQuantity, Math.Min(room, MarketSurplus(plan.Actor, lot, goods))) >= plan.Choice.Quantity ? lot : null;
+    }
+
     private IEnumerable<MarketChoice> MarketChoices(string actor)
     {
         if (!MarketAdult(actor)) yield break;
@@ -197,11 +240,7 @@ public sealed partial class WorldRuntime
                     var occupancy = MarketOccupant(market, stall);
                     // Owners retain physical collection even after the building or borrowing ends.
                     foreach (var lot in MarketTradeRules.StockAt(market, stall.BuildingId, position, inventory)
-                                 .Where(lot => (MarketTradeRules.IsLoose(lot) || lot.ItemKind == InventoryContainerRules.WaterJug &&
-                                         VesselFits(lot, FreeCarryCapacity(actor)) && !HasActiveContainerReservation(inventory, lot.Id)) && OwnMarketGoods(actor, lot) &&
-                                     (lot.OwnerId == actor || occupancy is null || occupancy.SellerHouseholdId != lot.OwnerId ||
-                                         occupancy.SellerAgentId == actor) &&
-                                     PhysicalUnreservedQuantity(lot) > 0 && CanCarryMarketGoods(actor, lot)))
+                                 .Where(lot => CanCollectMarketStock(actor, lot, occupancy, inventory)))
                     {
                         var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(PhysicalUnreservedQuantity(lot), FreeCarryCapacity(actor)));
                         if (quantity > 0 && CanReachMarketPoint(actor, position, ResourceInteractionRange))
@@ -287,8 +326,13 @@ public sealed partial class WorldRuntime
                      .OrderBy(item => item.Kind is "continue" or "cancel" or "leave" ? 0 : 1)
                      )
         {
-            var plan = choice.Kind is "borrow" or "leave" ? PlanMarketOccupancy(actor, choice) : null;
-            if (choice.Kind is "borrow" or "leave" && (plan is null || !CheckMarketOccupancy(plan).Allowed)) continue;
+            ActionPlan? plan = choice.Kind switch
+            {
+                "borrow" or "leave" => PlanMarketOccupancy(actor, choice),
+                "load" or "deposit" or "collect" => PlanMarketStock(actor, choice),
+                _ => null,
+            };
+            if (choice.Kind is "borrow" or "leave" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
             var offer = choice.Trade is { } trade ? society.Checkpoint.Inventory.GetOffer(trade.OfferId) : null;
             var text = choice.Kind switch
             {
@@ -323,6 +367,7 @@ public sealed partial class WorldRuntime
     {
         if (!IsMarketCandidate(id)) return false;
         if (originalPlan is MarketOccupancyActionPlan occupancyPlan) { ApplyMarketOccupancy(occupancyPlan); return true; }
+        if (originalPlan is MarketStockActionPlan stockPlan) { ApplyMarketStock(stockPlan); return true; }
         var choice = MarketChoices(actor).SingleOrDefault(item => item.Id == id);
         if (choice is null) return true;
         var position = MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
@@ -331,6 +376,7 @@ public sealed partial class WorldRuntime
             if (PlanMarketOccupancy(actor, choice) is { } plan) ApplyMarketOccupancy(plan);
             return true;
         }
+        if (choice.Kind is "load" or "deposit" or "collect") { ApplyMarketStock(PlanMarketStock(actor, choice)); return true; }
         if (choice.Kind is "continue" or "cancel")
         {
             ContinueMarketTrade(actor, state, choice, choice.Kind == "cancel");
@@ -345,25 +391,23 @@ public sealed partial class WorldRuntime
         }
         switch (choice.Kind)
         {
-            case "load":
-            case "collect":
-                ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-                    MarketTradeRules.Identity("market-pickup:", actor, id, WorldTick.ToString(CultureInfo.InvariantCulture)),
-                    choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor,
-                    holdAccess: choice.Kind == "collect" && choice.Occupancy is { } loan
-                        ? [new(InventoryHoldPurpose.MarketStall, loan.Id), new(InventoryHoldPurpose.Borrowed, actor)]
-                        : InventoryHoldRules.BorrowedBy(actor)));
-                AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
-                    $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", destination);
-                break;
-            case "deposit":
-                DepositMarketStock(actor, choice, position);
-                break;
             case "buy":
                 OfferMarketTrade(actor, choice, position);
                 break;
         }
         return true;
+    }
+
+    private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position)
+    {
+        ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
+            MarketTradeRules.Identity("market-pickup:", actor, choice.Id, WorldTick.ToString(CultureInfo.InvariantCulture)),
+            choice.Lot!.Id, choice.Lot.OwnerId, choice.Quantity, carrierId: actor,
+            holdAccess: choice.Kind == "collect" && choice.Occupancy is { } loan
+                ? [new(InventoryHoldPurpose.MarketStall, loan.Id), new(InventoryHoldPurpose.Borrowed, actor)]
+                : InventoryHoldRules.BorrowedBy(actor)));
+        AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
+            $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", position);
     }
 
     private void BorrowMarketStall(string actor, MarketChoice choice, GridPoint position)
