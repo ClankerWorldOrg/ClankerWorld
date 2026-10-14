@@ -28,7 +28,10 @@ public sealed record GoodsPlace(GoodsPlaceKind Kind, string? BuildingId = null,
     GridPoint? Position = null, string? CarrierId = null, string? DeliveryBuildingId = null);
 
 public enum GoodsReason { Owner, Kind, Place, Damaged, Spoiled, Vessel, Empty, Reservation, Delivery, MarketStall, Custody, CarryRoom, Route, DestinationRoom }
-public sealed record GoodsMatch(InventoryLot Lot, InventoryLot Root, GoodsPlace Place, int Quantity, int MoveUnits);
+public sealed record GoodsMatch(InventoryLot Lot, InventoryLot Root, GoodsPlace Place, int Quantity, int MoveUnits)
+{
+    public IReadOnlyList<InventoryHold> RequiredHolds => (Lot.Holds ?? []).Concat(Root.Holds ?? []).Distinct().ToArray();
+}
 public sealed record GoodsAnswer(IReadOnlyList<GoodsMatch> Matches, IReadOnlyList<(string LotId, GoodsReason Reason)> Excluded,
     long CoveredReservations = 0)
 {

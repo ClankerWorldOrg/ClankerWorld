@@ -162,8 +162,8 @@ public sealed partial class WorldRuntime
                 if (quantity <= 0) continue;
                 var reservationId = WritingMaterialReservationId(id, materials.Count);
                 inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, lot.Id, quantity,
-                    AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue);
-                materials.Add(new(reservationId, lot.Id, input.Kind, quantity));
+                    AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                materials.Add(new(Identity.Parse(reservationId), lot.Id, input.Kind, quantity));
                 remaining -= quantity;
                 if (remaining == 0) break;
             }
@@ -177,7 +177,7 @@ public sealed partial class WorldRuntime
             { Recipes = recipes }).ToArray(),
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_knowledge_writing_started", $"{actor}|{kind}|{id}");
+        AppendEvent(new AgentKnowledgeWritingStartedEventPayload(actor, kind, id));
     }
 
     private void CollectKnowledgeMaterial(string actor, AgentState person, string kind, int missing, string plannedLotId)
@@ -196,8 +196,8 @@ public sealed partial class WorldRuntime
         // Resolve household/Town permission for the planned lot again at pickup time.
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             WritingMaterialTransferId(WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
-            "knowledge_material_collected"));
-        AppendEvent("agent_knowledge_material_collected", $"{actor}|{kind}|{quantity}");
+            "knowledge_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        AppendEvent(new AgentKnowledgeMaterialCollectedEventPayload(actor, kind, quantity));
     }
 
     private bool HasLiveWritingInputs(AgentKnowledgeWritingProject project) => project.Materials.All(input =>
@@ -257,7 +257,7 @@ public sealed partial class WorldRuntime
             }).ToArray(),
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_knowledge_artifact_created", $"{actor}|{artifactId}|{project.Kind}|{project.Facts.Count}");
+        AppendEvent(new AgentKnowledgeArtifactCreatedEventPayload(actor, artifactId, project.Kind, project.Facts.Count));
         CreditKnowledgeOrderCompletion(project, artifactId);
     }
 
@@ -276,7 +276,7 @@ public sealed partial class WorldRuntime
         knowledge = knowledge with { WritingProjects = knowledge.WritingProjects.Where(item => item.Id != project.Id).ToArray() };
         knowledge = AgentKnowledgeRules.PruneEarlierFacts(knowledge);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_knowledge_writing_cancelled", $"{project.ActorId}|{project.Kind}|{reason}");
+        AppendEvent(new AgentKnowledgeWritingCancelledEventPayload(project.ActorId, project.Kind, reason));
     }
 
     private void MaintainKnowledgeWriting()

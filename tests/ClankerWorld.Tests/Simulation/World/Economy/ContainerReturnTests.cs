@@ -44,6 +44,7 @@ public sealed class ContainerReturnTests
             OwnerId = actor,
             StorageBuildingId = null,
             DeliveryBuildingId = House,
+            Holds = [new(InventoryHoldPurpose.Delivery, House)],
             LastProcessedTick = carried.LastProcessedTick
         }, carried);
         Assert.Equal(1, world.Society.Inventory.Lots.Where(lot => lot.Id == Vessel || lot.ContainerLotId == Vessel)
@@ -173,7 +174,7 @@ public sealed class ContainerReturnTests
         person.HouseholdId == Alpha && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static WorldRuntime Restore(WorldRuntimeState state, string actor, IDecisionProvider provider) =>
         WorldRuntime.Restore(state, id => id == actor ? provider : new VesselChoices());

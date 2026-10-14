@@ -92,13 +92,13 @@ public sealed class WorkstationSourceReserveTests
             "actual-incoming-wood", "wood", fixture.Household, 1);
         inventory = InventoryAuthority.Transfer(inventory, "actual-house-delivery-promise", fixture.Household,
             deliverer, "actual-incoming-wood", 1, "household_stock_picked_up",
-            destinationDeliveryBuildingId: fixture.House.InstanceId);
+            destinationDeliveryBuildingId: fixture.House.InstanceId, holdAccess: StockHoldTestState.Access(inventory, "actual-incoming-wood"));
         var incoming = inventory.GetLot("actual-incoming-wood");
         Assert.Equal((deliverer, fixture.House.InstanceId, 1),
             (incoming.OwnerId, incoming.DeliveryBuildingId, incoming.Quantity));
         if (incomingClaimed)
             inventory = InventoryAuthority.Reserve(inventory, "actual-incoming-claim", deliverer,
-                incoming.Id, 1, "independent-incoming-work", long.MaxValue);
+                incoming.Id, 1, "independent-incoming-work", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, incoming.Id));
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor,
             new Choices("supply_workstation:wood", "haul_household_stock"));
         for (var tick = 0; tick < 32; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -125,17 +125,17 @@ public sealed class WorkstationSourceReserveTests
         inventory = InventoryAuthority.AddLot(inventory, "a-protected-pot", InventoryContainerRules.StoragePot,
             fixture.Household, 1, storageBuildingId: fixture.House.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "pot-grain", "grain", fixture.Household, 1,
-            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-protected-pot");
+            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-protected-pot", holdAccess: StockHoldTestState.Access(inventory, "a-protected-pot"));
         inventory = InventoryAuthority.AddLot(inventory, "pot-berries", "berries", fixture.Household, 2,
-            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-protected-pot");
+            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-protected-pot", holdAccess: StockHoldTestState.Access(inventory, "a-protected-pot"));
         // Other berries are genuine inputs, but remain unavailable under a real independent claim.
         foreach (var lot in inventory.Lots.Where(lot => lot.OwnerId == fixture.Household &&
             lot.StorageBuildingId == fixture.House.InstanceId && lot.ItemKind == "berries" && lot.Id != "pot-berries").ToArray())
             inventory = InventoryAuthority.Reserve(inventory, "berry-claim:" + lot.Id, fixture.Household,
-                lot.Id, lot.Quantity, "independent-berry-use", long.MaxValue);
+                lot.Id, lot.Quantity, "independent-berry-use", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, lot.Id));
         if (claimed)
             inventory = InventoryAuthority.Reserve(inventory, "pot-child-claim", fixture.Household,
-                "pot-grain", 1, "independent-grain-use", long.MaxValue);
+                "pot-grain", 1, "independent-grain-use", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, "pot-grain"));
         var choices = new Choices("supply_workstation:grain", "haul_household_stock");
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor, choices);
         // The loose surplus may still supply grain; the whole family must stay at its source.
@@ -166,9 +166,9 @@ public sealed class WorkstationSourceReserveTests
         inventory = InventoryAuthority.AddLot(inventory, "a-source-jug", InventoryContainerRules.WaterJug,
             fixture.Household, 1, storageBuildingId: fixture.House.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "source-water-a", InventoryContainerRules.FreshWater,
-            fixture.Household, 2, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-source-jug");
+            fixture.Household, 2, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-source-jug", holdAccess: StockHoldTestState.Access(inventory, "a-source-jug"));
         inventory = InventoryAuthority.AddLot(inventory, "source-water-b", InventoryContainerRules.FreshWater,
-            fixture.Household, 1, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-source-jug");
+            fixture.Household, 1, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-source-jug", holdAccess: StockHoldTestState.Access(inventory, "a-source-jug"));
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor,
             new Choices("supply_workstation:fresh_water", "haul_household_stock"));
         for (var tick = 0; tick < 32; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -194,11 +194,11 @@ public sealed class WorkstationSourceReserveTests
             fixture.Household, 1, storageBuildingId: fixture.Restaurant.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "restaurant-protected-water", InventoryContainerRules.FreshWater,
             fixture.Household, 2, storageBuildingId: fixture.Restaurant.InstanceId,
-            containerLotId: "a-restaurant-partial-jug");
+            containerLotId: "a-restaurant-partial-jug", holdAccess: StockHoldTestState.Access(inventory, "a-restaurant-partial-jug"));
         // The existing one-unit destination water is also a real independent claim.
         var originalWater = inventory.Lots.Single(lot => lot.Id == "reserve-destination-fresh_water");
         inventory = InventoryAuthority.Reserve(inventory, "restaurant-water-claim", fixture.Household,
-            originalWater.Id, 1, "independent-cooking-use", long.MaxValue);
+            originalWater.Id, 1, "independent-cooking-use", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, originalWater.Id));
         inventory = InventoryAuthority.AddLot(inventory, "zz-empty-refill-jug", InventoryContainerRules.WaterJug,
             fixture.Household, 1, storageBuildingId: fixture.Restaurant.InstanceId);
         var choices = new Choices("collect_water_jug", "fill_water_jug", "return_water_jug");
@@ -254,7 +254,7 @@ public sealed class WorkstationSourceReserveTests
             "broken-sibling-jug", InventoryContainerRules.WaterJug, fixture.Household, 1,
             storageBuildingId: fixture.House.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "broken-sibling-water", InventoryContainerRules.FreshWater,
-            fixture.Household, 3, storageBuildingId: fixture.House.InstanceId, containerLotId: "broken-sibling-jug");
+            fixture.Household, 3, storageBuildingId: fixture.House.InstanceId, containerLotId: "broken-sibling-jug", holdAccess: StockHoldTestState.Access(inventory, "broken-sibling-jug"));
         inventory = InventoryAuthority.WearSingleUnit(inventory, "broken-sibling-jug", 10_000);
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor,
             new Choices("supply_workstation:fresh_water", "haul_household_stock"));
@@ -279,9 +279,9 @@ public sealed class WorkstationSourceReserveTests
             "a-mixed-surplus-pot", InventoryContainerRules.StoragePot, fixture.Household, 1,
             storageBuildingId: fixture.House.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "mixed-surplus-grain", "grain", fixture.Household, 1,
-            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-mixed-surplus-pot");
+            storageBuildingId: fixture.House.InstanceId, containerLotId: "a-mixed-surplus-pot", holdAccess: StockHoldTestState.Access(inventory, "a-mixed-surplus-pot"));
         inventory = InventoryAuthority.AddLot(inventory, "mixed-spoiling-berries", "berries", fixture.Household, 2,
-            freshnessBasisPoints: 0, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-mixed-surplus-pot");
+            freshnessBasisPoints: 0, storageBuildingId: fixture.House.InstanceId, containerLotId: "a-mixed-surplus-pot", holdAccess: StockHoldTestState.Access(inventory, "a-mixed-surplus-pot"));
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor,
             new Choices("supply_workstation:grain", "haul_household_stock"));
         await AdvanceUntil(world, () => world.Society.Inventory.Lots.Any(lot =>
@@ -336,15 +336,15 @@ public sealed class WorkstationSourceReserveTests
         var inventory = InventoryAuthority.AddLot(fixture.State.Society.Society.Inventory,
             "incoming-family-pot", InventoryContainerRules.StoragePot, fixture.Household, 1);
         inventory = InventoryAuthority.AddLot(inventory, "incoming-family-grain", "grain", fixture.Household, 1,
-            containerLotId: "incoming-family-pot");
+            containerLotId: "incoming-family-pot", holdAccess: StockHoldTestState.Access(inventory, "incoming-family-pot"));
         inventory = InventoryAuthority.AddLot(inventory, "incoming-family-berries", "berries", fixture.Household, 1,
-            freshnessBasisPoints: spoiledSibling ? 0 : 10_000, containerLotId: "incoming-family-pot");
+            freshnessBasisPoints: spoiledSibling ? 0 : 10_000, containerLotId: "incoming-family-pot", holdAccess: StockHoldTestState.Access(inventory, "incoming-family-pot"));
         inventory = InventoryAuthority.Transfer(inventory, "real-member-family-promise", fixture.Household, deliverer,
             "incoming-family-pot", 1, "household_stock_picked_up",
-            destinationDeliveryBuildingId: fixture.House.InstanceId);
+            destinationDeliveryBuildingId: fixture.House.InstanceId, holdAccess: StockHoldTestState.Access(inventory, "incoming-family-pot"));
         if (!spoiledSibling)
             inventory = InventoryAuthority.Reserve(inventory, "actual-family-sibling-claim", deliverer,
-                "incoming-family-berries", 1, "independent-incoming-work", expiredSiblingClaim ? 0 : long.MaxValue);
+                "incoming-family-berries", 1, "independent-incoming-work", expiredSiblingClaim ? 0 : long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, "incoming-family-berries"));
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor,
             new Choices("supply_workstation:grain", "haul_household_stock"));
         for (var tick = 0; tick < 32; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -380,12 +380,12 @@ public sealed class WorkstationSourceReserveTests
             "destination-broken-jug", InventoryContainerRules.WaterJug, fixture.Household, 1,
             storageBuildingId: fixture.Restaurant.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "destination-broken-water", InventoryContainerRules.FreshWater,
-            fixture.Household, 3, storageBuildingId: fixture.Restaurant.InstanceId, containerLotId: "destination-broken-jug");
+            fixture.Household, 3, storageBuildingId: fixture.Restaurant.InstanceId, containerLotId: "destination-broken-jug", holdAccess: StockHoldTestState.Access(inventory, "destination-broken-jug"));
         inventory = InventoryAuthority.WearSingleUnit(inventory, "destination-broken-jug", 10_000);
         inventory = InventoryAuthority.AddLot(inventory, "actual-spare-source-jug", InventoryContainerRules.WaterJug,
             fixture.Household, 1, storageBuildingId: fixture.House.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "actual-spare-source-water", InventoryContainerRules.FreshWater,
-            fixture.Household, 1, storageBuildingId: fixture.House.InstanceId, containerLotId: "actual-spare-source-jug");
+            fixture.Household, 1, storageBuildingId: fixture.House.InstanceId, containerLotId: "actual-spare-source-jug", holdAccess: StockHoldTestState.Access(inventory, "actual-spare-source-jug"));
         var choices = new Choices("supply_workstation:fresh_water", "haul_household_stock");
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor, choices);
         await AdvanceUntil(world, () => world.Society.Inventory.GetLot("actual-spare-source-jug").OwnerId == fixture.Actor, 32);
@@ -440,7 +440,7 @@ public sealed class WorkstationSourceReserveTests
         {
             var id = "independent-existing:" + lot.Id;
             inventory = InventoryAuthority.Reserve(inventory, id, household, lot.Id,
-                Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)), "independent-existing-work", long.MaxValue);
+                Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)), "independent-existing-work", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, lot.Id));
             claims.Add(id);
         }
         // These controls isolate cooking reserves. Give each adult usable shared
@@ -471,7 +471,7 @@ public sealed class WorkstationSourceReserveTests
                 }
                 var id = site == house ? "reserve-source-" + input.Key : "reserve-destination-" + input.Key;
                 inventory = InventoryAuthority.AddLot(inventory, id, input.Key, household, amount,
-                    storageBuildingId: site.InstanceId, containerLotId: containerId);
+                    storageBuildingId: site.InstanceId, containerLotId: containerId, holdAccess: StockHoldTestState.Access(inventory, containerId));
             }
         }
         state = FarmFieldTests.WithInventory(state, inventory) with

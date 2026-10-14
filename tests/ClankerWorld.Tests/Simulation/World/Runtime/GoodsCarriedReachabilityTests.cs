@@ -33,7 +33,7 @@ public sealed class GoodsCarriedReachabilityTests
         };
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = remote, Equipment = null, Project = null, LastDecisionContext = null } : person).ToArray()
         };

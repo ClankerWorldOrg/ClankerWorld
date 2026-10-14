@@ -25,7 +25,7 @@ public sealed class BuildingStorageHistoryTests
         for (var index = 0; index <= WorldHistory.CompactionThreshold; index++)
             inventory = InventoryAuthority.Relocate(inventory, "history-move:" + index, "history-stock", owner, 1,
                 carrierId: index % 2 == 0 ? carrier : null,
-                storageBuildingId: index % 2 == 0 ? null : house.InstanceId);
+                storageBuildingId: index % 2 == 0 ? null : house.InstanceId, holdAccess: StockHoldTestState.Access(inventory, "history-stock"));
         using var world = WorldRuntime.Restore(FarmFieldTests.WithInventory(state, inventory));
         var beforeInspection = WorldRuntimeCodec.Encode(world.ExportState());
         var store = new OwnerWorldObservationStore(world);

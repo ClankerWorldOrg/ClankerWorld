@@ -33,7 +33,7 @@ internal static class FoodCapacityTestFixture
     }
 
     internal static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     internal static WorldRuntimeState WithFullness(WorldRuntimeState state, string actor, int fullness) =>
         state with

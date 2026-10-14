@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
         IsChild(actor) && actor != target && agents.ContainsKey(target) &&
         society.Checkpoint.GetAgent(target).AgeBand != SocietyAgeBand.Infant &&
         !society.Checkpoint.Memories.Any(memory => memory.OwnerId == actor && memory.SubjectId == target &&
-            memory.Id.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
+            memory.Id.Value.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
             memory.SourceTick > WorldTick - ChildSocialCooldownTicks);
 
     private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, AgentState state)
@@ -104,8 +104,8 @@ public sealed partial class WorldRuntime
             }
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"child-help:{WorldTick}:{actor}", actor, HouseholdFor(actor), lot.Id, 1,
-                "child_household_help", house?.InstanceId));
-            AppendEvent("child_helped_household", actor);
+                "child_household_help", house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house?.InstanceId)));
+            AppendEvent(new ChildHelpedHouseholdEventPayload(actor));
             return;
         }
 
@@ -126,7 +126,7 @@ public sealed partial class WorldRuntime
         // ancestry makes it exceed the cognition memory boundary.
         var memoryId = ChildSocialMemoryId(kind, actor, target, WorldTick);
         society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new(memoryId, actor, target,
+            new(Identity.Parse(memoryId), actor, target,
                 kind switch
                 {
                     "converse" => "Talked with another person.",
@@ -134,6 +134,6 @@ public sealed partial class WorldRuntime
                     _ => "Learned by observing an adult.",
                 }, "public", WorldTick)));
         IncreaseTrust(actor, target, 1, "child_" + kind);
-        AppendEvent("child_" + kind, $"{actor}:{target}");
+        AppendEvent(WorldEvents.Child(kind, actor, target));
     }
 }
