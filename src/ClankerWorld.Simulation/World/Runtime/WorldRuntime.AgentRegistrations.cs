@@ -164,22 +164,9 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "assist:", [ProjectAssistanceChoice.Prefix], [], Definition: ProjectAssistanceDefinition),
         new(ActionPhase.Ordinary, "replant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Replant)], Definition: TreeDefinition),
         new(ActionPhase.Ordinary, "plant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Plant), TreeActionPlan.Candidate(TreeChoice.Orchard)], Definition: TreeDefinition),
-        new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ??
-            (ExplorationChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanExploration(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "explore", [], ["explore"], static (runtime, action) =>
-    {
-        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ?? runtime.PlanExploration(action.AgentId, new(false)));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "explore_return", [], ["explore_return"], static (runtime, action) =>
-    {
-        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ?? runtime.PlanExploration(action.AgentId, new(true)));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], Definition: ExplorationDefinition),
+        new(ActionPhase.Ordinary, "explore", [], ["explore"], Definition: ExplorationDefinition),
+        new(ActionPhase.Ordinary, "explore_return", [], ["explore_return"], Definition: ExplorationDefinition),
         new(ActionPhase.Ordinary, "wear_clothing", [], [PrivateEquipmentActionPlan.Candidate(PrivateEquipmentKind.Garment)], Definition: GarmentDefinition),
         new(ActionPhase.Ordinary, "equip_carry_aid", [], [PrivateEquipmentActionPlan.Candidate(PrivateEquipmentKind.CarryAid)], Definition: CarryAidDefinition),
         new(ActionPhase.Ordinary, "repair_equipment", [], [EquipmentRepairChoice.Candidate], Definition: EquipmentRepairDefinition),
