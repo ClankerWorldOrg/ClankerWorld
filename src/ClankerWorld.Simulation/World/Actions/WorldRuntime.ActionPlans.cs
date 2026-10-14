@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        NonLandJudgeActionPlan nonLandJudge => TownSystem.CheckNonLandJudge(civicWorld, nonLandJudge),
         NonLandEvidenceActionPlan nonLandEvidence => TownSystem.CheckNonLandEvidence(civicWorld, nonLandEvidence),
         NonLandFilingActionPlan nonLandFiling => TownSystem.CheckNonLandFiling(civicWorld, nonLandFiling),
         LandHearingPropertyActionPlan hearingProperty => townSystem.CheckLandHearingProperty(civicWorld, hearingProperty),

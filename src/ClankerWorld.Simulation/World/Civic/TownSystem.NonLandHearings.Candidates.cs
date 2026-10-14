@@ -76,15 +76,15 @@ internal sealed partial class TownSystem
             if (adult && TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
             {
                 var willing = item.JudgeConsents.Any(consent => consent.AgentId == actor && consent.WithdrawnTick is null);
-                if (!willing && !NonLandConflict(world, town, item, actor)) candidates.Add(new(CivicAction(world, town.Id, "law_case_judge_register", token), "Personally agree to stand as an independent judge of this case only, subject to actual resident election.", 180));
-                if (willing) candidates.Add(new(CivicAction(world, town.Id, "law_case_judge_withdraw", token), "Withdraw your willingness to adjudicate this case; its records remain.", 185));
+                if (!willing && !NonLandConflict(world, town, item, actor)) OfferNonLandJudge(world, candidates, actor, town, item, NonLandJudgeKind.Register, "", "Personally agree to stand as an independent judge of this case only, subject to actual resident election.", 180);
+                if (willing) OfferNonLandJudge(world, candidates, actor, town, item, NonLandJudgeKind.Withdraw, "", "Withdraw your willingness to adjudicate this case; its records remain.", 185);
                 if (item.Judge is { Kind: "case_elected" } held && held.AgentId == actor)
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_judge_resign", token), "Resign your authority over this case only.", 185));
+                    OfferNonLandJudge(world, candidates, actor, town, item, NonLandJudgeKind.Resign, "", "Resign your authority over this case only.", 185);
             }
             if (item.Contest is { Stage: "voting" } contest && contest.Voters.Contains(actor, StringComparer.Ordinal) && history.Knows(actor, TownCaseJudgeRules.RoundToken(contest)))
                 foreach (var candidate in contest.Candidates)
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_judge_vote", token + "#" + TownCaseJudgeRules.RoundToken(contest), candidate),
-                        "Vote for " + world.Society.GetAgent(candidate).Name + " as independent judge of this case only.", 167));
+                    OfferNonLandJudge(world, candidates, actor, town, item, NonLandJudgeKind.Vote, candidate,
+                        "Vote for " + world.Society.GetAgent(candidate).Name + " as independent judge of this case only.", 167);
             if (item.Judge is { } judge && judge.AgentId == actor && NonLandJudgeValid(world, town, item, judge) && NonLandReadCurrent(world, item, actor))
             {
                 if (item.Status == "pending" && TownNonLandRules.CanCloseResponses(item, parties, world.WorldTick))

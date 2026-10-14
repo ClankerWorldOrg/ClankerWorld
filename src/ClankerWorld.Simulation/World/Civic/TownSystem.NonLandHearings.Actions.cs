@@ -32,7 +32,7 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownNonLandHearingState NonLandHearings) ApplyTownNonLandAction(ITownWorld world, TownRuntimeState town,
         string actor, string action, string subject, string choice, CognitionNonLandChoice? payload,
-        TownCouncilState council, TownGovernmentState government, NonLandFilingActionPlan? filingPlan = null, NonLandEvidenceActionPlan? evidencePlan = null)
+        TownCouncilState council, TownGovernmentState government, NonLandFilingActionPlan? filingPlan = null, NonLandEvidenceActionPlan? evidencePlan = null, NonLandJudgeActionPlan? judgePlan = null)
     {
         (council, var state) = AdvanceTownNonLand(world, town, council, government);
         town = town with { Council = council, Government = government, NonLandHearings = state };
@@ -52,6 +52,14 @@ internal sealed partial class TownSystem
                 return (council, state);
             }
         }
+        else if (judgePlan is not null)
+        {
+            if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
+            {
+                world.RefuseChoice(judgePlan, refusal);
+                return (council, state);
+            }
+        }
         else
         {
             var selectedId = $"civic|{town.Id}|{action}|{subject}|{choice}";
@@ -61,6 +69,15 @@ internal sealed partial class TownSystem
                 if (CheckNonLandEvidence(world, evidencePlan, town).Refusal is { } refusal)
                 {
                     world.RefuseChoice(evidencePlan, refusal);
+                    return (council, state);
+                }
+            }
+            if (NonLandJudgeChoice.Decode(selectedId) is { } selectedJudge && PlanNonLandJudge(world, actor, selectedJudge) is { } plannedJudge)
+            {
+                judgePlan = plannedJudge;
+                if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
+                {
+                    world.RefuseChoice(judgePlan, refusal);
                     return (council, state);
                 }
             }
@@ -131,7 +148,7 @@ internal sealed partial class TownSystem
             NonLandEvent(world, "offer_response", town, offer.Id, actor);
             return (council, state);
         }
-        var item = evidencePlan is not null ? state.Cases.Single(item => item.Id == evidencePlan.CaseId) : state.Cases.Single(item => NonLandActionToken(item) == subject || item.Contest is { } contest &&
+        var item = (evidencePlan?.CaseId ?? judgePlan?.CaseId) is { } selectedCase ? state.Cases.Single(item => item.Id == selectedCase) : state.Cases.Single(item => NonLandActionToken(item) == subject || item.Contest is { } contest &&
             NonLandActionToken(item) + "#" + TownCaseJudgeRules.RoundToken(contest) == subject);
         if (payload?.EvidenceIds is { } references)
             payload = payload with
@@ -174,7 +191,7 @@ internal sealed partial class TownSystem
             case "law_case_judge_register": state = TownCaseJudgeRules.Register(state, item.Id, actor, TownAdults(world, town), LandHearingHouseholds(world), world.WorldTick, parties); break;
             case "law_case_judge_withdraw": state = TownCaseJudgeRules.Withdraw(state, item.Id, actor, world.WorldTick); break;
             case "law_case_judge_resign": state = TownCaseJudgeRules.Resign(state, item.Id, actor, world.WorldTick); break;
-            case "law_case_judge_vote": state = TownCaseJudgeRules.Vote(state, item.Id, TownCaseJudgeRules.RoundToken(item.Contest!), actor, ResolveCivicAgentToken(world, choice), world.WorldTick); break;
+            case "law_case_judge_vote": state = TownCaseJudgeRules.Vote(state, item.Id, TownCaseJudgeRules.RoundToken(judgePlan!.Contest!), actor, judgePlan.Candidate!, world.WorldTick); break;
             case "law_case_find":
                 state = TownNonLandRules.Rule(state, item.Id, revision.Number, item.Judge!, world.WorldTick,
                     choice == "unsupported" ? "unsupported" : "supported", choice == "unsupported" ? "none" : choice,

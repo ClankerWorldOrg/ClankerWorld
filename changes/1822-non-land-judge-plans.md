@@ -1,0 +1,1 @@
+- Non-land case judge consent and ballots retain their mandate, exact round and selected candidate through shared native checks.

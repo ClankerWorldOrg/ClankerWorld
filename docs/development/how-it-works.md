@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Non-land judge consent and resignation retain the exact personal consent or
+case mandate. Ballots retain the opening round, rosters and selected candidate
+while allowing ballots to accumulate; the same check verifies case knowledge
+and the native election deadline before the original writer runs.
 Non-land case material and responses retain the exact file revision, selected
 known sources and historical law, legitimate response party or nearby recipient.
 Relays retain all evidence, response, finding and reopening references actually
