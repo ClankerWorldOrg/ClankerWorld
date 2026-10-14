@@ -146,12 +146,7 @@ public sealed partial class WorldRuntime
     private void AddMakeRoomForFoodCandidate(List<CognitionCandidate> candidates, string actor,
         AgentState state, int priority)
     {
-        if (!(IsAdult(actor) || IsChild(actor)) || society.Checkpoint.GetAgent(actor).HouseholdId is null)
-            return;
-        var cargo = FoodRecoveryCargo(actor, state);
-        if (cargo.Count == 0 ||
-            SpareCargoDestination(actor, state, cargo.Sum(move => move.PhysicalQuantity)) is not { } destination)
-            return;
+        if (PlanFoodCargo(actor) is not { } plan || !CheckActionPlan(plan).Allowed) return;
         var existing = candidates.FindIndex(candidate => candidate.Id == "make_room_for_food");
         if (existing >= 0)
         {
@@ -163,12 +158,13 @@ public sealed partial class WorldRuntime
         }
         candidates.Add(new("make_room_for_food",
             "Set down spare supplies with your household so food fits in your load.", priority,
-            destination.StorageBuildingId));
+            plan.StorageBuildingId)
+        { ActionPlan = plan });
     }
 
     private int FoodRoomMissing(string actor, AgentState state)
     {
-        var required = state.FullnessBasisPoints < 7_000 && !PreferredFood(actor, actor).Any()
+        var required = state.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && !PreferredFood(actor, actor).Any()
             ? MinimumFoodPickupCarryUnits(actor, state.Position, forDependent: false) : 0;
         var dependentRequired = CaregiverFoodCarryRequirement(actor, state);
         if (dependentRequired > 0)
@@ -191,17 +187,11 @@ public sealed partial class WorldRuntime
         IReadOnlyDictionary<string, int>? retainedLotQuantities = null)
     {
         if (missing <= 0) return [];
-        var equipment = agents[actor].Equipment;
         var inventory = society.Checkpoint.Inventory;
-        var spare = inventory.Lots
-            .Where(lot => (lot.OwnerId == actor || lot.OwnerId == HouseholdFor(actor)) &&
-                PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
-                lot.Id != protectedLotId && additionallyProtectedLotIds?.Contains(lot.Id, StringComparer.Ordinal) != true &&
-                lot.DeliveryBuildingId is null &&
-                !PersonalEquipmentRules.IsSelected(equipment, lot.Id) &&
-                !AgentKnowledgeRules.IsArtifactKind(lot.ItemKind) &&
-                (!InventoryContainerRules.IsContainer(lot.ItemKind) || !HasActiveContainerReservation(inventory, lot.Id)))
-            // Tools speed up later gathering, so they are set down last.
+        var spare = SpareCargoGoods(actor)
+            .Where(lot => lot.Id != protectedLotId &&
+                additionallyProtectedLotIds?.Contains(lot.Id, StringComparer.Ordinal) != true)
+        // Tools speed up later gathering, so they are set down last.
             .OrderBy(lot => lot.ItemKind is "tool" or "wooden_axe" or "wooden_pickaxe" ? 1 : 0)
             .ThenBy(lot => lot.Id, StringComparer.Ordinal);
         var moves = new List<SpareCargoMove>();
@@ -228,11 +218,16 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor) || !NeedsUrgentFood(state) || PreferredFood(actor, actor).Any()) return [];
 
         var inventory = society.Checkpoint.Inventory;
-        foreach (var lot in inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal))
+        foreach (var lot in OrchardFoodRecoveryGoods(actor))
         {
             if (OrchardReservationForFood(inventory, actor, lot) is not { } reservation) continue;
-            var quantity = Math.Min(missing, lot.Quantity);
-            moves.Add(new(lot, quantity, quantity, reservation.Id));
+            var existing = moves.FindIndex(move => move.Lot.Id == lot.Id);
+            var selected = existing >= 0 ? moves[existing].TransferQuantity : 0;
+            var quantity = Math.Min(missing, lot.Quantity - selected);
+            if (quantity <= 0) continue;
+            var combined = new SpareCargoMove(lot, selected + quantity, selected + quantity, reservation.Id);
+            if (existing >= 0) moves[existing] = combined;
+            else moves.Add(combined);
             missing -= quantity;
             if (missing <= 0) return moves;
         }
@@ -262,21 +257,15 @@ public sealed partial class WorldRuntime
     {
         var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
         if (HouseForHousehold(householdId) is { } house && DestinationRoom(house.InstanceId) >= quantity &&
-            (state.Position == house.Position || FindUnoccupiedRoute(actor, state.Position, house.Position, 0).Count > 0))
+            (state.Position == house.Position || Reach(actor, house.Position, ReachPurpose.FoodCargoStorage, 0, 0, SwimmingPolicy.WhenCapable).Count > 0))
             return (house.Position, 0, house.InstanceId);
         var storagePosition = SharedStoragePosition;
         return IsWithinInteractionRange(state.Position, storagePosition, ResourceInteractionRange) ||
-            FindUnoccupiedRoute(actor, state.Position, storagePosition, ResourceInteractionRange).Count > 0
+            Reach(actor, storagePosition, ReachPurpose.FoodCargoStorage, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? (storagePosition, ResourceInteractionRange, null) : null;
     }
 
-    private void MakeRoomForFood(string actor, AgentState state)
-    {
-        if (!(IsAdult(actor) || IsChild(actor)) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
-            return;
-        var cargo = FoodRecoveryCargo(actor, state);
-        StoreSpareCargo(actor, state, householdId, cargo);
-    }
+    private void MakeRoomForFood(string actor, AgentState state) => ApplyFoodCargoPlan(PlanFoodCargo(actor));
 
     private bool StoreSpareCargo(string actor, AgentState state, string householdId,
         List<SpareCargoMove> cargo)

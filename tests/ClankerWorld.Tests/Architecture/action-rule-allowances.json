@@ -97,11 +97,6 @@
     "FindUnoccupiedRoute(actor, person.Position, position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, site, 0)"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs": [
-    "FindUnoccupiedRoute(actor, state.Position, house.Position, 0)",
-    "FindUnoccupiedRoute(actor, state.Position, storagePosition, ResourceInteractionRange)",
-    "state.FullnessBasisPoints \u003C 7_000"
-  ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs": [
     "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, position, range)"

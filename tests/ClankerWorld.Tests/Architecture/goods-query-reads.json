@@ -44,7 +44,7 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": 14,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs": 2,
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": 7,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.StoreStock.cs": 2,

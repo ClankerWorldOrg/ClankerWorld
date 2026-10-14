@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
         ChildActionPlan child => CheckChildPlan(child),
         TownStockActionPlan town => CheckTownStockPlan(town),
         HouseholdStockActionPlan household => CheckHouseholdStockPlan(household),

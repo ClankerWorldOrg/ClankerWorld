@@ -169,6 +169,14 @@ and vessel family. The shared check revalidates that exact shipment and named
 hold authorization before any movement or transfer. `GoodsPlanFamily` supplies
 one immutable family capture for both Town salvage and household shipments.
 
+Food-space recovery uses `FoodCargoActionPlan` to bind every cargo lot and quantity,
+the original storage destination and any orchard reservation release. It checks
+the same cargo at offer, admission and application. New spare stock never replaces
+the selected load; only the captured orchard units are released when set down.
+The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physical
+stock separate from the urgent adult seed exception. Tool and blacksmith cargo
+callers retain their existing forwarders until their action area moves.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
