@@ -408,7 +408,10 @@ public sealed record AuthoringStateView(
     string Season,
     IReadOnlyList<string> ApprovedAssetReferences);
 
-public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null);
+public sealed record EventView(long EventId, long WorldTick, string Kind, string Detail, PositionView? Position = null)
+{
+    public string Text { get; init; } = string.Empty;
+}
 
 public sealed record FounderSetupView(int Required, int Placed, bool Started)
 {
@@ -712,6 +715,9 @@ public sealed record WorldSnapshotView(
     /// map identity, weather and season. The world projection supplies it.
     /// </summary>
     public AuthoringStateView? Authoring { get; init; }
+
+    /// <summary>Current server text for the visible retained events, including renamed people.</summary>
+    public IReadOnlyDictionary<long, string> EventTexts { get; init; } = new Dictionary<long, string>();
 
     public IReadOnlyList<InstructionView> Instructions { get; init; } = [];
 

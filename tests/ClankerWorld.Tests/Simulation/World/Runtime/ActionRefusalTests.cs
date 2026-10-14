@@ -103,7 +103,7 @@ public sealed class ActionRefusalTests
             Assert.Equal(1, projection.RefusedActionCount);
             var snapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(projection))!;
             var name = snapshot.Agents.Single(person => person.Id == actorId).DisplayName;
-            Assert.StartsWith(name + " couldn't ", ClankerWorld.GodotClient.UI.WorldEventText.Describe(
+            Assert.StartsWith(name + " couldn't ", EventTextFixture.Describe(
                 new(refusalEvent.EventId, refusalEvent.WorldTick, refusalEvent.Kind, refusalEvent.Detail), snapshot));
             using var replay = WorldRuntime.Restore(baseline, _ => new ExploringProvider(idleForOrder: idleForOrder));
             Assert.True((await replay.AdvanceOneTickReplayingActionRefusalAsync(refusalEvent, _ => () => { })).Advanced);

@@ -690,6 +690,9 @@ public sealed record OwnerWorldSnapshot(
 
     public OwnerWorldAuthoringState? Authoring { get; init; }
 
+    /// <summary>Current server text for the visible retained events, including renamed people.</summary>
+    public IReadOnlyDictionary<long, string> EventTexts { get; init; } = new Dictionary<long, string>();
+
     public IReadOnlyList<OwnerWorldInstruction> Instructions { get; init; } = [];
 
     public OwnerWorldCognition? Cognition { get; init; }
@@ -705,7 +708,10 @@ public sealed record OwnerWorldSnapshot(
     public IReadOnlyList<OwnerWorldProductionJob> ProductionJobs { get; init; } = [];
 }
 
-public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, string Detail, OwnerWorldPosition? Position = null);
+public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, string Detail, OwnerWorldPosition? Position = null)
+{
+    public string Text { get; init; } = string.Empty;
+}
 
 public sealed record OwnerWorldEventSlice(
     long SnapshotTick,

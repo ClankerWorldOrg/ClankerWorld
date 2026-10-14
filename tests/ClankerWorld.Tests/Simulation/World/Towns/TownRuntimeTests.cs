@@ -68,7 +68,7 @@ public sealed class TownRuntimeTests
             {
                 var accepted = store.GetEventsAfter(0).Events.First(item => item.Kind == kind && item.Detail.Contains(founderId, StringComparison.Ordinal));
                 var clientEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(JsonSerializer.Serialize(accepted, GodotJsonOptions), GodotJsonOptions);
-                Assert.Equal(expected, WorldEventText.Describe(clientEvent!, snapshot));
+                Assert.Equal(expected, EventTextFixture.Describe(clientEvent!, snapshot));
                 Assert.Equal(accepted.Detail, clientEvent!.Detail);
             }
             Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -113,7 +113,7 @@ public sealed class TownRuntimeTests
         var harvest = store.GetEventsAfter(0).Events.First(item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith("agent:00000000000000000000000000000099:", StringComparison.Ordinal));
         var godotEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(JsonSerializer.Serialize(harvest, GodotJsonOptions), GodotJsonOptions);
-        Assert.Equal("Aster gathered food.", WorldEventText.Describe(godotEvent!, godotSnapshot));
+        Assert.Equal("Aster gathered food.", EventTextFixture.Describe(godotEvent!, godotSnapshot));
         Assert.Equal(harvest.Detail, godotEvent!.Detail);
         Assert.Equal(acceptedHistory, WorldRuntimeCodec.Encode(restored.ExportState()));
     }

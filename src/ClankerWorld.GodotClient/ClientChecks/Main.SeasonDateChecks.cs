@@ -33,7 +33,7 @@ public partial class Main
             Authoring = new OwnerWorldAuthoringState(false, 0, 0, 0, "ui-map", "ui-map", "cloudy", "autumn", []),
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
@@ -46,7 +46,7 @@ public partial class Main
             // Raw tick zero is morning in a newly created world. The same
             // saved offset dates old events after the live clock passes midnight.
             displayPreferences = installed with { DateStyle = GameUiText.SeasonDates, UseTwelveHourClock = false };
-            OwnerWorldEvent[] firstMorningEvents = [new(1, 0, "town_founded", "town:first")];
+            OwnerWorldEvent[] firstMorningEvents = [new(1, 0, "town_founded", "town:first") { Text = "Your first Town was founded." }];
             var morning = sample with
             {
                 WorldTick = 0,

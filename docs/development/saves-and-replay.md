@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Saves and replay
@@ -2389,3 +2389,15 @@ Water jugs accept only fresh water; milk may remain loose or enter a food pot.
 An interrupted tick or refused durable developer edit restores both animal and
 inventory state. Older alpha checkpoints are refused and preserved; no animal
 inference or migration runs.
+
+## Event presentation
+
+Owner event observations include server-formatted `Text`. It is derived from the
+same captured state as the event slice and is not stored in accepted history.
+The snapshot refreshes potentially visible descriptions from its current names
+and relationships. A transient 2,048-event observer window preserves descriptions
+for connected clients after saved history compaction; a load or world switch
+resets it. Renaming still updates existing rows. The game displays this text
+without parsing event details. This presentation step leaves
+checkpoint bytes and the current schema unchanged; typed saved payloads follow
+in the event refactor stack.
