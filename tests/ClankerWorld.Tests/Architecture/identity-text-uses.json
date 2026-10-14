@@ -298,7 +298,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs|id|$\u0022expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{shared.Id}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs|id|$\u0022expansion-{worldSimulation.NextProductionJobSequence:D8}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs|id|ExpandBuildingPrefix \u002B building.InstanceId": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Containers.cs|id|$\u0022shore:{pointText}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs|id|\u0022trade_accept:\u0022 \u002B offer.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs|id|\u0022trade_decline:\u0022 \u002B offer.Id": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs|id|\u0022trade_propose:\u0022 \u002B other": 1,
