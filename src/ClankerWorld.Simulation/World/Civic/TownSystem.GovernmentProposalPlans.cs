@@ -15,10 +15,10 @@ internal sealed partial class TownSystem
             change with { Voters = change.Voters.ToArray(), OpeningVoters = change.OpeningVoters.ToArray(), Votes = change.Votes.ToArray() });
     }
 
-    internal static ActionCheck CheckGovernmentProposal(ITownWorld world, GovernmentProposalActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckGovernmentProposal(ITownWorld world, GovernmentProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))

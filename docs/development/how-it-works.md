@@ -3160,6 +3160,11 @@ definitions, after the existing personal provider and admission guards. Their
 codecs, planners and named capability policy use the same TownSystem checks for
 offers, accepted plans and native application; TownSystem retains all writes.
 
+Town law, policy, proposal votes, government proposals, office consent and
+mayoral ballots also have fresh-admission definitions. They reuse the existing
+TownSystem planners and checks, preserve bound law wording and original terms,
+and apply through the original civic writer after the same personal guards.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may

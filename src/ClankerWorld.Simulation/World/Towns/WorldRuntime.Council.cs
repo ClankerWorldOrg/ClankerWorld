@@ -46,6 +46,8 @@ public sealed partial class WorldRuntime
         originalPlan ??= definition.PlanCandidate(this, actor, candidate);
         if (originalPlan is CouncilBallotActionPlan selected)
             originalPlan = TownSystem.BindCouncilBallot(civicWorld, selected, ballot);
+        if (originalPlan is TownLawActionPlan law)
+            originalPlan = TownSystem.BindTownLawText(law, proposalText);
         if (originalPlan is not null)
             TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
     }
