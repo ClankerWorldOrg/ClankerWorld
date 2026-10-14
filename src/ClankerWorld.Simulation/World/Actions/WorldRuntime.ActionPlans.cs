@@ -13,8 +13,6 @@ public sealed partial class WorldRuntime
         PersonalGoodsActionPlan personalGoods => CheckPersonalGoods(personalGoods),
         HouseGuestActionPlan houseGuest => CheckHouseGuest(houseGuest),
         ProjectInputActionPlan projectInput => CheckProjectInput(projectInput),
-        ExpansionActionPlan expansion => CheckExpansion(expansion),
-        ConstructionActionPlan construction => CheckConstruction(construction),
         ProjectAssistanceActionPlan assistance => CheckProjectAssistance(assistance),
         BuildingMaterialActionPlan buildingMaterial => CheckBuildingMaterial(buildingMaterial),
         KnowledgeStorageActionPlan knowledgeStorage => CheckKnowledgeStorage(knowledgeStorage),

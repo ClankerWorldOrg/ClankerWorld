@@ -328,7 +328,7 @@ public sealed partial class WorldRuntime
                     ? "to make more resident places"
                     : "to add storage";
             var plan = PlanExpansion(actor, building);
-            if (plan is not null && CheckExpansion(plan).Allowed) candidates.Add(new(plan.CandidateId,
+            if (plan is not null && CheckActionPlan(plan).Allowed) candidates.Add(new(plan.CandidateId,
                 $"Bring the missing materials to the {definition.DisplayName}, then expand it {reason} without moving its stock.",
                 24, building.InstanceId)
             { ActionPlan = plan });
