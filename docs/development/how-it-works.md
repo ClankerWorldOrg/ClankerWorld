@@ -408,12 +408,16 @@ transitions and marriage cleanup remain their native commit path.
 Housing admission choices retain their request, House and adult electorate.
 Other members' answers can accumulate without changing that selection; a changed
 House, electorate or request receives the same check at all three boundaries.
+The House's definition and original placement tick stay bound if its ID is
+reused. Expanding that same House still uses the current capacity checks.
 Learning choices retain the student, teacher, skill, request and communal lesson
 site. The same check governs offer, admission and apply; native continuation may
-advance the same agreement while a model reply waits.
+advance the same agreement while a model reply waits. A pending withdrawal can
+still stop that agreement and preserves its latest progress.
 Household leave/founding choices retain their household, moving care group and
 exact loose-food allowance. Native membership, custody and paused-work effects
 use the retained selection; automatic displacement plans its own native step.
+Allowance selection and rechecks respect the native transfer's stock holds.
 Paused household work retains its job, original worker/time, material reservation
 IDs, workstation and selected knife. The same check runs at all three boundaries;
 blocked travel waits and expansion checks on arrival keep the native behavior.
@@ -631,7 +635,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 215 references across 59 files. Named delivery, hold and cargo operations
+is 189 references across 53 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
