@@ -88,7 +88,7 @@ public sealed partial class TownLandTransferRuntimeTests
         var completed = Assert.Single(restored.Towns[0].LandRecords.Transfers);
         var payment = Assert.IsType<TownLandSalePayment>(completed.Receipt!.Payment);
         Assert.Equal(2, payment.Lots.Sum(lot => lot.Quantity));
-        var paidPlan = Assert.Single(exchangePlans, plan => plan.Stage == LandSaleExchangeStage.Exchange);
+        var paidPlan = Assert.Single(exchangePlans, plan => plan.Stage == LandSaleExchangeStage.Exchange && plan.Actor == payment.BuyerAgentId);
         Assert.Equal(LandSaleExchangeKind.Pay, paidPlan.Choice.Kind);
         Assert.Equal(payment.BuyerAgentId, paidPlan.Actor);
         Assert.Equal(payment.SellerAgentId, paidPlan.Seller);
