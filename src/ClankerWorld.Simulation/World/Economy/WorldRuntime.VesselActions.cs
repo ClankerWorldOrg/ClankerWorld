@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
                 break;
             case VesselActionKind.FillJug:
                 ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(inventory,
-                    $"{plan.VesselId}#water:{WorldTick.ToString(CultureInfo.InvariantCulture)}", InventoryContainerRules.FreshWater,
+                    DerivedId.Create($"{plan.VesselId}#water:{WorldTick.ToString(CultureInfo.InvariantCulture)}"), InventoryContainerRules.FreshWater,
                     plan.Actor, plan.Quantity, WorldTick, containerLotId: plan.VesselId));
                 AppendEvent("water_jug_filled", $"{plan.Actor}:{plan.VesselId}:{plan.Quantity}:{plan.Target.X},{plan.Target.Y}");
                 break;

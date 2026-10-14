@@ -196,6 +196,7 @@ boundary; application does not select another tool.
 Tool repair uses `ToolRepairActionPlan` to bind the worn tool, carried materials,
 missing stock or resource/tool/harvest, and any cargo storage step. Input routing
 selects an order once and checks that same order with its complete load. The
+repair check also revalidates shared-stock collection permission before cargo preparation or pickup. The
 repair commit consumes the captured material IDs; personal and borrowed tools
 retain their original split, gift, reservation and receipt rules. Legacy order
 forwarders choose a fresh step and share that commit. Planned and legacy
