@@ -450,9 +450,10 @@ self requests, sponsorship and personal acceptance before membership changes.
 Town founding and resettlement retain the selected site or abandoned Town and
 the founder's prior affiliation and dependent group. The native writer uses
 that selection after the shared check confirms it remains available.
-Public notice reading and relay retain the exact notices and recipient. The
-shared check confirms the notices still exist and the source knows them;
-native receipt ordering and recorded source attribution remain unchanged.
+Public notice reading retains the Town board and recipient and reads its
+current contents, including notices published during native council processing.
+Relay retains the exact learned notices and recipient. The shared check confirms
+the selected history remains available; receipt ordering and sources stay the same.
 Proposal votes and withdrawal retain the original proposal, voting window and
 electorate. Shared checks allow other votes to accumulate while refusing a
 settled, cancelled or changed proposal before its native response applies.

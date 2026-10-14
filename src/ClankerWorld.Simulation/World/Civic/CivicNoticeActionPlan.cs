@@ -11,5 +11,6 @@ public sealed record CivicNoticeChoice(string TownId, string? RecipientToken)
 public sealed record CivicNoticeActionPlan(string ActorId, CivicNoticeChoice Choice, string Recipient,
     GridPoint? NoticePlace, IReadOnlyList<TownCivicNotice> Notices) : ActionPlan(ActorId, Choice.Encode())
 {
+    public bool ReadsCurrentBoard => Choice.RecipientToken is null;
     public override string Activity => Choice.RecipientToken is null ? "read those public notices" : "relay those learned public notices";
 }

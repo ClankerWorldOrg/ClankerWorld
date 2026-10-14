@@ -351,7 +351,8 @@ internal sealed partial class TownSystem
                     world.MoveToward(actor, world.Agents[actor], visitPlan!.NoticePlace, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                     break;
                 case "read":
-                    state = TownCouncilRules.LearnNotices(state, actor, noticePlan!.Notices.Select(notice => notice.Id), world.WorldTick);
+                    state = TownCouncilRules.LearnNotices(state, actor, noticePlan!.ReadsCurrentBoard
+                        ? state.Notices.Select(notice => notice.Id) : noticePlan.Notices.Select(notice => notice.Id), world.WorldTick);
                     break;
                 case "relay":
                     state = TownCouncilRules.LearnNotices(state, noticePlan!.Recipient, noticePlan.Notices.Select(notice => notice.Id), world.WorldTick, actor);

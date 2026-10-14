@@ -30,7 +30,7 @@ internal sealed partial class TownSystem
                 !world.IsWithinInteractionRange(world.Agents[plan.Actor].Position, recipient.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) ||
                 plan.Notices.Any(notice => !history.Known(plan.Actor).Contains(notice.Id))))
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected notices cannot be read or relayed here now");
-        return plan.Notices.Any(notice => !history.Known(plan.Recipient).Contains(notice.Id))
+        return (plan.ReadsCurrentBoard ? council.Notices : plan.Notices).Any(notice => !history.Known(plan.Recipient).Contains(notice.Id))
             ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the recipient already knows those selected notices");
     }
 
