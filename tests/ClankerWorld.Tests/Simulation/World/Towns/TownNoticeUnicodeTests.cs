@@ -51,6 +51,18 @@ public sealed class TownNoticeUnicodeTests
         Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(unchanged, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal(unchanged, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(unchanged)));
+        if (!relay)
+        {
+            Assert.True(plan.ReadsCurrentBoard);
+            var readState = world.ExportState();
+            var readTown = readState.Towns![0];
+            var updatedCouncil = TownCouncilRules.SubmitProposal(readTown.Council!, readTown.Id, actor, "law", null,
+                "A later board notice", "notice-plan-later", readTown.ResidentIds, world.WorldTick,
+                readState.WorldSystems!.Config.TicksPerDay);
+            using var later = WorldRuntime.Restore(readState with { Towns = [readTown with { Council = updatedCouncil }] });
+            Assert.True(later.CheckActionPlan(plan).Allowed);
+            Assert.DoesNotContain(plan.Notices, notice => notice.Id == updatedCouncil.Notices[^1].Id);
+        }
     }
 
     private sealed class NoticePlanProvider(string actor, string recipient, bool relay) : IDecisionProvider
