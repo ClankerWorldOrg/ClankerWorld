@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"store-stock:{WorldTick}:{actor}", actor, householdId, load.Goods.Id, load.Quantity,
                 "store_stock_delivered", destinationStorageBuildingId: load.Store.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, load.Store.InstanceId)));
-            AppendEvent("store_stock_delivered", $"{actor}:{load.Goods.Id}:{load.Quantity}:{load.Store.InstanceId}");
+            AppendEvent(new StoreStockDeliveredEventPayload(actor, load.Goods.Id, load.Quantity, load.Store.InstanceId));
             return;
         }
         var source = HouseholdStockPosition(load.Goods);
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"store-pickup:{WorldTick}:{actor}", householdId, actor, load.Goods.Id, load.Quantity,
             "store_stock_collected", destinationDeliveryBuildingId: load.Store.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("store_stock_collected", $"{actor}:{load.Goods.Id}:{load.Quantity}:{load.Store.InstanceId}");
+        AppendEvent(new StoreStockCollectedEventPayload(actor, load.Goods.Id, load.Quantity, load.Store.InstanceId));
     }
 
     private DeliveryOrderPlan? GetStoreOrderPlan(string actor, AgentState person,

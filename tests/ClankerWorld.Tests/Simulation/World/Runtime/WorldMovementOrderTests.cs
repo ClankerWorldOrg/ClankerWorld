@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -299,28 +300,23 @@ public sealed partial class WorldRuntimeTests
     [InlineData(true)]
     public async Task CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply(bool deferStartup)
     {
-        var allowStart = deferStartup ? 0 : 1;
-        var provider = new CancellationPlanningProvider(holdFirstOrder: true, orderCandidate: "move_to")
-        {
-            CanStart = () => Volatile.Read(ref allowStart) == 1,
-        };
+        var provider = new CancellationPlanningProvider(holdFirstOrder: true, orderCandidate: "move_to");
         using var world = CreateCancellationTravelWorld(provider);
         var receipt = SubmitMovementOrder(world, "held-move", MovementOrderDestination(world.ExportState()));
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await ModelWorkHarness.For(world).TickAsync(runPendingWork: !deferStartup)).Advanced);
             // Registration precedes background provider entry. Keep the first
             // physical frame fixed while waiting for this exact held call.
-            var call = CaptureHeldHarvestCall(world);
+            var call = HeldHarvestWork(world);
             Assert.Equal(HarvestInstructionActor, call.Request.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, call.Request.Observation.OperativeOrderInstructionId);
             Assert.False(call.Task.IsCompleted);
             var position = CancellationActorPosition(world.ExportState());
             var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
             if (deferStartup) Assert.False(provider.Started.Task.IsCompleted);
-            Volatile.Write(ref allowStart, 1);
-            await AwaitHarvestPhase(provider.Started.Task, "movement provider entry");
-            var entered = CaptureHeldHarvestCall(world);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
+            var entered = HeldHarvestWork(world);
             Assert.Same(call.Request, entered.Request);
             Assert.Same(call.Task, entered.Task);
             Assert.Same(call.Request.Observation, Assert.Single(provider.Requests));
@@ -328,13 +324,13 @@ public sealed partial class WorldRuntimeTests
             Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
             CancelTravelOrder(world, receipt.InstructionId, "cancel-move");
             provider.Release.TrySetResult(true);
-            await AwaitHarvestPhase(provider.Returned.Task, "cancelled movement reply return");
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             for (var tick = 0; tick < 8 || tick < 60 &&
                      !provider.Requests.Any(request => request.OperativeOrderInstructionId is null); tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 Assert.Equal(position, CancellationActorPosition(world.ExportState()));
-                if (tick >= 8) await Task.Delay(10);
+                if (tick >= 8) await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.Single(provider.Requests, request => request.OperativeOrderInstructionId is null);
             Assert.Equal("cancelled", CancellationOrder(world.ExportState(), receipt.InstructionId).Status);
@@ -343,7 +339,6 @@ public sealed partial class WorldRuntimeTests
         }
         finally
         {
-            Volatile.Write(ref allowStart, 1);
             provider.Release.TrySetResult(true);
         }
     }
@@ -357,22 +352,19 @@ public sealed partial class WorldRuntimeTests
         var instruction = Assert.Single(state.Instructions!);
         var order = instruction.Task!;
         Assert.Equal("move_to", order.Action);
-        foreach (var damaged in new[]
-        {
-            order with { TargetPosition = null },
-            order with { TargetFoodKind = "berries" },
-            order with { TargetMaterialKind = "wood" },
-            order with { TargetResourceId = "berry-patch" },
-            order with { TargetAgentId = OrderedAgent },
-            order with { RequestedUnits = 2 },
-            order with { RepeatUntilCancelled = true },
-            order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-            {
-                Instructions = [instruction with { Task = damaged }],
-            }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "berry-patch" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = OrderedAgent }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RequestedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "invented" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, damaged));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {
             SchemaVersion = WorldRuntime.StateSchemaVersion - 1,

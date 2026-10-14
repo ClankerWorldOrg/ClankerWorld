@@ -524,7 +524,7 @@ public partial class Main
             try
             {
                 var result = await AwaitCurrentWorldResultAsync(ownerApi.RenameAgentAsync(ResolveWorldUri(), authority, deviceId,
-                    new OwnerAgentRenameAction(agentId, name), signer, CancellationToken.None));
+                    new OwnerAgentRenameAction(agentId, name), signer, OwnerRequestToken));
                 renamingAgentId = null;
                 refusedAgentRename.Forget();
                 renameRow.Hide();

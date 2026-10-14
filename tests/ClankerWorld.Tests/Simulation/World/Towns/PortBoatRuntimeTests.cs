@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -15,7 +16,7 @@ public sealed partial class PortBoatRuntimeTests
     private static readonly Lazy<Task<byte[]>> PaidBoat = new(() => BuildPaidBoatAsync());
     private static readonly Lazy<Task<byte[]>> Underway = new(StartVoyageAsync);
     private static readonly string[] ReservedKinds = ["wood", "stone", "rope", "iron"];
-    private const string Follower = "founder:00000000000000000000000000000002";
+    private const string Follower = NormalPathWorld.Founder2;
     private const string Visitor = "agent:00000000000000000000000000000010";
     private static readonly string[] Blockers = ["agent:00000000000000000000000000000011", "agent:00000000000000000000000000000012",
         "agent:00000000000000000000000000000013", "agent:00000000000000000000000000000014"];
@@ -189,8 +190,8 @@ public sealed partial class PortBoatRuntimeTests
         var foodBefore = scenario.World.Society.Inventory.Lots.Where(lot => lot.OwnerId == BoatPolicy.Author && lot.ItemKind == "food").Sum(lot => lot.Quantity);
         var receipt = scenario.World.SubmitInstruction(new("aboard-collect", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.Order, "collect my rope"));
-        Assert.True((await scenario.World.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await policy.HeldStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await scenario.World.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(policy.HeldStarted.Task);
         Assert.Contains(policy.Observations, observation => observation.AgentId == BoatPolicy.Author);
         var lot = scenario.World.Society.Inventory.GetLot("waiting-shore-rope");
         Assert.Null(lot.CarrierId);
@@ -247,8 +248,7 @@ public sealed partial class PortBoatRuntimeTests
             AddLandingBlockers(scenario, scenario.World.Boats[0].Journey!.OriginPortId, 2);
             for (var attempt = 0; attempt < 30 && scenario.World.Society.Estates.Single().WillStatus != "accepted"; attempt++)
             {
-                Assert.True((await scenario.World.AdvanceOneTickNonBlockingAsync()).Advanced);
-                await Task.Delay(10);
+                Assert.True((await scenario.World.TickModelWorkAsync()).Advanced);
             }
             var estate = Assert.Single(scenario.World.Society.Estates);
             Assert.Equal("accepted", estate.WillStatus);
@@ -527,25 +527,27 @@ public sealed partial class PortBoatRuntimeTests
             Build = true,
             Freshwater = freshwater,
             FirstPortSite = freshwater ? new(202, 99) : new(189, 14),
-            SecondPortSite = freshwater ? new(201, 108) : new(198, 13),
+            // The nearer freshwater bank at (201,108) now supplies the Town's starter clay.
+            SecondPortSite = freshwater ? new(201, 109) : new(198, 13),
             PortLocalId = freshwater ? "port-east" : "port-south",
         };
-        using var created = new WorldRuntime("probe-a", policy.CreateProvider,
+        using var placed = new WorldRuntime("probe-a", policy.CreateProvider,
             startPace: WorldStartPace.FounderSetup,
             geographyOptions: new GeographyOptions("probe-a", WorldSizePreset.Small));
-        created.InitializeFirstTownContent();
-        created.AcceptFirstTownLayout(freshwater ? new(202, 106) : new(194, 11));
+        placed.InitializeFirstTownContent();
+        placed.AcceptFirstTownLayout(freshwater ? new(202, 106) : new(194, 11));
         // These are genuine paused founder placements beside the notice place.
         // Keep voters in the same land component as the coastal Town.
-        var map = created.ExportState().Map;
-        var board = created.Towns[0].OriginSite!.Value;
+        var map = placed.ExportState().Map;
+        var board = placed.Towns[0].OriginSite!.Value;
         var placements = map.Tiles.Where(tile => map.IsBuildable(tile.Position) &&
                 !map.Resources.Any(resource => resource.Position == tile.Position) &&
                 !map.MapObjects.Any(item => item.Position == tile.Position))
             .OrderBy(tile => map.FootDistance(tile.Position, board)).ThenBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X)
             .Take(WorldRuntime.RequiredFounders).ToArray();
         for (var index = 0; index < placements.Length; index++)
-            created.PlaceFounder($"founder:{index + 1:D32}", placements[index].Position);
+            placed.PlaceFounder($"founder:{index + 1:D32}", placements[index].Position);
+        using var created = WorldRuntime.Restore(NormalPathWorld.WithHardFounders(placed.ExportState()), policy.CreateProvider);
         created.StartWorld();
         var state = NormalPathWorld.ReclockCandidateLessCouncilAttempts(created.ExportState(), ticksPerDay);
         Assert.Equal(0, created.WorldTick);
@@ -566,9 +568,9 @@ public sealed partial class PortBoatRuntimeTests
         }
         foreach (var person in state.Agents)
         {
-            inventory = InventoryAuthority.AddLot(inventory, "travel-food:" + person.AgentId, "food", person.AgentId,
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-food:" + person.AgentId), "food", person.AgentId,
                 person.AgentId == BoatPolicy.Author ? 2 : 4);
-            inventory = InventoryAuthority.AddLot(inventory, "travel-clothing:" + person.AgentId, "clothing", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-clothing:" + person.AgentId), "clothing", person.AgentId, 1);
         }
         inventory = InventoryAuthority.AddLot(inventory, "travel-jug", InventoryContainerRules.WaterJug, BoatPolicy.Author, 1);
         inventory = InventoryAuthority.AddLot(inventory, "travel-water", InventoryContainerRules.FreshWater, BoatPolicy.Author, 1,
@@ -594,6 +596,9 @@ public sealed partial class PortBoatRuntimeTests
         };
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
+        if (freshwater)
+            Assert.DoesNotContain(scenario.World.ExportState().Map.Resources,
+                resource => resource.Position == policy.SecondPortSite);
         if (stopBeforeFirstPort)
         {
             await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Single() is { Stage: "working", WorkDone: > 0 }, 300);
@@ -640,7 +645,7 @@ public sealed partial class PortBoatRuntimeTests
 
     private sealed class BoatPolicy
     {
-        internal const string Author = "founder:00000000000000000000000000000001";
+        internal const string Author = NormalPathWorld.Founder1;
         internal WorldRuntime? World { get; set; }
         internal bool Build { get; set; }
         internal bool Freshwater { get; set; }
@@ -654,8 +659,8 @@ public sealed partial class PortBoatRuntimeTests
         internal bool RevokeBoatAccess { get; set; }
         internal bool LeaveToTown { get; set; }
         internal string? HoldActor { get; set; }
-        internal TaskCompletionSource<CognitionDecisionResponse> HeldReply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> HeldStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal InlineCompletionSource<CognitionDecisionResponse> HeldReply { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> HeldStarted { get; } = new(TaskCreationOptions.None);
         internal HashSet<string> IdleActors { get; } = new(StringComparer.Ordinal);
         internal ConcurrentQueue<string> Choices { get; } = new();
         internal ConcurrentQueue<AgentObservation> Observations { get; } = new();

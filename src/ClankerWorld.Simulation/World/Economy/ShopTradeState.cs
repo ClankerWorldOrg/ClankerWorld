@@ -7,7 +7,7 @@ namespace ClankerWorld.Simulation.World;
 /// The inventory owns the actual lots, terms, acceptance and reservations.
 /// </summary>
 public sealed record ShopTradeState(
-    string OfferId, string BuildingInstanceId, string SellerHouseholdId,
+    Identity OfferId, string BuildingInstanceId, string SellerHouseholdId,
     string BuyerId, GridPoint Position, long ProposedTick, string GoodsKind, string PaymentKind,
     string? SellerActorId = null,
     string? CancellationReason = null);
