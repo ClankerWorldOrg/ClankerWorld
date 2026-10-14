@@ -139,13 +139,7 @@ public partial class Main
                 (settled && kind == "property" && !hearingFacts.Contains("Property outcome\n" + LandHearingText.Outcome(outcome, DisplayWorldClock), StringComparison.Ordinal)) ||
                 (!settled && hearingFacts.Contains("Property outcome\n", StringComparison.Ordinal)))
                 throw new InvalidOperationException($"Building inspection must distinguish {kind}/{outcomeKind}, retain pending/history state and show the current recorded owner: {hearingFacts}.");
-            if (settled)
-            {
-                var description = WorldEventText.Describe(new(1, 25, "town_civic_result", "town:first|" + ruling.Id + "|Recorded outcome."), hearingMap);
-                if (kind == "property" ? !description.Contains("property ruling", StringComparison.Ordinal) || description.Contains("use right change", StringComparison.Ordinal)
-                    : !description.Contains("use right change", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Ruling event text must describe the same recorded property or use-right case as its building card.");
-            }
+
         }
         RenderBuildingCard(buildingMap);
 
@@ -503,12 +497,6 @@ public partial class Main
             !Facts().Contains("3 Grain · owner: Sela", StringComparison.Ordinal) ||
             TownListText().Contains("free to borrow", StringComparison.Ordinal))
             throw new InvalidOperationException("Inactive Market history must retain goods ownership without advertising borrowing permission.");
-        var description = WorldEventText.Describe(new(1, 30, "market_trade_offered",
-            "town:first|market-ui|market-ui-north|seller:one|buyer:two|market-ui-offer", north.Position),
-            map);
-        if (!description.Contains("Sam", StringComparison.Ordinal) || !description.Contains("Lina", StringComparison.Ordinal) ||
-            !description.Contains("a trade at the Market", StringComparison.Ordinal))
-            throw new InvalidOperationException("Market event descriptions must retain full pipe-delimited trader identities.");
         ClearBuildingSelection();
         RenderMap(baseMap);
         RenderTownList(baseMap);

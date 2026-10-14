@@ -166,9 +166,9 @@ public sealed partial class WorldRuntime
                 return;
             }
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"child-help:{WorldTick}:{plan.Actor}", plan.Actor, HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity,
+                DerivedId.Create($"child-help:{WorldTick}:{plan.Actor}"), plan.Actor, HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity,
                 "child_household_help", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-            AppendEvent("child_helped_household", plan.Actor);
+            AppendEvent(new ChildHelpedHouseholdEventPayload(plan.Actor));
         }
         else ApplyChildHelpingPlan(plan);
     }
