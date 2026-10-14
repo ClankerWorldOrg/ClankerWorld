@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Non-land filing retains the known act, historical law, acquired source, filing
+role and actual ordinary office or Council revision. The same check verifies
+current source knowledge and legitimate response support before the retained
+report reaches the original public-file or authorization writer.
 Land hearing filing retains the household, governing office or Council
 revision and binds the admitted plot, requested outcome and statement once.
 Its shared check uses the native plot, filing and proposal-retry validators

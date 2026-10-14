@@ -15,7 +15,7 @@ internal sealed partial class TownSystem
 
     internal void AddTownNonLandCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (town.Council is not { } council || !world.Agents.TryGetValue(actor, out var actorState) || world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant) return;
+        if (town.Council is not { } council || !world.Agents.TryGetValue(actor, out var actorState) || LifeStageRules.IsInfant(world.Society.GetAgent(actor).AgeBand)) return;
         var adult = LandHearingAdult(world, actor);
         var atBoard = NearCivicBoard(world, actor, town);
         var history = CivicHistory(town);
@@ -27,22 +27,21 @@ internal sealed partial class TownSystem
                          (item.Status != "pending" || item.Filings.Any(filing => filing.AgentId == actor &&
                              (filing.Kind == "affected" || actor == item.Allegation.SubjectId))))).Take(6))
             {
-                var token = NonLandReportToken(report.Allegation);
                 var label = "Report known conduct as an allegation: " + NonLandKnownAllegationText(world, town, report.Allegation) +
                     ". Supply civic_nonviolent.statement explaining the alleged breach; the engine does not decide guilt. Source: " + report.Evidence.Acquisition + ".";
                 if (!town.NonLandHearings.Cases.Any(item => item.Key == TownNonLandRules.CaseKey(town.Id, report.Allegation) && item.Filings.Any(filing => filing.AgentId == actor)))
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_file", token), label, 185));
+                    OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file", label, 185);
                 if (actor != report.Allegation.SubjectId)
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_file_affected", token),
-                        "Report this known act as personally affecting you, explaining your claimed harm in civic_nonviolent.statement. Your claimed stake grants a response opportunity, not proof that the allegation or harm is true. " + label, 185));
+                    OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file_affected",
+                        "Report this known act as personally affecting you, explaining your claimed harm in civic_nonviolent.statement. Your claimed stake grants a response opportunity, not proof that the allegation or harm is true. " + label, 185);
                 if (town.Government is { } government && TownAdults(world, town).Contains(actor, StringComparer.Ordinal))
                 {
                     if (government.Arrangement.Ordinary == TownArrangementRules.Mayor && government.Offices.Any(office =>
                             office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > world.WorldTick))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_file_town", token), "File this known allegation under your current ordinary Town office. " + label, 186));
+                        OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file_town", "File this known allegation under your current ordinary Town office. " + label, 186);
                     else if (government.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil or TownArrangementRules.AllAdultCouncil &&
                         council.Members.Contains(actor, StringComparer.Ordinal))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_propose_town", token), "Ask the Council to authorize this known Town allegation; approval is required. " + label, 186));
+                        OfferNonLandFiling(world, candidates, actor, town, report, "law_case_propose_town", "Ask the Council to authorize this known Town allegation; approval is required. " + label, 186);
                 }
             }
         foreach (var item in town.NonLandHearings.Cases)
