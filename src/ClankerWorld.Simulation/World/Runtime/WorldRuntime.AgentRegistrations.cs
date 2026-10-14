@@ -163,12 +163,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "gather_smith_ore", [], ["gather_smith_ore"], static (runtime, action) =>
     {
-        runtime.GatherBlacksmithOre(action.AgentId, action.State);
+        runtime.ApplySmithGatherPlan(action.Plan as SmithGatherActionPlan ?? runtime.PlanSmithGather(action.AgentId, "iron_ore"));
         return true;
     }),
         new(ActionPhase.Ordinary, "GatherBlacksmithInputPrefix", [GatherBlacksmithInputPrefix], [], static (runtime, action) =>
     {
-        runtime.GatherBlacksmithInput(action.AgentId, action.State, action.CandidateId[GatherBlacksmithInputPrefix.Length..]);
+        runtime.ApplySmithGatherPlan(action.Plan as SmithGatherActionPlan ?? runtime.PlanSmithGather(action.AgentId, action.CandidateId[GatherBlacksmithInputPrefix.Length..]));
         return true;
     }),
         new(ActionPhase.Ordinary, "deliver_smith_ore", [], ["deliver_smith_ore"], static (runtime, action) =>

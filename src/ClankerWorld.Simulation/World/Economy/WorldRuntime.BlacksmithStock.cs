@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string GatherBlacksmithInputPrefix = "gather_smith_input:";
+    private const string GatherBlacksmithInputPrefix = SmithGatherChoice.InputPrefix;
     private const string CollectToolPrefix = "collect_tool:";
 
     private bool MayCollectToolFamily(string actor, ToolFamily family) =>
@@ -118,28 +118,14 @@ public sealed partial class WorldRuntime
         }
         if (BlacksmithHasDeliverableInput(householdId, blacksmith, actor, "iron_ore"))
             return;
-        if (MaterialSource("iron_ore", actor, blacksmith.Position) is not { } source ||
-            FreeCarryCapacity(actor) < ProjectMaterialCarryUnits(actor, "iron_ore", source) &&
-                !CanMakeRoomForBlacksmithHarvest(actor, state, "iron_ore", source) ||
-            !IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange) &&
-            FindUnoccupiedRoute(actor, state.Position, source.Position, ResourceInteractionRange).Count == 0)
+        if (PlanSmithGather(actor, "iron_ore", selectedSmith: blacksmith) is not { } gather || !CheckActionPlan(gather).Allowed)
             return;
-        candidates.Add(new CognitionCandidate("gather_smith_ore",
-            "Mine iron ore for the household Blacksmith.", 30, source.Id));
+        candidates.Add(new CognitionCandidate(gather.CandidateId,
+            "Mine iron ore for the household Blacksmith.", 30, gather.Source.Id)
+        { ActionPlan = gather });
     }
 
-    private void GatherBlacksmithOre(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null ||
-            BlacksmithForHousehold(householdId) is not { } blacksmith ||
-            BlacksmithOreStocked(householdId, blacksmith.InstanceId) >= BlacksmithInputTarget(blacksmith.InstanceId, "iron_ore") ||
-            PersonalSmithOre(actor) is not null ||
-            MaterialSource("iron_ore", actor, blacksmith.Position) is not { } source)
-            return;
-        if (!MakeRoomForBlacksmithHarvest(actor, state, householdId, "iron_ore", source))
-            GatherProjectMaterial(actor, state, "iron_ore", source, returnTo: blacksmith.Position);
-    }
+    private void GatherBlacksmithOre(string actor, AgentState state) => ApplySmithGatherPlan(PlanSmithGather(actor, "iron_ore"));
 
     private void DeliverBlacksmithOre(string actor, AgentState state) => ApplySmithDeliveryPlan(PlanSmithDelivery(actor, SmithDeliveryKind.Ore));
 
@@ -200,38 +186,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void GatherBlacksmithInput(string actor, AgentState state, string itemKind)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null ||
-            BlacksmithForHousehold(householdId) is not { } blacksmith ||
-            BlacksmithInputToGather(householdId, blacksmith.InstanceId, actor) is not { } missing ||
-            missing.ItemKind != itemKind)
-            return;
-        if (!MakeRoomForBlacksmithHarvest(actor, state, householdId, itemKind, missing.Source))
-            GatherProjectMaterial(actor, state, itemKind, missing.Source, returnTo: blacksmith.Position);
-    }
-
-    private bool MakeRoomForBlacksmithHarvest(string actor, AgentState state,
-        string householdId, string itemKind, MapResource source)
-    {
-        if (ProjectMaterialHarvest(actor, itemKind, source) is not { } plan)
-            return false;
-        var missing = checked(plan.Quantity + plan.TreeSeedQuantity) - FreeCarryCapacity(actor);
-        return missing > 0 && StoreSpareCargo(actor, state, householdId,
-            SpareCargoForFood(actor, missing, plan.ToolLotId));
-    }
-
-    private bool CanMakeRoomForBlacksmithHarvest(string actor, AgentState state,
-        string itemKind, MapResource source)
-    {
-        if (ProjectMaterialHarvest(actor, itemKind, source) is not { } plan)
-            return false;
-        var cargo = SpareCargoForFood(actor,
-            checked(plan.Quantity + plan.TreeSeedQuantity) - FreeCarryCapacity(actor), plan.ToolLotId);
-        return cargo.Count > 0 && SpareCargoDestination(actor, state,
-            cargo.Sum(move => move.PhysicalQuantity)) is not null;
-    }
+    private void GatherBlacksmithInput(string actor, AgentState state, string itemKind) => ApplySmithGatherPlan(PlanSmithGather(actor, itemKind));
 
     private (string ItemKind, MapResource Source)? BlacksmithHarvestToPrepare(string householdId,
         string blacksmithId, string actor)
@@ -258,11 +213,11 @@ public sealed partial class WorldRuntime
                 BlacksmithForHousehold(householdId) is { } gatheringSmith &&
                 BlacksmithInputToGather(householdId, gatheringSmith.InstanceId, actor) is { } missing)
             {
-                var candidateId = missing.ItemKind == "iron_ore"
-                    ? "gather_smith_ore" : GatherBlacksmithInputPrefix + missing.ItemKind;
-                candidates.Add(new CognitionCandidate(candidateId,
-                    $"Gather {missing.ItemKind.Replace('_', ' ')} for the household Blacksmith.", 30,
-                    missing.Source.Id));
+                if (PlanSmithGather(actor, missing.ItemKind, missing.Source, gatheringSmith) is { } gather && CheckActionPlan(gather).Allowed)
+                    candidates.Add(new CognitionCandidate(gather.CandidateId,
+                        $"Gather {missing.ItemKind.Replace('_', ' ')} for the household Blacksmith.", 30,
+                        missing.Source.Id)
+                    { ActionPlan = gather });
             }
             return;
         }
@@ -273,11 +228,11 @@ public sealed partial class WorldRuntime
         {
             if (BlacksmithInputToGather(householdId, blacksmith.InstanceId, actor) is { } missing)
             {
-                var candidateId = missing.ItemKind == "iron_ore"
-                    ? "gather_smith_ore" : GatherBlacksmithInputPrefix + missing.ItemKind;
-                candidates.Add(new CognitionCandidate(candidateId,
-                    $"Gather {missing.ItemKind.Replace('_', ' ')} for the household Blacksmith.", 30,
-                    missing.Source.Id));
+                if (PlanSmithGather(actor, missing.ItemKind, missing.Source, blacksmith) is { } gather && CheckActionPlan(gather).Allowed)
+                    candidates.Add(new CognitionCandidate(gather.CandidateId,
+                        $"Gather {missing.ItemKind.Replace('_', ' ')} for the household Blacksmith.", 30,
+                        missing.Source.Id)
+                    { ActionPlan = gather });
             }
             return;
         }

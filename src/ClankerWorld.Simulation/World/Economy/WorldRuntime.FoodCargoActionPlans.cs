@@ -12,18 +12,23 @@ public sealed partial class WorldRuntime
         var cargo = FoodRecoveryCargo(actor, state);
         if (cargo.Count == 0 || SpareCargoDestination(actor, state, cargo.Sum(move => move.PhysicalQuantity)) is not { } destination)
             return null;
+        var moves = CaptureCargoMoves(cargo);
+        return new(actor, household, moves, destination.Position, destination.Range,
+            destination.StorageBuildingId, Reach(actor, destination.Position, ReachPurpose.FoodCargoStorage,
+                destination.Range, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private System.Collections.ObjectModel.ReadOnlyCollection<PlannedCargoMove> CaptureCargoMoves(IReadOnlyList<SpareCargoMove> cargo)
+    {
         var inventory = society.Checkpoint.Inventory;
-        var moves = cargo.Select(move =>
+        return Array.AsReadOnly(cargo.Select(move =>
         {
             var reservationQuantity = move.OrchardReservationId is { } reservationId ? inventory.GetReservation(reservationId).Quantity : 0;
-            return new FoodCargoMove(move.Lot.Id, move.Lot.OwnerId, move.Lot.ItemKind, move.TransferQuantity, move.PhysicalQuantity,
+            return new PlannedCargoMove(move.Lot.Id, move.Lot.OwnerId, move.Lot.ItemKind, move.TransferQuantity, move.PhysicalQuantity,
                 InventoryContainerRules.IsContainer(move.Lot.ItemKind) ? GoodsPlanFamily.Capture(inventory, move.Lot) : null,
                 move.OrchardReservationId, reservationQuantity, move.OrchardReservationId is null ? 0 :
                     Math.Max(0, move.TransferQuantity - (move.Lot.Quantity - reservationQuantity)));
-        }).ToArray();
-        return new(actor, household, Array.AsReadOnly(moves), destination.Position, destination.Range,
-            destination.StorageBuildingId, Reach(actor, destination.Position, ReachPurpose.FoodCargoStorage,
-                destination.Range, 0, SwimmingPolicy.WhenCapable));
+        }).ToArray());
     }
 
     private static ActorCapabilityPolicy FoodCargoPolicy => new(ActionLifeStages.NonInfants,
@@ -38,6 +43,12 @@ public sealed partial class WorldRuntime
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household has changed");
         if (FoodRoomMissing(plan.Actor, state) <= 0)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is already room for food");
+        return CheckCargoStorage(plan.Storage);
+    }
+
+    private ActionCheck CheckCargoStorage(PlannedCargoStorage plan)
+    {
+        var state = agents[plan.Actor];
         var inventory = society.Checkpoint.Inventory;
         foreach (var move in plan.Cargo)
         {
@@ -73,6 +84,11 @@ public sealed partial class WorldRuntime
     {
         if (plan is null) return;
         if (CheckFoodCargoPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCargoStorage(plan.Storage);
+    }
+
+    private void ApplyCargoStorage(PlannedCargoStorage plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Destination, plan.InteractionRange))
         {
