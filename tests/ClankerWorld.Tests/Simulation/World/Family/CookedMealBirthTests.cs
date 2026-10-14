@@ -42,7 +42,7 @@ public sealed class CookedMealBirthTests
         Assert.Equal(prepared.Household, infant.HouseholdId);
         Assert.Equal(world.Society.GetAgent(prepared.First).DomesticFamilyUnitId, infant.DomesticFamilyUnitId);
         var receipts = world.Society.Inventory.Reservations.Where(receipt => receipt.Purpose == "birth:" + birth.RequestId)
-            .OrderBy(receipt => receipt.Id, StringComparer.Ordinal).ToArray();
+            .OrderBy(receipt => receipt.Id.Value, StringComparer.Ordinal).ToArray();
         Assert.Equal(2, receipts.Length);
         Assert.Equal(prepared.OutputIds.Take(2), receipts.Select(receipt => receipt.LotId));
         Assert.All(receipts, receipt =>

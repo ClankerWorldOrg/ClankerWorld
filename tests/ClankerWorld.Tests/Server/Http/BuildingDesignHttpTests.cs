@@ -57,7 +57,7 @@ public sealed partial class ServerHttpTests
             using var review = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/content/building-review",
                 packageId, OwnerContentBinding.PackageIdPayload("building-review", packageId));
             Assert.Equal(HttpStatusCode.OK, review.StatusCode);
-            var reviewed = await review.Content.ReadFromJsonAsync<ClankerWorld.GodotClient.Protocol.OwnerBuildingDesignPreview>();
+            var reviewed = await review.Content.ReadFromJsonAsync<ClankerWorld.Contracts.OwnerBuildingDesignPreview>();
             Assert.Equal(preview.ManifestDigest, reviewed!.ManifestDigest);
             Assert.Equal(action.Name, reviewed.Design.Name);
             Assert.Equal(proposedBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));

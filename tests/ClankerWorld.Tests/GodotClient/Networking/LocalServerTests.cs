@@ -10,7 +10,7 @@ using ClankerWorld.GodotClient.Pairing;
 namespace ClankerWorld.Tests;
 
 /// <summary>The game starting, pairing with and stopping its local server (#1564).</summary>
-public sealed class LocalServerTests
+public sealed partial class LocalServerTests
 {
     private static readonly string[] UntouchedDataFiles =
         ["saves/world.json", "settings/provider-configuration.json", "client/game-display-preferences.json"];
@@ -77,6 +77,7 @@ public sealed class LocalServerTests
             var layout = LocalServerLayout.FindBundled(game, localAppData);
 
             Assert.NotNull(layout);
+            Assert.Null(LocalServerLayout.FindBundled(Path.Combine(Path.GetDirectoryName(game)!, "AnotherGame.exe"), localAppData));
             Assert.Equal(Path.Combine(Path.GetDirectoryName(game)!, "server", "ClankerWorld.Server.exe"), layout.FileName);
             Assert.Equal(Path.Combine(Path.GetDirectoryName(game)!, "server"), layout.ServerDirectory);
             Assert.Equal(Path.Combine(localAppData, "ClankerWorld"), layout.DataDirectory);
@@ -250,6 +251,9 @@ public sealed class LocalServerTests
             var layout = new LocalServerLayout(Path.Combine(data, "missing-host"), [], data, data);
             Directory.CreateDirectory(Path.GetDirectoryName(layout.LogPath)!);
             File.WriteAllText(layout.LogPath, "the launch that crashed");
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
+            File.WriteAllText(layout.SecretPath, "synthetic-previous-launch-value");
+            var previousSecretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var http = new HttpClient();
             var game = new LocalServer(layout, http, FreePort(), FreePort());
             var start = await game.StartAsync("0", "0", CancellationToken.None);
@@ -257,6 +261,7 @@ public sealed class LocalServerTests
             Assert.Contains("try again", start.PlayerMessage, StringComparison.OrdinalIgnoreCase);
             // A new launch keeps the last one's log, so a crash can still be reported.
             Assert.Equal("the launch that crashed", File.ReadAllText(layout.PreviousLogPath));
+            Assert.Equal(previousSecretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
         }
         finally
         {
@@ -320,36 +325,39 @@ public sealed class LocalServerTests
             var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true, deferTimeout: deferTimeout);
             using var delayedHttp = new HttpClient(handler);
-            var relaunch = new LocalServer(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100));
+            var clock = new ManualTimeProvider();
+            var relaunch = new LocalServer(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100), timeProvider: clock);
             using var cancellation = new CancellationTokenSource();
             var starting = relaunch.StartAsync(version, revision, cancellation.Token);
             try
             {
                 if (cancelCaller)
                 {
-                    await handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
                     cancellation.Cancel();
-                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(30)));
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(starting));
                 }
                 else
                 {
+                    await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+                    clock.Advance(TimeSpan.FromSeconds(2));
                     if (deferTimeout)
                     {
-                        await handler.TimedOut.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                        await ModelWorkHarness.WaitForSignalAsync(handler.TimedOut.Task);
                         Assert.False(cancellation.IsCancellationRequested);
                         // Hold the actual request-timeout continuation beyond the
                         // old caller timer, without changing the host or response.
-                        await Task.Delay(TimeSpan.FromSeconds(6));
+                        clock.Advance(TimeSpan.FromSeconds(6));
                     }
                     handler.ResumeTimeout.TrySetResult();
-                    Assert.Equal(LocalServerStartOutcome.TimedOut, (await starting.WaitAsync(TimeSpan.FromSeconds(30))).Outcome);
+                    Assert.Equal(LocalServerStartOutcome.TimedOut, (await ModelWorkHarness.WaitForSignalAsync(starting)).Outcome);
                 }
             }
             finally
             {
                 cancellation.Cancel();
                 handler.ResumeTimeout.TrySetResult();
-                try { await starting.WaitAsync(TimeSpan.FromSeconds(30)); }
+                try { await ModelWorkHarness.WaitForSignalAsync(starting); }
                 catch (OperationCanceledException) { }
             }
             Assert.True(handler.TargetRequests > 0);
@@ -370,9 +378,9 @@ public sealed class LocalServerTests
         private readonly HttpMessageInvoker inner = new(new HttpClientHandler());
         private int targetRequests;
         public int TargetRequests => Volatile.Read(ref targetRequests);
-        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource TimedOut { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ResumeTimeout { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Entered { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource TimedOut { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ResumeTimeout { get; } = new(TaskCreationOptions.None);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -385,7 +393,7 @@ public sealed class LocalServerTests
                 catch (OperationCanceledException) when (deferTimeout)
                 {
                     TimedOut.TrySetResult();
-                    await ResumeTimeout.Task.WaitAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+                    await ModelWorkHarness.WaitForSignalAsync(ResumeTimeout.Task);
                     throw;
                 }
             }
@@ -412,7 +420,7 @@ public sealed class LocalServerTests
         {
             Assert.True((await game.StartAsync(version, revision, CancellationToken.None)).IsReady);
             handler.Refusal = refusal;
-            Assert.False(await game.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.False(await ModelWorkHarness.WaitForSignalAsync(game.StopAsync(CancellationToken.None)));
             Assert.True(game.StartedServer);
             Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
             handler.Refusal = null;
@@ -421,7 +429,7 @@ public sealed class LocalServerTests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => game.StopAsync(cancellation.Token));
             Assert.True(game.StartedServer);
             Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
-            Assert.True(await game.StopAsync(CancellationToken.None));
+            Assert.True(await ModelWorkHarness.WaitForSignalAsync(game.StopAsync(CancellationToken.None)));
             Assert.False(game.StartedServer);
         }
         finally
