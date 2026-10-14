@@ -11,10 +11,10 @@ internal sealed partial class TownSystem
         // Each choice costs prompt space on every model call, so protected proposals are
         // made at the notice place, like admission requests.
         var atNoticePlace = NearCivicBoard(world, actor, town);
-        foreach (var target in TownArrangementRules.Supported.Where(a => atNoticePlace && a != government.Arrangement))
-            candidates.Add(new(CivicAction(world, town.Id, "government_propose", TownArrangementRules.Key(target)),
+        foreach (var target in TownArrangementRules.Supported)
+            OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.Propose, TownArrangementRules.Key(target),
                 $"Initiate a protected resident vote in {town.Name}: {TownArrangementRules.Declaration(target)} " +
-                "More than half the eligible adult residents must approve; incumbent permission is not needed. No power changes before a valid handover.", 195));
+                "More than half the eligible adult residents must approve; incumbent permission is not needed. No power changes before a valid handover.", 195);
         if (atNoticePlace && government.Arrangement.NonLand == "none")
             foreach (var office in government.Offices.Where(office => office.Mandates is "land" or "ordinary" && office.HolderId is not null && office.TermEndTick > world.WorldTick))
                 candidates.Add(new(CivicAction(world, town.Id, "government_extend_non_land", TownArrangementRules.Key(government.Arrangement with { NonLand = TownArrangementRules.Mayor }), NonLandExtensionToken(office)),
@@ -25,19 +25,16 @@ internal sealed partial class TownSystem
                      TownGovernmentRules.CanAcceptNonLandDuties(town.Council!, government, change.Id, actor, TownAdults(world, town), world.WorldTick)))
             candidates.Add(new(CivicAction(world, town.Id, "government_accept_non_land", change.Id),
                 "Personally accept these proposed additional nonviolent adjudication duties for your existing term. This supplies no resident vote, and does not restart your term.", 185));
-        if (atNoticePlace && TownArrangementRules.HasOffice(government.Arrangement))
-            candidates.Add(new(CivicAction(world, town.Id, "government_replace", TownArrangementRules.Key(government.Arrangement)),
-                $"Ask {town.Name}'s adult residents to approve early replacement of the elected mayoral mandates. Approval requires a resident majority and a valid successor election.", 196));
-        foreach (var change in government.Changes.Where(c => c.Status is "queued" or "voting" && history.Knows(actor, c.Id)))
+        OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.ReplaceMayor, TownArrangementRules.Key(government.Arrangement),
+                $"Ask {town.Name}'s adult residents to approve early replacement of the elected mayoral mandates. Approval requires a resident majority and a valid successor election.", 196);
+        foreach (var change in government.Changes)
         {
-            if (change.AuthorId == actor)
-                candidates.Add(new(CivicAction(world, town.Id, "government_withdraw", change.Id), "Withdraw your unfinished protected government proposal.", 197));
-            if (change.Status != "voting" || !history.Knows(actor, TownGovernmentRules.VoteNoticeToken(change)) ||
-                !change.Voters.Contains(actor, StringComparer.Ordinal) || change.Votes.Any(v => v.AgentId == actor)) continue;
-            candidates.Add(new(CivicAction(world, town.Id, "government_yes", change.Id),
-                $"Cast your final yes vote on the protected resident proposal in {town.Name}. {TownArrangementRules.Declaration(change.Target)}", 165));
-            candidates.Add(new(CivicAction(world, town.Id, "government_no", change.Id),
-                $"Cast your final no vote on the protected resident proposal in {town.Name}. {TownArrangementRules.Declaration(change.Target)}", 166));
+            OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.Withdraw, change.Id,
+                "Withdraw your unfinished protected government proposal.", 197);
+            OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.Yes, change.Id,
+                $"Cast your final yes vote on the protected resident proposal in {town.Name}. {TownArrangementRules.Declaration(change.Target)}", 165);
+            OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.No, change.Id,
+                $"Cast your final no vote on the protected resident proposal in {town.Name}. {TownArrangementRules.Declaration(change.Target)}", 166);
         }
         var officeInPlay = TownArrangementRules.HasOffice(government.Arrangement) || government.Contest is not null ||
             government.Changes.Any(c => c.Status is "queued" or "voting" or "handover" && TownArrangementRules.HasOffice(c.Target));

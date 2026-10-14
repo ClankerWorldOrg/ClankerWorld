@@ -32,8 +32,24 @@ public sealed partial class TownGovernmentRuntimeTests
         var provider = new MayorProvider();
         using var world = NewWorld(_ => provider, removeFoundingOffice: true);
         var original = world.ExportState();
+        var selectedPlans = new List<GovernmentProposalActionPlan>();
+        void Capture(WorldStepResult result)
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is GovernmentProposalActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<GovernmentProposalActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, GovernmentProposalChoice.Decode(plan.CandidateId));
+                if (plan.Change is { } change) Assert.Equal(change.Id, plan.Choice.Subject);
+                else Assert.Equal(TownArrangementRules.Key(plan.Target!), plan.Choice.Subject);
+                selectedPlans.Add(plan);
+            }
+        }
         for (var step = 0; step < 20 && world.Towns[0].Government!.Changes.Count == 1; step++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var tick = await world.AdvanceOneTickAsync();
+            Assert.True(tick.Advanced);
+            Capture(tick);
+        }
         Assert.Equal(2, world.Towns[0].Government!.Changes.Count);
         world.Pause();
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
@@ -47,13 +63,18 @@ public sealed partial class TownGovernmentRuntimeTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var step = 0; step < Day * 3 && world.Towns[0].Government!.Offices.Count == 0; step++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var tick = await world.AdvanceOneTickAsync();
+            Assert.True(tick.Advanced);
+            Capture(tick);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             world.Validate(); replay.Validate();
         }
         var government = world.Towns[0].Government!;
         Assert.Equal(Author, Assert.Single(government.Offices).HolderId);
         Assert.Equal("completed", government.Changes[^1].Status);
+        Assert.Contains(selectedPlans, plan => plan.Choice.Kind == GovernmentProposalKind.Propose);
+        Assert.Contains(selectedPlans, plan => plan.Choice.Kind == GovernmentProposalKind.Yes);
+        Assert.All(selectedPlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.Contains(provider.Seen, id => id.Contains("|government_yes|", StringComparison.Ordinal));
         Assert.Contains(provider.Seen, id => id.Contains("|mayor_vote|", StringComparison.Ordinal));

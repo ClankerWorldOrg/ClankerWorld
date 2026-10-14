@@ -1,0 +1,1 @@
+- Protected government proposals and responses retain their selected arrangement or voting window through shared checks.
