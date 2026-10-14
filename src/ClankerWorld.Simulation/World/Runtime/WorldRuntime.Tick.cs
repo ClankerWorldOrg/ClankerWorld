@@ -712,7 +712,7 @@ public sealed partial class WorldRuntime
                     {
                         RecordModelCompletion(id, decision.Admission, outcome.Failure);
                         ApplyPersonalIdentityChoice(id, item.Request, outcome.Response, decision.Admission);
-                        if (decision.Admission.Accepted && !decision.Admission.FellBack &&
+                        if (decision.PlanRefusal is null && decision.Admission.Accepted && !decision.Admission.FellBack &&
                             outcome.Response is
                             {
                                 Provider: DecisionProviderKind.LargeLanguageModel,
