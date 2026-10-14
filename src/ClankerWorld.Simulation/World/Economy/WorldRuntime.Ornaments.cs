@@ -69,7 +69,7 @@ public sealed partial class WorldRuntime
         foreach (var plans in PersonalOrnamentsToGive(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => recipients.Select(recipient => PlanOrnamentGift(actor, lot, recipient.AgentId))
                 .Where(plan => CheckOrnamentPlan(plan).Allowed).ToArray())
-            .Where(plans => plans.Length > 0).Take(4))
+            .Where(plans => plans.Any()).Take(4))
             foreach (var plan in plans)
             {
                 if (gifts++ >= 16) return;
