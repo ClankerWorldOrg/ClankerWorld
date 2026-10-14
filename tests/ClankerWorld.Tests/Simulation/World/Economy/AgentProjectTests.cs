@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Reflection;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Observation;
@@ -44,6 +45,11 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var world = WorldRuntime.Restore(initial, _ => new IdleProvider());
         try
         {
+            var deliveryPlan = Assert.IsType<ProjectInputActionPlan>(typeof(WorldRuntime)
+                .GetMethod("PlanProjectInput", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(world, [actor, house.BuildCosts.First(input => input.ResourceId == "wood"), "household:first", site]));
+            var delivery = Assert.IsType<ProjectInputDelivery>(deliveryPlan.Step);
+            Assert.True(world.CheckActionPlan(deliveryPlan).Allowed);
             var restartedAfterDelivery = false;
             for (var tick = 0; tick < 200 && !world.WorldSimulation.Buildings.Any(item => item.HouseholdId == "household:first"); tick++)
             {
@@ -58,6 +64,9 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                     Assert.Equal("household:first", staged.OwnerId);
                     Assert.Equal(new InventoryGroundPosition(startingSite.X, startingSite.Y), staged.GroundPosition);
                     Assert.Equal(4, staged.Quantity);
+                    Assert.Equal((delivery.LotId, delivery.Quantity), (staged.Id, staged.Quantity));
+                    Assert.Equal(deliveryPlan.Destination, new GridPoint(staged.GroundPosition!.Value.X, staged.GroundPosition.Value.Y));
+                    Assert.False(world.CheckActionPlan(deliveryPlan).Allowed);
                     world.Dispose();
                     world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
                         _ => new IdleProvider());

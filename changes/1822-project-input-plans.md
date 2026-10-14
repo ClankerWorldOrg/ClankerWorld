@@ -1,0 +1,1 @@
+- Project input delivery, Warehouse collection and harvesting retain their selected lot, source, tool and destination through shared checks.

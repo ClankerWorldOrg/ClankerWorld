@@ -147,6 +147,11 @@ physical step. Reservation identities and completion retain their native order.
 Each expansion material step retains its delivery or pickup lot, quantity and
 physical destination, or its harvest source and tool. The shared expansion
 check validates that selection before the native transfer or harvest applies.
+Private projects plan each input acquisition step before applying it. Delivery
+and Warehouse pickup retain their lot, quantity and destination; gathering
+retains its source and carried tool, or the shared tool pickup needed first.
+These steps reuse the contribution, equipment pickup and harvest checks while
+keeping the native waiting stages and transfer events.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
