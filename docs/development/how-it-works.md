@@ -491,6 +491,9 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Market quotes retain the exact seller occupancy, goods and personal payment.
+Open-offer responses retain the original exchange terms, claims and arrival
+phase; shared checks refuse a changed offer before the native response writer.
 Market stock loads, deposits and collections retain their exact lot, owner,
 quantity, origin, stall, occupancy and arrival phase. Shared checks preserve
 surplus reserves and physical spoiled-stock collection, including jug families,
