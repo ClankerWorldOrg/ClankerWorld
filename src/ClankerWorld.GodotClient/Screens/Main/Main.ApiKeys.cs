@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -11,7 +12,7 @@ public partial class Main
     private readonly LineEdit apiKeyInput = new();
     private readonly Button saveApiKeyButton = new();
     private readonly Label apiKeysStatus = new();
-    private readonly Label savedApiKeys = new();
+    private readonly FittedLabel savedApiKeys = new();
     private int apiKeysRead;
 
     private void BuildApiKeysPanel()
@@ -75,7 +76,7 @@ public partial class Main
         try
         {
             var status = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             if (!IsCurrentWorldRequest(generation) || read != apiKeysRead ||
                 !ReferenceEquals(owner, registration) || !apiKeysPanel.IsVisibleInTree()) return;
             providerConfiguration = status;
@@ -115,10 +116,10 @@ public partial class Main
         apiKeysStatus.Text = "Saving key...";
         var saved = false;
         var generation = observationSession.RequestGeneration;
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.CreateCredentialSlotAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             saved = true;
             RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
             RenderSavedApiKeys();
@@ -128,7 +129,7 @@ public partial class Main
             PopulateCredentialChoices();
             return "API key saved on the world server.";
         });
-        if (!saved && IsCurrentWorldRequest(generation))
+        if (contextRetained && !saved && IsCurrentWorldRequest(generation))
             apiKeysStatus.Text = "The world server did not confirm that the key was saved. Check the connection and try again.";
     }
 }

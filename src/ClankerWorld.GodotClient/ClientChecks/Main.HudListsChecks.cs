@@ -18,7 +18,7 @@ public partial class Main
             PanelSmokeAgent($"roster-keyboard-{index}", $"Agent {index:D2}", new OwnerWorldPosition(index + 1, 1))).ToArray();
         var snapshot = original with { Agents = people, LatestEventId = 0 };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                 "owner-control.request.v1", "paused-authoring.request.v1"], []);
         async Task LayoutAsync()
         {
@@ -104,7 +104,7 @@ public partial class Main
             ExpectBrowsing(people[2].Id, "A new row above the selection");
             await KeyAsync(Key.Enter);
             if (!agentProfilePanel.Visible || selectedAgentId != people[2].Id ||
-                !selectedActorNameLabel.Text.Contains(people[2].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[2].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("Enter must open the keyboard-selected agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
@@ -117,7 +117,7 @@ public partial class Main
             await LayoutAsync();
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.Text.Contains(people[0].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("A double-click must still open the clicked agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
@@ -129,7 +129,7 @@ public partial class Main
             ExpectBrowsing(people[0].Id, "Returning to a row with the keyboard before a double-click");
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.Text.Contains(people[0].DisplayName, StringComparison.Ordinal))
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("Double-clicking the keyboard-selected row must open that agent's Profile.");
         }
         finally
@@ -298,7 +298,7 @@ public partial class Main
     {
         var rows = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ToArray();
         return index < rows.Length
-            ? string.Join(" ", rows[index].FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text))
+            ? string.Join(" ", rows[index].FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks))
             : string.Empty;
     }
 
@@ -334,7 +334,7 @@ public partial class Main
     /// <summary>The controls list draws keys as keycaps in the current theme's colours, grouped by what they do.</summary>
     private void VerifyControlsKeycaps()
     {
-        var texts = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+        var texts = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
         foreach (var section in new[] { "MAP", "TIME AND AGENTS", "MOUSE", "PANELS" })
             if (!texts.Contains(section))
                 throw new InvalidOperationException($"The controls list must group keys under {section}.");

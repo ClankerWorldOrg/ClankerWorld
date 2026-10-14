@@ -457,7 +457,7 @@ public partial class Main
                 StretchMode = TextureRect.StretchModeEnum.KeepCentered,
             });
             var text = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-            var name = new Label { Text = town.Name, ThemeTypeVariation = "HeadingLabel" };
+            var name = new FittedLabel { Text = town.Name, ThemeTypeVariation = "HeadingLabel" };
             text.AddChild(name);
             var founded = string.Equals(town.FoundingState, "founded", StringComparison.OrdinalIgnoreCase)
                 ? "founded " + SplitClock(DisplayWorldClock(town.FoundedTick)).Date

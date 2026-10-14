@@ -119,7 +119,7 @@ public partial class Main : Control
     private readonly ScrollContainer selectedAgentModelScroll = new();
     private readonly VBoxContainer selectedAgentModelContent = new();
     private readonly Button modelSettingsButton = new();
-    private readonly Label selectedActorNameLabel = new();
+    private readonly FittedLabel selectedActorNameLabel = new();
     private readonly LineEdit renameAgentInput = new();
     private readonly Button renameAgentButton = new();
     private readonly Label selectedActorSummaryLabel = new();
@@ -286,6 +286,7 @@ public partial class Main : Control
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
         BuildLayout();
         BuildKeyboardNavigation();
+        BindOwnerRequestPanels();
         UiTheme.Changed += ApplyThemeColors;
         ApplyThemeColors();
         ApplyUiScale();
