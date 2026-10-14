@@ -41,8 +41,7 @@ public sealed partial class WorldRuntime
         // The new unit fills the slot; a displaced unit stays real cargo.
         var after = before + (previous is null ? 0 : 1) -
             (PersonalEquipmentRules.IsCarried(item, actor) ? 1 : 0);
-        var capacity = carryAid ? item.ItemKind == "leather_sack" ? 32 : item.ItemKind == "sack" ? PersonalEquipmentRules.SackCapacity
-            : PersonalEquipmentRules.BasketCapacity : PersonalEquipmentRules.Capacity(inventory, actor, equipment);
+        var capacity = carryAid ? CarryAidCapacity(item.ItemKind) : PersonalEquipmentRules.Capacity(inventory, actor, equipment);
         return after <= before && capacity >= PersonalEquipmentRules.Capacity(inventory, actor, equipment) ||
             after + ReservedShopCarrySpace(actor) <= capacity + HorseCargoCapacity(actor);
     }
@@ -53,7 +52,7 @@ public sealed partial class WorldRuntime
                 .Where(match => PersonalEquipmentRules.IsCarried(match.Lot, actor)).Sum(match => (long)match.Quantity))));
 
     private static GoodsRequest PrivateEquipmentRequest(string actor, string owner) => new(
-        GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner),
+        GoodsUse.Equip, actor, GoodsOwners.One(owner),
         new GoodsKinds(["clothing", "padded_coat", "rain_cloak", "basket", "sack", "leather_sack"]));
 
     private IEnumerable<InventoryLot> PrivateEquipmentSources(string actor) =>
@@ -64,26 +63,19 @@ public sealed partial class WorldRuntime
             ? FindGoods(PrivateEquipmentRequest(actor, household)).Matches.Select(match => match.Lot)
                 .Where(lot => lot.CarrierId is null)
             : [])
-        .Concat(AvailableWarehouseStock(actor)).DistinctBy(lot => lot.Id);
+        .Concat(AvailableWarehouseStock(actor).Where(lot => RecheckGoods(PrivateEquipmentRequest(actor, lot.OwnerId), lot.Id) is not null)).DistinctBy(lot => lot.Id);
 
     private InventoryLot? BetterGarment(string actor)
     {
-        var current = EquippedGarment(actor);
         var weather = WeatherAt(agents[actor].Position);
-        return PrivateEquipmentSources(actor).Where(lot => PersonalEquipmentRules.IsGarment(lot.ItemKind) &&
-                lot.Id != current?.Id && CanEquipPrivateItem(actor, lot, false) &&
-                (current is null || PersonalEquipmentRules.Protection(lot, weather) >
-                    PersonalEquipmentRules.Protection(current, weather)))
+        return PrivateEquipmentSources(actor).Where(lot => IsPrivateEquipmentUpgrade(actor, lot, false))
             .OrderByDescending(lot => PersonalEquipmentRules.Protection(lot, weather))
             .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
     private InventoryLot? BetterCarryAid(string actor)
     {
-        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, agents[actor].Equipment);
-        return PrivateEquipmentSources(actor).Where(lot => PersonalEquipmentRules.IsCarryAid(lot.ItemKind) &&
-                CanEquipPrivateItem(actor, lot, true) &&
-                (lot.ItemKind == "leather_sack" ? 32 : lot.ItemKind == "sack" ? PersonalEquipmentRules.SackCapacity : PersonalEquipmentRules.BasketCapacity) > capacity)
+        return PrivateEquipmentSources(actor).Where(lot => IsPrivateEquipmentUpgrade(actor, lot, true))
             .OrderByDescending(lot => lot.ItemKind == "leather_sack" ? 2 : lot.ItemKind == "sack" ? 1 : 0)
             .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
@@ -113,34 +105,23 @@ public sealed partial class WorldRuntime
     private void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person)
     {
         if (OutdoorExposure(person.Position) > 0 && BetterGarment(actor) is { } garment)
-            candidates.Add(new("wear_clothing", $"Collect and wear {garment.ItemKind.Replace('_', ' ')} to keep warm outdoors.", 3));
+            AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, false, garment), $"Collect and wear {garment.ItemKind.Replace('_', ' ')} to keep warm outdoors.", 3);
         if (!IsAdult(actor)) return;
         if (BetterCarryAid(actor) is { } aid)
-            candidates.Add(new("equip_carry_aid", $"Equip a {aid.ItemKind} to carry more supplies.", 14));
+            AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, true, aid), $"Equip a {aid.ItemKind} to carry more supplies.", 14);
         if (!NeedsUrgentFood(person) && !NeedsUrgentWarmth(person) && RepairableEquipment(actor, person) is { } worn &&
             EquipmentRepairSite(actor, worn) is { } site)
             candidates.Add(new("repair_equipment", $"Bring materials to repair the worn {worn.ItemKind.Replace('_', ' ')}.", 12, site.InstanceId));
     }
 
-    private void EquipPrivateItem(string actor, AgentState person, bool carryAid)
+    private void AddPrivateEquipmentCandidate(List<CognitionCandidate> candidates, PrivateEquipmentActionPlan? plan, string description, int priority)
     {
-        var item = carryAid ? BetterCarryAid(actor) : BetterGarment(actor);
-        if (item is null) return;
-        if (item.OwnerId != actor)
-        {
-            var position = HouseholdStockPosition(item);
-            var range = HouseholdStockInteractionRange(item);
-            if (!IsWithinInteractionRange(person.Position, position, range))
-            {
-                MoveToward(actor, person, position, "equipment", range);
-                return;
-            }
-        }
-        // Equipping can make room by replacing the carrying aid, so the existing
-        // post-equipment capacity rule applies rather than Collect's current free room.
-        if (RecheckGoods(PrivateEquipmentRequest(actor, item.OwnerId), item.Id) is not { } match ||
-            !CanEquipPrivateItem(actor, match.Lot, carryAid)) return;
-        item = match.Lot;
+        if (plan is not null && CheckPrivateEquipmentPlan(plan).Allowed)
+            candidates.Add(new(plan.CandidateId, description, priority) { ActionPlan = plan });
+    }
+
+    private void CompletePrivateEquipment(string actor, InventoryLot item, bool carryAid)
+    {
         var equippedId = item.Id;
         var previous = agents[actor].Equipment;
         var equipment = previous ?? new PersonalEquipment();
