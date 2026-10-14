@@ -6,6 +6,54 @@ namespace ClankerWorld.Tests;
 
 public sealed class ToolRepairActionPlanTests
 {
+    [Fact]
+    public async Task RepairPreparationRefusesWarehouseStockAfterItsAbandonedTownIsResettled()
+    {
+        var (state, actor) = await Fixture(borrowed: false, needsWood: true);
+        var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
+        var townId = warehouse.TownId!;
+        var inventory = state.Society.Society.Inventory with
+        {
+            Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.Id != "repair-plan-shared-wood").ToArray(),
+        };
+        inventory = InventoryAuthority.AddLot(inventory, "repair-plan-warehouse-wood", "wood", townId, 1,
+            storageBuildingId: warehouse.InstanceId);
+        state = FoodCapacityTestFixture.WithInventory(state, inventory) with
+        {
+            Towns = state.Towns!.Select(town => town.Id == townId ? town with
+            {
+                ResidentIds = [],
+                Council = TownCouncilState.Create([]),
+                Government = TownGovernmentState.Create(),
+                AbandonedSinceTick = state.Society.Society.WorldTick,
+            } : town).ToArray(),
+        };
+        var choices = new Choices(actor, choose: false);
+        using var world = WorldRuntime.Restore(state, _ => choices);
+        for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<ToolRepairActionPlan>(choices.Plan);
+        Assert.Equal("repair-plan-warehouse-wood", Assert.Single(plan.Inputs).StockId);
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+        var checkpoint = world.ExportState();
+        var settler = checkpoint.Society.Society.Agents.First(person => person.HouseholdId != plan.HouseholdId).Id;
+        var resettled = checkpoint with
+        {
+            Towns = checkpoint.Towns!.Select(town => town.Id == townId ? town with
+            {
+                ResidentIds = [settler],
+                Council = TownCouncilState.Create([settler]),
+                AbandonedSinceTick = null,
+            } : town).ToArray(),
+        };
+        using var changed = WorldRuntime.Restore(resettled);
+        Assert.Equal(ActionRefusalReason.StockUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(checkpoint.Society.Society.Inventory.GetLot("repair-plan-warehouse-wood"),
+            changed.Society.Inventory.GetLot("repair-plan-warehouse-wood"));
+        changed.Validate();
+        using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(changed.ExportState())));
+        Assert.Equal(ActionRefusalReason.StockUnavailable, reopened.CheckActionPlan(plan).Refusal!.Reason);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
