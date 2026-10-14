@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Town project donations retain the exact personal lot, contribution quantity,
+approved scope and destination. Travel keeps that selected contribution;
+arrival requires a fresh personal choice before the native donation transfer.
+The same check refuses changed scope, stock or remaining material requirements.
 Town project proposals retain the selected footprint, doorway, material
 budget and Port, with an admitted name bound once. The shared check verifies
 current resident authority, the native site rules and proposal retry rules

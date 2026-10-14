@@ -748,7 +748,7 @@ public sealed partial class WorldRuntime
             else if (IsTownProjectDonationCandidate(candidateId))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ApplyTownProjectDonation(decision.AgentId, candidateId);
+                    ApplyTownProjectDonation(decision.AgentId, candidateId, decision.ActionPlan as TownProjectDonationActionPlan);
             }
             else if (IsMarketCandidate(candidateId))
             {

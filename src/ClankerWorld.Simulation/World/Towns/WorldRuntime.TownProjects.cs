@@ -396,10 +396,9 @@ public sealed partial class WorldRuntime
 
     private void AddTownProjectDonationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        foreach (var choice in TownProjectDonationChoices(actor).Take(16))
-            candidates.Add(new(choice.Id,
-                $"Choose to donate {choice.Quantity} of your own carried {choice.ItemKind} to {choice.Project.Plan.Name}. " +
-                "The Town will own that exact contribution at the approved site.", 170, choice.Project.Id, choice.Project.Plan.Name));
+        var eligible = new List<CognitionCandidate>();
+        foreach (var choice in TownProjectDonationChoices(actor)) OfferTownProjectDonation(eligible, actor, choice);
+        candidates.AddRange(eligible.Take(16));
     }
 
     private bool ApplyTownProjectCandidate(string actor, AgentState state, string id)
@@ -420,11 +419,18 @@ public sealed partial class WorldRuntime
     }
 
     // Only a fresh, exact personal-model admission may call this final donation path.
-    private bool ApplyTownProjectDonation(string actor, string id)
+    private bool ApplyTownProjectDonation(string actor, string id, TownProjectDonationActionPlan? originalPlan = null)
     {
         if (!IsTownProjectDonationCandidate(id)) return false;
-        var choice = TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id);
-        if (choice is null) return true;
+        var plan = originalPlan;
+        if (plan is null && TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id) is { } selected)
+            plan = PlanTownProjectDonation(actor, selected);
+        if (plan is null) return true;
+        if (CheckTownProjectDonation(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return true; }
+        var town = towns.Single(item => item.Id == plan.TownId);
+        var project = town.Projects.Single(item => item.Id == plan.Choice.ProjectId);
+        var lot = PersonalTownProjectDonationLots(actor, plan.ItemKind).Single(item => item.Id == plan.Choice.StockId);
+        var choice = new TownProjectChoice(id, "donate", town, project, plan.ItemKind, lot, plan.Choice.Quantity);
         var person = agents[actor];
         if (person.Position != TownProjectRules.WorkSite(choice.Project.Plan))
         {
@@ -452,8 +458,10 @@ public sealed partial class WorldRuntime
     {
         if (!IsTownProjectDonationCandidate(id)) return;
         var choice = TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id);
-        if (choice is not null && agents[actor].Position != TownProjectRules.WorkSite(choice.Project.Plan))
-            MoveToward(actor, agents[actor], TownProjectRules.WorkSite(choice.Project.Plan), "town_project_donation", 0);
+        if (choice is null) return;
+        var plan = PlanTownProjectDonation(actor, choice);
+        if (CheckTownProjectDonation(plan).Allowed && !plan.Choice.AtSite)
+            MoveToward(actor, agents[actor], plan.Destination, "town_project_donation", 0);
     }
 
     private string NextTownProjectDeliveryId(TownProject project, string actor, string lotId) =>
