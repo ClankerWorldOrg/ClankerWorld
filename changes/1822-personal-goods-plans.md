@@ -1,0 +1,1 @@
+- Personal collection, storage and borrowed returns retain their selected goods, quantities and destinations through shared checks.

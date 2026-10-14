@@ -156,6 +156,11 @@ House guest choices retain the selected House, household and named guest.
 The same check validates membership, invitation state and the proximity needed
 to invite; revocations retain their existing remote behavior. Invitation caps
 follow filtering. Direct access requests keep their idempotent results.
+Personal collection, storage and borrowed returns retain their selected lot,
+quantity, custody and House or pickup position. Vessel plans retain their
+contents too. Model choices and native custody operations share the same check
+and mover; explicit orders keep their extra gear and delivery protections and
+interrupt ordinary field work before moving its tool.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same

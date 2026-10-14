@@ -96,12 +96,25 @@ public sealed class PersonalRecoveryReachabilityTests
         }
         OwnerInstructionReceipt? receipt = explicitOrder ? world.SubmitInstruction(new("reachable-personal-stone", "owner:test",
             actor, OwnerInstructionKind.Order, "collect one stone")) : null;
+        var collectionPlans = new List<PersonalGoodsActionPlan>();
         for (var tick = 0; tick < 8 && !PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(Local), actor); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            collectionPlans.AddRange(step.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => decision.ActionPlan).OfType<PersonalGoodsActionPlan>()
+                .Where(plan => plan.Actor == actor && plan.Choice.Kind == PersonalGoodsKind.Collect));
+        }
         var local = world.Society.Inventory.GetLot(Local);
         Assert.True(PersonalEquipmentRules.IsCarried(local, actor), string.Join(", ", chooser.Offered
             .Where(id => id.StartsWith("household_collect:", StringComparison.Ordinal)).Distinct()));
         Assert.Equal((actor, 1), (local.OwnerId, local.Quantity));
+        if (!explicitOrder)
+        {
+            var plan = Assert.Single(collectionPlans, plan => plan.Choice.LotId == Local);
+            Assert.Equal((plan.Choice.LotId, plan.OwnerId, plan.ItemKind, plan.Quantity), (local.Id, local.OwnerId, local.ItemKind, local.Quantity));
+            Assert.False(world.CheckActionPlan(plan).Allowed);
+        }
         if (earlier == "unreachable")
         {
             var remote = world.Society.Inventory.GetLot(Earlier);
