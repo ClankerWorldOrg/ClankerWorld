@@ -198,7 +198,8 @@ query and named hold authorization. Shop trade and order forwarders remain.
 
 Blacksmith delivery choices use `SmithDeliveryActionPlan` for personally mined
 ore and other on-site inputs. They retain the chosen supplies, quantities and
-pickup or direct-delivery step. One quantity check preserves the dedicated ore
+pickup or direct-delivery step. Direct loads must remain physically carried;
+personal storage invalidates that captured delivery step. One quantity check preserves the dedicated ore
 rule and the ordinary input rule, including their different incoming-stock and
 load limits. Source gathering, cargo preparation and tool callers remain for
 their next action area; order delivery keeps its existing forwarder.
