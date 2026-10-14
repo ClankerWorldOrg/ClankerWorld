@@ -53,7 +53,7 @@ public sealed partial class WorldRuntime
         var townGround = request.DeliveryPurpose is GoodsDeliveryPurpose.Expansion or GoodsDeliveryPurpose.TownProject &&
             root.OwnerId == TownForResident(actor) && root.StorageBuildingId is null;
         if (!townGround && !MayCollectGoodsAt(actor, root)) return GoodsReason.Place;
-        if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root))
+        if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root, InventoryHoldRules.BorrowedBy(actor)))
             return GoodsReason.Reservation;
         if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || agents.Values.Any(agent =>
                 PersonalEquipmentRules.IsSelected(agent.Equipment, root.Id))) return GoodsReason.Custody;

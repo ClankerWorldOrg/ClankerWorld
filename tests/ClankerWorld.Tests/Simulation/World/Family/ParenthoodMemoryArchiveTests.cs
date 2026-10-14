@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -65,11 +66,11 @@ public sealed partial class ParenthoodTests
         Assert.Equal(stage, plan.Stage);
         Assert.Equal(boundary - 1, family.WorldTick);
         var state = family.ExportState();
-        var ordinary = new SocietySocialMemory("parent-old-experience", owner, partner, "An old ordinary experience.", "private", 0);
-        var control = new SocietySocialMemory("partner-old-experience", partner, owner, "An independent old experience.", "private", 0);
-        var durable = new SocietySocialMemory("parent-life-event", owner, partner, "A lasting family event.", "private", 0)
+        var ordinary = new SocietySocialMemory(Identity.Parse("parent-old-experience"), owner, partner, "An old ordinary experience.", "private", 0);
+        var control = new SocietySocialMemory(Identity.Parse("partner-old-experience"), partner, owner, "An independent old experience.", "private", 0);
+        var durable = new SocietySocialMemory(Identity.Parse("parent-life-event"), owner, partner, "A lasting family event.", "private", 0)
         { Kind = SocietyMemoryKind.LifeEvent };
-        var belief = new SocietyAgentBelief("parent-old-belief", owner, "An old report about a path.",
+        var belief = new SocietyAgentBelief(Identity.Parse("parent-old-belief"), owner, "An old report about a path.",
             SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: partner);
         state = state with
         {
@@ -80,9 +81,9 @@ public sealed partial class ParenthoodTests
                 Society = state.Society.Society with
                 {
                     Memories = state.Society.Society.Memories.Concat([ordinary, control, durable])
-                        .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                        .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
                     Beliefs = (state.Society.Society.Beliefs ?? []).Append(belief)
-                        .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                        .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
                 },
             },
         };

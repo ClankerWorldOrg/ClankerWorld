@@ -355,63 +355,33 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/owner/buildings/remove", (
             OwnerSignedHttpRequest<OwnerBuildingRemovalAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A building removal action is required."],
-                });
-
-            string payload;
-            try { payload = OwnerContentBinding.BuildingRemovalPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/buildings/remove", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-
+            var action = request.Action;
             var runtime = services.GetRequiredService<WorldRuntime>();
             var result = runtime.RemoveBuilding(request.Action.InstanceId, request.Action.ExpectedTownId,
                 request.Action.ExpectedHouseholdId, request.Action.WorldId);
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
-        });
+        }).ForWorld<OwnerBuildingRemovalAction>(action => action.WorldId,
+            OwnerContentBinding.BuildingRemovalPayload,
+            (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building removal action is required."] }));
 
         app.MapPost("/api/v1/owner/buildings/reassign", (
             OwnerSignedHttpRequest<OwnerBuildingReassignmentAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A building reassignment action is required."],
-                });
-
-            string payload;
-            try { payload = OwnerContentBinding.BuildingReassignmentPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/buildings/reassign", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-
+            var action = request.Action;
             var runtime = services.GetRequiredService<WorldRuntime>();
             var result = runtime.ReassignBuilding(request.Action.InstanceId, request.Action.ExpectedTownId,
                 request.Action.ExpectedHouseholdId, request.Action.TargetTownId, request.Action.TargetHouseholdId, request.Action.WorldId);
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
-        });
+        }).ForWorld<OwnerBuildingReassignmentAction>(action => action.WorldId,
+            OwnerContentBinding.BuildingReassignmentPayload,
+            (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building reassignment action is required."] }));
 
         app.MapPost("/api/v1/owner/production/start", (
             OwnerSignedHttpRequest<OwnerProductionStartAction> request,

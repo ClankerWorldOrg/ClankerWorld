@@ -40,6 +40,6 @@ public sealed partial class WorldRuntime
             IdentityChoicePending = false,
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(personality is not null || aspiration is not null ? "agent_identity_chosen" : "agent_identity_kept", id);
+        AppendEvent(personality is not null || aspiration is not null ? new AgentIdentityChosenEventPayload(id) : new AgentIdentityKeptEventPayload(id));
     }
 }
