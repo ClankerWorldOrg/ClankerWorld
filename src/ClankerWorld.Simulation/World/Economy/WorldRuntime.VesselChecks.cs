@@ -4,12 +4,14 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckVesselPlan(VesselActionPlan plan)
+    private static ActorCapabilityPolicy VesselPolicy(VesselActionKind kind) =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: kind == VesselActionKind.TakeFood,
+            AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private ActionCheck CheckVesselPlan(VesselActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var kind = plan.Choice.Kind;
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: kind == VesselActionKind.TakeFood,
-                AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? VesselPolicy(kind));
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || HouseForHousehold(plan.HouseholdId) is not { } house ||
             house.InstanceId != plan.HouseId || house.Position != plan.HousePosition)

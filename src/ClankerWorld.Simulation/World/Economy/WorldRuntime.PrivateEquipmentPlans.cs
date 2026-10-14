@@ -4,6 +4,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    private static ActorCapabilityPolicy PrivateEquipmentPolicy(PrivateEquipmentKind kind) =>
+        new(kind == PrivateEquipmentKind.CarryAid ? ActionLifeStages.Adults : ActionLifeStages.NonInfants,
+            AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
     private static int CarryAidCapacity(string kind) => kind == "leather_sack" ? 32 :
         kind == "sack" ? PersonalEquipmentRules.SackCapacity : PersonalEquipmentRules.BasketCapacity;
 
@@ -30,12 +34,10 @@ public sealed partial class WorldRuntime
             Reach(actor, position, ReachPurpose.PrivateEquipment, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckPrivateEquipmentPlan(PrivateEquipmentActionPlan plan)
+    private ActionCheck CheckPrivateEquipmentPlan(PrivateEquipmentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var carryAid = plan.Kind == PrivateEquipmentKind.CarryAid;
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(carryAid ? ActionLifeStages.Adults : ActionLifeStages.NonInfants,
-                AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? PrivateEquipmentPolicy(plan.Kind));
         if (!capability.Allowed) return capability;
         var equipment = agents[plan.Actor].Equipment;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId ||
@@ -54,7 +56,12 @@ public sealed partial class WorldRuntime
     private void ApplyPrivateEquipmentPlan(PrivateEquipmentActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckPrivateEquipmentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedPrivateEquipmentPlan(plan);
+    }
+
+    private void ApplyCheckedPrivateEquipmentPlan(PrivateEquipmentActionPlan plan)
+    {
         var person = agents[plan.Actor];
         if (plan.OwnerId != plan.Actor && !IsWithinInteractionRange(person.Position, plan.Position, plan.InteractionRange))
         {

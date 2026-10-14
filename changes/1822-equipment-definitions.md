@@ -1,0 +1,1 @@
+- Garment, carry-aid, equipment-repair and household-vessel actions now bind their codecs, planning, capability policies, shared checks and native effects to their ordered action rows.
