@@ -1,0 +1,1 @@
+- Non-land voluntary offers and personal responses retain their named contributions and exact noticed terms through shared native checks.

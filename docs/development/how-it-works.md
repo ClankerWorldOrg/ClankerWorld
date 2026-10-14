@@ -491,6 +491,11 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Voluntary non-land terms retain their named contributor, beneficiary, target,
+quantity, duration and reasons. Personal responses retain the exact noticed
+offer and allow other contributors to accept. Shared native feasibility and
+refusal checks validate the retained terms; IDs are minted by the original
+publication counter, and acceptance reserves no stock or starts any work.
 Non-land findings and reopening retain the exact case material, independent
 judge and response parties. Admitted citations resolve against the retained
 file and reasons bind once. Shared native validators check the same finding,

@@ -24,13 +24,28 @@ public static class TownRemedyRules
         IReadOnlyList<TownRemedyTerm> terms, long completionTicks, string reason, long tick, int day, string noticeId,
         bool feasible, string? replacesOfferId = null, string? replacesAgreementId = null)
     {
+        if (OfferRefusal(state, caseId, findingId, author, terms, completionTicks, reason, tick, day, noticeId,
+            feasible, replacesOfferId, replacesAgreementId) is { } refusal) throw new InvalidOperationException(refusal);
+        if (replacesAgreementId is not null) replacesOfferId = state.Agreements.Single(agreement => agreement.Id == replacesAgreementId).OfferId;
+        var prior = replacesOfferId is null ? null : state.Offers.SingleOrDefault(offer => offer.Id == replacesOfferId && offer.CaseId == caseId);
+        var duration = completionTicks;
+        var id = TownNonLandRules.NextId(state, "offer");
+        var offer = new TownRemedyOffer(id, caseId, findingId, prior is null ? 1 : prior.Revision + 1, terms.ToArray(),
+            TermsHash(terms, duration), reason, noticeId, tick, checked(tick + day), duration, "pending", [], replacesOfferId);
+        return state with { Sequence = checked(state.Sequence + 1), Offers = state.Offers.Append(offer).ToArray() };
+    }
+
+    public static string? OfferRefusal(TownNonLandHearingState state, string caseId, string findingId, string author,
+        IReadOnlyList<TownRemedyTerm> terms, long completionTicks, string reason, long tick, int day, string noticeId,
+        bool feasible, string? replacesOfferId = null, string? replacesAgreementId = null)
+    {
         var item = state.Cases.SingleOrDefault(c => c.Id == caseId && c.Status == "settled");
         var finding = item is { Findings.Count: > 0 } ? item.Findings[^1] : null;
         if (replacesAgreementId is not null)
         {
             var previous = state.Agreements.SingleOrDefault(a => a.Id == replacesAgreementId && a.Status != "completed" && !IsSuperseded(state, a.Id));
             if (previous is null || replacesOfferId is not null && replacesOfferId != previous.OfferId)
-                throw new InvalidOperationException("Renegotiation must identify the existing unfinished agreement.");
+                return "Renegotiation must identify the existing unfinished agreement.";
             replacesOfferId = previous.OfferId;
         }
         var prior = replacesOfferId is null ? null : state.Offers.SingleOrDefault(o => o.Id == replacesOfferId && o.CaseId == caseId);
@@ -40,24 +55,16 @@ public static class TownRemedyRules
                 prior.Status is not ("countered" or "accepted") || !prior.Terms.Any(t => t.ContributorId == author)) ||
             !TownNonLandRules.ReadCurrent(item!, author, tick) ||
             state.Offers.Any(o => o.CaseId == caseId && o.FindingId == findingId && o.Status == "pending"))
-            throw new InvalidOperationException("A voluntary offer needs a supported finding, feasible named contributions and current informed terms.");
-        var duration = completionTicks;
-        var id = TownNonLandRules.NextId(state, "offer");
-        var offer = new TownRemedyOffer(id, caseId, findingId, prior is null ? 1 : prior.Revision + 1, terms.ToArray(),
-            TermsHash(terms, duration), reason, noticeId, tick, checked(tick + day), duration, "pending", [], replacesOfferId);
-        return state with { Sequence = checked(state.Sequence + 1), Offers = state.Offers.Append(offer).ToArray() };
+            return "A voluntary offer needs a supported finding, feasible named contributions and current informed terms.";
+        return null;
     }
 
     public static TownNonLandHearingState Respond(TownNonLandHearingState state, string offerId, int revision, string actor,
         string kind, string? reason, long tick, int day, IReadOnlyList<TownCivicReceipt> receipts, bool feasible)
     {
-        var offer = state.Offers.SingleOrDefault(o => o.Id == offerId && o.Revision == revision && o.Status == "pending");
-        if (offer is null || tick < offer.PublishedTick || tick >= offer.ResponseDeadlineTick || day <= 0 ||
-            kind is not ("accept" or "decline" or "counter") || !offer.Terms.Any(t => t.ContributorId == actor) ||
-            offer.Responses.Any(r => r.AgentId == actor) || reason is not null && !TownHearingProcedure.Text(reason) ||
-            !TownHearingProcedure.HasNotice(offer.NoticeId, offer.PublishedTick, actor, tick, receipts) || kind == "accept" && !feasible)
-            throw new InvalidOperationException("Respond personally to the current offer after learning it; consent cannot promise impossible contributions.");
-        offer = offer with { Responses = offer.Responses.Append(new(actor, revision, offer.TermsHash, kind, tick, offer.NoticeId, reason)).ToArray() };
+        var current = state.Offers.SingleOrDefault(o => o.Id == offerId && o.Revision == revision && o.Status == "pending");
+        if (ResponseRefusal(current, actor, kind, reason, tick, day, receipts, feasible) is { } refusal) throw new InvalidOperationException(refusal);
+        var offer = current! with { Responses = current!.Responses.Append(new(actor, revision, current.TermsHash, kind, tick, current.NoticeId, reason)).ToArray() };
         if (kind != "accept") return Replace(state, offer with { Status = kind == "decline" ? "declined" : "countered" });
         var contributors = offer.Terms.Select(t => t.ContributorId).Distinct(StringComparer.Ordinal);
         if (!contributors.All(id => offer.Responses.Any(r => r.AgentId == id && r.Kind == "accept"))) return Replace(state, offer);
@@ -73,6 +80,14 @@ public static class TownRemedyRules
             state = Replace(state, previousOffer with { Status = "superseded" });
         return state;
     }
+
+    public static string? ResponseRefusal(TownRemedyOffer? offer, string actor, string kind, string? reason,
+        long tick, int day, IReadOnlyList<TownCivicReceipt> receipts, bool feasible) =>
+        offer is null || offer.Status != "pending" || tick < offer.PublishedTick || tick >= offer.ResponseDeadlineTick || day <= 0 ||
+            kind is not ("accept" or "decline" or "counter") || !offer.Terms.Any(t => t.ContributorId == actor) ||
+            offer.Responses.Any(r => r.AgentId == actor) || reason is not null && !TownHearingProcedure.Text(reason) ||
+            !TownHearingProcedure.HasNotice(offer.NoticeId, offer.PublishedTick, actor, tick, receipts) || kind == "accept" && !feasible
+            ? "Respond personally to the current offer after learning it; consent cannot promise impossible contributions." : null;
 
     internal static TownRemedyOffer? ReplacedAgreementOffer(TownNonLandHearingState state, TownRemedyOffer offer)
     {
