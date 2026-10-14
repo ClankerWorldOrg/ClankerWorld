@@ -604,7 +604,7 @@ public sealed partial class WorldRuntime
             if (CheckRecipeProject(recipePlan).Refusal is { } refusal)
             {
                 RefuseChoice(recipePlan, refusal);
-                SetProject(agentId, project with { Stage = "blocked", Blocker = refusal.Explanation, RequiresFreshChoice = true });
+                SetProject(agentId, project with { Stage = "paused", Blocker = refusal.Explanation, RequiresFreshChoice = true });
                 return;
             }
             recipeBuilding = recipePlan.Workstation;
@@ -1143,6 +1143,8 @@ public sealed partial class WorldRuntime
     private void SetProject(string agentId, AgentProject project)
     {
         var state = agents[agentId];
+        if (state.Project is { RequiresFreshChoice: true } && !project.RequiresFreshChoice)
+            recipeProjectPlans.Remove(agentId);
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)
         {
             project = project with { LastTransitionTick = WorldTick };
