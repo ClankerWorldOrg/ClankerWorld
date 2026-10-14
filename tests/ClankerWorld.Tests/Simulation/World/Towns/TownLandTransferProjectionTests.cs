@@ -4,7 +4,7 @@ using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.GodotClient.UI;
-using GodotSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 

@@ -346,7 +346,7 @@ test('a change to client files the tests do not compile skips only the test suit
   assert.deepEqual(planScope(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs'], null), { code: true, tests: true });
 });
 
-test('the compiled client files come from the test project', () => {
+test('the linked production files come from the test project', () => {
   const project = `<Project><ItemGroup>
     <Compile Include="..\\..\\src\\ClankerWorld.GodotClient\\UI\\Text\\GameUiText.cs" Link="GodotClient\\UI\\Text\\GameUiText.cs" />
   </ItemGroup></Project>`;
@@ -359,7 +359,7 @@ test('the compiled client files come from the test project', () => {
     path.join(root, 'tests', 'ClankerWorld.Tests', 'ClankerWorld.Tests.csproj'), 'utf8'));
   assert.ok(real.size > 0);
   for (const file of real) {
-    assert.ok(file.startsWith('src/ClankerWorld.GodotClient/'), file);
+    assert.ok(file.startsWith('src/'), file);
     assert.ok(fs.existsSync(path.join(root, file)), file);
   }
 });
@@ -368,7 +368,7 @@ test('scope prints whether to run the code checks and the test suite', () => {
   assert.equal(main(['scope'], 'docs/playing.md\nCONTRIBUTING.md\n'), 'code=false\ntests=false');
   assert.equal(main(['scope'], 'docs/playing.md\nglobal.json\n'), 'code=true\ntests=true');
   assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/Screens/Main/Main.tscn\n'), 'code=true\ntests=false');
-  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs\n'), 'code=true\ntests=true');
+  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.Client.cs\n'), 'code=true\ntests=true');
 });
 
 test('the workflow also runs on merge-queue batches, which run everything', () => {

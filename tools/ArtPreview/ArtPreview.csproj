@@ -15,6 +15,8 @@
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/ClankerWorld.Shared/Contracts/TerrainCodes.cs" Link="Shared/TerrainCodes.cs" />
+    <Using Include="ClankerWorld.Contracts" />
     <!-- The repository's own art generators, compiled unchanged against the shim. -->
     <Compile Include="../../src/ClankerWorld.GodotClient/UI/Graphics/*.cs" Link="Game/Graphics/%(Filename)%(Extension)" />
     <Compile Include="../../src/ClankerWorld.GodotClient/UI/Map/CameraEasing.cs" Link="Game/Map/CameraEasing.cs" />

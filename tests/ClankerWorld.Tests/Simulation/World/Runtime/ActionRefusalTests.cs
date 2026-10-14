@@ -101,7 +101,7 @@ public sealed class ActionRefusalTests
                 observation => Assert.Contains(observation.Candidates, candidate => candidate.Id == "explore"));
             var projection = new OwnerWorldObservationStore(world).GetSnapshot();
             Assert.Equal(1, projection.RefusedActionCount);
-            var snapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(projection))!;
+            var snapshot = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(projection))!;
             var name = snapshot.Agents.Single(person => person.Id == actorId).DisplayName;
             Assert.StartsWith(name + " couldn't ", EventTextFixture.Describe(
                 new(refusalEvent.EventId, refusalEvent.WorldTick, refusalEvent.Kind, refusalEvent.Detail), snapshot));
