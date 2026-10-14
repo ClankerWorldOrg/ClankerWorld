@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Knowledge writing and copying retain the selected contents, source and exact
+material pickup or carried input lots. One check validates that same selection
+before native reservation; continuation retains the original project and claims
+while work progresses. Copy timestamps refresh on the retained content only.
 Shared-food policy proposals and votes retain the original steward, policy
 and ballot scope. One check validates the same personal authority and response;
 other votes accumulate while native expiry and living-majority resolution run.

@@ -78,14 +78,52 @@ public sealed partial class WorldRuntime
 
     private bool CanSupplyWriting(string actor, string kind) => WritingCollectionPlan(actor, kind) is not null;
 
+    private KnowledgeWritingActionPlan? PlanKnowledgeWriting(string actor, string candidate,
+        AgentKnowledgeFact[]? selectedFacts = null, AgentRecipeKnowledge[]? selectedRecipes = null, AgentKnowledgeArtifact? selectedSource = null)
+    {
+        if (KnowledgeWritingFor(actor) is { } existing)
+            return candidate == "knowledge_continue" || candidate == existing.CandidateId
+                ? new(actor, candidate, existing.Kind, null, existing.Facts, existing.Recipes, [], null, existing) : null;
+        var source = selectedSource ?? (candidate.StartsWith(KnowledgeCopyPrefix, StringComparison.Ordinal)
+            ? HeldKnowledgeArtifacts(actor).SingleOrDefault(item => item.Id == candidate[KnowledgeCopyPrefix.Length..]) : null);
+        var kind = source?.Kind ?? (candidate.StartsWith(KnowledgeWritePrefix, StringComparison.Ordinal) ? candidate[KnowledgeWritePrefix.Length..] : null);
+        if (kind is null || !AgentKnowledgeRules.IsArtifactKind(kind)) return null;
+        var facts = selectedFacts ?? FactsToWrite(actor, kind, source);
+        var recipes = selectedRecipes ?? RecipesToWrite(actor, kind, source);
+        var collection = WritingCollectionPlan(actor, kind);
+        if (collection is null) return null;
+        PlannedWritingPickup? pickup = collection.Count == 0 ? null : new(collection[0].Stock!.Id, collection[0].Stock!.OwnerId,
+            collection[0].Kind, collection[0].CarryUnits, collection[0].Position, collection[0].Range);
+        var materials = new List<PlannedWritingMaterial>();
+        if (pickup is null)
+            foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
+            {
+                var remaining = input.Quantity;
+                foreach (var lot in CarriedWritingMaterials(actor, input.Kind))
+                {
+                    var quantity = Math.Min(remaining, AvailableLotQuantity(lot));
+                    if (quantity > 0) materials.Add(new(lot.Id, input.Kind, quantity));
+                    remaining -= quantity;
+                    if (remaining == 0) break;
+                }
+                if (remaining != 0) return null;
+            }
+        return new(actor, candidate, kind, source, facts, recipes, materials, pickup, null);
+    }
+
+    private void OfferKnowledgeWriting(List<CognitionCandidate> candidates, KnowledgeWritingActionPlan? plan, string text, int priority)
+    {
+        if (plan is not null && CheckKnowledgeWriting(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
+    }
+
     private void AddKnowledgeWritingCandidates(List<CognitionCandidate> candidates, string actor, AgentState person)
     {
         if (!IsAdult(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return;
         if (KnowledgeWritingFor(actor) is { } project)
         {
             var label = $"Continue writing your {project.Kind.Replace('_', ' ')}: {project.WorkDone}/{project.WorkRequired} work, with real materials reserved.";
-            candidates.Add(new("knowledge_continue", label, 54));
-            candidates.Add(new(project.CandidateId, label, 54));
+            OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, "knowledge_continue"), label, 54);
+            OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, project.CandidateId), label, 54);
             return;
         }
         foreach (var artifact in HeldKnowledgeArtifacts(actor))
@@ -96,23 +134,23 @@ public sealed partial class WorldRuntime
             var facts = FactsToWrite(actor, artifact.Kind, artifact);
             var recipes = RecipesToWrite(actor, artifact.Kind, artifact);
             if (facts.Length + recipes.Length > 0 && HasCompleteCopyContents(actor, artifact, facts, recipes) &&
-                !AlreadyWrote(actor, artifact.Kind, facts, recipes) && CanSupplyWriting(actor, artifact.Kind))
-                candidates.Add(new(KnowledgeCopyPrefix + artifact.Id,
-                    $"Copy {artifact.Title} using real paper{(artifact.Kind == "book" ? " and a cloth cover" : "")}; keep its original discovery sources.", 58));
+                !AlreadyWrote(actor, artifact.Kind, facts, recipes))
+                OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, KnowledgeCopyPrefix + artifact.Id, facts, recipes, artifact),
+                    $"Copy {artifact.Title} using real paper{(artifact.Kind == "book" ? " and a cloth cover" : "")}; keep its original discovery sources.", 58);
         }
         if (!MayMakeKnowledgeArtifact(actor)) return;
         foreach (var kind in new[] { "field_record", "field_map", "book" })
         {
             var facts = FactsToWrite(actor, kind);
             var recipes = RecipesToWrite(actor, kind);
-            if (facts.Length + recipes.Length == 0 || AlreadyWrote(actor, kind, facts, recipes) || !CanSupplyWriting(actor, kind)) continue;
+            if (facts.Length + recipes.Length == 0 || AlreadyWrote(actor, kind, facts, recipes)) continue;
             var materials = string.Join(" and ", AgentKnowledgeRules.WritingMaterials(kind).Select(input => $"{input.Quantity} {input.Kind}"));
-            candidates.Add(new(KnowledgeWritePrefix + kind,
-                $"Write a {kind.Replace('_', ' ')} containing {facts.Length} personally learned site(s) and {recipes.Length} recipe(s), using {materials} and {AgentKnowledgeRules.WritingWork(kind)} work (trial amounts).", 56));
+            OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, KnowledgeWritePrefix + kind, facts, recipes),
+                $"Write a {kind.Replace('_', ' ')} containing {facts.Length} personally learned site(s) and {recipes.Length} recipe(s), using {materials} and {AgentKnowledgeRules.WritingWork(kind)} work (trial amounts).", 56);
         }
     }
 
-    private void ApplyKnowledgeWritingCandidate(string actor, AgentState person, string candidate)
+    private void ApplyKnowledgeWritingCandidate(string actor, AgentState person, string candidate, ActionPlan? originalPlan = null)
     {
         if (!IsAdult(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return;
         if (candidate.StartsWith(KnowledgeReadPrefix, StringComparison.Ordinal))
@@ -121,53 +159,28 @@ public sealed partial class WorldRuntime
                 ReadIfKnowledgeArtifact(reading.LotId, reading.CreatorId, actor);
             return;
         }
-        if (KnowledgeWritingFor(actor) is { } existing)
+        var plan = originalPlan as KnowledgeWritingActionPlan ?? PlanKnowledgeWriting(actor, candidate);
+        if (plan is null) return;
+        if (CheckKnowledgeWriting(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (plan.Project is not null) { ContinueKnowledgeWriting(KnowledgeWritingFor(actor)!); return; }
+        if (plan.Pickup is { } pickup)
         {
-            if (candidate == "knowledge_continue" || candidate == existing.CandidateId) ContinueKnowledgeWriting(existing);
+            CollectKnowledgeMaterial(actor, person, pickup.ItemKind, pickup.Quantity, pickup.LotId);
             return;
         }
-        if (!MayMakeKnowledgeArtifact(actor)) return;
-        AgentKnowledgeArtifact? source = null;
-        string kind;
-        if (candidate.StartsWith(KnowledgeCopyPrefix, StringComparison.Ordinal))
-        {
-            source = HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == candidate[KnowledgeCopyPrefix.Length..]);
-            if (source is null) return;
-            kind = source.Kind;
-        }
-        else if (candidate.StartsWith(KnowledgeWritePrefix, StringComparison.Ordinal)) kind = candidate[KnowledgeWritePrefix.Length..];
-        else return;
-        if (!AgentKnowledgeRules.IsArtifactKind(kind)) return;
-        var facts = FactsToWrite(actor, kind, source);
-        var recipes = RecipesToWrite(actor, kind, source);
-        if (facts.Length + recipes.Length == 0 || source is not null && !HasCompleteCopyContents(actor, source, facts, recipes) ||
-            AlreadyWrote(actor, kind, facts, recipes)) return;
-        var collection = WritingCollectionPlan(actor, kind);
-        if (collection is null) return;
-        if (collection.Count > 0)
-        {
-            var input = collection[0];
-            CollectKnowledgeMaterial(actor, person, input.Kind, input.CarryUnits, input.Stock!.Id);
-            return;
-        }
+        var kind = plan.Kind;
+        var source = plan.Source;
+        var facts = plan.Facts.Select(fact => source is null ? fact : fact with { LearnedTick = WorldTick }).ToArray();
+        var recipes = plan.Recipes.Select(recipe => source is null ? recipe : recipe with { LearnedTick = WorldTick }).ToArray();
         var id = WritingProjectId(actor, WorldTick, society.Checkpoint.Inventory.Reservations.Count);
         var materials = new List<AgentKnowledgeMaterial>();
         var inventory = society.Checkpoint.Inventory;
-        foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
+        foreach (var input in plan.Materials)
         {
-            var remaining = input.Quantity;
-            foreach (var lot in CarriedWritingMaterials(actor, input.Kind))
-            {
-                var quantity = Math.Min(remaining, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)));
-                if (quantity <= 0) continue;
-                var reservationId = WritingMaterialReservationId(id, materials.Count);
-                inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, lot.Id, quantity,
-                    AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                materials.Add(new(reservationId, lot.Id, input.Kind, quantity));
-                remaining -= quantity;
-                if (remaining == 0) break;
-            }
-            if (remaining != 0) return;
+            var reservationId = WritingMaterialReservationId(id, materials.Count);
+            inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, input.LotId, input.Quantity,
+                AgentKnowledgeRules.MaterialPurpose(id, input.ItemKind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+            materials.Add(new(reservationId, input.LotId, input.ItemKind, input.Quantity));
         }
         ApplyInventoryTransition(_ => inventory);
         knowledge = knowledge with

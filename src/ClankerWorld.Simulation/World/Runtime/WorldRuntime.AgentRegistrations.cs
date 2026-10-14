@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix, KnowledgeReadPrefix], ["knowledge_continue"], static (runtime, action) =>
     {
-        runtime.ApplyKnowledgeWritingCandidate(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyKnowledgeWritingCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "ApplyKnowledgeStorageCandidate", [], [], static (runtime, action) =>
