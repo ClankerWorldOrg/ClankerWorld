@@ -36,8 +36,9 @@ public sealed record BoundedText
         return new(text[..length] + suffix);
     }
 
-    public static bool IsValid(string? value, int maximumLength, bool requireTrimmed = false) =>
-        !string.IsNullOrWhiteSpace(value) && value.Length <= maximumLength &&
+    public static bool IsValid(string? value, int maximumLength, bool requireTrimmed = false,
+        bool allowWhitespaceOnly = false) =>
+        (allowWhitespaceOnly ? !string.IsNullOrEmpty(value) : !string.IsNullOrWhiteSpace(value)) && value.Length <= maximumLength &&
         (!requireTrimmed || value == value.Trim()) && !value.Any(char.IsControl);
 
     public override string ToString() => Value;
