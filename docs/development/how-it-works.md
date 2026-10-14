@@ -491,6 +491,9 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Market borrowing and leaving retain their selected stall, household, personal
+qualifying stock and original occupancy. Shared checks keep borrowing at a fresh
+personal arrival and send leaving to the same native cancellation/release writer.
 Released Town project recovery and return retain the exact parcel, quantity,
 release receipt and Warehouse, or the carrier's actual ground-drop position.
 Checks preserve one carrying space for food and terrain-only return eligibility

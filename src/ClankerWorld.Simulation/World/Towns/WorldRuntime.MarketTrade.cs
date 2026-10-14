@@ -280,12 +280,15 @@ public sealed partial class WorldRuntime
     {
         var urgentFood = NeedsUrgentFood(agents[actor]);
         // Trade answers and leaving come first, so the limit never hides them behind stock choices.
+        var offered = 0;
         foreach (var choice in MarketChoices(actor)
                      .Where(item => !urgentFood || item.Kind == "collect" && IsEdibleFood(item.Lot!.ItemKind) &&
                          AvailableLotQuantity(item.Lot) > 0)
                      .OrderBy(item => item.Kind is "continue" or "cancel" or "leave" ? 0 : 1)
-                     .Take(MarketCandidateLimit))
+                     )
         {
+            var plan = choice.Kind is "borrow" or "leave" ? PlanMarketOccupancy(actor, choice) : null;
+            if (choice.Kind is "borrow" or "leave" && (plan is null || !CheckMarketOccupancy(plan).Allowed)) continue;
             var offer = choice.Trade is { } trade ? society.Checkpoint.Inventory.GetOffer(trade.OfferId) : null;
             var text = choice.Kind switch
             {
@@ -310,19 +313,22 @@ public sealed partial class WorldRuntime
                 "load" or "deposit" or "borrow" => 173,
                 "buy" => 172,
                 _ => 171,
-            }, choice.Stall.BuildingId));
+            }, choice.Stall.BuildingId)
+            { ActionPlan = plan });
+            if (++offered == MarketCandidateLimit) break;
         }
     }
 
-    private bool ApplyMarketCandidate(string actor, AgentState state, string id)
+    private bool ApplyMarketCandidate(string actor, AgentState state, string id, ActionPlan? originalPlan = null)
     {
         if (!IsMarketCandidate(id)) return false;
+        if (originalPlan is MarketOccupancyActionPlan occupancyPlan) { ApplyMarketOccupancy(occupancyPlan); return true; }
         var choice = MarketChoices(actor).SingleOrDefault(item => item.Id == id);
         if (choice is null) return true;
         var position = MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
-        if (choice.Kind == "leave")
+        if (choice.Kind is "borrow" or "leave")
         {
-            EndMarketOccupancy(choice.Town.Id, choice.Market, choice.Occupancy!, "The seller gave up the stall.");
+            if (PlanMarketOccupancy(actor, choice) is { } plan) ApplyMarketOccupancy(plan);
             return true;
         }
         if (choice.Kind is "continue" or "cancel")
@@ -339,18 +345,6 @@ public sealed partial class WorldRuntime
         }
         switch (choice.Kind)
         {
-            case "borrow":
-                // Occupancy is claimed only by physical arrival, not a plan to arrive later.
-                var occupancy = new MarketStallOccupancy(MarketTradeRules.Identity("market-occupancy:", choice.Market.Id,
-                    choice.Stall.BuildingId, actor, WorldTick.ToString(CultureInfo.InvariantCulture),
-                    choice.Market.Occupancies.Count.ToString(CultureInfo.InvariantCulture)),
-                    choice.Stall.BuildingId, actor, WorldTick)
-                {
-                    SellerHouseholdId = society.Checkpoint.GetAgent(actor).HouseholdId!,
-                };
-                SetMarket(choice.Town.Id, choice.Market with { Occupancies = choice.Market.Occupancies.Append(occupancy).ToArray() });
-                AppendEvent("market_stall_borrowed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{occupancy.Id}", position);
-                break;
             case "load":
             case "collect":
                 ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
@@ -370,6 +364,20 @@ public sealed partial class WorldRuntime
                 break;
         }
         return true;
+    }
+
+    private void BorrowMarketStall(string actor, MarketChoice choice, GridPoint position)
+    {
+        // Occupancy is claimed only by physical arrival, not a plan to arrive later.
+        var occupancy = new MarketStallOccupancy(MarketTradeRules.Identity("market-occupancy:", choice.Market.Id,
+            choice.Stall.BuildingId, actor, WorldTick.ToString(CultureInfo.InvariantCulture),
+            choice.Market.Occupancies.Count.ToString(CultureInfo.InvariantCulture)),
+            choice.Stall.BuildingId, actor, WorldTick)
+        {
+            SellerHouseholdId = society.Checkpoint.GetAgent(actor).HouseholdId!,
+        };
+        SetMarket(choice.Town.Id, choice.Market with { Occupancies = choice.Market.Occupancies.Append(occupancy).ToArray() });
+        AppendEvent("market_stall_borrowed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{occupancy.Id}", position);
     }
 
     /// <summary>A continued personal intention may walk, but physical arrival needs a new admitted choice.</summary>
