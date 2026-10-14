@@ -1,0 +1,30 @@
+namespace ClankerWorld.Simulation.World;
+
+public sealed partial class WorldRuntime
+{
+    private static ActionDefinition<CouncilConsentChoice, CouncilConsentActionPlan> CouncilConsentDefinition => CouncilActions.Consent;
+    private static ActionDefinition<CouncilBallotChoice, CouncilBallotActionPlan> CouncilBallotDefinition => CouncilActions.Ballot;
+
+    private static class CouncilActions
+    {
+        internal static readonly ActionDefinition<CouncilConsentChoice, CouncilConsentActionPlan> Consent = new(
+            DecodeReferenceChoice(CouncilConsentChoice.Decode), static choice => choice.Encode(), TownSystem.CouncilElectionCapabilities,
+            static (world, actor, choice, _) => TownSystem.PlanCouncilConsent(world.civicWorld, actor, choice),
+            static (world, plan, policy) => TownSystem.CheckCouncilConsent(world.civicWorld, plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.townSystem.ApplyTownCivicCandidate(world.civicWorld, plan.Actor, plan.CandidateId, originalPlan: plan);
+                return true;
+            });
+
+        internal static readonly ActionDefinition<CouncilBallotChoice, CouncilBallotActionPlan> Ballot = new(
+            DecodeReferenceChoice(CouncilBallotChoice.Decode), static choice => choice.Encode(), TownSystem.CouncilElectionCapabilities,
+            static (world, actor, choice, _) => TownSystem.PlanCouncilBallot(world.civicWorld, actor, choice),
+            static (world, plan, policy) => TownSystem.CheckCouncilBallot(world.civicWorld, plan, policy: policy),
+            static (world, plan, _, _) =>
+            {
+                world.townSystem.ApplyTownCivicCandidate(world.civicWorld, plan.Actor, plan.CandidateId, ballot: plan.Selected, originalPlan: plan);
+                return true;
+            });
+    }
+}

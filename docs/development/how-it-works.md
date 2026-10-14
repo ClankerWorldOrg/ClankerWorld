@@ -3155,6 +3155,11 @@ food policy, even if a death reduces the number of approvals needed. Resolution
 records its tick and adopted or rejected event, then clears the pending ballot;
 save/load preserves the original deadline and votes.
 
+Council candidacy and election ballots enter through fresh-admission action
+definitions, after the existing personal provider and admission guards. Their
+codecs, planners and named capability policy use the same TownSystem checks for
+offers, accepted plans and native application; TownSystem retains all writes.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may
