@@ -239,6 +239,7 @@ internal sealed partial class TownSystem
         var noticePlan = originalPlan as CivicNoticeActionPlan;
         var proposalVotePlan = originalPlan as CivicProposalVoteActionPlan;
         var lawPlan = originalPlan as TownLawActionPlan;
+        var policyPlan = originalPlan as TownPolicyActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -282,6 +283,12 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (TownPolicyChoice.Decode(selectedId) is { } policyChoice)
+        {
+            policyPlan ??= PlanTownPolicy(world, actor, policyChoice);
+            if (policyPlan is null) return;
+            if (CheckTownPolicyPlan(world, policyPlan).Refusal is { } refusal) { world.RefuseChoice(policyPlan, refusal); return; }
         }
         else if (TownLawChoice.Decode(selectedId) is { } lawChoice)
         {
@@ -380,16 +387,14 @@ internal sealed partial class TownSystem
                             TownAdults(world, town), world.WorldTick, CivicDay(world), lawPlan.Version!.Version),
                     };
                     break;
-                case "boat_access":
-                    var visitorId = parts[3] == "all" ? null : ResolveCivicAgentToken(world, parts[3]);
-                    if (visitorId is not null && (!world.Agents.ContainsKey(visitorId) || town.ResidentIds.Contains(visitorId, StringComparer.Ordinal))) return;
-                    (state, government) = TownLawRules.ProposeBoatAccess(state, government, town.Id, actor,
-                        visitorId, TownAdults(world, town), world.WorldTick, CivicDay(world));
-                    break;
-                case "estate_default":
-                    if (!int.TryParse(parts[4], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var townShare)) return;
-                    (state, government) = TownLawRules.ProposeEstateDefault(state, government, town.Id, actor,
-                        townShare, TownAdults(world, town), world.WorldTick, CivicDay(world));
+                case "boat_access" or "estate_default":
+                    if (CheckTownPolicyPlan(world, policyPlan!, town with { Council = state, Government = government }).Refusal is { } policyRefusal)
+                    { world.RefuseChoice(policyPlan!, policyRefusal); return; }
+                    (state, government) = policyPlan!.Choice.Kind == TownPolicyKind.BoatAccess
+                        ? TownLawRules.ProposeBoatAccess(state, government, town.Id, actor,
+                            policyPlan.Visitor, TownAdults(world, town), world.WorldTick, CivicDay(world))
+                        : TownLawRules.ProposeEstateDefault(state, government, town.Id, actor,
+                            policyPlan.TownShare!.Value, TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
                 case "boat_project":
                     var boatPort = world.Port(parts[3]);
