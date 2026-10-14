@@ -48,6 +48,27 @@ public sealed class GoodsQueryTests
     }
 
     [Fact]
+    public void DismountCargoRefusesAHouseholdActorWithoutChangingState()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("goods-dismount-household", _ => new Idle());
+        var state = generated.ExportState();
+        const string household = "household:first";
+        const string stock = "query-dismount-household-wood";
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, stock, "wood", household, 1);
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        using var world = WorldRuntime.Restore(state, _ => new Idle());
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        var request = new GoodsRequest(GoodsUse.DismountCargo, household, GoodsOwners.One(household),
+            GoodsKinds.One("wood"), Explain: true);
+        var answer = world.FindGoods(request);
+        Assert.Empty(answer.Matches);
+        Assert.Contains((stock, GoodsReason.Custody), answer.Excluded);
+        Assert.Null(world.RecheckGoods(request, stock));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        world.Validate();
+    }
+
+    [Fact]
     public void QueriesRespectPartialReservationsBrokenParentsAndDeliveryPromisesWithoutWeakeningConsumptionAuthority()
     {
         using var generated = NormalPathWorld.CreateGenerated("goods-query-boundaries", _ => new Idle());
@@ -180,6 +201,28 @@ public sealed class GoodsQueryTests
         var reloaded = reload.FindGoods(request);
         Assert.Equal(answer.Matches, reloaded.Matches);
         Assert.Equal(answer.CoveredTotal, reloaded.CoveredTotal);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MedicalDoseRefusesAHouseholdActorWithoutChangingState(bool stored)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("medical-dose-household-actor", _ => new Idle());
+        var state = generated.ExportState();
+        const string household = "household:first";
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            "query-medical-dose", "medicine", household, 1,
+            storageBuildingId: stored ? "first-town-house-a" : null);
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        using var world = WorldRuntime.Restore(state, _ => new Idle());
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        var request = new GoodsRequest(GoodsUse.MedicalDose, household, GoodsOwners.One(household), GoodsKinds.One("medicine"), Explain: true);
+        var answer = world.FindGoods(request);
+        Assert.Empty(answer.Matches);
+        Assert.Contains(("query-medical-dose", GoodsReason.Custody), answer.Excluded);
+        Assert.Null(world.RecheckGoods(request, "query-medical-dose"));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
     private static (string Id, int Quantity)[] PlainScan(InventoryCheckpoint inventory, GoodsUse use, string? building) =>
