@@ -112,12 +112,13 @@ public sealed partial class WorldRuntime
                 MoveToward(plan.Actor, state, pickup.Position, "equipment", pickup.InteractionRange);
                 return;
             }
+            var operationId = DerivedId.Create($"equipment:{WorldTick}:{plan.Actor}:{pickup.ItemKind}");
             ApplyInventoryTransition(inventory => pickup.OwnerId == plan.HouseholdId
-                ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{plan.Actor}:{pickup.ItemKind}", pickup.StockId,
+                ? InventoryAuthority.Relocate(inventory, operationId, pickup.StockId,
                     pickup.OwnerId, 1, plan.Actor, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor))
-                : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{plan.Actor}:{pickup.ItemKind}", pickup.OwnerId,
+                : InventoryAuthority.Transfer(inventory, operationId, pickup.OwnerId,
                     plan.Actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
-            AppendEvent("equipment_collected", $"{plan.Actor}:{pickup.ItemKind}");
+            AppendEvent(new EquipmentCollectedEventPayload(plan.Actor, pickup.ItemKind));
             return;
         }
         GatherPlannedProjectMaterial(plan.Actor, state, plan.Choice.ItemKind, plan.Source, plan.Harvest!);
