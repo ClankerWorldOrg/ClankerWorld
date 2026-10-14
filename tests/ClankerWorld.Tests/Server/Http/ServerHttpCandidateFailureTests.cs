@@ -54,6 +54,7 @@ public sealed partial class ServerHttpTests
                 provider.GetRequiredService<WorldJevPolicy>(),
                 provider.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
                 _ => provider.GetRequiredService<IDecisionProvider>(),
+                provider.GetRequiredService<ManualWorldSaveStore>(),
                 options => GeographyCandidateSelector.Select(options, GenerateWithUnavailableClearing)))));
         using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);

@@ -9,4 +9,10 @@
     <Compile Include="../ClankerWorld.Shared/BuildInformation.cs" Link="Shared/BuildInformation.cs" />
     <Compile Include="../ClankerWorld.Shared/AgentPlacementRules.cs" Link="Shared/AgentPlacementRules.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/EventVocabulary.cs" Link="Shared/EventVocabulary.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/WorldEvents/*.cs" Link="Shared/WorldEvents/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

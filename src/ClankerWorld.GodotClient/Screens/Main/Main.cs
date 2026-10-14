@@ -286,6 +286,7 @@ public partial class Main : Control
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
         BuildLayout();
         BuildKeyboardNavigation();
+        BindOwnerRequestPanels();
         UiTheme.Changed += ApplyThemeColors;
         ApplyThemeColors();
         ApplyUiScale();

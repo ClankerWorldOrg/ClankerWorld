@@ -25,7 +25,7 @@ public static class TownLandTransferRules
         IReadOnlyList<TownLandTransferParty> parties, IReadOnlyList<HouseholdLandUseRequest> pendingRequests, long tick)
     {
         var rights = currentRights.Where(right => right.TownId == townId && right.Tiles.Any(tiles.Contains)).ToArray();
-        return TownLandHearingRules.ValidText(townId, 128) && TownHearingProcedure.Id(targetHouseholdId) &&
+        return BoundedText.IsValid(townId, 128) && IdentityRules.Reference(targetHouseholdId, int.MaxValue, requireTrimmed: true) &&
             TownLandRightsRules.IsValidPlot(map, tiles, tick, tick) && rights.Length > 0 &&
             rights.All(right => right.HouseholdId != targetHouseholdId && right.GrantedTick <= tick && (right.AgreedEndTick is null || right.AgreedEndTick > tick)) &&
             tiles.All(tile => rights.Count(right => right.Tiles.Contains(tile)) == 1 && !TownLandRightsRules.IsDisputed(tile, currentRights, pendingRequests)) &&
@@ -39,10 +39,10 @@ public static class TownLandTransferRules
         long tick, string noticeId, TownLandSalePrice? price = null)
     {
         if (!CanPropose(state, map, townId, filer, tiles, targetHouseholdId, currentRights, currentParties, pendingRequests, tick) ||
-            !TownLandHearingRules.ValidText(noticeId, 128))
+            !BoundedText.IsValid(noticeId, 128))
             throw new InvalidOperationException("A voluntary transfer needs one undisputed, unexpired existing plot, affected adults and a known beneficiary household.");
         var rights = CurrentSources(townId, tiles, currentRights).Select(TownLandHearingRules.Snapshot).ToArray();
-        if (price is not null && (price.Quantity <= 0 || !TownLandHearingRules.ValidText(price.ItemKind, ContentPackageRules.MaximumContentIdLength) ||
+        if (price is not null && (price.Quantity <= 0 || !BoundedText.IsValid(price.ItemKind, ContentPackageRules.MaximumContentIdLength) ||
             price.ItemKind.Any(char.IsWhiteSpace) || InventoryContainerRules.IsContainer(price.ItemKind) || price.ItemKind == "handcart" ||
             rights.Any(version => version.Right.HouseholdId != price.SellerHouseholdId) ||
             !currentParties.Any(party => party.HouseholdId == price.SellerHouseholdId && party.AdultIds.Contains(filer))))
@@ -125,7 +125,7 @@ public static class TownLandTransferRules
                 Status = "transferred",
                 SettledTick = tick,
                 Reason = null,
-                Receipt = new(adjustment.Id, tick, CopyParties(parties)) { Payment = payment }
+                Receipt = new(Identity.Parse(adjustment.Id), tick, CopyParties(parties)) { Payment = payment }
             });
             rights = after;
         }

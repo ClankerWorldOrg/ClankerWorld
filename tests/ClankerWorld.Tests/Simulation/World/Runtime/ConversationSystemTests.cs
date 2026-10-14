@@ -130,8 +130,8 @@ public sealed class ConversationSystemTests
         public bool HasExplicitConversationProvider(string agentId) => true;
         public bool ActiveTalkOrderUses(string conversationId) => false;
         public void IncreaseTrust(string from, string subject, int amount, string reason) => throw new NotSupportedException();
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) =>
-            Events.Add(new(Events.Count + 1, WorldTick, kind, detail, position));
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) =>
+            Events.Add(new(Events.Count + 1, WorldTick, payload with { Position = position is { } point ? new(point.X, point.Y) : null }));
         public SocietyOperationResult Apply(Func<SocietyCheckpoint, SocietyOperationResult> operation)
         {
             var result = operation(Society);

@@ -230,7 +230,7 @@ public sealed partial class WorldRuntime
                 $"workstation-supply:{WorldTick}:{actor}", carried.Id, householdId, quantity, storageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)) :
                 InventoryAuthority.Transfer(inventory, $"workstation-supply:{WorldTick}:{actor}", actor, householdId, carried.Id, quantity,
                     "workstation_supplied", building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
-            AppendEvent("workstation_supplied", $"{actor}:{carried.Id}:{quantity}:{building.InstanceId}");
+            AppendEvent(new WorkstationSuppliedEventPayload(actor, carried.Id, quantity, building.InstanceId));
             return;
         }
         if (need.HouseholdStock is { } stock)
@@ -249,7 +249,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"workstation-pickup:{WorldTick}:{actor}", stock.OwnerId, actor, stock.Id, quantity,
                 "workstation_input_picked_up", destinationDeliveryBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-            AppendEvent("workstation_input_picked_up", $"{actor}:{stock.Id}:{quantity}:{building.InstanceId}");
+            AppendEvent(new WorkstationInputPickedUpEventPayload(actor, stock.Id, quantity, building.InstanceId));
             return;
         }
         if (need.Source is { } source)
