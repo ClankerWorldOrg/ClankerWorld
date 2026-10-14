@@ -13,7 +13,7 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     private const int QuickCardWidth = 206;
-    private readonly Label quickCardNameLabel = new();
+    private readonly FittedLabel quickCardNameLabel = new();
     private readonly Label quickCardActivityLabel = new();
     private readonly Label quickCardOrderLabel = new();
     private readonly VBoxContainer quickCardMeters = new();
@@ -222,7 +222,7 @@ public partial class Main
             ? $"Life ended{(deathCause is null ? "" : " · " + Pretty(deathCause))}."
             : waitingForDecision
             ? "Deciding what to do next"
-            : Sentence(GameUiText.ActivityPhrase(agent.PublicIntention?.CandidateId, agent.PublicIntention?.Summary));
+            : Sentence(agent.PublicIntention?.Summary ?? "taking in the surroundings");
         // The Model line names whose model made their latest choice, such as OpenAI.
         var modelStatus = GameUiText.ModelStatus(Factor("model-status"));
         var modelProvider = decision is { } latest && IsModelProvider(latest.Provider) ? ProviderDisplayName(latest.Provider) + " · " : string.Empty;
@@ -283,7 +283,7 @@ public partial class Main
         foreach (var animal in snapshot.Animals.Where(animal => animal.RiderId == agent.Id || animal.LeaderId == agent.Id))
             details.Add(GameUiText.AnimalDescription(animal));
         if (!isDeceased && Factor("last-model-choice") is { } lastModelChoice)
-            details.Add("Last model choice: " + Sentence(GameUiText.ActivityPhrase(lastModelChoice, null)));
+            details.Add("Last model choice: " + Sentence(Factor("last-model-activity") ?? "taking in the surroundings"));
         if (!isDeceased && Factor("model-setup-blocker") == "unsupported_request")
             details.Add("This model refused the game's requests. Choose another model in Model settings.");
         if (agent.Project is { } project)

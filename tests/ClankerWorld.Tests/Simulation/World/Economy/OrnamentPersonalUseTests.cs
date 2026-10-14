@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -418,7 +419,7 @@ public sealed class OrnamentPersonalUseTests
         if (instruction is not null)
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "ornament-forced-berry");
-            Assert.Contains(instruction.InstructionId, world.ExportState().CompletedInstructionIds!);
+            Assert.Contains(instruction.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         }
         using var replay = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 3; tick++) Assert.True((await replay.AdvanceOneTickAsync()).Advanced);

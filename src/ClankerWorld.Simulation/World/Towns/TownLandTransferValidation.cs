@@ -23,8 +23,8 @@ public static class TownLandTransferValidation
             .Concat(state.Adjustments.SelectMany(adjustment => adjustment.PriorRights.Select(version => version.Right).Concat(adjustment.ResultRights))).ToArray();
         foreach (var request in state.Transfers)
         {
-            Check(TownGovernmentValidation.ValidId(request.Id, "land-transfer:" + townId + ":", state.Sequence) && request.TownId == townId && TownHearingProcedure.Id(request.FilerId) && agents.Contains(request.FilerId) &&
-                TownHearingProcedure.Id(request.TargetHouseholdId) && households.Contains(request.TargetHouseholdId) && request.ProposedTick >= 0 && request.ProposedTick <= tick &&
+            Check(TownGovernmentValidation.ValidId(request.Id, "land-transfer:" + townId + ":", state.Sequence) && request.TownId == townId && IdentityRules.Reference(request.FilerId, int.MaxValue, requireTrimmed: true) && agents.Contains(request.FilerId) &&
+IdentityRules.Reference(request.TargetHouseholdId, int.MaxValue, requireTrimmed: true) && households.Contains(request.TargetHouseholdId) && request.ProposedTick >= 0 && request.ProposedTick <= tick &&
                 request.Status is "pending" or "transferred" or "rejected" or "withdrawn" or "invalidated" &&
                 request.RightVersions is { Count: > 0 } && request.RightVersions.All(version => version is not null && version.Right is not null) &&
                 request.Parties is { Count: > 0 } && request.Parties.All(party => party is not null) && request.Responses is not null &&
@@ -36,7 +36,7 @@ public static class TownLandTransferValidation
             foreach (var version in request.RightVersions)
             {
                 var right = version.Right;
-                Check(version.Id == right.Id && Id(right.Id) && right.TownId == townId && households.Contains(right.HouseholdId) &&
+                Check(version.Id == right.Id && IdentityRules.Reference(right.Id, DerivedId.MaximumLength) && right.TownId == townId && households.Contains(right.HouseholdId) &&
                     right.HouseholdId != request.TargetHouseholdId && right.Tiles.Any(request.Tiles.Contains) &&
                     version.Version == TownLandHearingRules.Version(right) &&
                     TownLandRightsRules.IsValidPlot(map, right.Tiles, request.ProposedTick, right.GrantedTick, right.AgreedEndTick) &&
@@ -47,7 +47,7 @@ public static class TownLandTransferValidation
             Check(request.Tiles.All(tile => request.RightVersions.Count(version => version.Right.Tiles.Contains(tile)) == 1),
                 "A transfer plot must consist entirely of unambiguous existing permissions.");
             if (request.Price is { } price)
-                Check(price.Quantity > 0 && TownLandHearingRules.ValidText(price.ItemKind, ContentPackageRules.MaximumContentIdLength) && !price.ItemKind.Any(char.IsWhiteSpace) &&
+                Check(price.Quantity > 0 && BoundedText.IsValid(price.ItemKind, ContentPackageRules.MaximumContentIdLength) && !price.ItemKind.Any(char.IsWhiteSpace) &&
                     !InventoryContainerRules.IsContainer(price.ItemKind) && price.ItemKind != "handcart" &&
                     request.RightVersions.All(version => version.Right.HouseholdId == price.SellerHouseholdId) &&
                     request.Parties.Any(party => party.HouseholdId == price.SellerHouseholdId && party.AdultIds.Contains(request.FilerId)),
@@ -71,7 +71,7 @@ public static class TownLandTransferValidation
             if (request.Status == "transferred")
             {
                 var receipt = request.Receipt;
-                Check(receipt is not null && receipt.Tick == request.SettledTick && Id(receipt.AdjustmentId) && request.Reason is null,
+                Check(receipt is not null && receipt.Tick == request.SettledTick && IdentityRules.Reference(receipt.AdjustmentId, DerivedId.MaximumLength) && request.Reason is null,
                     "A completed transfer needs its exact durable permission-adjustment receipt.");
                 Check(request.Price is null ? receipt.Payment is null : receipt.Payment is not null,
                     "A paid permission transfer needs its actual goods payment; a free transfer cannot invent one.");
@@ -151,7 +151,6 @@ public static class TownLandTransferValidation
             "A transfer must retain precisely its source and beneficiary households and actual adult signatories.");
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(right => right.Tiles.Select(tile =>
         JsonSerializer.Serialize(new { tile.X, tile.Y, right.TownId, right.HouseholdId, right.GrantedTick, right.GrantSource, right.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, DerivedId.MaximumLength);
-    private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(TownHearingProcedure.Id) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
+    private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

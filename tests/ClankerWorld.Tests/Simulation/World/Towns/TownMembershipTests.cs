@@ -855,7 +855,7 @@ public sealed partial class TownMembershipTests
         return (state with { Towns = [town with { Council = governance, Admissions = [record] }] }, newcomer, governance.Proposals[^1].Id);
     }
 
-    private static string Founder(int number) => $"founder:{number:D32}";
+    private static string Founder(int number) => NormalPathWorld.FounderId(number);
 
     private static string NewAgentId() => "agent:" + Guid.NewGuid().ToString("N");
 
@@ -1097,8 +1097,7 @@ public sealed partial class TownMembershipTests
         services.Add(service);
         return async () =>
         {
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await Task.Delay(1);
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
         };
     };
 

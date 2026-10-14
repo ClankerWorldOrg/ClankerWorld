@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record SmithGatherChoice(string ItemKind)
 {
     public const string InputPrefix = "gather_smith_input:";
-    public string Encode() => ItemKind == "iron_ore" ? "gather_smith_ore" : InputPrefix + ItemKind;
+    public string Encode() => ItemKind == "iron_ore" ? "gather_smith_ore" : IdentityRules.PrefixedReference(InputPrefix, ItemKind);
 }
 
 public sealed record SmithGatherActionPlan(string ActorId, SmithGatherChoice Choice, string HouseholdId,
