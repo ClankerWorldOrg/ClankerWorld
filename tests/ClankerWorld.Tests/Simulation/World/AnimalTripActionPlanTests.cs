@@ -38,7 +38,8 @@ public sealed partial class AnimalPipelineTests
             Assert.Equal(plan.Trip.YardId, load.StorageBuildingId);
             Assert.Equal(plan.HouseholdId, load.OwnerId);
             var supplied = Assert.Single(result.Events, item => item.Kind == "animal_yard_supplied");
-            Assert.Equal(new AnimalYardSuppliedEventPayload(actor, plan.Trip.YardId), supplied.Payload);
+            var payload = Assert.IsType<AnimalYardSuppliedEventPayload>(supplied.Payload);
+            Assert.Equal((actor, plan.Trip.YardId), (payload.ActorId, payload.YardInstanceId));
         }
         else if (step == AnimalTripStep.Work)
         {
