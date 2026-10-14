@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        DirectBarterActionPlan directBarter => CheckDirectBarter(directBarter),
         MarketExchangeActionPlan marketExchange => CheckMarketExchange(marketExchange),
         MarketStockActionPlan marketStock => CheckMarketStock(marketStock),
         MarketOccupancyActionPlan marketOccupancy => CheckMarketOccupancy(marketOccupancy),

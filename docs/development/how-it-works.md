@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Direct barter retains the chosen counterpart and one-unit goods, or the
+original offer and personal response state. Shared checks revalidate that same
+selection before the native offer, cancellation or acceptance writer; arrival
+still waits for the other adult and receiving room.
 Market quotes retain the exact seller occupancy, goods and personal payment.
 Open-offer responses retain the original exchange terms, claims and arrival
 phase; shared checks refuse a changed offer before the native response writer.

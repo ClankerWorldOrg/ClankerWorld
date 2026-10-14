@@ -2,6 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public static class NeedThresholds
 {
+    public const int TradeFoodWantedFullness = 8_500;
+    public const int TradeFoodReserveFullness = 6_500;
     public const int NonLandReturnFoodFullness = 6_500;
     public const int MedicalCareIllness = 2_500;
     public const int ComfortableWarmth = 6_000;

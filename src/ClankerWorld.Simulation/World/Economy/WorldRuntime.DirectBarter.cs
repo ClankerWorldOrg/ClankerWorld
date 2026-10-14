@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
         !offer.AcceptedBy.Contains(actor, StringComparer.Ordinal));
 
     private bool WantsTradeFoodKind(string actor, string kind) => IsEdibleFood(kind) &&
-        agents[actor].FullnessBasisPoints < 8_500 &&
+        agents[actor].FullnessBasisPoints < NeedThresholds.TradeFoodWantedFullness &&
         society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind)
             .Sum(AvailableLotQuantity) < 2;
 
@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
         return inputs.Any(input => input.ResourceId == kind && !HasAvailableQuantities([input], inputOwner) && owned < input.Amount);
     }
 
-    private (InventoryLot Give, InventoryLot Take)? TradeOpportunity(string actor, string other)
+    private (InventoryLot Give, InventoryLot Take)? TradeOpportunity(string actor, string other, string? giveId = null, string? takeId = null)
     {
         if (actor == other || !IsAdult(actor) || !IsAdult(other) ||
             !PersonalTradeReceivingSpace(actor, other, 1, 1) ||
@@ -104,22 +104,54 @@ public sealed partial class WorldRuntime
         }
         var giving = SpendingGoods(actor, GoodsUse.Spend, [actor]).Select(match => match.Lot).ToArray();
         var taking = SpendingGoods(other, GoodsUse.Spend, [other]).Select(match => match.Lot).ToArray();
-        foreach (var give in giving.Where(lot => TradeQuantityAvailable(lot) &&
+        foreach (var give in giving.Where(lot => (giveId is null || lot.Id == giveId) && TradeQuantityAvailable(lot) &&
                      !WantsTradeItem(actor, lot) && WantsTradeItem(other, lot) &&
-                     (!IsEdibleFood(lot.ItemKind) || agents[actor].FullnessBasisPoints >= 6_500)))
+                     (!IsEdibleFood(lot.ItemKind) || agents[actor].FullnessBasisPoints >= NeedThresholds.TradeFoodReserveFullness)))
         {
             // Records of the same kind can contain different discoveries. The
             // reciprocal demand checks still require contents each recipient lacks.
             var take = taking.FirstOrDefault(lot =>
-                (lot.ItemKind != give.ItemKind || AgentKnowledgeRules.IsArtifactKind(lot.ItemKind)) &&
+                (takeId is null || lot.Id == takeId) && (lot.ItemKind != give.ItemKind || AgentKnowledgeRules.IsArtifactKind(lot.ItemKind)) &&
                 TradeQuantityAvailable(lot) && !WantsTradeItem(other, lot) && WantsTradeItem(actor, lot) &&
-                (!IsEdibleFood(lot.ItemKind) || agents[other].FullnessBasisPoints >= 6_500));
+                (!IsEdibleFood(lot.ItemKind) || agents[other].FullnessBasisPoints >= NeedThresholds.TradeFoodReserveFullness));
             if (take is not null)
             {
                 return (give, take);
             }
         }
         return null;
+    }
+
+    private DirectBarterActionPlan? PlanDirectBarter(string actor, DirectBarterChoice choice,
+        (InventoryLot Give, InventoryLot Take)? selected = null, DirectBarterOffer? selectedOffer = null)
+    {
+        if (choice.Kind == DirectBarterKind.Propose)
+        {
+            var trade = selected ?? TradeOpportunity(actor, choice.Subject);
+            return trade is null ? null : new(actor, choice, choice.Subject, trade.Value.Give.Id, trade.Value.Take.Id,
+                trade.Value.Give.ItemKind, trade.Value.Take.ItemKind, SharedStoragePosition, null,
+                Reach(actor, SharedStoragePosition, ReachPurpose.DirectBarter, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
+        }
+        var offer = selectedOffer ?? society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == choice.Subject);
+        if (offer is null || offer.FirstPartyId != actor && offer.SecondPartyId != actor) return null;
+        var first = offer.FirstPartyId == actor;
+        var give = society.Checkpoint.Inventory.GetLot(first ? offer.FirstLotId : offer.SecondLotId);
+        var take = society.Checkpoint.Inventory.GetLot(first ? offer.SecondLotId : offer.FirstLotId);
+        return new(actor, choice, first ? offer.SecondPartyId : offer.FirstPartyId, give.Id, take.Id, give.ItemKind, take.ItemKind,
+            SharedStoragePosition, offer, Reach(actor, SharedStoragePosition, ReachPurpose.DirectBarter, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private bool DirectBarterOfferIsCurrent(DirectBarterActionPlan plan)
+    {
+        var current = society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == plan.Choice.Subject);
+        return current is { State: DirectBarterState.Open } && current.ExpiryTick >= WorldTick &&
+            TownHearingProcedure.Digest(current) == TownHearingProcedure.Digest(plan.Offer) &&
+            (plan.Choice.Kind == DirectBarterKind.Decline || current.AcceptedBy.Contains(plan.Actor, StringComparer.Ordinal) == (plan.Choice.Kind == DirectBarterKind.Wait));
+    }
+
+    private void OfferDirectBarter(List<CognitionCandidate> candidates, DirectBarterActionPlan? plan, string text, int priority)
+    {
+        if (plan is not null && CheckDirectBarter(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
     }
 
     private void AddTradeCandidates(List<CognitionCandidate> candidates, string actor)
@@ -134,36 +166,46 @@ public sealed partial class WorldRuntime
         {
             if (offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))
             {
-                candidates.Add(new("trade_wait:" + offer.Id,
-                    "Meet the other trader and wait for their answer.", 12));
-                candidates.Add(new("trade_decline:" + offer.Id, "Withdraw the pending exchange and release both reserved items.", 110));
+                OfferDirectBarter(candidates, PlanDirectBarter(actor, new(DirectBarterKind.Wait, offer.Id), selectedOffer: offer),
+                    "Meet the other trader and wait for their answer.", 12);
+                OfferDirectBarter(candidates, PlanDirectBarter(actor, new(DirectBarterKind.Decline, offer.Id), selectedOffer: offer),
+                    "Withdraw the pending exchange and release both reserved items.", 110);
                 continue;
             }
             var giveId = offer.FirstPartyId == actor ? offer.FirstLotId : offer.SecondLotId;
             var takeId = offer.FirstPartyId == actor ? offer.SecondLotId : offer.FirstLotId;
             var give = society.Checkpoint.Inventory.GetLot(giveId);
             var take = society.Checkpoint.Inventory.GetLot(takeId);
-            var useful = WantsTradeItem(actor, take) && (!IsEdibleFood(give.ItemKind) || agents[actor].FullnessBasisPoints >= 6_500);
-            candidates.Add(new("trade_accept:" + offer.Id, $"Accept exchange: give one {give.ItemKind}, receive one {take.ItemKind}.", useful ? 12 : 60));
-            candidates.Add(new("trade_decline:" + offer.Id, "Decline this exchange and release both reserved items.", useful ? 60 : 12));
+            var useful = WantsTradeItem(actor, take) && (!IsEdibleFood(give.ItemKind) || agents[actor].FullnessBasisPoints >= NeedThresholds.TradeFoodReserveFullness);
+            OfferDirectBarter(candidates, PlanDirectBarter(actor, new(DirectBarterKind.Accept, offer.Id), selectedOffer: offer),
+                $"Accept exchange: give one {give.ItemKind}, receive one {take.ItemKind}.", useful ? 12 : 60);
+            OfferDirectBarter(candidates, PlanDirectBarter(actor, new(DirectBarterKind.Decline, offer.Id), selectedOffer: offer),
+                "Decline this exchange and release both reserved items.", useful ? 60 : 12);
         }
         foreach (var other in agents.Keys.Where(other => other != actor)
                      .OrderByDescending(other => TrustScore(actor, other)).ThenBy(other => other, StringComparer.Ordinal))
         {
             if (TradeOpportunity(actor, other) is { } trade)
             {
-                candidates.Add(new("trade_propose:" + other,
-                    $"Offer {society.Checkpoint.GetAgent(other).Name} one {trade.Give.ItemKind} for one {trade.Take.ItemKind}; they may refuse.", 14));
+                OfferDirectBarter(candidates, PlanDirectBarter(actor, new(DirectBarterKind.Propose, other), trade),
+                    $"Offer {society.Checkpoint.GetAgent(other).Name} one {trade.Give.ItemKind} for one {trade.Take.ItemKind}; they may refuse.", 14);
             }
         }
     }
 
-    private void ApplyTradeCandidate(string actor, AgentState state, string candidate)
+    private void ApplyTradeCandidate(string actor, AgentState state, string candidate, ActionPlan? originalPlan = null)
     {
+        var plan = originalPlan as DirectBarterActionPlan ?? (DirectBarterChoice.Decode(candidate) is { } choice ? PlanDirectBarter(actor, choice) : null);
+        if (plan is not null) ApplyDirectBarter(plan);
+    }
+
+    private void ApplyRetainedTradeCandidate(string actor, AgentState state, DirectBarterActionPlan plan)
+    {
+        var candidate = plan.CandidateId;
         if (candidate.StartsWith("trade_propose:", StringComparison.Ordinal))
         {
             var other = candidate[14..];
-            if (!agents.ContainsKey(other) || TradeOpportunity(actor, other) is not { } trade)
+            if (!agents.ContainsKey(other) || TradeOpportunity(actor, other, plan.GiveId, plan.TakeId) is not { } trade)
             {
                 return;
             }
@@ -182,9 +224,7 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("trade_wait:", StringComparison.Ordinal))
         {
             var waitingId = candidate[11..];
-            var waiting = society.Checkpoint.Inventory.Offers.FirstOrDefault(offer => offer.Id == waitingId &&
-                offer.State == DirectBarterState.Open && offer.ExpiryTick >= WorldTick &&
-                offer.AcceptedBy.Contains(actor, StringComparer.Ordinal));
+            var waiting = plan.Offer;
             if (waiting is not null &&
                 !IsWithinInteractionRange(state.Position, SharedStoragePosition, ResourceInteractionRange))
                 MoveToward(actor, state, SharedStoragePosition, "trade", ResourceInteractionRange);
@@ -192,7 +232,7 @@ public sealed partial class WorldRuntime
         }
         var accept = candidate.StartsWith("trade_accept:", StringComparison.Ordinal);
         var offerId = candidate[(accept ? 13 : 14)..];
-        var offer = society.Checkpoint.Inventory.Offers.FirstOrDefault(item => item.Id == offerId && item.State == DirectBarterState.Open);
+        var offer = plan.Offer;
         if (offer is null || offer.ExpiryTick < WorldTick ||
             (offer.FirstPartyId != actor && offer.SecondPartyId != actor) || accept && offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))
         {
