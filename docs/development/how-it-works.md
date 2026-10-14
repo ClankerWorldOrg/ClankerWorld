@@ -557,7 +557,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 209 references across 57 files. Named delivery, hold and cargo operations
+is 208 references across 57 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
