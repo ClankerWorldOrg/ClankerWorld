@@ -447,9 +447,12 @@ public sealed partial class WorldRuntime : IDisposable
                     instruction.SubmissionSequence));
         }
 
+        var suggestionIds = runtime.instructionsByIdempotency.Values
+            .Where(item => item.Kind == OwnerInstructionKind.Suggestion)
+            .Select(item => item.InstructionId).ToHashSet(StringComparer.Ordinal);
         foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
         {
-            if (runtime.instructionsByIdempotency.Values.Any(item => item.InstructionId == completedInstructionId && item.Kind == OwnerInstructionKind.Suggestion))
+            if (suggestionIds.Contains(completedInstructionId))
                 runtime.completedSuggestionIds.Add(completedInstructionId);
         }
 
