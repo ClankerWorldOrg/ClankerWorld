@@ -401,7 +401,7 @@ public static class GameUiText
                 lines.Add("No current thoughts or activity.");
                 break;
         }
-        if (will?.FinalWords is { Length: > 0 } words)
+        if (will?.FinalWords is { } words && !string.IsNullOrEmpty(words))
             lines.Add($"Final words: \u201C{words}\u201D");
         return lines;
     }
