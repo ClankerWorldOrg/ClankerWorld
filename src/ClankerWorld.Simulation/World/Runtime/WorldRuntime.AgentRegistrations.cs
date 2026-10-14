@@ -162,11 +162,7 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "store_food_in_pot", [], [new VesselChoice(VesselActionKind.StoreFood).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.StoreFood)),
         new(ActionPhase.Ordinary, "take_food_from_pot", [], [new VesselChoice(VesselActionKind.TakeFood).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.TakeFood)),
         new(ActionPhase.Ordinary, "FillWaterJugPrefix", [VesselChoice.FillPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.FillJug)),
-        new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [GatherBuildingMaterialPrefix], [], static (runtime, action) =>
-    {
-        runtime.GatherBuildingMaterial(action.AgentId, action.State, action.CandidateId[GatherBuildingMaterialPrefix.Length..], action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [BuildingMaterialChoice.Prefix], [], Definition: BuildingMaterialDefinition),
         new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpansionChoice.Prefix], [], Definition: ExpansionDefinition),
         new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], static (runtime, action) =>
     {
@@ -175,11 +171,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "recipe", [], [], Definition: RecipeActionDefinition),
         new(ActionPhase.Ordinary, "build:", ["build:"], [], Definition: ConstructionDefinition),
-        new(ActionPhase.Ordinary, "assist:", ["assist:"], [], static (runtime, action) =>
-    {
-        runtime.AssistProject(action.AgentId, action.State, action.CandidateId[ProjectAssistanceChoice.Prefix.Length..], action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "assist:", [ProjectAssistanceChoice.Prefix], [], Definition: ProjectAssistanceDefinition),
         new(ActionPhase.Ordinary, "replant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Replant)], Definition: TreeDefinition),
         new(ActionPhase.Ordinary, "plant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Plant), TreeActionPlan.Candidate(TreeChoice.Orchard)], Definition: TreeDefinition),
         new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], static (runtime, action) =>
