@@ -48,6 +48,27 @@ public sealed class GoodsQueryTests
     }
 
     [Fact]
+    public void DismountCargoRefusesAHouseholdActorWithoutChangingState()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("goods-dismount-household", _ => new Idle());
+        var state = generated.ExportState();
+        const string household = "household:first";
+        const string stock = "query-dismount-household-wood";
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, stock, "wood", household, 1);
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        using var world = WorldRuntime.Restore(state, _ => new Idle());
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        var request = new GoodsRequest(GoodsUse.DismountCargo, household, GoodsOwners.One(household),
+            GoodsKinds.One("wood"), Explain: true);
+        var answer = world.FindGoods(request);
+        Assert.Empty(answer.Matches);
+        Assert.Contains((stock, GoodsReason.Custody), answer.Excluded);
+        Assert.Null(world.RecheckGoods(request, stock));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        world.Validate();
+    }
+
+    [Fact]
     public void QueriesRespectPartialReservationsBrokenParentsAndDeliveryPromisesWithoutWeakeningConsumptionAuthority()
     {
         using var generated = NormalPathWorld.CreateGenerated("goods-query-boundaries", _ => new Idle());
