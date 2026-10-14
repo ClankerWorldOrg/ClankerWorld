@@ -160,6 +160,11 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Conversation choices own their typed codec, planner, capability policy, check
+and native application in the ordered action row. ConversationSystem retains
+the shared preparation check and native writers; successful conversation
+application keeps the existing cancellation of equipment repair.
+
 Tool request consent, visits, commission work and finished-tool collection own
 their typed codecs, planners, capability policies, checks and native application
 in ordered action rows. Consent remains at fresh personal admission; the work
