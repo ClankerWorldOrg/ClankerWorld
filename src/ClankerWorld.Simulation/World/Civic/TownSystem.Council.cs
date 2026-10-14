@@ -149,13 +149,9 @@ internal sealed partial class TownSystem
                 if (town.Government is not null) AddTownGovernmentCandidates(world, candidates, actor, town);
                 world.AddTownProjectProposalCandidates(candidates, actor, town);
                 world.AddBoatAccessCandidates(candidates, actor, town);
-                var here = world.Agents[actor].Position;
                 // The model sees no map grid, so name real claimable tiles it can choose from.
                 OfferTownLandClaim(world, candidates, actor, town, siteRecovery);
-                if (world.Society.GetAgent(actor).HouseholdId is not null && RequestableLandNear(world, town, here, 6) is { Length: > 0 } free)
-                    candidates.Add(new(CivicAction(world, town.Id, "request_land_use"), siteRecovery + $"Ask {town.Name}'s council for household use of a connected plot of Town-titled land; include exact coordinates in civic_land_tiles. " +
-                        FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); free Town land nearest you: {string.Join("; ", free.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
-                        "Filing grants nothing and supplies no household acceptance.", 190));
+                OfferPersonalLandFiling(world, candidates, actor, town, siteRecovery);
             }
             else if (NearCivicBoard(world, actor, town))
             {
@@ -242,6 +238,7 @@ internal sealed partial class TownSystem
         var mayoralBallotPlan = originalPlan as MayoralBallotActionPlan;
         var landClaimPlan = originalPlan as TownLandClaimActionPlan;
         var landResponsePlan = originalPlan as HouseholdLandResponseActionPlan;
+        var landFilingPlan = originalPlan as HouseholdLandFilingActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -285,6 +282,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (HouseholdLandFilingChoice.Decode(selectedId) is { } filingChoice)
+        {
+            landFilingPlan ??= PlanHouseholdLandFiling(world, actor, filingChoice);
+            if (landFilingPlan is null) return;
+            landFilingPlan = BindHouseholdLandFiling(landFilingPlan, landTiles);
+            if (CheckHouseholdLandFiling(world, landFilingPlan).Refusal is { } refusal) { world.RefuseChoice(landFilingPlan, refusal); return; }
         }
         else if (HouseholdLandResponseChoice.Decode(selectedId) is { } landResponseChoice)
         {
@@ -452,8 +456,12 @@ internal sealed partial class TownSystem
                     { world.RefuseChoice(landClaimPlan, claimRefusal); return; }
                     state = SubmitTownLandClaim(world, town, state, actor, landTiles, landClaimPlan);
                     break;
-                case "request_land_use": state = SubmitPersonalLandUseRequest(world, town, state, actor, landTiles); break;
-                case "request_expansion_land": state = SubmitExpansionLandRequest(world, town, state, actor, parts[3]); break;
+                case "request_land_use" or "request_expansion_land":
+                    if (landFilingPlan!.SelectedTiles is null) return;
+                    if (CheckHouseholdLandFiling(world, landFilingPlan, town with { Council = state, Government = government }).Refusal is { } filingRefusal)
+                    { world.RefuseChoice(landFilingPlan, filingRefusal); return; }
+                    state = SubmitPersonalLandUseRequest(world, town, state, actor, landTiles, landFilingPlan);
+                    break;
                 case "accept_land_use":
                 case "decline_land_use":
                 case "withdraw_land_use":

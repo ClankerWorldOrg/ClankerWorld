@@ -25,6 +25,7 @@ public sealed class BuildingExpansionTests
         await world.AdvanceOneTickAsync();
         var offered = Assert.Single(provider.Seen[0].Observation.Candidates,
             c => c.Id.Contains("|request_expansion_land|", StringComparison.Ordinal));
+        var originalPlan = Assert.IsType<HouseholdLandFilingActionPlan>(offered.ActionPlan);
         var plot = Regex.Matches(offered.Description, @"\((\d+),\s*(\d+)\)")
             .Select(match => new GridPoint(int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                 int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture))).ToArray();
@@ -35,6 +36,7 @@ public sealed class BuildingExpansionTests
         typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(world, [actor, offered.Id, null, null, null, null, null]);
         Assert.Single(world.HouseholdLandUseRequests);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(originalPlan).Refusal!.Reason);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
@@ -95,10 +97,20 @@ public sealed class BuildingExpansionTests
         {
             HouseholdLandUseRights = state.HouseholdLandUseRights!.Where(r => r.GrantSource != "expansion_test_fixture").ToArray(),
         }, id => id == actor ? provider : new IdleProvider());
+        HouseholdLandFilingActionPlan? selectedPlan = null;
         for (var attempt = 0; attempt < 40 && world.HouseholdLandUseRequests.Count == 0; attempt++)
-            await world.AdvanceOneTickAsync();
+        {
+            var tick = await world.AdvanceOneTickAsync();
+            foreach (var decision in tick.Decisions.Where(decision => decision.ActionPlan is HouseholdLandFilingActionPlan && decision.Admission.Accepted))
+                selectedPlan = Assert.IsType<HouseholdLandFilingActionPlan>(decision.ActionPlan);
+        }
         var request = Assert.Single(world.HouseholdLandUseRequests);
         Assert.Single(request.Tiles);
+        var retained = Assert.IsType<HouseholdLandFilingActionPlan>(selectedPlan);
+        Assert.Equal(request.Tiles, retained.SelectedTiles);
+        Assert.Equal(house.InstanceId, retained.Building!.InstanceId);
+        Assert.Equal(retained.Choice, HouseholdLandFilingChoice.Decode(retained.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(retained).Refusal!.Reason);
         Assert.DoesNotContain(house.Position, request.Tiles);
         Assert.Equal(house.HouseholdId, request.HouseholdId);
         Assert.NotNull(request.CouncilProposalId);
