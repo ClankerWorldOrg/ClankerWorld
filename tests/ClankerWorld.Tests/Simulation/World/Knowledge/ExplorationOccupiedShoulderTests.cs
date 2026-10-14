@@ -14,10 +14,10 @@ public sealed class ExplorationOccupiedShoulderTests
         {
             var step = await world.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
-            refused = step.Decisions.Where(decision => decision.Admission.Accepted &&
-                    decision.PlanRefusal?.Reason == ActionRefusalReason.OutOfReach)
-                .Select(decision => decision.ActionPlan).OfType<ExplorationActionPlan>()
-                .FirstOrDefault(plan => plan.Step == ExplorationStep.Outward);
+            refused = step.Decisions.Select(decision => decision.ActionPlan).OfType<ExplorationActionPlan>()
+                .FirstOrDefault(plan => plan.Step == ExplorationStep.Outward && step.Events.Any(item => item.Kind == "choice_refused" &&
+                    item.Detail.StartsWith(world.Society.GetAgent(plan.Actor).Name + " didn't", StringComparison.Ordinal) &&
+                    item.Detail.EndsWith("the selected visible scouting step is blocked.", StringComparison.Ordinal)));
         }
         Assert.NotNull(refused);
         Assert.Equal(refused.Origin, world.Agents.Single(person => person.AgentId == refused.Actor).Position);
