@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;

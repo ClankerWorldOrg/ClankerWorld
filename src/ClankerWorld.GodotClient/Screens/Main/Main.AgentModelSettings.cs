@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
@@ -14,7 +15,6 @@ public partial class Main
 {
     private async Task RefreshProviderConfigurationAsync()
     {
-        agentModelApiKeyInput.Text = string.Empty;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
             agentModelConfigurationStatus.Text = "Connect this device before setting up agent models.";
@@ -26,11 +26,15 @@ public partial class Main
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
                 ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
-            RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
-            if (worldSettingsContent.Visible) RequestRoutineHelperModels();
-            PopulateAgentModelTargets();
-            PopulateProviderChoices(ActiveProviderForSelectedRole());
-            PopulateCredentialChoices();
+            using (var draft = new PanelDraft(agentModelTargetChoice.GetParent()))
+            {
+                RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
+                if (worldSettingsContent.Visible) RequestRoutineHelperModels();
+                PopulateAgentModelTargets();
+                using (var providerDraft = new PanelDraft(agentModelProviderChoice))
+                    PopulateProviderChoices(ActiveProviderForSelectedRole());
+                PopulateCredentialChoices();
+            }
             RenderProviderConfiguration();
             return "Agent model settings loaded.";
         });
@@ -469,9 +473,9 @@ public partial class Main
     };
 
     /// <summary>A small caption above a field that hides and shows with it.</summary>
-    private static Label FieldCaption(string text, Control field)
+    private static FittedLabel FieldCaption(string text, Control field)
     {
-        var caption = new Label { Text = text, ThemeTypeVariation = "DimLabel", Visible = field.Visible };
+        var caption = new FittedLabel { Text = text, ThemeTypeVariation = "DimLabel", Visible = field.Visible };
         field.VisibilityChanged += () => caption.Visible = field.Visible;
         return caption;
     }

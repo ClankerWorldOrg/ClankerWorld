@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -11,7 +12,7 @@ public partial class Main
     private readonly LineEdit apiKeyInput = new();
     private readonly Button saveApiKeyButton = new();
     private readonly Label apiKeysStatus = new();
-    private readonly Label savedApiKeys = new();
+    private readonly FittedLabel savedApiKeys = new();
     private int apiKeysRead;
 
     private void BuildApiKeysPanel()
