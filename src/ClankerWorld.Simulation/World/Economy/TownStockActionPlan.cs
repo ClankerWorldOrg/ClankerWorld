@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public enum TownStockActionKind { StoreSurplus, Salvage }
 
-public sealed record PlannedStockMember(string LotId, string OwnerId, string ItemKind, int Quantity);
-
 public readonly record struct TownStockChoice(TownStockActionKind Kind, string TownId, string StockId)
 {
     public string Id => Kind switch

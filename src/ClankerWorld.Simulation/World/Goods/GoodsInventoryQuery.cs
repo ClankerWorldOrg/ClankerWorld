@@ -67,7 +67,7 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
                 GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or
-                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage) ||
+                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
             request.ExtraUnits < 0 ||
@@ -82,7 +82,7 @@ internal static class GoodsInventoryQuery
             !Enum.IsDefined(request.DeliveryPurpose) ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery) &&
                 string.IsNullOrWhiteSpace(request.Actor))
             throw new ArgumentException("Use exact owners and kinds, an actor for personal uses and Deliver, and a container for Cargo. Contents and extra units apply only to VesselFor; Deliver requires its native destination and purpose.", nameof(request));
     }
@@ -101,14 +101,14 @@ internal static class GoodsInventoryQuery
         return Math.Min(lot.Quantity - Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)), reserved);
     }
 
-    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage
+    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage or GoodsUse.CarriedDelivery
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
         : use is GoodsUse.ConsumeAt or GoodsUse.Eat ? InventoryRules.ReservableQuantity(index, lot, InventoryHoldRules.For(index, lot).ToArray()) : InventoryRules.UsableQuantity(index, lot);
 
     internal static GoodsReason? PromiseExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
     {
         var holds = InventoryHoldRules.For(index, lot).ToArray();
-        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo) &&
+        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo or GoodsUse.CarriedDelivery) &&
             holds.Any(hold => hold.Purpose == InventoryHoldPurpose.Delivery)) return GoodsReason.Delivery;
         if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Deliver or GoodsUse.Spend &&
             holds.Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall)) return GoodsReason.MarketStall;
@@ -122,7 +122,7 @@ internal static class GoodsInventoryQuery
         if (!request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal)) return GoodsReason.Kind;
         if (request.AtBuilding is { } building && lot.StorageBuildingId != building) return GoodsReason.Place;
         if (request.Use == GoodsUse.Cargo && lot.ContainerLotId != request.ContainerId) return GoodsReason.Place;
-        if (!IsRecovery(request.Use) && request.Use is not (GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage))
+        if (!IsRecovery(request.Use) && request.Use is not (GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage or GoodsUse.CarriedDelivery))
         {
             if (lot.ConditionBasisPoints <= 0) return GoodsReason.Damaged;
             if (lot.FreshnessBasisPoints <= 0) return GoodsReason.Spoiled;

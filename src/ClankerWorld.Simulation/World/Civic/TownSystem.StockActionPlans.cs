@@ -14,7 +14,7 @@ internal sealed partial class TownSystem
             var quantity = TownSalvageQuantity(world, actor, lot);
             var range = lot.GroundPosition is not null ? WorldRuntime.CivicSharedRules.ResourceInteractionRange : 0;
             var family = InventoryContainerRules.IsContainer(lot.ItemKind)
-                ? Array.AsReadOnly(CaptureStockFamily(world.Society.Inventory, lot)) : null;
+                ? GoodsPlanFamily.Capture(world.Society.Inventory, lot) : null;
             var plan = new TownStockActionPlan(actor, new(TownStockActionKind.Salvage, lot.OwnerId, lot.Id), lot.ItemKind,
                 quantity, world.HouseholdStockPosition(lot), range,
                 Route: Array.AsReadOnly(new[] { world.Agents[actor].Position }), Family: family);
@@ -42,7 +42,7 @@ internal sealed partial class TownSystem
         if (world.HouseholdStockPosition(goods.Lot) != plan.Destination ||
             (goods.Lot.GroundPosition is not null ? WorldRuntime.CivicSharedRules.ResourceInteractionRange : 0) != plan.InteractionRange)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected goods have moved");
-        if (plan.Family is { } family && !CaptureStockFamily(world.Society.Inventory, goods.Lot).SequenceEqual(family))
+        if (!GoodsPlanFamily.Matches(world.Society.Inventory, goods.Lot, plan.Family))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected vessel or its contents have changed");
         return new();
     }
@@ -65,7 +65,4 @@ internal sealed partial class TownSystem
             : Math.Min(world.PhysicalUnreservedQuantity(lot), room);
     }
 
-    private static PlannedStockMember[] CaptureStockFamily(InventoryCheckpoint inventory, InventoryLot root) =>
-        InventoryIndex.For(inventory).ContentsOf(root.Id).Prepend(root).OrderBy(lot => lot.Id, StringComparer.Ordinal)
-            .Select(lot => new PlannedStockMember(lot.Id, lot.OwnerId, lot.ItemKind, lot.Quantity)).ToArray();
 }

@@ -115,17 +115,17 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "haul_household_stock", [], ["haul_household_stock"], static (runtime, action) =>
     {
-        runtime.HaulHouseholdStock(action.AgentId, action.State);
+        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "recover_household_delivery", [], ["recover_household_delivery"], static (runtime, action) =>
     {
-        runtime.RecoverHouseholdDelivery(action.AgentId, action.State);
+        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "store_household_food", [], ["store_household_food"], static (runtime, action) =>
     {
-        runtime.StoreHouseholdFood(action.AgentId, action.State);
+        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "make_room_for_food", [], ["make_room_for_food"], static (runtime, action) =>

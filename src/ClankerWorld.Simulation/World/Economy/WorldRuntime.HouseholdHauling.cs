@@ -7,32 +7,26 @@ public sealed partial class WorldRuntime
 {
     private const int HouseHaulLoadQuantity = 4;
 
-    private InventoryLot? CarriedHouseDelivery(string actor)
-    {
-        var inventory = society.Checkpoint.Inventory;
-        return inventory.Lots
-            .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
-                lot.DeliveryBuildingId is not null &&
-                (InventoryContainerRules.IsContainer(lot.ItemKind)
-                    ? !HasActiveContainerReservation(inventory, lot.Id) && !UnusableDeliveryStock(inventory, lot)
-                    : AvailableLotQuantity(lot) > 0))
-            .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
-    }
+    private InventoryLot? CarriedHouseDelivery(string actor) => CarriedDeliveryGoods(actor)
+        .Where(lot => InventoryContainerRules.IsContainer(lot.ItemKind)
+            ? !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id) && !UnusableDeliveryStock(society.Checkpoint.Inventory, lot)
+            : AvailableLotQuantity(lot) > 0)
+        .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private static bool UnusableDeliveryStock(InventoryCheckpoint inventory, InventoryLot root) =>
         root.ConditionBasisPoints == 0 || root.FreshnessBasisPoints == 0 ||
-        InventoryContainerRules.IsContainer(root.ItemKind) && inventory.Lots.Any(lot =>
-            lot.ContainerLotId == root.Id && (lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0));
+        InventoryContainerRules.IsContainer(root.ItemKind) && InventoryIndex.For(inventory).ContentsOf(root.Id).Any(lot =>
+            lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0);
 
     private InventoryLot? RecoverableHouseholdDelivery(string actor, AgentState state)
     {
         if (!IsAdult(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             !IsWithinInteractionRange(state.Position, SharedStoragePosition, ResourceInteractionRange) &&
-            FindUnoccupiedRoute(actor, state.Position, SharedStoragePosition, ResourceInteractionRange).Count == 0)
+            Reach(actor, SharedStoragePosition, ReachPurpose.HouseholdRecovery, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return null;
         var inventory = society.Checkpoint.Inventory;
         var equipment = state.Equipment;
-        return inventory.Lots.Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
+        return CarriedDeliveryGoods(actor).Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
                 lot.ContainerLotId is null && lot.Quantity > 0 && lot.DeliveryBuildingId is { } destinationId &&
                 worldSimulation.Buildings.Any(building => building.InstanceId == destinationId && building.HouseholdId == householdId) &&
                 lot.Id != equipment?.ClothingLotId && lot.Id != equipment?.CarryAidLotId && lot.Id != equipment?.Repair?.LotId &&
@@ -41,32 +35,15 @@ public sealed partial class WorldRuntime
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
-    private void AddRecoverHouseholdDeliveryCandidate(List<CognitionCandidate> candidates, string actor,
-        AgentState state)
+    private void AddRecoverHouseholdDeliveryCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (RecoverableHouseholdDelivery(actor, state) is not null)
-            candidates.Add(new("recover_household_delivery",
-                "Return unusable delivery supplies to your household's storage pile.", 18));
+        if (PlanHouseholdStock(actor, "recover_household_delivery") is { } plan && CheckActionPlan(plan).Allowed)
+            candidates.Add(new("recover_household_delivery", "Return unusable delivery supplies to your household's storage pile.", 18)
+            { ActionPlan = plan });
     }
 
-    private void RecoverHouseholdDelivery(string actor, AgentState state)
-    {
-        if (RecoverableHouseholdDelivery(actor, state) is not { } stock)
-            return;
-        var storagePosition = SharedStoragePosition;
-        if (!IsWithinInteractionRange(state.Position, storagePosition, ResourceInteractionRange))
-        {
-            MoveToward(actor, state, storagePosition, "recover_household_delivery", ResourceInteractionRange);
-            return;
-        }
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
-        var quantity = InventoryContainerRules.IsContainer(stock.ItemKind) ? 1 : stock.Quantity;
-        var physicalQuantity = HouseDeliveryPhysicalQuantity(society.Checkpoint.Inventory, stock);
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"house-delivery-recovery:{WorldTick}:{actor}:{stock.Id}", actor, householdId, stock.Id, quantity,
-            "household_delivery_recovered", destinationGroundPosition: new InventoryGroundPosition(storagePosition.X, storagePosition.Y), holdAccess: InventoryHoldRules.DeliveryFor(actor, stock.DeliveryBuildingId)));
-        AppendEvent(new HouseholdDeliveryRecoveredEventPayload(actor, stock.Id, physicalQuantity));
-    }
+    private void RecoverHouseholdDelivery(string actor, AgentState state) =>
+        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "recover_household_delivery"));
 
     private static int HouseDeliveryPhysicalQuantity(InventoryCheckpoint inventory, InventoryLot carried) =>
         InventoryContainerRules.IsContainer(carried.ItemKind)
@@ -125,41 +102,28 @@ public sealed partial class WorldRuntime
         return FindGoods(request).Matches.Select(match => match.Lot);
     }
 
-    private void AddHouseHaulCandidate(List<CognitionCandidate> candidates,
-        string actor, AgentState state)
+    private void AddHouseHaulCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (householdId is null)
-            return;
-        if (CarriedHouseDelivery(actor) is { } carried)
+        var household = society.Checkpoint.GetAgent(actor).HouseholdId;
+        if (household is null) return;
+        var carried = CarriedHouseDelivery(actor);
+        if (carried is null && (HouseForHousehold(household) is not { } house || DestinationRoom(house.InstanceId) == 0)) return;
+        if (PlanHouseholdStock(actor, "haul_household_stock") is { } plan && CheckActionPlan(plan).Allowed)
         {
-            if (CanDeliverHouseDelivery(carried))
-                candidates.Add(new("haul_household_stock",
-                    "Deliver already collected household supplies to their building.", 18,
-                    carried.DeliveryBuildingId));
-            return;
+            var description = plan.Kind switch
+            {
+                HouseholdStockActionKind.Deliver => "Deliver already collected household supplies to their building.",
+                HouseholdStockActionKind.StorePreparationTool => "Store a carried work tool in the household House so building materials fit in your load.",
+                _ => "Carry a load of household supplies to the household's House.",
+            };
+            var priority = plan.Kind == HouseholdStockActionKind.Deliver ? 18 : plan.Kind == HouseholdStockActionKind.StorePreparationTool ? 24 : 28;
+            candidates.Add(new("haul_household_stock", description, priority, plan.HouseId) { ActionPlan = plan });
+            if (plan.Kind is HouseholdStockActionKind.Deliver or HouseholdStockActionKind.StorePreparationTool) return;
         }
-        if (HouseForHousehold(householdId) is not { } house || DestinationRoom(house.InstanceId) == 0)
-            return;
-        if (BuildingPreparationToolToStore(actor, householdId) is not null &&
-            (state.Position == house.Position || FindUnoccupiedRoute(actor, state.Position, house.Position, 0).Count > 0))
-        {
-            candidates.Add(new("haul_household_stock",
-                "Store a carried work tool in the household House so building materials fit in your load.",
-                24, house.InstanceId));
-            return;
-        }
-        if (FreeCarryCapacity(actor) > 0 && UnlocatedHouseholdStock(householdId, actor, house.InstanceId) is { } stock &&
-            (IsWithinInteractionRange(state.Position, HouseholdStockPosition(stock), HouseholdStockInteractionRange(stock)) ||
-             FindUnoccupiedRoute(actor, state.Position, HouseholdStockPosition(stock), HouseholdStockInteractionRange(stock)).Count > 0) &&
-            FindUnoccupiedRoute(actor, HouseholdStockPosition(stock), house.Position, 0).Count > 0)
-            candidates.Add(new("haul_household_stock",
-                "Carry a load of household supplies to the household's House.", 28, house.InstanceId));
-        if (state.FullnessBasisPoints >= 6_000 && PersonalSpareFood(actor) is not null &&
-            (state.Position == house.Position ||
-             FindUnoccupiedRoute(actor, state.Position, house.Position, 0).Count > 0))
-            candidates.Add(new("store_household_food",
-                "Bring personally carried spare food into the household House.", 30, house.InstanceId));
+        if (carried is not null) return;
+        if (PlanHouseholdStock(actor, "store_household_food") is { } food && CheckActionPlan(food).Allowed)
+            candidates.Add(new("store_household_food", "Bring personally carried spare food into the household House.", 30, food.HouseId)
+            { ActionPlan = food });
     }
 
     private InventoryLot? PersonalSpareFood(string actor, string? itemKind = null, string? sourceLotId = null) => PreferredFood(actor, actor)
@@ -167,88 +131,11 @@ public sealed partial class WorldRuntime
             (sourceLotId is null || lot.Id == sourceLotId) && lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 1);
 
-    private void StoreHouseholdFood(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null || state.FullnessBasisPoints < 6_000 ||
-            HouseForHousehold(householdId) is not { } house || PersonalSpareFood(actor) is not { } food)
-            return;
-        if (state.Position != house.Position)
-        {
-            MoveToward(actor, state, house.Position, "household_food", 0);
-            return;
-        }
-        var quantity = Math.Min(DestinationRoom(house.InstanceId), Math.Min(HouseHaulLoadQuantity, AvailableLotQuantity(food) - 1));
-        if (quantity == 0) return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"house-food-storage:{WorldTick}:{actor}", actor, householdId, food.Id,
-            quantity, "household_food_stored", house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
-        AppendEvent(new HouseholdFoodStoredEventPayload(actor, food.Id, quantity, house.InstanceId));
-    }
+    private void StoreHouseholdFood(string actor, AgentState state) =>
+        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "store_household_food"));
 
-    private void HaulHouseholdStock(string actor, AgentState state)
-    {
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (!IsAdult(actor) || householdId is null)
-            return;
-        if (CarriedHouseDelivery(actor) is { } carried)
-        {
-            if (!CanDeliverHouseDelivery(carried))
-                return;
-            var house = worldSimulation.Buildings.Single(building =>
-                building.InstanceId == carried.DeliveryBuildingId);
-            if (state.Position != house.Position)
-            {
-                MoveToward(actor, state, house.Position, "household_stock", 0);
-                return;
-            }
-            var deliveryRoom = DestinationRoom(carried.DeliveryBuildingId!, carried);
-            var deliveredQuantity = InventoryContainerRules.IsContainer(carried.ItemKind)
-                ? HouseDeliveryPhysicalQuantity(society.Checkpoint.Inventory, carried) <= deliveryRoom ? 1 : 0
-                : Math.Min(deliveryRoom, AvailableLotQuantity(carried));
-            if (deliveredQuantity == 0) return;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"house-haul-delivery:{WorldTick}:{actor}", actor, householdId,
-                carried.Id, deliveredQuantity, "household_stock_delivered", house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
-            AppendEvent(new HouseholdStockDeliveredEventPayload(actor, carried.Id, deliveredQuantity, house.InstanceId));
-            return;
-        }
-        if (HouseForHousehold(householdId) is not { } houseForPickup)
-            return;
-        if (BuildingPreparationToolToStore(actor, householdId) is { } preparationTool)
-        {
-            if (state.Position != houseForPickup.Position)
-            {
-                MoveToward(actor, state, houseForPickup.Position, "household_stock", 0);
-                return;
-            }
-            var storedQuantity = Math.Min(1, AvailableLotQuantity(preparationTool));
-            if (storedQuantity == 0 || DestinationRoom(houseForPickup.InstanceId) == 0) return;
-            ApplyInventoryTransition(inventory => preparationTool.OwnerId == householdId
-                ? InventoryAuthority.Relocate(inventory, $"house-preparation-tool:{WorldTick}:{actor}", preparationTool.Id,
-                    householdId, storedQuantity, storageBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, houseForPickup.InstanceId))
-                : InventoryAuthority.Transfer(inventory, $"house-preparation-tool:{WorldTick}:{actor}", actor, householdId,
-                    preparationTool.Id, storedQuantity, "household_preparation_tool_stored", destinationStorageBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, houseForPickup.InstanceId)));
-            AppendEvent(new HouseholdPreparationToolStoredEventPayload(actor, preparationTool.ItemKind, storedQuantity, houseForPickup.InstanceId));
-            return;
-        }
-        if (UnlocatedHouseholdStock(householdId, actor, houseForPickup.InstanceId) is not { } stock)
-            return;
-        var source = HouseholdStockPosition(stock);
-        var range = HouseholdStockInteractionRange(stock);
-        if (!IsWithinInteractionRange(state.Position, source, range))
-        {
-            MoveToward(actor, state, source, "household_stock", range);
-            return;
-        }
-        var quantity = HouseHaulPickupQuantity(actor, stock, houseForPickup.InstanceId);
-        if (quantity == 0) return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"house-haul-pickup:{WorldTick}:{actor}", householdId, actor,
-            stock.Id, quantity, "household_stock_picked_up",
-            destinationDeliveryBuildingId: houseForPickup.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent(new HouseholdStockPickedUpEventPayload(actor, stock.Id, quantity, houseForPickup.InstanceId));
-    }
+    private void HaulHouseholdStock(string actor, AgentState state) =>
+        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "haul_household_stock"));
 
     /// <summary>
     /// A hungry resident past infancy whose load leaves no room for a food pickup may make room
