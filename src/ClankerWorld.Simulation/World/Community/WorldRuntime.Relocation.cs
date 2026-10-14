@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
     // A guardian remains responsible even when their dependent lives in another House.
     private bool HasDependentInPrimaryCare(string actor) => society.Checkpoint.Agents.Any(person =>
         person.Status == SocietyAgentStatus.Active && person.PrimaryCaregiverId == actor &&
-        person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent);
+        LifeStageRules.IsDependent(person.AgeBand));
 
     private HouseRelocationRules.Selection? RelocationSelection(string householdId, string? volunteerId = null)
     {
@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         var definition = BuildingStorageRules.EffectiveDefinition(
             worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId), house);
         var residents = ActiveResidents(householdId).ToArray();
-        var adults = residents.Where(person => person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder &&
+        var adults = residents.Where(person => LifeStageRules.IsAdult(person.AgeBand) &&
                 agents.ContainsKey(person.Id))
             .Select(person =>
             {
@@ -176,21 +176,24 @@ public sealed partial class WorldRuntime
 
     private void AddRelocationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (MayVolunteerToRelocate(actor))
-            candidates.Add(new(HouseholdVolunteerCandidate,
+        if (PlanRelocationAction(actor) is { } plan && CheckRelocationActionPlan(plan).Allowed)
+            candidates.Add(new CognitionCandidate(plan.CandidateId,
                 "Volunteer to move out of your overcrowded House so another resident can stay; you keep the current notice time to find a home.",
-                105));
+                105)
+            { ActionPlan = plan });
     }
 
     private void ApplyVolunteerToRelocate(string actor)
     {
-        if (!MayVolunteerToRelocate(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId) return;
-        var selection = RelocationSelection(householdId, actor)!;
-        var kept = selection.Chosen.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        if (PlanRelocationAction(actor) is { } plan) ApplyRelocationActionPlan(plan);
+    }
+
+    private void CompleteRelocationAction(RelocationActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var householdId = plan.HouseholdId;
         // Taking someone's place keeps their deadline, so volunteering never delays the move.
-        var inherited = RelocationNotices(householdId).Where(item => !kept.Contains(item.Id))
-            .Select(item => (long?)item.Notice.DeadlineTick).Min();
-        var deadline = inherited ?? checked(WorldTick + RelocationNoticeTicks);
+        var deadline = plan.InheritedDeadline ?? checked(WorldTick + RelocationNoticeTicks);
         SetRelocation(actor, new(householdId, WorldTick, deadline, HouseRelocationRules.Volunteer));
         AppendEvent("relocation_notice", $"{actor}|{householdId}|{HouseRelocationRules.Volunteer}|" +
             deadline.ToString(CultureInfo.InvariantCulture));
@@ -248,7 +251,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"Move-out notices require world schema {RelocationSchemaVersion}.");
         var day = (long)society.Config.TicksPerWorldDay;
         if (!people.TryGetValue(person.AgentId, out var adult) || adult.Status != SocietyAgentStatus.Active ||
-            adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+            !LifeStageRules.IsAdult(adult.AgeBand) ||
             string.IsNullOrWhiteSpace(notice.HouseholdId) || adult.HouseholdId != notice.HouseholdId ||
             !HouseRelocationRules.Reasons.Contains(notice.Reason, StringComparer.Ordinal) ||
             notice.NoticeTick < 0 || notice.NoticeTick > society.WorldTick ||

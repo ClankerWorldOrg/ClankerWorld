@@ -166,6 +166,7 @@ internal static class HouseRelocationTestWorld
         public ConcurrentDictionary<string, string> Wanted { get; } = new(StringComparer.Ordinal);
         public ConcurrentDictionary<string, string> HousingNotes { get; } = new(StringComparer.Ordinal);
         public ConcurrentDictionary<string, string[]> Offered { get; } = new(StringComparer.Ordinal);
+        public ConcurrentDictionary<string, ActionPlan> SelectedPlans { get; } = new(StringComparer.Ordinal);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
 
@@ -178,6 +179,7 @@ internal static class HouseRelocationTestWorld
             var wanted = Wanted.GetValueOrDefault(observation.AgentId, "safe_idle");
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
+            if (selected.ActionPlan is { } plan) SelectedPlans[observation.AgentId] = plan;
             return new DeterministicDecisionProvider().DecideAsync(request with
             {
                 Observation = observation with { Candidates = [selected] },

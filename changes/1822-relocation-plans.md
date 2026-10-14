@@ -1,0 +1,1 @@
+- Relocation volunteering now explains when the selected House, residents or inherited notices change before it can act.

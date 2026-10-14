@@ -279,11 +279,26 @@ public sealed class HouseRelocationRuntimeTests
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         };
         using var choosing = Restore(state, choices);
-        await AdvanceTo(choosing, 5);
+        var before = WorldRuntimeCodec.Encode(choosing.ExportState());
+        Assert.False((await choosing.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(choosing.ExportState()));
+        using var matching = Restore(WorldRuntimeCodec.Decode(before), choices);
+        var step = await choosing.AdvanceOneTickAsync();
+        Assert.True(step.Advanced);
+        var plan = Assert.IsType<RelocationActionPlan>(step.Decisions.Single(decision => decision.AgentId == volunteer).ActionPlan);
+        Assert.Same(choices.SelectedPlans[volunteer], plan);
+        Assert.Equal(RelocationChoice.Decode(plan.CandidateId), plan.Choice);
+        Assert.Equal(deadline, plan.InheritedDeadline);
+        Assert.Contains(plan.Replaced, replaced => replaced.ActorId == original.AgentId && replaced.Notice.DeadlineTick == deadline);
+        Assert.True((await matching.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(choosing.ExportState()), WorldRuntimeCodec.Encode(matching.ExportState()));
         var replacement = Assert.Single(Noticed(choosing));
         Assert.Equal(volunteer, replacement.AgentId);
         Assert.Equal(HouseRelocationRules.Volunteer, replacement.Housing!.Relocation!.Reason);
         Assert.Equal(deadline, replacement.Housing.Relocation.DeadlineTick);
+        var changed = WorldRuntimeCodec.Encode(choosing.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, choosing.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(changed, WorldRuntimeCodec.Encode(choosing.ExportState()));
         using var replay = Restore(choosing.ExportState(), choices);
         await AdvanceTo(replay, deadline);
         Assert.Null(replay.Society.GetAgent(volunteer).HouseholdId);
