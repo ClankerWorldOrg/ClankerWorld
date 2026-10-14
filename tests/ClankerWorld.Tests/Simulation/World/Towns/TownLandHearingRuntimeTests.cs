@@ -69,15 +69,35 @@ public sealed partial class TownLandHearingRuntimeTests
         var replayProvider = new HearingProvider { HearingsEnabled = true, Plot = provider.Plot };
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => replayProvider);
         Assert.Equal(before, WorldRuntimeCodec.Encode(replay.ExportState()));
+        var evidencePlans = new List<LandHearingEvidenceActionPlan>();
         for (var step = 0; step < Day * 2 && world.Towns[0].LandRecords.Cases[0].Status != "settled"; step++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            evidencePlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingEvidenceActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<LandHearingEvidenceActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
         var settled = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("settled", settled.Status);
         Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(filingPlan).Refusal!.Reason);
+        Assert.Contains(evidencePlans, plan => plan.Choice.Kind == LandHearingEvidenceKind.Inspect);
+        Assert.Contains(evidencePlans, plan => plan.Choice.Kind == LandHearingEvidenceKind.Answer);
+        Assert.Contains(evidencePlans, plan => plan.Choice.Kind == LandHearingEvidenceKind.Waive);
+        Assert.All(evidencePlans, plan =>
+        {
+            Assert.Equal(plan.Choice, LandHearingEvidenceChoice.Decode(plan.CandidateId));
+            Assert.Equal(opened.Id, plan.CaseId);
+            Assert.Equal(revision.Number, plan.Revision.Number);
+            if (plan.Choice.Kind == LandHearingEvidenceKind.Answer)
+            {
+                Assert.True(plan.StatementBound);
+                Assert.Contains(settled.Responses, response => response.AgentId == plan.Actor && response.PartyId == plan.Party!.Id && response.Text == plan.Statement);
+            }
+            if (plan.Choice.Kind is LandHearingEvidenceKind.Answer or LandHearingEvidenceKind.Waive)
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        });
         var ruling = Assert.Single(settled.Rulings);
         Assert.Equal(1, ruling.Revision);
         Assert.Equal("confirm", ruling.Outcome.Kind);
@@ -266,10 +286,20 @@ public sealed partial class TownLandHearingRuntimeTests
         // The filer observes the plot, reads the updated file, cites the observation and the land mayor accepts it.
         provider.ObserveAndReopen = true;
         Prompt(world, Filer, "Look at your household's plot.");
-        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Evidence.Any(evidence => evidence.Kind == "observation"), 10, provider);
+        var observationPlans = new List<LandHearingEvidenceActionPlan>();
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Evidence.Any(evidence => evidence.Kind == "observation"), 10, provider, result =>
+        {
+            observationPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingEvidenceActionPlan { Choice.Kind: LandHearingEvidenceKind.Observe } &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null).Select(decision => Assert.IsType<LandHearingEvidenceActionPlan>(decision.ActionPlan)));
+        });
+        var observationPlan = Assert.Single(observationPlans);
+        Assert.NotEmpty(observationPlan.Observation!.VisibleTiles);
+        Assert.Contains(world.Towns[0].LandRecords.Cases[0].Evidence, evidence => evidence.Kind == "observation" &&
+            evidence.SourceAgentId == observationPlan.Actor && evidence.Text == observationPlan.Observation.Description);
         Prompt(world, Filer, "Read the case file again and consider whether the ruling should be heard again.");
         await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Status == "pending", 30, provider);
         var reopened = world.Towns[0].LandRecords.Cases[0];
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(observationPlan).Refusal!.Reason);
         var request = Assert.Single(reopened.ReopenRequests);
         Assert.Equal(("material_evidence", "accepted", Filer), (request.Kind, request.Status, request.AgentId));
         var observed = Assert.Single(reopened.Evidence, evidence => evidence.Kind == "observation");

@@ -144,14 +144,17 @@ public static class TownLandHearingRules
     }
 
     public static TownLandRecords RelayRead(TownLandRecords state, string caseId, int revision,
-        string source, string recipient, long tick)
+        string source, string recipient, long tick, IReadOnlyList<string>? selectedEvidence = null, IReadOnlyList<string>? selectedRequests = null)
     {
         var item = Exact(state, caseId, revision);
         var sourceReads = item.Reads.Where(r => r.Revision == revision && r.AgentId == source && r.ReadTick <= tick).ToArray();
         if (source == recipient || sourceReads.Length == 0) throw new InvalidOperationException("A case relay requires an actual informed source.");
-        var ids = Ordered(sourceReads.SelectMany(r => r.EvidenceIds).Concat(item.Reads
+        if (selectedEvidence is not null && selectedEvidence.Any(id => !sourceReads.Any(read => read.EvidenceIds.Contains(id, StringComparer.Ordinal))) ||
+            selectedRequests is not null && selectedRequests.Any(id => !sourceReads.Any(read => read.ReopenRequestIds.Contains(id, StringComparer.Ordinal))))
+            throw new InvalidOperationException("A case relay can only carry material the source actually read.");
+        var ids = Ordered((selectedEvidence ?? sourceReads.SelectMany(r => r.EvidenceIds).ToArray()).Concat(item.Reads
             .Where(r => r.Revision == revision && r.AgentId == recipient && r.ReadTick <= tick).SelectMany(r => r.EvidenceIds)));
-        var requests = Ordered(sourceReads.SelectMany(r => r.ReopenRequestIds).Concat(item.Reads
+        var requests = Ordered((selectedRequests ?? sourceReads.SelectMany(r => r.ReopenRequestIds).ToArray()).Concat(item.Reads
             .Where(r => r.Revision == revision && r.AgentId == recipient && r.ReadTick <= tick).SelectMany(r => r.ReopenRequestIds)));
         return Replace(state, item with
         {

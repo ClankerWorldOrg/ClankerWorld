@@ -79,7 +79,8 @@ public sealed class TownLandHearingHeldReplyTests
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor)) completed = step;
             }
             Assert.NotNull(completed);
-            Assert.True(completed.Decisions.Any(decision => decision.AgentId == Actor && decision.Admission.FellBack) ||
+            Assert.True(completed.Decisions.Any(decision => decision.AgentId == Actor &&
+                (decision.Admission.FellBack || decision.PlanRefusal is { Reason: ActionRefusalReason.TargetUnavailable })) ||
                 completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor ||
                     item.Kind == "town_civic_action_rejected" && item.Detail == world.Towns[0].Id + "|" + Actor + "|" + action),
                 "The completed old response must be refused by admission or by the hearing's current-action preflight.");
