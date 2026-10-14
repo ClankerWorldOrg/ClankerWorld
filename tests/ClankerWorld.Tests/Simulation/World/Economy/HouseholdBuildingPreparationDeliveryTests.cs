@@ -64,7 +64,8 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                 Assert.True(result.Advanced);
                 plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is BuildingMaterialActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
                     .Select(decision => Assert.IsType<BuildingMaterialActionPlan>(decision.ActionPlan)));
-                foreach (var plan in plans.Where(plan => ecologyBefore.GetResource(plan.Source.Id).Quantity == world.WorldSystems.Ecology.GetResource(plan.Source.Id).Quantity + 1))
+                foreach (var plan in plans.Where(plan => ecologyBefore.Resources.FirstOrDefault(resource => resource.Id == plan.Source.Id) is { } before &&
+                             before.Quantity == world.WorldSystems.Ecology.GetResource(plan.Source.Id).Quantity + 1))
                 {
                     Assert.Equal((Household, house.InstanceId), (plan.HouseholdId, plan.HouseId));
                     Assert.Contains(result.Events, item => item.Kind == "material_gathered" && item.Detail == $"{actor}:{plan.Choice.ItemKind}:{plan.Harvest.Quantity}");
