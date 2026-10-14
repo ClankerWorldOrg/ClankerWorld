@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        CouncilBallotActionPlan councilBallot => TownSystem.CheckCouncilBallot(civicWorld, councilBallot),
         CouncilConsentActionPlan councilConsent => TownSystem.CheckCouncilConsent(civicWorld, councilConsent),
         CivicVisitActionPlan civicVisit => townSystem.CheckCivicVisit(civicWorld, civicVisit),
         ToolRequestCollectionActionPlan toolCollection => CheckToolRequestCollectionPlan(toolCollection),
@@ -74,6 +75,8 @@ public sealed partial class WorldRuntime
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is CouncilBallotActionPlan ballot)
+            decision = decision with { ActionPlan = TownSystem.BindCouncilBallot(civicWorld, ballot, decision.Admission.CivicBallot) };
         if (decision.Admission.Accepted && decision.ActionPlan is { } plan &&
             CheckActionPlan(plan).Refusal is { } refusal)
             return decision with { PlanRefusal = refusal };
