@@ -145,9 +145,8 @@ internal sealed partial class TownSystem
                     var nominee = nearby.AgentId;
                     OfferCouncilConsent(world, candidates, actor, town, CouncilConsentKind.Nominate, nominee,
                         $"Nominate {world.Society.GetAgent(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188);
-                    if (MayBeSponsoredForAdmission(world, nominee, town))
-                        candidates.Add(new(CivicAction(world, town.Id, "request_admission", nominee),
-                            $"Ask {town.Name}'s council to approve admission of {world.Society.GetAgent(nominee).Name}, the adult nearby. A request grants no membership or Warehouse access.", 188));
+                    OfferTownAdmission(world, candidates, actor, town, TownAdmissionChoiceKind.Sponsor, nominee,
+                        $"Ask {town.Name}'s council to approve admission of {world.Society.GetAgent(nominee).Name}, the adult nearby. A request grants no membership or Warehouse access.", 188);
                 }
                 AddTownLawCandidates(world, candidates, actor, town);
                 if (town.Government is not null) AddTownGovernmentCandidates(world, candidates, actor, town);
@@ -166,8 +165,7 @@ internal sealed partial class TownSystem
             }
             else if (NearCivicBoard(world, actor, town))
             {
-                if (MayRequestOwnAdmission(world, actor, town))
-                    candidates.Add(new(CivicAction(world, town.Id, "admission"), AdmissionRequestText(world, actor, town), 170));
+                OfferTownAdmission(world, candidates, actor, town, TownAdmissionChoiceKind.Request, "", AdmissionRequestText(world, actor, town), 170);
             }
             else if (CivicBoard(world, town) is not null && MayVisitAsNewcomer(world, actor, town))
                 candidates.Add(new(CivicAction(world, town.Id, "visit"), $"Walk to {town.Name}'s public notice place to read what is posted. Visiting grants no membership.", 175));
@@ -237,6 +235,7 @@ internal sealed partial class TownSystem
         var visitPlan = originalPlan as CivicVisitActionPlan;
         var consentPlan = originalPlan as CouncilConsentActionPlan;
         var ballotPlan = originalPlan as CouncilBallotActionPlan;
+        var admissionPlan = originalPlan as TownAdmissionActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -257,6 +256,12 @@ internal sealed partial class TownSystem
             ballotPlan = BindCouncilBallot(world, ballotPlan, ballot);
             if (CheckCouncilBallot(world, ballotPlan).Refusal is { } refusal) { world.RefuseChoice(ballotPlan, refusal); return; }
         }
+        else if (TownAdmissionChoice.Decode(selectedId) is { } admissionChoice)
+        {
+            admissionPlan ??= PlanTownAdmission(world, actor, admissionChoice);
+            if (admissionPlan is null) return;
+            if (CheckTownAdmissionPlan(world, admissionPlan).Refusal is { } refusal) { world.RefuseChoice(admissionPlan, refusal); return; }
+        }
         else
         {
             var current = new List<CognitionCandidate>();
@@ -271,7 +276,8 @@ internal sealed partial class TownSystem
         }
         if (parts[2] == "accept_admission")
         {
-            AcceptTownAdmission(world, actor, town.Id, parts[3]);
+            ApplyTownAdmission(world, town.Id, admissionPlan!.Approval!.ProposalId, actor, admissionPlan.Approval, admissionPlan.CareGroup);
+            SettleTownAdmissions(world);
             return;
         }
         try
@@ -320,8 +326,8 @@ internal sealed partial class TownSystem
                     break;
                 case "nominate": state = TownCouncilRules.Nominate(state, actor, consentPlan!.Nominee!, TownAdults(world, town), world.WorldTick); break;
                 case "request_admission":
-                    state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "admission", parts[3],
-                        $"Admit {world.Society.GetAgent(parts[3]).Name} as a Town resident.", "council:" + state.Revision,
+                    state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "admission", admissionPlan!.Subject,
+                        $"Admit {world.Society.GetAgent(admissionPlan.Subject).Name} as a Town resident.", "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
                 case "register": state = TownCouncilRules.Register(state, actor, true, null, TownAdults(world, town), world.WorldTick); break;

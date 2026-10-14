@@ -79,11 +79,11 @@ internal sealed partial class TownSystem
 
     internal void AddTownAdmissionCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (ApprovedAdmission(world, town, actor) is not { } record || !MayAcceptAdmission(world, actor, town, record) ||
+        if (ApprovedAdmission(world, town, actor) is not { } record ||
             TownAdmissionDeadlineRules.AcceptanceDeadline(AdmissionProposal(town, record), CivicDay(world)) is not { } deadline) return;
         var previous = record.PreviousTownId is { } from ? $" You would leave {TownName(world, from)}." : string.Empty;
-        candidates.Add(new(CivicAction(world, town.Id, "accept_admission", record.ProposalId),
-            $"Accept {town.Name}'s approved admission and become a resident.{previous} You must accept before {TownAdmissionDeadlineRules.DescribeWindow(deadline, world.WorldTick, CivicDay(world), world.CalendarConfig.CalendarOffsetTicks)}. This gives no House or household place.", 169));
+        OfferTownAdmission(world, candidates, actor, town, TownAdmissionChoiceKind.Accept, record.ProposalId,
+            $"Accept {town.Name}'s approved admission and become a resident.{previous} You must accept before {TownAdmissionDeadlineRules.DescribeWindow(deadline, world.WorldTick, CivicDay(world), world.CalendarConfig.CalendarOffsetTicks)}. This gives no House or household place.", 169);
     }
 
     internal void AcceptTownAdmission(ITownWorld world, string actor, string townId, string proposalId)
@@ -154,7 +154,8 @@ internal sealed partial class TownSystem
         return false;
     }
 
-    internal void ApplyTownAdmission(ITownWorld world, string townId, string proposalId, string subject, TownAdmissionRecord? approved)
+    internal void ApplyTownAdmission(ITownWorld world, string townId, string proposalId, string subject, TownAdmissionRecord? approved,
+        IReadOnlyList<string>? selectedCareGroup = null)
     {
         var previous = TownForResident(world, subject);
         var reason = !world.IsAdult(subject) ? "unavailable"
@@ -167,7 +168,7 @@ internal sealed partial class TownSystem
             LapseTownAdmission(world, townId, approved ?? new TownAdmissionRecord(proposalId, subject, WorldRuntime.CivicSharedRules.AdmissionApproved, world.WorldTick), reason);
             return;
         }
-        var group = TownCareGroup(world, subject, previous);
+        var group = selectedCareGroup ?? TownCareGroup(world, subject, previous);
         SetTownAdmission(world, townId, new TownAdmissionRecord(proposalId, subject, WorldRuntime.CivicSharedRules.AdmissionAdmitted, world.WorldTick, previous, group));
         foreach (var other in towns.Where(item => item.Id != townId).ToArray())
             foreach (var open in (other.Admissions ?? []).Where(record => record.SubjectId == subject &&
@@ -184,7 +185,7 @@ internal sealed partial class TownSystem
         {
             ResidentIds = joined.ResidentIds.Concat(group).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
         });
-        world.AppendEvent("town_admission_accepted", $"{townId}|{subject}|{previous ?? "none"}|{group.Length}");
+        world.AppendEvent("town_admission_accepted", $"{townId}|{subject}|{previous ?? "none"}|{group.Count}");
         // Council rosters follow recorded adult residents in both Towns.
         AdvanceTownCouncil(world);
     }

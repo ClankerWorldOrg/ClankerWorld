@@ -444,6 +444,9 @@ consent while other residents' registrations can accumulate in the same tick.
 Council ballots retain their election round, voting window and eligible
 candidates. Structured model choices are bound to that plan at admission;
 the same selected IDs are checked again before the native vote writer runs.
+Town admission choices retain the applicant, prior affiliation and dependent
+group; acceptance retains the exact approved proposal. Shared checks cover
+self requests, sponsorship and personal acceptance before membership changes.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
