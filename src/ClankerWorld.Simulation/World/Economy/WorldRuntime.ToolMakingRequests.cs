@@ -32,6 +32,7 @@ public sealed partial class WorldRuntime
         Enum.TryParse<ToolRequestConsentKind>(verb, true, out var consent)
             ? ToolRequestConsentChoice.Encode(consent, identity)
             : verb == "visit" ? ToolRequestVisitChoice.Encode(identity[0], identity[1])
+            : verb == "work" ? ToolRequestWorkChoice.Encode(identity[0])
             : DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
@@ -108,13 +109,12 @@ public sealed partial class WorldRuntime
                     $"Accept {name}'s {request.ItemKind.Replace('_', ' ')} request using household materials; payment is discussed after it is made.", PersonalToolRequestPriority, request.BuildingInstanceId));
                 candidates.Add(new(ToolRequestChoice("refuse", request.Id), $"Refuse {name}'s tool request without taking anything.", PersonalToolRequestPriority, request.BuildingInstanceId));
             }
-            else if (request.Status == ToolMakingRequestStatus.Accepted && request.WorkerId == actor &&
-                     agents[actor].Project is { ToolMakingRequestId: { } id } project && id == request.Id &&
-                     ToolRequestShop(request) is { } workShop && worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId) is { } workRecipe &&
-                     HasIngredientsAtBuilding(workRecipe.Inputs, request.SellerHouseholdId, workShop.InstanceId) &&
-                     agents[actor].Equipment?.Repair is null && FarmWorkFor(actor) is null && !IsConversationBusy(actor))
+            else if (ToolRequestWorkChoice.Decode(ToolRequestChoice("work", request.Id)) is { } workChoice &&
+                     PlanToolRequestWork(actor, workChoice) is { } work &&
+                     CheckToolRequestWorkPlan(work).Allowed)
                 candidates.Add(new(ToolRequestChoice("work", request.Id),
-                    "Continue the accepted tool work using its ordinary household production plan.", 30, request.BuildingInstanceId));
+                    "Continue the accepted tool work using its ordinary household production plan.", 30, request.BuildingInstanceId)
+                { ActionPlan = work });
         }
         if (!IdleForToolRequest(actor) || NeedsUrgentFood(agents[actor]) || NeedsUrgentWarmth(agents[actor])) return;
         foreach (var (building, recipe) in ToolRequestOptions(actor))
@@ -182,17 +182,15 @@ public sealed partial class WorldRuntime
             if (plan is not null) ApplyToolRequestVisitPlan(plan);
             return;
         }
+        if (ToolRequestWorkChoice.Decode(candidate) is { } workChoice)
+        {
+            var plan = originalPlan as ToolRequestWorkActionPlan ?? PlanToolRequestWork(actor, workChoice);
+            if (plan is not null) ApplyToolRequestWorkPlan(plan, freshChoice);
+            return;
+        }
         if (!IsAdult(actor)) return;
         foreach (var request in toolMakingRequests.ToArray())
         {
-            if (candidate == ToolRequestChoice("work", request.Id) && request.Status == ToolMakingRequestStatus.Accepted &&
-                request.WorkerId == actor && IsToolRequestSeller(actor, request) &&
-                person.Project?.ToolMakingRequestId == request.Id && (freshChoice || !person.Project.RequiresFreshChoice) &&
-                person.Equipment?.Repair is null && FarmWorkFor(actor) is null && !IsConversationBusy(actor))
-            {
-                BeginProject(actor, person, "build:recipe:" + request.RecipeId, request.Id);
-                return;
-            }
             if (candidate != ToolRequestChoice("collect", request.Id) || request.Status != ToolMakingRequestStatus.Ready ||
                 request.RequesterId != actor || !IdleForToolRequest(actor) || ToolRequestShop(request) is not { } shop) continue;
             if (!IsWithinInteractionRange(person.Position, shop.Position, ResourceInteractionRange))
@@ -205,6 +203,9 @@ public sealed partial class WorldRuntime
             return;
         }
     }
+
+    private void CompleteToolRequestWork(ToolRequestWorkActionPlan plan) =>
+        BeginProject(plan.Actor, agents[plan.Actor], "build:recipe:" + plan.Recipe.CanonicalId, plan.Request.Id);
 
     private void CompleteToolRequestVisit(ToolRequestVisitActionPlan plan) =>
         MoveToward(plan.Actor, agents[plan.Actor], plan.Smith.Position, "tool_request", ResourceInteractionRange);
