@@ -16,7 +16,7 @@ public sealed class TownBuildingManagementTests
             "fiber", "household:first", 2, storageBuildingId: "first-town-house-a");
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using (var setup = WorldRuntime.Restore(state, _ => new IdleProvider()))
         {
@@ -100,7 +100,7 @@ public sealed class TownBuildingManagementTests
         };
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
 
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -154,7 +154,7 @@ public sealed class TownBuildingManagementTests
             "equipment_repair", tick + 120);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
@@ -211,7 +211,7 @@ public sealed class TownBuildingManagementTests
         state = state with
         {
             Towns = [firstTown, quietTown],
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var originalBorders = world.Towns.ToDictionary(item => item.Id, item => item.BorderTiles.ToArray(), StringComparer.Ordinal);
@@ -242,7 +242,7 @@ public sealed class TownBuildingManagementTests
         {
             Society = reassignedState.Society with
             {
-                Society = reassignedState.Society.Society with { Inventory = stockInventory },
+                Society = reassignedState.Society.Society with { Inventory = StockHoldTestState.Custody(stockInventory) },
             },
         };
 
@@ -309,7 +309,7 @@ public sealed class TownBuildingManagementTests
                 cost.ResourceId, house.HouseholdId!, cost.Amount);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             WorldSimulation = state.WorldSimulation! with
             {
                 BuildingExpansions = [expansion],
@@ -413,7 +413,7 @@ public sealed class TownBuildingManagementTests
             Lots = state.Society.Society.Inventory.Lots.Where(lot => !removedLotIds.Contains(lot.Id)).ToArray(),
             Reservations = state.Society.Society.Inventory.Reservations.Where(item => !removedLotIds.Contains(item.LotId)).ToArray(),
         };
-        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     }
 
     private static WorldRuntimeState StartedState(string seed)

@@ -100,7 +100,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         if (inventory.Lots.Any(lot => lot.CarrierId == actor))
             inventory = InventoryAuthority.DropCarrierGoods(inventory, actor,
                 new InventoryGroundPosition(physical.Position.X, physical.Position.Y));
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         state = state with
         {
             Society = state.Society with { Society = checkpoint },

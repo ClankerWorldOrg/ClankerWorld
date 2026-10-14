@@ -346,7 +346,7 @@ public sealed class OrnamentTradeTests
     };
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+    { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static async Task Until(WorldRuntime world, Func<bool> complete, int limit)
     {

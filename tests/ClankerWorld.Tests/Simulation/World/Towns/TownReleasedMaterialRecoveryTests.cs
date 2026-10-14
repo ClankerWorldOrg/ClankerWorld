@@ -89,10 +89,10 @@ public sealed class TownReleasedMaterialRecoveryTests
         {
             if (situation == "claimed")
                 inventory = InventoryAuthority.Reserve(inventory, "recovery:other-job:" + item.Id, item.OwnerId, item.Id,
-                    item.Quantity, "unrelated-job", long.MaxValue);
+                    item.Quantity, "unrelated-job", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, item.Id));
             if (situation == "private")
                 inventory = InventoryAuthority.Transfer(inventory, "recovery:private-transfer:" + item.Id, item.OwnerId, actor,
-                    item.Id, item.Quantity, "fixture_transfer", destinationGroundPosition: item.GroundPosition);
+                    item.Id, item.Quantity, "fixture_transfer", destinationGroundPosition: item.GroundPosition, holdAccess: StockHoldTestState.Access(inventory, item.Id));
         }
         if (situation == "full-warehouse")
             inventory = FillWarehouse(state, inventory, room: 0);
@@ -107,7 +107,7 @@ public sealed class TownReleasedMaterialRecoveryTests
                 item.GroundPosition is not null);
             inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + other.Id, "fixture_custody");
             inventory = InventoryAuthority.Relocate(inventory, "recovery:other-carrier", other.Id, other.OwnerId,
-                other.Quantity, carrierId: state.Agents.First(person => person.AgentId != actor).AgentId);
+                other.Quantity, carrierId: state.Agents.First(person => person.AgentId != actor).AgentId, holdAccess: StockHoldTestState.Access(inventory, other.Id));
             inventory = FillWarehouse(state, inventory, room: 2);
         }
         state = FoodCapacityTestFixture.WithInventory(state, inventory);
@@ -169,19 +169,19 @@ public sealed class TownReleasedMaterialRecoveryTests
     {
         var (state, lot, actor) = await AtReleasedGroundAsync();
         var inventory = InventoryAuthority.Relocate(state.Society.Society.Inventory, "recovery:held-load", lot.Id,
-            lot.OwnerId, lot.Quantity, carrierId: actor);
+            lot.OwnerId, lot.Quantity, carrierId: actor, holdAccess: StockHoldTestState.Access(state.Society.Society.Inventory, lot.Id));
         var otherLoad = inventory.Lots.First(item => item.OwnerId == lot.OwnerId && item.ItemKind == "wood" &&
             item.GroundPosition is not null && state.Towns![0].Projects[0].Deliveries.Any(delivery => delivery.LotId == item.Id));
         inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + otherLoad.Id, "fixture_custody");
         inventory = InventoryAuthority.Relocate(inventory, "recovery:full-carrier", otherLoad.Id, otherLoad.OwnerId,
-            otherLoad.Quantity, carrierId: actor);
+            otherLoad.Quantity, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, otherLoad.Id));
         // Keep the other parcel committed so native ID ordering cannot choose it instead of the released parcel.
         inventory = InventoryAuthority.Reserve(inventory, "recovery:other-claim", otherLoad.OwnerId, otherLoad.Id,
-            otherLoad.Quantity, "unrelated-job", long.MaxValue);
+            otherLoad.Quantity, "unrelated-job", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, otherLoad.Id));
         Assert.Equal(PersonalEquipmentRules.BaseCapacity, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
         if (reservedRemainder)
             inventory = InventoryAuthority.Reserve(inventory, "recovery:held-claim", lot.OwnerId, lot.Id, 1,
-                "unrelated-job", long.MaxValue);
+                "unrelated-job", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, lot.Id));
         var household = state.Society.Society.Agents.Single(person => person.Id == actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household);
         inventory = InventoryAuthority.AddLot(inventory, "recovery:meal", "berries", household, 1,
@@ -254,7 +254,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         var positions = SwimmingRules.Neighbors(state.Map, origin).Select((point, index) => (blockers[index].AgentId, point))
             .ToDictionary(item => item.AgentId, item => item.point);
         state = FoodCapacityTestFixture.WithInventory(state, InventoryAuthority.Relocate(state.Society.Society.Inventory,
-            "recovery:barrier-load", lot.Id, lot.OwnerId, lot.Quantity, carrierId: actor)) with
+            "recovery:barrier-load", lot.Id, lot.OwnerId, lot.Quantity, carrierId: actor, holdAccess: StockHoldTestState.Access(state.Society.Society.Inventory, lot.Id))) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = origin }
@@ -282,7 +282,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         foreach (var carried in inventory.Lots.Where(item => PersonalEquipmentRules.IsCarried(item, actor)).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, "recovery:clear:" + carried.Id, carried.Id, carried.OwnerId,
                 carried.Quantity, groundPosition: new(state.Agents.Single(person => person.AgentId == actor).Position.X,
-                    state.Agents.Single(person => person.AgentId == actor).Position.Y));
+                    state.Agents.Single(person => person.AgentId == actor).Position.Y), holdAccess: StockHoldTestState.Access(inventory, carried.Id));
         var released = state.Towns![0].Projects[0].Deliveries.Where(delivery => delivery.ReleasedTick is not null)
             .Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
         foreach (var carried in inventory.Lots.Where(item => item.OwnerId == TownBorderRules.FirstTownId &&
@@ -290,14 +290,14 @@ public sealed class TownReleasedMaterialRecoveryTests
         {
             var position = state.Agents.Single(person => person.AgentId == carried.CarrierId).Position;
             inventory = InventoryAuthority.Relocate(inventory, "recovery:released-clear:" + carried.Id, carried.Id,
-                carried.OwnerId, carried.Quantity, groundPosition: new(position.X, position.Y));
+                carried.OwnerId, carried.Quantity, groundPosition: new(position.X, position.Y), holdAccess: StockHoldTestState.Access(inventory, carried.Id));
         }
         // Isolate this physical load for capacity and urgency checks; the other
         // released goods remain Town-owned and reserved for a separate job.
         foreach (var other in inventory.Lots.Where(item => item.Id != lot.Id && released.Contains(item.Id) &&
                      item.GroundPosition is not null && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
             inventory = InventoryAuthority.Reserve(inventory, "recovery:fixture-claim:" + other.Id, other.OwnerId,
-                other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue);
+                other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, other.Id));
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor

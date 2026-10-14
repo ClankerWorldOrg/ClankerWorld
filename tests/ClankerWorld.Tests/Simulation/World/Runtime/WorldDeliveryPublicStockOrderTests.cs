@@ -630,7 +630,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
     private static string Actor(WorldRuntimeState state) => state.Society.Society.GetHousehold(Household).MemberIds[0];
     private static PlacedBuilding Building(WorldRuntimeState state, string id) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == id);
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text) =>
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>

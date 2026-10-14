@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SharedStoragePosition.X, SharedStoragePosition.Y)
                 : null;
             nextInventory = InventoryAuthority.Transfer(nextInventory, transferId, householdId, actor,
-                lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground);
+                lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground, holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.StorageBuildingId));
             allowanceIds.Add(quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + transferId));
             allowance += quantity;
             if (allowance == 2) break;
@@ -153,9 +153,9 @@ public sealed partial class WorldRuntime
             var carrier = lot.CarrierId ?? actor;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"{transition}-delivery:{actor}:{WorldTick}:{lot.Id}", actor, householdId, lot.Id, lot.Quantity,
-                "delivery_ownership_restored"));
+                "delivery_ownership_restored", holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.DeliveryBuildingId)));
             ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier));
+                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         }
     }
 

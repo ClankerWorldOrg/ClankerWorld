@@ -157,14 +157,43 @@ public sealed class InventoryHoldTests
     [InlineData(InventoryHoldPurpose.Delivery)]
     [InlineData(InventoryHoldPurpose.SupplyTrip)]
     [InlineData(InventoryHoldPurpose.Borrowed)]
-    public void HoldsAndReservationAuthorizationSurviveStrictNativeWorldReload(InventoryHoldPurpose purpose)
+    public async Task HoldsAndReservationAuthorizationSurviveStrictNativeWorldReload(InventoryHoldPurpose purpose)
     {
-        var state = WorldRuntimeCodec.Decode(NativeWorld.Value);
+        WorldRuntimeState state;
+        string? supplyYard = null;
+        if (purpose == InventoryHoldPurpose.SupplyTrip)
+        {
+            var paid = AnimalPipelineTests.CreateYard("native-stock-hold-trip");
+            state = paid.State;
+            supplyYard = paid.Yard.InstanceId;
+        }
+        else state = purpose == InventoryHoldPurpose.MarketStall
+            ? await PaidMarketWorld.StateAsync() : WorldRuntimeCodec.Decode(NativeWorld.Value);
         const string household = "household:first";
-        var hold = new InventoryHold(purpose, "first-town-house-a");
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "native-held-grain", "grain", household, 4);
-        inventory = InventoryAuthority.HoldStock(inventory, "native-held-grain", hold);
-        inventory = InventoryAuthority.Reserve(inventory, "native-held-input", household, "native-held-grain", 1, "meal", 10, holdAccess: [hold]);
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
+        if (purpose == InventoryHoldPurpose.MarketStall)
+            state = PaidMarketWorld.Borrowing(state, actor, 0);
+        var holder = purpose == InventoryHoldPurpose.Delivery ? "first-town-house-a" :
+            purpose == InventoryHoldPurpose.MarketStall ? Assert.Single(PaidMarketWorld.Market(state).Occupancies).Id : actor;
+        var hold = new InventoryHold(purpose, holder);
+        var owner = purpose is InventoryHoldPurpose.SupplyTrip or InventoryHoldPurpose.Delivery ? actor : household;
+        var stall = purpose == InventoryHoldPurpose.MarketStall ? PaidMarketWorld.StallTile(state, 0) : (GridPoint?)null;
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "native-held-grain", "grain", owner, 4,
+            groundPosition: stall is { } point ? new(point.X, point.Y) : null);
+        if (purpose == InventoryHoldPurpose.Delivery)
+            inventory = InventoryAuthority.AssignDelivery(inventory, "native-held-grain", holder);
+        else if (purpose == InventoryHoldPurpose.Borrowed)
+            inventory = InventoryAuthority.Relocate(inventory, "native-borrow", "native-held-grain", owner, 4, carrierId: actor);
+        else if (purpose == InventoryHoldPurpose.MarketStall)
+            inventory = MarketStockHolds.Update(inventory, state.Towns!);
+        else
+        {
+            inventory = InventoryAuthority.HoldStock(inventory, "native-held-grain", hold);
+            state = state with
+            { AnimalWorld = state.AnimalWorld with { SupplyTrips = [new(actor, "native-held-grain", supplyYard!)] } };
+        }
+        inventory = InventoryAuthority.Reserve(inventory, "native-held-input", owner, "native-held-grain", 1,
+            "meal", inventory.WorldTick + 10, holdAccess: [hold]);
         state = FarmFieldTests.WithInventory(state, inventory);
         var bytes = WorldRuntimeCodec.Encode(state);
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -172,14 +201,14 @@ public sealed class InventoryHoldTests
         Assert.Equal(hold, Assert.Single(reloaded.Society.Inventory.GetLot("native-held-grain").Holds!));
         Assert.Equal(hold, Assert.Single(reloaded.Society.Inventory.GetReservation("native-held-input").HoldAccess!));
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(reloaded.Society.Inventory,
-            "unrelated-move", "native-held-grain", household, 1));
+            "unrelated-move", "native-held-grain", owner, 1));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
         var expected = InventoryAuthority.ConsumeReservation(inventory, "native-held-input");
         var actual = InventoryAuthority.ConsumeReservation(reloaded.Society.Inventory, "native-held-input");
         Assert.Equal(WorldRuntimeCodec.Encode(FarmFieldTests.WithInventory(state, expected)),
             WorldRuntimeCodec.Encode(FarmFieldTests.WithInventory(reloaded.ExportState(), actual)));
         var oldDocument = JsonNode.Parse(bytes)!;
-        oldDocument["state"]!["schemaVersion"] = 131;
+        oldDocument["state"]!["schemaVersion"] = 132;
         var oldBytes = Encoding.UTF8.GetBytes(oldDocument.ToJsonString());
         var originalOldBytes = oldBytes.ToArray();
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(oldBytes));

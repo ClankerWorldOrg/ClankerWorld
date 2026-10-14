@@ -145,7 +145,7 @@ public sealed class HouseholdDepartureTests
             var reservationId = projectId + ":paper";
             inventory = InventoryAuthority.AddLot(inventory, paperId, "paper", actor, 1, initial.WorldTick);
             inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, paperId, 1,
-                $"knowledge_writing:{projectId}:paper", long.MaxValue);
+                $"knowledge_writing:{projectId}:paper", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, paperId));
             inventory = InventoryAuthority.ConsumeReservation(inventory, reservationId);
             artifacts.Add(new AgentKnowledgeArtifact(
                 "personal-artifact-" + kind, actor, "personal-" + kind, kind, "Personal field notes",
@@ -195,7 +195,7 @@ public sealed class HouseholdDepartureTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "personal-coat", "padded_coat", actor, 1,
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "borrowed-axe", "wooden_axe", Alpha, 1);
-        inventory = InventoryAuthority.Relocate(inventory, "borrow", "borrowed-axe", Alpha, 1, actor);
+        inventory = InventoryAuthority.Relocate(inventory, "borrow", "borrowed-axe", Alpha, 1, actor, holdAccess: StockHoldTestState.Access(inventory, "borrowed-axe"));
         state = WithInventory(state, inventory);
         using var world = WorldRuntime.Restore(state, _ => provider);
         provider.Wanted[actor] = "household_leave";
@@ -316,7 +316,7 @@ public sealed class HouseholdDepartureTests
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.OwnerId != Alpha || lot.ItemKind != "food").ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "departure-food", "food", Alpha, 3);
-        inventory = InventoryAuthority.Reserve(inventory, "care-food", Alpha, "departure-food", 2, "care", long.MaxValue);
+        inventory = InventoryAuthority.Reserve(inventory, "care-food", Alpha, "departure-food", 2, "care", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, "departure-food"));
         state = WithInventory(state, inventory);
         using var world = WorldRuntime.Restore(state);
         var members = world.Society.GetHousehold(Alpha).MemberIds.ToArray();
@@ -472,11 +472,11 @@ public sealed class HouseholdDepartureTests
         inventory = InventoryAuthority.AddLot(inventory, "household-pot", InventoryContainerRules.StoragePot, Alpha, 1,
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "household-pot-berries", "berries", Alpha, 3,
-            storageBuildingId: house.InstanceId, containerLotId: "household-pot");
+            storageBuildingId: house.InstanceId, containerLotId: "household-pot", holdAccess: StockHoldTestState.Access(inventory, "household-pot"));
         inventory = InventoryAuthority.AddLot(inventory, "own-pot", InventoryContainerRules.StoragePot, actor, 1,
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "own-pot-berries", "berries", actor, 2,
-            storageBuildingId: house.InstanceId, containerLotId: "own-pot");
+            storageBuildingId: house.InstanceId, containerLotId: "own-pot", holdAccess: StockHoldTestState.Access(inventory, "own-pot"));
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -526,7 +526,7 @@ public sealed class HouseholdDepartureTests
             var reservationId = $"private-work-reservation-{index}";
             inventory = InventoryAuthority.AddLot(inventory, lotId, input.ResourceId, Alpha, input.Amount,
                 storageBuildingId: house.InstanceId);
-            inventory = InventoryAuthority.Reserve(inventory, reservationId, Alpha, lotId, input.Amount, "work", initial.WorldTick + 30);
+            inventory = InventoryAuthority.Reserve(inventory, reservationId, Alpha, lotId, input.Amount, "work", initial.WorldTick + 30, holdAccess: StockHoldTestState.Access(inventory, lotId));
             reservationIds.Add(reservationId);
         }
         state = WithInventory(state, inventory) with
@@ -594,8 +594,8 @@ public sealed class HouseholdDepartureTests
     {
         var inventory = InventoryAuthority.CreateGenesis([new InventoryLot("borrowed", "wooden_axe", Alpha, 1,
             10_000, 10_000, 0, CarrierId: "adult")]);
-        inventory = InventoryAuthority.Reserve(inventory, "borrowed-commitment", Alpha, "borrowed", 1, "work", long.MaxValue);
-        var dropped = InventoryAuthority.DropCarrierGoods(inventory, "adult", new(3, 4));
+        inventory = InventoryAuthority.Reserve(inventory, "borrowed-commitment", Alpha, "borrowed", 1, "work", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, "borrowed"));
+        var dropped = InventoryAuthority.DropCarrierGoods(inventory, "adult", new(3, 4), holdAccess: StockHoldTestState.Access(inventory, "borrowed"));
         var lot = dropped.GetLot("borrowed");
         Assert.Equal(Alpha, lot.OwnerId);
         Assert.Null(lot.CarrierId);
@@ -618,7 +618,7 @@ public sealed class HouseholdDepartureTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "unusable-personal", kind,
             actor, 1, conditionBasisPoints: condition, freshnessBasisPoints: freshness, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "broken-borrowed", "wooden_axe", Alpha, 1, conditionBasisPoints: 0);
-        inventory = InventoryAuthority.Relocate(inventory, "broken-borrow", "broken-borrowed", Alpha, 1, actor);
+        inventory = InventoryAuthority.Relocate(inventory, "broken-borrow", "broken-borrowed", Alpha, 1, actor, holdAccess: StockHoldTestState.Access(inventory, "broken-borrowed"));
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -693,7 +693,7 @@ public sealed class HouseholdDepartureTests
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "dependent-inherited-axe", "wooden_axe", deceased, 2,
             storageBuildingId: house.InstanceId);
-        society = society with { Inventory = inventory };
+        society = society with { Inventory = StockHoldTestState.Custody(inventory) };
         var birth = SocietyRules.CommitBirth(society, new SocietyBirthRequest("dependent-birth", 1, caregiver, deceased,
             Alpha, parents, parents, "dependent-birth-food", 4, society.WorldTick,
             ChildName: ChosenBirthNameTestFixture.ChildName(society, caregiver, "Pip"), PrimaryCaregiverId: caregiver));
@@ -859,7 +859,7 @@ public sealed class HouseholdDepartureTests
         var collectionInventory = collectionState.Society.Society.Inventory;
         if (boundary == "reserved")
             collectionInventory = InventoryAuthority.Reserve(collectionInventory, "dependent-collection-reserved", child,
-                axe.Id, 1, "work", long.MaxValue);
+                axe.Id, 1, "work", long.MaxValue, holdAccess: StockHoldTestState.Access(collectionInventory, axe.Id));
         if (boundary == "full-hands")
         {
             var equipment = collectionState.Agents.Single(person => person.AgentId == child).Equipment;
@@ -869,7 +869,7 @@ public sealed class HouseholdDepartureTests
         }
         collectionState = collectionState with
         {
-            Society = collectionState.Society with { Society = collectionState.Society.Society with { Inventory = collectionInventory } },
+            Society = collectionState.Society with { Society = collectionState.Society.Society with { Inventory = StockHoldTestState.Custody(collectionInventory) } },
         };
         bytes = WorldRuntimeCodec.Encode(collectionState);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
@@ -935,7 +935,7 @@ public sealed class HouseholdDepartureTests
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
 
     private static async Task AdvanceUntil(WorldRuntime world, Func<bool> ready, int maxTicks = 80)

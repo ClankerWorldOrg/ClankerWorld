@@ -145,6 +145,12 @@ does not. For synchronous blocking entry, register with
 `TickAsync(runPendingWork: false)`, run `RunPendingWork` on a controlled worker,
 and use the signal-only wait before releasing that entry.
 
+Retained-guidance field fixtures control immediate, delayed and final-work-tick
+dispatch through the model harness. Resume checks exact remaining work or a
+completed native harvest when the final tick clears it. Paused checkpoint bytes,
+fresh epoch and guidance, cancelled old replies and the once-only harvest event
+remain checked in every scenario.
+
 Tests of production scheduling or concurrency retain the production scheduler.
 For example, the conversation usage-limit regression must reserve and pause
 while the real tick gate is held; a manual scheduler would move that work after

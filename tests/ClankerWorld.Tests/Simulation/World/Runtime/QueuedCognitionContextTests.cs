@@ -257,7 +257,14 @@ public sealed class QueuedCognitionContextTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(bool delayedStartup)
+    public async Task RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(bool delayedStartup) =>
+        await AssertRetainedGuidanceResumesAsync(delayedStartup, lastWorkTick: false);
+
+    [Fact]
+    public async Task RetainedGuidanceResumesOnTheLastHarvestTick() =>
+        await AssertRetainedGuidanceResumesAsync(delayedStartup: false, lastWorkTick: true);
+
+    private static async Task AssertRetainedGuidanceResumesAsync(bool delayedStartup, bool lastWorkTick)
     {
         var (state, farmer, _, point) = await FarmFieldTests.ReadyFarmer("retained-farm-guidance");
         var provider = new HeldIdleProvider(holdSecond: true, ignoreCancellation: true,
@@ -265,7 +272,11 @@ public sealed class QueuedCognitionContextTests
         using var world = WorldRuntime.Restore(state, id => id == farmer ? provider : new QuietProvider());
         // A committed tick schedules the worker; it need not have entered the
         // provider yet. Keep a control that requires two more real ticks.
-        if (delayedStartup) ModelWorkHarness.For(world).Scheduler.CanStart = () => world.WorldTick >= state.Society.Society.WorldTick + 3;
+        if (lastWorkTick)
+            ModelWorkHarness.For(world).Scheduler.CanStart = () =>
+                !provider.Started.Task.IsCompleted || world.Fields.Any(field => field.Work is { RemainingTicks: 1 });
+        else if (delayedStartup)
+            ModelWorkHarness.For(world).Scheduler.CanStart = () => world.WorldTick >= state.Society.Society.WorldTick + 3;
         var replacement = new HeldIdleProvider(replyText: "Farm reply after reload.");
         WorldRuntime? restored = null;
         try
@@ -283,6 +294,7 @@ public sealed class QueuedCognitionContextTests
             Assert.NotNull(field.Work);
             Assert.Equal(FarmWorkKind.Harvest, field.Work.Kind);
             Assert.Equal(farmer, field.Work.WorkerId);
+            if (lastWorkTick) Assert.Equal(1, field.Work.RemainingTicks);
             var oldEpoch = provider.Requests.Last().RunEpoch;
             world.Pause();
             var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -296,7 +308,18 @@ public sealed class QueuedCognitionContextTests
             Assert.NotEqual(oldEpoch, fresh.RunEpoch);
             Assert.Equal(restored.Society.RunEpoch, fresh.RunEpoch);
             Assert.Equal(message.InstructionId.Value, Assert.Single(fresh.ObserverGuidance!).InstructionId);
-            Assert.Equal(field.Work.RemainingTicks - 1, Assert.Single(restored.Fields).Work!.RemainingTicks);
+            var resumedField = Assert.Single(restored.Fields);
+            if (field.Work.RemainingTicks > 1)
+            {
+                Assert.NotNull(resumedField.Work);
+                Assert.Equal(field.Work.RemainingTicks - 1, resumedField.Work.RemainingTicks);
+            }
+            else
+            {
+                Assert.Null(resumedField.Work);
+                Assert.Equal(FarmFieldStage.Harvested, resumedField.Stage);
+                Assert.Single(restored.ExportState().Events, item => item.Kind == "field_harvested");
+            }
             provider.ReleaseSecond.TrySetResult(true);
             await ModelWorkHarness.For(world).WaitAsync(provider.SecondReturned.Task);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));

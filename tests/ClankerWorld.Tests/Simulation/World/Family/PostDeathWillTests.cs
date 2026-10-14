@@ -554,7 +554,7 @@ public sealed class PostDeathWillTests
             inventory = InventoryAuthority.AddLot(inventory, "pot-lot", InventoryContainerRules.StoragePot, "founder-scout", 1);
             inventory = InventoryAuthority.AddLot(inventory, "pot-berries", "berries", "founder-scout", 2, containerLotId: "pot-lot");
         }
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         if (childHeir)
         {
             var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
@@ -587,7 +587,7 @@ public sealed class PostDeathWillTests
                      lot.CarrierId is null && lot.StorageBuildingId is null && lot.GroundPosition is null).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, $"death:founder-scout:{lot.Id}", lot.Id, estateId, lot.Quantity,
                 groundPosition: new InventoryGroundPosition(physical.Position.X, physical.Position.Y));
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         // Bounded test clock: settle a few ticks after the will instead of after a world day.
         checkpoint = checkpoint with
         {
