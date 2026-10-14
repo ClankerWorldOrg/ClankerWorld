@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 

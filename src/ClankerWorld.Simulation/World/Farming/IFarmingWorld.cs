@@ -28,7 +28,7 @@ internal interface IFarmingWorld
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> transition);
     int SkilledWorkTicks(string actor, SkillKind skill, int ticks);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
     IEnumerable<GridPoint> TownProjectProtectedSites();
     IEnumerable<GridPoint> MarketSiteTiles();
     IEnumerable<GridPoint> RoadAndBridgeTiles();

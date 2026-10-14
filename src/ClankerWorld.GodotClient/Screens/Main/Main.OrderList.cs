@@ -16,7 +16,7 @@ public partial class Main
 {
     private readonly Button allOrdersButton = new();
     private readonly PanelContainer ordersPanel = new();
-    private readonly Label ordersReaderTitle = new();
+    private readonly FittedLabel ordersReaderTitle = new();
     private readonly RichTextLabel ordersReaderText = new();
     private string? renderedOrdersReader;
 
@@ -182,7 +182,8 @@ public partial class Main
     private static OwnerWorldInstruction? PendingOrderToCancel(OwnerWorldSnapshot snapshot, string? agentId) =>
         snapshot.Instructions.Where(item => item.TargetAgentId == agentId &&
                 item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" })
-            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+            .OrderBy(item => item.Task!.Status == "queued")
+            .ThenBy(item => item.SubmissionSequence).FirstOrDefault();
 
     /// <summary>
     /// One order's state as the host reports it, such as "Blocked · Eating food ·

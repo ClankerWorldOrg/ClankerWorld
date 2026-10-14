@@ -88,7 +88,7 @@ public partial class Main
         RenderMap(world);
         try
         {
-            var controlLabels = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+            var controlLabels = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
             if (!ControlGroups.SelectMany(group => group.Rows).Any(row => row.Keys is ["F12"] && row.Action == "Developer tools") ||
                 !controlLabels.Contains("F12") || !controlLabels.Contains("Developer tools"))
                 throw new InvalidOperationException("The F1 controls list must name F12 for Developer tools.");

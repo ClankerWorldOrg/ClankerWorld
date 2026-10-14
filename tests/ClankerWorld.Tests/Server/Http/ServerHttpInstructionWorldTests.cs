@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -6,7 +7,7 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Worlds;
 using Microsoft.Extensions.DependencyInjection;
-using ClientAction = ClankerWorld.GodotClient.Protocol.OwnerInstructionAction;
+using ClientAction = ClankerWorld.Contracts.OwnerInstructionAction;
 using ClientAuthority = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
 
 namespace ClankerWorld.Tests;
