@@ -200,7 +200,8 @@ public sealed partial class WorldRuntime
     }
 
     private bool CanWalkForTownProject(string actor, GridPoint from, GridPoint target, int range = 0) =>
-        IsWithinInteractionRange(from, target, range) || FindUnoccupiedRoute(actor, from, target, range).Count > 0;
+        IsWithinInteractionRange(from, target, range) || ReachLeg(actor, from, target,
+            ReachPurpose.TownProjectRecovery, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private IEnumerable<InventoryLot> TownProjectMaterialSources(TownRuntimeState town,
         TownProject project, string actor, string itemKind)
@@ -304,6 +305,53 @@ public sealed partial class WorldRuntime
         }
     }
 
+    private static bool TownProjectReleasedLotMatches(InventoryLot lot, string townId, TownProjectDelivery delivery) =>
+        lot.OwnerId == townId && lot.ItemKind == delivery.ItemKind && lot.ContainerLotId is null && lot.DeliveryBuildingId is null;
+
+    private bool TownProjectReturnWarehouseEligible(string actor, PlacedBuilding warehouse) =>
+        !NeedsUrgentFood(agents[actor]) && !NeedsUrgentWarmth(agents[actor]) && DestinationRoom(warehouse.InstanceId) > 0 &&
+        (agents[actor].Position == warehouse.Position || Reach(actor, warehouse.Position, ReachPurpose.TownProjectRecovery,
+            0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0);
+
+    private InventoryLot[] TownProjectReleasedCarried(TownRuntimeState town) =>
+        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == town.Id && town.Projects.SelectMany(project => project.Deliveries)
+            .Any(delivery => delivery.ReleasedTick is not null && delivery.LotId == lot.Id) && lot.CarrierId is not null &&
+            lot.ContainerLotId is null && lot.DeliveryBuildingId is null && !IsActiveTownProjectDelivery(lot.Id)).ToArray();
+
+    private InventoryLot? TownProjectReleasedLot(string lotId) =>
+        society.Checkpoint.Inventory.Lots.SingleOrDefault(lot => lot.Id == lotId);
+
+    private int TownProjectRecoveryQuantity(string actor, TownProject project, InventoryLot lot, PlacedBuilding warehouse, int inbound) =>
+        Math.Min(project.Plan.Budget.Single(cost => cost.ResourceId == lot.ItemKind).Amount,
+            Math.Min(AvailableLotQuantity(lot), Math.Min(WarehouseLoadQuantity,
+                Math.Min(Math.Min(FreeCarryCapacity(actor) - 1, PickupCarryCapacity(actor, lot, warehouse.Position)),
+                    DestinationRoom(warehouse.InstanceId) - inbound))));
+
+    private TownProjectChoice? CurrentTownProjectReleasedChoice(TownProjectRecoveryActionPlan plan, TownRuntimeState town,
+        TownProject project, PlacedBuilding? warehouse)
+    {
+        var lot = TownProjectReleasedLot(plan.Choice.StockId);
+        if (lot is null || !TownProjectReleasedLotMatches(lot, town.Id, plan.ReleasedDelivery) || IsActiveTownProjectDelivery(lot.Id)) return null;
+        int quantity;
+        if (plan.Choice.Recover)
+        {
+            if (TownForResident(plan.Actor) != town.Id || FreeCarryCapacity(plan.Actor) <= 1 || lot.GroundPosition is null ||
+                AvailableLotQuantity(lot) <= 0 || warehouse is null) return null;
+            var carried = TownProjectReleasedCarried(town);
+            if (carried.Any(item => item.CarrierId == plan.Actor && PhysicalUnreservedQuantity(item) > 0)) return null;
+            quantity = TownProjectRecoveryQuantity(plan.Actor, project, lot, warehouse, carried.Sum(PhysicalUnreservedQuantity));
+        }
+        else
+        {
+            if (lot.CarrierId != plan.Actor || PhysicalUnreservedQuantity(lot) <= 0) return null;
+            if (warehouse is null && WarehousesForTown(town.Id).Any(item => TownProjectReturnWarehouseEligible(plan.Actor, item)) ||
+                warehouse is not null && !TownProjectReturnWarehouseEligible(plan.Actor, warehouse)) return null;
+            quantity = warehouse is null ? PhysicalUnreservedQuantity(lot) : Math.Min(PhysicalUnreservedQuantity(lot), DestinationRoom(warehouse.InstanceId));
+        }
+        return quantity > 0 ? new(plan.CandidateId, plan.Choice.Recover ? "recover" : "return", town, project,
+            plan.ItemKind, lot, quantity, plan.ReleasedDelivery, Warehouse: warehouse) : null;
+    }
+
     private IEnumerable<TownProjectChoice> TownProjectReturnChoices(string actor)
     {
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
@@ -311,15 +359,13 @@ public sealed partial class WorldRuntime
                 foreach (var delivery in project.Deliveries.Where(item => item.ReleasedTick is not null)
                              .DistinctBy(item => item.LotId))
                 {
-                    var lot = society.Checkpoint.Inventory.Lots.SingleOrDefault(item => item.Id == delivery.LotId);
-                    if (lot is null || lot.OwnerId != town.Id || lot.ItemKind != delivery.ItemKind ||
-                        lot.CarrierId != actor || lot.ContainerLotId is not null ||
-                        lot.DeliveryBuildingId is not null || PhysicalUnreservedQuantity(lot) <= 0 || IsActiveTownProjectDelivery(lot.Id)) continue;
+                    var lot = TownProjectReleasedLot(delivery.LotId);
+                    if (lot is null || !TownProjectReleasedLotMatches(lot, town.Id, delivery) ||
+                        lot.CarrierId != actor || PhysicalUnreservedQuantity(lot) <= 0 || IsActiveTownProjectDelivery(lot.Id)) continue;
                     var person = agents[actor];
                     // A temporary pedestrian obstruction should wait, not cause a drop/pickup loop.
                     var warehouse = NeedsUrgentFood(person) || NeedsUrgentWarmth(person) ? null :
-                        WarehousesForTown(town.Id).FirstOrDefault(item => DestinationRoom(item.InstanceId) > 0 &&
-                            CanReachByFootOrSwimming(actor, person.Position, item.Position));
+                        WarehousesForTown(town.Id).FirstOrDefault(item => TownProjectReturnWarehouseEligible(actor, item));
                     if (warehouse is null)
                     {
                         yield return new(TownProjectChoiceId(TownProjectReturnPrefix, project.Id, lot.Id, "ground"),
@@ -337,11 +383,7 @@ public sealed partial class WorldRuntime
     {
         if (TownForResident(actor) is not { } townId || FreeCarryCapacity(actor) <= 1) yield break;
         var town = towns.Single(item => item.Id == townId);
-        var released = town.Projects.SelectMany(project => project.Deliveries)
-            .Where(delivery => delivery.ReleasedTick is not null).Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
-        var carried = society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == townId && released.Contains(lot.Id) &&
-            lot.CarrierId is not null && lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
-            !IsActiveTownProjectDelivery(lot.Id)).ToArray();
+        var carried = TownProjectReleasedCarried(town);
         // A retained choice must finish its current return before collecting another load.
         if (carried.Any(lot => lot.CarrierId == actor && PhysicalUnreservedQuantity(lot) > 0)) yield break;
         var inbound = carried.Sum(PhysicalUnreservedQuantity);
@@ -364,10 +406,7 @@ public sealed partial class WorldRuntime
                     PickupCarryCapacity(actor, lot, item.Position) > 0);
                 if (warehouse is null) continue;
                 // Keep one carrying space available for food; never promise more than the real storage room.
-                var quantity = Math.Min(project.Plan.Budget.Single(cost => cost.ResourceId == lot.ItemKind).Amount,
-                    Math.Min(AvailableLotQuantity(lot), Math.Min(WarehouseLoadQuantity,
-                        Math.Min(Math.Min(FreeCarryCapacity(actor) - 1, PickupCarryCapacity(actor, lot, warehouse.Position)),
-                            DestinationRoom(warehouse.InstanceId) - inbound))));
+                var quantity = TownProjectRecoveryQuantity(actor, project, lot, warehouse, inbound);
                 if (quantity <= 0) continue;
                 yield return new(TownProjectChoiceId(TownProjectRecoverPrefix, project.Id, lot.Id,
                     quantity.ToString(CultureInfo.InvariantCulture), warehouse.InstanceId), "recover",
@@ -413,6 +452,7 @@ public sealed partial class WorldRuntime
             {
                 "supply" or "deliver" => PlanTownProjectLoad(actor, choice),
                 "work" or "gather" => PlanTownProjectWork(actor, choice),
+                "recover" or "return" => PlanTownProjectRecovery(actor, choice),
                 _ => null,
             };
             if (choice.Kind is "work" or "gather" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
@@ -448,6 +488,7 @@ public sealed partial class WorldRuntime
         if (!IsTownProjectCandidate(id)) return false;
         if (originalPlan is TownProjectLoadActionPlan load) { ApplyTownProjectLoad(load); return true; }
         if (originalPlan is TownProjectWorkActionPlan work) { ApplyTownProjectWork(work); return true; }
+        if (originalPlan is TownProjectRecoveryActionPlan recovery) { ApplyTownProjectRecovery(recovery); return true; }
         var choice = TownProjectChoices(actor).FirstOrDefault(item => item.Id == id);
         if (choice is null) return true;
         if (choice.Kind is "supply" or "deliver") { ApplyTownProjectLoad(PlanTownProjectLoad(actor, choice)); return true; }
@@ -456,11 +497,7 @@ public sealed partial class WorldRuntime
             if (PlanTownProjectWork(actor, choice) is { } plan) ApplyTownProjectWork(plan);
             return true;
         }
-        switch (choice.Kind)
-        {
-            case "recover": RecoverTownProjectLoad(actor, state, choice); break;
-            case "return": ReturnTownProjectLoad(actor, state, choice); break;
-        }
+        ApplyTownProjectRecovery(PlanTownProjectRecovery(actor, choice));
         return true;
     }
 
