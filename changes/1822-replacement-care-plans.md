@@ -1,0 +1,1 @@
+- Replacement-care choices now explain when the selected child’s household or primary care changes before they can act.
