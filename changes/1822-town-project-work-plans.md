@@ -1,0 +1,1 @@
+- Town project work and personal material gathering retain their tools, delivered budget, source and harvest through shared checks.

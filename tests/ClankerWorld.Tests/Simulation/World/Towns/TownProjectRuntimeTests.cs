@@ -62,8 +62,14 @@ public sealed class TownProjectRuntimeTests
         // The generated world's loose-wood trips, seed storage and final forest load
         // need real travel time before the residents can perform the paid work.
         var donationPlans = new List<TownProjectDonationActionPlan>();
+        var workPlans = new List<TownProjectWorkActionPlan>();
         await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 420, result =>
         {
+            workPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectWorkActionPlan plan &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => plan.Choice.ItemKind is null
+                        ? item.Kind == "town_project_worked" && item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)
+                        : item.Kind == "material_gathered" && item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + plan.Harvest!.Quantity))
+                .Select(decision => Assert.IsType<TownProjectWorkActionPlan>(decision.ActionPlan)));
             donationPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectDonationActionPlan plan && plan.Choice.AtSite &&
                     decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Kind == "town_project_donated" &&
                         item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)))
@@ -71,6 +77,14 @@ public sealed class TownProjectRuntimeTests
         });
         AssertPaidHall(scenario);
         Assert.NotEmpty(donationPlans);
+        Assert.Contains(workPlans, plan => plan.Choice.ItemKind is null);
+        Assert.Contains(workPlans, plan => plan.Choice.ItemKind is not null);
+        Assert.All(workPlans, plan =>
+        {
+            Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+            Assert.Equal(TownHearingProcedure.Digest(scenario.Project.Plan), TownHearingProcedure.Digest(plan.Project));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, scenario.World.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.All(donationPlans, plan =>
         {
             Assert.Equal(plan.Choice.Encode(), plan.CandidateId);

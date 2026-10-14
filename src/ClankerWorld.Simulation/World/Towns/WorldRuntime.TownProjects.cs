@@ -239,7 +239,8 @@ public sealed partial class WorldRuntime
                         delivery.Quantity, delivery);
             if (TownProjectHasAllMaterials(town, project))
             {
-                if (CanWalkForTownProject(actor, person.Position, TownProjectRules.WorkSite(project.Plan)))
+                if (IsWithinInteractionRange(person.Position, TownProjectRules.WorkSite(project.Plan), 0) ||
+                    Reach(actor, TownProjectRules.WorkSite(project.Plan), ReachPurpose.TownProjectWork, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
                     yield return new(TownProjectChoiceId(TownProjectWorkPrefix, project.Id), "work", town, project);
                 continue;
             }
@@ -374,13 +375,47 @@ public sealed partial class WorldRuntime
             }
     }
 
+    private TownProjectWorkActionPlan? PlanTownProjectWork(string actor, TownProjectChoice choice)
+    {
+        var gather = choice.Kind == "gather";
+        var hammer = gather ? null : ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hammer);
+        var harvest = gather ? ProjectMaterialHarvest(actor, choice.ItemKind, choice.Resource!) : null;
+        PlannedEquipmentPickup? pickup = null;
+        if (gather && harvest is null)
+        {
+            if (RequiredGatheringTool(choice.ItemKind, choice.Resource!) is not { } required ||
+                FindReachableSharedGatheringTool(actor, required) is not { } available ||
+                SharedItem(available.ItemKind, actor) is not { ContainerLotId: null } tool) return null;
+            pickup = new(tool.Id, tool.OwnerId, tool.ItemKind, HouseholdStockPosition(tool), HouseholdStockInteractionRange(tool));
+        }
+        var selectedTool = harvest?.ToolLotId is { } toolId ? TownProjectGatheringTool(actor, toolId) : null;
+        var target = gather ? choice.Resource!.Position : TownProjectRules.WorkSite(choice.Project.Plan);
+        return new(actor, new(choice.Project.Id, gather ? choice.ItemKind : null), choice.Town.Id, choice.Project.ProposalId,
+            choice.Project.Plan, TownProjectRules.WorkSite(choice.Project.Plan), hammer,
+            choice.Project.Deliveries.Where(delivery => delivery.DeliveredTick is not null && delivery.ReleasedTick is null).ToArray(),
+            choice.Resource, harvest, selectedTool?.OwnerId, selectedTool?.ItemKind, pickup,
+            Reach(actor, target, gather ? ReachPurpose.MaterialGathering : ReachPurpose.TownProjectWork,
+                gather ? ResourceInteractionRange : 0, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private InventoryLot? TownProjectGatheringTool(string actor, string toolId) =>
+        FindGoods(new(GoodsUse.CarriedInputs, actor,
+            new(new[] { actor, HouseholdFor(actor), TownForResident(actor) }.OfType<string>().Distinct(StringComparer.Ordinal).ToArray()),
+            new(ToolProgressionRules.All.Select(definition => definition.ItemKind).ToArray()))).Matches
+            .Select(match => match.Lot).SingleOrDefault(lot => lot.Id == toolId && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor));
+
     private void AddTownProjectCandidates(List<CognitionCandidate> candidates, string actor)
     {
         var offered = 0;
         foreach (var choice in TownProjectChoices(actor))
         {
-            var plan = choice.Kind is "supply" or "deliver" ? PlanTownProjectLoad(actor, choice) : null;
-            if (plan is not null && !CheckTownProjectLoad(plan).Allowed) continue;
+            ActionPlan? plan = choice.Kind switch
+            {
+                "supply" or "deliver" => PlanTownProjectLoad(actor, choice),
+                "work" or "gather" => PlanTownProjectWork(actor, choice),
+                _ => null,
+            };
+            if (choice.Kind is "work" or "gather" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
             var description = choice.Kind switch
             {
                 "recover" => $"Pick up {choice.Quantity} unused Town-owned {choice.ItemKind} from {choice.Project.Plan.Name} to return to its Town Warehouse.",
@@ -408,18 +443,22 @@ public sealed partial class WorldRuntime
         candidates.AddRange(eligible.Take(16));
     }
 
-    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id, TownProjectLoadActionPlan? originalPlan = null)
+    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id, ActionPlan? originalPlan = null)
     {
         if (!IsTownProjectCandidate(id)) return false;
-        if (originalPlan is not null) { ApplyTownProjectLoad(originalPlan); return true; }
+        if (originalPlan is TownProjectLoadActionPlan load) { ApplyTownProjectLoad(load); return true; }
+        if (originalPlan is TownProjectWorkActionPlan work) { ApplyTownProjectWork(work); return true; }
         var choice = TownProjectChoices(actor).FirstOrDefault(item => item.Id == id);
         if (choice is null) return true;
         if (choice.Kind is "supply" or "deliver") { ApplyTownProjectLoad(PlanTownProjectLoad(actor, choice)); return true; }
+        if (choice.Kind is "work" or "gather")
+        {
+            if (PlanTownProjectWork(actor, choice) is { } plan) ApplyTownProjectWork(plan);
+            return true;
+        }
         switch (choice.Kind)
         {
             case "recover": RecoverTownProjectLoad(actor, state, choice); break;
-            case "work": WorkOnTownProject(actor, state, choice); break;
-            case "gather": GatherProjectMaterial(actor, state, choice.ItemKind, choice.Resource!, deliveryBuildingId: null); break;
             case "return": ReturnTownProjectLoad(actor, state, choice); break;
         }
         return true;
@@ -582,7 +621,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_project_material_returned", $"{actor}:{choice.Project.Id}:{choice.Lot!.Id}:{choice.Quantity}:{warehouse.InstanceId}", TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
-    private void WorkOnTownProject(string actor, AgentState state, TownProjectChoice choice)
+    private void WorkOnTownProject(string actor, AgentState state, TownProjectChoice choice, ToolWorkPlan? hammer)
     {
         if (state.Position != TownProjectRules.WorkSite(choice.Project.Plan))
         {
@@ -596,7 +635,6 @@ public sealed partial class WorldRuntime
             return;
         }
         if (!IllnessRules.AllowsWork(actor, WorldTick, state.Survival?.IllnessBasisPoints ?? 0)) return;
-        var hammer = ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hammer);
         var done = Math.Min(workNeeded, SkilledWorkProgress(actor, SkillKind.Building,
             choice.Project.WorkDone, hammer?.WorkUnits ?? 1));
         if (hammer is not null) ApplyToolWork(actor, hammer);

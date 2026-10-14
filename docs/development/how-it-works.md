@@ -491,6 +491,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Town project work retains its selected hammer and exact delivered budget.
+Gathering retains the selected source, harvest tool and yield, or its required
+shared-tool pickup; the resulting goods remain personal until a fresh donation.
+Both use one check before their native work or harvest transition.
 Town project pickup and delivery retain the selected Town-owned lot, exact
 load, current custody and approved destination. One check verifies the same
 load against current project need, carrying room and both physical route legs
