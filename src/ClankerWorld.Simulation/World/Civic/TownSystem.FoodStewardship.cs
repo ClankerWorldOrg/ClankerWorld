@@ -120,6 +120,13 @@ internal sealed partial class TownSystem
         var plan = originalPlan as FoodPolicyActionPlan ?? PlanFoodPolicy(actor, candidate);
         if (plan is null) return;
         if (CheckFoodPolicy(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedFoodPolicy(world, plan);
+    }
+
+    internal void ApplyCheckedFoodPolicy(ICivicWorld world, FoodPolicyActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var candidate = plan.CandidateId;
         if (candidate.StartsWith("food_policy_propose:", StringComparison.Ordinal))
         {
             var policy = plan.Choice.Policy;

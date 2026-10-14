@@ -2,6 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy FoodPolicyCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal FoodPolicyActionPlan? PlanFoodPolicy(string actor, string candidate)
     {
         if (foodStewardship is not { } state) return null;
@@ -12,10 +14,10 @@ internal sealed partial class TownSystem
             state.StewardId, state.FoodPolicy, state.LastResolutionTick, state.Ballot);
     }
 
-    internal ActionCheck CheckFoodPolicy(ICivicWorld world, FoodPolicyActionPlan plan)
+    internal ActionCheck CheckFoodPolicy(ICivicWorld world, FoodPolicyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? FoodPolicyCapabilities);
         if (!capability.Allowed) return capability;
         if (foodStewardship is not { } state || state.StewardId != plan.StewardId || state.FoodPolicy != plan.CurrentPolicy ||
             state.LastResolutionTick != plan.LastResolutionTick || !FoodPolicyVoters(world).Contains(plan.Actor, StringComparer.Ordinal))
