@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering }
+public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering, StoreStock }
 public enum SwimmingPolicy { WhenCapable, Never }
 
 public sealed partial class WorldRuntime

@@ -190,6 +190,12 @@ and yield. Gathering applies the captured harvest through the common material
 commit path; it does not select another tool or source. `CarriedInputs` validates
 physical custody and the named borrowed-stock authorization.
 
+Store stocking uses `StoreStockActionPlan` to keep its selected lot, Store and
+load. The same check retains current food reserves, best tools, shelf target,
+physical room and pickup/delivery route rules. Shelf accounting includes usable
+physical stock even when promised; selecting a new load uses the shared goods
+query and named hold authorization. Shop trade and order forwarders remain.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
