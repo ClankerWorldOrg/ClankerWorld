@@ -1,3 +1,5 @@
+using OwnerOrderControlReceipt = ClankerWorld.Simulation.World.OwnerOrderControlReceipt;
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
