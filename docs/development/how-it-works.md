@@ -411,6 +411,9 @@ House, electorate or request receives the same check at all three boundaries.
 Learning choices retain the student, teacher, skill, request and communal lesson
 site. The same check governs offer, admission and apply; native continuation may
 advance the same agreement while a model reply waits.
+Household leave/founding choices retain their household, moving care group and
+exact loose-food allowance. Native membership, custody and paused-work effects
+use the retained selection; automatic displacement plans its own native step.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

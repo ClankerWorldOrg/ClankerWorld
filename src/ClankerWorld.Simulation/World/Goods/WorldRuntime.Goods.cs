@@ -51,6 +51,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
+        if (request.Use == GoodsUse.DepartureAllowance) return null;
         if (request.Use == GoodsUse.MedicalDose) return MedicalDoseExclusion(request.Actor!, index, lot);
         if (request.Use == GoodsUse.HandcartControl) return HandcartControlExclusion(request.Actor!, lot);
         if (request.Use == GoodsUse.AnimalPayment) return AnimalPaymentExclusion(request.Actor!, index, lot);
