@@ -26,10 +26,10 @@ internal sealed partial class TownSystem
         plan.Choice.CandidateToken is not null || plan.Selected is not null ? plan : plan with
         { Selected = choices?.Select(token => ResolveCivicAgentToken(world, token)).ToArray() };
 
-    internal static ActionCheck CheckCouncilBallot(ITownWorld world, CouncilBallotActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckCouncilBallot(ITownWorld world, CouncilBallotActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CouncilElectionCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: { Election: { } election } } town ||
             election.Id != plan.ElectionId || election.Stage != plan.Stage || election.Stage is not ("main" or "runoff") ||

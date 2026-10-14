@@ -10,6 +10,7 @@ public sealed partial class WorldRuntime
     {
         public abstract Type PlanType { get; }
         public abstract bool Matches(string candidate);
+        public abstract ActionPlan? PlanCandidate(WorldRuntime world, string actor, string candidate);
         public abstract ActionCheck Check(WorldRuntime world, ActionPlan plan);
         public abstract bool Apply(WorldRuntime world, ActionContext context, ActionPhase phase);
     }
@@ -29,6 +30,8 @@ public sealed partial class WorldRuntime
     {
         public override Type PlanType => typeof(TPlan);
         public override bool Matches(string candidate) => Decode(candidate, out _);
+        public override ActionPlan? PlanCandidate(WorldRuntime world, string actor, string candidate) =>
+            Decode(candidate, out var choice) ? Plan(world, actor, choice) : null;
 
         public TPlan? Plan(WorldRuntime world, string actor, TChoice choice) => PlanChoice(world, actor, choice, Capabilities);
 
