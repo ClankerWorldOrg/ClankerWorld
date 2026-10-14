@@ -52,9 +52,9 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal("looking for " + target, visible.PublicIntention.Summary);
         // Local Must Do execution retains the prior admitted model intention.
         // These are the actual card/list arguments; no intention identity is invented.
-        Assert.Equal("looking for " + target, ClankerWorld.GodotClient.UI.GameUiText.ActivityPhrase(
+        Assert.Equal("looking for " + target, ClankerWorld.Contracts.GameUiText.ActivityPhrase(
             visible.PublicIntention.CandidateId, visible.PublicIntention.Summary));
-        Assert.Equal("looking for " + target, ClankerWorld.GodotClient.UI.GameUiText.ActivityPhrase(
+        Assert.Equal("looking for " + target, ClankerWorld.Contracts.GameUiText.ActivityPhrase(
             "knowledge_write:field_record", visible.PublicIntention.Summary));
     }
 }

@@ -76,11 +76,11 @@ public sealed class LiveConversationSnapshotTests
         Assert.Equal(expected, mixed.Where(item => item.Status == "closed").Select(item => item.Id));
     }
 
-    private static ClientProtocol.OwnerWorldSnapshot Snapshot(WorldRuntime world)
+    private static ClankerWorld.Contracts.OwnerWorldSnapshot Snapshot(WorldRuntime world)
     {
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var host = new OwnerWorldObservationStore(world).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(host, WireJson), WireJson)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(host, WireJson), WireJson)!;
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal(host.Conversations.Select(item => item.Id), client.Conversations.Select(item => item.Id));
         foreach (var conversation in world.Conversations.Where(item => item.Status != AgentConversationStatus.Closed))
