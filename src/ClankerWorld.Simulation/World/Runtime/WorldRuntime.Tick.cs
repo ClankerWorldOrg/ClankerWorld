@@ -394,7 +394,7 @@ public sealed partial class WorldRuntime
             pendingModelCalls.Add(preview.AgentId, new PendingModelDecision(preview.Request, task, cancellation,
                 agents[preview.AgentId].LastDecisionContext));
             RecordModelAttempt(preview.AgentId, "waiting");
-            AppendEvent("hosted_decision_started", preview.AgentId);
+            AppendEvent(new HostedDecisionStartedEventPayload(preview.AgentId));
         }
     }
 
@@ -623,16 +623,14 @@ public sealed partial class WorldRuntime
 
             foreach (var activated in contentRegistry.ActivateReady(targetTick))
             {
-                AppendEvent("content_activated", activated.Manifest.PackageId);
+                AppendEvent(new ContentActivatedEventPayload(null, activated.Manifest.PackageId));
                 if (activated.Manifest.PackageId == HearthContent.PackageId)
                 {
                     AddStartingResources();
                 }
                 if (activated.Manifest.Definitions.Any(definition => !string.IsNullOrWhiteSpace(definition.PayloadJson)))
                 {
-                    AppendEvent(
-                        "content_definitions_activated",
-                        $"{activated.Manifest.PackageId}:buildings={activatedWorldContent.Buildings.Count}:recipes={activatedWorldContent.Recipes.Count}");
+                    AppendEvent(new ContentDefinitionsActivatedEventPayload(null, activated.Manifest.PackageId, activatedWorldContent.Buildings.Count, activatedWorldContent.Recipes.Count));
                 }
             }
             worldContent = activatedWorldContent;
@@ -734,12 +732,12 @@ public sealed partial class WorldRuntime
                         if (physical.IdentityChoicePending && agents[id] is { IdentityChoicePending: false } identified)
                             society.CompleteQueuedIdentityChoice(id, identified.Personality, identified.Aspiration);
                         deferredDecisions.Add(decision);
-                        AppendEvent("hosted_decision_completed", $"{id}:{decision.Admission.Outcome}");
+                        AppendEvent(new HostedDecisionCompletedEventPayload(id, decision.Admission.Outcome));
                     }
                     else
                     {
                         RecordModelAttempt(id, "canceled");
-                        AppendEvent("hosted_decision_discarded", id);
+                        AppendEvent(new HostedDecisionDiscardedEventPayload(id));
                     }
                 }
             }
@@ -765,7 +763,7 @@ public sealed partial class WorldRuntime
             CompleteActionPhase(orderActorsHandledThisTick);
 
             ArchiveOldAgentMemories(activeModelCallIds);
-            AppendEvent("tick_advanced", targetTick.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            AppendEvent(new TickAdvancedEventPayload(null, targetTick));
             var newEvents = events.Skip(startingEvent).ToArray();
             return new WorldStepResult(true, "advanced", targetTick, decisions, newEvents)
             {

@@ -1917,7 +1917,7 @@ public sealed partial class OwnerWorldObservationStore
         worldEvent.Kind,
         worldEvent.Detail,
         worldEvent.Position is { } position ? ToPosition(position) : null);
-        return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
+        return view with { Payload = worldEvent.Payload, Text = WorldEventFormatter.Describe(view, snapshot) };
     }
 
     private static CognitionView ToCognition(WorldRuntimeState state)

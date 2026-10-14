@@ -78,7 +78,7 @@ internal sealed partial class AnimalSystem
                     sites[index], "herd-" + species.Id));
         }
         State = new(true, result.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), []);
-        world.AppendEvent("animals_arrived", $"wild:{result.Count}");
+        world.AppendEvent(new AnimalsArrivedEventPayload(null, result.Count));
     }
 
     internal void AdvanceAnimals(IAnimalWorld world, long tick)
@@ -114,7 +114,7 @@ internal sealed partial class AnimalSystem
                     ReadyProductReservationId = null,
                     ProductProgressTicks = 0
                 });
-                world.AppendEvent("animal_died", animal.Id + ":old_age", animal.Position);
+                world.AppendEvent(new AnimalDiedEventPayload(null, animal.Id), animal.Position);
                 continue;
             }
             if (animal.HouseholdId is null) animal = AdvanceWildAnimalCare(world, animal, tick);
@@ -148,7 +148,7 @@ internal sealed partial class AnimalSystem
                         groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
                         animal.HouseholdId, productId, definition.ProductQuantity, "animal-product:" + animal.Id, long.MaxValue));
                     animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = Identity.Parse(reservationId) };
-                    world.AppendEvent("animal_product_ready", animal.Id + ":" + definition.Product, animal.Position);
+                    world.AppendEvent(new AnimalProductReadyEventPayload(null, animal.Id, definition.Product), animal.Position);
                 }
                 else animal = animal with { ProductProgressTicks = progress };
                 SetAnimal(animal);
@@ -169,7 +169,7 @@ internal sealed partial class AnimalSystem
                         AnimalKey(childId)[0] % 2 == 0 ? "female" : "male", tick, position.Value, animal.HerdId,
                         animal.HouseholdId, animal.YardId));
                     animal = animal with { Pregnancy = null, BreedingReadyTick = tick + (long)AnimalRules.RecoveryDays * AnimalDayTicks(world) };
-                    world.AppendEvent("animal_born", childId + ":" + animal.Id, position);
+                    world.AppendEvent(new AnimalBornEventPayload(null, childId, animal.Id), position);
                 }
                 else animal = animal with { Pregnancy = pregnancy with { ProgressTicks = progress } };
                 SetAnimal(animal);
@@ -186,7 +186,7 @@ internal sealed partial class AnimalSystem
                 if (male is not null)
                 {
                     SetAnimal(animal = animal with { Pregnancy = new(male.Id, 0, tick) });
-                    world.AppendEvent("animal_breeding_started", animal.Id + ":" + male.Id, animal.Position);
+                    world.AppendEvent(new AnimalBreedingStartedEventPayload(null, animal.Id, male.Id), animal.Position);
                 }
             }
             WanderAnimal(world, animal, tick);

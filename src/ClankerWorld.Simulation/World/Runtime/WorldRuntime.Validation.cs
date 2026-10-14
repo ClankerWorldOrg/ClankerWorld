@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
         var previousTick = 0L;
         foreach (var worldEvent in events)
         {
-            if (worldEvent.EventId != expectedEventId ||
+            if (worldEvent.Payload is null || !worldEvent.Payload.FieldsAreValid || worldEvent.EventId != expectedEventId ||
                 worldEvent.WorldTick < previousTick ||
                 worldEvent.WorldTick > WorldTick ||
                 worldEvent.Position is { } eventPosition && !map.Contains(eventPosition))

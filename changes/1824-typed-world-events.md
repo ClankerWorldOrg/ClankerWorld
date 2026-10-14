@@ -1,0 +1,1 @@
+- World events keep their people, places and outcomes in structured records. Earlier alpha saves are no longer supported by this save format; their files are preserved.

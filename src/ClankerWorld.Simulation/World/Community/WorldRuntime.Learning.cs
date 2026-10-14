@@ -227,7 +227,7 @@ public sealed partial class WorldRuntime
         if (person.Lesson?.Stage != lesson.Stage)
         {
             lesson = lesson with { LastTransitionTick = WorldTick };
-            AppendEvent("lesson_" + lesson.Stage, student);
+            AppendEvent(WorldEvents.Lesson(lesson.Stage, student));
         }
         agents[student] = person with { Lesson = lesson };
     }

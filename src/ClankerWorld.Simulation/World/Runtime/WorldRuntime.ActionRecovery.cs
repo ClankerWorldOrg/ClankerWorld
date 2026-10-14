@@ -70,7 +70,7 @@ public sealed partial class WorldRuntime
         actionRefusals = actionRefusals.OrderBy(item => item.AgentId, StringComparer.Ordinal)
             .ThenBy(item => item.CandidateId, StringComparer.Ordinal).ToList();
         refusedActionCount = checked(refusedActionCount + 1);
-        AppendEvent("action_refused", JsonSerializer.Serialize(refusal));
+        AppendEvent(new ActionRefusedEventPayload(refusal.AgentId, refusal.CandidateId, refusal.RefusedTick, refusal.RetryAfterTick, refusal.Check));
     }
 
     private static void ValidateActionRefusals(WorldRuntimeState state)

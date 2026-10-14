@@ -91,7 +91,7 @@ internal sealed partial class TownSystem
             council.Notices.Skip(priorNoticeCount).Select(n => n.Id), world.WorldTick);
         householdLandUseRequests = [.. householdLandUseRequests, proposed];
         householdLandUseRequests = householdLandUseRequests.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
-        world.AppendEvent("land_use_requested", $"{requestId}:{townId}:{householdId}:{tiles.Length}");
+        world.AppendEvent(new LandUseRequestedEventPayload(null, requestId, townId, householdId, tiles.Length));
         return (ExistingLandRequestResult(world, proposed, isDuplicate: false), council);
     }
 

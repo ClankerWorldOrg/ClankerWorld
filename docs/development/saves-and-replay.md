@@ -1299,7 +1299,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 135. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 136. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -2398,6 +2398,17 @@ The snapshot refreshes potentially visible descriptions from its current names
 and relationships. A transient 2,048-event observer window preserves descriptions
 for connected clients after saved history compaction; a load or world switch
 resets it. Renaming still updates existing rows. The game displays this text
-without parsing event details. This presentation step leaves
-checkpoint bytes and the current schema unchanged; typed saved payloads follow
-in the event refactor stack.
+without parsing event details. Presentation text is derived from the typed saved payloads described below and
+never enters accepted history.
+
+## Typed world events
+
+World schema 136 stores accepted events as event ID, world time and a
+kind-discriminated payload. The payload carries an explicit actor when there is
+one, its captured position, and only that kind's subject references and values.
+The event log looks up the complete actor ID. It never guesses an actor from
+colon prefixes, and IDs and canonical content references remain complete.
+Unknown kinds, foreign fields and missing required payload fields are refused.
+Text and diagnostic detail are derived; they are not authoritative saved fields.
+Earlier alpha schemas are refused and preserved without migration. Strict reload
+and matched continuation retain accepted event order, payload data and positions.

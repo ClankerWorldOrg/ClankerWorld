@@ -322,7 +322,7 @@ public sealed partial class WorldRuntime
         var position = MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
         if (choice.Kind == "leave")
         {
-            EndMarketOccupancy(choice.Town.Id, choice.Market, choice.Occupancy!, "The seller gave up the stall.");
+            EndMarketOccupancy(choice.Town.Id, choice.Market, choice.Occupancy!, "The seller gave up the stall.", actor);
             return true;
         }
         if (choice.Kind is "continue" or "cancel")
@@ -349,7 +349,7 @@ public sealed partial class WorldRuntime
                     SellerHouseholdId = society.Checkpoint.GetAgent(actor).HouseholdId!,
                 };
                 SetMarket(choice.Town.Id, choice.Market with { Occupancies = choice.Market.Occupancies.Append(occupancy).ToArray() });
-                AppendEvent("market_stall_borrowed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{occupancy.Id}", position);
+                AppendEvent(new MarketStallBorrowedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, occupancy.Id), position);
                 break;
             case "load":
             case "collect":
@@ -359,8 +359,7 @@ public sealed partial class WorldRuntime
                     holdAccess: choice.Kind == "collect" && choice.Occupancy is { } loan
                         ? [new(InventoryHoldPurpose.MarketStall, loan.Id), new(InventoryHoldPurpose.Borrowed, actor)]
                         : InventoryHoldRules.BorrowedBy(actor)));
-                AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
-                    $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", destination);
+                AppendEvent(choice.Kind == "load" ? new MarketStockLoadedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, choice.Lot!.Id) : new MarketStockCollectedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, choice.Lot!.Id), destination);
                 break;
             case "deposit":
                 DepositMarketStock(actor, choice, position);
@@ -409,7 +408,7 @@ public sealed partial class WorldRuntime
             StockReceipts = choice.Market.StockReceipts.Append(receipt).ToArray(),
             NextStockReceiptSequence = checked(choice.Market.NextStockReceiptSequence + 1),
         });
-        AppendEvent("market_stock_delivered", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{receipt.Id}", position);
+        AppendEvent(new MarketStockDeliveredEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, receipt.Id), position);
     }
 
     private void OfferMarketTrade(string buyer, MarketChoice choice, GridPoint position)
@@ -433,7 +432,7 @@ public sealed partial class WorldRuntime
                 MarketTradeRules.IsReceiptLot(receipt, choice.Lot)).Sequence,
         };
         SetMarket(choice.Town.Id, choice.Market with { Trades = choice.Market.Trades.Append(trade).ToArray() });
-        AppendEvent("market_trade_offered", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{seller}|{buyer}|{id}", position);
+        AppendEvent(new MarketTradeOfferedEventPayload(buyer, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, seller, buyer, id), position);
     }
 
     private string? MarketTradeFailure(TownRuntimeState town, TownMarketState market, MarketTradeState trade, DirectBarterOffer offer)
@@ -478,7 +477,7 @@ public sealed partial class WorldRuntime
         if (cancel || MarketTradeFailure(choice.Town, choice.Market, trade, offer) is { })
         {
             CancelMarketTrade(choice.Town.Id, choice.Market, trade, cancel
-                ? "One of the traders cancelled the exchange." : MarketTradeFailure(choice.Town, choice.Market, trade, offer)!);
+                ? "One of the traders cancelled the exchange." : MarketTradeFailure(choice.Town, choice.Market, trade, offer)!, cancel ? actor : null);
             return;
         }
         if (!IsWithinInteractionRange(state.Position, trade.Position, ResourceInteractionRange))
@@ -521,10 +520,10 @@ public sealed partial class WorldRuntime
             StockReceipts = choice.Market.StockReceipts.Append(receipt).ToArray(),
             NextStockReceiptSequence = checked(choice.Market.NextStockReceiptSequence + 1),
         });
-        AppendEvent("market_trade_completed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{trade.BuyerId}|{trade.OfferId}", trade.Position);
+        AppendEvent(new MarketTradeCompletedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, trade.BuyerId, trade.OfferId), trade.Position);
     }
 
-    private void CancelMarketTrade(string townId, TownMarketState market, MarketTradeState trade, string reason)
+    private void CancelMarketTrade(string townId, TownMarketState market, MarketTradeState trade, string reason, string? actor = null)
     {
         var offer = society.Checkpoint.Inventory.GetOffer(trade.OfferId);
         if (offer.State == DirectBarterState.Open)
@@ -535,15 +534,15 @@ public sealed partial class WorldRuntime
             Trades = market.Trades.Select(item => item.OfferId == trade.OfferId
             ? trade with { CancellationReason = reason } : item).ToArray()
         });
-        AppendEvent("market_trade_cancelled", $"{townId}|{market.Id}|{trade.StallBuildingId}|{trade.SellerAgentId}|{trade.BuyerId}|{trade.OfferId}", trade.Position);
+        AppendEvent(new MarketTradeCancelledEventPayload(actor, townId, market.Id, trade.StallBuildingId, trade.SellerAgentId, trade.BuyerId, trade.OfferId), trade.Position);
     }
 
-    private void EndMarketOccupancy(string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason)
+    private void EndMarketOccupancy(string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason, string? actor = null)
     {
         foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.OccupancyId == occupancy.Id &&
                      society.Checkpoint.Inventory.GetOffer(item.OfferId).State == DirectBarterState.Open).ToArray())
         {
-            CancelMarketTrade(townId, market, trade, reason);
+            CancelMarketTrade(townId, market, trade, reason, actor);
             market = towns.Single(town => town.Id == townId).Markets.Single(item => item.Id == market.Id);
         }
         market = market with
@@ -553,8 +552,7 @@ public sealed partial class WorldRuntime
         };
         SetMarket(townId, market);
         var stall = market.Stalls.Single(item => item.BuildingId == occupancy.StallBuildingId);
-        AppendEvent("market_stall_left", $"{townId}|{market.Id}|{stall.BuildingId}|{occupancy.SellerAgentId}|{occupancy.Id}",
-            MarketContent.StallSite(market.Site, stall.SlotIndex));
+        AppendEvent(new MarketStallLeftEventPayload(occupancy.SellerAgentId, townId, market.Id, stall.BuildingId, occupancy.Id), MarketContent.StallSite(market.Site, stall.SlotIndex));
     }
 
     private void MaintainMarkets()

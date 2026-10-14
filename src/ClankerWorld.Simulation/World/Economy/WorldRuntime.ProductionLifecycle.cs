@@ -38,6 +38,6 @@ public sealed partial class WorldRuntime
             CropBuilds = worldSimulation.CropBuilds?.Select(job => ids.Contains(job.JobId)
                 ? job with { State = WorldProductionJobState.Cancelled } : job).ToArray(),
         };
-        foreach (var job in cancelled) AppendEvent(reason, job.JobId);
+        foreach (var job in cancelled) AppendEvent(WorldEvents.ProductionFailure(reason, job.WorkerId, job.JobId));
     }
 }

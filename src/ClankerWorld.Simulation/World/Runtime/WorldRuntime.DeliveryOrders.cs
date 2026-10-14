@@ -228,8 +228,7 @@ public sealed partial class WorldRuntime
                 plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
                 destinationStorageBuildingId: plan.DirectDelivery ? plan.Destination.InstanceId : null,
                 destinationDeliveryBuildingId: plan.DirectDelivery ? null : plan.Destination.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.DirectDelivery ? plan.Destination.InstanceId : null)));
-        AppendEvent(plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
-            $"{actor}:{movedSource.Id}:{plan.ResourceQuantity}:{plan.Destination.InstanceId}");
+        AppendEvent(plan.DirectDelivery ? new OwnerStockDeliveredEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId) : new OwnerStockPickedUpEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId));
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);
     }
 

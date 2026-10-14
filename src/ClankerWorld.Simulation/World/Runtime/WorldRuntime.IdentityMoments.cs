@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
                     $"identity:{Guid.NewGuid():N}", provider.ProviderEpoch, observation);
                 request.Validate();
                 SetIdentityMoment(person.Id, moment with { Outcome = "requested", RequestedTick = WorldTick });
-                AppendEvent("agent_identity_moment_started", $"{person.Id}:{moment.Kind}");
+                AppendEvent(new AgentIdentityMomentStartedEventPayload(person.Id, Convert.ToString(moment.Kind, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty));
                 prepare(new(moment.Kind, request, provider));
                 capacity--;
             }
@@ -199,7 +199,7 @@ public sealed partial class WorldRuntime
             Personality = personality,
             Aspiration = aspiration,
         });
-        AppendEvent(outcome == "accepted" ? "agent_identity_revised" : "agent_identity_moment_kept", $"{id}:{kind}");
+        AppendEvent(outcome == "accepted" ? new AgentIdentityRevisedEventPayload(id, kind.ToString()) : new AgentIdentityMomentKeptEventPayload(id, kind.ToString()));
     }
 
     private void SetIdentityMoment(string id, AgentIdentityMoment moment)

@@ -61,7 +61,7 @@ internal sealed partial class TownSystem
             if (successor != foodStewardship.StewardId)
             {
                 foodStewardship = foodStewardship with { StewardId = successor };
-                world.AppendEvent("food_steward_changed", successor ?? "none");
+                world.AppendEvent(new FoodStewardChangedEventPayload(successor, successor ?? "none"));
             }
         }
         ResolveFoodPolicyBallot(world);
@@ -80,12 +80,12 @@ internal sealed partial class TownSystem
         if (world.WorldTick <= ballot.ExpiryTick && living.Length > 0 && approvals >= required)
         {
             foodStewardship = foodStewardship with { FoodPolicy = ballot.Policy, LastResolutionTick = world.WorldTick, Ballot = null };
-            world.AppendEvent("food_policy_adopted", ballot.Policy);
+            world.AppendEvent(new FoodPolicyAdoptedEventPayload(null, ballot.Policy));
         }
         else if (living.Length == 0 || rejections > living.Length - required || world.WorldTick > ballot.ExpiryTick)
         {
             foodStewardship = foodStewardship with { LastResolutionTick = world.WorldTick, Ballot = null };
-            world.AppendEvent("food_policy_rejected", ballot.Policy);
+            world.AppendEvent(new FoodPolicyRejectedEventPayload(null, ballot.Policy));
         }
     }
 
@@ -121,7 +121,7 @@ internal sealed partial class TownSystem
                 return;
             }
             foodStewardship = foodStewardship with { Ballot = new(policy, world.WorldTick, world.WorldTick + 120, FoodPolicyVoters(world), [actor], []) };
-            world.AppendEvent("food_policy_proposed", policy);
+            world.AppendEvent(new FoodPolicyProposedEventPayload(null, policy));
         }
         else if (foodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
                  !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal))
@@ -132,7 +132,7 @@ internal sealed partial class TownSystem
                     ? ballot with { Approvals = ballot.Approvals.Append(actor).Order(StringComparer.Ordinal).ToArray() }
                     : ballot with { Rejections = ballot.Rejections.Append(actor).Order(StringComparer.Ordinal).ToArray() },
             };
-            world.AppendEvent("food_policy_vote_recorded", actor);
+            world.AppendEvent(new FoodPolicyVoteRecordedEventPayload(actor));
         }
         ResolveFoodPolicyBallot(world);
     }

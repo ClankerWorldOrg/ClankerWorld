@@ -418,13 +418,13 @@ public sealed partial class WorldRuntime
         };
         if (finished)
         {
-            AppendEvent("instruction_applied", $"{current.InstructionId}:{order.Action}");
-            AppendEvent("instruction_order_finished", $"{current.TargetAgentId}:{current.InstructionId}:{effectId}");
+            AppendEvent(new InstructionAppliedEventPayload(current.TargetAgentId, current.InstructionId, order.Action));
+            AppendEvent(new InstructionOrderFinishedEventPayload(current.TargetAgentId, current.InstructionId, effectId));
             PruneClosedOrderHistory();
         }
         else
         {
-            AppendEvent("instruction_order_progress", $"{current.TargetAgentId}:{current.InstructionId}:{completed}");
+            AppendEvent(new InstructionOrderProgressEventPayload(current.TargetAgentId, current.InstructionId, completed));
         }
         checkpointSchemaVersion = StateSchemaVersion;
     }
@@ -451,7 +451,7 @@ public sealed partial class WorldRuntime
             Task = order.Transition(status, reason, waitForDecision),
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_status", $"{current.TargetAgentId}:{current.InstructionId}:{status.ToWireValue()}");
+        AppendEvent(new InstructionOrderStatusEventPayload(current.TargetAgentId, current.InstructionId, status.ToWireValue()));
     }
 
     private string OrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)

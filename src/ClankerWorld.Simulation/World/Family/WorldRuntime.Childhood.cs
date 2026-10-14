@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"child-help:{WorldTick}:{actor}", actor, HouseholdFor(actor), lot.Id, 1,
                 "child_household_help", house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house?.InstanceId)));
-            AppendEvent("child_helped_household", actor);
+            AppendEvent(new ChildHelpedHouseholdEventPayload(actor));
             return;
         }
 
@@ -134,6 +134,6 @@ public sealed partial class WorldRuntime
                     _ => "Learned by observing an adult.",
                 }, "public", WorldTick)));
         IncreaseTrust(actor, target, 1, "child_" + kind);
-        AppendEvent("child_" + kind, $"{actor}:{target}");
+        AppendEvent(WorldEvents.Child(kind, actor, target));
     }
 }

@@ -207,6 +207,10 @@ internal static class MarketFreshConsentScenario
         Assert.DoesNotContain(choices.Selected, item => item.Id.StartsWith("market_leave:", StringComparison.Ordinal));
         Assert.False(MarketTradeRules.IsInside(CurrentMarket(world), Physical(world, seller).Position));
         Assert.Equal(DirectBarterState.Cancelled, world.Society.Inventory.GetOffer(offerId).State);
+        var cancelled = Assert.Single(world.ExportState().Events, item =>
+            item.Payload is MarketTradeCancelledEventPayload payload && payload.OfferId == offerId);
+        Assert.Null(cancelled.Payload.ActorId);
+        Assert.Equal(trade.Position, cancelled.Position);
         Assert.All(claims, claim => Assert.Equal(InventoryReservationState.Released,
             world.Society.Inventory.GetReservation(claim.Id).State));
         AssertLotPlacementUnchanged(beforeGoods, world.Society.Inventory.GetLot(beforeGoods.Id));

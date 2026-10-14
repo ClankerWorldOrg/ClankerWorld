@@ -162,7 +162,7 @@ public sealed class AnimalSystemTests
         public int EcologySyncs { get; private set; }
         public bool IsAdult(string actor) => actor == "agent";
         public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => Events.Add((payload.Kind, payload.DiagnosticDetail, eventPosition));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };
         public int AvailableLotQuantity(InventoryLot lot) => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(Society.Inventory), lot));
         public InventoryLot? AttachedHandcart(string actor) => null;

@@ -134,7 +134,7 @@ public sealed partial class TownMembershipTests
         var crowded = abandoned with
         {
             Events = abandoned.Events.Concat(Enumerable.Range(0, WorldHistory.CompactionThreshold + 1)
-                .Select(index => new WorldEventEntry(next + index, tick, "owner_note", "paused"))).ToArray()
+                .Select(index => new WorldEventEntry(next + index, tick, new PausedEventPayload(null)))).ToArray()
         };
         var directory = Directory.CreateTempSubdirectory("town-weathering-");
         try

@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
             },
         };
         agents[actor] = completed;
-        AppendEvent("exploration_goal_found", $"{actor}:{goal.Kind}:{goal.Target}");
+        AppendEvent(new ExplorationGoalFoundEventPayload(actor, goal.Kind, goal.Target));
         return completed;
     }
 
@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
             // Another legal intention moved the actor. Never splice that move
             // into a stale scouting path or pretend its intermediate tiles were visited.
             exploration = exploration with { OutingPath = [], OutingDiscoveries = [], Returning = false, Goal = null };
-            AppendEvent("exploration_aborted", $"{actor}:interrupted_movement");
+            AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
         }
         // An order can supply a purpose to an already running curiosity outing.
         // Replacement/cancellation never makes its old purpose authoritative.
@@ -139,7 +139,7 @@ public sealed partial class WorldRuntime
                 OutingDiscoveries = learnedStartingTile ? [person.Position] : [],
                 Goal = goal,
             };
-            AppendEvent("exploration_started", $"{actor}:{person.Position.X},{person.Position.Y}");
+            AppendEvent(new ExplorationStartedEventPayload(actor, person.Position.X, person.Position.Y));
         }
 
         if (exploration.Returning)
@@ -202,8 +202,7 @@ public sealed partial class WorldRuntime
             var terrain = map.Tiles.First(tile => tile.Position == moved.Position).Terrain;
             var resourcesHere = map.Resources.Where(site => site.Position == moved.Position)
                 .Select(site => site.Kind).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
-            AppendEvent("exploration_discovered",
-                $"{actor}:{moved.Position.X},{moved.Position.Y}:{terrain}:{string.Join(',', resourcesHere)}");
+            AppendEvent(new ExplorationDiscoveredEventPayload(actor, moved.Position.X, moved.Position.Y, Convert.ToString(terrain, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, string.Join(',', resourcesHere)));
         }
         if (exploration.Goal is { } reachedGoal && ExplorationGoalReached(actor, agents[actor], reachedGoal))
             CompleteExplorationGoal(actor, agents[actor]);
@@ -213,7 +212,7 @@ public sealed partial class WorldRuntime
     {
         if (person.Exploration is not { OutingPath.Count: > 0 } exploration) return;
         if (!exploration.Returning)
-            AppendEvent("exploration_return_started", actor);
+            AppendEvent(new ExplorationReturnStartedEventPayload(actor));
         ReturnFromExploration(actor, person, exploration with { Returning = true });
     }
 
@@ -231,7 +230,7 @@ public sealed partial class WorldRuntime
                     Goal = null,
                 }
             };
-            AppendEvent("exploration_completed", $"{actor}:visited={exploration.VisitedTiles.Count}");
+            AppendEvent(new ExplorationCompletedEventPayload(actor, exploration.VisitedTiles.Count));
             return;
         }
 
@@ -261,7 +260,7 @@ public sealed partial class WorldRuntime
                     Goal = null,
                 }
             };
-            AppendEvent("exploration_aborted", $"{actor}:return_blocked");
+            AppendEvent(new ExplorationAbortedEventPayload(actor, "return_blocked"));
         }
     }
 

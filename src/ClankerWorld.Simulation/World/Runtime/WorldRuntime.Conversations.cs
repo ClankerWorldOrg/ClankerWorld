@@ -210,7 +210,7 @@ public sealed partial class WorldRuntime
             conversationSystem.SetConversation(started);
             pendingConversationTurns.Add(started.Id, new PendingConversationTurn(
                 request, task, cancellation, providerEpoch));
-            AppendEvent("conversation_turn_started", $"{started.Id}:{speakerId}");
+            AppendEvent(new ConversationTurnStartedEventPayload(speakerId, started.Id, speakerId));
         }
     }
 

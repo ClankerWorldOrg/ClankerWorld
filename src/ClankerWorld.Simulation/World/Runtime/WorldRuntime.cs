@@ -18,7 +18,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 135;
+    public const int StateSchemaVersion = 136;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -233,8 +233,8 @@ public sealed partial class WorldRuntime : IDisposable
         // Out-of-season orchard trees start without fruit.
         SyncEcologyResourceStates();
 
-        AppendEvent("world_created", $"{this.worldSeed}:agents:{agents.Count}");
-        if (towns.Count > 0) AppendEvent("town_founding_started", TownBorderRules.FirstTownId);
+        AppendEvent(new WorldCreatedEventPayload(null, this.worldSeed, agents.Count));
+        if (towns.Count > 0) AppendEvent(new TownFoundingStartedEventPayload(null, TownBorderRules.FirstTownId));
         StartContinuityRule();
     }
 
@@ -569,7 +569,7 @@ public sealed partial class WorldRuntime : IDisposable
         RefusedActionCount = refusedActionCount,
     };
 
-    private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) =>
-        worldEventLog.AppendEvent(agentWorld, kind, detail, eventPosition);
+    private void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) =>
+        worldEventLog.AppendEvent(agentWorld, payload, eventPosition);
 
 }

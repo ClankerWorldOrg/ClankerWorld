@@ -365,7 +365,7 @@ public sealed partial class WorldRuntime
             };
         });
         ReplaceShopTrade(trade with { SellerActorId = actor });
-        AppendEvent("shop_trade_completed", actor + ":" + offer.Id);
+        AppendEvent(new ShopTradeCompletedEventPayload(actor, offer.Id));
     }
 
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice)
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
             id, 1, actor));
         shopTrades.Add(new(Identity.Parse(id), building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
             choice.Goods.ItemKind, choice.Payment.ItemKind));
-        AppendEvent("shop_trade_offered", actor + ":" + id);
+        AppendEvent(new ShopTradeOfferedEventPayload(actor, id));
         return id;
     }
 
@@ -430,7 +430,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory,
                 offer.Id, offer.Revision, offer.FirstPartyId));
         ReplaceShopTrade(trade with { CancellationReason = reason });
-        AppendEvent("shop_trade_cancelled", trade.BuyerId + ":" + trade.OfferId);
+        AppendEvent(new ShopTradeCancelledEventPayload(null, trade.BuyerId, trade.OfferId));
     }
 
     private void MaintainShopTrades()

@@ -12,4 +12,7 @@
   <ItemGroup>
     <Compile Include="../ClankerWorld.Shared/EventVocabulary.cs" Link="Shared/EventVocabulary.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/WorldEvents/*.cs" Link="Shared/WorldEvents/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

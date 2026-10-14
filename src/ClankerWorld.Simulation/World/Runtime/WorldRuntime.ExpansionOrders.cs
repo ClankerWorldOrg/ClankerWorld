@@ -119,7 +119,7 @@ public sealed partial class WorldRuntime
                     BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
                         ? item with { State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null } : item).ToArray(),
                 };
-                AppendEvent("expansion_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
+                AppendEvent(new ExpansionOrderResumedEventPayload(null, instruction.InstructionId, job.JobId));
             }
             return;
         }
@@ -210,7 +210,7 @@ public sealed partial class WorldRuntime
             BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
                 ? item with { State = WorldProductionJobState.Paused, PausedAtTick = WorldTick } : item).ToArray(),
         };
-        AppendEvent("expansion_order_paused", $"{instruction.InstructionId}:{job.JobId}");
+        AppendEvent(new ExpansionOrderPausedEventPayload(null, instruction.InstructionId, job.JobId));
     }
 
     private void CancelExpansionForOrder(OwnerQueuedInstruction instruction)
@@ -229,7 +229,7 @@ public sealed partial class WorldRuntime
             BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
                 ? item with { State = WorldProductionJobState.Cancelled, Failure = "The expansion order stopped." } : item).ToArray(),
         };
-        AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:The expansion order stopped.");
+        AppendEvent(new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, "The expansion order stopped."));
     }
 
     private void CreditExpansionOrderJob(BuildingExpansionJob job)

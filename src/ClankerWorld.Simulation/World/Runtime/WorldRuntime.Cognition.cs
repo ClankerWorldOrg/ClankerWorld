@@ -213,7 +213,7 @@ public sealed partial class WorldRuntime
                 observation));
             if (!accepted)
             {
-                AppendEvent("cognition_backpressure", agent.Id);
+                AppendEvent(new CognitionBackpressureEventPayload(agent.Id, agent.Id));
             }
             else
             {
@@ -661,7 +661,7 @@ public sealed partial class WorldRuntime
         if (!decision.Admission.Accepted || decision.Admission.Intention is null ||
             !agents.TryGetValue(decision.AgentId, out var state))
         {
-            AppendEvent("cognition_rejected", $"{decision.AgentId}:{decision.Admission.Outcome}");
+            AppendEvent(new CognitionRejectedEventPayload(decision.AgentId, decision.Admission.Outcome));
             return;
         }
 
@@ -672,7 +672,7 @@ public sealed partial class WorldRuntime
         var candidateId = decision.Admission.Intention.CandidateId;
         if (PassengerBoat(decision.AgentId) is not null && candidateId is not ("consume_food" or "drink_milk" or "safe_idle"))
         {
-            AppendEvent("boat_action_blocked", $"{decision.AgentId}:stay_aboard");
+            AppendEvent(new BoatActionBlockedEventPayload(decision.AgentId));
             return;
         }
         if (PassengerBoat(decision.AgentId) is not null)
@@ -683,7 +683,7 @@ public sealed partial class WorldRuntime
         if (candidateId != "safe_idle") guardianPlacementActions.Add(decision.AgentId);
         if (decision.Admission.Intention.OperativeOrderInstructionId != pendingInstruction?.InstructionId)
         {
-            AppendEvent("instruction_order_stale_decision", decision.AgentId);
+            AppendEvent(new InstructionOrderStaleDecisionEventPayload(decision.AgentId));
             return;
         }
 
@@ -821,7 +821,7 @@ public sealed partial class WorldRuntime
         if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle))) return;
         if (!AgePermitsCandidate(agentId, candidateId))
         {
-            AppendEvent("age_action_rejected", $"{agentId}:{candidateId}");
+            AppendEvent(new AgeActionRejectedEventPayload(agentId, candidateId));
             return;
         }
         if (agents[agentId].Equipment?.Repair is not null && candidateId != "repair_equipment")
@@ -831,7 +831,7 @@ public sealed partial class WorldRuntime
         }
         if (PendingInstructionFor(agentId) is null && ContinueFarmWork(agentId)) return;
         if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle))) return;
-        if (reportIdle) AppendEvent("agent_idle", agentId);
+        if (reportIdle) AppendEvent(new AgentIdleEventPayload(agentId));
     }
 
     private void ApplyBuildDecision(
@@ -841,7 +841,7 @@ public sealed partial class WorldRuntime
     {
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selection))
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:unknown_target");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "unknown_target"));
             return;
         }
 
@@ -863,10 +863,9 @@ public sealed partial class WorldRuntime
 
             if (definition is null || rankedSite is null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:selected_site_no_longer_legal");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "selected_site_no_longer_legal"));
                 if (selection.SitePosition is { } rejectedSite && definition is not null)
-                    AppendEvent("town_layout_site_rejected",
-                        $"{TownForResident(agentId) ?? "none"}|{agentId}|{definition.CanonicalId}|{rejectedSite.X}|{rejectedSite.Y}|site_unavailable");
+                    AppendEvent(new TownLayoutSiteRejectedEventPayload(agentId, TownForResident(agentId) ?? "none", definition.CanonicalId, rejectedSite.X, rejectedSite.Y));
                 return;
             }
             var householdProperty = definition.Tags.Any(IsHouseholdBuildingTag);
@@ -874,13 +873,13 @@ public sealed partial class WorldRuntime
                 ? society.Checkpoint.GetAgent(agentId).HouseholdId : null;
             if (householdProperty && houseOwner is null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:household_required");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "household_required"));
                 return;
             }
             if (definition.Tags.Contains("house", StringComparer.Ordinal) && houseOwner is not null &&
                 HouseForHousehold(houseOwner) is not null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:existing_house");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "existing_house"));
                 return;
             }
 
@@ -896,7 +895,7 @@ public sealed partial class WorldRuntime
                 state.Project.WorkDone < ProjectWorkTicks ||
                 !TryConstructionOrderSite(constructionOrder, state, out _, out _, out _, out _)))
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:ordered_project_changed");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "ordered_project_changed"));
                 return;
             }
             var materialOwner = BuildingConstructionOwner(agentId, definition);
@@ -911,7 +910,7 @@ public sealed partial class WorldRuntime
                 constructionOrder?.InstructionId);
             if (!placement.Applied)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:{placement.Failure}");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, placement.Failure));
             }
             else
             {
@@ -927,7 +926,7 @@ public sealed partial class WorldRuntime
         var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == recipeId);
         if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out var sitePosition, agentId))
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:no_valid_site");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "no_valid_site"));
             return;
         }
 
@@ -945,7 +944,7 @@ public sealed partial class WorldRuntime
         var started = StartProductionCore(recipe.CanonicalId, siteId, agentId, "build_started", orderInstructionId);
         if (!started.Applied)
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:{started.Failure}");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, started.Failure));
         }
     }
 

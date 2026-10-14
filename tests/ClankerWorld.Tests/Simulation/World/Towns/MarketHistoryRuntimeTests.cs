@@ -99,8 +99,18 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
             var trade = Assert.Single(PaidMarketWorld.Market(state).Trades, item => item.SettledTick is null && item.CancellationReason is null);
             offers.Add(trade.OfferId);
             if (cycle % 2 == 0)
+            {
+                var cancellingActor = cycle % 4 == 0 ? buyer : Seller;
                 state = await history.ChooseAsync("market_cancel:",
-                    world => world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Cancelled);
+                    world => world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Cancelled, cancellingActor);
+                var cancelled = Assert.Single(state.Events, item =>
+                    item.Payload is MarketTradeCancelledEventPayload payload && payload.OfferId == trade.OfferId);
+                Assert.Equal(cancellingActor, cancelled.Payload.ActorId);
+                Assert.Equal(trade.Position, cancelled.Position);
+                var payload = Assert.IsType<MarketTradeCancelledEventPayload>(cancelled.Payload);
+                Assert.Equal(Seller, payload.SellerId);
+                Assert.Equal(buyer, payload.BuyerId);
+            }
             else
             {
                 state = await history.ChooseAsync("market_continue:",

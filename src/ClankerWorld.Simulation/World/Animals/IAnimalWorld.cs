@@ -8,7 +8,7 @@ namespace ClankerWorld.Simulation.World;
 internal interface IAnimalWorld
 {
     bool IsAdult(string actor);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     InventoryLot? AttachedHandcart(string actor);
     int AvailableLotQuantity(InventoryLot lot);

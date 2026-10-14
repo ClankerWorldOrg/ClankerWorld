@@ -399,7 +399,7 @@ public sealed partial class WorldRuntime
         });
         RecordNonLandRepairCompletion(actor, tool, repairId,
             $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations.Select(Identity.Parse).ToArray());
-        AppendEvent("tool_repaired", $"{actor}:{repairId}:{blacksmith.InstanceId}");
+        AppendEvent(new ToolRepairedEventPayload(actor, repairId, blacksmith.InstanceId));
         return repairId;
     }
 

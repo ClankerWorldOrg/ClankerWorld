@@ -28,7 +28,7 @@ internal sealed partial class AnimalSystem
             saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
         SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = Identity.Parse(reservationId) });
         FinishAnimalSupplyTrip(world, actor);
-        world.AppendEvent("animal_saddled", actor + ":" + animal.Id, animal.Position);
+        world.AppendEvent(new AnimalSaddledEventPayload(actor, animal.Id), animal.Position);
     }
 
     internal void EndAnimalRide(IAnimalWorld world, AnimalState animal, string reason)
@@ -59,7 +59,7 @@ internal sealed partial class AnimalSystem
                     holdAccess: InventoryHoldRules.SupplyTripFor(rider)));
             }
         }
-        world.AppendEvent("horse_dismounted", rider + ":" + animal.Id + ":" + reason, animal.Position);
+        world.AppendEvent(new HorseDismountedEventPayload(rider, animal.Id, reason), animal.Position);
     }
 
     internal void MoveAnimal(IAnimalWorld world, AnimalState animal, GridPoint next)

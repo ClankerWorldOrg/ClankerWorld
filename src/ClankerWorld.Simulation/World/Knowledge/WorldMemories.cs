@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
             new SocietyMemorySummaryOption(summary.Choice, summary.Text, sources));
         society.Apply(_ => new SocietyOperationResult(next));
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_memories_summarized", ownerId + ":" + sources.Length);
+        AppendEvent(new AgentMemoriesSummarizedEventPayload(ownerId, sources.Length));
     }
 
     private void ApplyMemoryCompaction(
