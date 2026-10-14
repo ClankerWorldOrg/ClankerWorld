@@ -129,7 +129,12 @@ public sealed partial class WorldRuntime
         foreach (var artifact in HeldKnowledgeArtifacts(actor))
         {
             if (HasUnknownArtifactContents(actor, artifact))
-                candidates.Add(new(KnowledgeReadPrefix + artifact.Id, $"Read {artifact.Title} and learn only the sites and recipes actually written in it.", 53));
+            {
+                var reading = new KnowledgeReadingActionPlan(actor, artifact, actor, false);
+                if (CheckKnowledgeReading(reading).Allowed) candidates.Add(new(reading.CandidateId,
+                    $"Read {artifact.Title} and learn only the sites and recipes actually written in it.", 53)
+                { ActionPlan = reading });
+            }
             if (!MayMakeKnowledgeArtifact(actor)) continue;
             var facts = FactsToWrite(actor, artifact.Kind, artifact);
             var recipes = RecipesToWrite(actor, artifact.Kind, artifact);
@@ -155,8 +160,10 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return;
         if (candidate.StartsWith(KnowledgeReadPrefix, StringComparison.Ordinal))
         {
-            if (HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == candidate[KnowledgeReadPrefix.Length..]) is { } reading)
-                ReadIfKnowledgeArtifact(reading.LotId, reading.CreatorId, actor);
+            var reading = originalPlan as KnowledgeReadingActionPlan;
+            if (reading is null && HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == candidate[KnowledgeReadPrefix.Length..]) is { } selected)
+                reading = new(actor, selected, actor, false);
+            if (reading is not null) ApplyKnowledgeReading(reading);
             return;
         }
         var plan = originalPlan as KnowledgeWritingActionPlan ?? PlanKnowledgeWriting(actor, candidate);

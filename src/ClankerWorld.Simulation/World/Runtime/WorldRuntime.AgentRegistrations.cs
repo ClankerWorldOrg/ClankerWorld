@@ -216,7 +216,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "KnowledgeSharePrefix", [KnowledgeSharePrefix], [], static (runtime, action) =>
     {
-        runtime.ApplyKnowledgeShare(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyKnowledgeShare(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "SupplyWorkstationPrefix", [SupplyWorkstationPrefix], [], static (runtime, action) =>

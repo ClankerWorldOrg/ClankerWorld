@@ -491,6 +491,9 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Voluntary knowledge reading and sharing retain the exact held artifact
+contents and recipient. One check verifies custody, unknown contents and sharing
+range before native learning; automatic traded reading retains its existing path.
 Knowledge writing and copying retain the selected contents, source and exact
 material pickup or carried input lots. One check validates that same selection
 before native reservation; continuation retains the original project and claims

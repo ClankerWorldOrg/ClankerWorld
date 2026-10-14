@@ -57,34 +57,28 @@ public sealed partial class WorldRuntime
                 if (!HasUnknownArtifactContents(target.AgentId, artifact))
                     continue;
                 var targetName = society.Checkpoint.GetAgent(target.AgentId).Name;
-                candidates.Add(new CognitionCandidate(
-                    KnowledgeSharePrefix + artifact.Id + "|" + target.AgentId,
+                var plan = new KnowledgeReadingActionPlan(actor, artifact, target.AgentId, true);
+                if (CheckKnowledgeReading(plan).Allowed) candidates.Add(new CognitionCandidate(
+                    plan.CandidateId,
                     $"Share {artifact.Title} with {targetName}; they can learn the written sites and recipes they do not already know, and you keep the physical artifact.",
-                    52));
+                    52)
+                { ActionPlan = plan });
             }
         }
     }
 
-    private void ApplyKnowledgeShare(string actor, AgentState person, string candidateId)
+    private void ApplyKnowledgeShare(string actor, AgentState person, string candidateId, ActionPlan? originalPlan = null)
     {
-        var encoded = candidateId[KnowledgeSharePrefix.Length..];
-        var divider = encoded.LastIndexOf('|');
-        if (divider <= 0 || divider == encoded.Length - 1)
-            return;
-        var artifactId = encoded[..divider];
-        var recipientId = encoded[(divider + 1)..];
-        if (!agents.TryGetValue(recipientId, out var recipient) || !IsAdult(recipientId) ||
-            !IsWithinInteractionRange(person.Position, recipient.Position, 1))
-            return;
-        var artifact = HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == artifactId);
-        if (artifact is null)
-            return;
-        var learned = LearnArtifactFacts(recipientId, actor, artifact, "shared") + LearnArtifactRecipes(recipientId, actor, artifact, "shared");
-        if (learned > 0)
+        var plan = originalPlan as KnowledgeReadingActionPlan;
+        if (plan is null)
         {
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("agent_knowledge_shared", $"{actor}|{recipientId}|{artifact.Id}|{learned}");
+            var encoded = candidateId[KnowledgeSharePrefix.Length..];
+            var divider = encoded.LastIndexOf('|');
+            if (divider <= 0 || divider == encoded.Length - 1) return;
+            if (HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == encoded[..divider]) is { } artifact)
+                plan = new(actor, artifact, encoded[(divider + 1)..], true);
         }
+        if (plan is not null) ApplyKnowledgeReading(plan);
     }
 
     private void ReadTradedKnowledge(string firstPartyId, string secondPartyId, string firstLotId, string secondLotId)
@@ -93,9 +87,9 @@ public sealed partial class WorldRuntime
         ReadIfKnowledgeArtifact(secondLotId, secondPartyId, firstPartyId);
     }
 
-    private int ReadIfKnowledgeArtifact(string lotId, string sourceAgentId, string recipientId)
+    private int ReadIfKnowledgeArtifact(string lotId, string sourceAgentId, string recipientId, AgentKnowledgeArtifact? selectedArtifact = null)
     {
-        var artifact = knowledge.Artifacts.FirstOrDefault(item => item.LotId == lotId);
+        var artifact = selectedArtifact ?? knowledge.Artifacts.FirstOrDefault(item => item.LotId == lotId);
         if (artifact is null || !HeldKnowledgeArtifacts(recipientId).Any(item => item.Id == artifact.Id))
             return 0;
         var learned = LearnArtifactFacts(recipientId, sourceAgentId, artifact, "read") + LearnArtifactRecipes(recipientId, sourceAgentId, artifact, "read");
