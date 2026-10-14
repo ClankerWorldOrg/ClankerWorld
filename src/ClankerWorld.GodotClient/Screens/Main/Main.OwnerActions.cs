@@ -25,7 +25,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(
-                ResolveWorldUri(), authority, deviceId, paused, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, paused, signer, OwnerRequestToken));
             accepted = true;
             return receipt.Changed
                 ? paused ? "World paused" : "World resumed"
@@ -79,7 +79,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             await AwaitCurrentWorldResultAsync(ownerApi.SubmitInstructionAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             completed = true;
             instructionText.Text = string.Empty;
             return InstructionSubmissionResultText(action.Kind, action.Queue);
@@ -116,7 +116,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.CancelOrderAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             completed = true;
             return OrderCancellationResultText(receipt);
         }, retainedSubmission: pending);
@@ -171,7 +171,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
-                ResolveWorldUri(), authority, deviceId, batch, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, batch, signer, OwnerRequestToken));
             completed = true;
             return receipt.Applied
                 ? $"World edit applied: {operation.Kind.Replace('_', ' ')}."
