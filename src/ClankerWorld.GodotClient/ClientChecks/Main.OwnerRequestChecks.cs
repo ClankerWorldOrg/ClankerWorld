@@ -17,6 +17,9 @@ public partial class Main
         var previousSelection = selectedAgentId;
         var previousRenderedGeneration = renderedObservationGeneration;
         var previousInWorld = isInWorld;
+        var previousPanelVisibility = ownerPanelRevisions.Keys
+            .Concat(new Control[] { mainMenuOverlay, worldMenuOverlay, manualSaveOverlay })
+            .Distinct().ToDictionary(panel => panel, panel => panel.Visible);
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
         using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
@@ -237,6 +240,7 @@ public partial class Main
             apiKeyInput.Text = string.Empty;
             ShowMainMenu();
             isInWorld = previousInWorld;
+            foreach (var (panel, visible) in previousPanelVisibility) panel.Visible = visible;
             System.Environment.SetEnvironmentVariable("CI", previousCi);
         }
         GD.Print($"Owner lifecycle checks: {passed} passed, {failures.Count} failed.");
