@@ -389,19 +389,7 @@ public sealed partial class WorldRuntime
     private bool ApplyMarketCandidate(string actor, AgentState state, string id, ActionPlan? originalPlan = null)
     {
         if (!IsMarketCandidate(id)) return false;
-        if (originalPlan is MarketOccupancyActionPlan occupancyPlan) { ApplyMarketOccupancy(occupancyPlan); return true; }
-        if (originalPlan is MarketStockActionPlan stockPlan) { ApplyMarketStock(stockPlan); return true; }
-        if (originalPlan is MarketExchangeActionPlan exchangePlan) { ApplyMarketExchange(exchangePlan); return true; }
-        var choice = MarketChoices(actor).SingleOrDefault(item => item.Id == id);
-        if (choice is null) return true;
-        var position = MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
-        if (choice.Kind is "borrow" or "leave")
-        {
-            if (PlanMarketOccupancy(actor, choice) is { } plan) ApplyMarketOccupancy(plan);
-            return true;
-        }
-        if (choice.Kind is "load" or "deposit" or "collect") { ApplyMarketStock(PlanMarketStock(actor, choice)); return true; }
-        ApplyMarketExchange(PlanMarketExchange(actor, choice));
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, state, id, false, originalPlan));
         return true;
     }
 

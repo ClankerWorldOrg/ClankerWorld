@@ -2,11 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckMarketExchange(MarketExchangeActionPlan plan)
+    private ActionCheck CheckMarketExchange(MarketExchangeActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: plan.Choice.Kind == MarketExchangeKind.Cancel,
-                AllowActiveOrder: true));
+            policy ?? MarketExchangeCapabilities(plan.Choice.Kind));
         if (!capability.Allowed) return capability;
         if (!MarketAdult(plan.Actor) || towns.SingleOrDefault(town => town.Id == plan.TownId) is not { } town ||
             town.Markets.SingleOrDefault(market => market.Id == plan.MarketId) is not { } market || market.Site != plan.MarketSite ||
@@ -33,7 +32,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyMarketExchange(MarketExchangeActionPlan plan)
     {
-        if (CheckMarketExchange(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedMarketExchange(plan);
+    }
+
+    private void ApplyCheckedMarketExchange(MarketExchangeActionPlan plan)
+    {
         var town = towns.Single(item => item.Id == plan.TownId);
         var market = town.Markets.Single(item => item.Id == plan.MarketId);
         var stall = market.Stalls.Single(item => item.BuildingId == plan.StallId);

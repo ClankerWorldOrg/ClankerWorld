@@ -317,19 +317,19 @@ public sealed partial class WorldRuntime
             var payment = society.Checkpoint.Inventory.GetLot(offer.SecondLotId);
             var continuePlan = new ShopResponseActionPlan(actor, false, trade, offer);
             var cancelPlan = new ShopResponseActionPlan(actor, true, trade, offer);
-            if (CheckShopResponse(continuePlan).Allowed) candidates.Add(new(continuePlan.CandidateId, buyer
+            if (CheckActionPlan(continuePlan).Allowed) candidates.Add(new(continuePlan.CandidateId, buyer
                 ? $"Wait at the shop to receive {offer.FirstQuantity} {goods.ItemKind} for {offer.SecondQuantity} {payment.ItemKind}."
                 : $"Meet the customer at the shop and accept {offer.SecondQuantity} {payment.ItemKind} for {offer.FirstQuantity} {goods.ItemKind}.",
                 12, trade.BuildingInstanceId)
             { ActionPlan = continuePlan });
-            if (CheckShopResponse(cancelPlan).Allowed) candidates.Add(new(cancelPlan.CandidateId,
+            if (CheckActionPlan(cancelPlan).Allowed) candidates.Add(new(cancelPlan.CandidateId,
                 "Cancel this exchange and release the goods and receiving space.", 65, trade.BuildingInstanceId)
             { ActionPlan = cancelPlan });
         }
         foreach (var building in worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal))
         {
             var plan = PlanShopBuy(actor, building);
-            if (plan is null || !CheckShopBuy(plan).Allowed) continue;
+            if (plan is null || !CheckActionPlan(plan).Allowed) continue;
             var text = plan.Quote is { } choice
                 ? $"Offer {choice.PaymentQuantity} {choice.Payment.ItemKind} for {choice.GoodsQuantity} {choice.Goods.ItemKind} stocked at this shop; the household may refuse."
                 : plan.Kind == ShopBuyKind.IngredientsTrip
