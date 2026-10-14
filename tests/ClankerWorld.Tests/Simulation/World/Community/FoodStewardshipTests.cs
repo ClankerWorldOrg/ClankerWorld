@@ -79,9 +79,14 @@ public sealed class FoodStewardshipTests
         Assert.NotNull(foodStewardship.StewardId);
         Assert.NotEqual(departed, foodStewardship.StewardId);
         Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(foodStewardship.StewardId!).Status);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "food_steward_changed");
+        var accepted = world.ExportState();
+        var entry = accepted.Events.Last(item => item.Kind == "food_steward_changed");
+        Assert.Equal(foodStewardship.StewardId, entry.Payload.ActorId);
+        Assert.Equal(accepted.Agents.Single(person => person.AgentId == foodStewardship.StewardId).Position, entry.Position);
+        Assert.Equal(foodStewardship.StewardId, entry.Detail);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(foodStewardship, restored.ExportState().FoodStewardship);
+        Assert.Equal(entry, restored.ExportState().Events.Single(item => item.EventId == entry.EventId));
     }
 
     [Fact]

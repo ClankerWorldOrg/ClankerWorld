@@ -59,8 +59,10 @@ internal sealed partial class AnimalSystem
                             root.ItemKind == InventoryContainerRules.WaterJug && water.Any(content => content.Root.Id == root.Id) &&
                             carriedWater < definition.DailyWater ? 1 : 0,
                     };
-                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), world.FreeCarryCapacity(actor)));
-                    if (quantity <= 0 || !world.VesselFits(root, world.FreeCarryCapacity(actor)) ||
+                    if (wanted <= 0) continue;
+                    var capacity = world.PickupCarryCapacity(actor, root, animal.Position);
+                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), capacity));
+                    if (quantity <= 0 || !world.VesselFits(root, capacity) ||
                         AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(world, actor, animal, root, quantity)) continue;
                     yield return new(root, yard, quantity, animal.Id, action);
                 }
@@ -128,7 +130,7 @@ internal sealed partial class AnimalSystem
                 InventoryAuthority.Transfer(current, "animal-donate-" + world.WorldTick + "-" + world.NextEventId, lot.OwnerId, yard.HouseholdId!,
                     lot.Id, quantity, "animal_yard_supplied", destinationStorageBuildingId: yard.InstanceId, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
             FinishAnimalSupplyTrip(world, actor);
-            world.AppendEvent("animal_yard_supplied", actor + ":" + yard.InstanceId);
+            world.AppendEvent(new AnimalYardSuppliedEventPayload(actor, yard.InstanceId));
             return true;
         }
         if (!id.StartsWith("animal:supply:", StringComparison.Ordinal)) return false;
