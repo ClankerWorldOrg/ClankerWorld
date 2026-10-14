@@ -291,15 +291,15 @@ public sealed partial class WorldRuntime
         AddOrnamentCandidates(candidates, actor);
         var losingWarmth = WarmthChange(person) < 0;
         if (losingWarmth && condition.WarmthBasisPoints < ComfortableWarmth &&
-            PlanFire(actor) is { } fire && CheckFirePlan(fire).Allowed)
-            candidates.Add(new CognitionCandidate("tend_fire", "Carry wood to an unlit hearth and keep it burning for warmth.", NeedsUrgentWarmth(person) ? 1 : 2)
+            FireDefinition.Offer(this, actor, new(WarmthChoiceKind.Fire)) is { } fire)
+            candidates.Add(new CognitionCandidate(FireDefinition.Encode(new(WarmthChoiceKind.Fire)), "Carry wood to an unlit hearth and keep it burning for warmth.", NeedsUrgentWarmth(person) ? 1 : 2)
             { ActionPlan = fire });
         var recoveringInCover = NearShelter(actor, person.Position) ||
             WeatherAt(person.Position) == WeatherKind.Storm && NaturalStormCover(person.Position) ||
             WarmthChange(person) > 20;
         if (condition.WarmthBasisPoints < ComfortableWarmth && (recoveringInCover || losingWarmth) &&
-            PlanWarmth(actor) is { } warmth && CheckWarmthPlan(warmth).Allowed)
-            candidates.Add(new CognitionCandidate("seek_warmth", "Seek protection or remain in cover while recovering warmth.", NeedsUrgentWarmth(person) ? 2 : 3)
+            WarmthDefinition.Offer(this, actor, new(WarmthChoiceKind.Protection)) is { } warmth)
+            candidates.Add(new CognitionCandidate(WarmthDefinition.Encode(new(WarmthChoiceKind.Protection)), "Seek protection or remain in cover while recovering warmth.", NeedsUrgentWarmth(person) ? 2 : 3)
             { ActionPlan = warmth });
     }
 

@@ -12,9 +12,9 @@ public sealed partial class WorldRuntime
     private GoodsMatch? CarriedFirewood(string actor) => SpendingGoods(actor, GoodsUse.Spend, [actor], "wood")
         .FirstOrDefault(match => PersonalEquipmentRules.IsCarried(match.Lot, actor));
 
-    private FireActionPlan? PlanFire(string actor)
+    private FireActionPlan? PlanFire(string actor, ActorCapabilityPolicy? policy = null)
     {
-        if (!ActorCapabilities.Check(CapabilitiesFor(actor), "tend_fire", FirePolicy).Allowed ||
+        if (!ActorCapabilities.Check(CapabilitiesFor(actor), new WarmthChoice(WarmthChoiceKind.Fire).Encode(), policy ?? FirePolicy).Allowed ||
             ReachableUnlitHearth(actor, agents[actor]) is not { } hearth) return null;
         var range = hearth.HouseholdId is null ? ResourceInteractionRange : 0;
         PlannedFireFuel fuel;
@@ -34,9 +34,9 @@ public sealed partial class WorldRuntime
             Reach(actor, hearth.Position, ReachPurpose.FireFuel, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckFirePlan(FireActionPlan plan)
+    private ActionCheck CheckFirePlan(FireActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, FirePolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? FirePolicy);
         if (!capability.Allowed) return capability;
         if (survivalState is null || AccessibleHeatingBuildings(plan.Actor).SingleOrDefault(item => item.InstanceId == plan.BuildingId) is not { } hearth ||
             IsFireLit(hearth) || hearth.Position != plan.Destination ||
@@ -85,7 +85,12 @@ public sealed partial class WorldRuntime
     private void ApplyFirePlan(FireActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckFirePlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedFirePlan(plan);
+    }
+
+    private void ApplyCheckedFirePlan(FireActionPlan plan)
+    {
         switch (plan.Fuel)
         {
             case SharedFireFuel shared: ApplyPlannedEquipmentPickup(plan.Actor, shared.Pickup); return;
@@ -101,9 +106,9 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private WarmthActionPlan? PlanWarmth(string actor)
+    private WarmthActionPlan? PlanWarmth(string actor, ActorCapabilityPolicy? policy = null)
     {
-        if (!ActorCapabilities.Check(CapabilitiesFor(actor), "seek_warmth", WarmthPolicy).Allowed) return null;
+        if (!ActorCapabilities.Check(CapabilitiesFor(actor), new WarmthChoice(WarmthChoiceKind.Protection).Encode(), policy ?? WarmthPolicy).Allowed) return null;
         var person = agents[actor];
         WarmthActionPlan Remain() => new(actor, WarmthDestinationKind.Remain, person.Position, 0, null, false, []);
         if (WarmthChange(person) >= 0) return Remain();
@@ -131,9 +136,9 @@ public sealed partial class WorldRuntime
             plan.Kind != WarmthDestinationKind.Building && WeatherAt(person.Position) == WeatherKind.Storm && NaturalStormCover(person.Position);
     }
 
-    private ActionCheck CheckWarmthPlan(WarmthActionPlan plan)
+    private ActionCheck CheckWarmthPlan(WarmthActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, WarmthPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? WarmthPolicy);
         if (!capability.Allowed) return capability;
         if (KeepCurrentWarmthProtection(plan)) return new();
         if (plan.Kind == WarmthDestinationKind.Remain)
@@ -157,7 +162,12 @@ public sealed partial class WorldRuntime
     private void ApplyWarmthPlan(WarmthActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckWarmthPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedWarmthPlan(plan);
+    }
+
+    private void ApplyCheckedWarmthPlan(WarmthActionPlan plan)
+    {
         if (KeepCurrentWarmthProtection(plan)) return;
         if (!IsWithinInteractionRange(agents[plan.Actor].Position, plan.Destination, plan.InteractionRange))
             MoveToward(plan.Actor, agents[plan.Actor], plan.Destination,
