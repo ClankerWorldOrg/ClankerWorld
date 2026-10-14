@@ -1,0 +1,1 @@
+- Animal work, products, travel, supply, trips and agreements now bind their codecs, planners, capability policies, shared checks and native effects to ordered action rows; AnimalSystem keeps the native writers and fresh personal consent rules.

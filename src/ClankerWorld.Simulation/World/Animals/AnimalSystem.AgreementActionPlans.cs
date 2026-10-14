@@ -43,10 +43,10 @@ internal sealed partial class AnimalSystem
         world.IsWithinInteractionRange(world.Agents[actor].Position, animal.Position, WorldRuntime.AnimalSharedRules.ResourceInteractionRange) &&
         world.IsWithinInteractionRange(world.Agents[recipient].Position, animal.Position, WorldRuntime.AnimalSharedRules.ResourceInteractionRange);
 
-    internal ActionCheck CheckAnimalAgreementPlan(IAnimalWorld world, AnimalAgreementActionPlan plan)
+    internal ActionCheck CheckAnimalAgreementPlan(IAnimalWorld world, AnimalAgreementActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ActionCapabilities);
         if (!capability.Allowed) return capability;
         if (world.PendingInstructionFor(plan.Actor)?.Kind == OwnerInstructionKind.Order)
             return ActionCheck.Refuse(ActionRefusalReason.ActiveOrder, "their current order comes first");

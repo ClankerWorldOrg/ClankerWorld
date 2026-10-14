@@ -66,10 +66,10 @@ internal sealed partial class AnimalSystem
                     ? SwimmingPolicy.Never : SwimmingPolicy.WhenCapable));
     }
 
-    internal ActionCheck CheckAnimalTravelPlan(IAnimalWorld world, AnimalTravelActionPlan plan)
+    internal ActionCheck CheckAnimalTravelPlan(IAnimalWorld world, AnimalTravelActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ActionCapabilities);
         if (!capability.Allowed) return capability;
         var animal = Animal(plan.Choice.AnimalId);
         if (animal is null || animal.DiedTick is not null || animal.Position != plan.Position || animal.HouseholdId != plan.HouseholdId)
@@ -99,6 +99,11 @@ internal sealed partial class AnimalSystem
     private void ApplyAnimalTravelPlan(IAnimalWorld world, AnimalTravelActionPlan plan)
     {
         if (CheckAnimalTravelPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalTravel(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalTravel(IAnimalWorld world, AnimalTravelActionPlan plan)
+    {
         if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
         var animal = Animal(plan.Choice.AnimalId)!;
         if (world.Agents[plan.Actor].Position != plan.Position && animal.LeaderId != plan.Actor)

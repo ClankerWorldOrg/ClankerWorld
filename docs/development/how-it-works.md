@@ -160,6 +160,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Animal work, products, travel, supply, trips and agreements own their codecs,
+planners, capability policies, checks and native application in ordered action
+rows. AnimalSystem keeps the planners, shared checks and native writers.
+Agreements apply at fresh personal admission after the existing provider and
+order checks; missing supply-trip loads keep their existing cleanup.
+
 Boat requests and waiting, and handcart control, materials, repair, cargo and
 travel own their typed codecs, planners, capability policies, checks and native
 application in ordered action rows. Their retained plans keep the selected

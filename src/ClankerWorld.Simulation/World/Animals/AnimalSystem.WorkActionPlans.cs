@@ -38,10 +38,10 @@ internal sealed partial class AnimalSystem
             world.Reach(actor, animal.Position, ReachPurpose.AnimalWork, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    internal ActionCheck CheckAnimalWorkPlan(IAnimalWorld world, AnimalWorkActionPlan plan)
+    internal ActionCheck CheckAnimalWorkPlan(IAnimalWorld world, AnimalWorkActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capabilities = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ActionCapabilities);
         if (!capabilities.Allowed) return capabilities;
         var animal = Animal(plan.Choice.AnimalId);
         if (animal is null || animal.DiedTick is not null || animal.Position != plan.Position || animal.HouseholdId != plan.AnimalHouseholdId || animal.YardId != plan.AnimalYardId)
@@ -90,6 +90,11 @@ internal sealed partial class AnimalSystem
     private void ApplyAnimalWorkPlan(IAnimalWorld world, AnimalWorkActionPlan plan)
     {
         if (CheckAnimalWorkPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalWork(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalWork(IAnimalWorld world, AnimalWorkActionPlan plan)
+    {
         if (plan.SupplyPreparation is { } preparation) { ApplyAnimalSupplyPlan(world, preparation); return; }
         if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
         var animal = Animal(plan.Choice.AnimalId)!;

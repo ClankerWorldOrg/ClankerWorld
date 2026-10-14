@@ -32,12 +32,11 @@ internal sealed partial class AnimalSystem
             world.Reach(actor, animal.Position, ReachPurpose.AnimalProduct, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    internal ActionCheck CheckAnimalProductPlan(IAnimalWorld world, AnimalProductActionPlan plan)
+    internal ActionCheck CheckAnimalProductPlan(IAnimalWorld world, AnimalProductActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var milk = plan.Choice.Kind == AnimalProductKind.Milk;
         var capabilities = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(milk ? ActionLifeStages.NonInfants : ActionLifeStages.Adults, AllowBoat: milk,
-                AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ProductCapabilities(plan.Choice.Kind));
         if (!capabilities.Allowed) return capabilities;
         var index = InventoryIndex.For(world.Society.Inventory);
         if (milk)
@@ -76,6 +75,11 @@ internal sealed partial class AnimalSystem
     private void ApplyAnimalProductPlan(IAnimalWorld world, AnimalProductActionPlan plan)
     {
         if (CheckAnimalProductPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalProduct(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalProduct(IAnimalWorld world, AnimalProductActionPlan plan)
+    {
         var stock = world.Society.Inventory.GetLot(plan.StockId);
         if (plan.Choice.Kind == AnimalProductKind.Milk)
         {
