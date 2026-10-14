@@ -37,7 +37,18 @@ public sealed partial class TownLandTransferRuntimeTests
         provider.AllowPropose = true;
         world.SubmitInstruction(new("consider-transfer", "owner:test", Filer, OwnerInstructionKind.Suggestion,
             "Consider proposing a voluntary transfer of the specified part of your household's recorded permission."));
-        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
+        var proposalPlans = new List<LandTransferProposalActionPlan>();
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider, result =>
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is LandTransferProposalActionPlan && decision.Admission.Accepted))
+                proposalPlans.Add(Assert.IsType<LandTransferProposalActionPlan>(decision.ActionPlan));
+        });
+        var selectedPlan = Assert.Single(proposalPlans);
+        Assert.True(selectedPlan.Bound);
+        Assert.Equal(selectedPlan.Choice, LandTransferProposalChoice.Decode(selectedPlan.CandidateId));
+        Assert.Equal(provider.TargetHouseholdId, selectedPlan.TargetHousehold);
+        Assert.Equal(provider.Plot, selectedPlan.Tiles);
+        Assert.Null(selectedPlan.Price);
         var proposed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("pending", proposed.Status);
         Assert.Empty(proposed.Responses);
@@ -378,9 +389,14 @@ public sealed partial class TownLandTransferRuntimeTests
         throw new InvalidOperationException("The generated Town needs two actual adjacent free titled tiles for the grant fixture.");
     }
 
-    private static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit, TransferProvider provider)
+    private static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit, TransferProvider provider, Action<WorldStepResult>? observe = null)
     {
-        for (var tick = 0; tick < limit && !complete(); tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        for (var tick = 0; tick < limit && !complete(); tick++)
+        {
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            observe?.Invoke(step);
+        }
         Assert.True(complete(), "Missing transfer boundary; recent choices: " + string.Join(", ", provider.Selected.TakeLast(16)));
     }
 

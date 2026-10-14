@@ -6,37 +6,24 @@ internal sealed partial class TownSystem
 {
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandTransferAction(
     ITownWorld world, TownRuntimeState town, string actor, string action, string subject, string choice,
-            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council)
+            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null)
     {
         (council, var hearings) = AdvanceTownLandTransfers(world, town with { Council = council }, council);
         var currentTown = town with { Council = council, LandRecords = hearings };
         // Maintenance is independent of the requested act. Its rights, receipts and notices
         // must stay together even when current-action validation rejects the stale request below.
         SetTown(world, currentTown);
-        var candidates = new List<CognitionCandidate>();
-        AddTownLandTransferCandidates(world, candidates, actor, currentTown);
-        if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
-            throw new InvalidOperationException("The transfer choice no longer has current source terms or informed household eligibility.");
         if (action is "land_transfer_propose" or "land_transfer_sell")
         {
-            var target = hearingChoice?.HouseholdId;
-            var source = world.Society.GetAgent(actor).HouseholdId;
-            var tiles = TownLandRightsRules.OrderTiles(landTiles?.Select(tile => new GridPoint(tile.X, tile.Y)) ?? []);
-            if (source is null || target is null || target == source ||
-                !LandTransferKnownHouseholds(world, actor, currentTown).Any(household => household.Id == target) ||
-                hearingChoice?.AgreedEndTick is not null || tiles.Length == 0 ||
-                tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles) ||
-                    !householdLandUseRights.Any(right => right.TownId == town.Id && right.HouseholdId == source && right.Tiles.Contains(tile))))
-                throw new InvalidOperationException("A transfer names a known household and exact existing titled permission, preserving its agreed term.");
-            TownLandSalePrice? price = null;
-            if (action == "land_transfer_sell")
-            {
-                if (hearingChoice?.PaymentItemKind is not { } kind || hearingChoice.PaymentQuantity is not > 0 ||
-                    !LandSaleKind(kind)) throw new InvalidOperationException("A sale needs an exact supported goods kind and positive quantity.");
-                price = new(source, kind, hearingChoice.PaymentQuantity.Value);
-            }
-            else if (hearingChoice?.PaymentItemKind is not null || hearingChoice?.PaymentQuantity is not null)
-                throw new InvalidOperationException("Paid terms must use the paid offer action.");
+            proposalPlan ??= LandTransferProposalChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } selected
+                ? PlanLandTransferProposal(world, actor, selected) : null;
+            if (proposalPlan is null) return (council, hearings);
+            proposalPlan = BindLandTransferProposal(proposalPlan, landTiles, hearingChoice);
+            if (CheckLandTransferProposal(world, proposalPlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(proposalPlan, refusal); return (council, hearings); }
+            var target = proposalPlan.TargetHousehold!;
+            var tiles = proposalPlan.Tiles!;
+            var price = proposalPlan.Price;
             var before = hearings.Transfers.Count;
             hearings = TownLandTransferRules.Propose(hearings, world.Map, town.Id, actor, tiles, target, householdLandUseRights,
                 TownLandTransferRules.PartiesFor(householdLandUseRights, tiles, target, LandTransferAdultHouseholds(world)),
@@ -51,6 +38,10 @@ internal sealed partial class TownSystem
             }
             return (council, hearings);
         }
+        var candidates = new List<CognitionCandidate>();
+        AddTownLandTransferCandidates(world, candidates, actor, currentTown);
+        if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
+            throw new InvalidOperationException("The transfer choice no longer has current source terms or informed household eligibility.");
         var request = hearings.Transfers.Single(item => LandTransferActionToken(item) == subject && item.Status == "pending");
         switch (action)
         {

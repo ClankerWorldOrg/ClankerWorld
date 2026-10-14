@@ -481,6 +481,9 @@ the actor's personal eligibility before the native consent writer runs.
 Household land filing retains the household and binds the admitted exact
 plot once; expansion filing retains its House and selected extra tiles.
 Plan checks and native submission share the existing plot refusal validator.
+Permission-transfer proposals retain the source terms and eligible beneficiary
+plots, then bind the admitted target, exact plot and goods price once.
+The shared native transfer validator checks those terms before publication.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
