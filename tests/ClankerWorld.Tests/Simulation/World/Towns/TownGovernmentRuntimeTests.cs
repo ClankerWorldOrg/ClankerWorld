@@ -33,8 +33,17 @@ public sealed partial class TownGovernmentRuntimeTests
         using var world = NewWorld(_ => provider, removeFoundingOffice: true);
         var original = world.ExportState();
         var selectedPlans = new List<GovernmentProposalActionPlan>();
+        var officePlans = new List<GovernmentOfficeActionPlan>();
         void Capture(WorldStepResult result)
         {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is GovernmentOfficeActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<GovernmentOfficeActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, GovernmentOfficeChoice.Decode(plan.CandidateId));
+                Assert.Equal(GovernmentOfficeKind.Register, plan.Choice.Kind);
+                Assert.Null(plan.Consent);
+                officePlans.Add(plan);
+            }
             foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is GovernmentProposalActionPlan && decision.Admission.Accepted))
             {
                 var plan = Assert.IsType<GovernmentProposalActionPlan>(decision.ActionPlan);
@@ -72,6 +81,8 @@ public sealed partial class TownGovernmentRuntimeTests
         var government = world.Towns[0].Government!;
         Assert.Equal(Author, Assert.Single(government.Offices).HolderId);
         Assert.Equal("completed", government.Changes[^1].Status);
+        Assert.Single(officePlans);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(officePlans[0]).Refusal!.Reason);
         Assert.Contains(selectedPlans, plan => plan.Choice.Kind == GovernmentProposalKind.Propose);
         Assert.Contains(selectedPlans, plan => plan.Choice.Kind == GovernmentProposalKind.Yes);
         Assert.All(selectedPlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));

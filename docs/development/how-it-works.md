@@ -466,6 +466,9 @@ native Council proposal writer, with visitor caps applied after eligibility.
 Protected government proposals retain their original arrangement or exact
 change, voting window and electorate. Shared checks allow other votes to
 accumulate before the native proposal, withdrawal or final vote writer runs.
+Personal office choices retain the selected consent, mandate or incumbent
+term. Additional duties retain their exact proposal and use the existing
+current-term consent check before the native government writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
