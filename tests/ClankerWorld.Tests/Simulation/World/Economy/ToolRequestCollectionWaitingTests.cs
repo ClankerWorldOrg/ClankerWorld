@@ -96,7 +96,10 @@ public sealed partial class ToolMakingRequestTests
         state = Roundtrip(working);
         var home = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var position = state.Agents.Single(person => person.AgentId == buyer).Position;
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "quote-yard-wood", "wood", home, 8,
+        var payment = state.Society.Society.Inventory.GetLot("request-payment");
+        var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "put-original-payment-away", buyer,
+            shop.HouseholdId!, payment.Id, payment.Quantity, "keep only the quoted payment carried", shop.InstanceId);
+        inventory = InventoryAuthority.AddLot(inventory, "quote-yard-wood", "wood", home, 8,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "quote-yard-rope", "rope", home, 2,
             groundPosition: new(position.X, position.Y));
