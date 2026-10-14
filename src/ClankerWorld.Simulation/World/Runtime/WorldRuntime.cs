@@ -18,7 +18,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 133;
+    public const int StateSchemaVersion = 134;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -71,9 +71,9 @@ public sealed partial class WorldRuntime : IDisposable
     private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private WorldKnowledgeState knowledge = WorldKnowledgeState.Empty;
-    private Dictionary<string, OwnerQueuedInstruction> instructionsByIdempotency =
+    private InstructionStore instructionsByIdempotency =
         new(StringComparer.Ordinal);
-    private Dictionary<string, OwnerInstructionReceipt> instructionReceipts =
+    private Dictionary<string, RecordedInstructionReceipt> instructionReceipts =
         new(StringComparer.Ordinal);
     private Dictionary<string, OwnerOrderCancellation> orderCancellations =
         new(StringComparer.Ordinal);
@@ -436,16 +436,10 @@ public sealed partial class WorldRuntime : IDisposable
                 runtime.Dispose();
                 throw new InvalidDataException("The world instruction idempotency keys are duplicated.");
             }
-
-            runtime.instructionReceipts.Add(
-                instruction.IdempotencyKey,
-                new OwnerInstructionReceipt(
-                    Identity.Parse(instruction.InstructionId),
-                    instruction.IdempotencyKey,
-                    instruction.SubmittedTick,
-                    instruction.RunEpoch,
-                    instruction.SubmissionSequence));
         }
+
+        foreach (var recorded in state.InstructionReceipts)
+            runtime.instructionReceipts.Add(recorded.Receipt.IdempotencyKey, recorded);
 
         var suggestionIds = runtime.instructionsByIdempotency.Values
             .Where(item => item.Kind == OwnerInstructionKind.Suggestion)
@@ -465,9 +459,9 @@ public sealed partial class WorldRuntime : IDisposable
             }
         }
 
-        runtime.nextInstructionSequence = runtime.instructionsByIdempotency.Count == 0
+        runtime.nextInstructionSequence = runtime.instructionReceipts.Count == 0
             ? 1
-            : checked(runtime.instructionsByIdempotency.Values.Max(item => item.SubmissionSequence) + 1);
+            : checked(runtime.instructionReceipts.Values.Max(item => item.Receipt.Revision) + 1);
 
         runtime.worldEventLog = new(state.Events, state.EventHistoryFloor, state.HistoryArchiveHead);
         if (!trustedPreparedState)
@@ -566,6 +560,7 @@ public sealed partial class WorldRuntime : IDisposable
             .ThenBy(item => item.IdempotencyKey, StringComparer.Ordinal).ToArray(), ToolMakingRequests,
         handcartHitches.OrderBy(item => item.CartLotId, StringComparer.Ordinal).ToArray())
     {
+        InstructionReceipts = instructionReceipts.Values.OrderBy(item => item.Receipt.Revision).ToArray(),
         Marriages = conversationSystem.CheckpointState.Marriages,
         BoatTransport = boatTransport,
         AnimalWorld = animalWorld,

@@ -506,12 +506,12 @@ public sealed partial class WorldRuntime
 
         using var society = SocietyRuntime.Restore(state.Society);
         if (state.SchemaVersion >= ObserverGuidanceSchemaVersion &&
-            (state.Instructions is null || state.CompletedInstructionIds is null))
+            (state.Instructions is null || state.CompletedInstructionIds is null || state.InstructionReceipts is null))
             throw new InvalidDataException($"World schema {ObserverGuidanceSchemaVersion} requires authoritative instruction state.");
         var latestWorldEventId = state.Events.Count == 0 ? state.EventHistoryFloor : state.Events[^1].EventId;
         ValidateSavedInstructions(state.Instructions ?? [], state.CompletedInstructionIds ?? [], society.Checkpoint,
             state.Society.Society.WorldId, latestWorldEventId,
-            state.OrderCancellations ?? [], state.WorldContent);
+            state.OrderCancellations ?? [], state.WorldContent, state.InstructionReceipts);
         ValidateBeliefEventSources(state.Society.Society.AllBeliefs(), state.Events, state.EventHistoryFloor);
         ValidateConversationState(state, society.Checkpoint);
         AgentMarriageValidation.Validate(state, society.Checkpoint);
@@ -651,17 +651,20 @@ public sealed partial class WorldRuntime
         string worldId,
         long latestEventId,
         IReadOnlyList<OwnerOrderCancellation> cancellations,
-        DeclarativeWorldContentState worldContent)
+        DeclarativeWorldContentState worldContent,
+        IReadOnlyList<RecordedInstructionReceipt> receipts)
     {
         var people = checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var instructionIds = new HashSet<string>(StringComparer.Ordinal);
+        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
+        var byId = new Dictionary<string, OwnerQueuedInstruction>(StringComparer.Ordinal);
         var idempotencyKeys = new HashSet<string>(StringComparer.Ordinal);
         var sequences = new HashSet<long>();
         foreach (var instruction in instructions)
         {
             if (instruction is null || string.IsNullOrWhiteSpace(instruction.InstructionId) ||
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
-                instruction.InstructionId != $"private-instruction-{instruction.SubmissionSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}" ||
+                instruction.InstructionId != InstructionIdFor(instruction.SubmissionSequence) ||
                 !instructionIds.Add(instruction.InstructionId) ||
                 !IdentityRules.Reference(instruction.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
@@ -683,24 +686,50 @@ public sealed partial class WorldRuntime
                      CognitionDecisionResponse.NormalizeObserverReply(instruction.ObserverReply) != instruction.ObserverReply) ||
                 instruction.Kind == OwnerInstructionKind.Suggestion && instruction.Task is not null ||
                 instruction.Kind == OwnerInstructionKind.Order && instruction.Task is null ||
-                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completedInstructionIds,
+                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completed,
                     people, checkpoint.WorldTick, worldContent))
                 throw new InvalidDataException("The saved owner instruction or observer response is invalid.");
+            byId.Add(instruction.InstructionId, instruction);
         }
 
         if (completedInstructionIds.Any(id => string.IsNullOrWhiteSpace(id) || !instructionIds.Contains(id)) ||
-            completedInstructionIds.Distinct(StringComparer.Ordinal).Count() != completedInstructionIds.Count)
+            completed.Count != completedInstructionIds.Count)
             throw new InvalidDataException("The completed owner instruction list is invalid.");
-        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
         if (instructions.Any(item => item.Kind == OwnerInstructionKind.Suggestion &&
                 completed.Contains(item.InstructionId) && item.ObservedTick is null))
             throw new InvalidDataException("A suggestion cannot be completed before an agent's personal model observes it.");
 
+        if (instructions.Where(item => item.Kind == OwnerInstructionKind.Order && item.Task?.IsTerminal == true)
+                .GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent) ||
+            cancellations.Where(item => item is not null).GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent))
+            throw new InvalidDataException("The closed order or cancellation history exceeds its per-agent display limit.");
+
+        var receiptKeys = new HashSet<string>(StringComparer.Ordinal);
+        var receiptIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var recorded in receipts)
+        {
+            if (recorded is null || recorded.Receipt is not { } receipt ||
+                !IdentityRules.Reference(receipt.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) || !receiptKeys.Add(receipt.IdempotencyKey) ||
+                receipt.Revision <= 0 || receipt.InstructionId != InstructionIdFor(receipt.Revision) || !receiptIds.Add(receipt.InstructionId) ||
+                receipt.SubmittedTick < 0 || receipt.SubmittedTick > checkpoint.WorldTick ||
+                receipt.RunEpoch < 0 || receipt.RunEpoch > checkpoint.RunEpoch ||
+                recorded.RequestDigest is not { } digest || !digest.StartsWith(InstructionRequestDigestPrefix, StringComparison.Ordinal) ||
+                digest.Length != InstructionRequestDigestPrefix.Length + System.Security.Cryptography.SHA256.HashSizeInBytes * 2 ||
+                !digest[InstructionRequestDigestPrefix.Length..].All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f') ||
+                byId.TryGetValue(receipt.InstructionId, out var instruction) &&
+                    (receipt.IdempotencyKey != instruction.IdempotencyKey || receipt.SubmittedTick != instruction.SubmittedTick ||
+                     receipt.RunEpoch != instruction.RunEpoch || recorded.RequestDigest != InstructionRequestDigest(instruction)))
+                throw new InvalidDataException("The saved instruction submission receipt is invalid.");
+        }
+        if (instructions.Any(instruction => !receiptIds.Contains(instruction.InstructionId)))
+            throw new InvalidDataException("An owner instruction is missing its stable submission receipt.");
+
         var cancellationKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var cancellation in cancellations)
         {
-            var instruction = cancellation is null ? null : instructions.SingleOrDefault(item =>
-                item.InstructionId == cancellation.OrderId);
+            var instruction = cancellation is null ? null : byId.GetValueOrDefault(cancellation.OrderId);
             if (cancellation is null || string.IsNullOrWhiteSpace(cancellation.IdempotencyKey) ||
                 cancellation.IdempotencyKey.Length > DerivedId.MaximumLength || cancellation.IdempotencyKey.Any(char.IsControl) ||
                 cancellation.IdempotencyKey != cancellation.IdempotencyKey.Trim() ||
@@ -723,7 +752,7 @@ public sealed partial class WorldRuntime
     private static bool IsValidSavedOrder(
         OrderTask order,
         OwnerQueuedInstruction instruction,
-        IReadOnlyList<string> completedInstructionIds,
+        HashSet<string> completedInstructionIds,
         HashSet<string> people,
         long worldTick,
         DeclarativeWorldContentState worldContent)
@@ -731,7 +760,7 @@ public sealed partial class WorldRuntime
         var knownStatus = order.Status is "queued" or "waiting" or "doing" or "interrupted" or "blocked" or
             "finished" or "cancelled" or "not_understood";
         var terminal = order.Status is "finished" or "cancelled" or "not_understood";
-        var isCompleted = completedInstructionIds.Contains(instruction.InstructionId, StringComparer.Ordinal);
+        var isCompleted = completedInstructionIds.Contains(instruction.InstructionId);
         if (order.Action != "read_knowledge" && (order.TargetKnowledgeArtifactId is not null || order.KnowledgeReadCompletion is not null)) return false;
         if (!IsConversationOrder(order.Action) && (order.TalkConversationId is not null || order.TalkOutcome is not null)) return false;
         if (!IsCartOrder(order.Action) && order.TargetCartLotId is not null) return false;

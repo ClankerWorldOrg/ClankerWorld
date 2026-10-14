@@ -806,7 +806,24 @@ Orders retain their existing saved status spelling. Runtime status is an
 `OrderStatus` enum changed only through the task transition operation; closed
 orders cannot return to active work. The runtime keeps a completion set only
 for suggestions and derives order completion from status when exporting the
-existing checkpoint list. This foundation changes no saved fields or schema.
+existing checkpoint list. The status foundation changed no saved fields or schema.
+Schema 134 bounds closed orders to the six newest submissions per agent,
+keeping all active work. Cancellation retries are also bounded to six per
+agent, ordered by world tick, event ID and idempotency key. A retired order can
+no longer be cancelled through its old ID. Compact submission receipts and
+request hashes remain authoritative: a duplicate submission returns its original
+receipt, even after its task and text have retired, and conflicting reuse is
+refused. These receipts contain no status and do not duplicate completion state.
+
+Retirement drops order-only construction evidence and clears optional owner
+order links on native work and written artifacts. It preserves the actual
+inventory, consumed reservations, buildings, artifact contents and native work
+outcomes. Retired exploration purposes are cleared in live and deceased records,
+while their recorded paths and discoveries stay intact. Construction completion
+uses the actual placed building even when its order receipt retires in the same
+action. Loading validates retained order links and rebuilds the active index.
+Earlier alpha schemas are refused and preserved without migration. The schema
+number is provisional until merge.
 Current-format reload, cancellation and rejected-tick checks retain the same
 physical effects and receipts.
 
@@ -1273,7 +1290,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 133. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 134. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

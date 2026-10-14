@@ -91,6 +91,21 @@ public sealed partial class WorldConstructionOrderTests
                 WorldSimulation = saved.WorldSimulation! with { ConstructionReceipts = receipts },
             }));
         AssertInputs(world, 0, 0);
+
+        world.Pause();
+        var paidInventory = JsonSerializer.Serialize(world.Society.Inventory);
+        for (var index = 0; index < OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent + 1; index++)
+            Submit(world, setup.Actor, $"retire-construction-{index}", "dance");
+        Assert.DoesNotContain(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
+        Assert.Empty(world.WorldSimulation.ConstructionReceipts!);
+        Assert.Null(Person(world, setup.Actor).Project?.OrderInstructionId);
+        Assert.Equal(paidInventory, JsonSerializer.Serialize(world.Society.Inventory));
+        AssertRemovedOrderedBuildingIdCannotBeReused(world, proof);
+        using var retiredReplay = Reload(world);
+        world.Resume();
+        retiredReplay.Resume();
+        await TickTogether(world, retiredReplay);
+        AssertInputs(world, 0, 0);
     }
 
     [Fact]

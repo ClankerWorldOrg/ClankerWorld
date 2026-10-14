@@ -684,12 +684,12 @@ public sealed partial class WorldRuntime
             SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(ProjectWorkTicks, done), Blocker = null });
             return;
         }
+        var buildingInstanceId = building is null ? null : project.OrderInstructionId is { } orderId
+            ? ConstructionInstanceId(orderId) : BuildInstanceId(agentId, building);
         ApplyBuildDecision(agentId, state, project.CandidateId);
-        if (building is not null && (project.OrderInstructionId is { } orderId
-                ? (worldSimulation.ConstructionReceipts ?? []).Any(receipt => receipt.InstructionId == orderId)
-                : worldSimulation.Buildings.Any(item => item.InstanceId == BuildInstanceId(agentId, building))))
+        if (buildingInstanceId is not null && worldSimulation.Buildings.Any(item => item.InstanceId == buildingInstanceId))
         {
-            SetProject(agentId, project with { Stage = "completed", Blocker = null });
+            SetProject(agentId, agents[agentId].Project! with { Stage = "completed", Blocker = null });
         }
         else if (recipe is not null)
         {

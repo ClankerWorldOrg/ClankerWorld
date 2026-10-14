@@ -57,76 +57,82 @@ public sealed partial class WorldRuntimeTests
     public void QuantityParsingDoesNotReadCoordinatesAndUnsupportedCountsStayUnrecognized()
     {
         using var world = new WorldRuntime("bounded-order-quantity");
-        var quantity = world.SubmitInstruction(new OwnerInstructionRequest(
+        OwnerQueuedInstruction Submit(OwnerInstructionRequest request)
+        {
+            var receipt = world.SubmitInstruction(request);
+            return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
+        }
+
+        var quantity = Submit(new OwnerInstructionRequest(
             "two-berries", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "gather two berries"));
-        var eatingQuantity = world.SubmitInstruction(new OwnerInstructionRequest(
+        var eatingQuantity = Submit(new OwnerInstructionRequest(
             "eat-three-berries", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "eat 3 berries"));
-        var location = world.SubmitInstruction(new OwnerInstructionRequest(
+        var location = Submit(new OwnerInstructionRequest(
             "food-location", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "go to berries at 12,4"));
-        var defaultHarvestAtLocation = world.SubmitInstruction(new OwnerInstructionRequest(
+        var defaultHarvestAtLocation = Submit(new OwnerInstructionRequest(
             "one-harvest-at-location", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "gather berries at 10,12"));
-        var countedHarvestAtLocation = world.SubmitInstruction(new OwnerInstructionRequest(
+        var countedHarvestAtLocation = Submit(new OwnerInstructionRequest(
             "three-harvest-items-at-location", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "gather three berries at10,12"));
-        var namedTarget = world.SubmitInstruction(new OwnerInstructionRequest(
+        var namedTarget = Submit(new OwnerInstructionRequest(
             "known-resource-target", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "gather berries from berry-patch"));
-        var unknownTarget = world.SubmitInstruction(new OwnerInstructionRequest(
+        var unknownTarget = Submit(new OwnerInstructionRequest(
             "unknown-resource-target", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "gather berries from berry-patch-unknown"));
-        var repeated = world.SubmitInstruction(new OwnerInstructionRequest(
+        var repeated = Submit(new OwnerInstructionRequest(
             "repeat-food", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "keep gathering food until cancelled"));
-        var oversized = world.SubmitInstruction(new OwnerInstructionRequest(
+        var oversized = Submit(new OwnerInstructionRequest(
             "too-many-berries", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "gather 1001 berries"));
-        var unbounded = world.SubmitInstruction(new OwnerInstructionRequest(
+        var unbounded = Submit(new OwnerInstructionRequest(
             "unbounded-berries", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "gather 1000000000 berries"));
-        var negative = world.SubmitInstruction(new OwnerInstructionRequest(
+        var negative = Submit(new OwnerInstructionRequest(
             "negative-berries", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "gather -3 berries"));
 
         var state = world.ExportState();
-        var quantityOrder = Assert.Single(state.Instructions!, item => item.InstructionId == quantity.InstructionId).Task!;
+        var quantityOrder = quantity.Task!;
         Assert.Equal(2, quantityOrder.RequestedUnits);
         Assert.Equal("food_items", quantityOrder.ProgressUnit);
         Assert.True(quantityOrder.QuantityIsExplicit);
-        var eatingQuantityOrder = Assert.Single(state.Instructions!, item => item.InstructionId == eatingQuantity.InstructionId).Task!;
+        var eatingQuantityOrder = eatingQuantity.Task!;
         Assert.Equal("consume_food", eatingQuantityOrder.Action);
         Assert.Equal(3, eatingQuantityOrder.RequestedUnits);
         Assert.Equal("food_items", eatingQuantityOrder.ProgressUnit);
         Assert.True(eatingQuantityOrder.QuantityIsExplicit);
 
-        var locationOrder = Assert.Single(state.Instructions!, item => item.InstructionId == location.InstructionId).Task!;
+        var locationOrder = location.Task!;
         Assert.Equal(1, locationOrder.RequestedUnits);
         Assert.False(locationOrder.QuantityIsExplicit);
         Assert.Equal(new GridPoint(12, 4), locationOrder.TargetPosition);
 
-        var defaultHarvestOrder = Assert.Single(state.Instructions!, item => item.InstructionId == defaultHarvestAtLocation.InstructionId).Task!;
+        var defaultHarvestOrder = defaultHarvestAtLocation.Task!;
         Assert.Equal(1, defaultHarvestOrder.RequestedUnits);
         Assert.False(defaultHarvestOrder.QuantityIsExplicit);
         Assert.Equal(new GridPoint(10, 12), defaultHarvestOrder.TargetPosition);
 
-        var countedHarvestOrder = Assert.Single(state.Instructions!, item => item.InstructionId == countedHarvestAtLocation.InstructionId).Task!;
+        var countedHarvestOrder = countedHarvestAtLocation.Task!;
         Assert.Equal(3, countedHarvestOrder.RequestedUnits);
         Assert.True(countedHarvestOrder.QuantityIsExplicit);
         Assert.Equal(new GridPoint(10, 12), countedHarvestOrder.TargetPosition);
 
-        var namedTargetOrder = Assert.Single(state.Instructions!, item => item.InstructionId == namedTarget.InstructionId).Task!;
+        var namedTargetOrder = namedTarget.Task!;
         Assert.Equal("berry-patch", namedTargetOrder.TargetResourceId);
-        Assert.Equal("not_understood", Assert.Single(state.Instructions!, item => item.InstructionId == unknownTarget.InstructionId).Task!.Status);
+        Assert.Equal("not_understood", unknownTarget.Task!.Status);
 
-        var repeatedOrder = Assert.Single(state.Instructions!, item => item.InstructionId == repeated.InstructionId).Task!;
+        var repeatedOrder = repeated.Task!;
         Assert.True(repeatedOrder.RepeatUntilCancelled);
         Assert.Equal(1, repeatedOrder.RequestedUnits);
-        Assert.Equal("not_understood", Assert.Single(state.Instructions!, item => item.InstructionId == oversized.InstructionId).Task!.Status);
-        Assert.Contains(oversized.InstructionId.Value, state.CompletedInstructionIds ?? []);
-        Assert.Equal("not_understood", Assert.Single(state.Instructions!, item => item.InstructionId == unbounded.InstructionId).Task!.Status);
-        Assert.Contains(unbounded.InstructionId.Value, state.CompletedInstructionIds ?? []);
-        Assert.Equal("not_understood", Assert.Single(state.Instructions!, item => item.InstructionId == negative.InstructionId).Task!.Status);
-        Assert.Contains(negative.InstructionId.Value, state.CompletedInstructionIds ?? []);
-        Assert.Equal("not_understood", Assert.Single(state.Instructions!, item => item.InstructionId == unknownTarget.InstructionId).Task!.Status);
-        Assert.Contains(unknownTarget.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.Equal("not_understood", oversized.Task!.Status);
+        Assert.Contains(oversized.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Equal("not_understood", unbounded.Task!.Status);
+        Assert.Contains(unbounded.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Equal("not_understood", negative.Task!.Status);
+        Assert.Contains(negative.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Equal("not_understood", unknownTarget.Task!.Status);
+        Assert.Contains(unknownTarget.InstructionId, state.CompletedInstructionIds ?? []);
         world.Validate();
     }
 

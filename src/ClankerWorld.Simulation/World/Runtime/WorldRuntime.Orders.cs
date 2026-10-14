@@ -420,6 +420,7 @@ public sealed partial class WorldRuntime
         {
             AppendEvent("instruction_applied", $"{current.InstructionId}:{order.Action}");
             AppendEvent("instruction_order_finished", $"{current.TargetAgentId}:{current.InstructionId}:{effectId}");
+            PruneClosedOrderHistory();
         }
         else
         {

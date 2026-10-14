@@ -7,7 +7,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-/// <summary>Paid construction history survives removal, reassignment and later projects.</summary>
+/// <summary>Recent owner construction evidence survives removal and reassignment until its order retires.</summary>
 public sealed record WorldConstructionReceipt(
     Identity InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
     string OwnerId, string MaterialOwnerId, GridPoint Position, long StartedTick,
@@ -15,6 +15,12 @@ public sealed record WorldConstructionReceipt(
 
 public sealed partial class WorldRuntime
 {
+    private void RetireClosedOrderProjectReferences(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person => person.Project?.OrderInstructionId is { } id && retired.Contains(id)).ToArray())
+            agents[person.AgentId] = person with { Project = person.Project! with { OrderInstructionId = null } };
+    }
+
     private static string ConstructionInstanceId(string instructionId) =>
         DerivedId.Hash(instructionId, "ordered-building-");
 

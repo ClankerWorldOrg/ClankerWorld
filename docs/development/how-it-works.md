@@ -641,6 +641,17 @@ operation keeps blocked reasons and retry waits together and refuses to reopen
 closed work. The string status is derived for saves and observations. Runtime
 completion comes from that status; only suggestions need a separate completion
 set. The checkpoint's completed-instruction list is derived when exported.
+`InstructionStore` indexes active orders by agent and submission sequence;
+pending-order lookup and replacement use that queue. Restoring a checkpoint
+rebuilds it, and replacing an instruction updates it in the same operation.
+The runtime retains every active order and the six newest closed orders per
+agent, matching the game. It also retains at most six cancellation retries per
+agent. Retiring an order removes its order-only construction evidence and
+links from native jobs, projects, boat requests and written artifacts; actual
+goods, consumed reservations, buildings and native outcomes remain.
+Submission receipts and request hashes stay separate so retrying a forgotten
+submission returns its original receipt and cannot start work twice. They do
+not retain the original task or message text.
 
 `ParseOrderTask` reads a complete, bounded grammar for eating food,
 seeking a food source, harvesting food, gathering supported raw materials,
