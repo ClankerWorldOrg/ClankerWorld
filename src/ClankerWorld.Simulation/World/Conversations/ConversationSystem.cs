@@ -241,7 +241,7 @@ public sealed class ConversationSystem(ConversationState state)
             id, initiatorId, inviteeId, world.WorldTick, world.Society.RunEpoch);
         AddConversation(conversation);
 
-        world.AppendEvent("conversation_proposed", id);
+        world.AppendEvent(new ConversationProposedEventPayload(null, id));
         return true;
     }
 
@@ -262,7 +262,7 @@ public sealed class ConversationSystem(ConversationState state)
         ReserveConversationAllowance(world, participantId);
         SetConversationAt(index, accepted);
 
-        world.AppendEvent("conversation_accepted", current.Id);
+        world.AppendEvent(new ConversationAcceptedEventPayload(null, current.Id));
         return true;
     }
 
@@ -274,7 +274,7 @@ public sealed class ConversationSystem(ConversationState state)
             return false;
         SetConversationAt(index, declined);
 
-        world.AppendEvent("conversation_closed", $"{conversationId}:refused");
+        world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "refused"));
         return true;
     }
 
@@ -287,7 +287,7 @@ public sealed class ConversationSystem(ConversationState state)
             return false;
         SetConversationAt(index, resumed);
 
-        world.AppendEvent(isResumed ? "conversation_resumed" : "conversation_resume_requested", conversationId);
+        world.AppendEvent(isResumed ? new ConversationResumedEventPayload(null, conversationId) : new ConversationResumeRequestedEventPayload(null, conversationId));
         return true;
     }
 
@@ -299,7 +299,7 @@ public sealed class ConversationSystem(ConversationState state)
             return false;
         SetConversationAt(index, ended);
 
-        world.AppendEvent("conversation_closed", $"{conversationId}:withdrawn");
+        world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "withdrawn"));
         return true;
     }
 
@@ -320,7 +320,7 @@ public sealed class ConversationSystem(ConversationState state)
         if (newlyAgreed && accepted.WrapUpEffect == AgentConversationEffect.Marriage)
             StartAcceptedMarriage(world, accepted);
 
-        world.AppendEvent(newlyAgreed ? "conversation_agreement_accepted" : "conversation_agreement_pending", conversationId);
+        world.AppendEvent(newlyAgreed ? new ConversationAgreementAcceptedEventPayload(null, conversationId) : new ConversationAgreementPendingEventPayload(null, conversationId));
         return true;
     }
 
@@ -332,7 +332,7 @@ public sealed class ConversationSystem(ConversationState state)
             return false;
         SetConversationAt(index, declined);
 
-        world.AppendEvent("conversation_closed", $"{conversationId}:disagreed");
+        world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "disagreed"));
         return true;
     }
 
@@ -396,31 +396,26 @@ public sealed class ConversationSystem(ConversationState state)
             var index = ConversationIndex(current => current.Id == item.Id);
             if (index < 0 || item.Status == AgentConversationStatus.Closed) continue;
             AgentConversation next;
-            string? eventKind = null;
-            string? eventDetail = null;
+            WorldEventPayload? eventPayload = null;
             if (!active.Contains(item.InitiatorId) || !active.Contains(item.InviteeId))
             {
                 next = AgentConversationRules.CloseUnavailable(item, worldTick);
-                eventKind = "conversation_closed";
-                eventDetail = $"{item.Id}:participant_unavailable";
+                eventPayload = new ConversationClosedEventPayload(null, item.Id, "participant_unavailable");
             }
             else if (AgentConversationRules.TryExpireProposal(item, worldTick, out var expired))
             {
                 next = expired;
-                eventKind = "conversation_closed";
-                eventDetail = $"{item.Id}:deadline";
+                eventPayload = new ConversationClosedEventPayload(null, item.Id, "deadline");
             }
             else if (IsUrgentConversationNeed(world, item))
             {
                 next = AgentConversationRules.Suspend(item, AgentConversationInterruption.UrgentNeed, worldTick);
-                eventKind = "conversation_interrupted";
-                eventDetail = $"{item.Id}:urgent_need";
+                eventPayload = new ConversationInterruptedEventPayload(null, item.Id, "urgent_need");
             }
             else if (!AreConversationParticipantsTogether(world, item))
             {
                 next = AgentConversationRules.Suspend(item, AgentConversationInterruption.Disconnected, worldTick);
-                eventKind = "conversation_interrupted";
-                eventDetail = $"{item.Id}:separated";
+                eventPayload = new ConversationInterruptedEventPayload(null, item.Id, "separated");
             }
             else continue;
 
@@ -428,7 +423,7 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, next);
             RetainUnavailableSurnameSession(world, next);
 
-            world.AppendEvent(eventKind!, eventDetail!);
+            world.AppendEvent(eventPayload!);
         }
         var worldDay = world.WorldDayAt(worldTick);
         RemoveBudgets(item => item.WorldDay < worldDay);
@@ -466,17 +461,17 @@ public sealed class ConversationSystem(ConversationState state)
         return hearers;
     }
 
-    public void ApplyConversationTurnOutcome(IConversationWorld world,
+    public bool ApplyConversationTurnOutcome(IConversationWorld world,
         AgentConversationTurnRequest request,
         AgentConversationTurnResponse? response, Exception? failure,
         long worldTick,
         Func<bool> providerRouteIsCurrent)
     {
         var index = ConversationIndex(item => item.Id == request.ConversationId);
-        if (index < 0) return;
+        if (index < 0) return false;
         var current = conversations[index];
         if (current.Status != AgentConversationStatus.AwaitingSpeaker || current.Revision != request.Revision)
-            return;
+            return false;
 
         // The provider route may change independently of runtime events while
         // a proposed tick is being prepared. Reject the reply before it can
@@ -486,8 +481,8 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, AgentConversationRules.Suspend(
                 current, AgentConversationInterruption.ProviderUnavailable, worldTick));
 
-            world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_unavailable");
-            return;
+            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_unavailable"));
+            return false;
         }
 
         if (failure is not null || response is null)
@@ -497,8 +492,8 @@ public sealed class ConversationSystem(ConversationState state)
                 : AgentConversationFailureClassifier.Classify(failure);
             SetConversationAt(index, AgentConversationRules.Suspend(current, interruption, worldTick));
 
-            world.AppendEvent("conversation_interrupted", $"{current.Id}:{ToWire(interruption)}");
-            return;
+            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, ToWire(interruption)));
+            return false;
         }
 
         if (!AgentConversationRules.IsParticipant(current, response.SpeakerId))
@@ -506,16 +501,16 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, AgentConversationRules.Suspend(
                 current, AgentConversationInterruption.ProviderRejected, worldTick));
 
-            world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_rejected");
-            return;
+            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_rejected"));
+            return false;
         }
 
         var listeners = ConversationListeners(world, current, response.SpeakerId);
         if (current.Kind == AgentConversationKind.MarriageSurname && !IsAcceptedSurnameSession(world, current))
         {
             SetConversationAt(index, AgentConversationRules.Suspend(current, AgentConversationInterruption.Disconnected, worldTick));
-            world.AppendEvent("conversation_interrupted", $"{current.Id}:separated");
-            return;
+            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "separated"));
+            return false;
         }
         if (!AgentConversationRules.TryAdmitTurn(current, request, response, listeners,
                 worldTick, world.Society.RunEpoch, out var admitted, out var appended) || appended is null)
@@ -523,8 +518,8 @@ public sealed class ConversationSystem(ConversationState state)
             SetConversationAt(index, AgentConversationRules.Suspend(
                 current, AgentConversationInterruption.ProviderRejected, worldTick));
 
-            world.AppendEvent("conversation_interrupted", $"{current.Id}:provider_rejected");
-            return;
+            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_rejected"));
+            return false;
         }
 
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed &&
@@ -532,16 +527,17 @@ public sealed class ConversationSystem(ConversationState state)
         {
             SetConversationAt(index, AgentConversationRules.Suspend(current, AgentConversationInterruption.ProviderRejected, worldTick));
 
-            world.AppendEvent("marriage_surname_blocked", current.Id);
-            return;
+            world.AppendEvent(new MarriageSurnameBlockedEventPayload(null, current.Id));
+            return false;
         }
 
         SetConversationAt(index, admitted);
 
         ExtractConversationMemoryClaims(world, appended);
-        world.AppendEvent("conversation_turn_admitted", $"{current.Id}:{appended.Id}");
+        world.AppendEvent(new ConversationTurnAdmittedEventPayload(null, current.Id, appended.Id));
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed)
             CompleteMarriageSurname(world, admitted);
+        return true;
     }
 
     public static void ExtractConversationMemoryClaims(IConversationWorld world, AgentConversationTurn turn)
@@ -553,7 +549,7 @@ public sealed class ConversationSystem(ConversationState state)
                 world.Society.AllBeliefs().Any(item => item.OwnerId == ownerId && item.SourceTurnId == turn.Id))
                 continue;
             var belief = new SocietyAgentBelief(
-                ConversationMemoryClaimId(turn.Id, ownerId),
+                Identity.Parse(ConversationMemoryClaimId(turn.Id, ownerId)),
                 ownerId,
                 turn.Text,
                 SocietyBeliefProvenance.Hearsay,
@@ -575,7 +571,7 @@ public sealed class ConversationSystem(ConversationState state)
         if (next == current) return;
         SetConversationAt(index, next);
 
-        world.AppendEvent("conversation_interrupted", $"{conversationId}:{ToWire(interruption)}");
+        world.AppendEvent(new ConversationInterruptedEventPayload(null, conversationId, ToWire(interruption)));
     }
 
     public void SuspendAllConversations(IConversationWorld world, AgentConversationInterruption interruption)
@@ -629,9 +625,7 @@ public sealed class ConversationSystem(ConversationState state)
 
             var first = world.Society.GetAgent(marriage.InitiatorId).Name;
             var second = world.Society.GetAgent(marriage.InviteeId).Name;
-            world.AppendEvent("marriage_ended", partnership.State == SocietyRelationshipState.EndedByDeath
-                ? $"The marriage between {first} and {second} ended after a partner died."
-                : $"The marriage between {first} and {second} ended by separation.");
+            world.AppendEvent(new MarriageEndedEventPayload(marriage.InitiatorId, marriage.InviteeId, first, second, partnership.State == SocietyRelationshipState.EndedByDeath));
         }
     }
 
@@ -654,8 +648,7 @@ public sealed class ConversationSystem(ConversationState state)
             AcceptedParticipantIds = [marriage.InitiatorId, marriage.InviteeId],
             CurrentSpeakerId = marriage.InitiatorId,
         });
-        world.AppendEvent("marriage_accepted", $"{marriage.InitiatorNameAtAcceptance} and {marriage.InviteeNameAtAcceptance} agreed to marry; their shared surname is still undecided.",
-            world.Agents[marriage.InitiatorId].Position);
+        world.AppendEvent(new MarriageAcceptedEventPayload(marriage.InitiatorId, marriage.InviteeId, marriage.InitiatorNameAtAcceptance, marriage.InviteeNameAtAcceptance), world.Agents[marriage.InitiatorId].Position);
     }
 
     public void CompleteMarriageSurname(IConversationWorld world, AgentConversation receipt)
@@ -673,9 +666,7 @@ public sealed class ConversationSystem(ConversationState state)
             SurnameReceipt = receipt,
         });
         var couple = world.Society.GetAgent(marriage.InitiatorId).Name + " and " + world.Society.GetAgent(marriage.InviteeId).Name;
-        world.AppendEvent(usedTieBreak ? "marriage_surname_draw" : "marriage_surname_agreed",
-            usedTieBreak ? $"{couple} completed their marriage. A draw chose {surname} after four turns without agreement."
-                : $"{couple} completed their marriage and agreed to share the surname {surname}.", world.Agents[marriage.InitiatorId].Position);
+        world.AppendEvent(usedTieBreak ? new MarriageSurnameDrawEventPayload(marriage.InitiatorId, marriage.InviteeId, couple, surname) : new MarriageSurnameAgreedEventPayload(marriage.InitiatorId, marriage.InviteeId, couple, surname), world.Agents[marriage.InitiatorId].Position);
     }
 
     public bool CanCompleteMarriageSurname(IConversationWorld world, AgentConversation receipt)

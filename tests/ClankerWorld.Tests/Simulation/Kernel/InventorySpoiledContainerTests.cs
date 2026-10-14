@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Tests;
@@ -117,7 +118,7 @@ public sealed class InventorySpoiledContainerTests
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Reserve(
             inventory, "eat", "bravo", "berries", 1, "food", 20));
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.CreateDirectBarterOffer(inventory,
-            new DirectBarterProposal("barter", 1, "bravo", "alpha", "berries", 1, "wood", 1, 20)));
+            new DirectBarterProposal(Identity.Parse("barter"), 1, "bravo", "alpha", "berries", 1, "wood", 1, 20)));
         Assert.Equal(before, InventoryCheckpointCodec.Encode(inventory));
 
         var reserved = InventoryAuthority.Reserve(FilledPot(), "food-input", "alpha", "berries", 1, "food", 20);
