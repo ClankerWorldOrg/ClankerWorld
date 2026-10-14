@@ -13,7 +13,7 @@ public sealed class TownCivicVisitContinuationTests
         var initial = source.ExportState();
         var town = initial.Towns![0];
         var visitor = town.ResidentIds[0];
-        Assert.True(source.RenameAgent(visitor, "Notice visitor"));
+        Assert.True(source.RenameAgent(visitor, "Notice visitor 🧭 Élodie"));
         initial = source.ExportState();
         town = initial.Towns![0];
         var board = town.OriginSite!.Value;
@@ -33,13 +33,28 @@ public sealed class TownCivicVisitContinuationTests
             }).ToArray(),
         }, id => id == visitor ? provider : new ActionCoverageRecorder(chooseIdle: true));
 
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        provider.Observations.Clear();
+        provider.Reset();
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
+            id => id == visitor ? new VisitOnceProvider() : new ActionCoverageRecorder(chooseIdle: true));
         var first = await world.AdvanceOneTickAsync();
         Assert.True(first.Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var decision = Assert.Single(first.Decisions, result => result.AgentId == visitor);
         Assert.True(decision.Admission.Accepted);
         Assert.False(decision.Admission.FellBack);
         var firstObservation = Assert.Single(provider.Observations);
         Assert.Contains(firstObservation.Candidates, candidate => candidate.Id == provider.VisitId);
+        var plan = Assert.IsType<CivicVisitActionPlan>(firstObservation.Candidates.Single(candidate => candidate.Id == provider.VisitId).ActionPlan);
+        Assert.Same(plan, decision.ActionPlan);
+        Assert.Equal(board, plan.NoticePlace);
+        Assert.NotEmpty(plan.Route);
+        Assert.Equal(plan.Choice, CivicVisitChoice.Decode(plan.CandidateId));
+        Assert.True(world.CheckActionPlan(plan).Allowed);
         Assert.Contains(visitor, world.Towns[0].ResidentIds);
         Assert.True(world.ExportState().Map.FootDistance(start, board) >= 6);
         Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
@@ -51,6 +66,8 @@ public sealed class TownCivicVisitContinuationTests
         for (var tick = 0; tick < 28 && world.ExportState().Map.FootDistance(Position(world, visitor), board) > 1; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             positions.Add(Position(world, visitor));
             Assert.Single(provider.Observations);
             Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
@@ -60,6 +77,10 @@ public sealed class TownCivicVisitContinuationTests
         var arrived = Position(world, visitor);
         Assert.True(world.ExportState().Map.FootDistance(arrived, board) <= 1);
         Assert.True(positions.Count > 2, "The visitor must take local walking steps after the first personal choice.");
+        var arrivedBytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(arrivedBytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(arrivedBytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(arrivedBytes)));
 
         // Arrival removes visit from the offered choices and prompts an
         // ordinary fresh choice. Choosing idle must not read or vote for them.
@@ -127,6 +148,7 @@ public sealed class TownCivicVisitContinuationTests
         public string? VisitId { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
+        public void Reset() => VisitId = null;
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)

@@ -1,0 +1,1 @@
+- Civic visits keep their selected public notice place and explain when that visit is no longer available.

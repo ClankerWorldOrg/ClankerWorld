@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        CivicVisitActionPlan civicVisit => townSystem.CheckCivicVisit(civicWorld, civicVisit),
         ToolRequestCollectionActionPlan toolCollection => CheckToolRequestCollectionPlan(toolCollection),
         ToolRequestWorkActionPlan toolWork => CheckToolRequestWorkPlan(toolWork),
         ToolRequestVisitActionPlan toolVisit => CheckToolRequestVisitPlan(toolVisit),

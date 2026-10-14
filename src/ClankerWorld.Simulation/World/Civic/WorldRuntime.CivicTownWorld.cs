@@ -100,6 +100,9 @@ public sealed partial class WorldRuntime
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
+        public IReadOnlyList<GridPoint> ReachCivicNoticePlace(string actor, GridPoint noticePlace) =>
+            runtime.Reach(actor, noticePlace, ReachPurpose.CivicVisit, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable);
+        public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
         public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);
         public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);

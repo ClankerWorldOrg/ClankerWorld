@@ -107,7 +107,7 @@ internal sealed partial class TownSystem
         $"civic|{town}|{kind}|{(world.Society.Agents.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
     internal static string CivicRoundToken(TownElection election) =>
         DerivedId.Create($"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}");
-    internal void AddTownCivicCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor,
+    private void AddTownCivicCandidateOptions(ITownWorld world, List<CognitionCandidate> candidates, string actor,
         IReadOnlyList<string>? buildingsWithoutSites = null)
     {
         // Civic agreement and votes are explicit personal choices, never a built-in idle alternative.
@@ -217,16 +217,14 @@ internal sealed partial class TownSystem
 
     internal void ContinueTownCivicVisit(ITownWorld world, string actor, string candidate)
     {
-        var parts = candidate.Split('|');
-        if (parts.Length != 5 || parts[2] != "visit" || world.NeedsUrgentWarmth(world.Agents[actor])) return;
-        var town = world.Towns.SingleOrDefault(t => t.Id == parts[1]);
-        if (town?.Council is null || !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !MayVisitAsNewcomer(world, actor, town) && !MayVisitLandHearing(world, actor, town) && !MayVisitLandTransfer(world, actor, town) && !MayVisitNonLandCase(world, actor, town) ||
-            CivicBoard(world, town) is not { } destination || world.IsWithinInteractionRange(world.Agents[actor].Position, destination, WorldRuntime.CivicSharedRules.ResourceInteractionRange)) return;
-        world.MoveToward(actor, world.Agents[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+        if (CivicVisitChoice.Decode(candidate) is not { } choice || PlanCivicVisit(world, actor, choice) is not { } plan) return;
+        if (CheckCivicVisit(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        world.MoveToward(actor, world.Agents[actor], plan.NoticePlace, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
     }
 
     internal void ApplyTownCivicCandidate(ITownWorld world, string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null,
-        IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null)
+        IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null,
+        CivicVisitActionPlan? visitPlan = null)
     {
         var parts = candidate.Split('|');
         if (parts.Length != 5) return;
@@ -242,10 +240,19 @@ internal sealed partial class TownSystem
         if (town?.Council is not { } state) return;
         var government = town.Government ?? TownGovernmentState.Create();
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
-        var current = new List<CognitionCandidate>();
-        if (world.IsChild(actor)) AddChildNonLandCandidates(world, current, actor);
-        else AddTownCivicCandidates(world, current, actor);
-        if (!current.Any(c => c.Id == selectedId)) return;
+        if (parts[2] == "visit")
+        {
+            visitPlan ??= CivicVisitChoice.Decode(selectedId) is { } visit ? PlanCivicVisit(world, actor, visit) : null;
+            if (visitPlan is null) return;
+            if (CheckCivicVisit(world, visitPlan).Refusal is { } refusal) { world.RefuseChoice(visitPlan, refusal); return; }
+        }
+        else
+        {
+            var current = new List<CognitionCandidate>();
+            if (world.IsChild(actor)) AddChildNonLandCandidates(world, current, actor);
+            else AddTownCivicCandidates(world, current, actor);
+            if (!current.Any(c => c.Id == selectedId)) return;
+        }
         if (parts[2] == "resettle")
         {
             ResettleTown(world, actor, town);
@@ -288,8 +295,7 @@ internal sealed partial class TownSystem
             switch (parts[2])
             {
                 case "visit":
-                    if (CivicBoard(world, town) is { } destination)
-                        world.MoveToward(actor, world.Agents[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+                    world.MoveToward(actor, world.Agents[actor], visitPlan!.NoticePlace, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                     break;
                 case "read":
                     state = TownCouncilRules.LearnNotices(state, actor, state.Notices.Select(n => n.Id), world.WorldTick);
