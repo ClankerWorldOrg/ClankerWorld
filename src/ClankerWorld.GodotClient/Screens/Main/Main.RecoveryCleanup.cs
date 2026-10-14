@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -55,7 +56,7 @@ public partial class Main
             var preview = await AwaitCurrentWorldResultAsync(ownerApi.PreviewRecoveryCleanupAsync(ResolveWorldUri(), authority,
                 deviceId, new("preview", worldId, count), signer, OwnerRequestToken));
             if (!manualSaveOverlay.Visible || listedSaveWorldId != worldId || preview.WorldId != worldId)
-                throw new ObsoleteWorldRequestException();
+                throw new ObsoleteOwnerRequestException();
             ShowRecoveryCleanupPreview(preview);
             return preview.Remove.Count == 0 ? "No verified older recovery copies to remove." : "Review the recovery copies before deleting.";
         });

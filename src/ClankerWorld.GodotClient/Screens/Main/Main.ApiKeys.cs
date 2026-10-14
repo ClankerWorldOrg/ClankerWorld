@@ -115,7 +115,7 @@ public partial class Main
         apiKeysStatus.Text = "Saving key...";
         var saved = false;
         var generation = observationSession.RequestGeneration;
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.CreateCredentialSlotAsync(
                 ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
@@ -128,7 +128,7 @@ public partial class Main
             PopulateCredentialChoices();
             return "API key saved on the world server.";
         });
-        if (!saved && IsCurrentWorldRequest(generation))
+        if (contextRetained && !saved && IsCurrentWorldRequest(generation))
             apiKeysStatus.Text = "The world server did not confirm that the key was saved. Check the connection and try again.";
     }
 }

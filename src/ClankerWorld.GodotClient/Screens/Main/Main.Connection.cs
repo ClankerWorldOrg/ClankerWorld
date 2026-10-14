@@ -373,8 +373,6 @@ public partial class Main
     private bool IsCurrentWorldRequest(long generation) =>
         generation == observationSession.RequestGeneration && !observationSession.AwaitingFreshBaseline;
 
-    private sealed class ObsoleteWorldRequestException : ObsoleteOwnerRequestException { }
-
     private readonly AsyncLocal<OwnerRequestContext?> ownerRequestContext = new();
     private CancellationToken OwnerRequestToken => ownerRequestContext.Value?.CancellationToken ?? CancellationToken.None;
 

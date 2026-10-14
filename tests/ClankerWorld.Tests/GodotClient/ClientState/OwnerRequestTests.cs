@@ -17,11 +17,19 @@ public sealed class OwnerRequestTests
         var request = new OwnerRequest<int>(() => true, controls.Add);
         using var cancellation = new CancellationTokenSource();
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var applied = false;
         var reply = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
         var running = request.RunAsync(async context =>
         {
-            entered.SetResult();
-            return await context.AwaitAsync(reply.Task);
+            try
+            {
+                entered.SetResult();
+                var value = await context.AwaitAsync(reply.Task);
+                applied = true;
+                return value;
+            }
+            finally { completed.TrySetResult(); }
         }, cancellation.Token);
         await entered.Task;
         Assert.Equal([true], controls);
@@ -35,8 +43,10 @@ public sealed class OwnerRequestTests
         }
         if (outcome != "success") await Assert.ThrowsAnyAsync<Exception>(() => running);
         Assert.Equal([true, false], controls);
-        // A reply that arrives after the deadline cannot leave controls locked.
+        // The protected callback must finish without applying a late cancelled reply.
         reply.TrySetResult(9);
+        await completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(outcome == "success", applied);
         Assert.Equal([true, false], controls);
     }
 
