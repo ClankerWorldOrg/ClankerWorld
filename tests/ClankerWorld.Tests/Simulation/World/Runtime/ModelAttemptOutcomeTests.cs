@@ -117,7 +117,7 @@ public sealed class ModelAttemptOutcomeTests
     {
         var events = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldEventSlice>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetEventsAfter(0)), ClientJson)!.Events;
-        return ClankerWorld.GodotClient.UI.GameUiText.PlayerEvents(events)
+        return ClankerWorld.Contracts.GameUiText.PlayerEvents(events)
             .Where(item => item.Payload is ModelAttemptStatusEventPayload payload && payload.ActorId == TargetId).ToArray();
     }
 
