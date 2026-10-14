@@ -117,7 +117,7 @@ public sealed partial class WorldRuntime
     private static string BoatTripId(string town, string origin, string destination) =>
         new BoatTripActionChoice(town, origin, destination).Encode();
     private static string NonLandRemedyChoiceId(string town, string agreement, string term) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Agreement = agreement, Term = term }), NonLandRemedyPrefix);
+        new NonLandWorkChoice(town, agreement, term).Encode();
     private static string NonLandRelayChoiceId(string town, string act, string listener) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Act = act, Listener = listener }), NonLandRelayPrefix);
+        new NonLandReportRelayChoice(town, act, listener).Encode();
 }

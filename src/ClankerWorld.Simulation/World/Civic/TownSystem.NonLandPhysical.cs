@@ -162,14 +162,14 @@ internal sealed partial class TownSystem
     }
 
     internal bool RelayNonLandKnownReport(ITownWorld world, TownRuntimeState town, string source, string recipient,
-        string incidentId, string statement)
+        string incidentId, string statement, TownConductAcquisition? selectedSource = null)
     {
         if (!world.Agents.TryGetValue(source, out var speaker) || !world.Agents.TryGetValue(recipient, out var listener) ||
             source == recipient || !world.IsWithinInteractionRange(speaker.Position, listener.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) ||
             string.IsNullOrWhiteSpace(statement) || statement.Length > TownCouncilRules.MaximumProposalText || statement.Any(char.IsControl)) return false;
         town = world.Towns.Single(item => item.Id == town.Id);
         if (town.NonLandHearings.Acquisitions.Any(item => item.AgentId == recipient && item.ConductId == incidentId)) return true;
-        var original = town.NonLandHearings.Acquisitions.Where(item => item.AgentId == source && item.ConductId == incidentId)
+        var original = selectedSource ?? town.NonLandHearings.Acquisitions.Where(item => item.AgentId == source && item.ConductId == incidentId)
             .OrderBy(item => item.Tick).ThenBy(item => item.Id, StringComparer.Ordinal).FirstOrDefault();
         if (original is null) return false;
         var id = WorldRuntime.CivicSharedRules.ConductRelayId(incidentId, world.WorldTick, source, recipient);
@@ -203,28 +203,31 @@ internal sealed partial class TownSystem
                 term.Kind == "repair_equipment" && term.ContributorId == actor && term.TargetId == repair.LotId &&
                 NonLandRemaining(town.NonLandHearings, agreement, term) > 0))) &&
         (world.IllDependentsNeedingCare(actor).Any() || world.ChildrenNeedingCare(actor).Any());
-    internal static InventoryLot? NonLandReturnLot(ITownWorld world, TownRemedyTerm term) => world.Society.Inventory.Lots
-        .Where(lot => lot.OwnerId == term.ContributorId && ToolProgressionRules.IsTopLevelCarriedLot(lot, term.ContributorId) &&
+    internal static InventoryLot? NonLandReturnLot(ITownWorld world, TownRemedyTerm term, string? selectedId = null) => world.Society.Inventory.Lots
+        .Where(lot => (selectedId is null || lot.Id == selectedId) && lot.OwnerId == term.ContributorId && ToolProgressionRules.IsTopLevelCarriedLot(lot, term.ContributorId) &&
             lot.DeliveryBuildingId is null && lot.ItemKind == term.ItemKind && (term.TargetId is null || lot.Id == term.TargetId) &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) &&
             !PersonalEquipmentRules.IsSelected(world.Agents[term.ContributorId].Equipment, lot.Id) && world.AvailableLotQuantity(lot) >= term.Quantity)
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
+    internal static bool NonLandReturnIsCurrent(ITownWorld world, TownRemedyTerm term, string? selectedId = null) =>
+        term.BeneficiaryId is { } recipient && recipient != term.ContributorId && world.Agents.TryGetValue(recipient, out var beneficiary) &&
+        world.IsWithinInteractionRange(world.Agents[term.ContributorId].Position, beneficiary.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
+        CanObserveNonLandAct(world, term.ContributorId, recipient, beneficiary.Position) && NonLandReturnLot(world, term, selectedId) is { } lot &&
+        (!WorldRuntime.CivicSharedRules.IsEdibleFood(lot.ItemKind) || world.Agents[term.ContributorId].FullnessBasisPoints >= NeedThresholds.NonLandReturnFoodFullness &&
+            world.PreferredFood(term.ContributorId, term.ContributorId).Sum(world.AvailableLotQuantity) - term.Quantity >= 2) && world.FreeCarryCapacity(recipient) >= term.Quantity;
+
     internal static bool NonLandRemedyFeasible(ITownWorld world, TownRuntimeState town, TownRemedyTerm term)
     {
         if (term.Quantity <= 0 || !NonLandWorkAllowed(world, term.ContributorId)) return false;
         var actor = term.ContributorId;
         var person = world.Agents[actor];
-        if (term.Kind == "return_goods")
-            return term.BeneficiaryId is { } recipient && recipient != actor && world.Agents.TryGetValue(recipient, out var beneficiary) && world.IsWithinInteractionRange(person.Position, beneficiary.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
-                CanObserveNonLandAct(world, actor, recipient, beneficiary.Position) &&
-                NonLandReturnLot(world, term) is { } lot && world.AvailableLotQuantity(lot) >= term.Quantity &&
-                (!WorldRuntime.CivicSharedRules.IsEdibleFood(lot.ItemKind) || person.FullnessBasisPoints >= 6_500 && world.PreferredFood(actor, actor).Sum(world.AvailableLotQuantity) - term.Quantity >= 2) && world.FreeCarryCapacity(recipient) >= term.Quantity;
+        if (term.Kind == "return_goods") return NonLandReturnIsCurrent(world, term);
         if (term.Kind == "public_service_goods")
         {
             var warehouse = world.WarehouseForResident(actor);
             return term.BeneficiaryId == town.Id && warehouse is not null && warehouse.TownId == town.Id &&
                 (term.TargetId is null || term.TargetId == warehouse.InstanceId) && WorldRuntime.CivicSharedRules.WarehouseResourceKinds.Contains(term.ItemKind ?? "") && world.DestinationRoom(warehouse.InstanceId) >= term.Quantity && world.PersonalWarehouseAvailableQuantity(actor, term.ItemKind!) - WorldRuntime.CivicSharedRules.WarehouseLoadQuantity >= term.Quantity &&
-                (person.Position == warehouse.Position || world.FindUnoccupiedRoute(actor, person.Position, warehouse.Position, 0).Count > 0);
+                (person.Position == warehouse.Position || world.ReachNonLandService(actor, warehouse.Position).Count > 0);
         }
         if (term.Kind != "repair_equipment" || term.Quantity != 1 || term.TargetId is null) return false;
         var predecessor = town.NonLandHearings.Offers.Where(offer => offer.Terms.Any(item => item.Id == term.Id))
@@ -355,23 +358,22 @@ internal sealed partial class TownSystem
                          town.NonLandHearings.Acquisitions.Any(item => item.ConductId == record.Id && item.AgentId == actor)))
                 foreach (var listener in world.Agents.Values.Where(person => person.AgentId != actor && world.IsWithinInteractionRange(speaker.Position, person.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
                              !town.NonLandHearings.Acquisitions.Any(item => item.ConductId == record.Id && item.AgentId == person.AgentId)))
-                    candidates.Add(new(NonLandRelayCandidateId(town, record, listener.AgentId),
-                        "Tell this nearby person what you observed or were told about this act; it remains a report.",
-                        185, listener.AgentId));
+                    if (PlanNonLandReportRelay(world, actor, town, record, listener.AgentId) is { } relay && CheckNonLandReportRelay(world, relay).Allowed)
+                        candidates.Add(new(relay.CandidateId, "Tell this nearby person what you observed or were told about this act; it remains a report.", 185, listener.AgentId)
+                        { ActionPlan = relay });
         if (!NonLandWorkAllowed(world, actor)) return;
         foreach (var agreement in town.NonLandHearings.Agreements.Where(item => item.Status is "pending" or "overdue" &&
                      !TownRemedyRules.IsSuperseded(town.NonLandHearings, item.Id))
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
             foreach (var term in agreement.Terms.Where(item => item.ContributorId == actor))
             {
-                var remaining = NonLandRemaining(town.NonLandHearings, agreement, term);
-                if (remaining <= 0 || !NonLandRemedyFeasible(world, town, term with { Quantity = remaining })) continue;
-                candidates.Add(new(NonLandRemedyCandidateId(town, agreement, term),
-                    $"Voluntarily complete agreed {term.Kind.Replace('_', ' ')} using real goods or repair work.", 185, term.TargetId));
+                if (PlanNonLandWork(world, actor, town, agreement, term) is { } plan && CheckNonLandWork(world, plan).Allowed)
+                    candidates.Add(new(plan.CandidateId, $"Voluntarily complete agreed {term.Kind.Replace('_', ' ')} using real goods or repair work.", 185, term.TargetId)
+                    { ActionPlan = plan });
             }
     }
 
-    internal bool ApplyNonLandRemedyAction(ITownWorld world, TownRuntimeState town, string actor, string candidateId)
+    internal bool ApplyNonLandRemedyAction(ITownWorld world, TownRuntimeState town, string actor, string candidateId, ActionPlan? originalPlan = null)
     {
         if (candidateId.StartsWith(NonLandRelayPrefix, StringComparison.Ordinal))
         {
@@ -379,8 +381,12 @@ internal sealed partial class TownSystem
                 foreach (var listener in world.Agents.Keys)
                     if (candidateId == NonLandRelayCandidateId(town, record, listener))
                     {
-                        var known = town.NonLandHearings.Acquisitions.FirstOrDefault(item => item.ConductId == record.Id && item.AgentId == actor);
-                        if (known is not null) RelayNonLandKnownReport(world, town, actor, listener, record.Id, known.Text);
+                        var relay = originalPlan as NonLandReportRelayActionPlan ?? PlanNonLandReportRelay(world, actor, town, record, listener);
+                        if (relay is not null)
+                        {
+                            if (CheckNonLandReportRelay(world, relay).Refusal is { } refusal) { world.RefuseChoice(relay, refusal); return true; }
+                            RelayNonLandKnownReport(world, town, actor, listener, record.Id, relay.Statement, relay.Source);
+                        }
                         return true;
                     }
             return false;
@@ -392,15 +398,17 @@ internal sealed partial class TownSystem
             foreach (var term in agreement.Terms.Where(item => item.ContributorId == actor))
             {
                 if (candidateId != NonLandRemedyCandidateId(town, agreement, term)) continue;
-                var remaining = NonLandRemaining(town.NonLandHearings, agreement, term);
-                if (remaining <= 0 || !NonLandRemedyFeasible(world, town, term with { Quantity = remaining })) return true;
+                var plan = originalPlan as NonLandWorkActionPlan ?? PlanNonLandWork(world, actor, town, agreement, term);
+                if (plan is null) return true;
+                if (CheckNonLandWork(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return true; }
+                var remaining = plan.Remaining;
                 var previousSelection = world.NonLandRemedySelection;
                 world.NonLandRemedySelection = (town.Id, agreement.Id, term.Id);
                 try
                 {
                     if (term.Kind == "return_goods")
                     {
-                        var lot = NonLandReturnLot(world, term with { Quantity = remaining })!;
+                        var lot = NonLandReturnLot(world, term with { Quantity = remaining }, plan.StockId)!;
                         var operation = WorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
                         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
                             term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
@@ -408,19 +416,11 @@ internal sealed partial class TownSystem
                         world.AppendEvent("voluntary_goods_returned", $"{actor}:{term.BeneficiaryId}:{lot.Id}:{remaining}");
                     }
                     else if (term.Kind == "public_service_goods")
-                        DeliverNonLandTownGoods(world, actor, term, remaining);
+                        DeliverNonLandTownGoods(world, actor, term, remaining, plan);
                     else
                     {
-                        var person = world.Agents[actor];
-                        var target = world.Society.Inventory.GetLot(term.TargetId!);
-                        if (target.ItemKind == InventoryContainerRules.Handcart)
-                            world.ApplyHandcartCandidate(actor, person, WorldRuntime.CivicSharedRules.RepairCartPrefix + target.Id);
-                        else if (ToolProgressionRules.Find(target.ItemKind) is not null)
-                            world.RepairTool(actor, person, target.Id);
-                        else if (person.Equipment?.Repair?.LotId == target.Id)
-                            world.ContinueEquipmentRepair(actor);
-                        else
-                            world.RepairEquipment(actor, person, target.Id);
+                        if (plan.Phase == NonLandWorkPhase.ContinueRepair) world.ContinueEquipmentRepair(actor);
+                        else world.ApplyNonLandRepair(plan.Repair!);
                     }
                 }
                 finally
@@ -434,17 +434,17 @@ internal sealed partial class TownSystem
 
     internal static string NonLandRelayCandidateId(TownRuntimeState town, TownConductRecord record, string listener) =>
         WorldRuntime.CivicSharedRules.NonLandRelayChoiceId(town.Id, record.Id, listener);
-    internal void DeliverNonLandTownGoods(ITownWorld world, string actor, TownRemedyTerm term, int remaining)
+    internal void DeliverNonLandTownGoods(ITownWorld world, string actor, TownRemedyTerm term, int remaining, NonLandWorkActionPlan? plan = null)
     {
-        var warehouse = world.WarehouseForResident(actor)!;
+        var warehouse = plan is null ? world.WarehouseForResident(actor)! : world.WorldSimulation.Buildings.Single(building => building.InstanceId == plan.WarehouseId);
         if (world.Agents[actor].Position != warehouse.Position)
         {
             world.MoveToward(actor, world.Agents[actor], warehouse.Position, "voluntary_town_service", 0);
             return;
         }
-        if (world.PersonalWarehouseSurplus(actor, term.ItemKind) is not { } surplus) return;
+        if (world.PersonalWarehouseSurplus(actor, term.ItemKind, plan?.StockId) is not { } surplus) return;
         var lot = surplus.Lot;
-        var quantity = Math.Min(remaining, Math.Min(WorldRuntime.CivicSharedRules.WarehouseLoadQuantity,
+        var quantity = plan?.Quantity ?? Math.Min(remaining, Math.Min(WorldRuntime.CivicSharedRules.WarehouseLoadQuantity,
             Math.Min(world.DestinationRoom(warehouse.InstanceId), surplus.Quantity)));
         if (quantity <= 0) return;
         var availableBefore = world.PersonalWarehouseAvailableQuantity(actor, lot.ItemKind);

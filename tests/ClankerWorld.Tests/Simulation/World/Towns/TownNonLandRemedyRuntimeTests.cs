@@ -30,9 +30,13 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Contains(provider.Selected, selected => selected.Contains("nonviolent_remedy:", StringComparison.Ordinal));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         using var replay = NonLandRuntimeFixture.Create(WorldRuntimeCodec.Decode(before), CompletionProvider());
+        var workPlans = new List<NonLandWorkActionPlan>();
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            workPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandWorkActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<NonLandWorkActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
@@ -40,6 +44,11 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Equal("completed", Assert.Single(completed.Agreements).Status);
         var effect = Assert.Single(completed.Effects);
         var receipt = Assert.Single(completed.NativeReceipts);
+        var workPlan = Assert.Single(workPlans);
+        Assert.Equal(workPlan.Choice.Encode(), workPlan.CandidateId);
+        Assert.Equal((agreement.Id, effect.TermId, receipt.SourceLotId, receipt.Quantity),
+            (workPlan.Choice.AgreementId, workPlan.Term.Id, workPlan.StockId, workPlan.Quantity));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(workPlan).Refusal!.Reason);
         Assert.Equal(receipt.Id, effect.NativeReceiptId);
         Assert.Equal(receipt.Version, effect.NativeReceiptVersion);
         Assert.Equal(1, effect.Quantity);

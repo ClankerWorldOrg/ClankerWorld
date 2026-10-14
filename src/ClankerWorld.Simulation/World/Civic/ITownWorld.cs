@@ -20,6 +20,11 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor);
     void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool IsAdult(string actor);
+    IReadOnlyList<GridPoint> ReachNonLandService(string actor, GridPoint destination);
+    ActionPlan? PlanNonLandRepair(string actor, string targetId);
+    ActionCheck CheckNativeActionPlan(ActionPlan plan);
+    void ApplyNonLandRepair(ActionPlan plan);
+    bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress);
     IReadOnlyList<GridPoint> ReachCivicNoticePlace(string actor, GridPoint noticePlace);
     IReadOnlyList<GridPoint> ReachLandSalePickup(string actor, PlannedEquipmentPickup pickup);
     IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity);

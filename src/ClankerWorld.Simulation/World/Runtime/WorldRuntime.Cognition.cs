@@ -743,7 +743,7 @@ public sealed partial class WorldRuntime
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
                     foreach (var town in towns.ToArray())
-                        if (ApplyNonLandRemedyAction(town, decision.AgentId, candidateId)) break;
+                        if (ApplyNonLandRemedyAction(town, decision.AgentId, candidateId, decision.ActionPlan)) break;
             }
             else if (IsTownProjectDonationCandidate(candidateId))
             {

@@ -12,9 +12,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
-    "person.FullnessBasisPoints \u003E= 6_500"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs": [
     "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
     "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
