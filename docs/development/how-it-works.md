@@ -238,8 +238,9 @@ The commit keeps the existing one-unit split or transfer and displaced item.
 
 Personal equipment repair carries `EquipmentRepairActionPlan` with the worn
 item, private work site, exact carried material lots and ordered shared pickups.
-Its check runs at offer, admission and application, including the return trip
-and room for every missing input. `EquipmentRepair` goods selection retains
+The shared input-trip planner chooses an order once; its check revalidates that order
+with cumulative loads and the return trip at offer, admission and application.
+It also checks room for every missing input. `EquipmentRepair` goods selection retains
 broken items while excluding existing reservations and promises. Starting work
 reserves the captured materials through the same commit used by repair orders;
 continuation still uses the saved work record and reservation IDs.
@@ -511,7 +512,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 215 references across 59 files. Named delivery, hold and cargo operations
+is 213 references across 58 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
@@ -936,7 +937,7 @@ collect real materials through `CollectEquipment`, then use `RepairEquipment`
 and `ContinueEquipmentRepair`. Ordinary repair chooses the first feasible worn item, preferring the equipped
 carry aid when its materials, carrying space and private work site are usable.
 Ordinary repair carries its selected item and material lots through one plan check;
-orders share the repair-start commit and saved continuation.
+orders and civic repairs use the same planned pickup order, repair-start commit and saved continuation.
 A repair work record links to the active instruction; only the returned completed
 repair advances its item count, with a bounded receipt derived from the actor,
 start time and lot identity. New orders release any previous repair's unspent

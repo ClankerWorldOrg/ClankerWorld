@@ -158,27 +158,8 @@ public sealed partial class WorldRuntime
     private void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null)
     {
         var target = requestedLotId is null ? RepairableEquipment(actor, person) : WornEquipmentItems(actor).FirstOrDefault(lot => lot.Id == requestedLotId);
-        if (!IsAdult(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person) ||
-            target is null || EquipmentRepairSite(actor, target) is not { } site) return;
-        if (!CanPrepareEquipmentRepair(actor, person, target)) return;
-        foreach (var input in PersonalEquipmentRules.RepairMaterials(target.ItemKind))
-        {
-            if (!HasCarriedOwnItem(actor, input.ResourceId))
-            {
-                CollectEquipment(actor, person, input.ResourceId, site.Position);
-                return;
-            }
-        }
-        if (person.Position != site.Position)
-        {
-            MoveToward(actor, person, site.Position, "repair_equipment", 0);
-            return;
-        }
-        var materials = PersonalEquipmentRules.RepairMaterials(target.ItemKind).Select(input =>
-            new PlannedRepairMaterial(SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId)
-                .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot.Id,
-                input.ResourceId, input.Amount)).ToArray();
-        StartEquipmentRepair(actor, person, target.Id, site.InstanceId, materials, orderInstructionId);
+        if (target is null) return;
+        ApplyEquipmentRepairPlan(PlanEquipmentRepair(actor, target), orderInstructionId);
     }
 
     private void StartEquipmentRepair(string actor, AgentState person, string targetId, string buildingId,
