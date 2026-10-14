@@ -239,6 +239,7 @@ public sealed partial class WorldRuntime
     {
         if (!ShopQuoteContext(buyer, building))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shop exchange is no longer available");
+        var index = InventoryIndex.For(society.Checkpoint.Inventory);
         var goods = SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
             .Where(match => match.Lot.Id == quote.Goods.Id && match.Lot.OwnerId == quote.Goods.OwnerId &&
                 match.Lot.ItemKind == quote.Goods.ItemKind && match.Quantity >= quote.GoodsQuantity)
@@ -248,6 +249,7 @@ public sealed partial class WorldRuntime
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         if (goods is null || payment is null || ShopRules.KindOf(definition) is not { } kind ||
             !ShopRules.MaySell(kind, goods.ItemKind) || !IsLooseShopLot(goods) || goods.ItemKind == payment.ItemKind ||
+            !InventoryHoldRules.Allows(index, goods) || !InventoryHoldRules.Allows(index, payment) ||
             AvailableLotQuantity(payment) < quote.PaymentQuantity ||
             ShopQuoteAmounts(building, goods, payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
             !requestedGoods && (!ShopBuyerWants(buyer, goods) ||
