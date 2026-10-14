@@ -63,7 +63,7 @@ public sealed class BlacksmithContentTests
             "smith-stone", "stone", "household:first", 4);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var placing = WorldRuntime.Restore(state, _ => new CandidateProvider("safe_idle"));
         var blacksmith = placing.WorldContent.Buildings.Single(item => item.LocalId == "blacksmith-1x2");
@@ -151,7 +151,7 @@ public sealed class BlacksmithContentTests
         {
             Society = directDeliveryState.Society with
             {
-                Society = directDeliveryState.Society.Society with { Inventory = personalWood },
+                Society = directDeliveryState.Society.Society with { Inventory = StockHoldTestState.Custody(personalWood) },
             },
             Agents = directDeliveryState.Agents.Select(person => person.AgentId == alpha
                 ? person with
@@ -207,7 +207,7 @@ public sealed class BlacksmithContentTests
         {
             Society = collectingState.Society with
             {
-                Society = collectingState.Society.Society with { Inventory = brokenAxe },
+                Society = collectingState.Society.Society with { Inventory = StockHoldTestState.Custody(brokenAxe) },
             },
             Agents = collectingState.Agents.Select(person => person.AgentId == alpha
                 ? person with { LastDecisionContext = null } : person).ToArray(),
@@ -300,7 +300,7 @@ public sealed class BlacksmithContentTests
         };
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
@@ -352,7 +352,7 @@ public sealed class BlacksmithContentTests
         inventory = InventoryAuthority.AddLot(inventory, "smith-stone", "stone", householdId, 4);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var placing = WorldRuntime.Restore(state, _ => new CandidateProvider("safe_idle"));
         var definition = placing.WorldContent.Buildings.Single(item => item.LocalId == "blacksmith-1x2");
@@ -379,7 +379,7 @@ public sealed class BlacksmithContentTests
         inventory = InventoryAuthority.AddLot(inventory, "repair-wood", "wood", actor, 1);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {

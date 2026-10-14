@@ -107,17 +107,17 @@ internal sealed partial class AnimalSystem
             var inventory = world.Society.Inventory;
             var lot = inventory.Lots.FirstOrDefault(lot => lot.Id == trip.LotId && PersonalEquipmentRules.IsCarried(lot, actor));
             var yard = world.Simulation.Buildings.FirstOrDefault(building => building.InstanceId == trip.YardId && MaySupplyAnimalYard(world, actor, building));
-            if (lot is null || yard is null || !world.IsAdult(actor)) { FinishAnimalSupplyTrip(actor); return true; }
+            if (lot is null || yard is null || !world.IsAdult(actor)) { FinishAnimalSupplyTrip(world, actor); return true; }
             if (trip.AnimalId is { } animalId)
             {
                 var animal = Animal(animalId);
-                if (animal is null || !MayCareForAnimal(world, actor, animal)) { FinishAnimalSupplyTrip(actor); return true; }
+                if (animal is null || !MayCareForAnimal(world, actor, animal)) { FinishAnimalSupplyTrip(world, actor); return true; }
                 _ = ApplyAnimalCandidate(world, actor, new AnimalChoice(trip.Action!, animal.Id).Id);
                 if (trip.Action == "care" && AnimalRules.HasCare(Animal(animal.Id)!, world.WorldTick) ||
-                    trip.Action == "saddle" && Animal(animal.Id)!.SaddleLotId is not null) FinishAnimalSupplyTrip(actor);
+                    trip.Action == "saddle" && Animal(animal.Id)!.SaddleLotId is not null) FinishAnimalSupplyTrip(world, actor);
                 // A partial feed/water pickup needs the other ingredient before walking to the animal.
                 if (trip.Action == "care" && AnimalCareInputs(world, actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
-                        AnimalRules.Definition(animal.Species).DailyWater) is null) FinishAnimalSupplyTrip(actor);
+                        AnimalRules.Definition(animal.Species).DailyWater) is null) FinishAnimalSupplyTrip(world, actor);
                 return true;
             }
             if (world.Agents[actor].Position != yard.Position) { world.MoveToward(actor, world.Agents[actor], yard.Position, "animal_yard_supply"); return true; }
@@ -126,10 +126,10 @@ internal sealed partial class AnimalSystem
                 Math.Min(world.AvailableLotQuantity(lot), room);
             if (quantity <= 0) return true;
             world.ApplyInventoryTransition(current => lot.OwnerId == yard.HouseholdId ? InventoryAuthority.Relocate(current,
-                "animal-deliver-" + world.WorldTick + "-" + world.NextEventId, lot.Id, lot.OwnerId, quantity, storageBuildingId: yard.InstanceId) :
+                "animal-deliver-" + world.WorldTick + "-" + world.NextEventId, lot.Id, lot.OwnerId, quantity, storageBuildingId: yard.InstanceId, holdAccess: InventoryHoldRules.SupplyTripFor(actor)) :
                 InventoryAuthority.Transfer(current, "animal-donate-" + world.WorldTick + "-" + world.NextEventId, lot.OwnerId, yard.HouseholdId!,
-                    lot.Id, quantity, "animal_yard_supplied", destinationStorageBuildingId: yard.InstanceId));
-            FinishAnimalSupplyTrip(actor);
+                    lot.Id, quantity, "animal_yard_supplied", destinationStorageBuildingId: yard.InstanceId, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
+            FinishAnimalSupplyTrip(world, actor);
             world.AppendEvent(new AnimalYardSuppliedEventPayload(actor, yard.InstanceId));
             return true;
         }
@@ -152,9 +152,11 @@ internal sealed partial class AnimalSystem
         {
             var operation = AnimalPickupId(actor, world.WorldTick, world.NextEventId);
             world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current, operation, source.Id, source.OwnerId,
-                choice.Quantity, carrierId: actor));
+                choice.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             if (choice.Quantity < source.Quantity) source = world.Society.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
+        world.ApplyInventoryTransition(inventory => InventoryAuthority.HoldStock(inventory, source.Id,
+            new(InventoryHoldPurpose.SupplyTrip, actor)));
         State = State with
         {
             SupplyTrips = State.SupplyTrips.Append(new(actor, source.Id,
@@ -163,7 +165,11 @@ internal sealed partial class AnimalSystem
         return true;
     }
 
-    internal void FinishAnimalSupplyTrip(string actor) => State = State with
-    { SupplyTrips = State.SupplyTrips.Where(trip => trip.ActorId != actor).ToArray() };
+    internal void FinishAnimalSupplyTrip(IAnimalWorld world, string actor)
+    {
+        var hold = new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
+        foreach (var lot in InventoryIndex.For(world.Society.Inventory).Lots.Where(lot => (lot.Holds ?? []).Contains(hold)))
+            world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseStock(inventory, lot.Id, hold));
+        State = State with { SupplyTrips = State.SupplyTrips.Where(trip => trip.ActorId != actor).ToArray() };
+    }
 }
-

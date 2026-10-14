@@ -4,12 +4,15 @@ public static partial class InventoryAuthority
 {
     /// <summary>The runtime checks the owner's physical proximity before loading carried or co-located goods.</summary>
     public static InventoryCheckpoint LoadHandcart(InventoryCheckpoint checkpoint, string operationId,
-        string ownerId, string cartId, string cargoId, int quantity)
+        string ownerId, string cartId, string cargoId, int quantity,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
         var cart = RequireHandcart(checkpoint, ownerId, cartId);
+        EnsureFamilyHoldAccess(checkpoint, cart, holdAccess);
         var cargo = checkpoint.GetLot(cargoId);
+        EnsureHoldAccess(checkpoint, cargo, holdAccess);
         if (cargo.OwnerId != ownerId || cargo.CarrierId is not null || cargo.ContainerLotId is not null ||
             cargo.StorageBuildingId is not null || cargo.DeliveryBuildingId is not null ||
             cargo.GroundPosition is { } ground && ground != cart.GroundPosition)
@@ -43,12 +46,15 @@ public static partial class InventoryAuthority
 
     /// <summary>Unload even a broken cart or spoiled load. Physical goods are never repaired or discarded by unloading.</summary>
     public static InventoryCheckpoint UnloadHandcart(InventoryCheckpoint checkpoint, string operationId,
-        string ownerId, string cartId, string cargoId, int quantity, bool ontoGround = false)
+        string ownerId, string cartId, string cargoId, int quantity, bool ontoGround = false,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
         var cart = RequireHandcart(checkpoint, ownerId, cartId);
+        EnsureFamilyHoldAccess(checkpoint, cart, holdAccess);
         var cargo = checkpoint.GetLot(cargoId);
+        EnsureHoldAccess(checkpoint, cargo, holdAccess);
         if (cargo.ContainerLotId != cart.Id)
             throw new InvalidOperationException("The goods must be inside this cart.");
         EnsureOwnerAndAvailablePhysicalQuantity(checkpoint, cargo, ownerId, quantity);
@@ -62,6 +68,7 @@ public static partial class InventoryAuthority
             Id = splitId,
             Quantity = quantity,
             ContainerLotId = null,
+            Holds = CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), cargo).ToArray()),
             GroundPosition = ontoGround ? cart.GroundPosition : null,
             ProvenanceLotId = splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id,
         };
@@ -74,10 +81,12 @@ public static partial class InventoryAuthority
 
     /// <summary>Move a cart family after the runtime has checked the attached puller's legal next step.</summary>
     public static InventoryCheckpoint MoveHandcart(InventoryCheckpoint checkpoint, string ownerId,
-        string cartId, InventoryGroundPosition next, int wearLossBasisPoints)
+        string cartId, InventoryGroundPosition next, int wearLossBasisPoints,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         var cart = RequireHandcart(checkpoint, ownerId, cartId);
+        EnsureFamilyHoldAccess(checkpoint, cart, holdAccess);
         if (cart.ConditionBasisPoints <= 0 || next.X < 0 || next.Y < 0)
             throw new InvalidOperationException("A broken cart cannot be pulled.");
         EnsureNoActiveReservations(checkpoint, checkpoint.Lots
@@ -85,7 +94,7 @@ public static partial class InventoryAuthority
         var moved = Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == cartId
                 ? lot with { GroundPosition = next } : lot).ToArray(),
             eventKind: "handcart_moved", detail: $"{cartId}:{next.X},{next.Y}");
-        return WearSingleUnit(moved, cartId, wearLossBasisPoints);
+        return WearSingleUnit(moved, cartId, wearLossBasisPoints, holdAccess);
     }
 
     private static InventoryLot RequireHandcart(InventoryCheckpoint checkpoint, string ownerId, string cartId)

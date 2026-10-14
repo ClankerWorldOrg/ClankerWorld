@@ -40,7 +40,7 @@ public sealed partial class TownMembershipTests
         for (var attempt = 0; attempt < 5; attempt++)
         {
             Assert.False((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await world.TickModelWorkAsync()).Advanced);
         }
         Assert.Equal(pausedBytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(pausedBytes), _ => new ScriptedModel());
@@ -133,13 +133,14 @@ public sealed partial class TownMembershipTests
         var deadline = proposal.SettledTick!.Value + AcceptanceDay;
         using var waiting = Reopen(approved, new ScriptedModel());
         await AdvanceUntil(waiting, () => waiting.WorldTick == deadline - 2, AcceptanceDay);
-        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry, delayEntry, deferReturn);
+        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry, deferReturn);
         using var world = Reopen(Paused(waiting), holding);
+        var harness = ModelWorkHarness.For(world);
         Task? capturedHeldTask = null;
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            // The committed request exists before the provider's background preparation enters.
+            Assert.True((await harness.TickAsync(runPendingWork: !delayEntry)).Advanced);
+            // The committed request exists before manually controlled provider entry.
             var (heldRequest, heldTask) = CaptureHeldAdmissionCall(world, newcomer);
             capturedHeldTask = heldTask;
             Assert.False(heldTask.IsCompleted);
@@ -153,11 +154,13 @@ public sealed partial class TownMembershipTests
             // Dispatch registration is not provider entry. Observe the real callback
             // before spending the last acceptance tick or opening its reply gates.
             var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
-            Assert.Same(heldRequest, await holding.Arrived.Task.WaitAsync(TimeSpan.FromSeconds(30)));
+            if (delayEntry) Assert.False(holding.Arrived.Task.IsCompleted);
+            harness.RunPendingWork();
+            Assert.Same(heldRequest, await harness.WaitAsync(holding.Arrived.Task));
             Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.False(heldTask.IsCompleted);
             if (deferEntry) Assert.False(holding.Started.Task.IsCompleted);
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(deadline, world.WorldTick);
             Assert.Equal("acceptance_expired", Assert.Single(world.Towns[0].Admissions!).Reason);
             Assert.False(holding.Replied.Task.IsCompleted);
@@ -192,7 +195,7 @@ public sealed partial class TownMembershipTests
                 }
                 await completion;
                 Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
-                var completed = await world.AdvanceOneTickNonBlockingAsync();
+                var completed = await world.TickModelWorkAsync();
                 Assert.True(completed.Advanced);
                 discarded |= completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == newcomer);
                 outcomes.AddRange(completed.Decisions.Where(decision => decision.AgentId == newcomer)
@@ -237,7 +240,7 @@ public sealed partial class TownMembershipTests
             holding.Enter.TrySetResult(true);
             holding.Release.TrySetResult(true);
             holding.ReturnAllowed.TrySetResult(true);
-            if (capturedHeldTask is not null) await capturedHeldTask.WaitAsync(TimeSpan.FromSeconds(30));
+            if (capturedHeldTask is not null) await ModelWorkHarness.WaitForSignalAsync(capturedHeldTask);
         }
     }
 
@@ -352,24 +355,17 @@ public sealed partial class TownMembershipTests
     private static (CognitionDecisionRequest Request, Task Task) CaptureHeldAdmissionCall(
         WorldRuntime world, string newcomer)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var call = pending[newcomer];
-        Assert.NotNull(call);
-        return (Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call)),
-            Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call)));
+        var call = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == newcomer);
+        return (Assert.IsType<CognitionDecisionRequest>(call.DecisionRequest), call.Completion);
     }
 
     private sealed class HeldAdmissionModel : IDecisionProvider
     {
         private readonly string newcomer;
-        private readonly bool delayEntry;
 
-        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry, bool delayEntry, bool deferReturn)
+        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry, bool deferReturn)
         {
             this.newcomer = newcomer;
-            this.delayEntry = delayEntry;
             Choice = choice;
             if (!deferEntry) Enter.TrySetResult(true);
             if (!deferReturn) ReturnAllowed.TrySetResult(true);
@@ -377,14 +373,14 @@ public sealed partial class TownMembershipTests
 
         public const string StaleThought = "This held admission reply must not commit after expiry.";
         public string Choice { get; }
-        public TaskCompletionSource<CognitionDecisionRequest> Arrived { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> Arrived { get; } = new(TaskCreationOptions.None);
         // Release the private provider inline, without queuing another worker
         // between opening a gate and producing the held response.
-        public TaskCompletionSource<bool> Enter { get; } = new();
-        public TaskCompletionSource<CognitionDecisionRequest> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new();
-        public TaskCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> ReturnAllowed { get; } = new();
+        public InlineCompletionSource<bool> Enter { get; } = new();
+        public InlineCompletionSource<CognitionDecisionRequest> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new();
+        public InlineCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> ReturnAllowed { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public DecisionProviderKind KindFor(AgentObservation observation) => observation.AgentId == newcomer
@@ -399,7 +395,6 @@ public sealed partial class TownMembershipTests
             if (held)
             {
                 selected = Choice;
-                if (delayEntry) await Task.Delay(TimeSpan.FromSeconds(6), CancellationToken.None);
                 Arrived.TrySetResult(request);
                 await Enter.Task;
                 Started.TrySetResult(request);

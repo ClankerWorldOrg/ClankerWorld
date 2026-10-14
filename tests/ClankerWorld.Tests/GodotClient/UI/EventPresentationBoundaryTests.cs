@@ -20,6 +20,8 @@ public sealed class EventPresentationBoundaryTests
     public void EventTextDoesNotParseDetailInTheGame()
     {
         var root = Path.Combine(RuntimeWriterScan.RepositoryRoot, "src/ClankerWorld.GodotClient");
+        var formatter = File.ReadAllText(Path.Combine(root, "UI/Text/WorldEventText.cs"));
+        Assert.DoesNotContain(".Detail", formatter, StringComparison.Ordinal);
         foreach (var path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(path => !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/obj/", StringComparison.Ordinal) && !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/.godot/", StringComparison.Ordinal)))
         {

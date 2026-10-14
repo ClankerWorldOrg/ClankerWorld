@@ -309,7 +309,7 @@ public sealed class WorldCartCargoOrderTests
     }
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static int CartCargo(WorldRuntime world, string cart) =>
         world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == cart).Sum(lot => lot.Quantity);
@@ -326,7 +326,7 @@ public sealed class WorldCartCargoOrderTests
             containerLotId: loaded ? "z-cart" : null, groundPosition: loaded ? null : new(position.X, position.Y));
         return state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             { FullnessBasisPoints = 9_500, Survival = new(), Equipment = null, LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
         };

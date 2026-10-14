@@ -12,5 +12,5 @@ public sealed partial class WorldRuntime
     private IEnumerable<AnimalSystem.AnimalSupplyChoice> AnimalSupplyChoicesAtYard(string actor, string household, PlacedBuilding yard) => animalSystem.AnimalSupplyChoicesAtYard(animalWorldAdapter, actor, household, yard);
     private void AddAnimalSupplyCandidates(List<CognitionCandidate> candidates, string actor) => animalSystem.AddAnimalSupplyCandidates(animalWorldAdapter, candidates, actor);
     private bool ApplyAnimalSupplyCandidate(string actor, string id) => animalSystem.ApplyAnimalSupplyCandidate(animalWorldAdapter, actor, id);
-    private void FinishAnimalSupplyTrip(string actor) => animalSystem.FinishAnimalSupplyTrip(actor);
+    private void FinishAnimalSupplyTrip(string actor) => animalSystem.FinishAnimalSupplyTrip(animalWorldAdapter, actor);
 }

@@ -22,6 +22,7 @@ public sealed partial class WorldRuntime
                 ConstructionReceipts = worldSimulation.ConstructionReceipts?.Where(receipt => !retired.Contains(receipt.InstructionId)).ToArray(),
             };
             RetireClosedOrderProjectReferences(retired);
+            RetireClosedOrderExplorationGoals(retired);
             boatTransport = boatTransport with
             {
                 Requests = boatTransport.Requests.Select(request => retired.Contains(request.OrderInstructionId ?? "")
@@ -44,4 +45,5 @@ public sealed partial class WorldRuntime
             .Select(item => item.IdempotencyKey).ToArray();
         foreach (var key in expiredRetries) orderCancellations.Remove(key);
     }
+
 }

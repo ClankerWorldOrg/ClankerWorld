@@ -12,6 +12,7 @@ public sealed partial class RestaurantShopPipelineTests
     private const string Alpha = "household:first";
     private const string Beta = "household:second";
     private const string JugId = "restaurant-pipeline-jug";
+    private static readonly Lazy<byte[]> PaidRestaurantSite = new(CreatePaidRestaurantSite);
 
     [Fact]
     public async Task RestaurantBuysRealMilledFlourRefillsAndDeliversInputsThenSellsBreadToAnOutsiderAcrossReload()
@@ -582,31 +583,11 @@ public sealed partial class RestaurantShopPipelineTests
         int restaurantPotatoes = 2, int farmhousePotatoes = 0, string? inaccessibleSource = null,
         int restaurantGreens = 2, int farmhouseGreens = 0)
     {
-        using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new PipelineProvider("safe_idle"));
-        var state = generated.ExportState();
+        var state = WorldRuntimeCodec.Decode(PaidRestaurantSite.Value);
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Beta &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var farmhouse = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == Alpha &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
-        var restaurantDefinition = state.WorldContent!.Buildings.Single(definition => definition.LocalId == "restaurant-1x2");
-        var inventory = state.Society.Society.Inventory;
-        foreach (var cost in restaurantDefinition.BuildCosts)
-            inventory = InventoryAuthority.AddLot(inventory, "restaurant-paid-build-" + cost.ResourceId,
-                cost.ResourceId, Beta, cost.Amount, storageBuildingId: house.InstanceId);
-        var materialsBefore = restaurantDefinition.BuildCosts.ToDictionary(cost => cost.ResourceId,
-            cost => inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
-        using (var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new PipelineProvider("safe_idle")))
-        {
-            _ = state.Map.Tiles.Select(tile => tile.Position)
-                .Where(point => state.Map.IsReachableFromStartingSiteOnFoot(point))
-                .OrderBy(point => state.Map.FootDistance(house.Position, point))
-                .First(point => placing.PlaceBuilding("restaurant-pipeline", restaurantDefinition.CanonicalId, point, Beta).Applied);
-            foreach (var cost in restaurantDefinition.BuildCosts)
-                Assert.Equal(materialsBefore[cost.ResourceId] - cost.Amount,
-                    placing.Society.Inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
-            placing.Validate();
-            state = placing.ExportState();
-        }
         if (inaccessibleSource is not null)
         {
             var sourceDefinition = state.WorldContent!.Buildings.Where(definition =>
@@ -627,7 +608,7 @@ public sealed partial class RestaurantShopPipelineTests
 
         // Initial premises only: no cooked Restaurant or Farmhouse output is
         // injected. House flour is existing private stock the Restaurant must preserve.
-        inventory = state.Society.Society.Inventory with
+        var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind is "field_map" or "field_record" ||
                 lot.OwnerId != Alpha && lot.OwnerId != Beta && lot.OwnerId != cook && lot.OwnerId != customer).ToArray(),
@@ -725,6 +706,31 @@ public sealed partial class RestaurantShopPipelineTests
             Distance(point, site) == 1 && state.Map.IsPassable(point) && !occupied.Contains(point));
     }
 
+    private static byte[] CreatePaidRestaurantSite()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new PipelineProvider("safe_idle"));
+        var state = generated.ExportState();
+        var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Beta &&
+            state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
+        var definition = state.WorldContent!.Buildings.Single(building => building.LocalId == "restaurant-1x2");
+        var inventory = state.Society.Society.Inventory;
+        foreach (var cost in definition.BuildCosts)
+            inventory = InventoryAuthority.AddLot(inventory, "restaurant-paid-build-" + cost.ResourceId,
+                cost.ResourceId, Beta, cost.Amount, storageBuildingId: house.InstanceId);
+        var materialsBefore = definition.BuildCosts.ToDictionary(cost => cost.ResourceId,
+            cost => inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
+        using var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new PipelineProvider("safe_idle"));
+        _ = state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => state.Map.IsReachableFromStartingSiteOnFoot(point))
+            .OrderBy(point => state.Map.FootDistance(house.Position, point))
+            .First(point => placing.PlaceBuilding("restaurant-pipeline", definition.CanonicalId, point, Beta).Applied);
+        foreach (var cost in definition.BuildCosts)
+            Assert.Equal(materialsBefore[cost.ResourceId] - cost.Amount,
+                placing.Society.Inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
+        placing.Validate();
+        return WorldRuntimeCodec.Encode(placing.ExportState());
+    }
+
     private static InventoryCheckpoint AddInitialInputs(InventoryCheckpoint inventory, PlacedBuilding site,
         IEnumerable<ContentQuantity> inputs, string prefix)
     {
@@ -773,7 +779,7 @@ public sealed partial class RestaurantShopPipelineTests
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
 
     private static int Distance(GridPoint left, GridPoint right) => Math.Abs(left.X - right.X) + Math.Abs(left.Y - right.Y);

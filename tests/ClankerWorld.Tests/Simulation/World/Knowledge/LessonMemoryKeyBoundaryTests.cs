@@ -24,8 +24,8 @@ public sealed class LessonMemoryKeyBoundaryTests
         var sources = new[]
         {
             valid,
-            valid with { Id = Identity.ParseStoredMemory(new string('x', 129)) },
-            valid with { Id = Identity.ParseStoredMemory("control\0memory") },
+            valid with { Id = Identity.ParseStored(new string('x', 129)) },
+            valid with { Id = Identity.ParseStored("control\0memory") },
             valid with { Id = Identity.Parse(" lesson-gratitude:padded") },
             valid with { Id = Identity.Parse("lesson-gratitude:another-owner"), OwnerId = teacher },
         };

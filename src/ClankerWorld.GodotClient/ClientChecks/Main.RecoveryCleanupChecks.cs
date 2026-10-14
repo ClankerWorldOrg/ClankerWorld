@@ -27,7 +27,7 @@ public partial class Main
             var snapshot = new OwnerWorldSnapshot("cleanup-world", 0, "cleanup-map", [new(0, 0, "meadow")], [], [], null, 0)
             { Authoring = new(true, 0, 0, 0, "cleanup-map", "cleanup-map", "clear", "spring", []) };
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             var reconnect = new OwnerWorldReconnect(handshake, new(snapshot, new(0, 0, [])));
             if (!observationSession.TryAccept(reconnect, 0, out var failure))

@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
         if (quantity <= 0) return null;
         var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-            moveId, lot.Id, actor, quantity, storageBuildingId: house.InstanceId));
+            moveId, lot.Id, actor, quantity, storageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
         AppendEvent(new PersonalGoodsStoredEventPayload(actor, lot.ItemKind, quantity));
         return new(moveId, lot.ItemKind, quantity);
     }

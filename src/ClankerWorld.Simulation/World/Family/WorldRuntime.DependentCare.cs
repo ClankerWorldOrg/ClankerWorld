@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
             if (!EligibleCaregiver(edge.ProposerId, edge.TargetId) || WorldTick - edge.ProposedTick > 120)
             {
                 society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, edge.Id, edge.ProposerId));
-                AppendEvent(new CaregiverProposalExpiredEventPayload(null, edge.TargetId));
+                AppendEvent(new CaregiverProposalExpiredEventPayload(edge.TargetId, edge.TargetId));
             }
         }
 

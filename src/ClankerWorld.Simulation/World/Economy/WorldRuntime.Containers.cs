@@ -241,7 +241,7 @@ public sealed partial class WorldRuntime
         if (!CanRemoveWorkstationStock(inventory, jug, 1)) return;
         ApplyInventoryTransition(current => InventoryAuthority.Transfer(current,
             $"water-jug-pickup:{WorldTick}:{actor}", householdId, actor, jug.Id, 1,
-            "water_jug_collected"));
+            "water_jug_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent(new WaterJugCollectedEventPayload(actor, jug.Id));
     }
 
@@ -286,7 +286,7 @@ public sealed partial class WorldRuntime
         }
         ApplyInventoryTransition(current => InventoryAuthority.Transfer(current,
             $"water-jug-return:{WorldTick}:{actor}", actor, householdId, jug.Id, 1,
-            "water_jug_returned", destinationStorageBuildingId: house.InstanceId));
+            "water_jug_returned", destinationStorageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
         AppendEvent(new WaterJugReturnedEventPayload(actor, jug.Id, house.InstanceId));
     }
 
@@ -318,11 +318,11 @@ public sealed partial class WorldRuntime
             if (choice.Food.OwnerId == actor)
             {
                 current = InventoryAuthority.Transfer(current, operationId, actor, householdId, choice.Food.Id,
-                    quantity, "food_stored_in_pot", destinationStorageBuildingId: house.InstanceId);
+                    quantity, "food_stored_in_pot", destinationStorageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId));
                 if (quantity != choice.Food.Quantity)
                     sourceId = DerivedId.Create($"{choice.Food.Id}#transfer:{operationId}");
             }
-            return InventoryAuthority.PutIntoContainer(current, operationId, householdId, choice.Pot.Id, sourceId, quantity);
+            return InventoryAuthority.PutIntoContainer(current, operationId, householdId, choice.Pot.Id, sourceId, quantity, holdAccess: InventoryHoldRules.BorrowedBy(actor));
         });
         AppendEvent(new FoodStoredInPotEventPayload(actor, choice.Pot.Id, choice.Food.Id, quantity));
     }
@@ -344,7 +344,7 @@ public sealed partial class WorldRuntime
         if (quantity <= 0)
             return;
         ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
-            $"food-pot-take:{WorldTick}:{actor}", householdId, actor, choice.Pot.Id, choice.Food.Id, quantity));
+            $"food-pot-take:{WorldTick}:{actor}", householdId, actor, choice.Pot.Id, choice.Food.Id, quantity, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent(new FoodTakenFromPotEventPayload(actor, choice.Pot.Id, choice.Food.Id, quantity));
     }
 

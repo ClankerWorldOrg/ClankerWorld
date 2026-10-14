@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -221,20 +222,20 @@ public sealed partial class WorldShelterOrderTests
         Assert.Equal(1, completed.CompletedUnits);
         var saved = world.ExportState();
         foreach (var corrupt in new OrderSaveChange[]
-{
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = null }),
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = null }),
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } }),
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { OwnerId = "household:missing" } }),
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } }),
-    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { FuelReservationId = "invented-fuel" } })
-})
+        {
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = null }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = null }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { OwnerId = "household:missing" } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { FuelReservationId = Identity.Parse("invented-fuel") } })
+        })
             Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, corrupt));
         var provider = new ShelterChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new ShelterChoices());
         var unknown = Submit(unsupported, actor, "unknown-shelter", "shelter inside the moon");
         Assert.Equal("not_understood", Order(unsupported, unknown).Status);
         Assert.Empty(provider.Requests);
-        Assert.Contains(unknown.InstructionId, unsupported.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, unsupported.ExportState().CompletedInstructionIds!);
     }
 }

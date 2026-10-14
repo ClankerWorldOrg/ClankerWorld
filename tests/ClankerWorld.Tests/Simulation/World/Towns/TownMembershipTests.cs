@@ -1097,8 +1097,7 @@ public sealed partial class TownMembershipTests
         services.Add(service);
         return async () =>
         {
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await Task.Delay(1);
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
         };
     };
 

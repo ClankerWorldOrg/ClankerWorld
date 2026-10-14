@@ -147,7 +147,7 @@ internal sealed partial class AnimalSystem
                         productId, definition.Product!, animal.HouseholdId, definition.ProductQuantity, tick,
                         groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
                         animal.HouseholdId, productId, definition.ProductQuantity, "animal-product:" + animal.Id, long.MaxValue));
-                    animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = reservationId };
+                    animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = Identity.Parse(reservationId) };
                     world.AppendEvent(new AnimalProductReadyEventPayload(null, animal.Id, definition.Product), animal.Position);
                 }
                 else animal = animal with { ProductProgressTicks = progress };
@@ -205,6 +205,7 @@ internal sealed partial class AnimalSystem
                     world.Agents[leader].Position != animal.Position))
                 SetAnimal(Animal(animal.Id)! with { LeaderId = null, LeadDestination = null });
         }
+        var previousTrips = State.SupplyTrips;
         State = State with
         {
             Offers = State.Offers.Where((offer) => ValidAnimalOffer(world, offer)).ToArray(),
@@ -212,6 +213,8 @@ internal sealed partial class AnimalSystem
                 world.Simulation.Buildings.Any(yard => yard.InstanceId == trip.YardId && MaySupplyAnimalYard(world, trip.ActorId, yard)) &&
                 world.Society.Inventory.Lots.Any(lot => lot.Id == trip.LotId && PersonalEquipmentRules.IsCarried(lot, trip.ActorId))).ToArray()
         };
+        foreach (var trip in previousTrips.Where(trip => !State.SupplyTrips.Contains(trip)))
+            FinishAnimalSupplyTrip(world, trip.ActorId);
     }
 
     internal bool CanStartAnimalPregnancy(IAnimalWorld world, AnimalState animal, long tick)

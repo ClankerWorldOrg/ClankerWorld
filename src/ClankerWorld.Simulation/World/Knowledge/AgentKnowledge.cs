@@ -22,7 +22,7 @@ public sealed record AgentKnowledgeFact(
     string? SourceArtifactId = null);
 
 /// <summary>An exact paid input, retained after its physical lot has been consumed.</summary>
-public sealed record AgentKnowledgeMaterial(string ReservationId, string LotId, string ItemKind, int Quantity);
+public sealed record AgentKnowledgeMaterial(Identity ReservationId, string LotId, string ItemKind, int Quantity);
 
 /// <summary>Writing is physical work on reserved personal materials, paused between actual work steps.</summary>
 public sealed record AgentKnowledgeWritingProject(
@@ -32,7 +32,7 @@ public sealed record AgentKnowledgeWritingProject(
 {
     [JsonRequired] public IReadOnlyList<AgentRecipeKnowledge> Recipes { get; init; } = [];
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? OrderInstructionId { get; init; }
-    [JsonIgnore] public IReadOnlyList<string> MaterialReservationIds => Materials.Select(item => item.ReservationId).ToArray();
+    [JsonIgnore] public IReadOnlyList<Identity> MaterialReservationIds => Materials.Select(item => item.ReservationId).ToArray();
     [JsonIgnore] public int WorkRequired => AgentKnowledgeRules.WritingWork(Kind);
 }
 
@@ -51,7 +51,7 @@ public sealed record AgentKnowledgeArtifact(
     public string? SourceArtifactId { get; init; }
     [JsonRequired] public IReadOnlyList<AgentRecipeKnowledge> Recipes { get; init; } = [];
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? OrderInstructionId { get; init; }
-    [JsonIgnore] public IReadOnlyList<string> MaterialReservationIds => Materials.Select(item => item.ReservationId).ToArray();
+    [JsonIgnore] public IReadOnlyList<Identity> MaterialReservationIds => Materials.Select(item => item.ReservationId).ToArray();
 }
 
 /// <summary>Saved personal knowledge and the bounded artifacts carrying it.</summary>

@@ -391,12 +391,12 @@ public sealed record MarketStockLoadedEventPayload(string? ActorId, [property: J
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record MarketTradeCancelledEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string MarketId, [property: JsonRequired] string StallBuildingId, [property: JsonRequired] string BuyerId, [property: JsonRequired] string OfferId) : WorldEventPayload(ActorId)
+public sealed record MarketTradeCancelledEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string MarketId, [property: JsonRequired] string StallBuildingId, [property: JsonRequired] string SellerId, [property: JsonRequired] string BuyerId, [property: JsonRequired] string OfferId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "market_trade_cancelled";
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{MarketId}|{StallBuildingId}|{ActorId}|{BuyerId}|{OfferId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, MarketId, StallBuildingId, BuyerId, OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && MarketId is not null && StallBuildingId is not null && BuyerId is not null && OfferId is not null;
+    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{MarketId}|{StallBuildingId}|{SellerId}|{BuyerId}|{OfferId}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, MarketId, StallBuildingId, SellerId, BuyerId, OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
+    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && MarketId is not null && StallBuildingId is not null && SellerId is not null && BuyerId is not null && OfferId is not null;
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -413,7 +413,7 @@ public sealed record MarketTradeOfferedEventPayload(string? ActorId, [property: 
 {
     [JsonIgnore] public override string Kind => "market_trade_offered";
     [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{MarketId}|{BuildingId}|{Seller}|{Buyer}|{OfferId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, MarketId, BuildingId, OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, MarketId, BuildingId, Seller, Buyer, OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => TownId is not null && MarketId is not null && BuildingId is not null && Seller is not null && Buyer is not null && OfferId is not null;
 }
 

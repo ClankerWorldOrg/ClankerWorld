@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Cognition;
@@ -273,7 +272,7 @@ public sealed class WorldMarriageOrderTests
         {
             await WaitForWork(world);
             var before = WorldRuntimeCodec.Encode(world.ExportState());
-            Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+            Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
             Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
             await Tick(world);
             await Tick(replay);
@@ -327,19 +326,12 @@ public sealed class WorldMarriageOrderTests
     private static async Task Tick(WorldRuntime world)
     {
         await WaitForWork(world);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
     }
 
     private static async Task WaitForWork(WorldRuntime world)
     {
-        var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingModelCalls", "pendingConversationTurns" })
-        {
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world));
-            tasks.AddRange(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!));
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class PersonalProvider(string owner) : IDecisionProvider, IAgentConversationProvider

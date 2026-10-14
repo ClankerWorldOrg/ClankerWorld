@@ -276,7 +276,7 @@ internal static class EventTextFixturePayload
         ["market_stock_delivered"] = "{TownId}|{MarketId}|{BuildingId}|{ActorId}|{ReceiptId}",
         ["market_trade_offered"] = "{TownId}|{MarketId}|{BuildingId}|{Seller}|{Buyer}|{OfferId}",
         ["market_trade_completed"] = "{TownId}|{MarketId}|{BuildingId}|{ActorId}|{BuyerId}|{OfferId}",
-        ["market_trade_cancelled"] = "{TownId}|{MarketId}|{StallBuildingId}|{ActorId}|{BuyerId}|{OfferId}",
+        ["market_trade_cancelled"] = "{TownId}|{MarketId}|{StallBuildingId}|{SellerId}|{BuyerId}|{OfferId}",
         ["market_stall_left"] = "{TownId}|{MarketId}|{BuildingId}|{ActorId}|{OccupancyId}",
         ["communal_boat_launched"] = "{TownId}:{BoatId}:{PortInstanceId}:{ProjectName}",
         ["saved_road_footprints_repaired"] = "removed:{Removed}",

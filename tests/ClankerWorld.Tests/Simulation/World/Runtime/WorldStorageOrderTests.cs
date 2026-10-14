@@ -167,6 +167,7 @@ public sealed partial class WorldStorageOrderTests
         };
         if (boundary == "reserved")
             inventory = InventoryAuthority.Reserve(inventory, "storage-reserved", actor, "storage-boundary", 2, "other_work", 120);
+        inventory = StockHoldTestState.Custody(inventory);
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "blocked", $"store {kind}");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -438,7 +439,7 @@ public sealed partial class WorldStorageOrderTests
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
             var invoked = await AwaitStorageSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
             {
                 Assert.False(provider.Started.Task.IsCompleted);
@@ -512,7 +513,7 @@ public sealed partial class WorldStorageOrderTests
     private static string Actor(WorldRuntimeState state) =>
         state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new StorageChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));

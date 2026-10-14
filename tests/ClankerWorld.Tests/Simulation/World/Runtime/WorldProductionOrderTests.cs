@@ -56,7 +56,7 @@ public sealed partial class WorldProductionOrderTests
         {
             Assert.Equal(WorldProductionJobState.Completed, job.State);
             Assert.Equal(actor, job.WorkerId);
-            Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
             Assert.Equal(Shop, job.BuildingInstanceId);
             Assert.Equal(Household, job.OwnerId);
             var output = world.Society.Inventory.GetLot(job.JobId + ":output:00");
@@ -477,7 +477,7 @@ public sealed partial class WorldProductionOrderTests
             id => id == actor ? provider : new ProductionChoices());
         var receipt = Submit(world, actor, "unknown-production", "make a sword");
         Assert.Equal("not_understood", Order(world, receipt).Status);
-        Assert.Contains(receipt.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(receipt.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.Empty(provider.Requests);
         for (var tick = 0; tick < 4; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == receipt.InstructionId ||

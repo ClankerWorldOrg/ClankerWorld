@@ -344,19 +344,19 @@ public sealed partial class OwnerWorldObservationStore
 
     public HandshakeView GetOwnerHandshake() => new(
         new ProtocolVersion(Major: 1, Minor: 1),
-        [.. OwnerServerCapabilities, "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
+        [.. OwnerServerCapabilities, "owner-event-presentation.v1", "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
         OwnerClientCapabilities.ToArray());
 
     public WorldSnapshotView GetSnapshot()
     {
-        var (state, diagnostics) = worldRuntime.ExportStateWithDiagnostics();
-        return ToSnapshot(state, diagnostics);
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        return ToSnapshot(state, diagnostics, retainedEvents);
     }
 
     public EventSliceView GetEventsAfter(long afterEventId)
     {
-        var (state, diagnostics) = worldRuntime.ExportStateWithDiagnostics();
-        var snapshot = ToSnapshot(state, diagnostics);
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents);
         return new EventSliceView(
             state.Society.Society.WorldTick,
             afterEventId,
@@ -370,8 +370,8 @@ public sealed partial class OwnerWorldObservationStore
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
-        var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
-        var snapshot = ToSnapshot(state, diagnostics, knownTerrainWorldId, knownTerrainDigest,
+        var (state, diagnostics, timeline, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return new ReconnectBaselineView(
             snapshot,
@@ -408,7 +408,7 @@ public sealed partial class OwnerWorldObservationStore
             state.Society.Society.Inventory.Events.Count == 0;
     }
 
-    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics,
+    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldEventEntry[] retainedEvents,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
@@ -428,7 +428,7 @@ public sealed partial class OwnerWorldObservationStore
                     recipe.Outputs.Any(output => output.ResourceId == "food")))
             .ToLookup(recipe => recipe.WorkstationBuildingId!, recipe => productionRecipes![recipe.CanonicalId], StringComparer.Ordinal);
         var inventoryLots = state.Society.Society.Inventory.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
-        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id, StringComparer.Ordinal);
+        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id.Value, StringComparer.Ordinal);
         var activeAgents = state.Society.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active)
             .OrderBy(item => item.Id, StringComparer.Ordinal)
@@ -942,13 +942,12 @@ public sealed partial class OwnerWorldObservationStore
                 })
                 .ToArray(),
         };
-        var visibleEvents = ClankerWorld.Presentation.EventVocabulary.PlayerEvents(
-            state.Events.TakeLast(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount),
-            item => item.EventId, item => item.Kind,
-            item => item.Payload is ModelAttemptStatusEventPayload status ? (status.ActorId, status.Status) : (null, null));
         return snapshot with
         {
-            EventTexts = visibleEvents.TakeLast(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount)
+            // Devices can retain different prefixes and coalesce model failures
+            // differently. Refresh every potentially visible cached row.
+            EventTexts = retainedEvents
+                .Where(NeedsCurrentEventText)
                 .ToDictionary(item => item.EventId, item => ToEvent(item, snapshot).Text),
         };
     }

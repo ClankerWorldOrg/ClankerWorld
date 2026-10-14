@@ -13,10 +13,12 @@ namespace ClankerWorld.GodotClient.Networking;
 public sealed class OwnerWorldApi
 {
     private readonly OwnerPairingClient pairing;
+    private readonly TimeProvider timeProvider;
 
-    public OwnerWorldApi(HttpClient httpClient)
+    public OwnerWorldApi(HttpClient httpClient, TimeProvider? timeProvider = null)
     {
-        pairing = new OwnerPairingClient(httpClient);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        pairing = new OwnerPairingClient(httpClient, timeProvider: this.timeProvider);
     }
 
     public Task<OwnerPairingStart> StartPairingAsync(
@@ -49,8 +51,8 @@ public sealed class OwnerWorldApi
         IOwnerDeviceSigner deviceKey,
         CancellationToken cancellationToken)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(4));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         var action = new OwnerReconnectAction(afterEventId, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return await pairing.SendSignedActionAsync<OwnerReconnectAction, OwnerWorldReconnect>(

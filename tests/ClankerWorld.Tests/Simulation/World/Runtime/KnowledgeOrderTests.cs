@@ -142,7 +142,7 @@ public sealed class KnowledgeOrderTests
         Assert.Equal(0, Order(world, second).CompletedUnits);
         await FinishTogether(world, second);
         var final = world.ExportState();
-        Assert.Equal(new[] { first.InstructionId, second.InstructionId },
+        Assert.Equal(new[] { first.InstructionId.Value, second.InstructionId.Value },
             final.Knowledge!.Artifacts.Select(item => item.OrderInstructionId));
         Assert.Equal(1, Quantity(final, actor, "paper"));
         AssertReload(final);
@@ -309,7 +309,7 @@ public sealed class KnowledgeOrderTests
         Assert.Equal(original.Id, current.Id);
         if (matching)
         {
-            Assert.Equal(receipt.InstructionId, current.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, current.OrderInstructionId);
             // Continue through the normal built-in order path after admission.
             using var resumed = Restore(world.ExportState());
             await FinishTogether(resumed, receipt);
@@ -371,14 +371,14 @@ public sealed class KnowledgeOrderTests
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new Idle());
         world.SubmitInstruction(new("waiting-writing-guidance", "owner:test", actor,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Contains(Assert.Single(provider.Requests).Candidates, candidate => candidate.Id == original.CandidateId);
         var before = Assert.Single(world.ExportState().Knowledge!.WritingProjects);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         var current = Assert.Single(world.ExportState().Knowledge!.WritingProjects);
         Assert.Equal(original.Id, current.Id);
         Assert.Equal(before.WorkDone + 3, current.WorkDone);

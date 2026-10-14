@@ -100,7 +100,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         if (inventory.Lots.Any(lot => lot.CarrierId == actor))
             inventory = InventoryAuthority.DropCarrierGoods(inventory, actor,
                 new InventoryGroundPosition(physical.Position.X, physical.Position.Y));
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
@@ -266,7 +266,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Society = state.Society with
             {
-                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray() },
+                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray() },
             },
         };
         // A controlled helper exercises the runtime's age and memory boundary.

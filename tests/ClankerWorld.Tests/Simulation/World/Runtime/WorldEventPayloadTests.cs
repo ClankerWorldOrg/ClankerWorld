@@ -60,12 +60,22 @@ public sealed class WorldEventPayloadTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
         world.Resume();
         loaded.Resume();
-        await world.AdvanceOneTickAsync();
-        await loaded.AdvanceOneTickAsync();
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(loaded.ExportState()));
-        var document = JsonNode.Parse(bytes)!;
-        var payload = document["state"]!["events"]!.AsArray().Last()!["payload"]!.AsObject();
-        payload["foreignField"] = "wrong kind";
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
+        foreach (var mutation in new Action<JsonObject>[]
+        {
+            payload => payload["foreignField"] = "wrong kind",
+            payload => payload["position"]!["foreignPositionField"] = "wrong shape",
+            payload => payload["kind"] = "unknown_world_event",
+            payload => payload.Remove("instructionId"),
+        })
+        {
+            var document = JsonNode.Parse(bytes)!;
+            var payload = document["state"]!["events"]!.AsArray().Last()!["payload"]!.AsObject();
+            Assert.Equal("instruction_not_understood", payload["kind"]!.GetValue<string>());
+            mutation(payload);
+            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
+        }
     }
 }
