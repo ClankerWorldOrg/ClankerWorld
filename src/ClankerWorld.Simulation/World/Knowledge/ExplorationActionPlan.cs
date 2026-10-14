@@ -14,7 +14,7 @@ public sealed record ExplorationChoice(bool Return, ExplorationGoal? Goal = null
     }
 }
 
-public enum ExplorationStep { Outward, Return, CompleteReturn, CompleteGoal }
+public enum ExplorationStep { Outward, Return, WaitReturn, CompleteReturn, CompleteGoal }
 public sealed record ExplorationActionPlan(string ActorId, ExplorationChoice Choice, GridPoint Origin,
     ExplorationState? Original, ExplorationState Prepared, ExplorationStep Step, GridPoint? Target,
     bool Native, bool ReplaceGoal, bool Interrupted, bool Starting, IReadOnlyList<GridPoint> Route) : ActionPlan(ActorId, Choice.Encode())

@@ -68,8 +68,9 @@ public sealed partial class WorldRuntime
             step = projected.OutingPath.Count == 1 && person.Position == target ? ExplorationStep.CompleteReturn : ExplorationStep.Return;
             projected = projected with { Returning = true };
         }
-        return new(actor, choice, person.Position, person.Exploration, projected, step, target, native, replaceGoal, projection.Interrupted, projection.Starting,
-            target is { } point ? Reach(actor, point, ReachPurpose.Exploration, 0, 0, SwimmingPolicy.WhenCapable) : []);
+        var route = target is { } point ? Reach(actor, point, ReachPurpose.Exploration, 0, 0, SwimmingPolicy.WhenCapable) : Array.AsReadOnly<GridPoint>([]);
+        if (step == ExplorationStep.Return && route.Count == 0) step = ExplorationStep.WaitReturn;
+        return new(actor, choice, person.Position, person.Exploration, projected, step, target, native, replaceGoal, projection.Interrupted, projection.Starting, route);
     }
 
     private static bool SameExplorationScope(ExplorationState? current, ExplorationState? original) =>
@@ -86,7 +87,7 @@ public sealed partial class WorldRuntime
         if (!capability.Allowed) return capability;
         var person = agents[plan.Actor];
         if (person.Position != plan.Origin || !SameExplorationScope(person.Exploration, plan.Original) ||
-            plan.Goal?.OrderInstructionId is { } id && PendingInstructionFor(plan.Actor)?.InstructionId != id)
+            !plan.Prepared.Returning && plan.Goal?.OrderInstructionId is { } id && PendingInstructionFor(plan.Actor)?.InstructionId != id)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected scouting origin, trail or purpose has changed");
         if (!plan.Native && !plan.Choice.Return)
         {
@@ -108,7 +109,7 @@ public sealed partial class WorldRuntime
                 AttachedHandcart(plan.Actor) is not null && !LegalHandcartStep(plan.Origin, target))
                 return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected visible scouting step is blocked");
         }
-        return plan.Native || plan.Step == ExplorationStep.CompleteReturn || plan.Target is { } destination &&
+        return plan.Native || plan.Step is ExplorationStep.CompleteReturn or ExplorationStep.WaitReturn || plan.Target is { } destination &&
             (person.Position == destination || Reach(plan.Actor, destination, ReachPurpose.Exploration, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected scouting step is out of reach");
     }
