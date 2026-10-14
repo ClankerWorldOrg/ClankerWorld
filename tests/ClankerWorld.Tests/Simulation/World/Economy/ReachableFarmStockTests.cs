@@ -21,7 +21,7 @@ public sealed class ReachableFarmStockTests
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new HaulChoices(false));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var original = generated.ExportState();
-        const string actor = "founder:00000000000000000000000000000001";
+        const string actor = NormalPathWorld.Founder1;
         var blocker = original.Agents.First(person => person.AgentId != actor).AgentId;
         var household = Assert.IsType<string>(original.Society.Society.GetAgent(actor).HouseholdId);
         var farmhouse = Assert.Single(original.WorldSimulation!.Buildings, building =>

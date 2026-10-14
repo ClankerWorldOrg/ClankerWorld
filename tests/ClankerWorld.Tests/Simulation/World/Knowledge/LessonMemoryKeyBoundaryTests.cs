@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -12,23 +13,25 @@ public sealed class LessonMemoryKeyBoundaryTests
         using var world = new WorldRuntime("lesson-memory-boundary");
         var owner = world.Society.Agents[0].Id;
         var teacher = world.Society.Agents[1].Id;
-        var valid = new SocietySocialMemory(new string('x', 128), owner, teacher,
+        var valid = new SocietySocialMemory(Identity.Parse(new string('x', 128)), owner, teacher,
             "Learned crafting with the teacher.", "public", 0)
         { Kind = SocietyMemoryKind.Skill };
         // Explicit malformed input checks the recall boundary, independently of
         // the native generator regression. It is not a generated lesson fixture.
+        Assert.Throws<ArgumentException>(() => Identity.Parse(new string('x', 129)));
+        Assert.Throws<ArgumentException>(() => Identity.Parse("control\0memory"));
+        Assert.Throws<ArgumentException>(() => Identity.Parse(""));
         var sources = new[]
         {
             valid,
-            valid with { Id = new string('x', 129) },
-            valid with { Id = " lesson-gratitude:padded" },
-            valid with { Id = "lesson-gratitude:control\0" },
-            valid with { Id = "" },
-            valid with { Id = "lesson-gratitude:another-owner", OwnerId = teacher },
+            valid with { Id = Identity.ParseStored(new string('x', 129)) },
+            valid with { Id = Identity.ParseStored("control\0memory") },
+            valid with { Id = Identity.Parse(" lesson-gratitude:padded") },
+            valid with { Id = Identity.Parse("lesson-gratitude:another-owner"), OwnerId = teacher },
         };
         var recalled = WorldMemoryRetrieval.Retrieve(sources, [], null, owner, 0,
             [new CognitionCandidate("safe_idle", "Recall the crafting lesson.", 0)]);
-        Assert.Equal(valid.Id, Assert.Single(recalled).Id);
+        Assert.Equal(valid.Id.Value, Assert.Single(recalled).Id);
         Assert.Equal(owner, recalled[0].OwnerId);
         Assert.Equal(teacher, recalled[0].SubjectId);
     }

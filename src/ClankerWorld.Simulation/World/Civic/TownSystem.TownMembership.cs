@@ -145,7 +145,7 @@ internal sealed partial class TownSystem
                     else
                     {
                         SetTownAdmission(world, town.Id, record);
-                        world.AppendEvent("town_admission_approved", $"{town.Id}|{subject}|{proposal.Id}");
+                        world.AppendEvent(new TownAdmissionApprovedEventPayload(null, town.Id, subject, proposal.Id));
                     }
                 }
                 return true;
@@ -184,7 +184,7 @@ internal sealed partial class TownSystem
         {
             ResidentIds = joined.ResidentIds.Concat(group).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
         });
-        world.AppendEvent("town_admission_accepted", $"{townId}|{subject}|{previous ?? "none"}|{group.Length}");
+        world.AppendEvent(new TownAdmissionAcceptedEventPayload(null, townId, subject, previous ?? "none", group.Length));
         // Council rosters follow recorded adult residents in both Towns.
         AdvanceTownCouncil(world);
     }
@@ -224,7 +224,7 @@ internal sealed partial class TownSystem
     internal void LapseTownAdmission(ITownWorld world, string townId, TownAdmissionRecord record, string reason)
     {
         SetTownAdmission(world, townId, record with { Status = WorldRuntime.CivicSharedRules.AdmissionLapsed, DecidedTick = world.WorldTick, PreviousTownId = null, MemberIds = null, Reason = reason });
-        world.AppendEvent("town_admission_lapsed", $"{townId}|{record.SubjectId}|{record.ProposalId}|{reason}");
+        world.AppendEvent(new TownAdmissionLapsedEventPayload(null, townId, record.SubjectId, record.ProposalId, reason));
     }
 
     internal void SetTownAdmission(ITownWorld world, string townId, TownAdmissionRecord record)

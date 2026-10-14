@@ -43,7 +43,8 @@ public sealed class WorldSelectionFailureTests
             policy.Initialize(world.JevEnabled, world.JevPolicyRevision, world.RoutineHelper);
             var routing = policy.Capture();
             var selection = new WorldSelectionCoordinator(catalog, world, file, providers, autosave, policy,
-                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider());
+                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(),
+                new ManualWorldSaveStore(path, mutationGate: providers.WorldMutationGate));
             var options = new GeographyOptions("failed-creation-retry", WorldSizePreset.Small);
             var preview = create ? selection.Preview(options) : null;
             CatalogWorld SelectTarget() => create
