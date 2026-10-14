@@ -4,7 +4,8 @@ public sealed partial class WorldRuntime
 {
     private static ActionRegistration RegisterFieldActions() => new(ActionPhase.Ordinary, "farm:", ["farm:"], [], static (runtime, action) =>
     {
-        runtime.ApplyFieldCandidate(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyFieldActionPlan(action.Plan as FieldActionPlan ?? (FieldChoice.Decode(action.CandidateId) is { } choice
+            ? runtime.farmingSystem.PlanFieldAction(runtime.farmingWorld, action.AgentId, choice) : null));
         return true;
     });
     private static ChoiceRegistration RegisterFieldChoices() => new(ChoiceGroup.UnhurriedAdult, "AddFieldCandidates", static (runtime, context) => runtime.AddFieldCandidates(context.Candidates, context.AgentId, context.State), null);

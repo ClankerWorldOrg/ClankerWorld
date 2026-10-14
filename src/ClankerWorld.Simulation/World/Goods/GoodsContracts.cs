@@ -2,7 +2,7 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Spend, Sell, StorePersonal, Deliver, Eat, VesselFor, ReturnVessel, Cargo, Salvage, CarriedDelivery, SpareCargo, OrchardFoodRecovery, CarriedInputs }
+public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Spend, Sell, StorePersonal, Deliver, Eat, VesselFor, ReturnVessel, Cargo, Salvage, CarriedDelivery, SpareCargo, OrchardFoodRecovery, CarriedInputs, FieldPlanting }
 
 public enum GoodsDeliveryPurpose { Stock, FarmStock, Expansion, TownProject }
 
@@ -21,7 +21,7 @@ public sealed record GoodsKinds(IReadOnlyList<string> Ids)
 public sealed record GoodsRequest(GoodsUse Use, string? Actor, GoodsOwners Owners, GoodsKinds Kinds,
     string? AtBuilding = null, GridPoint? Near = null, string? Destination = null, int ExtraUnits = 0, bool Explain = false,
     GoodsDemandCoverage DemandCoverage = GoodsDemandCoverage.None,
-    GoodsDeliveryPurpose DeliveryPurpose = GoodsDeliveryPurpose.Stock, string? ContentsKind = null, string? ContainerId = null);
+    GoodsDeliveryPurpose DeliveryPurpose = GoodsDeliveryPurpose.Stock, string? ContentsKind = null, string? ContainerId = null, string? ReservationId = null);
 
 public enum GoodsPlaceKind { Stored, Ground, Carried, Unlocated }
 public sealed record GoodsPlace(GoodsPlaceKind Kind, string? BuildingId = null,

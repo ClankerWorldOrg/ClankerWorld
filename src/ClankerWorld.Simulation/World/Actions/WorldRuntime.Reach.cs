@@ -2,16 +2,17 @@ using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering, StoreStock, SmithDelivery, ToolRepair }
+public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering, StoreStock, SmithDelivery, ToolRepair, FieldWork, FieldSeedPickup }
 public enum SwimmingPolicy { WhenCapable, Never }
+public enum ReachObstacles { OccupiedTiles, Terrain }
 
 public sealed partial class WorldRuntime
 {
     // The first leg always starts at the current actor position. A return leg
     // names its prospective origin separately instead of using a camp origin.
     private ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose,
-        int range, int load, SwimmingPolicy swimming) =>
-        ReachLeg(actor, agents[actor].Position, target, purpose, range, load, swimming);
+        int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) =>
+        ReachLeg(actor, agents[actor].Position, target, purpose, range, load, swimming, obstacles);
 
     private ReadOnlyCollection<GridPoint> HarvestReturnRoute(string actor, MapResource source, GridPoint destination,
         ReachPurpose purpose, int load)
@@ -26,7 +27,19 @@ public sealed partial class WorldRuntime
     }
 
     private ReadOnlyCollection<GridPoint> ReachLeg(string actor, GridPoint origin, GridPoint target,
-        ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) =>
-        FindUnoccupiedRoute(actor, origin, target, range,
+        ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles)
+    {
+        if (obstacles == ReachObstacles.Terrain)
+        {
+            // Field intentions keep terrain eligibility while another person
+            // briefly blocks the actual route. Movement still checks occupancy.
+            if (map.IsReachableOnFoot(origin, target))
+                return SharedUnoccupiedRoute(origin, [], target, range).AsReadOnly();
+            return swimming == SwimmingPolicy.WhenCapable && CanSwim(actor, origin, load)
+                ? SharedUnoccupiedRoute(origin, [], target, range, swimming: true).AsReadOnly()
+                : Array.AsReadOnly<GridPoint>([]);
+        }
+        return FindUnoccupiedRoute(actor, origin, target, range,
             allowSwimming: swimming == SwimmingPolicy.WhenCapable, additionalCarriedUnits: load).AsReadOnly();
+    }
 }

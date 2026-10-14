@@ -18,6 +18,11 @@ internal interface IFarmingWorld
     WorldSystemsState Environment { get; }
     GroundOccupancy Ground { get; }
     bool IsAdult(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    IReadOnlyList<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load,
+        SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles);
+    GoodsAnswer FindGoods(GoodsRequest request);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string stockId);
     PlacedBuilding? FarmhouseForHousehold(string householdId);
     bool NeedsUrgentFood(AgentState person);
     bool NeedsUrgentWarmth(AgentState person);

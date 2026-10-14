@@ -8,21 +8,19 @@ internal sealed partial class FarmingSystem
 {
     /// <summary>Start physical work at one tile. Refusal leaves the field and inventory untouched.</summary>
     internal FarmWorkResult StartFieldWorkCore(IFarmingWorld world, string workerId, GridPoint position, FarmWorkKind kind,
-        string? crop = null, string? seedLotId = null, string? orderInstructionId = null)
+        string? crop = null, string? seedLotId = null, string? orderInstructionId = null, FieldActionPlan? plannedWork = null)
     {
         if (!Enum.IsDefined(kind) || !world.Agents.TryGetValue(workerId, out var worker) || !world.IsAdult(workerId) ||
             world.Society.GetAgent(workerId).HouseholdId is not { } householdId ||
             world.FarmhouseForHousehold(householdId) is null)
             return new(false, "An adult from a household with a Farmhouse must do the work.");
         if (worker.Position != position) return new(false, "The worker must stand on the field tile.");
-        var hoe = kind is FarmWorkKind.Till or FarmWorkKind.Tend
-            ? ToolProgressionRules.PlanWork(world.Society.Inventory, workerId, ToolFamily.Hoe)
-            : null;
+        var hoe = plannedWork is not null ? plannedWork.Hoe?.Work : kind is FarmWorkKind.Till or FarmWorkKind.Tend
+            ? ToolProgressionRules.PlanWork(world.Society.Inventory, workerId, ToolFamily.Hoe) : null;
         if ((kind is FarmWorkKind.Till or FarmWorkKind.Tend) && hoe is null)
             return new(false, "The worker needs a usable carried hoe.");
-        var sickle = kind == FarmWorkKind.Harvest
-            ? ToolProgressionRules.PlanWork(world.Society.Inventory, workerId, ToolFamily.Sickle)
-            : null;
+        var sickle = plannedWork is not null ? plannedWork.Sickle?.Work : kind == FarmWorkKind.Harvest
+            ? ToolProgressionRules.PlanWork(world.Society.Inventory, workerId, ToolFamily.Sickle) : null;
         if (world.NeedsUrgentFood(worker) || world.NeedsUrgentWarmth(worker) || world.IsConversationBusy(workerId) ||
             (orderInstructionId is null && worker.Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice) ||
             FarmWorkFor(world, workerId) is not null)
@@ -63,7 +61,7 @@ internal sealed partial class FarmingSystem
         var sickleLotId = sickle is null ? null : IsolateFieldToolForWork(world, workerId, position, sickle.ToolLotId);
         SetFarmField(world, field with
         {
-            Work = new(workerId, kind, world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, Identity.ParseOptional(reservationId), crop,
+            Work = new(workerId, kind, plannedWork?.WorkTicks ?? world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, Identity.ParseOptional(reservationId), crop,
                 hoeLotId, sickleLotId, orderInstructionId),
             LastWorkedTick = world.WorldTick,
         });

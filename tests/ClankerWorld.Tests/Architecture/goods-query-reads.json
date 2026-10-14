@@ -19,7 +19,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": 4,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FirstTownSetup.cs": 6,
   "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs": 3,
-  "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.FieldPlanning.cs": 1,
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.Fields.cs": 2,
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.TreePlanting.cs": 2,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.Knowledge.cs": 1,
