@@ -26,17 +26,17 @@ public sealed partial class WorldRuntime
 
     private void AddHandcartBuildMaterialCandidate(List<CognitionCandidate> candidates, HandcartBuildMaterialActionPlan? plan)
     {
-        if (plan is not null && CheckHandcartBuildMaterialPlan(plan).Allowed)
+        if (plan is not null && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId,
                 $"Collect nearby {plan.Choice.ItemKind.Replace('_', ' ')} and carry it to build a handcart at your household Blacksmith.",
                 25)
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartBuildMaterialPlan(HandcartBuildMaterialActionPlan plan)
+    private ActionCheck CheckHandcartBuildMaterialPlan(HandcartBuildMaterialActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? TransportCapabilities);
         if (!capability.Allowed) return capability;
         var recipe = worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == plan.RecipeId);
         var smith = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == plan.SmithId);
@@ -61,7 +61,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyHandcartBuildMaterialPlan(HandcartBuildMaterialActionPlan plan)
     {
-        if (CheckHandcartBuildMaterialPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHandcartBuildMaterial(plan);
+    }
+
+    private void ApplyCheckedHandcartBuildMaterial(HandcartBuildMaterialActionPlan plan)
+    {
         var pickup = plan.Pickup;
         if (!IsWithinInteractionRange(agents[plan.Actor].Position, pickup.Position, pickup.InteractionRange))
         { MoveToward(plan.Actor, agents[plan.Actor], pickup.Position, "handcart_material", pickup.InteractionRange); return; }

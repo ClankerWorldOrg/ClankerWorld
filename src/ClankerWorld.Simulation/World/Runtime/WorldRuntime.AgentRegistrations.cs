@@ -111,15 +111,15 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "deliver_smith_ore", [], [SmithDeliveryActionPlan.Candidate(SmithDeliveryKind.Ore)], Definition: SmithDeliveryDefinition),
         new(ActionPhase.Ordinary, "collect_wooden_axe", [], [new ToolCollectionChoice("wooden_axe").Encode(), new ToolCollectionChoice("wooden_pickaxe").Encode(), new ToolCollectionChoice("wooden_hoe").Encode()], Definition: ToolCollectionDefinition),
         new(ActionPhase.Ordinary, "CollectToolPrefix", [ToolCollectionChoice.Prefix], [], Definition: ToolCollectionDefinition),
-        new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], static (runtime, action) =>
-    {
-        return runtime.ApplyBoatCandidate(action.AgentId, action.CandidateId, action.Plan);
-    }),
+        new(ActionPhase.Ordinary, "boat_trip", [BoatTripActionChoice.Prefix], [], Definition: BoatTripDefinition),
+        new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], Definition: BoatWaitingDefinition),
         RegisterAnimalActions(),
-        new(ActionPhase.Ordinary, "ApplyHandcartCandidate", [], [], static (runtime, action) =>
-    {
-        return runtime.ApplyHandcartCandidate(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
-    }),
+        new(ActionPhase.Ordinary, "ApplyHandcartCandidate", [], [], Definition: HandcartControlDefinition),
+        new(ActionPhase.Ordinary, "handcart_material", [], [], Definition: HandcartBuildMaterialDefinition),
+        new(ActionPhase.Ordinary, "handcart_repair_input", [], [], Definition: HandcartRepairInputDefinition),
+        new(ActionPhase.Ordinary, "handcart_pull", [], [], Definition: HandcartPullDefinition),
+        new(ActionPhase.Ordinary, "handcart_cargo", [], [], Definition: HandcartCargoDefinition),
+        new(ActionPhase.Ordinary, "handcart_repair", [], [], Definition: HandcartRepairDefinition),
         new(ActionPhase.Ordinary, "RepairToolPrefix", [ToolRepairChoice.Prefix], [], Definition: ToolRepairDefinition),
         new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningChoice.Prefix], [], Definition: RareMiningDefinition),
         new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix], ["knowledge_continue"], Definition: KnowledgeWritingDefinition),
