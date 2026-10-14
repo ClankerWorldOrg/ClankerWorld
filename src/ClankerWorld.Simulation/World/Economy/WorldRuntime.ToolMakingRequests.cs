@@ -29,7 +29,9 @@ public sealed partial class WorldRuntime
         ? ToolMakingRequestRules.Note(toolMakingRequests, actor, HouseholdFor(actor)) : null;
 
     private static string ToolRequestChoice(string verb, params string[] identity) =>
-        DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
+        Enum.TryParse<ToolRequestConsentKind>(verb, true, out var consent)
+            ? ToolRequestConsentChoice.Encode(consent, identity)
+            : DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
         DerivedId.Hash(JsonSerializer.Serialize(
@@ -56,30 +58,29 @@ public sealed partial class WorldRuntime
         return carried is null || ToolProgressionRules.Find(carried.ItemKind)!.Tier < tool.Tier;
     }
 
-    private IEnumerable<(PlacedBuilding Building, RecipeDefinition Recipe)> ToolRequestOptions(string actor)
+    private bool MayStartToolRequest(string actor) => IsAdult(actor) &&
+        !toolMakingRequests.Any(request => request.RequesterId == actor && !ToolMakingRequestRules.IsTerminal(request.Status)) &&
+        toolMakingRequests.Count(request => !ToolMakingRequestRules.IsTerminal(request.Status)) < ToolMakingRequestRules.MaximumActiveRequests;
+
+    private bool MayRequestToolAt(string actor, PlacedBuilding building, RecipeDefinition recipe)
     {
-        if (!IsAdult(actor) || toolMakingRequests.Any(request => request.RequesterId == actor &&
-                !ToolMakingRequestRules.IsTerminal(request.Status)) ||
-            toolMakingRequests.Count(request => !ToolMakingRequestRules.IsTerminal(request.Status)) >= ToolMakingRequestRules.MaximumActiveRequests)
-            return [];
         var position = agents[actor].Position;
-        return worldSimulation.Buildings.Where(building => building.HouseholdId is { } household && household != HouseholdFor(actor) &&
-                agents.Keys.Any(seller => IsAdult(seller) && HouseholdFor(seller) == household) &&
-                worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
-                    definition.Tags.Contains("blacksmith", StringComparer.Ordinal)) &&
-                (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) || KnowsMapFact(actor, building.Position)) &&
-                (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) ||
-                    FindUnoccupiedRoute(actor, position, building.Position, ResourceInteractionRange).Count > 0))
-            .OrderBy(building => building.InstanceId, StringComparer.Ordinal)
-            .SelectMany(building => worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == building.DefinitionId &&
-                    ToolMakingRequestRules.IsToolRecipe(recipe) && ToolRequestWanted(actor, recipe) &&
-                    !society.Checkpoint.Inventory.Lots.Any(lot => lot.OwnerId == building.HouseholdId &&
-                        lot.StorageBuildingId == building.InstanceId && lot.ItemKind == recipe.Outputs[0].ResourceId &&
-                        IsLooseShopLot(lot) && AvailableLotQuantity(lot) > 0))
-                .OrderBy(recipe => recipe.CanonicalId, StringComparer.Ordinal).Select(recipe => (building, recipe))).Take(16);
+        return MayStartToolRequest(actor) && building.HouseholdId is { } household && household != HouseholdFor(actor) &&
+            agents.Keys.Any(seller => IsAdult(seller) && HouseholdFor(seller) == household) &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("blacksmith", StringComparer.Ordinal)) &&
+            (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) || KnowsMapFact(actor, building.Position)) &&
+            (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) ||
+                Reach(actor, building.Position, ReachPurpose.ToolRequest, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
+            recipe.WorkstationBuildingId == building.DefinitionId && ToolMakingRequestRules.IsToolRecipe(recipe) && ToolRequestWanted(actor, recipe) &&
+            !FindGoods(new(GoodsUse.ToolRequestStock, actor, GoodsOwners.One(household), GoodsKinds.One(recipe.Outputs[0].ResourceId), AtBuilding: building.InstanceId)).Matches.Any();
     }
 
-    private void AddToolMakingRequestCandidates(List<CognitionCandidate> candidates, string actor)
+    private IEnumerable<(PlacedBuilding Building, RecipeDefinition Recipe)> ToolRequestOptions(string actor) =>
+        !MayStartToolRequest(actor) ? [] : worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal)
+            .SelectMany(building => worldContent.Recipes.OrderBy(recipe => recipe.CanonicalId, StringComparer.Ordinal)
+                .Where(recipe => MayRequestToolAt(actor, building, recipe)).Select(recipe => (building, recipe))).Take(16);
+
+    private void AddToolMakingRequestCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor)) return;
         foreach (var request in toolMakingRequests.Where(request => !ToolMakingRequestRules.IsTerminal(request.Status))
@@ -127,54 +128,48 @@ public sealed partial class WorldRuntime
     private bool ApplyToolMakingRequestDecision(SocietyCognitionDispatchResult decision)
     {
         var selected = decision.Admission.Intention;
-        if (selected is null || !selected.CandidateId.StartsWith(ToolRequestPrefix, StringComparison.Ordinal) ||
-            selected.CandidateId.StartsWith(ToolRequestPrefix + "visit:", StringComparison.Ordinal) ||
-            selected.CandidateId.StartsWith(ToolRequestPrefix + "work:", StringComparison.Ordinal) ||
-            selected.CandidateId.StartsWith(ToolRequestPrefix + "collect:", StringComparison.Ordinal)) return false;
+        if (selected is null || ToolRequestConsentChoice.Decode(selected.CandidateId) is not { } choice) return false;
         if (PendingInstructionFor(decision.AgentId)?.Kind == OwnerInstructionKind.Order) return false;
         if (!decision.Admission.Accepted || decision.Admission.FellBack || selected.Provider != DecisionProviderKind.LargeLanguageModel ||
             selected.AgentId != decision.AgentId || !agents.ContainsKey(decision.AgentId) || !IsAdult(decision.AgentId)) return true;
-        var actor = decision.AgentId;
-        if (!CreateCandidates(actor, agents[actor]).Any(candidate => candidate.Id == selected.CandidateId)) return true;
-        foreach (var request in toolMakingRequests.ToArray())
+        var plan = decision.ActionPlan as ToolRequestConsentActionPlan ?? PlanToolRequestConsent(decision.AgentId, choice);
+        if (plan is not null) ApplyToolRequestConsentPlan(plan);
+        return true;
+    }
+
+    private void CompleteToolRequestConsent(ToolRequestConsentActionPlan plan)
+    {
+        var actor = plan.Actor;
+        if (plan.Choice.Kind == ToolRequestConsentKind.Place)
         {
-            if (selected.CandidateId == ToolRequestChoice("withdraw", request.Id) && request.RequesterId == actor && !ToolMakingRequestRules.IsTerminal(request.Status))
-            {
+            var id = ToolMakingRequestId(actor, plan.Shop.InstanceId, plan.Recipe.CanonicalId, WorldTick);
+            toolMakingRequests.Add(new(id, actor, plan.Shop.HouseholdId!, plan.Shop.InstanceId,
+                plan.Recipe.CanonicalId, plan.Recipe.Outputs[0].ResourceId, WorldTick, WorldTick));
+            checkpointSchemaVersion = StateSchemaVersion;
+            AppendEvent("tool_request_placed", actor + ":" + id);
+            return;
+        }
+        var request = plan.Original!;
+        switch (plan.Choice.Kind)
+        {
+            case ToolRequestConsentKind.Withdraw:
                 if (request.OfferId is { } paidOffer && society.Checkpoint.Inventory.Offers.Any(offer =>
                         offer.Id == paidOffer && offer.State == DirectBarterState.Settled))
                 {
                     SetToolRequest(request with { Status = ToolMakingRequestStatus.Fulfilled, Blocker = null }, "tool_request_completed", actor);
-                    return true;
+                    return;
                 }
                 CloseToolRequestOffer(request, "The customer withdrew the request.");
                 SetToolRequest(request with { Status = ToolMakingRequestStatus.Withdrawn, Blocker = null }, "tool_request_withdrawn", actor);
-                return true;
-            }
-            if (request.Status != ToolMakingRequestStatus.Requested || !IsToolRequestSeller(actor, request)) continue;
-            if (selected.CandidateId == ToolRequestChoice("refuse", request.Id))
-            {
+                break;
+            case ToolRequestConsentKind.Refuse:
                 SetToolRequest(request with { Status = ToolMakingRequestStatus.Refused }, "tool_request_refused", actor);
-                return true;
-            }
-            if (selected.CandidateId == ToolRequestChoice("accept", request.Id) && IdleForToolRequest(actor))
-            {
+                break;
+            case ToolRequestConsentKind.Accept:
                 SetToolRequest(request with { Status = ToolMakingRequestStatus.Accepted, WorkerId = actor, AcceptedTick = WorldTick }, "tool_request_accepted", actor);
                 BeginProject(actor, agents[actor], "build:recipe:" + request.RecipeId, request.Id);
-                return true;
-            }
-        }
-        foreach (var (building, recipe) in ToolRequestOptions(actor))
-            if (selected.CandidateId == ToolRequestChoice("place", building.InstanceId, recipe.CanonicalId) &&
-                IsWithinInteractionRange(agents[actor].Position, building.Position, ResourceInteractionRange))
-            {
-                var id = ToolMakingRequestId(actor, building.InstanceId, recipe.CanonicalId, WorldTick);
-                toolMakingRequests.Add(new(id, actor, building.HouseholdId!, building.InstanceId,
-                    recipe.CanonicalId, recipe.Outputs[0].ResourceId, WorldTick, WorldTick));
-                checkpointSchemaVersion = StateSchemaVersion;
-                AppendEvent("tool_request_placed", actor + ":" + id);
                 break;
-            }
-        return true;
+        }
     }
 
     // Authority-changing actions above never execute from a continuing or fallback intention.

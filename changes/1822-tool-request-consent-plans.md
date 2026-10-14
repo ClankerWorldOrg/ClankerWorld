@@ -1,0 +1,1 @@
+- Tool-request consent choices now explain when the selected Blacksmith, recipe or request changes before they can act.
