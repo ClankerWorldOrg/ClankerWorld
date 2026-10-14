@@ -129,13 +129,13 @@ public partial class Main
                 (conversation.InitiatorId == agentId ? conversation.InitiatorName : conversation.InviteeName);
             var otherName = conversation.InitiatorId == agentId ? conversation.InviteeName : conversation.InitiatorName;
             conversationReaderTitle.Text = $"{ownName} and {otherName}";
-            if (conversation.Kind == "marriage_surname") conversationReaderTitle.Text = "Shared surname · " + conversationReaderTitle.Text;
+            if (conversation.Kind == "marriage_surname") conversationReaderTitle.Text = "Shared surname · " + conversationReaderTitle.FullText;
         }
         else
         {
             conversationReaderTitle.Text = $"Nearby conversation · {conversation.InitiatorName} and {conversation.InviteeName}";
         }
-        conversationReaderTitle.TooltipText = conversationReaderTitle.Text;
+        conversationReaderTitle.TooltipText = conversationReaderTitle.FullText;
         conversationReaderStatus.Text = ConversationStatusText(conversation);
         conversationReaderSummary.Text = ConversationSummary(conversation, agentId, unreadCount);
 

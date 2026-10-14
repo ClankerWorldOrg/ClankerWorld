@@ -26,12 +26,15 @@ public partial class Main
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
                 ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
-            using var draft = new PanelDraft(agentModelTargetChoice.GetParent());
-            RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
-            if (worldSettingsContent.Visible) RequestRoutineHelperModels();
-            PopulateAgentModelTargets();
-            PopulateProviderChoices(ActiveProviderForSelectedRole());
-            PopulateCredentialChoices();
+            using (var draft = new PanelDraft(agentModelTargetChoice.GetParent()))
+            {
+                RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
+                if (worldSettingsContent.Visible) RequestRoutineHelperModels();
+                PopulateAgentModelTargets();
+                using (var providerDraft = new PanelDraft(agentModelProviderChoice))
+                    PopulateProviderChoices(ActiveProviderForSelectedRole());
+                PopulateCredentialChoices();
+            }
             RenderProviderConfiguration();
             return "Agent model settings loaded.";
         });
