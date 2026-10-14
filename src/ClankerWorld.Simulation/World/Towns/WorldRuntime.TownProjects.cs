@@ -232,7 +232,8 @@ public sealed partial class WorldRuntime
         {
             foreach (var delivery in project.Deliveries.Where(item => item.ContributorId == actor &&
                          TownProjectIncomingIsLive(town.Id, item)))
-                if (CanWalkForTownProject(actor, person.Position, TownProjectRules.WorkSite(project.Plan)))
+                if (IsWithinInteractionRange(person.Position, TownProjectRules.WorkSite(project.Plan), 0) ||
+                    Reach(actor, TownProjectRules.WorkSite(project.Plan), ReachPurpose.TownProjectLoad, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
                     yield return new(TownProjectChoiceId(TownProjectDeliverPrefix, project.Id, delivery.Id), "deliver",
                         town, project, delivery.ItemKind, society.Checkpoint.Inventory.GetLot(delivery.LotId),
                         delivery.Quantity, delivery);
@@ -249,14 +250,15 @@ public sealed partial class WorldRuntime
                 foreach (var lot in TownProjectMaterialSources(town, project, actor, cost.ResourceId))
                 {
                     var alreadyCarried = lot.CarrierId == actor;
-                    var quantity = Math.Min(missing, Math.Min(AvailableLotQuantity(lot),
-                        alreadyCarried ? lot.Quantity : Math.Min(WarehouseLoadQuantity,
-                            PickupCarryCapacity(actor, lot, TownProjectRules.WorkSite(project.Plan)))));
+                    var quantity = TownProjectLoadQuantity(actor, town, project, lot);
                     if (quantity <= 0) continue;
                     var position = HouseholdStockPosition(lot);
                     var range = HouseholdStockInteractionRange(lot);
-                    if (!alreadyCarried && !CanWalkForTownProject(actor, person.Position, position, range) ||
-                        !CanWalkForTownProject(actor, alreadyCarried ? person.Position : position, TownProjectRules.WorkSite(project.Plan))) continue;
+                    if (!alreadyCarried && !IsWithinInteractionRange(person.Position, position, range) &&
+                        Reach(actor, position, ReachPurpose.TownProjectLoad, range, 0, SwimmingPolicy.WhenCapable).Count == 0 ||
+                        !IsWithinInteractionRange(alreadyCarried ? person.Position : position, TownProjectRules.WorkSite(project.Plan), 0) &&
+                        ReachLeg(actor, alreadyCarried ? person.Position : position, TownProjectRules.WorkSite(project.Plan),
+                            ReachPurpose.TownProjectLoad, 0, 0, SwimmingPolicy.WhenCapable).Count == 0) continue;
                     yield return new(TownProjectChoiceId(TownProjectSupplyPrefix, project.Id, lot.Id,
                         quantity.ToString(CultureInfo.InvariantCulture)), "supply", town, project, cost.ResourceId, lot, quantity);
                     break;
@@ -374,8 +376,11 @@ public sealed partial class WorldRuntime
 
     private void AddTownProjectCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        foreach (var choice in TownProjectChoices(actor).Take(16))
+        var offered = 0;
+        foreach (var choice in TownProjectChoices(actor))
         {
+            var plan = choice.Kind is "supply" or "deliver" ? PlanTownProjectLoad(actor, choice) : null;
+            if (plan is not null && !CheckTownProjectLoad(plan).Allowed) continue;
             var description = choice.Kind switch
             {
                 "recover" => $"Pick up {choice.Quantity} unused Town-owned {choice.ItemKind} from {choice.Project.Plan.Name} to return to its Town Warehouse.",
@@ -390,7 +395,9 @@ public sealed partial class WorldRuntime
             candidates.Add(new(choice.Id, description, choice.Kind == "return" && (NeedsUrgentFood(agents[actor]) || NeedsUrgentWarmth(agents[actor]))
                     ? FreeCarryCapacity(actor) == 0 ? 0 : 10
                     : choice.Kind is "deliver" or "return" ? 24 : choice.Kind == "recover" ? 40 : 36,
-                choice.Warehouse?.InstanceId ?? choice.Project.Id, choice.Project.Plan.Name));
+                choice.Warehouse?.InstanceId ?? choice.Project.Id, choice.Project.Plan.Name)
+            { ActionPlan = plan });
+            if (++offered == 16) break;
         }
     }
 
@@ -401,16 +408,16 @@ public sealed partial class WorldRuntime
         candidates.AddRange(eligible.Take(16));
     }
 
-    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id)
+    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id, TownProjectLoadActionPlan? originalPlan = null)
     {
         if (!IsTownProjectCandidate(id)) return false;
+        if (originalPlan is not null) { ApplyTownProjectLoad(originalPlan); return true; }
         var choice = TownProjectChoices(actor).FirstOrDefault(item => item.Id == id);
         if (choice is null) return true;
+        if (choice.Kind is "supply" or "deliver") { ApplyTownProjectLoad(PlanTownProjectLoad(actor, choice)); return true; }
         switch (choice.Kind)
         {
             case "recover": RecoverTownProjectLoad(actor, state, choice); break;
-            case "supply": PickUpTownProjectLoad(actor, state, choice); break;
-            case "deliver": DeliverTownProjectLoad(actor, state, choice); break;
             case "work": WorkOnTownProject(actor, state, choice); break;
             case "gather": GatherProjectMaterial(actor, state, choice.ItemKind, choice.Resource!, deliveryBuildingId: null); break;
             case "return": ReturnTownProjectLoad(actor, state, choice); break;
