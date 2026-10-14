@@ -85,11 +85,12 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, pickup.Position, "equipment", pickup.InteractionRange);
             return;
         }
+        var operationId = DerivedId.Create($"equipment:{WorldTick}:{actor}:{pickup.ItemKind}");
         ApplyInventoryTransition(inventory => pickup.OwnerId == HouseholdFor(actor)
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId,
+            ? InventoryAuthority.Relocate(inventory, operationId, pickup.StockId,
                 pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.OwnerId,
+            : InventoryAuthority.Transfer(inventory, operationId, pickup.OwnerId,
                 actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
+        AppendEvent(new EquipmentCollectedEventPayload(actor, pickup.ItemKind));
     }
 }
