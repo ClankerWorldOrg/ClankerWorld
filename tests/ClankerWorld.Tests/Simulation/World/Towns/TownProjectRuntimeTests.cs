@@ -576,18 +576,34 @@ internal sealed class TownProjectScenario : IDisposable
         var scenario = Create(PlayableSeed, initialTownStock: initialTownStock);
         try
         {
-            await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count == 1, 80);
+            var plans = new List<TownProjectProposalActionPlan>();
+            await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count == 1, 80, result =>
+            {
+                plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectProposalActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                    .Select(decision => Assert.IsType<TownProjectProposalActionPlan>(decision.ActionPlan)));
+            });
+            var proposal = scenario.World.Towns[0].Council!.Proposals.Single(item => item.Kind == "project");
+            Assert.NotEmpty(plans);
+            Assert.All(plans, plan =>
+            {
+                Assert.True(plan.Bound);
+                Assert.Equal(plan.Choice, TownProjectProposalChoice.Decode(plan.CandidateId));
+                Assert.Equal(TownHearingProcedure.Digest(proposal.Project), TownHearingProcedure.Digest(plan.Project));
+                Assert.Equal(plan.Actor, proposal.AuthorId);
+            });
             return scenario;
         }
         catch { scenario.Dispose(); throw; }
     }
 
-    internal async Task UntilAsync(Func<bool> reached, int maximumTicks)
+    internal async Task UntilAsync(Func<bool> reached, int maximumTicks, Action<WorldStepResult>? observe = null)
     {
         for (var tick = 0; tick < maximumTicks && !reached(); tick++)
         {
             var before = World.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
-            Assert.True((await World.AdvanceOneTickAsync()).Advanced);
+            var result = await World.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
             var state = World.ExportState();
             foreach (var person in state.Agents)
             {

@@ -60,13 +60,18 @@ public static class TownProjectRules
 
     public static void ValidatePayload(TownProjectPayload? plan)
     {
+        if (PayloadRefusal(plan) is { } refusal) throw new InvalidDataException(refusal);
+    }
+
+    public static string? PayloadRefusal(TownProjectPayload? plan)
+    {
         var definition = plan is null ? null : DefinitionFor(plan.DefinitionId);
-        if (plan is null || string.IsNullOrWhiteSpace(plan.Name) || plan.Name != plan.Name.Trim() ||
+        return plan is null || string.IsNullOrWhiteSpace(plan.Name) || plan.Name != plan.Name.Trim() ||
             plan.Name.Length > MaximumNameLength || plan.Name.Any(char.IsControl) ||
             definition is null || !EntranceMatches(plan) ||
             plan.BoatPortId is not null && (!PortNavigationRules.IsPort(definition) || string.IsNullOrWhiteSpace(plan.BoatPortId)) ||
-            plan.Budget is null || !plan.Budget.SequenceEqual(plan.BoatPortId is null ? definition.BuildCosts : PortContent.BoatCosts))
-            throw new InvalidDataException("The Town project must bind a supported building, name, doorway and exact provisional budget.");
+            plan.Budget is null || !plan.Budget.SequenceEqual(plan.BoatPortId is null ? definition.BuildCosts : PortContent.BoatCosts)
+            ? "The Town project must bind a supported building, name, doorway and exact provisional budget." : null;
     }
 
     private static bool EntranceMatches(TownProjectPayload plan) =>
