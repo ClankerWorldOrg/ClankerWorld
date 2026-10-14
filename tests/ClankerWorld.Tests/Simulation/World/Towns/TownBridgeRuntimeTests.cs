@@ -5,8 +5,8 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
-using GodotOwnerWorldEvent = ClankerWorld.GodotClient.Protocol.OwnerWorldEvent;
-using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotOwnerWorldEvent = ClankerWorld.Contracts.OwnerWorldEvent;
+using GodotOwnerWorldSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 

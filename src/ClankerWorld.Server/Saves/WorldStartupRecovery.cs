@@ -8,9 +8,8 @@ using ClankerWorld.Server.Worlds;
 namespace ClankerWorld.Server.Saves;
 
 /// <param name="SavedByVersion">The game version that last saved a refused checkpoint, when it was recorded.</param>
-public sealed record StartupRecoveryStatus(bool Pending, string? WorldId, ManualWorldSave? Autosave, string? Reason = null,
-    string? SavedByVersion = null);
-public sealed record StartupRecoveryReceipt(string LoadedId, long WorldTick);
+
+
 
 /// <summary>Keep a refused active checkpoint untouched until an authenticated owner accepts a verified autosave.</summary>
 public sealed partial class WorldStartupRecovery
