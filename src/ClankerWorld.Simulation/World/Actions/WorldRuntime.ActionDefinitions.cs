@@ -22,7 +22,9 @@ public sealed partial class WorldRuntime
         Func<WorldRuntime, TPlan, ActorCapabilityPolicy, ActionCheck> CheckPlan,
         Func<WorldRuntime, TPlan, ActionContext, ActionPhase, bool> ApplyPlan,
         Func<TPlan, ActorCapabilityPolicy>? PlanCapabilities = null,
-        Func<WorldRuntime, ActionContext, bool>? NoPlanFallback = null) : ActionDefinition
+        Func<WorldRuntime, ActionContext, bool>? NoPlanFallback = null,
+        Func<WorldRuntime, ActionContext, bool>? ApplyUnplanned = null,
+        Func<WorldRuntime, ActionContext, ActionPhase, bool>? HandlesPhase = null) : ActionDefinition
         where TPlan : ActionPlan
     {
         public override Type PlanType => typeof(TPlan);
@@ -43,6 +45,8 @@ public sealed partial class WorldRuntime
 
         public override bool Apply(WorldRuntime world, ActionContext context, ActionPhase phase)
         {
+            if (HandlesPhase is not null && !HandlesPhase(world, context, phase)) return false;
+            if (context.Plan is null && ApplyUnplanned is not null) return ApplyUnplanned(world, context);
             var plan = context.Plan as TPlan ?? (Decode(context.CandidateId, out var choice)
                 ? Plan(world, context.AgentId, choice) : null);
             if (plan is null) return NoPlanFallback?.Invoke(world, context) ?? true;

@@ -163,7 +163,7 @@ public sealed partial class WorldRuntime
         GuardianTravelChoice? choice = person.GuardianPlacement is { Stage: "escorting" } follow
             ? new(GuardianTravelKind.Follow, follow.CaregiverId)
             : IsAdult(actor) && GuardianPlacementChildFor(actor) is { } child ? new(GuardianTravelKind.Relocate, child) : null;
-        if (choice is null || PlanGuardianTravel(actor, choice) is not { } plan || !CheckGuardianTravelPlan(plan).Allowed) return null;
+        if (choice is null || GuardianTravelDefinition.Offer(this, actor, choice) is not { } plan) return null;
         return new CognitionCandidate(plan.CandidateId, choice.Kind == GuardianTravelKind.Follow
             ? "Follow your accepted guardian to their House."
             : $"Collect {society.Checkpoint.GetAgent(plan.ChildId).Name} and accompany them to your House.", 8, plan.Placement.HouseId)
@@ -267,7 +267,7 @@ public sealed partial class WorldRuntime
     {
         if (!agents.TryGetValue(child, out var dependent) || dependent.GuardianPlacement is not { Stage: "escorting" } placement) return;
         var plan = originalPlan ?? PlanGuardianTravel(child, new(GuardianTravelKind.Follow, placement.CaregiverId));
-        if (plan is null || !CheckGuardianTravelPlan(plan).Allowed) return;
+        if (plan is null || !CheckActionPlan(plan).Allowed) return;
         var adult = agents[placement.CaregiverId];
         if (NeedsUrgentFood(adult) || NeedsUrgentWarmth(adult)) return;
         var home = placement.HousePosition!.Value;

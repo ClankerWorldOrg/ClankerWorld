@@ -42,12 +42,10 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(actor).DomesticFamilyUnitId, agents.ContainsKey(child) ? society.Checkpoint.GetAgent(child).DomesticFamilyUnitId : null);
     }
 
-    private ActionCheck CheckDependentCarePlan(DependentCareActionPlan plan)
+    private ActionCheck CheckDependentCarePlan(DependentCareActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var adultAction = plan.AcceptsGuardianSearch || plan.Choice.Kind is DependentCareChoiceKind.Offer or DependentCareChoiceKind.Primary;
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(adultAction ? ActionLifeStages.Adults : ActionLifeStages.NonInfants, AllowBoat: true,
-                AllowUrgentFood: true, AllowUrgentWarmth: plan.Choice.Kind == DependentCareChoiceKind.End, AllowActiveOrder: true));
+            policy ?? DependentCareCapabilities(plan));
         if (!capability.Allowed) return capability;
         if (plan.Relationship is { } original && !RelationshipPlan.Matches(society.Checkpoint.Relationships.FirstOrDefault(edge => edge.Id == original.Id), original))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected caregiving relationship has changed");
@@ -83,14 +81,14 @@ public sealed partial class WorldRuntime
         foreach (var candidate in options)
         {
             if (DependentCareChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (PlanDependentCare(actor, choice) is { } plan && CheckDependentCarePlan(plan).Allowed)
+            if (DependentCareDefinition.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
         }
     }
 
     private void ApplyDependentCarePlan(DependentCareActionPlan plan)
     {
-        if (CheckDependentCarePlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteDependentCareChoice(plan);
     }
 }
