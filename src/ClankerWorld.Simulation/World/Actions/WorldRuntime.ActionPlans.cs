@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    public ActionCheck CheckActionPlan(ActionPlan plan) => RegisteredActionDefinitions.Value.TryGetValue(plan.GetType(), out var definition)
+    public ActionCheck CheckActionPlan(ActionPlan plan) => DefinitionFor(plan) is { } definition
         ? definition.Check(this, plan) : CheckLegacyActionPlan(plan);
 
     private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
