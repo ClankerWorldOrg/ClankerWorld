@@ -379,13 +379,13 @@ public sealed partial class WorldRuntime
 
     private FireFuelEffect CompleteFireFuel(string actor, PlacedBuilding building, string fuelId)
     {
-        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
         var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuelId, 1, "heating_fuel"));
-        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id) &&
+        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id.Value) &&
             item.OwnerId == actor && item.LotId == fuelId && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
             item.State == InventoryReservationState.Completed && item.ExpiryTick == WorldTick);
         survivalState = survivalState! with { Fires = survivalState.Fires.Append(new BuildingFireState(building.InstanceId, WorldTick + 120)).ToArray() };
-        AppendEvent("fire_fuelled", building.InstanceId);
+        AppendEvent(new FireFuelledEventPayload(null, building.InstanceId));
         return new FireFuelEffect(building.InstanceId, payment.Id);
     }
 
