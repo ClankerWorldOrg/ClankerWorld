@@ -38,11 +38,13 @@ public sealed partial class WorldRuntime
             {
                 var site = sites[rank];
                 var description = string.Join(" ", site.Reasons.Select(reason => reason.Description));
-                candidates.Add(new CognitionCandidate(
-                    TownConstructionCandidateIds.Building(definition.CanonicalId, site.Position),
+                var plan = PlanConstruction(agent.Id, definition, site.Position, instanceId);
+                if (CheckConstruction(plan).Allowed) candidates.Add(new CognitionCandidate(
+                    plan.CandidateId,
                     $"Plan {definition.DisplayName} at ({site.Position.X}, {site.Position.Y}): {description}",
                     20 + rank + HouseholdBuildingKinds.PlanOrder(HouseholdBuildingKind(definition)),
-                    $"build-site:{site.Position.X},{site.Position.Y}"));
+                    $"build-site:{site.Position.X},{site.Position.Y}")
+                { ActionPlan = plan });
             }
         }
 

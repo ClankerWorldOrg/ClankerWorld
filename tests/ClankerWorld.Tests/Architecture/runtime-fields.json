@@ -58,6 +58,7 @@
     "pendingWills",
     "providerFactory",
     "recipeProjectPlans",
+    "constructionProjectPlans",
     "agentWorld",
     "tickGate",
     "farmingWorld"

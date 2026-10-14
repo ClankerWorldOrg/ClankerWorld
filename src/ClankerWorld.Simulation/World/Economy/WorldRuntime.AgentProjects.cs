@@ -434,6 +434,17 @@ public sealed partial class WorldRuntime
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
 
+        var constructionPlan = originalPlan as ConstructionActionPlan;
+        if (selected.IsBuilding && selected.SitePosition is { } chosenSite && constructionPlan is null &&
+            worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } design)
+            constructionPlan = PlanConstruction(agentId, design, chosenSite);
+        if (constructionPlan is not null && CheckConstruction(constructionPlan).Refusal is { } constructionRefusal)
+        { RefuseChoice(constructionPlan, constructionRefusal); return; }
+        if (constructionPlan is not null)
+            constructionProjectPlans[agentId] = (state.Project is { Stage: not ("completed" or "cancelled") } previousBuilding &&
+                TownConstructionCandidateIds.TryParse(previousBuilding.CandidateId, out var previousSelection) && previousSelection.IsBuilding &&
+                previousSelection.DefinitionId == selected.DefinitionId ? previousBuilding.StartedTick : WorldTick, constructionPlan);
+
         var recipePlan = originalPlan as RecipeProjectActionPlan;
         if (!selected.IsBuilding && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
@@ -539,6 +550,21 @@ public sealed partial class WorldRuntime
             SetProject(agentId, project with { Stage = "cancelled", Blocker = "This building or recipe is no longer available" });
             return;
         }
+        var constructionPlan = building is null ? null : RetainedConstruction(agentId, project);
+        if (building is not null && selection.SitePosition is { } plannedSite)
+        {
+            if (constructionPlan is null)
+            {
+                constructionPlan = PlanConstruction(agentId, building, plannedSite);
+                constructionProjectPlans[agentId] = (project.StartedTick, constructionPlan);
+            }
+            if (CheckConstruction(constructionPlan).Refusal is { } refusal)
+            {
+                RefuseChoice(constructionPlan, refusal);
+                SetProject(agentId, project with { Stage = "paused", Blocker = refusal.Explanation, RequiresFreshChoice = true });
+                return;
+            }
+        }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
         {
             var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
@@ -611,7 +637,7 @@ public sealed partial class WorldRuntime
             inputWorkSite = recipeBuilding.Position;
         }
         var constructionOwner = recipe is not null ? IsHandcartRecipe(recipe) ? agentId : ProductionOwnerFor(recipeBuilding, agentId)
-            : BuildingConstructionOwner(agentId, building!);
+            : constructionPlan?.Inputs is not null ? constructionPlan.MaterialOwnerId : BuildingConstructionOwner(agentId, building!);
         if (recipe is not null && !IsHandcartRecipe(recipe) && recipeBuilding?.HouseholdId is not null &&
             worldContent.Buildings.Any(definition => definition.CanonicalId == recipeBuilding.DefinitionId &&
                 definition.Tags.Any(IsHouseholdBuildingTag)) &&
@@ -635,6 +661,11 @@ public sealed partial class WorldRuntime
             }
             AcquireProjectInput(agentId, state, missing, constructionOwner, inputWorkSite);
             return;
+        }
+        if (constructionPlan is { Inputs: null } && PlanConstructionInputs(building!.BuildCosts, constructionOwner) is { } selectedInputs)
+        {
+            constructionPlan = constructionPlan with { MaterialOwnerId = constructionOwner, Inputs = selectedInputs };
+            constructionProjectPlans[agentId] = (project.StartedTick, constructionPlan);
         }
         GridPoint position;
         if (building is not null)
@@ -1117,7 +1148,10 @@ public sealed partial class WorldRuntime
     {
         var state = agents[agentId];
         if (state.Project is { RequiresFreshChoice: true } && !project.RequiresFreshChoice)
+        {
             recipeProjectPlans.Remove(agentId);
+            constructionProjectPlans.Remove(agentId);
+        }
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)
         {
             project = project with { LastTransitionTick = WorldTick };

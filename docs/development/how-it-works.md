@@ -135,6 +135,11 @@ Project assistance retains the requesting project, recipient and exact personal
 lot or material harvest. Its shared contribution query keeps physical stock
 availability and inventory order; transfers use that selected lot and quantity.
 Construction preparation and assistance share one harvest and tool check.
+Construction choices retain their selected design, site, building identity,
+ownership and available material lots. Matching project/order plans are copied
+through tick preparation and commit without entering saves. Material payment
+uses the selected quantities and existing reservation identities; supplies
+acquired later are selected once when the payment inputs become available.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
