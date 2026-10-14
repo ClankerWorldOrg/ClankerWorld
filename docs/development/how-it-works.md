@@ -238,8 +238,9 @@ The commit keeps the existing one-unit split or transfer and displaced item.
 
 Personal equipment repair carries `EquipmentRepairActionPlan` with the worn
 item, private work site, exact carried material lots and ordered shared pickups.
-Its check runs at offer, admission and application, including the return trip
-and room for every missing input. `EquipmentRepair` goods selection retains
+The shared input-trip planner chooses an order once; its check revalidates that order
+with cumulative loads and the return trip at offer, admission and application.
+It also checks room for every missing input. `EquipmentRepair` goods selection retains
 broken items while excluding existing reservations and promises. Starting work
 reserves the captured materials through the same commit used by repair orders;
 continuation still uses the saved work record and reservation IDs.
@@ -942,12 +943,12 @@ this order's eligible personal-lot set.
 
 Repair orders save a separate `TargetEquipmentKind` for basic clothing, padded
 coats, rain cloaks, baskets or sacks. The parser refuses unsupported equipment and
-explicit sites. Orders filter the normal worn-item rules by this exact kind,
-collect real materials through `CollectEquipment`, then use `RepairEquipment`
-and `ContinueEquipmentRepair`. Ordinary repair chooses the first feasible worn item, preferring the equipped
+explicit sites. Orders filter the normal worn-item rules by this exact kind
+and use `RepairEquipment` for planned pickup and repair start, then
+`ContinueEquipmentRepair` for saved work. Ordinary repair chooses the first feasible worn item, preferring the equipped
 carry aid when its materials, carrying space and private work site are usable.
 Ordinary repair carries its selected item and material lots through one plan check;
-orders share the repair-start commit and saved continuation.
+orders and civic repairs use the same planned pickup order, repair-start commit and saved continuation.
 A repair work record links to the active instruction; only the returned completed
 repair advances its item count, with a bounded receipt derived from the actor,
 start time and lot identity. New orders release any previous repair's unspent
