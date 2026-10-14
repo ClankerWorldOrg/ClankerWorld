@@ -8,7 +8,7 @@ public sealed partial class WorldRuntime
     private void AddFoodPlanCandidate(List<CognitionCandidate> candidates, FoodActionPlan? plan,
         string description, int priority, string? destination = null)
     {
-        if (plan is not null && CheckFoodPlan(plan).Allowed)
+        if (plan is not null && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId, description, priority, destination) { ActionPlan = plan });
     }
 
@@ -41,9 +41,9 @@ public sealed partial class WorldRuntime
     private static string FoodHarvestKind(MapResource source) => source.Kind == "fruit" ? "fruit" :
         source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries";
 
-    private ActionCheck CheckFoodPlan(FoodActionPlan plan)
+    private ActionCheck CheckFoodPlan(FoodActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, FoodPolicy(plan is ConsumeFoodActionPlan));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? FoodPolicy(plan is ConsumeFoodActionPlan));
         if (!capability.Allowed) return capability;
         var index = InventoryIndex.For(society.Checkpoint.Inventory);
         switch (plan)
@@ -99,7 +99,12 @@ public sealed partial class WorldRuntime
     private void ApplyFoodPlan(FoodActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckFoodPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedFoodPlan(plan);
+    }
+
+    private void ApplyCheckedFoodPlan(FoodActionPlan plan)
+    {
         var person = agents[plan.Actor];
         switch (plan)
         {

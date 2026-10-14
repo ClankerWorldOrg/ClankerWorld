@@ -283,36 +283,12 @@ public sealed partial class WorldRuntime
         runtime.ApplyEquipmentRepairPlan(action.Plan as EquipmentRepairActionPlan ?? runtime.PlanEquipmentRepair(action.AgentId));
         return true;
     }),
-        new(ActionPhase.Ordinary, "tend_fire", [], ["tend_fire"], static (runtime, action) =>
-    {
-        runtime.ApplyFirePlan(action.Plan as FireActionPlan ?? runtime.PlanFire(action.AgentId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "seek_warmth", [], ["seek_warmth"], static (runtime, action) =>
-    {
-        runtime.ApplyWarmthPlan(action.Plan as WarmthActionPlan ?? runtime.PlanWarmth(action.AgentId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "seek_food", [], ["seek_food"], static (runtime, action) =>
-    {
-        runtime.ApplyFoodPlan(action.Plan as FoodResourceActionPlan ?? runtime.PlanFoodResource(action.AgentId, false));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "harvest_food", [], ["harvest_food"], static (runtime, action) =>
-    {
-        runtime.ApplyFoodPlan(action.Plan as FoodResourceActionPlan ?? runtime.PlanFoodResource(action.AgentId, true));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "consume_food", [], ["consume_food"], static (runtime, action) =>
-    {
-        runtime.ApplyFoodPlan(action.Plan as ConsumeFoodActionPlan ?? runtime.PlanFoodConsumption(action.AgentId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "collect_shared_food", [], ["collect_shared_food"], static (runtime, action) =>
-    {
-        runtime.ApplyFoodPlan(action.Plan as SharedFoodActionPlan ?? runtime.PlanSharedFood(action.AgentId));
-        return true;
-    })
+        new(ActionPhase.Ordinary, "tend_fire", [], [new WarmthChoice(WarmthChoiceKind.Fire).Encode()], Definition: FireDefinition),
+        new(ActionPhase.Ordinary, "seek_warmth", [], [new WarmthChoice(WarmthChoiceKind.Protection).Encode()], Definition: WarmthDefinition),
+        new(ActionPhase.Ordinary, "seek_food", [], [new FoodChoice(FoodActionKind.Seek).Encode()], Definition: FoodResourceDefinition),
+        new(ActionPhase.Ordinary, "harvest_food", [], [new FoodChoice(FoodActionKind.Harvest).Encode()], Definition: FoodResourceDefinition),
+        new(ActionPhase.Ordinary, "consume_food", [], [new FoodChoice(FoodActionKind.Consume).Encode()], Definition: FoodConsumptionDefinition),
+        new(ActionPhase.Ordinary, "collect_shared_food", [], [new FoodChoice(FoodActionKind.CollectShared).Encode()], Definition: SharedFoodDefinition)
     ]);
     private static readonly IReadOnlyList<ChoiceRegistration> ChoiceRegistrations = Array.AsReadOnly<ChoiceRegistration>(
     [

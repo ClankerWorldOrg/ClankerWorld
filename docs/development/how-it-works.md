@@ -125,6 +125,10 @@ one codec, plan check and native effect with legacy entry points.
 Field work, tree planting and farm-stock hauling bind their existing shared
 capability policies and plan checks to typed definitions. Field and tree rows
 call the Farming system's native effects directly after those checks.
+Food consumption, shared-food collection, food gathering, fire and warmth also
+bind their codecs and existing capability policies to typed definitions. Their
+offer, admission and apply paths check the same selected serving, source,
+fuel or protection; legacy entry points share the native effects.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
