@@ -68,7 +68,7 @@ public sealed partial class PortBoatRuntimeTests
             scenario.World.WorldSimulation.Buildings.Single(port => port.InstanceId == boat.Journey.DestinationPortId).Position).DockingTiles);
         var snapshot = new OwnerWorldObservationStore(scenario.World).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         var displayed = Assert.Single(client.Boats);
         Assert.Equal((boat.Id, boat.TownId, boat.Position.X, boat.Position.Y, traveler),
             (displayed.Id, displayed.TownId, displayed.Position.X, displayed.Position.Y, displayed.PassengerId));
@@ -76,7 +76,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal(boat.Journey.ReservedDock.X, displayed.ReservedDock!.X);
         Assert.Equal("boat_travel", client.Agents.Single(person => person.Id == traveler).Route.Status);
         Assert.Equal("underway", Assert.Single(client.BoatRequests).Status);
-        Assert.Contains("Passenger:", Client.GameUiText.BoatDescription(displayed), StringComparison.Ordinal);
+        Assert.Contains("Passenger:", ClankerWorld.Contracts.GameUiText.BoatDescription(displayed), StringComparison.Ordinal);
         policy.Trips = false;
         var saved = WorldRuntimeCodec.Encode(scenario.World.ExportState());
         Assert.False((await scenario.World.AdvanceOneTickAsync(() => false)).Advanced);

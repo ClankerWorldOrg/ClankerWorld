@@ -25,13 +25,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ClankerWorld.Simulation\ClankerWorld.Simulation.csproj" />
     <ProjectReference Include="..\..\src\ClankerWorld.Server\ClankerWorld.Server.csproj" />
+    <!-- Build both wire assemblies without importing the Godot runtime into the test host. -->
+    <ProjectReference Include="..\..\src\ClankerWorld.GodotClient\ClankerWorld.GodotClient.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingProtocol.cs" Link="GodotClient\Pairing\OwnerPairingProtocol.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerDeviceKey.cs" Link="GodotClient\Pairing\OwnerDeviceKey.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingClient.cs" Link="GodotClient\Pairing\OwnerPairingClient.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\GameUiText.cs" Link="GodotClient\UI\Text\GameUiText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\GameUiText.Client.cs" Link="GodotClient\UI\Text\GameUiText.Client.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandHearingText.cs" Link="GodotClient\UI\Text\LandHearingText.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandTransferText.cs" Link="GodotClient\UI\Text\LandTransferText.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\NonLandHearingText.cs" Link="GodotClient\UI\Text\NonLandHearingText.cs" />
@@ -45,7 +47,7 @@
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\GameReleaseFeed.cs" Link="GodotClient\Launcher\GameReleaseFeed.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\GameVersionStore.cs" Link="GodotClient\Launcher\GameVersionStore.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\LauncherSettings.cs" Link="GodotClient\Launcher\LauncherSettings.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldContracts.cs" Link="GodotClient\Protocol\OwnerWorldContracts.cs" />
+    <Compile Include="..\..\src\ClankerWorld.Server\Contracts\ContractNames.cs" Link="Contracts\ContractNames.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldObservationSession.cs" Link="GodotClient\Protocol\OwnerWorldObservationSession.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldActionPayload.cs" Link="GodotClient\Protocol\OwnerWorldActionPayload.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\ClientState\OwnerDeviceRegistration.cs" Link="GodotClient\ClientState\OwnerDeviceRegistration.cs" />

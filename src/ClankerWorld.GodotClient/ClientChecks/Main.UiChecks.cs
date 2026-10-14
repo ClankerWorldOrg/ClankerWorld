@@ -3788,7 +3788,7 @@ public partial class Main
             RenderMap(largeMap);
             var agentListPosition = new OwnerWorldPosition(180, 90);
             OwnerWorldAgent ListedAgent(string id, string name, string lifecycle, int fullness) =>
-                new(id, name, lifecycle, agentListPosition, fullness, [], [],
+                new(id, name, lifecycle, agentListPosition, fullness, [], [new("fullness-state", NeedStates.FullnessState(fullness))],
                     new OwnerWorldRoute("idle", null, null, [], string.Empty),
                     new OwnerWorldSpatialKnowledge(agentListPosition, [agentListPosition], [agentListPosition]), false);
             var agentListMap = largeMap with
@@ -3829,7 +3829,7 @@ public partial class Main
                 Agents = [agentListMap.Agents[0] with
                 {
                     PublicIntention = new OwnerWorldPublicIntention("knowledge_copy:knowledge-artifact-000001",
-                        "knowledge_copy:knowledge-artifact-000001", "deterministic", 1),
+                        "copying a written work", "deterministic", 1),
                 }],
             });
             if (!AgentListCardText(0).Contains("Copying a written work", StringComparison.Ordinal) ||
