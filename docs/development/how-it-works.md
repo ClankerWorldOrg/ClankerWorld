@@ -160,6 +160,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Tool request consent, visits, commission work and finished-tool collection own
+their typed codecs, planners, capability policies, checks and native application
+in ordered action rows. Consent remains at fresh personal admission; the work
+step keeps its existing fresh-choice guard. Request receipts, shops, jobs and
+collection quotes stay bound through application.
+
 Animal work, products, travel, supply, trips and agreements own their codecs,
 planners, capability policies, checks and native application in ordered action
 rows. AnimalSystem keeps the planners, shared checks and native writers.

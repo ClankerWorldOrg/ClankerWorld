@@ -11,10 +11,10 @@ public sealed partial class WorldRuntime
         return new(actor, choice, request, project, smith, definition);
     }
 
-    private ActionCheck CheckToolRequestWorkPlan(ToolRequestWorkActionPlan plan)
+    private ActionCheck CheckToolRequestWorkPlan(ToolRequestWorkActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ToolRequestCapabilities);
         if (!capability.Allowed) return capability;
         if (toolMakingRequests.FirstOrDefault(request => request.Id == plan.Request.Id) is not { } current ||
             current.Status != ToolMakingRequestStatus.Accepted || current.WorkerId != plan.Actor ||
@@ -34,7 +34,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyToolRequestWorkPlan(ToolRequestWorkActionPlan plan, bool freshChoice)
     {
-        if (CheckToolRequestWorkPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedToolRequestWork(plan, freshChoice);
+    }
+
+    private void ApplyCheckedToolRequestWork(ToolRequestWorkActionPlan plan, bool freshChoice)
+    {
         if (!freshChoice && agents[plan.Actor].Project!.RequiresFreshChoice) return;
         CompleteToolRequestWork(plan);
     }

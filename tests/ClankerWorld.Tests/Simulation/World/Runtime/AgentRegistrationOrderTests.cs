@@ -69,10 +69,14 @@ public sealed class AgentRegistrationOrderTests
     {
         string[] expected =
         [
+            "FreshAdmission|tool_request_consent||",
             "FreshAdmission|animal_agreement|animal:agreement:|",
             "FreshAdmission|medical_consent|medical_allow:,medical_revoke:|",
             "BeforeAge|safe_idle_age_outcome||safe_idle",
             "BeforeAge|IsOrnamentCandidate||",
+            "BeforeAge|tool_request_visit|tool_request_visit:|",
+            "BeforeAge|tool_request_work|tool_request_work:|",
+            "BeforeAge|tool_request_collect|tool_request_collect:|",
             "BeforeAge|ToolRequestPrefix|tool_request_|",
             "BeforeAge|talk:|talk:,conversation_|",
             "BeforeAge|TryApplyGuardianPlacementCandidate||",

@@ -14,10 +14,10 @@ public sealed partial class WorldRuntime
             quote is null ? null : new(quote.Goods, quote.GoodsQuantity, quote.Payment, quote.PaymentQuantity));
     }
 
-    private ActionCheck CheckToolRequestCollectionPlan(ToolRequestCollectionActionPlan plan)
+    private ActionCheck CheckToolRequestCollectionPlan(ToolRequestCollectionActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ToolRequestCapabilities);
         if (!capability.Allowed) return capability;
         if (toolMakingRequests.FirstOrDefault(item => item.Id == plan.Request.Id) != plan.Request ||
             plan.Request.Status != ToolMakingRequestStatus.Ready || plan.Request.RequesterId != plan.Actor ||
@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyToolRequestCollectionPlan(ToolRequestCollectionActionPlan plan)
     {
-        if (CheckToolRequestCollectionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteToolRequestCollection(plan);
     }
 }

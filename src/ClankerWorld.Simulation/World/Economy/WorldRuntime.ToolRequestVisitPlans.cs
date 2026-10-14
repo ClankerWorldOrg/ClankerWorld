@@ -12,10 +12,10 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private ActionCheck CheckToolRequestVisitPlan(ToolRequestVisitActionPlan plan)
+    private ActionCheck CheckToolRequestVisitPlan(ToolRequestVisitActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? ToolRequestVisitCapabilities);
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == plan.Smith.InstanceId) != plan.Smith ||
             !worldContent.Recipes.Any(recipe => recipe.CanonicalId == plan.Recipe.CanonicalId) ||
@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyToolRequestVisitPlan(ToolRequestVisitActionPlan plan)
     {
-        if (CheckToolRequestVisitPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteToolRequestVisit(plan);
     }
 }
