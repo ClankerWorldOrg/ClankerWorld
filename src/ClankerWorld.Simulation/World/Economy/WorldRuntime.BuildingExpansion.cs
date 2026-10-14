@@ -190,7 +190,7 @@ public sealed partial class WorldRuntime
                 var quantity = Math.Min(remaining, AvailableLotQuantity(lot));
                 if (quantity <= 0) continue;
                 var id = ExpansionMaterialReservationId(jobId, ids.Count);
-                inventory = InventoryAuthority.Reserve(inventory, id, lot.OwnerId, lot.Id, quantity, jobId, completion);
+                inventory = InventoryAuthority.Reserve(inventory, id, lot.OwnerId, lot.Id, quantity, jobId, completion, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 ids.Add(id);
                 remaining -= quantity;
                 if (remaining == 0) break;
@@ -375,7 +375,7 @@ public sealed partial class WorldRuntime
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                         $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor, owner,
                         delivery.Id, storageQuantity, "building_expansion_material_delivered",
-                        destinationStorageBuildingId: building.InstanceId));
+                        destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
                     AppendEvent("building_expansion_material_delivered",
                         $"{actor}:{delivery.ItemKind}:{storageQuantity}:{building.InstanceId}:stored");
                 }
@@ -385,7 +385,7 @@ public sealed partial class WorldRuntime
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                         $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor,
                         owner, delivery.Id, AvailableLotQuantity(delivery),
-                        "building_expansion_material_delivered", destinationGroundPosition: site));
+                        "building_expansion_material_delivered", destinationGroundPosition: site, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
                     AppendEvent("building_expansion_material_delivered",
                         $"{actor}:{delivery.ItemKind}:{AvailableLotQuantity(delivery)}:{building.InstanceId}:ground");
                 }
@@ -412,7 +412,7 @@ public sealed partial class WorldRuntime
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                         $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{shared.Id}",
                         shared.OwnerId, actor, shared.Id, quantity, "building_expansion_material_picked_up",
-                        destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId));
+                        destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                     AppendEvent("building_expansion_material_picked_up",
                         $"{actor}:{shared.Id}:{quantity}:{building.InstanceId}");
                 }

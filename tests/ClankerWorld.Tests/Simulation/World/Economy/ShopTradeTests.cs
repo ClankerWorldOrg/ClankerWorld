@@ -789,7 +789,7 @@ public sealed partial class ShopTradeTests
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
 
     private static WorldRuntimeState WithBuyerBlacksmith(WorldRuntimeState state, string buyer)

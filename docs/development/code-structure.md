@@ -61,8 +61,8 @@ Follow these now. A refactor step that lands turns a rule into a check.
    only. Never catch an exception just to treat it as a bad model reply.
 5. **Promises live on the stock.** Goods lent to a stall, promised to a
    delivery or held for a trip must not be taken by code that skips a filter.
-   Until step 7 marks them on the stock itself, read goods only through the
-   shared goods query, never from lots directly.
+   Read goods through the shared goods query. Inventory operations require the
+   matching hold purpose and holder; name only the promises the action may use.
 6. **The server decides what things mean.** The game shows what the server
    sends. It doesn't work out its own thresholds, activity names or event text
    from IDs.

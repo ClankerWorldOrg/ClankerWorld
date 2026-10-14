@@ -266,7 +266,7 @@ public sealed class MarketRulesTests
             Trades = damage == "duplicate-trade" ? [trade, trade] : [trade],
             StockReceipts = receipts,
         });
-        Assert.Throws<InvalidDataException>(() => MarketTradeValidation.Validate(forged.Towns!, forged.Society.Society with { Inventory = inventory },
+        Assert.Throws<InvalidDataException>(() => MarketTradeValidation.Validate(forged.Towns!, forged.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             forged.Map, forged.WorldSimulation!, forged.WorldContent!, damage == "far-future-offer" ? long.MaxValue : worldTick, forged.Agents));
     }
 

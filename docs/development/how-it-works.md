@@ -354,8 +354,20 @@ their inherited vessel holds. Wear and repair also check contained stock.
 A reservation saves its
 authorized holds and rechecks them when consumed or settled. Hold changes use
 `HoldStock` and `ReleaseStock`, without adding inventory events or changing stock
-history. The next part of #1821 connects the existing promise lifecycles and
-goods queries to these operations.
+history. Custody transitions create and release delivery and borrower holds with
+location changes. `MarketStockHolds` updates loans when stock or stall occupancy
+changes; animal supply trips hold their exact picked-up root until completion,
+cancellation or lost custody. Queries read these holds instead of searching
+Town occupancy or delivery pointers for promises. Read-only consumption plans
+report each match's required holds; an executor still states only the purposes
+and holders it is authorized to use. Saved hold collections compare by value,
+so reload retains ordinary lot and reservation equality.
+
+Supply-trip stock is excluded from unrelated goods uses. Animal care can use its
+matching trip hold and counts those servings once when protecting family meals.
+Collection and delivery permit the named borrower's complete vessel; other
+promises stay protected. A forced dismount cancels a trip if it puts down any of
+that trip's load, preserving unrelated reservations and property ownership.
 
 `World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
@@ -372,8 +384,11 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
-outside `Goods/` and validation code. The per-file baseline is recorded in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json).
+outside `Goods/` and validation code. The recorded baseline in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
+uses per-file budgets. Named delivery, hold and cargo operations
+replace direct inventory writes; their remaining references perform inventory
+transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
 comments, strings and unrelated `Lots` properties do not count. It exempts files
 ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.

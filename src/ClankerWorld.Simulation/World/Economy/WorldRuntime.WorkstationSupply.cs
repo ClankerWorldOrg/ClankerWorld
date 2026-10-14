@@ -227,9 +227,9 @@ public sealed partial class WorldRuntime
                 : Math.Min(room, Math.Min(need.Missing, SpareCarriedQuantity(actor, carried)));
             if (quantity <= 0) return;
             ApplyInventoryTransition(inventory => carried.OwnerId == householdId ? InventoryAuthority.Relocate(inventory,
-                $"workstation-supply:{WorldTick}:{actor}", carried.Id, householdId, quantity, storageBuildingId: building.InstanceId) :
+                $"workstation-supply:{WorldTick}:{actor}", carried.Id, householdId, quantity, storageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)) :
                 InventoryAuthority.Transfer(inventory, $"workstation-supply:{WorldTick}:{actor}", actor, householdId, carried.Id, quantity,
-                    "workstation_supplied", building.InstanceId));
+                    "workstation_supplied", building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
             AppendEvent("workstation_supplied", $"{actor}:{carried.Id}:{quantity}:{building.InstanceId}");
             return;
         }
@@ -248,7 +248,7 @@ public sealed partial class WorldRuntime
             // The existing delivery step carries the picked-up load into the building.
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"workstation-pickup:{WorldTick}:{actor}", stock.OwnerId, actor, stock.Id, quantity,
-                "workstation_input_picked_up", destinationDeliveryBuildingId: building.InstanceId));
+                "workstation_input_picked_up", destinationDeliveryBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             AppendEvent("workstation_input_picked_up", $"{actor}:{stock.Id}:{quantity}:{building.InstanceId}");
             return;
         }

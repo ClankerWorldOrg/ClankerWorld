@@ -56,7 +56,7 @@ internal static class MarketTradeScenario
         }
         var state = boundary with
         {
-            Society = boundary.Society with { Society = society with { Inventory = inventory } },
+            Society = boundary.Society with { Society = society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = boundary.Agents.Select(person => new[] { seller, buyer, successor }.Contains(person.AgentId)
                 ? person with
                 {

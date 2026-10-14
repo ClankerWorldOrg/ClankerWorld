@@ -109,7 +109,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
             {
                 Society = society with
                 {
-                    Inventory = inventory,
+                    Inventory = StockHoldTestState.Custody(inventory),
                     Agents = society.Agents.Select(person => person.Id == Child ? person with
                     {
                         BirthTick = birth,
@@ -138,7 +138,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
     }
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static int Stored(WorldRuntime world) =>
         world.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == House).Sum(lot => lot.Quantity);

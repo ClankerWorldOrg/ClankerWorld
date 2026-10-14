@@ -85,6 +85,7 @@ public sealed partial class WorldCollectionOrderTests
         };
         if (boundary == "reserved") inventory = InventoryAuthority.Reserve(inventory,
             "equipment-reserved", actor, "equipment-boundary", 2, "other_work", 120);
+        inventory = StockHoldTestState.Custody(inventory);
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "equipment-blocked", "collect stone pickaxes");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);

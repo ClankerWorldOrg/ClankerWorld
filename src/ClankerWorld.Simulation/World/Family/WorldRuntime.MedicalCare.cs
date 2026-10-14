@@ -120,7 +120,7 @@ public sealed partial class WorldRuntime
         var id = MedicalDoseId(WorldTick, nextEventId, caregiver, patient);
         ApplyInventoryTransition(inventory => InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
-            MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick), id));
+            MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
         agents[patient] = person with
         {
             MedicalTreatment = new(caregiver, supply.Id, supply.OwnerId, Identity.Parse(id), kind, WorldTick, WorldTick,

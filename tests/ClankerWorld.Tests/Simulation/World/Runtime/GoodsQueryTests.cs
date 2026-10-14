@@ -69,7 +69,7 @@ public sealed class GoodsQueryTests
         {
             Lots = inventory.Lots.Select(lot => lot.Id == "query-broken-pot" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
         };
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var saved = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Idle());
         var flour = new GoodsRequest(GoodsUse.ConsumeAt, null, GoodsOwners.One(household), GoodsKinds.One("flour"),
@@ -90,7 +90,7 @@ public sealed class GoodsQueryTests
         var consumption = world.FindGoods(water with { Use = GoodsUse.ConsumeAt });
         var inbound = Assert.Single(consumption.Matches, match => match.Lot.Id == "query-water");
         Assert.Equal(3, InventoryAuthority.Reserve(inventory, "consume-inbound", actor,
-            inbound.Lot.Id, inbound.Quantity, "cook", 100).GetReservation("consume-inbound").Quantity);
+            inbound.Lot.Id, inbound.Quantity, "cook", 100, holdAccess: inbound.RequiredHolds).GetReservation("consume-inbound").Quantity);
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
@@ -114,6 +114,13 @@ public sealed class GoodsQueryTests
         Assert.DoesNotContain(answer.Matches, match => match.Lot.Id == "query-sale-flour");
         Assert.Contains(("query-sale-flour", GoodsReason.MarketStall), answer.Excluded);
         Assert.Null(sale.RecheckGoods(request, "query-sale-flour"));
+        var held = sale.Society.Inventory;
+        var hold = Assert.Single(held.GetLot("query-sale-pot").Holds!);
+        Assert.Equal(InventoryHoldPurpose.MarketStall, hold.Purpose);
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Reserve(held, "steal-sale", owner,
+            "query-sale-flour", 1, "cook", held.WorldTick + 1));
+        Assert.Equal(1, InventoryAuthority.Reserve(held, "sale-use", owner, "query-sale-flour", 1,
+            "sale", held.WorldTick + 1, holdAccess: [hold]).GetReservation("sale-use").Quantity);
         Assert.Equal(before, WorldRuntimeCodec.Encode(sale.ExportState()));
     }
 
@@ -142,7 +149,8 @@ public sealed class GoodsQueryTests
                 "household_stock_picked_up", destinationDeliveryBuildingId: house.InstanceId);
         inventory = InventoryAuthority.Reserve(inventory, "covered-paper-reservation", boundary == "delivery" ? actor : owner, "covered-paper",
             boundary == "fully-reserved" ? 3 : 2,
-            boundary == "other-job" ? "other-work" : AgentKnowledgeRules.MaterialPurpose("covered-book", "paper"), long.MaxValue);
+            boundary == "other-job" ? "other-work" : AgentKnowledgeRules.MaterialPurpose("covered-book", "paper"), long.MaxValue,
+            holdAccess: boundary == "delivery" ? [new(InventoryHoldPurpose.Delivery, house.InstanceId)] : null);
         if (boundary == "broken-parent")
             inventory = inventory with
             {

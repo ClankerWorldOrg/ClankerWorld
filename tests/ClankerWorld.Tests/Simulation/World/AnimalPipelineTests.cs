@@ -554,7 +554,7 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(100, Progress("due"));
     }
 
-    private static (WorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
+    internal static (WorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
     {
         using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser(), ticksPerDay: ticksPerDay);
         var state = setup.ExportState();
