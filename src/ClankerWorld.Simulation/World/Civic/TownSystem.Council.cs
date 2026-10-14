@@ -250,6 +250,7 @@ internal sealed partial class TownSystem
         var landHearingReopeningPlan = originalPlan as LandHearingReopeningActionPlan;
         var landHearingPropertyPlan = originalPlan as LandHearingPropertyActionPlan;
         var nonLandFilingPlan = originalPlan as NonLandFilingActionPlan;
+        var nonLandEvidencePlan = originalPlan as NonLandEvidenceActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -293,6 +294,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (NonLandEvidenceChoice.Decode(selectedId) is { } nonLandEvidenceChoice)
+        {
+            nonLandEvidencePlan ??= PlanNonLandEvidence(world, actor, nonLandEvidenceChoice);
+            if (nonLandEvidencePlan is null) return;
+            nonLandEvidencePlan = BindNonLandEvidence(nonLandEvidencePlan, nonLandChoice);
+            if (CheckNonLandEvidence(world, nonLandEvidencePlan).Refusal is { } refusal) { world.RefuseChoice(nonLandEvidencePlan, refusal); return; }
         }
         else if (NonLandFilingChoice.Decode(selectedId) is { } nonLandFilingChoice)
         {
@@ -441,7 +449,7 @@ internal sealed partial class TownSystem
             (state, government) = AdvanceCivic(world, town, state, government);
             if (parts[2].StartsWith("law_case_", StringComparison.Ordinal) || parts[2].StartsWith("remedy_", StringComparison.Ordinal))
             {
-                var legalUpdate = ApplyTownNonLandAction(world, town with { Council = state, Government = government }, actor, parts[2], parts[3], parts[4], nonLandChoice, state, government, nonLandFilingPlan);
+                var legalUpdate = ApplyTownNonLandAction(world, town with { Council = state, Government = government }, actor, parts[2], parts[3], parts[4], nonLandChoice, state, government, nonLandFilingPlan, nonLandEvidencePlan);
                 state = legalUpdate.Council;
                 town = town with { NonLandHearings = legalUpdate.NonLandHearings };
                 SetTown(world, town with { Council = state, Government = government });

@@ -18,7 +18,7 @@ internal sealed partial class TownSystem
         TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests }));
     internal static TownCaseParty[] NonLandParties(ITownWorld world, TownRuntimeState town, TownNonLandCase item) =>
         TownNonLandPartyRules.CurrentParties(town, item, world.Society, world.WorldTick);
-    internal static bool NonLandMayInspect(ITownWorld world, TownRuntimeState town, TownNonLandCase item, string actor) => world.Agents.ContainsKey(actor) && world.Society.GetAgent(actor).AgeBand != SocietyAgeBand.Infant &&
+    internal static bool NonLandMayInspect(ITownWorld world, TownRuntimeState town, TownNonLandCase item, string actor) => world.Agents.ContainsKey(actor) && !LifeStageRules.IsInfant(world.Society.GetAgent(actor).AgeBand) &&
         (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) || item.Judge?.AgentId == actor ||
             item.Filings.Any(filing => filing.AgentId == actor) ||
             town.NonLandHearings.Offers.Any(offer => offer.CaseId == item.Id && offer.Terms.Any(term => term.ContributorId == actor)) || NonLandParties(world, town, item).Any(party =>

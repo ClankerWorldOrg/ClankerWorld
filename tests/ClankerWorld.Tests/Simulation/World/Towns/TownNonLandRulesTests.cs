@@ -6,6 +6,27 @@ namespace ClankerWorld.Tests;
 public sealed class TownNonLandRulesTests
 {
     [Fact]
+    public void ARelayKeepsItsSelectedReadWhenTheSourceLaterLearnsAReopeningRequest()
+    {
+        var state = Settled();
+        var item = state.Cases[0];
+        var selected = item.Reads.Last(read => read.AgentId == "judge");
+        state = TownNonLandRules.RequestReopen(state, item.Id, "subject", "procedural_error", [],
+            "I ask for an independent assessment of the procedure.", 22);
+        state = TownNonLandRules.Inspect(state, item.Id, 1, "judge", 23);
+        var request = Assert.Single(state.Cases[0].ReopenRequests);
+        var full = TownNonLandRules.RelayRead(state, item.Id, 1, "judge", "reader", 24);
+        var retained = TownNonLandRules.RelayRead(state, item.Id, 1, "judge", "reader", 24, selected);
+        Assert.Contains(request.Id, full.Cases[0].Reads[^1].ReopenRequestIds);
+        Assert.Empty(retained.Cases[0].Reads[^1].ReopenRequestIds);
+        Assert.Equal(selected.EvidenceIds, retained.Cases[0].Reads[^1].EvidenceIds);
+        Assert.Equal(selected.ResponseIds, retained.Cases[0].Reads[^1].ResponseIds);
+        Assert.Equal(selected.FindingIds, retained.Cases[0].Reads[^1].FindingIds);
+        Assert.Null(TownNonLandRules.RelayReadRefusal(state.Cases[0], "judge", selected, 24));
+        Assert.NotNull(TownNonLandRules.RelayReadRefusal(state.Cases[0], "judge", selected with { EvidenceIds = ["never-read"] }, 24));
+    }
+
+    [Fact]
     public void ReportsJoinTheSameActAndLawWithoutRestartingNoticeOrErasingDisagreement()
     {
         var state = Pending();
