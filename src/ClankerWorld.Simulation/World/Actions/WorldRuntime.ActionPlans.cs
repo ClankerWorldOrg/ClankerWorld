@@ -4,9 +4,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
+    public ActionCheck CheckActionPlan(ActionPlan plan) => RegisteredActionDefinitions.Value.TryGetValue(plan.GetType(), out var definition)
+        ? definition.Check(this, plan) : CheckLegacyActionPlan(plan);
+
+    private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
     {
-        WaitingActionPlan waiting => CheckWaiting(waiting),
         ExplorationActionPlan exploration => CheckExploration(exploration),
         PersonalGoodsActionPlan personalGoods => CheckPersonalGoods(personalGoods),
         HouseGuestActionPlan houseGuest => CheckHouseGuest(houseGuest),

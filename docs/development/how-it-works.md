@@ -108,6 +108,12 @@ captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
 
+Typed action definitions bind a choice codec, plan, capability policy, shared
+check and application to those ordered rows. Waiting uses one definition in
+both phases. Offering checks its new plan; admission and application check the
+retained plan through the same definition. Remaining areas move their existing
+plan checks from the compatibility dispatcher into their rows in later slices.
+
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
 conversation choices, order restriction and refused-action filtering stay at
