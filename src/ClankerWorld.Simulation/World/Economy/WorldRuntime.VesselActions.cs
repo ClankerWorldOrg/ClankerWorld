@@ -8,7 +8,12 @@ public sealed partial class WorldRuntime
     private void ApplyVesselPlan(VesselActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckVesselPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedVesselPlan(plan);
+    }
+
+    private void ApplyCheckedVesselPlan(VesselActionPlan plan)
+    {
         var state = agents[plan.Actor];
         var kind = plan.Choice.Kind;
         var movement = kind switch

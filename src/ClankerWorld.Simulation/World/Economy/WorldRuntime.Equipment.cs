@@ -101,14 +101,14 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor)) return;
         if (BetterCarryAid(actor) is { } aid)
             AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, true, aid), $"Equip a {aid.ItemKind} to carry more supplies.", 14);
-        if (PlanEquipmentRepair(actor) is { } repair && CheckEquipmentRepairPlan(repair).Allowed)
-            candidates.Add(new("repair_equipment", $"Bring materials to repair the worn {repair.ItemKind.Replace('_', ' ')}.", 12, repair.BuildingId)
+        if (EquipmentRepairDefinition.Offer(this, actor, new()) is { } repair)
+            candidates.Add(new(EquipmentRepairChoice.Encode(), $"Bring materials to repair the worn {repair.ItemKind.Replace('_', ' ')}.", 12, repair.BuildingId)
             { ActionPlan = repair });
     }
 
     private void AddPrivateEquipmentCandidate(List<CognitionCandidate> candidates, PrivateEquipmentActionPlan? plan, string description, int priority)
     {
-        if (plan is not null && CheckPrivateEquipmentPlan(plan).Allowed)
+        if (plan is not null && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId, description, priority) { ActionPlan = plan });
     }
 

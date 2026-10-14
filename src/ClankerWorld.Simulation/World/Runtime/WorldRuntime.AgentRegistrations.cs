@@ -195,36 +195,12 @@ public sealed partial class WorldRuntime
             runtime.PlanWorkstationSupplyCandidate(action.AgentId, action.CandidateId));
         return true;
     }),
-        new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [ReturnEmptyVesselPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "collect_water_jug", [], ["collect_water_jug"], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "return_water_jug", [], ["return_water_jug"], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "store_food_in_pot", [], ["store_food_in_pot"], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "take_food_from_pot", [], ["take_food_from_pot"], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "FillWaterJugPrefix", [FillWaterJugPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyVesselPlan(action.Plan as VesselActionPlan ?? (VesselChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanVesselAction(action.AgentId, choice) : null));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [VesselChoice.EmptyPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.ReturnEmpty)),
+        new(ActionPhase.Ordinary, "collect_water_jug", [], [new VesselChoice(VesselActionKind.CollectJug).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.CollectJug)),
+        new(ActionPhase.Ordinary, "return_water_jug", [], [new VesselChoice(VesselActionKind.ReturnJug).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.ReturnJug)),
+        new(ActionPhase.Ordinary, "store_food_in_pot", [], [new VesselChoice(VesselActionKind.StoreFood).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.StoreFood)),
+        new(ActionPhase.Ordinary, "take_food_from_pot", [], [new VesselChoice(VesselActionKind.TakeFood).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.TakeFood)),
+        new(ActionPhase.Ordinary, "FillWaterJugPrefix", [VesselChoice.FillPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.FillJug)),
         new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [GatherBuildingMaterialPrefix], [], static (runtime, action) =>
     {
         runtime.GatherBuildingMaterial(action.AgentId, action.State, action.CandidateId[GatherBuildingMaterialPrefix.Length..], action.Plan);
@@ -268,21 +244,9 @@ public sealed partial class WorldRuntime
         runtime.ApplyExploration(action.Plan as ExplorationActionPlan ?? runtime.PlanExploration(action.AgentId, new(true)));
         return true;
     }),
-        new(ActionPhase.Ordinary, "wear_clothing", [], ["wear_clothing"], static (runtime, action) =>
-    {
-        runtime.ApplyPrivateEquipmentPlan(action.Plan as PrivateEquipmentActionPlan ?? runtime.PlanPrivateEquipment(action.AgentId, false));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "equip_carry_aid", [], ["equip_carry_aid"], static (runtime, action) =>
-    {
-        runtime.ApplyPrivateEquipmentPlan(action.Plan as PrivateEquipmentActionPlan ?? runtime.PlanPrivateEquipment(action.AgentId, true));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "repair_equipment", [], ["repair_equipment"], static (runtime, action) =>
-    {
-        runtime.ApplyEquipmentRepairPlan(action.Plan as EquipmentRepairActionPlan ?? runtime.PlanEquipmentRepair(action.AgentId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "wear_clothing", [], [PrivateEquipmentActionPlan.Candidate(PrivateEquipmentKind.Garment)], Definition: GarmentDefinition),
+        new(ActionPhase.Ordinary, "equip_carry_aid", [], [PrivateEquipmentActionPlan.Candidate(PrivateEquipmentKind.CarryAid)], Definition: CarryAidDefinition),
+        new(ActionPhase.Ordinary, "repair_equipment", [], [EquipmentRepairChoice.Candidate], Definition: EquipmentRepairDefinition),
         new(ActionPhase.Ordinary, "tend_fire", [], [new WarmthChoice(WarmthChoiceKind.Fire).Encode()], Definition: FireDefinition),
         new(ActionPhase.Ordinary, "seek_warmth", [], [new WarmthChoice(WarmthChoiceKind.Protection).Encode()], Definition: WarmthDefinition),
         new(ActionPhase.Ordinary, "seek_food", [], [new FoodChoice(FoodActionKind.Seek).Encode()], Definition: FoodResourceDefinition),
