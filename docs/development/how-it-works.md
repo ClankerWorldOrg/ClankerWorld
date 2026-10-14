@@ -157,7 +157,8 @@ Deferred admission checks the original offered plan before the scheduler
 completes its reply. A planned identity that disappeared from the current
 choices reaches its typed refusal; current order/context exclusions still
 refuse it, while unplanned identities and request/epoch checks retain their
-existing scheduler gates.
+existing scheduler gates. An accepted fallback keeps its own plan and never
+receives the refused provider choice's plan metadata.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal
