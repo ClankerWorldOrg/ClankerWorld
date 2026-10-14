@@ -5,7 +5,7 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckShopResponse(ShopResponseActionPlan plan)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: plan.Actor == plan.Trade.BuyerId && IsEdibleFood(plan.Trade.GoodsKind),
+            new(ActionLifeStages.Adults, AllowUrgentFood: true,
                 AllowUrgentWarmth: false, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
         if (shopTrades.SingleOrDefault(trade => trade.OfferId == plan.Offer.Id) != plan.Trade ||
