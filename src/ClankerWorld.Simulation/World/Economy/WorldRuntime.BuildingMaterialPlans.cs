@@ -33,15 +33,8 @@ public sealed partial class WorldRuntime
                 definition.PayloadDigest == plan.Building.PayloadDigest) ||
             HouseholdMaterialInHand(plan.HouseholdId, plan.Material.ResourceId) >= plan.Material.Amount)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected household building need or storage destination has changed");
-        if (!map.Resources.Contains(plan.Source) || resources.GetValueOrDefault(plan.Source.Id) != ResourceState.Available ||
-            !EcologyRules.Harvest(worldSystems.Ecology.GetResource(plan.Source.Id), 1).IsValid ||
-            plan.Harvest.TreeSeedQuantity != (TreeGrowthRules.IsWoodTree(plan.Source.TreeKind) && worldSystems.Ecology.GetResource(plan.Source.Id).Quantity == 1
-                ? TreeGrowthRules.TreeSeedsPerFelledTree : 0))
-            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected building material source or harvest has changed");
-        if (plan.Harvest.ToolLotId is { } toolId &&
-            (RecheckGoods(new(GoodsUse.CarriedInputs, plan.Actor, GoodsOwners.One(plan.ToolOwnerId!), GoodsKinds.One(plan.ToolKind!)), toolId) is not { Lot: var tool } ||
-                !ToolProgressionRules.IsTopLevelCarriedLot(tool, plan.Actor)))
-            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected building material tool is unavailable");
+        var harvest = CheckPlannedProjectHarvest(plan.Actor, plan.Source, plan.Harvest, plan.ToolOwnerId, plan.ToolKind);
+        if (!harvest.Allowed) return harvest;
         if (FreeCarryCapacity(plan.Actor) < plan.PhysicalQuantity)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected building material harvest");
         if (HarvestReturnRoute(plan.Actor, plan.Source, plan.Destination, ReachPurpose.BuildingPreparation,

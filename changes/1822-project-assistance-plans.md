@@ -1,0 +1,1 @@
+- Project assistance retains the requesting project, recipient and selected material lot or harvest through shared checks.

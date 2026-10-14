@@ -131,6 +131,10 @@ Household construction preparation retains the selected building need, source,
 tool, harvest quantity and household return destination. The same check
 validates the load and route before the native harvest; a changed tree seed
 yield refuses that stale selection.
+Project assistance retains the requesting project, recipient and exact personal
+lot or material harvest. Its shared contribution query keeps physical stock
+availability and inventory order; transfers use that selected lot and quantity.
+Construction preparation and assistance share one harvest and tool check.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same

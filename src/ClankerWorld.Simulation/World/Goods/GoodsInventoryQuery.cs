@@ -15,7 +15,7 @@ internal static class GoodsInventoryQuery
         var matches = new List<GoodsMatch>();
         var excluded = new List<(string LotId, GoodsReason Reason)>();
         long coveredReservations = 0;
-        IEnumerable<InventoryLot> candidates = request.Explain ? index.Lots : request.ContainerId is { } container
+        IEnumerable<InventoryLot> candidates = request.Explain || request.Use == GoodsUse.ProjectMaterialContribution ? index.Lots : request.ContainerId is { } container
             ? index.ContentsOf(container) : request.AtBuilding is { } building
             ? index.StoredAt(building) : request.Owners.Ids.Distinct(StringComparer.Ordinal)
                 .SelectMany(index.OwnedBy).OrderBy(lot => lot.Id, StringComparer.Ordinal);
@@ -54,7 +54,7 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
                 GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or
-                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo or GoodsUse.AnimalPayment or GoodsUse.HandcartControl or GoodsUse.MedicalDose or GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock) ||
+                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo or GoodsUse.AnimalPayment or GoodsUse.HandcartControl or GoodsUse.MedicalDose or GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
             request.ExtraUnits < 0 ||
@@ -71,7 +71,7 @@ internal static class GoodsInventoryQuery
             !Enum.IsDefined(request.DeliveryPurpose) ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo or GoodsUse.AnimalPayment or GoodsUse.HandcartControl or GoodsUse.MedicalDose or GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.OrchardFoodRecovery or GoodsUse.CarriedInputs or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.Equip or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.AnimalHide or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo or GoodsUse.AnimalPayment or GoodsUse.HandcartControl or GoodsUse.MedicalDose or GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution) &&
                 string.IsNullOrWhiteSpace(request.Actor))
             throw new ArgumentException("Use exact owners and kinds, an actor for personal uses and Deliver, and a container for Cargo. Contents and extra units apply only to VesselFor; Deliver requires its native destination and purpose.", nameof(request));
     }
@@ -90,7 +90,7 @@ internal static class GoodsInventoryQuery
         return Math.Min(lot.Quantity - Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)), reserved);
     }
 
-    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock
+    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution
         ? Math.Max(0, InventoryRules.AvailableQuantity(index, lot)) : use is GoodsUse.OrchardFoodRecovery or GoodsUse.FieldPlanting or GoodsUse.TreePlanting or GoodsUse.EquipmentRepair or GoodsUse.AnimalProduct or GoodsUse.HandcartControl ? lot.Quantity : IsRecovery(use) || use is GoodsUse.StorePersonal or GoodsUse.Cargo or GoodsUse.ReturnVessel or GoodsUse.Salvage or GoodsUse.CarriedDelivery or GoodsUse.SpareCargo or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
         : use is GoodsUse.ConsumeAt or GoodsUse.Eat ? InventoryRules.ReservableQuantity(index, lot, InventoryHoldRules.For(index, lot).ToArray()) : InventoryRules.UsableQuantity(index, lot);
@@ -107,7 +107,12 @@ internal static class GoodsInventoryQuery
 
     internal static GoodsReason? Exclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
     {
-        if (request.Use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock)
+        if (request.Use == GoodsUse.ProjectMaterialContribution)
+            return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) || lot.OwnerId != request.Actor ? GoodsReason.Owner :
+                !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :
+                !PersonalEquipmentRules.IsCarried(lot, request.Actor!) || lot.ContainerLotId is not null || lot.DeliveryBuildingId is not null ? GoodsReason.Place :
+                InventoryRules.AvailableQuantity(index, lot) <= 0 ? GoodsReason.Reservation : null;
+        if (request.Use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution)
             return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) ? GoodsReason.Owner :
                 !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :
                 (request.Use == GoodsUse.DepartureAllowance ? lot.CarrierId is not null || lot.ContainerLotId is not null :
