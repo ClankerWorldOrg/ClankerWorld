@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string RepairToolPrefix = "repair_tool:";
+    private const string RepairToolPrefix = ToolRepairChoice.Prefix;
     private const string RareMiningPrefix = "gather_rare_material:";
     // One trial load before a household needs another use for these goods.
     private const int RareMaterialStockTarget = 8;
@@ -168,13 +168,14 @@ public sealed partial class WorldRuntime
 
     private void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        foreach (var tool in RepairableTools(actor))
+        if (HouseholdFor(actor) is not { } household) return;
+        foreach (var tool in CarriedRepairTools(actor, household))
         {
-            var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
-            var blacksmith = HouseholdBuildingWithTag(householdId, "blacksmith")!;
-            candidates.Add(new CognitionCandidate(RepairToolPrefix + tool.Id,
+            if (PlanToolRepair(actor, tool.Id, tool) is not { } plan || !CheckActionPlan(plan).Allowed) continue;
+            candidates.Add(new CognitionCandidate(plan.CandidateId,
                 $"Repair the worn {tool.ItemKind.Replace('_', ' ')} at the household Blacksmith.", 23,
-                blacksmith.InstanceId));
+                plan.SmithId)
+            { ActionPlan = plan });
         }
     }
 
@@ -361,6 +362,19 @@ public sealed partial class WorldRuntime
             return null;
         }
 
+        var selectedMaterials = materialNeeds.Select(input =>
+        {
+            var material = SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId)
+                .FirstOrDefault(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor) && match.Quantity >= input.Amount)?.Lot
+                ?? throw new InvalidOperationException("Repair materials must be physically carried by the tool owner.");
+            return new PlannedRepairMaterial(material.Id, input.ResourceId, input.Amount);
+        }).ToArray();
+        return CompletePlannedToolRepair(actor, state, tool, blacksmith.InstanceId, selectedMaterials);
+    }
+
+    private string CompletePlannedToolRepair(string actor, AgentState state, InventoryLot tool,
+        string blacksmithId, IReadOnlyList<PlannedRepairMaterial> materials)
+    {
         var repairId = tool.Id;
         var reservations = new List<string>();
         ApplyInventoryTransition(current =>
@@ -373,25 +387,21 @@ public sealed partial class WorldRuntime
                 updated = InventoryAuthority.SplitLot(updated, currentTool.Id, 1, repairId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             }
 
-            foreach (var input in materialNeeds)
+            foreach (var input in materials)
             {
-                var material = SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId, inventory: updated)
-                    .FirstOrDefault(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor) &&
-                        match.Quantity >= input.Amount)?.Lot;
-                if (material is null)
-                    throw new InvalidOperationException("Repair materials must be physically carried by the tool owner.");
-                var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ResourceId);
+                var material = updated.GetLot(input.StockId);
+                var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ItemKind);
                 var materialId = material.Id;
                 if (currentTool.OwnerId != actor)
                 {
                     // Repairing a borrowed household tool, the member gives their materials to the household.
-                    var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ResourceId);
+                    var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ItemKind);
                     updated = InventoryAuthority.Transfer(updated, giftId, actor, currentTool.OwnerId, material.Id,
-                        input.Amount, "equipment_repair_materials", holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                    if (input.Amount < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");
+                        input.Quantity, "equipment_repair_materials", holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                    if (input.Quantity < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");
                 }
                 updated = InventoryAuthority.Reserve(updated, reservationId, currentTool.OwnerId, materialId,
-                    input.Amount, "equipment_repair", checked(WorldTick + 1), holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                    input.Quantity, "equipment_repair", checked(WorldTick + 1), holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 reservations.Add(reservationId);
             }
 
@@ -399,7 +409,7 @@ public sealed partial class WorldRuntime
         });
         RecordNonLandRepairCompletion(actor, tool, repairId,
             $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations.Select(Identity.Parse).ToArray());
-        AppendEvent(new ToolRepairedEventPayload(actor, repairId, blacksmith.InstanceId));
+        AppendEvent(new ToolRepairedEventPayload(actor, repairId, blacksmithId));
         return repairId;
     }
 

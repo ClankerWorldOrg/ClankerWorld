@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
         if (source is null) return null;
         var harvest = ProjectMaterialHarvest(actor, itemKind, source);
         PlannedCargoStorage? preparation = null;
-        PlannedGatheringTool? pickup = null;
+        PlannedEquipmentPickup? pickup = null;
         if (harvest is { } load)
         {
             var missing = checked(load.Quantity + load.TreeSeedQuantity) - FreeCarryCapacity(actor);

@@ -197,7 +197,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "RepairToolPrefix", [RepairToolPrefix], [], static (runtime, action) =>
     {
-        runtime.RepairTool(action.AgentId, action.State, action.CandidateId[RepairToolPrefix.Length..]);
+        runtime.ApplyToolRepairPlan(action.Plan as ToolRepairActionPlan ?? runtime.PlanToolRepair(action.AgentId, action.CandidateId[RepairToolPrefix.Length..]));
         return true;
     }),
         new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningPrefix], [], static (runtime, action) =>
