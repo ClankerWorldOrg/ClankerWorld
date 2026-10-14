@@ -224,7 +224,7 @@ public partial class Main
             if (pending.Instruction is { } instruction)
             {
                 await AwaitCurrentWorldResultAsync(ownerApi.SubmitInstructionAsync(
-                    ResolveWorldUri(), authority, deviceId, instruction.ToAction(), signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, instruction.ToAction(), signer, OwnerRequestToken));
                 completed = true;
                 return InstructionSubmissionResultText(instruction.Kind, instruction.Queue);
             }
@@ -232,7 +232,7 @@ public partial class Main
             if (pending.Authoring is { } authoring)
             {
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
-                    ResolveWorldUri(), authority, deviceId, authoring.ToAction(), signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, authoring.ToAction(), signer, OwnerRequestToken));
                 completed = true;
                 return receipt.Applied
                     ? "World edit confirmed."
@@ -242,7 +242,7 @@ public partial class Main
             if (pending.OrderCancel is { } cancellation)
             {
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.CancelOrderAsync(
-                    ResolveWorldUri(), authority, deviceId, cancellation.ToAction(), signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, cancellation.ToAction(), signer, OwnerRequestToken));
                 completed = true;
                 return OrderCancellationResultText(receipt);
             }
@@ -309,6 +309,53 @@ public partial class Main
 
     private readonly OwnerActionGate ownerActionGate = new();
 
+    private void SetOwnerRequestBusy(bool busy)
+    {
+        isOwnerAction = busy;
+        if (busy) refreshCancellation?.Cancel();
+        RefreshControlAvailability();
+    }
+
+    private readonly Dictionary<Control, long> ownerPanelRevisions = [];
+
+    private void BindOwnerRequestPanels()
+    {
+        foreach (var panel in new Control[] { agentProfilePanel, agentQuickCard, buildingDetailsPanel,
+            buildingQuickCard, settingsPanel, agentModelPanel, usageLimitPanel, worldMenuCard,
+            mainMenuCard, startupRecoveryCard, pendingSubmissionPanel, manualSaveCard, founderSetupPanel,
+            developerPanel, apiKeysPanel, pauseMenuPanel, gameSettingsContent, worldSettingsContent })
+        {
+            ownerPanelRevisions[panel] = 0;
+            panel.VisibilityChanged += () => ownerPanelRevisions[panel]++;
+        }
+    }
+
+    private Func<bool> CaptureOwnerRequestPanel(Control? sendingPanel = null)
+    {
+        var panel = sendingPanel ?? GetViewport().GuiGetFocusOwner();
+        while (panel is not null && !ownerPanelRevisions.ContainsKey(panel)) panel = panel.GetParent() as Control;
+        var revision = panel is null ? 0 : ownerPanelRevisions[panel];
+        var agent = selectedAgentId;
+        var building = selectedBuildingId;
+        return () => panel is null || GodotObject.IsInstanceValid(panel) &&
+            ownerPanelRevisions[panel] == revision && selectedAgentId == agent && selectedBuildingId == building;
+    }
+
+    private async Task<T> RunOwnerLifecycleAsync<T>(Func<Task<T>> action, Action<bool> setBusy,
+        bool bindPanel = true, bool bindWorld = true, Control? sendingPanel = null)
+    {
+        var generation = observationSession.RequestGeneration;
+        var owner = registration;
+        var panelIsCurrent = CaptureOwnerRequestPanel(sendingPanel);
+        var runner = new OwnerRequest<T>(() => ReferenceEquals(owner, registration) &&
+            (!bindWorld || IsCurrentWorldRequest(generation)) && (!bindPanel || panelIsCurrent()), setBusy);
+        return await runner.RunAsync(async context =>
+        {
+            ownerRequestContext.Value = context;
+            return await action();
+        });
+    }
+
     private bool CanRetryPendingSubmission(OwnerPendingSubmission? pending)
     {
         var worldId = observationSession.Current?.Baseline.Snapshot.WorldId;
@@ -318,28 +365,29 @@ public partial class Main
             (pending.OrderCancel is not { } cancellation || cancellation.CanRetryIn(worldId));
     }
 
-    private async Task RunOwnerActionAsync(Func<Task<string>> action, bool waitForTurn = false,
-        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null)
+    // A skipped or obsolete request cannot authorize follow-up UI changes.
+    private async Task<bool> RunOwnerActionAsync(Func<Task<string>> action, bool waitForTurn = false,
+        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null, bool changesTimeline = false, Control? sendingPanel = null)
     {
         var generation = observationSession.RequestGeneration;
-        if (!IsCurrentWorldRequest(generation)) return;
+        if (!IsCurrentWorldRequest(generation)) return false;
+        var contextRetained = false;
         await ownerActionGate.RunAsync(async () =>
         {
             if (!IsCurrentWorldRequest(generation)) return;
-            isOwnerAction = true;
-            refreshCancellation?.Cancel();
-            RefreshControlAvailability();
             try
             {
-                SetStatus("Sending...", good: true);
-                var detail = await action();
-                SetStatus(detail, good: true);
-                await RefreshAsync();
+                await RunOwnerLifecycleAsync(async () =>
+                {
+                    SetStatus("Sending...", good: true);
+                    var detail = await action();
+                    ownerRequestContext.Value!.EnsureCurrent();
+                    SetStatus(detail, good: true);
+                    await RefreshAsync();
+                    return true;
+                }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline, sendingPanel: sendingPanel);
             }
-            catch (ObsoleteWorldRequestException)
-            {
-                // A different world state is being displayed or recovered.
-            }
+            catch (ObsoleteOwnerRequestException) { return; }
             catch (System.Net.Http.HttpRequestException exception)
                 when (exception.StatusCode == System.Net.HttpStatusCode.Conflict && conflictMessage is not null)
             {
@@ -350,8 +398,6 @@ public partial class Main
                 var refused = (int)exception.StatusCode is >= 400 and < 500 &&
                     exception.StatusCode != System.Net.HttpStatusCode.RequestTimeout;
                 SetStatus($"The server did not {(refused ? "accept" : "confirm")} your request · {FriendlyFailure(exception)}", good: false);
-                // A client refusal ends this request. A timeout or server error
-                // can follow a commit, so its exact retry must remain on disk.
                 if (retainedSubmission is not null && IsCurrentWorldRequest(generation) && refused)
                     CompletePendingSubmission(retainedSubmission);
             }
@@ -367,12 +413,8 @@ public partial class Main
             {
                 SetStatus($"Could not complete that action · {FriendlyFailure(exception)}", good: false);
             }
-            finally
-            {
-                isOwnerAction = false;
-                RefreshControlAvailability();
-            }
+            contextRetained = true;
         }, waitForTurn);
+        return contextRetained;
     }
-
 }

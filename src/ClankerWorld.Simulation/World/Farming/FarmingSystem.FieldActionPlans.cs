@@ -113,7 +113,7 @@ internal sealed partial class FarmingSystem
             {
                 if (seed.ReplantingReservationId is { } id)
                     inventory = InventoryAuthority.ReleaseReservation(inventory, id, "planting_stock_collected");
-                return InventoryAuthority.Transfer(inventory, $"field-seed-pickup:{world.WorldTick}:{plan.Actor}", plan.HouseholdId,
+                return InventoryAuthority.Transfer(inventory, DerivedId.Create($"field-seed-pickup:{world.WorldTick}:{plan.Actor}"), plan.HouseholdId,
                     plan.Actor, seed.StockId, 1, "field_seed_picked_up", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor));
             });
             if (plan.Field is { ReplantingReservationId: { } claim } field && !ActiveFarmReservation(world, claim))

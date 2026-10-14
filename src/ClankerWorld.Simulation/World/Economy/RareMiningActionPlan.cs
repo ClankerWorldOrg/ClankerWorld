@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record RareMiningChoice(string ItemKind)
 {
     public const string Prefix = "gather_rare_material:";
-    public string Encode() => Prefix + ItemKind;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ItemKind);
 }
 
 public sealed record RareMiningActionPlan(string ActorId, RareMiningChoice Choice, string? HouseholdId,

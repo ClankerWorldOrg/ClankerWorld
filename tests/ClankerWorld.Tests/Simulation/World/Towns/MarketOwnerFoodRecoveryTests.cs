@@ -147,7 +147,7 @@ public sealed class MarketOwnerFoodRecoveryTests
             var request = new OwnerInstructionRequest("market-food-order", "owner:test", seller,
                 OwnerInstructionKind.Order, "repeat gather wood");
             instructionId = world.SubmitInstruction(request).InstructionId;
-            Assert.Equal(instructionId, replay.SubmitInstruction(request).InstructionId);
+            Assert.Equal(instructionId, replay.SubmitInstruction(request).InstructionId.Value);
         }
         world.Validate();
         var initialBytes = WorldRuntimeCodec.Encode(world.ExportState());
