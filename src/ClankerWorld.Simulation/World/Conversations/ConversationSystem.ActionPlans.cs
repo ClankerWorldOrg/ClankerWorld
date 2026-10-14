@@ -13,11 +13,15 @@ public sealed partial class ConversationSystem
         return new(actor, choice, current?.Revision, current?.InitiatorId, current?.InviteeId, partnership);
     }
 
-    public ActionCheck CheckConversationPlan(IConversationWorld world, ConversationActionPlan plan) =>
-        PrepareConversationAction(world, plan, out _, out _);
+    internal static ActorCapabilityPolicy ActionCapabilities(ConversationChoiceKind kind) =>
+        new(ActionLifeStages.NonInfants, AllowBoat: kind != ConversationChoiceKind.Talk,
+            AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    public ActionCheck CheckConversationPlan(IConversationWorld world, ConversationActionPlan plan, ActorCapabilityPolicy? policy = null) =>
+        PrepareConversationAction(world, plan, out _, out _, policy);
 
     private ActionCheck PrepareConversationAction(IConversationWorld world, ConversationActionPlan plan,
-        out AgentConversation? next, out bool agreed)
+        out AgentConversation? next, out bool agreed, ActorCapabilityPolicy? policy = null)
     {
         next = null;
         agreed = false;
@@ -25,8 +29,7 @@ public sealed partial class ConversationSystem
         var physical = world.Agents.GetValueOrDefault(plan.Actor);
         var capability = ActorCapabilities.Check(actor is null || physical is null ? null : new(actor.AgeBand,
                 world.IsAboardBoat(plan.Actor), false, world.NeedsUrgentFood(physical), world.NeedsUrgentWarmth(physical), false),
-            plan.CandidateId, new(ActionLifeStages.NonInfants, AllowBoat: plan.Choice.Kind != ConversationChoiceKind.Talk,
-                AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            plan.CandidateId, policy ?? ActionCapabilities(plan.Choice.Kind));
         if (!capability.Allowed) return capability;
         if (plan.Choice.Kind == ConversationChoiceKind.Talk)
             return CanStartConversation(world, plan.Actor, plan.Choice.TargetId) ? new() :
