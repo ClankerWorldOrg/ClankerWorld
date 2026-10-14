@@ -30,7 +30,7 @@ public sealed partial class WorldFieldOrderTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var working = Assert.Single(world.Fields, field => field.Work is not null);
         Assert.Equal(target, working.Position);
-        Assert.Equal(receipt.InstructionId, working.Work!.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, working.Work!.OrderInstructionId);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 20 && Order(world, receipt).Status != "finished"; tick++)

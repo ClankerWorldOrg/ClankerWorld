@@ -33,7 +33,7 @@ public sealed partial class WorldFieldOrderTests
         var receipt = Submit(world, "plant", "plant " + crop.Replace('_', ' '));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var work = Assert.Single(world.Fields).Work!;
-        Assert.Equal(receipt.InstructionId, work.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, work.OrderInstructionId);
         Assert.Equal(("doing", 0, "fields"), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit));
         Assert.Equal(1, SeedQuantity(world, crop));
         Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(work.SeedReservationId!).State);
@@ -418,14 +418,14 @@ public sealed partial class WorldFieldOrderTests
             var task = GrownAgentHelperMemoryTests.WaitForRequests(world);
             Assert.False(task.IsCompleted);
             var working = Assert.IsType<FarmFieldWork>(Assert.Single(world.Fields).Work);
-            Assert.Equal(receipt.InstructionId, working.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, working.OrderInstructionId);
             var reservation = working.SeedReservationId!;
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservation).State);
             var entering = WorldRuntimeCodec.Encode(world.ExportState());
             await Task.WhenAny(provider.Started.Task, task);
             Assert.True(provider.Started.Task.IsCompleted, "The registered field worker finished before held provider entry.");
             Assert.False(task.IsCompleted);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(entering, WorldRuntimeCodec.Encode(world.ExportState()));
             if (delayedStartup) Assert.True(world.WorldTick >= startAfterTick);
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, Actor, receipt.InstructionId)).Changed);

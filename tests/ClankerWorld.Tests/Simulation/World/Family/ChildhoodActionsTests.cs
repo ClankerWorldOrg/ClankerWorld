@@ -60,7 +60,7 @@ public sealed class ChildhoodActionsTests
             Assert.Equal(original.Personality, world.Agents.Single(person => person.AgentId == Child).Personality);
             var memory = Assert.Single(world.Society.Memories, item =>
                 item.OwnerId == Child && item.Id.Value.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
-            Assert.Equal($"child-social:{kind}:{Child}:{memory.SubjectId}:{memory.SourceTick}", memory.Id);
+            Assert.Equal($"child-social:{kind}:{Child}:{memory.SubjectId}:{memory.SourceTick}", memory.Id.Value);
             Assert.True(world.Agents.Single(item => item.AgentId == Child).SocialStanding?.Any() == true);
             var saved = WorldRuntimeCodec.Encode(world.ExportState());
             using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new SelectProvider("safe_idle"));
@@ -98,7 +98,7 @@ public sealed class ChildhoodActionsTests
         Assert.Empty(world.Society.Inventory.Offers);
         Assert.DoesNotContain(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
         Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetAgent(Child).CurrentRole);
-        Assert.DoesNotContain(instruction.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(instruction.InstructionId.Value, world.ExportState().CompletedInstructionIds ?? []);
 
         var helpProvider = new SelectProvider("child_help_food");
         using var helping = WorldRuntime.Restore(state, id => id == Child ? helpProvider : new SelectProvider("safe_idle"));

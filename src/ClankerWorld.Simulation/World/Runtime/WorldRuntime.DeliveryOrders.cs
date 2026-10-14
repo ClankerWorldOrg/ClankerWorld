@@ -222,12 +222,12 @@ public sealed partial class WorldRuntime
             DerivedId.Create($"{movedSource.Id}#{(plan.TakeFromContainer ? "taken" : "transfer")}:{operation}");
         ApplyInventoryTransition(inventory => plan.TakeFromContainer
             ? InventoryAuthority.TakeFromContainer(inventory, operation, plan.Carrier.OwnerId, actor,
-                plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity, destinationDeliveryBuildingId: plan.Destination.InstanceId)
+                plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity, destinationDeliveryBuildingId: plan.Destination.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
             : InventoryAuthority.Transfer(inventory, operation, plan.Carrier.OwnerId,
                 plan.DirectDelivery ? plan.DestinationOwnerId : actor, plan.Carrier.Id, plan.TransferQuantity,
                 plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
                 destinationStorageBuildingId: plan.DirectDelivery ? plan.Destination.InstanceId : null,
-                destinationDeliveryBuildingId: plan.DirectDelivery ? null : plan.Destination.InstanceId));
+                destinationDeliveryBuildingId: plan.DirectDelivery ? null : plan.Destination.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.DirectDelivery ? plan.Destination.InstanceId : null)));
         AppendEvent(plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
             $"{actor}:{movedSource.Id}:{plan.ResourceQuantity}:{plan.Destination.InstanceId}");
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);

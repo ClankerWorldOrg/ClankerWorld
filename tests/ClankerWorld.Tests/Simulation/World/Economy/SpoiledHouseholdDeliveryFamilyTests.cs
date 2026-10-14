@@ -101,7 +101,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         // still-usable carried child. It is not a runtime reservation-command
         // claim, and it changes no stock, owner, position or delivery pointer.
         inventory = InventoryAuthority.Reserve(inventory, ChildReservation, actor, PotGreens, 1,
-            "inflight_family_control", long.MaxValue);
+            "inflight_family_control", long.MaxValue, holdAccess: StockHoldTestState.Access(inventory, PotGreens));
         Assert.Equal(originalFamily, inventory.Lots.Where(lot => lot.Id == Pot || lot.ContainerLotId == Pot));
         var claimed = pickedUp with { Society = pickedUp.Society with { Society = pickedUp.Society.Society with { Inventory = inventory } } };
         var bytes = WorldRuntimeCodec.Encode(claimed);

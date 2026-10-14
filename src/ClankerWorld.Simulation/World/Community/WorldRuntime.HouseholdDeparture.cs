@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SharedStoragePosition.X, SharedStoragePosition.Y)
                 : null;
             nextInventory = InventoryAuthority.Transfer(nextInventory, transferId, householdId, actor,
-                lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground);
+                lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground, holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.StorageBuildingId));
             allowanceIds.Add(quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + transferId));
             allowance += quantity;
             if (allowance == 2) break;
@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
             .SelectMany(job => job.InputReservationIds)
             .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.WorkerId == actor &&
                 job.OwnerId == householdId && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            .Distinct().Order().ToArray();
         if (heldReservations.Length > 0)
             ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, heldReservations));
         foreach (var id in group) RestoreHouseholdDeliveries(id, householdId, "depart");
@@ -153,9 +153,9 @@ public sealed partial class WorldRuntime
             var carrier = lot.CarrierId ?? actor;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"{transition}-delivery:{actor}:{WorldTick}:{lot.Id}", actor, householdId, lot.Id, lot.Quantity,
-                "delivery_ownership_restored"));
+                "delivery_ownership_restored", holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.DeliveryBuildingId)));
             ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier));
+                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         }
     }
 
@@ -191,7 +191,7 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor)
     {
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null) yield break;
@@ -204,7 +204,7 @@ public sealed partial class WorldRuntime
             yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
     }
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds)
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds)
     {
         var building = worldSimulation.Buildings.Single(item => item.InstanceId == buildingId);
         var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
@@ -262,7 +262,7 @@ public sealed partial class WorldRuntime
 
     private void ReconcilePausedHouseholdWork()
     {
-        bool Available(IReadOnlyList<string> ids) => ids.All(id =>
+        bool Available(IReadOnlyList<Identity> ids) => ids.All(id =>
         {
             var reservation = society.Checkpoint.Inventory.Reservations.SingleOrDefault(item => item.Id == id);
             var lot = reservation is null ? null : society.Checkpoint.Inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);

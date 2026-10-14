@@ -276,7 +276,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(
                 InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
                     TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
-                agentId, lotId, 1, "orchard_replanting", long.MaxValue));
+                agentId, lotId, 1, "orchard_replanting", long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
             AppendEvent("fruit_harvested", $"{agentId}:{source.Id}:{harvestYield}:picked");
         }
         return new FoodHarvestEffect(harvestedLotId,
@@ -353,12 +353,12 @@ public sealed partial class WorldRuntime
                 HasActiveContainerReservation(society.Checkpoint.Inventory, potId))
                 return false;
             ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
-                operationId, householdId, actor, potId, food.Id, 1));
+                operationId, householdId, actor, potId, food.Id, 1, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             AppendEvent("food_taken_from_pot", $"{actor}:{potId}:{food.Id}:1");
         }
         else
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                operationId, householdId, actor, food.Id, 1, purpose));
+                operationId, householdId, actor, food.Id, 1, purpose, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         return true;
     }
 

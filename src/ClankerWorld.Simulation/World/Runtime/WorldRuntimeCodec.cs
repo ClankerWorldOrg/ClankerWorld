@@ -43,6 +43,7 @@ public static class WorldRuntimeCodec
                     typeInfo.Properties.RemoveAt(index);
         });
         options.TypeInfoResolver = resolver;
+        options.Converters.Add(new StoredIdentityJsonConverter());
         options.Converters.Add(new WorldTerrainChunkCodec());
         return options;
     }

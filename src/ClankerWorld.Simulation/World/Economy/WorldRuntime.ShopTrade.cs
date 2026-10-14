@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private List<ShopTradeState> shopTrades = [];
 
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
-        .OrderBy(trade => trade.OfferId, StringComparer.Ordinal).ToArray();
+        .OrderBy(trade => (string?)trade.OfferId, StringComparer.Ordinal).ToArray();
 
     private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
         shopTrades.Select(trade => (Trade: trade, Offer: (inventory ?? society.Checkpoint.Inventory).Offers
@@ -281,7 +281,7 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || NeedsUrgentWarmth(agents[actor])) return;
         if (!NeedsUrgentFood(agents[actor])) AddStoreStockCandidate(candidates, actor);
-        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId, StringComparer.Ordinal))
+        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
             if (!buyer && !MayRespondAtShop(actor, trade)) continue;
@@ -373,11 +373,11 @@ public sealed partial class WorldRuntime
         var id = ShopTradeOfferId(WorldTick, actor, building.InstanceId);
         // Quotes name exact actual quantities; future goods are never reserved.
         ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
-            InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1,
+            InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(id), 1,
                 building.HouseholdId!, actor, choice.Goods.Id, choice.GoodsQuantity,
                 choice.Payment.Id, choice.PaymentQuantity, WorldTick + 120)),
             id, 1, actor));
-        shopTrades.Add(new(id, building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
+        shopTrades.Add(new(Identity.Parse(id), building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
             choice.Goods.ItemKind, choice.Payment.ItemKind));
         AppendEvent("shop_trade_offered", actor + ":" + id);
         return id;
@@ -445,8 +445,8 @@ public sealed partial class WorldRuntime
                     ? "The offer ran out of time." : "The exchange was interrupted.");
         }
         var retired = shopTrades.Where(trade => society.Checkpoint.Inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open)
-            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
-            .Skip(32).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId.Value, StringComparer.Ordinal)
+            .Skip(32).Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         if (retired.Count == 0) return;
         shopTrades.RemoveAll(trade => retired.Contains(trade.OfferId));
         ApplyInventoryTransition(inventory => inventory with
@@ -461,13 +461,13 @@ public sealed partial class WorldRuntime
         SocietyCheckpoint societyState, WorldMap map, long worldTick)
     {
         var inventory = societyState.Inventory;
-        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => trade.OfferId).SequenceEqual(
-                trades.Select(trade => trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
+        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => (string?)trade.OfferId).SequenceEqual(
+                trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("The checkpoint is missing canonical shop trade records.");
         foreach (var trade in trades)
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
-            if (offer is null || !offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
+            if (offer is null || !offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
                 offer.Id != ShopTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
                 !BoundedText.IsValid(trade.BuildingInstanceId, 256, requireTrimmed: true) ||
@@ -491,7 +491,7 @@ public sealed partial class WorldRuntime
                 trade.CancellationReason is not null && offer.State != DirectBarterState.Cancelled)
                 throw new InvalidDataException("A shop trade does not match its authoritative inventory offer.");
         }
-        if (inventory.Offers.Any(offer => offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
+        if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
                 !trades.Any(trade => trade.OfferId == offer.Id)))
             throw new InvalidDataException("An inventory shop offer has no physical shop binding.");
     }

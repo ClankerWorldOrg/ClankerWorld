@@ -81,7 +81,7 @@ internal sealed partial class AnimalSystem
         var action = order.Action[7..];
         if (State.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor) is { } trip &&
             (trip.AnimalId != animal.Id || trip.Action != action))
-            FinishAnimalSupplyTrip(actor);
+            FinishAnimalSupplyTrip(world, actor);
         var oldCare = animal.CareUntilTick;
         var oldProduct = animal.ReadyProductLotId;
         var choice = AnimalChoices(world, actor).FirstOrDefault(choice => choice.AnimalId == animal.Id && choice.Action == action);
@@ -122,12 +122,12 @@ internal sealed partial class AnimalSystem
         }
     }
 
-    internal void CancelAnimalSupplyForOrder(OwnerQueuedInstruction instruction)
+    internal void CancelAnimalSupplyForOrder(IAnimalWorld world, OwnerQueuedInstruction instruction)
     {
         if (instruction.Task is not { } order || !IsAnimalOrder(order.Action)) return;
         if (State.SupplyTrips.Any(trip => trip.ActorId == instruction.TargetAgentId &&
                 trip.AnimalId == order.TargetAnimalId && trip.Action == order.Action[7..]))
-            FinishAnimalSupplyTrip(instruction.TargetAgentId);
+            FinishAnimalSupplyTrip(world, instruction.TargetAgentId);
     }
 }
 

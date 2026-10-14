@@ -35,7 +35,7 @@ public sealed class AgentIdentityChoiceTests
         Assert.Equal(physical.Personality, restored.Agents.Single(item => item.AgentId == AgentId).Personality);
         restored.Resume();
         for (var tick = 0; tick < 310 && handler.Bodies.Count < 2; tick++)
-            await restored.AdvanceOneTickNonBlockingAsync();
+            await restored.TickModelWorkAsync();
         Assert.True(handler.Bodies.Count >= 2);
         using var payload = JsonDocument.Parse(handler.Bodies[1]);
         using var question = JsonDocument.Parse(payload.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
@@ -59,7 +59,7 @@ public sealed class AgentIdentityChoiceTests
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
         using var world = NormalPathWorld.CreateGenerated("identity-missing", id => id == AgentId ? model : new DeterministicDecisionProvider());
         await AdvanceUntilDecision(world);
-        for (var tick = 0; tick < 20; tick++) await world.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 20; tick++) await world.TickModelWorkAsync();
         Assert.Single(handler.Bodies, body =>
         {
             using var payload = JsonDocument.Parse(body);
@@ -76,16 +76,16 @@ public sealed class AgentIdentityChoiceTests
     }
 
     [Theory]
-    [InlineData(false, 0)]
-    [InlineData(true, 0)]
-    [InlineData(true, 4_000)]
-    public async Task PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(bool deferEntry, int entryDelayMilliseconds)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(bool deferEntry, bool deferSchedulerEntry)
     {
         var model = new HeldIdentityProvider();
-        var enter = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var provider = new DelayedIdentityEntryProvider(model, entryDelayMilliseconds, deferEntry ? enter.Task : null);
+        var enter = new InlineCompletionSource<bool>(TaskCreationOptions.None);
+        var provider = new DelayedIdentityEntryProvider(model, deferEntry ? enter.Task : null);
         using var world = NormalPathWorld.CreateGenerated("identity-pause", id => id == AgentId ? provider : new DeterministicDecisionProvider());
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await ModelWorkHarness.For(world).TickAsync(runPendingWork: !deferSchedulerEntry)).Advanced);
         Assert.Equal(AgentId, Assert.Single(world.ExportState().Events,
             item => item.Kind == "hosted_decision_started").Detail);
         // Snapshot the actual registered worker with the existing shared wait,
@@ -95,7 +95,7 @@ public sealed class AgentIdentityChoiceTests
         if (deferEntry) Assert.False(model.Started.Task.IsCompleted);
         var entering = WorldRuntimeCodec.Encode(world.ExportState());
         enter.TrySetResult(true);
-        await Task.WhenAny(model.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+        await Task.WhenAny(model.Started.Task, task);
         Assert.True(model.Started.Task.IsCompleted, "The registered identity worker finished before provider entry.");
         var request = Assert.IsType<CognitionDecisionRequest>(model.Request);
         Assert.Equal(AgentId, request.Observation.AgentId);
@@ -108,8 +108,8 @@ public sealed class AgentIdentityChoiceTests
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
         var saved = WorldRuntimeCodec.Decode(paused);
         model.Release.TrySetResult(true);
-        await model.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
-        await task.WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.For(world).WaitAsync(model.Returned.Task);
+        await task;
         Assert.Equal(paused, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(saved);
         Assert.True(restored.Agents.Single(item => item.AgentId == AgentId).IdentityChoicePending);
@@ -122,9 +122,9 @@ public sealed class AgentIdentityChoiceTests
     {
         for (var attempt = 0; attempt < 20; attempt++)
         {
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             if (step.Decisions.Any(item => item.AgentId == AgentId && item.Admission.Accepted)) return;
-            await Task.Delay(10);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         throw new TimeoutException("The synthetic personal reply was not admitted.");
     }
@@ -166,14 +166,13 @@ public sealed class AgentIdentityChoiceTests
         }
     }
 
-    private sealed class DelayedIdentityEntryProvider(IDecisionProvider inner, int delayMilliseconds, Task? entryGate = null) : IDecisionProvider
+    private sealed class DelayedIdentityEntryProvider(IDecisionProvider inner, Task? entryGate = null) : IDecisionProvider
     {
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => inner.ProviderEpoch;
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             if (entryGate is not null) await entryGate.WaitAsync(cancellationToken);
-            if (delayMilliseconds > 0) await Task.Delay(delayMilliseconds, cancellationToken);
             return await inner.DecideAsync(request, cancellationToken);
         }
     }
@@ -182,9 +181,9 @@ public sealed class AgentIdentityChoiceTests
     {
         public CognitionDecisionRequest? Request { get; private set; }
         public CancellationToken Cancellation { get; private set; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
 

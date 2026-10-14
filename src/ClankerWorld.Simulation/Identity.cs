@@ -23,8 +23,8 @@ public sealed record Identity : IComparable<Identity>
 
     public static Identity? ParseOptional(string? value) => value is null ? null : Parse(value);
 
-    /// <summary>Retains an existing memory key's exact spelling; recall applies its own bounds.</summary>
-    public static Identity ParseStoredMemory(string value)
+    /// <summary>Retains an existing stored spelling; the record's role applies its own validation.</summary>
+    public static Identity ParseStored(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
         return new(value);
@@ -63,13 +63,13 @@ public class IdentityJsonConverter : JsonConverter<Identity>
     }
 }
 
-public sealed class StoredMemoryIdentityJsonConverter : IdentityJsonConverter
+public sealed class StoredIdentityJsonConverter : IdentityJsonConverter
 {
     public override Identity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var value = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
         if (string.IsNullOrWhiteSpace(value))
-            throw new JsonException("A stored memory identity must be a nonblank string.");
-        return Identity.ParseStoredMemory(value);
+            throw new JsonException("A stored identity must be a nonblank string.");
+        return Identity.ParseStored(value);
     }
 }

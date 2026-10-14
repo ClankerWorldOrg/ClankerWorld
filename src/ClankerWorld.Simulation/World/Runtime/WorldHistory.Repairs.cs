@@ -15,11 +15,11 @@ public static partial class WorldHistory
                 item.State is InventoryReservationState.Completed or InventoryReservationState.Released)
             .OrderBy(item => item.ExpiryTick).ThenBy(item => item.Id, StringComparer.Ordinal).ToArray();
         var required = (state.Towns ?? []).SelectMany(town => town.NonLandHearings.NativeReceipts)
-            .SelectMany(receipt => receipt.RepairInputs).Select(input => input.Reservation.Id).ToHashSet(StringComparer.Ordinal);
+            .SelectMany(receipt => receipt.RepairInputs).Select(input => input.Reservation.Id.Value).ToHashSet(StringComparer.Ordinal);
         required.UnionWith(WorldRuntime.RequiredCartRepairReservations(state.Instructions ?? [], inventory.WorldTick));
         var retired = Retire(closed, RecentRepairReservationLimit, item => required.Contains(item.Id));
         if (retired.Length == 0) return inventory;
-        var retiredIds = retired.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var retiredIds = retired.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
         return inventory with
         {
             Reservations = inventory.Reservations.Where(item => !retiredIds.Contains(item.Id)).ToArray(),

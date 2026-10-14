@@ -211,16 +211,16 @@ public sealed partial class WorldRuntime
             if (effect is null) return;
             payment = effect.FuelReservationId;
         }
-        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, payment);
+        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, Identity.ParseOptional(payment));
         current = instructionsByIdempotency[current.IdempotencyKey];
         current = current with
         {
             Task = current.Task!.UpdateDefinition(definition => definition switch
-{
-    SeekShelterOrderDefinition task => task with { ShelterCompletion = completion },
-    TendFireOrderDefinition task => task with { ShelterCompletion = completion },
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
+            {
+                SeekShelterOrderDefinition task => task with { ShelterCompletion = completion },
+                TendFireOrderDefinition task => task with { ShelterCompletion = completion },
+                _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+            })
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         CreditOrderEffect(current, Identity.Parse(ShelterOrderReceipt(current.InstructionId, current.Task!)), 1);

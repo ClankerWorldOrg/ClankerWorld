@@ -80,7 +80,7 @@ internal static class OfferedChoiceScenario
             -(long)AnimalRules.Definition("horse").AdultDays * day, site, DerivedId.Create("household:" + home), home,
             "sweep-paid-yard", CareUntilTick: state.Society.Society.WorldTick + day, RiderId: actor,
             SaddleLotId: "sweep-saddle")
-        { SaddleReservationId = "sweep-saddle-hold" };
+        { SaddleReservationId = Identity.Parse("sweep-saddle-hold") };
         return WithInventory(state, inventory) with
         {
             AnimalWorld = new(true, [horse], []),
@@ -150,7 +150,7 @@ internal static class OfferedChoiceScenario
             inventory = InventoryAuthority.Reserve(inventory, reservation, town.Id, lot, cost.Amount,
                 TownProjectRules.ReservationPurpose(id), long.MaxValue);
             inventory = InventoryAuthority.ConsumeReservation(inventory, reservation);
-            deliveries.Add(new(delivery, NormalPathWorld.Founder1, lot, lot, cost.ResourceId, cost.Amount, tick, tick, reservation));
+            deliveries.Add(new(delivery, NormalPathWorld.Founder1, lot, lot, cost.ResourceId, cost.Amount, tick, tick, Identity.Parse(reservation)));
         }
         var buildingId = TownProjectRules.BuildingId(id);
         project = new(id, proposal.Id, plan, tick, "completed", TownProjectRules.RequiredWork(plan), tick, deliveries,
