@@ -8,7 +8,7 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>Physical storage and fresh-water actions for reusable household vessels.</summary>
 public sealed partial class WorldRuntime
 {
-    private const string FillWaterJugPrefix = "fill_water_jug:";
+    private const string FillWaterJugPrefix = VesselChoice.FillPrefix;
     private static readonly ConditionalWeakTable<WorldMap, GridPoint[]> FreshWaterShoreCache = new();
 
     private sealed record PotFoodChoice(InventoryLot Pot, InventoryLot Food);
@@ -54,7 +54,6 @@ public sealed partial class WorldRuntime
             HouseForHousehold(householdId) is not { } house)
             return;
 
-        var inventory = society.Checkpoint.Inventory;
         var refillJug = CarriedWaterJugForRefill(actor);
         var carriedJug = refillJug ?? CarriedContainer(actor, InventoryContainerRules.WaterJug);
         if (carriedJug is not null)
@@ -65,30 +64,17 @@ public sealed partial class WorldRuntime
             if (shore is { } fillAt)
             {
                 var pointText = $"{fillAt.X.ToString(CultureInfo.InvariantCulture)},{fillAt.Y.ToString(CultureInfo.InvariantCulture)}";
-                candidates.Add(new CognitionCandidate(
-                    $"{FillWaterJugPrefix}{pointText}",
-                    "Fill the water jug at a reachable riverbank or lakeshore.", 18,
-                    $"shore:{pointText}"));
+                AddVesselCandidate(candidates, PlanVesselAction(actor, new(VesselActionKind.FillJug, fillAt), refillJug),
+                    "Fill the water jug at a reachable riverbank or lakeshore.", 18, $"shore:{pointText}");
             }
-            else if (CarriedWaterJugForReturn(actor, house.InstanceId) is not null &&
-                     FindUnoccupiedRoute(actor, person.Position, house.Position, 0).Count > 0)
-            {
-                candidates.Add(new CognitionCandidate("return_water_jug",
-                    "Carry the water jug back to its household House.", 22, house.InstanceId));
-            }
+            else
+                AddVesselCandidate(candidates, PlanVesselAction(actor, new(VesselActionKind.ReturnJug)),
+                    "Carry the water jug back to its household House.", 22, house.InstanceId);
         }
         else
-        {
-            var storedJug = StoredWaterJugForRefill(actor, person, householdId);
-            if (storedJug is not null && WaterJugStockLocation(storedJug, householdId) is { } source &&
-                FindFreshWaterShore(actor, source.Position, ContainerFamilyQuantity(inventory, storedJug.Id), house.Position) is not null &&
-                (person.Position == source.Position ||
-                 FindUnoccupiedRoute(actor, person.Position, source.Position, 0).Count > 0))
-            {
-                candidates.Add(new CognitionCandidate("collect_water_jug",
-                    "Collect the household's reusable jug before fetching fresh water.", 26, storedJug.Id));
-            }
-        }
+            AddVesselCandidate(candidates, PlanVesselAction(actor, new(VesselActionKind.CollectJug)),
+                "Collect the household's reusable jug before fetching fresh water.", 26,
+                useVesselId: true);
 
         AddEmptyVesselReturnCandidate(candidates, actor, person);
         AddFoodPotCandidates(candidates, actor, person, householdId, house);
@@ -97,14 +83,10 @@ public sealed partial class WorldRuntime
     private void AddFoodPotCandidates(List<CognitionCandidate> candidates, string actor,
         AgentState person, string householdId, PlacedBuilding house)
     {
-        var inventory = society.Checkpoint.Inventory;
         var foodToStore = FindFoodToStore(actor, householdId, house.InstanceId);
-        if (foodToStore is not null &&
-            FindUnoccupiedRoute(actor, person.Position, house.Position, 0).Count > 0)
-        {
-            candidates.Add(new CognitionCandidate("store_food_in_pot",
-                "Put available household food into its storage pot.", 24, foodToStore.Pot.Id));
-        }
+        if (foodToStore is not null)
+            AddVesselCandidate(candidates, PlanVesselAction(actor, new(VesselActionKind.StoreFood), selectedFood: foodToStore),
+                "Put available household food into its storage pot.", 24, foodToStore.Pot.Id);
 
         AddFoodPotRetrievalCandidate(candidates, actor, person, householdId, house);
     }
@@ -122,20 +104,20 @@ public sealed partial class WorldRuntime
     private void AddFoodPotRetrievalCandidate(List<CognitionCandidate> candidates, string actor,
         AgentState person, string householdId, PlacedBuilding house)
     {
-        var inventory = society.Checkpoint.Inventory;
-        // Like collecting other household food, a serving follows the Town's
-        // food policy, and only food that can be eaten now is offered.
-        if (person.FullnessBasisPoints < 7_000 && MayCollectSharedFood(actor) &&
-            !FindGoods(new(GoodsUse.Eat, actor, GoodsOwners.One(actor), EdibleFoodGoods))
-                .Matches.Any(match => match.Lot.ContainerLotId is null) &&
-            FreeCarryCapacity(actor) > 0 &&
-            FindFoodInPot(householdId, house.InstanceId) is { } storedFood &&
-            FindUnoccupiedRoute(actor, person.Position, house.Position, 0).Count > 0)
-        {
-            candidates.Add(new CognitionCandidate("take_food_from_pot",
-                "Take one serving from the household's storage pot.",
-                NeedsUrgentFood(person) ? 1 : 4, storedFood.Food.Id));
-        }
+        if (WantsFoodFromPot(actor) && FindFoodInPot(householdId, house.InstanceId) is { } storedFood)
+            AddVesselCandidate(candidates, PlanVesselAction(actor, new(VesselActionKind.TakeFood), selectedFood: storedFood),
+                "Take one serving from the household's storage pot.", NeedsUrgentFood(person) ? 1 : 4, storedFood.Food.Id);
+    }
+
+    private bool WantsFoodFromPot(string actor) => agents[actor].FullnessBasisPoints < NeedThresholds.FoodPickupFullness &&
+        MayCollectSharedFood(actor) && FreeCarryCapacity(actor) > 0 &&
+        !FindGoods(new(GoodsUse.Eat, actor, GoodsOwners.One(actor), EdibleFoodGoods)).Matches.Any(match => match.Lot.ContainerLotId is null);
+
+    private void AddVesselCandidate(List<CognitionCandidate> candidates, VesselActionPlan? plan,
+        string description, int priority, string? destination = null, bool useVesselId = false)
+    {
+        if (plan is not null && CheckVesselPlan(plan).Allowed)
+            candidates.Add(new(plan.CandidateId, description, priority, useVesselId ? plan.VesselId : destination) { ActionPlan = plan });
     }
 
     private PotFoodChoice? FindFoodToStore(string actor, string householdId, string houseId)
@@ -179,12 +161,11 @@ public sealed partial class WorldRuntime
         GridPoint? returnTo = null)
     {
         foreach (var point in FreshWaterShorePositions()
-                     .Where(point => CanReachByFootOrSwimming(actor, origin, point))
+                     .Where(point => ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0)
                      .OrderBy(point => map.FootDistance(origin, point))
                      .ThenBy(point => point.Y).ThenBy(point => point.X))
         {
-            if ((point == origin || FindUnoccupiedRoute(actor, origin, point, 0,
-                    additionalCarriedUnits: additionalCarriedUnits).Count > 0) &&
+            if ((point == origin || ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, additionalCarriedUnits, SwimmingPolicy.WhenCapable).Count > 0) &&
                 (returnTo is null || PickupCarryCapacity(actor, point, returnTo.Value) > additionalCarriedUnits))
                 return point;
         }
@@ -196,22 +177,6 @@ public sealed partial class WorldRuntime
             building.HouseholdId == householdId && worldContent.Buildings.Any(definition =>
                 definition.CanonicalId == building.DefinitionId && definition.Tags.Any(tag => tag is "house" or "restaurant")));
 
-    private InventoryLot? StoredWaterJugForRefill(string actor, AgentState person, string householdId)
-    {
-        var inventory = society.Checkpoint.Inventory;
-        return FindGoods(new(GoodsUse.VesselFor, actor, GoodsOwners.One(householdId),
-                GoodsKinds.One(InventoryContainerRules.WaterJug), ExtraUnits: 1, ContentsKind: InventoryContainerRules.FreshWater))
-            .Matches.Where(match => match.Lot.CarrierId is null &&
-                // Keep one place for the water fetched after this real pickup.
-                match.MoveUnits < FreeCarryCapacity(actor) && CanRemoveWorkstationStock(inventory, match.Lot, 1))
-            .Select(match => match.Lot).FirstOrDefault(lot =>
-                WaterJugStockLocation(lot, householdId) is { } source &&
-                FindFreshWaterShore(actor, source.Position, ContainerFamilyQuantity(inventory, lot.Id),
-                    HouseForHousehold(householdId)?.Position) is not null &&
-                (person.Position == source.Position ||
-                 FindUnoccupiedRoute(actor, person.Position, source.Position, 0).Count > 0));
-    }
-
     private GridPoint? WaterJugRefillReturnDestination(string actor, InventoryLot jug)
     {
         if (HouseholdFor(actor) is not { } household || HouseForHousehold(household) is not { } house)
@@ -221,131 +186,6 @@ public sealed partial class WorldRuntime
         // unit can accompany the intact family into its storage.
         return DestinationRoom(house.InstanceId) >
             ContainerFamilyQuantity(society.Checkpoint.Inventory, jug.Id) ? house.Position : null;
-    }
-
-    private void CollectWaterJug(string actor, AgentState person)
-    {
-        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
-            HouseForHousehold(householdId) is not { } house)
-            return;
-        var inventory = society.Checkpoint.Inventory;
-        var jug = StoredWaterJugForRefill(actor, person, householdId);
-        if (jug is null || ContainerFamilyQuantity(inventory, jug.Id) >= FreeCarryCapacity(actor))
-            return;
-        var source = WaterJugStockLocation(jug, householdId)!;
-        if (person.Position != source.Position)
-        {
-            MoveToward(actor, person, source.Position, "collect_water_jug", 0);
-            return;
-        }
-        if (!CanRemoveWorkstationStock(inventory, jug, 1)) return;
-        ApplyInventoryTransition(current => InventoryAuthority.Transfer(current,
-            $"water-jug-pickup:{WorldTick}:{actor}", householdId, actor, jug.Id, 1,
-            "water_jug_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent(new WaterJugCollectedEventPayload(actor, jug.Id));
-    }
-
-    private void FillWaterJug(string actor, AgentState person, string target)
-    {
-        if (!TryParsePoint(target, out var shore) || !FreshWaterShorePositions().Contains(shore) ||
-            CarriedWaterJugForRefill(actor) is not { } jug)
-            return;
-        var inventory = society.Checkpoint.Inventory;
-        if (!CanReachByFootOrSwimming(actor, person.Position, shore) ||
-            FindUnoccupiedRoute(actor, person.Position, shore, 0).Count == 0)
-            return;
-        if (person.Position != shore)
-        {
-            MoveToward(actor, person, shore, "fill_water_jug", 0);
-            return;
-        }
-        var remaining = Math.Min(
-            InventoryContainerRules.WaterJugCapacity - ContainerContentsQuantity(inventory, jug.Id),
-            FreeCarryCapacity(actor));
-        if (WaterJugRefillReturnDestination(actor, jug) is { } destination)
-            remaining = Math.Min(remaining, PickupCarryCapacity(actor, shore, destination));
-        if (remaining <= 0 || HasActiveContainerReservation(inventory, jug.Id) ||
-            inventory.Lots.Any(lot => lot.ContainerLotId == jug.Id && lot.ItemKind != InventoryContainerRules.FreshWater))
-            return;
-        ApplyInventoryTransition(current => InventoryAuthority.AddLot(current,
-            $"{jug.Id}#water:{WorldTick.ToString(CultureInfo.InvariantCulture)}",
-            InventoryContainerRules.FreshWater, actor, remaining, WorldTick, containerLotId: jug.Id));
-        AppendEvent(new WaterJugFilledEventPayload(actor, jug.Id, remaining, shore.X, shore.Y));
-    }
-
-    private void ReturnWaterJug(string actor, AgentState person)
-    {
-        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
-            HouseForHousehold(householdId) is not { } house ||
-            CarriedWaterJugForReturn(actor, house.InstanceId) is not { } jug)
-            return;
-        if (person.Position != house.Position)
-        {
-            MoveToward(actor, person, house.Position, "return_water_jug", 0);
-            return;
-        }
-        ApplyInventoryTransition(current => InventoryAuthority.Transfer(current,
-            $"water-jug-return:{WorldTick}:{actor}", actor, householdId, jug.Id, 1,
-            "water_jug_returned", destinationStorageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
-        AppendEvent(new WaterJugReturnedEventPayload(actor, jug.Id, house.InstanceId));
-    }
-
-    private void StoreFoodInPot(string actor, AgentState person)
-    {
-        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
-            HouseForHousehold(householdId) is not { } house ||
-            FindFoodToStore(actor, householdId, house.InstanceId) is not { } choice)
-            return;
-        if (person.Position != house.Position)
-        {
-            MoveToward(actor, person, house.Position, "store_food_in_pot", 0);
-            return;
-        }
-
-        var inventory = society.Checkpoint.Inventory;
-        var contentRoom = InventoryContainerRules.StoragePotCapacity -
-            ContainerContentsQuantity(inventory, choice.Pot.Id);
-        var storageRoom = choice.Food.OwnerId == actor ? DestinationRoom(house.InstanceId) : int.MaxValue;
-        var available = AvailableLotQuantity(choice.Food) - (choice.Food.OwnerId == actor ? 1 : 0);
-        var quantity = Math.Min(available, Math.Min(contentRoom, storageRoom));
-        if (quantity <= 0)
-            return;
-
-        var operationId = FoodPotTransferId(WorldTick, actor);
-        ApplyInventoryTransition(current =>
-        {
-            var sourceId = choice.Food.Id;
-            if (choice.Food.OwnerId == actor)
-            {
-                current = InventoryAuthority.Transfer(current, operationId, actor, householdId, choice.Food.Id,
-                    quantity, "food_stored_in_pot", destinationStorageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId));
-                if (quantity != choice.Food.Quantity)
-                    sourceId = DerivedId.Create($"{choice.Food.Id}#transfer:{operationId}");
-            }
-            return InventoryAuthority.PutIntoContainer(current, operationId, householdId, choice.Pot.Id, sourceId, quantity, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-        });
-        AppendEvent(new FoodStoredInPotEventPayload(actor, choice.Pot.Id, choice.Food.Id, quantity));
-    }
-
-    private void TakeFoodFromPot(string actor, AgentState person)
-    {
-        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
-            HouseForHousehold(householdId) is not { } house ||
-            FindFoodInPot(householdId, house.InstanceId) is not { } choice)
-            return;
-        if (person.Position != house.Position)
-        {
-            MoveToward(actor, person, house.Position, "take_food_from_pot", 0);
-            return;
-        }
-        var quantity = Math.Min(1, AvailableLotQuantity(choice.Food));
-        if (FreeCarryCapacity(actor) < quantity)
-            return;
-        if (quantity <= 0)
-            return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
-            $"food-pot-take:{WorldTick}:{actor}", householdId, actor, choice.Pot.Id, choice.Food.Id, quantity, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent(new FoodTakenFromPotEventPayload(actor, choice.Pot.Id, choice.Food.Id, quantity));
     }
 
     private PotFoodChoice? FindFoodInPot(string householdId, string houseId, string? requiredItemKind = null)

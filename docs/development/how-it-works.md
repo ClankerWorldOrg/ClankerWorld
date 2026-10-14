@@ -252,6 +252,13 @@ seeds use the common exact equipment pickup operation. `TreePlanting` goods
 queries include only the seed's own orchard claim alongside free usable stock;
 new claims and regrown or newly occupied targets refuse the original plan.
 
+Household jug, pot and empty-vessel choices carry `VesselActionPlan`. Whole
+vessel moves retain the exact family; pot operations retain their selected food
+lot and quantity. Filling binds its jug, shore, amount and prospective House
+return. One check revalidates capacity, source reserves, promises, food policy
+and the same trip before the captured operation applies. Shore searches use
+the shared reach service with explicit origins and complete prospective loads.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
