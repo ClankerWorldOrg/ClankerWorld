@@ -414,6 +414,9 @@ advance the same agreement while a model reply waits.
 Household leave/founding choices retain their household, moving care group and
 exact loose-food allowance. Native membership, custody and paused-work effects
 use the retained selection; automatic displacement plans its own native step.
+Paused household work retains its job, original worker/time, material reservation
+IDs, workstation and selected knife. The same check runs at all three boundaries;
+blocked travel waits and expansion checks on arrival keep the native behavior.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

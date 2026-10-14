@@ -230,30 +230,33 @@ public sealed partial class WorldRuntime
         return knifeId is not null;
     }
 
-    private void ResumePausedHouseholdWork(string actor, string jobId)
+    private void ResumePausedHouseholdWork(string actor, string jobId, HouseholdResumeActionPlan? originalPlan = null)
     {
-        var matches = PausedHouseholdWork(actor).Where(job => job.Id == jobId).ToArray();
-        if (matches.Length != 1) return;
-        var job = matches[0];
-        if (!CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) || !TryResumeKnife(actor, jobId, out var knifeId)) return;
-        var building = worldSimulation.Buildings.Single(item => item.InstanceId == job.BuildingId);
+        var plan = originalPlan ?? PlanHouseholdResume(actor, new(jobId));
+        if (plan is not null) ApplyHouseholdResumePlan(plan);
+    }
+
+    private void CompleteHouseholdResume(HouseholdResumeActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var building = plan.Building;
         if (agents[actor].Position != building.Position)
         {
             MoveToward(actor, agents[actor], building.Position, "resume_household_work");
             return;
         }
-        var expansion = (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(item => item.JobId == jobId);
+        var expansion = (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(item => item.JobId == plan.Choice.JobId);
         if (expansion is not null && !CanFitExpansion(building, expansion.TargetPosition, expansion.TargetFootprint, out _, expansion.JobId)) return;
-        var deadline = checked(WorldTick + Math.Max(1, job.Completion - job.PausedAt));
-        ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.Reservations, deadline));
+        var deadline = checked(WorldTick + Math.Max(1, plan.CompletionTick - plan.PausedAtTick));
+        ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, plan.ReservationIds, deadline));
         worldSimulation = worldSimulation with
         {
-            ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == jobId
-                ? item with { WorkerId = actor, State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null, ToolLotId = knifeId } : item).ToArray(),
-            BuildingExpansions = worldSimulation.BuildingExpansions?.Select(item => item.JobId == jobId
+            ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == plan.Choice.JobId
+                ? item with { WorkerId = actor, State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null, ToolLotId = plan.KnifeId } : item).ToArray(),
+            BuildingExpansions = worldSimulation.BuildingExpansions?.Select(item => item.JobId == plan.Choice.JobId
                 ? item with { WorkerId = actor, State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null } : item).ToArray(),
         };
-        AppendEvent("household_work_resumed", $"{actor}|{jobId}|{building.HouseholdId}");
+        AppendEvent("household_work_resumed", $"{actor}|{plan.Choice.JobId}|{building.HouseholdId}");
     }
 
     private void ReconcilePausedHouseholdWork()
@@ -299,9 +302,10 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return;
         foreach (var job in PausedHouseholdWork(actor))
-            if (CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) && TryResumeKnife(actor, job.Id, out _))
-                candidates.Add(new("household_resume_work:" + job.Id,
-                    "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId));
+            if (PlanHouseholdResume(actor, new(job.Id)) is { } resume && CheckHouseholdResumePlan(resume).Allowed)
+                candidates.Add(new CognitionCandidate(resume.CandidateId,
+                    "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId)
+                { ActionPlan = resume });
         var home = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (home is not null)
             if (PlanDepartureAction(actor, new(DepartureChoiceKind.Leave)) is { } leave && CheckDepartureActionPlan(leave).Allowed)
@@ -424,7 +428,7 @@ public sealed partial class WorldRuntime
     {
         if (candidate.StartsWith("household_resume_work:", StringComparison.Ordinal))
         {
-            ResumePausedHouseholdWork(actor, candidate["household_resume_work:".Length..]);
+            ResumePausedHouseholdWork(actor, candidate["household_resume_work:".Length..], originalPlan as HouseholdResumeActionPlan);
             return;
         }
         if (DepartureChoice.Decode(candidate) is { } choice)

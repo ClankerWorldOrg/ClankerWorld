@@ -581,11 +581,30 @@ public sealed partial class HouseholdDepartureTests
         using var resuming = WorldRuntime.Restore(atWorkSite, _ => provider);
         provider.Wanted[remaining] = "household_resume_work:departure-private-job";
         resuming.Resume();
+        var beforeResume = WorldRuntimeCodec.Encode(resuming.ExportState());
+        Assert.False((await resuming.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(beforeResume, WorldRuntimeCodec.Encode(resuming.ExportState()));
+        using var resumeReplay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(beforeResume), _ => provider);
+        var resumeStep = await resuming.AdvanceOneTickAsync();
+        Assert.True(resumeStep.Advanced);
+        var selectedPlan = Assert.IsType<HouseholdResumeActionPlan>(resumeStep.Decisions.Single(decision => decision.AgentId == remaining).ActionPlan);
+        Assert.Same(provider.SelectedPlans[remaining], selectedPlan);
+        Assert.Equal(reservationIds, selectedPlan.ReservationIds);
+        Assert.Equal(("departure-private-job", house.InstanceId, Alpha),
+            (selectedPlan.Choice.JobId, selectedPlan.Building.InstanceId, selectedPlan.HouseholdId));
+        Assert.Equal(selectedPlan.Choice, HouseholdResumeChoice.Decode(selectedPlan.CandidateId));
+        Assert.True((await resumeReplay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(resuming.ExportState()), WorldRuntimeCodec.Encode(resumeReplay.ExportState()));
         await AdvanceUntil(resuming, () => resuming.WorldSimulation.ProductionJobs.Single().State == WorldProductionJobState.Completed);
         var resumed = resuming.ExportState().Events.Single(item => item.Kind == "household_work_resumed");
         Assert.Equal(30, resuming.WorldSimulation.ProductionJobs.Single().CompletionTick - resumed.WorldTick);
         Assert.All(reservationIds, id => Assert.Equal(InventoryReservationState.Completed, resuming.Society.Inventory.GetReservation(id).State));
         Assert.Contains(resuming.Society.Inventory.Lots, lot => lot.Id.StartsWith("departure-private-job:output:", StringComparison.Ordinal) && lot.OwnerId == Alpha);
+        var completed = WorldRuntimeCodec.Encode(resuming.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, resuming.CheckActionPlan(selectedPlan).Refusal!.Reason);
+        Assert.Equal(completed, WorldRuntimeCodec.Encode(resuming.ExportState()));
+        using var completedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(completed));
+        completedReload.Validate();
     }
 
     [Fact]
@@ -947,6 +966,7 @@ public sealed partial class HouseholdDepartureTests
     {
         public ConcurrentDictionary<string, string> Wanted { get; } = new(StringComparer.Ordinal);
         public ConcurrentDictionary<string, string[]> Offered { get; } = new(StringComparer.Ordinal);
+        public ConcurrentDictionary<string, ActionPlan> SelectedPlans { get; } = new(StringComparer.Ordinal);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -956,6 +976,7 @@ public sealed partial class HouseholdDepartureTests
             var wanted = Wanted.GetValueOrDefault(observation.AgentId, "safe_idle");
             var selected = observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(wanted, StringComparison.Ordinal))
                 ?? observation.Candidates.Single(item => item.Id == "safe_idle");
+            if (selected.ActionPlan is { } plan) SelectedPlans[observation.AgentId] = plan;
             return new DeterministicDecisionProvider().DecideAsync(request with { Observation = observation with { Candidates = [selected] } }, cancellationToken);
         }
     }
