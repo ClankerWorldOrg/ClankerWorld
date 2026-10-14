@@ -429,10 +429,20 @@ public sealed partial class WorldRuntime
         return false;
     }
 
-    private void BeginProject(string agentId, AgentState state, string candidateId, string? toolMakingRequestId = null)
+    private void BeginProject(string agentId, AgentState state, string candidateId, string? toolMakingRequestId = null, ActionPlan? originalPlan = null)
     {
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
+
+        var recipePlan = originalPlan as RecipeProjectActionPlan;
+        if (!selected.IsBuilding && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
+            TryFindRecipeSite(recipe, out var site, out _, agentId))
+            recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
+        if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
+        { RefuseChoice(recipePlan, refusal); return; }
+        if (recipePlan is not null)
+            recipeProjectPlans[agentId] = (state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
+                ? previous.StartedTick : WorldTick, recipePlan);
 
         if (state.Project is { Stage: not ("completed" or "cancelled") } existing &&
             TownConstructionCandidateIds.TryParse(existing.CandidateId, out var current) &&
@@ -577,16 +587,28 @@ public sealed partial class WorldRuntime
         }
         var inputs = building?.BuildCosts ?? recipe!.Inputs;
         PlacedBuilding? recipeBuilding = null;
+        var recipePlan = RetainedRecipeProject(agentId, project);
         GridPoint? inputWorkSite = selection.SitePosition;
         if (recipe is not null)
         {
-            if (!TryFindRecipeSite(recipe, out var recipeSite, out var recipePosition, agentId))
+            if (recipePlan is null && TryFindRecipeSite(recipe, out var restoredSite, out _, agentId))
+            {
+                recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
+                recipeProjectPlans[agentId] = (project.StartedTick, recipePlan);
+            }
+            if (recipePlan is null)
             {
                 SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
                 return;
             }
-            recipeBuilding = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == recipeSite);
-            inputWorkSite = recipePosition;
+            if (CheckRecipeProject(recipePlan).Refusal is { } refusal)
+            {
+                RefuseChoice(recipePlan, refusal);
+                SetProject(agentId, project with { Stage = "blocked", Blocker = refusal.Explanation, RequiresFreshChoice = true });
+                return;
+            }
+            recipeBuilding = recipePlan.Workstation;
+            inputWorkSite = recipeBuilding.Position;
         }
         var constructionOwner = recipe is not null ? IsHandcartRecipe(recipe) ? agentId : ProductionOwnerFor(recipeBuilding, agentId)
             : BuildingConstructionOwner(agentId, building!);
@@ -655,11 +677,7 @@ public sealed partial class WorldRuntime
                 return;
             }
         }
-        else if (!TryFindRecipeSite(recipe!, out _, out position, agentId))
-        {
-            SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
-            return;
-        }
+        else position = recipePlan!.Workstation.Position;
         if (state.Position != position)
         {
             SetProject(agentId, project with { Stage = "travelling", Blocker = null });

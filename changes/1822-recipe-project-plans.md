@@ -1,0 +1,1 @@
+- Recipe projects retain their selected workstation, owner and available input lots through shared checks and native job reservation.

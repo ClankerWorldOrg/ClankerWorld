@@ -27,12 +27,28 @@ public sealed partial class ToolMakingRequestTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var recipe = Assert.Single(world.WorldContent.Recipes, item => item.PackageDigest == package.PackageDigest);
         world.SubmitInstruction(new("native-recipe", "owner:test", smith, OwnerInstructionKind.Suggestion, "Consider crafting tools."));
+        var plans = new List<RecipeProjectActionPlan>();
         for (var tick = 0; tick < 8 && world.ExportState().Agents.Single(person => person.AgentId == smith).Project is null; tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is RecipeProjectActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<RecipeProjectActionPlan>(decision.ActionPlan)));
+        }
         Assert.Contains(choices.Offered, candidate => candidate.Id == "build:recipe:" + recipe.CanonicalId);
         var project = world.ExportState().Agents.Single(person => person.AgentId == smith).Project;
         Assert.NotNull(project);
         Assert.Equal("build:recipe:" + recipe.CanonicalId, project.CandidateId);
+        var plan = Assert.Single(plans);
+        Assert.Equal((recipe.CanonicalId, shop.InstanceId, shop.HouseholdId), (plan.Recipe.CanonicalId, plan.Workstation.InstanceId, plan.OwnerId));
+        for (var tick = 0; tick < 64 && !world.WorldSimulation.ProductionJobs.Any(job => job.WorkerId == smith && job.RecipeId == recipe.CanonicalId); tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var job = Assert.Single(world.WorldSimulation.ProductionJobs, job => job.WorkerId == smith && job.RecipeId == recipe.CanonicalId);
+        Assert.Equal(plan.Workstation.InstanceId, job.BuildingInstanceId);
+        Assert.NotNull(plan.Inputs);
+        Assert.Equal(plan.Inputs.Select(input => (input.LotId, input.Quantity)), job.InputReservationIds
+            .Select(id => world.Society.Inventory.GetReservation(id)).Select(input => (input.LotId, input.Quantity)));
+        Assert.False(world.CheckActionPlan(plan).Allowed);
         world.Pause();
         var saved = Roundtrip(world);
         using var continuing = WorldRuntime.Restore(saved, _ => new RequestChoices(DecisionProviderKind.Deterministic));

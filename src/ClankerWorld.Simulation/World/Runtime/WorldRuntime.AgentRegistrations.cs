@@ -275,7 +275,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "build:", ["build:"], [], static (runtime, action) =>
     {
-        runtime.BeginProject(action.AgentId, action.State, action.CandidateId);
+        runtime.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "assist:", ["assist:"], [], static (runtime, action) =>

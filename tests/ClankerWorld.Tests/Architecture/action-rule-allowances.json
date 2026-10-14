@@ -104,9 +104,6 @@
     "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0)",
     "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange)"
   ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs": [
-    "FindUnoccupiedRoute(actorId, agents[actorId].Position, placed.Position, 0)"
-  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ShelterOrders.cs": [
     "FindUnoccupiedRoute(actor, origin, destination, 0)",
     "FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange)"

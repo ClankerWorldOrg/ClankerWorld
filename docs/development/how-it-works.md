@@ -118,6 +118,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Recipe choices retain their selected workstation, owner, available input lots
+and production knife. A running project keeps that selection; a restored
+project binds its next step once from current state. Native job creation
+reserves the selected lot quantities with the existing reservation identities.
+Inputs acquired later are selected once before that reservation step.
+
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
 `CheckActionPlan` validates it when offered, after reply admission and again
