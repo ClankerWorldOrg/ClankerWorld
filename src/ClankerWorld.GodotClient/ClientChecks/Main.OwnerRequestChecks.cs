@@ -265,12 +265,14 @@ public partial class Main
             deviceKey = signer;
             serverUrlInput.Text = host.Address;
             observationSession.ResetAfterLoad();
-            // Normal actions follow an accepted signed baseline. Cold JSON setup can cost one read deadline.
-            var baselineWait = System.Diagnostics.Stopwatch.StartNew();
-            while (observationSession.Current is null && baselineWait.Elapsed < TimeSpan.FromSeconds(15))
-                await RefreshAsync();
-            if (observationSession.Current?.Baseline.Snapshot.WorldId != snapshot.WorldId)
-                throw new InvalidOperationException("Lifecycle checks need their signed initial baseline before any action.");
+            // Fixture setup initializes both serializers in this process; actions keep the normal read deadline.
+            var initialAction = new OwnerReconnectAction(0, null, null, null);
+            var initial = await new OwnerPairingClient(httpClient).SendSignedActionAsync<OwnerReconnectAction, OwnerWorldReconnect>(
+                new Uri(host.Address), host.Authority, "smoke-device", OwnerPairingEndpoints.OwnerReconnect,
+                OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.Reconnect(initialAction),
+                initialAction, signer, CancellationToken.None);
+            if (!observationSession.TryAccept(initial, 0, out var failure))
+                throw new InvalidOperationException($"Lifecycle checks need their signed initial baseline: {failure}");
             selectedAgentId = null;
             selectedBuildingId = null;
             Render(snapshot, []);
