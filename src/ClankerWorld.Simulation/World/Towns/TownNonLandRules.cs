@@ -190,16 +190,8 @@ public static class TownNonLandRules
         IReadOnlyList<TownCaseParty> currentParties, bool validAuthority, bool crediblePriorNotice = false)
     {
         var item = Exact(state, caseId, revision);
-        if (item.Status != "pending" || !validAuthority || item.Judge != judge ||
-            JudgeConflict(judge.AgentId, null, currentParties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal)) ||
-            RequiresNewNotice(CurrentRevision(item), currentParties) || !CanCloseResponses(item, currentParties, tick) ||
-            !ReadCurrent(item, judge.AgentId, tick) || !TownHearingProcedure.Text(reasons) || !TownHearingProcedure.Text(uncertainty) ||
-            result is not ("supported" or "unsupported") || consequence is not ("none" or "explanation" or "warning" or "censure") ||
-            consequence == "censure" && !crediblePriorNotice ||
-            result == "unsupported" && consequence != "none" || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) ||
-            result == "supported" && (currentParties.Any(p => p.RespondingAdultId is null) || !evidenceIds.Any(id =>
-                item.Evidence.Any(e => e.Id == id && SupportsConduct(item, e)))))
-            throw new InvalidOperationException("A finding needs current independent authority, a fair hearing and more than unsupported allegations.");
+        if (FindingRefusal(item, judge, tick, result, consequence, evidenceIds, reasons, uncertainty, currentParties,
+            validAuthority, crediblePriorNotice) is { } refusal) throw new InvalidOperationException(refusal);
         var finding = new TownViolationFinding(NextId(state, "finding"), revision, judge, tick, result, CivilStandard,
             TownHearingProcedure.Ordered(evidenceIds), reasons, uncertainty, consequence, currentParties.ToArray());
         item = TownCaseJudgeRules.CancelContest(item, tick, "case_closed");
@@ -213,15 +205,35 @@ public static class TownNonLandRules
         });
     }
 
+    public static string? FindingRefusal(TownNonLandCase item, TownCaseJudge judge, long tick,
+        string result, string consequence, IReadOnlyList<string> evidenceIds, string reasons, string uncertainty,
+        IReadOnlyList<TownCaseParty> currentParties, bool validAuthority, bool crediblePriorNotice = false, bool validateSubmission = true) =>
+        item.Status != "pending" || !validAuthority || item.Judge != judge ||
+            JudgeConflict(judge.AgentId, null, currentParties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal)) ||
+            RequiresNewNotice(CurrentRevision(item), currentParties) || !CanCloseResponses(item, currentParties, tick) ||
+            !ReadCurrent(item, judge.AgentId, tick) ||
+            result is not ("supported" or "unsupported") || consequence is not ("none" or "explanation" or "warning" or "censure") ||
+            consequence == "censure" && !crediblePriorNotice ||
+            result == "unsupported" && consequence != "none" ||
+            validateSubmission && (!TownHearingProcedure.Text(reasons) || !TownHearingProcedure.Text(uncertainty) ||
+                evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) ||
+                result == "supported" && (currentParties.Any(p => p.RespondingAdultId is null) || !evidenceIds.Any(id =>
+                    item.Evidence.Any(e => e.Id == id && SupportsConduct(item, e)))))
+            ? "A finding needs current independent authority, a fair hearing and more than unsupported allegations." : null;
+
     public static TownNonLandHearingState RequestReopen(TownNonLandHearingState state, string caseId, string actor,
         string kind, IReadOnlyList<string> evidenceIds, string reasons, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
-        if (kind is not ("material_evidence" or "procedural_error") || !TownHearingProcedure.Text(reasons) || evidenceIds.Count == 0 ||
-            evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id))) throw new InvalidOperationException("Reopening needs identified evidence or a demonstrated procedural error.");
+        if (RequestReopenRefusal(item, kind, evidenceIds, reasons) is { } refusal) throw new InvalidOperationException(refusal);
         var request = new TownCaseReopenRequest(NextId(state, "reopen"), actor, tick, kind, TownHearingProcedure.Ordered(evidenceIds), reasons);
         return Replace(state with { Sequence = checked(state.Sequence + 1) }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
+    public static string? RequestReopenRefusal(TownNonLandCase item, string kind, IReadOnlyList<string> evidenceIds, string reasons, bool validateSubmission = true) =>
+        item.Status != "settled" || kind is not ("material_evidence" or "procedural_error") ||
+            validateSubmission && (!TownHearingProcedure.Text(reasons) || evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)))
+                ? "Reopening needs identified evidence or a demonstrated procedural error." : null;
+
     public static bool MaterialNewEvidence(TownNonLandCase item, TownCaseReopenRequest request)
     {
         var finding = item.Findings.LastOrDefault(r => r.Tick <= request.Tick);
@@ -247,12 +259,8 @@ public static class TownNonLandRules
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
         var request = item.ReopenRequests.Single(r => r.Id == requestId && r.Status == "pending");
-        if (!validAuthority || item.Judge != judge || !TownHearingProcedure.Text(assessment) ||
-            !ValidParties(currentParties) || day <= 0 || !TownHearingProcedure.Id(noticeId) || tick < request.Tick ||
-            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number &&
-                r.ReadTick >= request.Tick && r.ReadTick <= tick && r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)) ||
-            groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request) : DemonstratedProceduralError(item, request)))
-            throw new InvalidOperationException("An informed independent judge must establish the reopening grounds.");
+        if (ReopeningRefusal(item, request, judge, groundsEstablished, assessment, currentParties, tick, day, noticeId, validAuthority) is { } refusal)
+            throw new InvalidOperationException(refusal);
         request = request with { Status = groundsEstablished ? "accepted" : "rejected", AssessedBy = judge, AssessedTick = tick, Assessment = assessment };
         item = item with { ReopenRequests = item.ReopenRequests.Select(r => r.Id == requestId ? request : r).ToArray() };
         if (groundsEstablished)
@@ -267,4 +275,13 @@ public static class TownNonLandRules
             item = item with { Judge = null, JudgeHistory = item.JudgeHistory.Append(new(judge, tick, "reopening_rejected")).ToArray() };
         return Replace(state, item);
     }
+    public static string? ReopeningRefusal(TownNonLandCase item, TownCaseReopenRequest request, TownCaseJudge judge,
+        bool groundsEstablished, string assessment, IReadOnlyList<TownCaseParty> currentParties, long tick, int day, string noticeId, bool validAuthority) =>
+        item.Status != "settled" || request.Status != "pending" || !validAuthority || item.Judge != judge || !TownHearingProcedure.Text(assessment) ||
+            !ValidParties(currentParties) || day <= 0 || !TownHearingProcedure.Id(noticeId) || tick < request.Tick ||
+            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number &&
+                r.ReadTick >= request.Tick && r.ReadTick <= tick && r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)) ||
+            groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request) : DemonstratedProceduralError(item, request))
+            ? "An informed independent judge must establish the reopening grounds." : null;
+
 }

@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        NonLandAdjudicationActionPlan nonLandAdjudication => TownSystem.CheckNonLandAdjudication(civicWorld, nonLandAdjudication),
         NonLandJudgeActionPlan nonLandJudge => TownSystem.CheckNonLandJudge(civicWorld, nonLandJudge),
         NonLandEvidenceActionPlan nonLandEvidence => TownSystem.CheckNonLandEvidence(civicWorld, nonLandEvidence),
         NonLandFilingActionPlan nonLandFiling => TownSystem.CheckNonLandFiling(civicWorld, nonLandFiling),
@@ -100,6 +101,8 @@ public sealed partial class WorldRuntime
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is NonLandAdjudicationActionPlan nonLandAdjudication)
+            decision = decision with { ActionPlan = TownSystem.BindNonLandAdjudication(nonLandAdjudication, decision.Admission.CivicNonLandHearing) };
         if (decision.ActionPlan is NonLandEvidenceActionPlan nonLandEvidence)
             decision = decision with { ActionPlan = TownSystem.BindNonLandEvidence(nonLandEvidence, decision.Admission.CivicNonLandHearing) };
         if (decision.ActionPlan is NonLandFilingActionPlan nonLandFiling)
