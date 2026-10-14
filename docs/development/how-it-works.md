@@ -475,6 +475,9 @@ refuses a changed round before the native mayoral vote writer runs.
 Town title-claim proposals retain their offered nearby plot options and bind
 the admitted exact tiles once. The shared native claim validator checks that
 selection before the existing Council and title writers use it.
+Household land responses retain the exact request, plot and terms. Their
+shared check allows other household consents to accumulate while checking
+the actor's personal eligibility before the native consent writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

@@ -241,6 +241,7 @@ internal sealed partial class TownSystem
         var officePlan = originalPlan as GovernmentOfficeActionPlan;
         var mayoralBallotPlan = originalPlan as MayoralBallotActionPlan;
         var landClaimPlan = originalPlan as TownLandClaimActionPlan;
+        var landResponsePlan = originalPlan as HouseholdLandResponseActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -284,6 +285,12 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (HouseholdLandResponseChoice.Decode(selectedId) is { } landResponseChoice)
+        {
+            landResponsePlan ??= PlanHouseholdLandResponse(world, actor, landResponseChoice);
+            if (landResponsePlan is null) return;
+            if (CheckHouseholdLandResponse(world, landResponsePlan).Refusal is { } refusal) { world.RefuseChoice(landResponsePlan, refusal); return; }
         }
         else if (TownLandClaimChoice.Decode(selectedId) is { } claimChoice)
         {
@@ -450,7 +457,10 @@ internal sealed partial class TownSystem
                 case "accept_land_use":
                 case "decline_land_use":
                 case "withdraw_land_use":
-                    state = DecideHouseholdLandUse(world, state, actor, parts[3], parts[2]); break;
+                    if (CheckHouseholdLandResponse(world, landResponsePlan!, town with { Council = state, Government = government }).Refusal is { } landRefusal)
+                    { world.RefuseChoice(landResponsePlan!, landRefusal); return; }
+                    state = DecideHouseholdLandUse(world, state, actor, landResponsePlan!.Request.Id, HouseholdLandResponseChoice.Verb(landResponsePlan.Choice.Kind));
+                    break;
                 case "admission":
                     state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "admission", actor,
                         $"Admit {world.Society.GetAgent(actor).Name} as a Town resident.", "council:" + state.Revision,

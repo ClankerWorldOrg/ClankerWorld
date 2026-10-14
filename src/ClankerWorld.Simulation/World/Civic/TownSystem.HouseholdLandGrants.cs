@@ -109,21 +109,17 @@ internal sealed partial class TownSystem
                     candidates.Add(new(CivicAction(world, town.Id, "request_expansion_land", building.InstanceId, TownLandClaimRules.DescribeTiles(extra)),
                         "Request household use of the extra land needed to expand your House. Council approval and every current adult's acceptance are required. Exact tiles: " +
                         TownLandClaimRules.DescribeTiles(extra) + ".", 190));
-        var history = CivicHistory(town);
-        foreach (var request in householdLandUseRequests.Where(r => r.TownId == town.Id && r.Status == "pending" && history.Knows(actor, "land_use", r.Id)))
+        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id))
         {
             var terms = request.HearingResolutions.Count == 0 ? LandUseTerms(world, request) :
                 "Remaining unheard requested tiles: " + TownLandClaimRules.DescribeTiles(TownLandRightsRules.UnresolvedRequestTiles(request)) +
                 ". Completed hearing decisions remain. A new ordinary grant requires a separate request for its exact plot. ";
-            if (request.RequestedByAgentId == actor)
-                candidates.Add(new(CivicAction(world, town.Id, "withdraw_land_use", request.Id),
-                    "Withdraw your pending household land request. " + terms, 190));
-            if (!world.HouseholdAdults(request.HouseholdId).Contains(actor, StringComparer.Ordinal) || request.Consents.Any(c => c.AgentId == actor)) continue;
-            if (request.HearingResolutions.Count == 0)
-                candidates.Add(new(CivicAction(world, town.Id, "accept_land_use", request.Id),
-                    "Personally accept the requested use right for your household. Council approval and every current adult's acceptance are also required. " + terms, 165));
-            candidates.Add(new(CivicAction(world, town.Id, "decline_land_use", request.Id),
-                "Personally decline the requested use right for your household. " + terms, 166));
+            OfferHouseholdLandResponse(world, candidates, actor, town, request, HouseholdLandResponseKind.Withdraw,
+                "Withdraw your pending household land request. " + terms, 190);
+            OfferHouseholdLandResponse(world, candidates, actor, town, request, HouseholdLandResponseKind.Accept,
+                "Personally accept the requested use right for your household. Council approval and every current adult's acceptance are also required. " + terms, 165);
+            OfferHouseholdLandResponse(world, candidates, actor, town, request, HouseholdLandResponseKind.Decline,
+                "Personally decline the requested use right for your household. " + terms, 166);
         }
     }
 

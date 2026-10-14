@@ -31,9 +31,21 @@ public sealed partial class HouseholdLandGrantTests
         await Until(world, () => world.Towns[0].Council!.Proposals[0].Status == "passed");
         Assert.Equal("pending", world.HouseholdLandUseRequests[0].Status);
         Assert.Empty(world.HouseholdLandUseRequests[0].Consents);
+        var responsePlans = new List<HouseholdLandResponseActionPlan>();
+        void Capture(WorldStepResult result)
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is HouseholdLandResponseActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<HouseholdLandResponseActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, HouseholdLandResponseChoice.Decode(plan.CandidateId));
+                Assert.Equal(request.Id, plan.Request.Id);
+                Assert.Equal(request.Tiles, plan.Request.Tiles);
+                responsePlans.Add(plan);
+            }
+        }
         choices.Acceptors.Add(adults[0]);
         Refresh(world, adults);
-        await Until(world, () => world.HouseholdLandUseRequests[0].Consents.Count == 1);
+        await Until(world, () => world.HouseholdLandUseRequests[0].Consents.Count == 1, Capture);
         Assert.Equal("pending", world.HouseholdLandUseRequests[0].Status);
         Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
         Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().HouseholdLandUseRequests);
@@ -52,11 +64,13 @@ public sealed partial class HouseholdLandGrantTests
             var before = WorldRuntimeCodec.Encode(world.ExportState());
             Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-            await world.AdvanceOneTickAsync();
+            Capture(await world.AdvanceOneTickAsync());
             await reloaded.AdvanceOneTickAsync();
         }
         var granted = world.HouseholdLandUseRequests[0];
         Assert.Equal("granted", granted.Status);
+        Assert.Equal(2, responsePlans.Count);
+        Assert.All(responsePlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.Equal(adults, granted.GrantAdults);
         var right = Assert.Single(world.HouseholdLandUseRights, r => r.Id == HouseholdLandGrantRules.RightId(request.Id));
         Assert.Equal(request.Tiles, right.Tiles);
@@ -311,9 +325,13 @@ public sealed partial class HouseholdLandGrantTests
                 "owner:test", actor, OwnerInstructionKind.Suggestion, "Consider the pending land request."));
     }
 
-    private static async Task Until(WorldRuntime world, Func<bool> reached)
+    private static async Task Until(WorldRuntime world, Func<bool> reached, Action<WorldStepResult>? observe = null)
     {
-        for (var tick = 0; tick < 80 && !reached(); tick++) await world.AdvanceOneTickAsync();
+        for (var tick = 0; tick < 80 && !reached(); tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            observe?.Invoke(result);
+        }
         Assert.True(reached());
     }
 
