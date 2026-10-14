@@ -28,10 +28,10 @@ public sealed partial class WorldRuntime
             MovingCareGroup(actor).ToArray(), household is null ? [] : PlanDepartureAllowance(actor, household));
     }
 
-    private ActionCheck CheckDepartureActionPlan(DepartureActionPlan plan)
+    private ActionCheck CheckDepartureActionPlan(DepartureActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? HouseholdCommunityCapabilities);
         if (!capability.Allowed) return capability;
         if (society.Checkpoint.GetAgent(plan.Actor).HouseholdId != plan.HouseholdId ||
             !MovingCareGroup(plan.Actor).SequenceEqual(plan.CareGroup, StringComparer.Ordinal) ||
@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyDepartureActionPlan(DepartureActionPlan plan)
     {
-        if (CheckDepartureActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteDepartureAction(plan);
     }
 }
