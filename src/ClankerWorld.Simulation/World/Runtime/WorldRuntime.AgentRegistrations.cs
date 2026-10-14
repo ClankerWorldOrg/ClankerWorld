@@ -58,11 +58,7 @@ public sealed partial class WorldRuntime
         return true;
     }),
         RegisterFieldActions(),
-        new(ActionPhase.Ordinary, "child_", ["child_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyChildPlan(action.Plan as ChildActionPlan ?? runtime.PlanChildCandidate(action.AgentId, action.CandidateId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "child_", ["child_"], [], Definition: ChildDefinition),
         new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], static (runtime, action) =>
     {
         runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
