@@ -257,7 +257,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [GatherBuildingMaterialPrefix], [], static (runtime, action) =>
     {
-        runtime.GatherBuildingMaterial(action.AgentId, action.State, action.CandidateId[GatherBuildingMaterialPrefix.Length..]);
+        runtime.GatherBuildingMaterial(action.AgentId, action.State, action.CandidateId[GatherBuildingMaterialPrefix.Length..], action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpandBuildingPrefix], [], static (runtime, action) =>

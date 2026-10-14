@@ -123,6 +123,10 @@ and production knife. A running project keeps that selection; a restored
 project binds its next step once from current state. Native job creation
 reserves the selected lot quantities with the existing reservation identities.
 Inputs acquired later are selected once before that reservation step.
+Household construction preparation retains the selected building need, source,
+tool, harvest quantity and household return destination. The same check
+validates the load and route before the native harvest; a changed tree seed
+yield refuses that stale selection.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
