@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string GatherBlacksmithInputPrefix = SmithGatherChoice.InputPrefix;
-    private const string CollectToolPrefix = "collect_tool:";
+    private const string CollectToolPrefix = ToolCollectionChoice.Prefix;
 
     private bool MayCollectToolFamily(string actor, ToolFamily family) =>
         family is not (ToolFamily.Hoe or ToolFamily.Sickle) ||
@@ -17,56 +17,18 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor)) return;
         AddToolRepairCandidates(candidates, actor);
         if (FreeCarryCapacity(actor) <= 0) return;
-        var inventory = society.Checkpoint.Inventory;
-        var pendingHarvest = HouseholdFor(actor) is { } householdId &&
-            BlacksmithForHousehold(householdId) is { } smith &&
-            BlacksmithHarvestToPrepare(householdId, smith.InstanceId, actor) is { } missing
-            ? ProjectMaterialHarvest(actor, missing.ItemKind, missing.Source) : null;
-        var pendingToolFamily = pendingHarvest?.ToolLotId is { } requiredToolId
-            ? ToolProgressionRules.Find(inventory.GetLot(requiredToolId).ItemKind)?.Family : null;
-        foreach (var family in ToolProgressionRules.All.GroupBy(tool => tool.Family)
-                     .OrderBy(group => group.Key))
+        var pendingHarvest = PendingSmithHarvest(actor);
+        foreach (var family in ToolProgressionRules.All.GroupBy(tool => tool.Family).OrderBy(group => group.Key))
         {
-            // Field tools are useful only to a household that can work its fields.
             if (!MayCollectToolFamily(actor, family.Key)) continue;
-            var bestShared = family.Where(tool => SharedItem(tool.ItemKind, actor) is { ContainerLotId: null })
-                .OrderByDescending(tool => tool.Tier)
-                .ThenBy(tool => tool.ItemKind, StringComparer.Ordinal)
-                .FirstOrDefault();
-            if (bestShared is null) continue;
-            // Leave room for the pending whole harvest. Otherwise a spare tool
-            // set down for that work would be immediately collected again.
-            if (pendingHarvest is { } harvest && bestShared.Family != pendingToolFamily &&
-                FreeCarryCapacity(actor) - 1 < checked(harvest.Quantity + harvest.TreeSeedQuantity))
-                continue;
-            if (pendingHarvest is { } upgradedHarvest && bestShared.Family == pendingToolFamily)
-            {
-                var roomMissing = checked(bestShared.GatherQuantity + upgradedHarvest.TreeSeedQuantity) -
-                    (FreeCarryCapacity(actor) - 1);
-                if (roomMissing > 0)
-                {
-                    // The old tool becomes spare after the upgrade. The new
-                    // shared tool is not carried yet and cannot be set down.
-                    var cargo = SpareCargoForFood(actor, roomMissing);
-                    if (cargo.Count == 0 || SpareCargoDestination(actor, agents[actor],
-                            cargo.Sum(move => move.PhysicalQuantity)) is null)
-                        continue;
-                }
-            }
-
-            var carried = ToolProgressionRules.BestUsableTool(inventory, actor, family.Key);
-            if (carried is not null && ToolProgressionRules.Find(carried.ItemKind)!.Tier >= bestShared.Tier)
-                continue;
-
-            var candidateId = bestShared.ItemKind switch
-            {
-                "wooden_axe" => "collect_wooden_axe",
-                "wooden_pickaxe" => "collect_wooden_pickaxe",
-                "wooden_hoe" => "collect_wooden_hoe",
-                _ => CollectToolPrefix + bestShared.ItemKind,
-            };
-            candidates.Add(new CognitionCandidate(candidateId,
-                $"Collect an accessible {bestShared.ItemKind.Replace('_', ' ')} for work.", 18));
+            var best = family.Select(tool => (Definition: tool, Stock: SharedItem(tool.ItemKind, actor)))
+                .Where(item => item.Stock is { ContainerLotId: null }).OrderByDescending(item => item.Definition.Tier)
+                .ThenBy(item => item.Definition.ItemKind, StringComparer.Ordinal).FirstOrDefault();
+            if (best.Stock is null || PlanToolCollection(actor, best.Definition.ItemKind, best.Stock, pendingHarvest) is not { } plan ||
+                !CheckActionPlan(plan).Allowed) continue;
+            candidates.Add(new CognitionCandidate(plan.CandidateId,
+                $"Collect an accessible {best.Definition.ItemKind.Replace('_', ' ')} for work.", 18)
+            { ActionPlan = plan });
         }
     }
 

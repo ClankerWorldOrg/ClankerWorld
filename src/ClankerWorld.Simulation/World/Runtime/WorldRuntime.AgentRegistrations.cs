@@ -178,16 +178,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "collect_wooden_axe", [], ["collect_wooden_axe", "collect_wooden_pickaxe", "collect_wooden_hoe"], static (runtime, action) =>
     {
-        var kind = action.CandidateId == "collect_wooden_axe" ? "wooden_axe" : action.CandidateId == "collect_wooden_hoe" ? FarmFieldRules.Hoe : "wooden_pickaxe";
-        if (runtime.MayCollectToolFamily(action.AgentId, ToolProgressionRules.Find(kind)!.Family))
-            runtime.CollectEquipment(action.AgentId, action.State, kind);
+        runtime.ApplyToolCollectionPlan(action.Plan as ToolCollectionActionPlan ?? runtime.PlanToolCollectionCandidate(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "CollectToolPrefix", [CollectToolPrefix], [], static (runtime, action) =>
     {
-        var kind = action.CandidateId[CollectToolPrefix.Length..];
-        if (ToolProgressionRules.Find(kind)is { } tool && runtime.MayCollectToolFamily(action.AgentId, tool.Family))
-            runtime.CollectEquipment(action.AgentId, action.State, kind);
+        runtime.ApplyToolCollectionPlan(action.Plan as ToolCollectionActionPlan ?? runtime.PlanToolCollectionCandidate(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], static (runtime, action) =>

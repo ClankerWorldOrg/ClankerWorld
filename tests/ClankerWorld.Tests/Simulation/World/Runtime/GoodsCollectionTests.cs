@@ -111,11 +111,20 @@ public sealed class GoodsCollectionTests
         Assert.Equal(!reserved, world.RecheckGoods(request, "collect-household-axe") is not null);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
+        var samePlan = false;
         for (var tick = 0; tick < 4; tick++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            samePlan |= step.Decisions.Any(decision => decision.AgentId == actor &&
+                chooser.Plan is not null && ReferenceEquals(decision.ActionPlan, chooser.Plan));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        }
+        if (!reserved)
+        {
+            Assert.True(samePlan);
+            Assert.Equal("collect-household-axe", Assert.IsType<ToolCollectionActionPlan>(chooser.Plan).Pickup.StockId);
         }
         var axe = world.Society.Inventory.GetLot("collect-household-axe");
         Assert.Equal((home, 1), (axe.OwnerId, axe.Quantity));
@@ -125,6 +134,82 @@ public sealed class GoodsCollectionTests
         var final = WorldRuntimeCodec.Encode(world.ExportState());
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(final));
         Assert.Equal(final, WorldRuntimeCodec.Encode(loaded.ExportState()));
+    }
+
+    [Fact]
+    public async Task AnEarlierToolPickupRefusesTheLaterActorsOriginalStock()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("goods-collection-tool", _ => new Choice());
+        Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
+        var state = generated.ExportState();
+        var household = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith").HouseholdId!;
+        var actors = state.Society.Society.GetHousehold(household).MemberIds.Order(StringComparer.Ordinal).ToArray();
+        var house = PaidMarketWorld.HouseOf(state, household);
+        var inventory = state.Society.Society.Inventory with
+        {
+            Lots = state.Society.Society.Inventory.Lots.Where(lot => !actors.Contains(lot.OwnerId, StringComparer.Ordinal) &&
+                (lot.OwnerId != household || ToolProgressionRules.Find(lot.ItemKind) is not { Family: ToolFamily.Pickaxe })).ToArray(),
+        };
+        inventory = InventoryAuthority.AddLot(inventory, "collect-competing-pick", "wooden_pickaxe", household, 1, storageBuildingId: house.InstanceId);
+        state = Prepared(PaidMarketWorld.WithInventory(state, inventory), actors[0], house.Position) with
+        {
+            Agents = state.Agents.Select(person => person with
+            {
+                Position = actors.Contains(person.AgentId, StringComparer.Ordinal) ? house.Position : person.Position,
+                Equipment = null,
+                LastDecisionContext = null,
+                Project = null,
+                FullnessBasisPoints = 9_500,
+            }).ToArray(),
+        };
+        var choices = actors.ToDictionary(actor => actor, _ => new Choice("collect_wooden_pickaxe"), StringComparer.Ordinal);
+        using var world = WorldRuntime.Restore(state, actor => choices.TryGetValue(actor, out var provider) ? provider : new Choice());
+        for (var tick = 0; tick < 8 && !world.ExportState().Events.Any(item => item.Kind == "choice_refused"); tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var first = Assert.IsType<ToolCollectionActionPlan>(choices[actors[0]].Plan);
+        var later = Assert.IsType<ToolCollectionActionPlan>(choices[actors[1]].Plan);
+        Assert.Equal("collect-competing-pick", first.Pickup.StockId);
+        Assert.Equal(first.Pickup.StockId, later.Pickup.StockId);
+        Assert.Equal(actors[0], world.Society.Inventory.GetLot(first.Pickup.StockId).CarrierId);
+        Assert.Single(world.ExportState().Events, item => item.Kind == "equipment_collected");
+        Assert.Single(world.ExportState().Events, item => item.Kind == "choice_refused" &&
+            item.Detail.StartsWith(world.Society.GetAgent(actors[1]).Name + " didn't collect the wooden pickaxe:", StringComparison.Ordinal));
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
+    }
+
+    [Fact]
+    public async Task ToolCollectionKeepsItsSelectedStockWhenAnotherToolAppearsAndRefusesANewClaim()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("goods-collection-tool", _ => new Choice());
+        Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
+        var state = generated.ExportState();
+        var actor = state.Agents[0].AgentId;
+        var household = PaidMarketWorld.HouseholdOf(state, actor);
+        var house = PaidMarketWorld.HouseOf(state, household);
+        var inventory = state.Society.Society.Inventory with
+        {
+            Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != actor &&
+                (lot.OwnerId != household || ToolProgressionRules.Find(lot.ItemKind) is not { Family: ToolFamily.Axe })).ToArray(),
+        };
+        inventory = InventoryAuthority.AddLot(inventory, "collect-selected-axe", "wooden_axe", household, 1, storageBuildingId: house.InstanceId);
+        state = Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position);
+        var choices = new Choice("collect_wooden_axe", choose: false);
+        using var world = WorldRuntime.Restore(state, id => id == actor ? choices : new Choice());
+        for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<ToolCollectionActionPlan>(choices.Plan);
+        Assert.Equal("collect-selected-axe", plan.Pickup.StockId);
+        var checkpoint = world.ExportState();
+        inventory = InventoryAuthority.AddLot(checkpoint.Society.Society.Inventory, "a-new-shared-axe", "wooden_axe", household, 1,
+            storageBuildingId: house.InstanceId);
+        using var added = WorldRuntime.Restore(PaidMarketWorld.WithInventory(checkpoint, inventory));
+        Assert.True(added.CheckActionPlan(plan).Allowed);
+        inventory = InventoryAuthority.Reserve(inventory, "collect-selected-claim", household, plan.Pickup.StockId, 1, "other_work", long.MaxValue);
+        using var claimed = WorldRuntime.Restore(PaidMarketWorld.WithInventory(checkpoint, inventory));
+        Assert.Equal(ActionRefusalReason.StockUnavailable, claimed.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal("collect-selected-axe", plan.Pickup.StockId);
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(claimed.ExportState())));
+        Assert.Equal(WorldRuntimeCodec.Encode(claimed.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
     }
 
     private static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
@@ -142,14 +227,17 @@ public sealed class GoodsCollectionTests
         RoutineHelper = RoutineHelperSettings.Off,
     };
 
-    private sealed class Choice(string wanted = "safe_idle") : IDecisionProvider
+    private sealed class Choice(string wanted = "safe_idle", bool choose = true) : IDecisionProvider
     {
+        public ActionPlan? Plan { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted)?.Id ?? "safe_idle";
+            var candidate = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted);
+            if (candidate is not null) Plan = candidate.ActionPlan;
+            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
                 request.Observation.AgentId, Kind, request.ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
