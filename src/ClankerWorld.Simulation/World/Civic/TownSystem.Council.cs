@@ -242,6 +242,7 @@ internal sealed partial class TownSystem
         var policyPlan = originalPlan as TownPolicyActionPlan;
         var governmentProposalPlan = originalPlan as GovernmentProposalActionPlan;
         var officePlan = originalPlan as GovernmentOfficeActionPlan;
+        var mayoralBallotPlan = originalPlan as MayoralBallotActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -285,6 +286,12 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (MayoralBallotChoice.Decode(selectedId) is { } mayorChoice)
+        {
+            mayoralBallotPlan ??= PlanMayoralBallot(world, actor, mayorChoice);
+            if (mayoralBallotPlan is null) return;
+            if (CheckMayoralBallot(world, mayoralBallotPlan).Refusal is { } refusal) { world.RefuseChoice(mayoralBallotPlan, refusal); return; }
         }
         else if (GovernmentOfficeChoice.Decode(selectedId) is { } officeChoice)
         {
@@ -470,7 +477,9 @@ internal sealed partial class TownSystem
                     };
                     break;
                 case "mayor_vote":
-                    (state, government) = ApplyTownGovernmentAction(world, town, actor, parts[2], parts[3], parts[4], state, government);
+                    if (CheckMayoralBallot(world, mayoralBallotPlan!, town with { Council = state, Government = government }).Refusal is { } mayorRefusal)
+                    { world.RefuseChoice(mayoralBallotPlan!, mayorRefusal); return; }
+                    government = TownGovernmentRules.VoteMayor(government, mayoralBallotPlan!.Choice.RoundToken, actor, mayoralBallotPlan.Candidate, world.WorldTick);
                     break;
                 case "single": state = TownCouncilRules.VoteElection(state, ballotPlan!.ElectionId, actor, ballotPlan.Selected!, world.WorldTick); break;
             }
