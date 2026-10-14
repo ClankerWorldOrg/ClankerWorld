@@ -439,8 +439,9 @@ Tool commission continuation retains the request, worker, project, Smith and
 recipe. Shared checks bind that agreement before the existing project writer
 continues its native production step.
 Finished-tool collection retains its request and Smith; an on-site quote also
-retains the exact finished output, payment and quantities. The same selection
-is checked before the native shop writer opens its exchange.
+retains the exact finished output, payment and quantities. Shared shop checks
+recheck those lots' current availability and stock promises before the native
+writer opens the exchange, allowing ordinary processing without choosing other stock.
 Civic notice-place visits retain the Town, public destination and route. Their
 shared check covers residents and eligible visitors, including children who
 actually know a non-land report or case, before the native civic action or its
