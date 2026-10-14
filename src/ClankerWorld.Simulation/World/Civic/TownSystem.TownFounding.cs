@@ -85,7 +85,7 @@ internal sealed partial class TownSystem
         };
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_founded", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Agents[actor].Position);
+        world.AppendEvent(new TownFoundedEventPayload(actor, town.Id, previous ?? "none", group.Length, false), world.Agents[actor].Position);
         if (world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId))
             .OrderBy(building => building.PlacedTick).ThenBy(building => building.InstanceId, StringComparer.Ordinal)
             .FirstOrDefault() is { } firstBuilding)

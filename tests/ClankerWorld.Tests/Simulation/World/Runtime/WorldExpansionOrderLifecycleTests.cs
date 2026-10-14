@@ -278,7 +278,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Equal(job.DefinitionId, Job(world, job.JobId).DefinitionId);
         Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.InstanceId == House);
         Assert.Single(world.ExportState().Events, item => item.Kind == "building_expanded");
-        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
     }
 
     private static WorldRuntimeState HungryWithMeal(WorldRuntimeState state, string actor) =>

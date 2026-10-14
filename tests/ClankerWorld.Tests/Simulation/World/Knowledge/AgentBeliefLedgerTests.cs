@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -15,7 +16,7 @@ public sealed class AgentBeliefLedgerTests
         using var world = new WorldRuntime("belief-correction");
         var before = world.ExportState();
         var rumor = new SocietyAgentBelief(
-            "belief:lost-tool:rumor",
+            Identity.Parse("belief:lost-tool:rumor"),
             "founder-scout",
             "Mira moved the tool before the storm.",
             SocietyBeliefProvenance.Hearsay,
@@ -30,7 +31,7 @@ public sealed class AgentBeliefLedgerTests
             "founder-scout",
             rumor.Id,
             new SocietyAgentBelief(
-                "belief:lost-tool:seen",
+                Identity.Parse("belief:lost-tool:seen"),
                 "founder-scout",
                 "I saw the tool beside the storehouse.",
                 SocietyBeliefProvenance.Firsthand,
@@ -77,11 +78,11 @@ public sealed class AgentBeliefLedgerTests
         var transitions = new List<WorldBeliefTransition>();
         world.AgentBeliefChanged += transitions.Add;
         var scoutBelief = world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:scout-secret", "founder-scout", secretStatement,
+            Identity.Parse("belief:scout-secret"), "founder-scout", secretStatement,
             SocietyBeliefProvenance.Hearsay, 4_200, 0,
             SourceAgentId: "founder-mira"));
         world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:mira-secret", "founder-mira", "I hid the location from Scout.",
+            Identity.Parse("belief:mira-secret"), "founder-mira", "I hid the location from Scout.",
             SocietyBeliefProvenance.Firsthand, 10_000, 0));
 
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
@@ -115,22 +116,22 @@ public sealed class AgentBeliefLedgerTests
     {
         using var world = new WorldRuntime("belief-validation");
         Assert.Throws<InvalidDataException>(() => world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:unattributed", "founder-scout", "Someone moved the tool.",
+            Identity.Parse("belief:unattributed"), "founder-scout", "Someone moved the tool.",
             SocietyBeliefProvenance.Hearsay, 5_000, 0)));
         Assert.Throws<InvalidDataException>(() => world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:unknown-source", "founder-scout", "Someone moved the tool.",
+            Identity.Parse("belief:unknown-source"), "founder-scout", "Someone moved the tool.",
             SocietyBeliefProvenance.Inference, 5_000, 0, SourceEventId: 999)));
         Assert.Throws<InvalidDataException>(() => world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:private medical detail", "founder-scout", "A private detail.",
+            Identity.Parse("belief:private medical detail"), "founder-scout", "A private detail.",
             SocietyBeliefProvenance.Inference, 5_000, 0)));
         Assert.Empty(world.Society.Beliefs ?? []);
 
         var belief = world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:owned", "founder-scout", "The tool is missing.",
+            Identity.Parse("belief:owned"), "founder-scout", "The tool is missing.",
             SocietyBeliefProvenance.Inference, 4_000, 0));
         Assert.Throws<InvalidOperationException>(() => world.CorrectAgentBelief(
             "founder-mira", belief.Id,
-            new SocietyAgentBelief("belief:stolen", "founder-mira", "Scout moved the tool.",
+            new SocietyAgentBelief(Identity.Parse("belief:stolen"), "founder-mira", "Scout moved the tool.",
                 SocietyBeliefProvenance.Hearsay, 8_000, 0, SourceAgentId: "founder-rowan")));
     }
 
@@ -140,16 +141,16 @@ public sealed class AgentBeliefLedgerTests
         using var world = new WorldRuntime("shared-source-turn-beliefs");
         const string sourceTurnId = "conversation:test:turn:1";
         var scoutBelief = world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:scout-heard-turn", "founder-scout", "Mira says the trail is clear.",
+            Identity.Parse("belief:scout-heard-turn"), "founder-scout", "Mira says the trail is clear.",
             SocietyBeliefProvenance.Hearsay, 5_000, 0,
             SourceAgentId: "founder-mira", SourceTurnId: sourceTurnId));
         var rowanBelief = world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:rowan-heard-turn", "founder-rowan", "Mira says the trail is clear.",
+            Identity.Parse("belief:rowan-heard-turn"), "founder-rowan", "Mira says the trail is clear.",
             SocietyBeliefProvenance.Hearsay, 5_000, 0,
             SourceAgentId: "founder-mira", SourceTurnId: sourceTurnId));
         var correction = world.CorrectAgentBelief("founder-scout", scoutBelief.Id,
             new SocietyAgentBelief(
-                "belief:scout-corrected-turn", "founder-scout", "Mira said the north trail is clear.",
+                Identity.Parse("belief:scout-corrected-turn"), "founder-scout", "Mira said the north trail is clear.",
                 SocietyBeliefProvenance.Hearsay, 7_500, 0,
                 SourceAgentId: "founder-mira", SourceTurnId: sourceTurnId));
 
@@ -167,7 +168,7 @@ public sealed class AgentBeliefLedgerTests
         Assert.Contains(beliefs, item => item.OwnerId == "founder-rowan" &&
             item.SourceTurnId == sourceTurnId && item.Id == rowanBelief.Id);
         Assert.Throws<InvalidDataException>(() => world.RecordAgentBelief(new SocietyAgentBelief(
-            "belief:unlinked-scout-duplicate", "founder-scout", "A duplicate report of that line.",
+            Identity.Parse("belief:unlinked-scout-duplicate"), "founder-scout", "A duplicate report of that line.",
             SocietyBeliefProvenance.Hearsay, 5_000, 0,
             SourceAgentId: "founder-mira", SourceTurnId: sourceTurnId)));
     }

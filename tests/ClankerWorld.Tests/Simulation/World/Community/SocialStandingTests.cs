@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -19,7 +20,7 @@ public sealed class SocialStandingTests
         var subject = state.Agents[1].AgentId;
         using var society = SocietyRuntime.Restore(state.Society);
         society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(
-            $"project-gratitude:{owner}:{subject}", owner, subject, "Prior material help.", "public", checkpoint.WorldTick)));
+            Identity.Create($"project-gratitude:{owner}:{subject}"), owner, subject, "Prior material help.", "public", checkpoint.WorldTick)));
         state = state with { Society = society.ExportState() };
         using var world = WorldRuntime.Restore(state);
         var checkpointBeforeProjection = WorldRuntimeCodec.Encode(world.ExportState());
