@@ -183,6 +183,13 @@ resource amount and whole-vessel or partial-load transfer form. Its shared check
 revalidates that load, the trip, capacity and any milling deficit; it never selects
 replacement stock or a different store. Existing delivery-order forwarders remain.
 
+Workstation supplies use `WorkstationSupplyActionPlan` for carried inputs, stock
+pickups and source gathering. One codec retains the existing supply choice ID.
+Each plan binds the workstation and stock family or resource, harvesting tool
+and yield. Gathering applies the captured harvest through the common material
+commit path; it does not select another tool or source. `CarriedInputs` validates
+physical custody and the named borrowed-stock authorization.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach

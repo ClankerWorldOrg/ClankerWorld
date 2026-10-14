@@ -1,0 +1,1 @@
+- Workstation supply choices keep their chosen building, goods, source and gathering tool. The Event Log explains when that supply plan is no longer possible.

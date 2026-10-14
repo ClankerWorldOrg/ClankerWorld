@@ -222,7 +222,8 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "SupplyWorkstationPrefix", [SupplyWorkstationPrefix], [], static (runtime, action) =>
     {
-        runtime.SupplyWorkstation(action.AgentId, action.State, action.CandidateId[SupplyWorkstationPrefix.Length..]);
+        runtime.ApplyWorkstationSupplyPlan(action.Plan as WorkstationSupplyActionPlan ??
+            runtime.PlanWorkstationSupplyCandidate(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [ReturnEmptyVesselPrefix], [], static (runtime, action) =>
