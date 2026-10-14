@@ -24,9 +24,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
     "person.FullnessBasisPoints \u003E= 6_500"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs": [
-    "world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
@@ -127,9 +124,6 @@
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs": [
     "FindUnoccupiedRoute(actor, position, building.Position, ResourceInteractionRange)"
-  ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WarehouseStock.cs": [
-    "FindUnoccupiedRoute(actor, state.Position, warehouse.Position, 0)"
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WorkstationSupply.cs": [
     "FindUnoccupiedRoute(actor, position, building.Position, 0)"

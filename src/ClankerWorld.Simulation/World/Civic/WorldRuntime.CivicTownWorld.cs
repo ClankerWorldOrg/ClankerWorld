@@ -99,6 +99,7 @@ public sealed partial class WorldRuntime
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
+        public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
         public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);
         public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);

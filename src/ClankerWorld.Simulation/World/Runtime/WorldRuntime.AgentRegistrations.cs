@@ -135,12 +135,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "store_town_resources", [], ["store_town_resources"], static (runtime, action) =>
     {
-        runtime.StoreTownResources(action.AgentId, action.State);
+        runtime.ApplyTownStockPlan(action.Plan as TownStockActionPlan ?? runtime.PlanWarehouseSurplus(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], static (runtime, action) =>
     {
-        runtime.SalvageTownStock(action.AgentId, action.CandidateId);
+        runtime.ApplyTownStockPlan(action.Plan as TownStockActionPlan ?? runtime.townSystem.PlanTownSalvage(runtime.civicWorld, action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_farm_grain", [], ["haul_farm_grain"], static (runtime, action) =>

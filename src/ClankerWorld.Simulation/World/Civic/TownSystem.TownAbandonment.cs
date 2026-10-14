@@ -38,54 +38,19 @@ internal sealed partial class TownSystem
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);
 
-    internal IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(ITownWorld world, string actor)
-    {
-        if (!world.Agents.TryGetValue(actor, out var person) || !world.ReadyForBriefInteraction(actor) ||
-            world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant)
-            yield break;
-        var abandoned = towns.Where(town => town.IsAbandoned).ToDictionary(town => town.Id, StringComparer.Ordinal);
-        if (abandoned.Count == 0) yield break;
-        var room = world.FreeCarryCapacity(actor);
-        foreach (var lot in world.Society.Inventory.Lots.OrderBy(item => item.Id, StringComparer.Ordinal))
-        {
-            if (!abandoned.TryGetValue(lot.OwnerId, out var town) || lot.CarrierId is not null ||
-                lot.ContainerLotId is not null || lot.DeliveryBuildingId is not null || world.PhysicalUnreservedQuantity(lot) <= 0)
-                continue;
-            // Town ownership never opens a private building or supplies a location for missing goods.
-            if (lot.GroundPosition is null && (lot.StorageBuildingId is not { } storage ||
-                !world.WarehousesForTown(town.Id).Any(building => building.InstanceId == storage && building.HouseholdId is null)))
-                continue;
-            var range = lot.GroundPosition is not null ? WorldRuntime.CivicSharedRules.ResourceInteractionRange : 0;
-            if (!world.IsWithinInteractionRange(person.Position, world.HouseholdStockPosition(lot), range)) continue;
-            var cart = lot.ItemKind == InventoryContainerRules.Handcart;
-            var quantity = InventoryContainerRules.IsContainer(lot.ItemKind)
-                ? !WorldRuntime.CivicSharedRules.HasActiveContainerReservation(world.Society.Inventory, lot.Id) && (cart || world.VesselFits(lot, room)) ? 1 : 0
-                : Math.Min(world.PhysicalUnreservedQuantity(lot), room);
-            if (quantity > 0) yield return (town, lot, quantity);
-        }
-    }
+    internal IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(ITownWorld world, string actor) =>
+        PlanTownSalvages(world, actor).Select(plan =>
+            (towns.Single(town => town.Id == plan.Choice.TownId), world.Society.Inventory.GetLot(plan.Choice.StockId), plan.Quantity));
 
     internal void AddTownSalvageCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor)
     {
-        foreach (var (town, lot, quantity) in AbandonedStockForPickup(world, actor))
-            candidates.Add(new(TownSalvageId(town.Id, lot.Id),
-                $"Salvage {quantity} {lot.ItemKind.Replace('_', ' ')} from abandoned {town.Name} here. Only unreserved communal goods move; this grants no Town membership or private access." +
-                (lot.ItemKind == InventoryContainerRules.Handcart ? " The handcart and its cargo stay on the ground until you pull it." : string.Empty), 120));
-    }
-
-    internal void SalvageTownStock(ITownWorld world, string actor, string candidate)
-    {
-        // Exact physical stock, current abandonment, reservations and capacity all matter at pickup.
-        foreach (var (town, lot, quantity) in AbandonedStockForPickup(world, actor))
+        foreach (var plan in PlanTownSalvages(world, actor))
         {
-            if (TownSalvageId(town.Id, lot.Id) != candidate) continue;
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                WorldRuntime.CivicSharedRules.TownSalvageOperationId(world.WorldTick, actor, candidate),
-                town.Id, actor, lot.Id, quantity,
-                "town_stock_salvaged", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-            world.AppendEvent(new TownStockSalvagedEventPayload(actor, town.Id, lot.ItemKind, quantity), world.Agents[actor].Position);
-            return;
+            var town = towns.Single(town => town.Id == plan.Choice.TownId);
+            candidates.Add(new(plan.CandidateId,
+                $"Salvage {plan.Quantity} {plan.ItemKind.Replace('_', ' ')} from abandoned {town.Name} here. Only unreserved communal goods move; this grants no Town membership or private access." +
+                (plan.ItemKind == InventoryContainerRules.Handcart ? " The handcart and its cargo stay on the ground until you pull it." : string.Empty), 120)
+            { ActionPlan = plan });
         }
     }
-
 }

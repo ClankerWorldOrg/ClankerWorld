@@ -7,6 +7,7 @@ public sealed partial class WorldRuntime
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
         ChildActionPlan child => CheckChildPlan(child),
+        TownStockActionPlan town => CheckTownStockPlan(town),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 

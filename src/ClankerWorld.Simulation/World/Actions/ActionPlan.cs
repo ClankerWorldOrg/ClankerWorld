@@ -6,7 +6,7 @@ public abstract record ActionPlan(string Actor, string CandidateId)
     public abstract string Activity { get; }
 }
 
-public enum ActionRefusalReason { ActorUnavailable, LifeStage, Boat, UrgentNeed, ActiveOrder, TargetUnavailable, StockUnavailable, Capacity, OutOfReach }
+public enum ActionRefusalReason { ActorUnavailable, LifeStage, Boat, Mounted, UrgentNeed, ActiveOrder, TargetUnavailable, StockUnavailable, Capacity, OutOfReach }
 
 public sealed record ActionRefusal(ActionRefusalReason Reason, string Explanation);
 
