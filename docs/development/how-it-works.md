@@ -232,6 +232,12 @@ forwarders choose a fresh step and share that commit. Planned and legacy
 collection use one exact equipment pickup operation, preserving the distinction
 between borrowing tools and transferring repair materials into personal custody.
 
+Rare mining uses `RareMiningActionPlan` to keep the selected deposit, pickaxe
+and full yield. Its declared capability policy preserves urgent-food, warmth
+and ongoing-project gates. The household trial quota continues to count all
+physical owned rare material, including promised or unusable units, through
+named goods accounting; the check does not pick a new deposit or tool.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach

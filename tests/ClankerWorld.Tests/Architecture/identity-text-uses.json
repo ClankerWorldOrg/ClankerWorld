@@ -435,7 +435,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs|length|town.Name.Length \u003E 120": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.cs|id|\u0022generated:\u0022 \u002B Convert.ToHexStringLower(SHA256.HashData(identity))": 1,
   "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs|id|$\u0022repair-tool:{WorldTick}:{actor}:{repairId}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs|id|RareMiningPrefix \u002B itemKind": 1,
   "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs|id|\u0022household-use:grant:\u0022 \u002B Digest(requestId)": 1,
   "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs|id|\u0022land_use:\u0022 \u002B Digest(request.TownId \u002B \u0022|\u0022 \u002B request.HouseholdId \u002B \u0022|\u0022 \u002B request.AgreedEndTick?.ToString(CultureInfo.InvariantCulture) \u002B \u0022|\u0022 \u002B TownLandClaimRules.DescribeTiles(request.Tiles))": 1,
   "src/ClankerWorld.Simulation/World/Towns/RiverBridges.cs|length|id.Length \u003E 64": 1,

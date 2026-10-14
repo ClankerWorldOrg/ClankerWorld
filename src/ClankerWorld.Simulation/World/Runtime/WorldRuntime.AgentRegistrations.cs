@@ -202,7 +202,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningPrefix], [], static (runtime, action) =>
     {
-        runtime.GatherRareMaterial(action.AgentId, action.State, action.CandidateId[RareMiningPrefix.Length..]);
+        runtime.ApplyRareMiningPlan(action.Plan as RareMiningActionPlan ?? runtime.PlanRareMining(action.AgentId, action.CandidateId[RareMiningPrefix.Length..]));
         return true;
     }),
         new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix, KnowledgeReadPrefix], ["knowledge_continue"], static (runtime, action) =>

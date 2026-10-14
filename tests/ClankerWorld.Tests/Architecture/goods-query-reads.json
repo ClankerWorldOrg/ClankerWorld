@@ -55,7 +55,7 @@
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": 5,
   "src/ClankerWorld.Simulation/World/ToolProgressionRules.cs": 3,
-  "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": 5,
+  "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": 4,
   "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs": 3,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketHistory.cs": 1,

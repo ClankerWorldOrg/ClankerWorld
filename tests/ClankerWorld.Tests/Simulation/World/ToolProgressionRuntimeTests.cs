@@ -209,17 +209,32 @@ public sealed class ToolProgressionRuntimeTests
         using var mining = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? chooser : new CandidateProvider("safe_idle"));
+        var baseline = WorldRuntimeCodec.Encode(mining.ExportState());
+        Assert.False((await mining.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(baseline, WorldRuntimeCodec.Encode(mining.ExportState()));
+        chooser.ObservedCandidateSets.Clear();
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(baseline),
+            id => id == actor ? new CandidateProvider(candidate) : new CandidateProvider("safe_idle"));
+        var samePlan = false;
         for (var tick = 0; tick < 20 && (scenario == "iron"
                  ? !mining.Society.Inventory.Lots.Any(lot => lot.OwnerId == actor && lot.ItemKind == itemKind)
                  : chooser.ObservedCandidateSets.Count == 0); tick++)
         {
-            Assert.True((await mining.AdvanceOneTickAsync()).Advanced);
+            var step = await mining.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            samePlan |= step.Decisions.Any(decision => decision.AgentId == actor && chooser.SelectedPlan is not null &&
+                ReferenceEquals(decision.ActionPlan, chooser.SelectedPlan));
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(mining.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             mining.Validate();
         }
         Assert.NotEmpty(chooser.ObservedCandidateSets);
         var extracted = mining.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == itemKind).ToArray();
         if (scenario == "iron")
         {
+            Assert.True(samePlan);
+            var plan = Assert.IsType<RareMiningActionPlan>(chooser.SelectedPlan);
+            Assert.Equal((source.Id, "mining-pick", 8), (plan.Source.Id, plan.Harvest.ToolLotId, plan.Harvest.Quantity));
             Assert.Contains(chooser.ObservedCandidateSets, candidates => candidates.Contains(candidate));
             var goods = Assert.Single(extracted);
             Assert.Equal(8, goods.Quantity);
@@ -838,6 +853,7 @@ public sealed class ToolProgressionRuntimeTests
 
     private sealed class CandidateProvider(string candidateId) : IDecisionProvider
     {
+        public ActionPlan? SelectedPlan { get; private set; }
         public List<string[]> ObservedCandidateSets { get; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -849,6 +865,7 @@ public sealed class ToolProgressionRuntimeTests
             ObservedCandidateSets.Add(candidates.Select(item => item.Id).ToArray());
             var selected = candidates.FirstOrDefault(item => item.Id == candidateId) ??
                 candidates.Single(item => item.Id == "safe_idle");
+            if (selected.ActionPlan is not null) SelectedPlan = selected.ActionPlan;
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
                 request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
