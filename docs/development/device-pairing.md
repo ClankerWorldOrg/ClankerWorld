@@ -132,9 +132,10 @@ covers instructions, order cancellation, building management, life pace, Jev,
 routine helpers, developer edits, autosaves and recovery cleanup. Each route
 keeps its existing refusal response; runtime operations retain their own checks
 for callers outside HTTP. Deletion may deliberately target an inactive world's
-saved files, so its catalog and save-identity checks remain separate. A stale target returns
-409 without changing the newly selected world, and a request without a target
-returns 400. The pairing authority and world-save schema are unchanged.
+saved files, so its catalog and save-identity checks remain separate. For life pace
+and Jev, a stale target returns 409 without changing the newly selected world,
+and a request without a target returns 400. Building management retains its
+rejected result. The pairing authority and world-save schema are unchanged.
 
 Successful activation and recovery of an already-active pairing both return
 to the Main Menu. Recovery saves the matching registration without opening

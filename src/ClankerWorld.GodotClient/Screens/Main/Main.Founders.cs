@@ -85,7 +85,6 @@ public partial class Main
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.UndoFounderAsync(ResolveWorldUri(), authority, deviceId,
                 new OwnerFounderUndoAction(founderId), signer, OwnerRequestToken));
-            if (selectedAgentId == founderId) selectedAgentId = null;
             movingFounderId = null;
             founderApiKeyInput.Text = string.Empty;
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
