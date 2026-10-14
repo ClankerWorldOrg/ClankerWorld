@@ -1,0 +1,1 @@
+- Case judge consent, resignation and ballots retain the selected revision, mandate and ballot round through shared checks.

@@ -499,6 +499,10 @@ Hearing inspection retains the current case file and noticed revision.
 Statements and personal responses retain their submitted text and exact party;
 observations retain the visible plot and physical description. Relays retain
 the recipient and the evidence/reopening material the source already read.
+Case-judge consent and resignation retain their exact case revision and
+consent or mandate. Case ballots retain their round, opening rosters and
+candidate while allowing current ballots to accumulate or be revised.
+The same checks verify current standing and the native round deadline.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.
