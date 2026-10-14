@@ -14,7 +14,7 @@ public sealed class SavedBuildTextConverter : JsonConverter<string>
             return null;
         }
         var value = reader.GetString();
-        return value is { Length: > 0 and <= 64 } && !value.Any(char.IsControl) ? value : null;
+        return ClankerWorld.Simulation.BoundedText.IsValid(value, 64, allowWhitespaceOnly: true) ? value : null;
     }
 
     public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) =>
