@@ -1,0 +1,1 @@
+- Accepted permission-sale collection retains its selected stock and quantity through shared consent, goods and carrying checks.

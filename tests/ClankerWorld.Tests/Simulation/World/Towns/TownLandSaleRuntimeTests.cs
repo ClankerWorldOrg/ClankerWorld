@@ -53,12 +53,25 @@ public sealed partial class TownLandTransferRuntimeTests
         foreach (var actor in pending.Parties.SelectMany(party => party.AdultIds))
             restored.SubmitInstruction(new("sale-payment-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestion,
                 "Consider bringing the actual agreed goods to the notice place to finish the accepted land-use sale."));
+        var collectionPlans = new List<LandSaleCollectionActionPlan>();
         for (var tick = 0; tick < 100 && restored.Towns[0].LandRecords.Transfers[0].Status == "pending"; tick++)
         {
             var unchanged = WorldRuntimeCodec.Encode(restored.ExportState());
             Assert.False((await restored.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(unchanged, WorldRuntimeCodec.Encode(restored.ExportState()));
-            Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
+            var result = await restored.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is LandSaleCollectionActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<LandSaleCollectionActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, LandSaleCollectionChoice.Decode(plan.CandidateId));
+                Assert.Equal(pending.Id, plan.Request.Id);
+                Assert.Equal(pending.Price, plan.Request.Price);
+                Assert.Equal(provider.TargetHouseholdId, plan.Pickup.OwnerId);
+                Assert.Equal("wood", plan.Pickup.ItemKind);
+                Assert.InRange(plan.Quantity, 1, pending.Price!.Quantity);
+                collectionPlans.Add(plan);
+            }
         }
         Assert.True(restored.Towns[0].LandRecords.Transfers[0].Status == "transferred",
             string.Join("\n", provider.Selected.TakeLast(24)) + "\n" + JsonSerializer.Serialize(restored.ExportState().Agents.Select(person => new { person.AgentId, person.Position, person.MoveWaitTicks })) +
@@ -70,6 +83,26 @@ public sealed partial class TownLandTransferRuntimeTests
         Assert.Equal(totalWood, restored.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.All(provider.Plot, tile => Assert.Contains(restored.HouseholdLandUseRights, right => right.HouseholdId == provider.TargetHouseholdId && right.Tiles.Contains(tile)));
         Assert.Equal(JsonSerializer.Serialize(before.TownLandTitles), JsonSerializer.Serialize(restored.ExportState().TownLandTitles));
+        Assert.NotEmpty(collectionPlans);
+        Assert.All(collectionPlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, restored.CheckActionPlan(plan).Refusal!.Reason));
+        var selectedCollection = collectionPlans[0];
+        var pendingState = WorldRuntimeCodec.Decode(saved);
+        using (var pendingWorld = WorldRuntime.Restore(pendingState, _ => provider.ReplayPolicy()))
+            Assert.True(pendingWorld.CheckActionPlan(selectedCollection).Allowed);
+        var pendingInventory = pendingState.Society.Society.Inventory;
+        var selectedStock = pendingInventory.GetLot(selectedCollection.Pickup.StockId);
+        pendingInventory = InventoryAuthority.Reserve(pendingInventory, "sale-selected-reservation", selectedStock.OwnerId, selectedStock.Id,
+            InventoryRules.UnreservedQuantity(InventoryIndex.For(pendingInventory), selectedStock), "another-real-use", 1000);
+        pendingInventory = InventoryAuthority.AddLot(pendingInventory, "sale-alternative-stock", selectedStock.ItemKind, selectedStock.OwnerId,
+            selectedCollection.Quantity, groundPosition: new(selectedCollection.Pickup.Position.X, selectedCollection.Pickup.Position.Y));
+        using (var reservedWorld = WorldRuntime.Restore(pendingState with
+        {
+            Society = pendingState.Society with { Society = pendingState.Society.Society with { Inventory = pendingInventory } }
+        }, _ => provider.ReplayPolicy()))
+        {
+            Assert.Equal(ActionRefusalReason.StockUnavailable, reservedWorld.CheckActionPlan(selectedCollection).Refusal!.Reason);
+            reservedWorld.Validate();
+        }
         Assert.Contains(provider.Selected, choice => choice.Contains("|land_transfer_collect_payment|", StringComparison.Ordinal));
         Assert.Contains(provider.Selected, choice => choice.Contains("|land_transfer_pay|", StringComparison.Ordinal));
         var completedClient = SaleClient(restored);
@@ -192,6 +225,7 @@ public sealed partial class TownLandTransferRuntimeTests
         Assert.Equal(Permissions(before), Permissions(world.ExportState()));
         Assert.Equal(PrivateProperty(before), PrivateProperty(world.ExportState()));
         Assert.DoesNotContain(provider.Selected, choice => choice.Contains("|land_transfer_pay|", StringComparison.Ordinal));
+        Assert.DoesNotContain(provider.Selected, choice => choice.Contains("|land_transfer_collect_payment|", StringComparison.Ordinal));
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => provider.ReplayPolicy());
