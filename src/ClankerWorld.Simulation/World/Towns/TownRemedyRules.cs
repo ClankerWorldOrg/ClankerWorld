@@ -43,8 +43,8 @@ IdentityRules.Reference(term.ItemKind, int.MaxValue, requireTrimmed: true) && (t
             throw new InvalidOperationException("A voluntary offer needs a supported finding, feasible named contributions and current informed terms.");
         var duration = completionTicks;
         var id = TownNonLandRules.NextId(state, "offer");
-        var offer = new TownRemedyOffer(id, caseId, findingId, prior is null ? 1 : prior.Revision + 1, terms.ToArray(),
-            TermsHash(terms, duration), reason, noticeId, tick, checked(tick + day), duration, "pending", [], replacesOfferId);
+        var offer = new TownRemedyOffer(Identity.Parse(id), caseId, findingId, prior is null ? 1 : prior.Revision + 1, terms.ToArray(),
+            TermsHash(terms, duration), reason, noticeId, tick, checked(tick + day), duration, "pending", [], Identity.ParseOptional(replacesOfferId));
         return state with { Sequence = checked(state.Sequence + 1), Offers = state.Offers.Append(offer).ToArray() };
     }
 

@@ -126,13 +126,13 @@ public sealed partial class WorldRuntimeTests
         Assert.True(repeatedOrder.RepeatUntilCancelled);
         Assert.Equal(1, repeatedOrder.RequestedUnits);
         Assert.Equal("not_understood", oversized.Task!.Status);
-        Assert.Contains(oversized.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(oversized.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", unbounded.Task!.Status);
-        Assert.Contains(unbounded.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(unbounded.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", negative.Task!.Status);
-        Assert.Contains(negative.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(negative.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", unknownTarget.Task!.Status);
-        Assert.Contains(unknownTarget.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(unknownTarget.InstructionId.Value, state.CompletedInstructionIds ?? []);
         world.Validate();
     }
 
@@ -187,7 +187,7 @@ public sealed partial class WorldRuntimeTests
         Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
 
         var finished = resumed.ExportState();
-        Assert.Contains(order.InstructionId, finished.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, finished.CompletedInstructionIds ?? []);
         Assert.Equal("finished", Assert.Single(finished.Instructions!, item => item.InstructionId == order.InstructionId).Task!.Status);
         Assert.Contains(finished.Society.Society.Inventory.Lots, item => item.Id == wrongFoodId && item.Quantity == 1);
         Assert.DoesNotContain(finished.Society.Society.Inventory.Lots, item => item.Id == requestedFoodId);
@@ -222,7 +222,7 @@ public sealed partial class WorldRuntimeTests
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var interrupted = world.ExportState();
-        Assert.DoesNotContain(order.InstructionId, interrupted.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(order.InstructionId.Value, interrupted.CompletedInstructionIds ?? []);
         Assert.Contains(interrupted.Events, item => item.Kind == "instruction_order_status" &&
             item.Detail == $"{OrderedAgent}:{order.InstructionId}:interrupted");
         Assert.Contains(interrupted.Events, item => item.Kind == "food_consumed" && item.Detail == OrderedAgent);
@@ -244,7 +244,7 @@ public sealed partial class WorldRuntimeTests
         using var resumed = WorldRuntime.Restore(reloaded);
         Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
         var finished = resumed.ExportState();
-        Assert.Contains(order.InstructionId, finished.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, finished.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(finished.Society.Society.Inventory.Lots, item => item.Id == requestedFoodId);
         Assert.Contains(finished.Events, item => item.Kind == "food_consumed" && item.Detail == OrderedAgent);
         resumed.Validate();
@@ -278,7 +278,7 @@ public sealed partial class WorldRuntimeTests
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var after = world.ExportState();
-        Assert.Contains(order.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, after.CompletedInstructionIds ?? []);
         Assert.Equal("finished", Assert.Single(after.Instructions!, item => item.InstructionId == order.InstructionId).Task!.Status);
         Assert.Equal(1, Assert.Single(after.Instructions!, item => item.InstructionId == order.InstructionId).Task!.CompletedUnits);
         Assert.Contains(after.Society.Society.Inventory.Lots, item =>

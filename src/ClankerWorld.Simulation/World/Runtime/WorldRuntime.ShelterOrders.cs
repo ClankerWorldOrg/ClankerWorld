@@ -201,7 +201,7 @@ public sealed partial class WorldRuntime
             if (effect is null) return;
             payment = effect.FuelReservationId;
         }
-        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, payment);
+        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, Identity.ParseOptional(payment));
         current = instructionsByIdempotency[current.IdempotencyKey];
         current = current with { Task = current.Task! with { ShelterCompletion = completion } };
         instructionsByIdempotency[current.IdempotencyKey] = current;

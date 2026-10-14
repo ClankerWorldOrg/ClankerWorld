@@ -773,7 +773,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"project-delivery:{WorldTick}:{agentId}", agentId, constructionOwner, carried.Id,
                 deliveryQuantity, "project_contribution", house?.InstanceId,
-                destinationGroundPosition: house is null ? new InventoryGroundPosition(store.X, store.Y) : null));
+                destinationGroundPosition: house is null ? new InventoryGroundPosition(store.X, store.Y) : null, holdAccess: InventoryHoldRules.DeliveryFor(agentId, house?.InstanceId)));
             AppendEvent("project_material_delivered", $"{agentId}:{input.ResourceId}");
             return;
         }
@@ -810,7 +810,7 @@ public sealed partial class WorldRuntime
             if (quantity == 0) return;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 $"warehouse-pickup:{WorldTick}:{agentId}", warehouse.TownId!, agentId,
-                communal.Id, quantity, "town_resource_collected"));
+                communal.Id, quantity, "town_resource_collected", holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
             AppendEvent("town_resource_collected", $"{agentId}:{communal.Id}:{quantity}:{warehouse.InstanceId}");
             return;
         }
@@ -908,10 +908,8 @@ public sealed partial class WorldRuntime
     }
 
     private static InventoryCheckpoint MarkBuildingMaterialDelivery(InventoryCheckpoint inventory, string lotId,
-        string? deliveryBuildingId) => deliveryBuildingId is null ? inventory : inventory with
-        {
-            Lots = inventory.Lots.Select(lot => lot.Id == lotId ? lot with { DeliveryBuildingId = deliveryBuildingId } : lot).ToArray(),
-        };
+        string? deliveryBuildingId) => deliveryBuildingId is null ? inventory :
+        InventoryAuthority.AssignDelivery(inventory, lotId, deliveryBuildingId);
 
     private IEnumerable<(string Requester, ContentQuantity Input, string OwnerId)> ProjectRequests(string helperId)
     {
@@ -1098,7 +1096,7 @@ public sealed partial class WorldRuntime
         if (quantity == 0) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"project-share:{WorldTick}:{helperId}",
             helperId, recipient, carried.Id, quantity, "project_request_fulfilled",
-            house?.InstanceId));
+            house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(helperId, house?.InstanceId)));
         IncreaseTrust(request.Requester, helperId, 2, "material_help");
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.

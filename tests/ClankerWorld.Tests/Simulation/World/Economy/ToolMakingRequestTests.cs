@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -26,7 +27,7 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "full-personal-load", "iron", buyer, 8);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? new GridPoint(124, 44) : person.Position,
@@ -373,7 +374,7 @@ public sealed partial class ToolMakingRequestTests
             };
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-a", "wood", shop.HouseholdId!, 2, storageBuildingId: shop.InstanceId);
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-b", "wood", shop.HouseholdId!, 1, storageBuildingId: shop.InstanceId);
-            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         }
         using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
         await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
@@ -399,7 +400,7 @@ public sealed partial class ToolMakingRequestTests
             WorldSimulation = state.WorldSimulation with
             {
                 ProductionJobs = state.WorldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
-                    ? candidate with { InputReservationIds = ids } : candidate).ToArray(),
+                    ? candidate with { InputReservationIds = (ids).Select(Identity.Parse).ToArray() } : candidate).ToArray(),
             },
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithReceiptIds([])));
@@ -412,7 +413,7 @@ public sealed partial class ToolMakingRequestTests
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = changedPurpose } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(changedPurpose) } },
         }));
     }
 
@@ -607,7 +608,7 @@ public sealed partial class ToolMakingRequestTests
         // The host schedules personal choices without blocking. Wait for the
         // actual offered choice before asking a later tick to admit its reply.
         await host.Advance();
-        await choices.Chosen.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.For(world).WaitAsync(choices.Chosen.Task);
         for (var step = 0; step < 8 && world.ToolMakingRequests.Count == 0; step++) await host.Advance();
         var request = Assert.Single(world.ToolMakingRequests);
         Assert.Equal((recipe.CanonicalId, buyer, shop.HouseholdId, shop.InstanceId),
@@ -668,7 +669,7 @@ public sealed partial class ToolMakingRequestTests
 
         public async Task Advance()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
@@ -747,7 +748,7 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "request-payment", "wood", buyer, 3);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? customerPosition : person.AgentId == seller ? sellerPosition : person.Position,
@@ -788,7 +789,7 @@ public sealed partial class ToolMakingRequestTests
         public DecisionProviderKind Kind { get; }
         public long ProviderEpoch => 0;
         public List<CognitionCandidate> Offered { get; } = [];
-        public TaskCompletionSource Chosen { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Chosen { get; } = new(TaskCreationOptions.None);
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Offered.AddRange(request.Observation.Candidates);

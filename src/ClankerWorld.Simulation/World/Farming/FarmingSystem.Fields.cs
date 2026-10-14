@@ -63,7 +63,7 @@ internal sealed partial class FarmingSystem
         var sickleLotId = sickle is null ? null : IsolateFieldToolForWork(world, workerId, position, sickle.ToolLotId);
         SetFarmField(world, field with
         {
-            Work = new(workerId, kind, world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, reservationId, crop,
+            Work = new(workerId, kind, world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, Identity.ParseOptional(reservationId), crop,
                 hoeLotId, sickleLotId, orderInstructionId),
             LastWorkedTick = world.WorldTick,
         });
@@ -79,7 +79,7 @@ internal sealed partial class FarmingSystem
         var lot = inventory.GetLot(lotId);
         if (lot.Quantity == 1) return lot.Id;
         var isolatedId = WorldRuntime.FarmingSharedRules.FieldToolLotId(lot.Id, position, world.WorldTick, workerId);
-        world.ApplyInventoryTransition(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId));
+        world.ApplyInventoryTransition(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId, holdAccess: InventoryHoldRules.BorrowedBy(workerId)));
         return isolatedId;
     }
 
@@ -303,7 +303,7 @@ internal sealed partial class FarmingSystem
                 "field_replanting", long.MaxValue);
             return WorldRuntime.FarmingSharedRules.ApplyToolWorkToInventory(next, field.Work!.WorkerId, world.WorldTick, toolPlans);
         });
-        SetFarmField(world, field with { Stage = FarmFieldStage.Harvested, Cycle = cycle, Work = null, ReplantingReservationId = replantId });
+        SetFarmField(world, field with { Stage = FarmFieldStage.Harvested, Cycle = cycle, Work = null, ReplantingReservationId = Identity.Parse(replantId) });
         if (weather is WeatherKind.Snow or WeatherKind.Storm)
             world.AppendEvent("crop_weather_loss", $"{prefix}:{weather.ToString().ToLowerInvariant()}");
         else if (moisture < 15 || moisture >= 50)

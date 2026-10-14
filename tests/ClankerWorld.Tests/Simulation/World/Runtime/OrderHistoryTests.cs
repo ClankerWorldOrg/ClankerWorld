@@ -21,7 +21,7 @@ public sealed class OrderHistoryTests
         Assert.Equal(12, orders.Count(item => !item.Task!.IsTerminal));
         Assert.Equal(OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent, orders.Count(item => item.Task!.IsTerminal));
         Assert.DoesNotContain(orders, item => item.InstructionId == first.InstructionId);
-        Assert.DoesNotContain(first.InstructionId, state.CompletedInstructionIds!);
+        Assert.DoesNotContain(first.InstructionId.Value, state.CompletedInstructionIds!);
         Assert.Equal(OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent, state.CompletedInstructionIds!.Count);
         var encoded = WorldRuntimeCodec.Encode(state);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded));

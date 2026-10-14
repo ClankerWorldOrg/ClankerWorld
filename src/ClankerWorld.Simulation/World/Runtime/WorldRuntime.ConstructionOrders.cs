@@ -9,9 +9,9 @@ namespace ClankerWorld.Simulation.World;
 
 /// <summary>Recent owner construction evidence survives removal and reassignment until its order retires.</summary>
 public sealed record WorldConstructionReceipt(
-    string InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
+    Identity InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
     string OwnerId, string MaterialOwnerId, GridPoint Position, long StartedTick,
-    long CompletedTick, IReadOnlyList<string> InputReservationIds);
+    long CompletedTick, IReadOnlyList<Identity> InputReservationIds);
 
 public sealed partial class WorldRuntime
 {
@@ -197,15 +197,15 @@ public sealed partial class WorldRuntime
     {
         var order = instruction.Task!;
         var purpose = "building:" + order.ConstructionInstanceId;
-        var receipt = new WorldConstructionReceipt(instruction.InstructionId, instruction.TargetAgentId,
+        var receipt = new WorldConstructionReceipt(Identity.Parse(instruction.InstructionId), instruction.TargetAgentId,
             order.ConstructionInstanceId!, order.TargetDefinitionId!, order.ConstructionOwnerId!, materialOwner,
             order.ConstructionPosition!.Value, order.ConstructionStartedTick!.Value, WorldTick,
             society.Checkpoint.Inventory.Reservations.Where(item => item.Purpose == purpose)
-                .Select(item => item.Id).OrderBy(id => id, StringComparer.Ordinal).ToArray());
+                .Select(item => item.Id).Order().ToArray());
         worldSimulation = worldSimulation with
         {
             ConstructionReceipts = (worldSimulation.ConstructionReceipts ?? []).Append(receipt)
-                .OrderBy(item => item.InstructionId, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.InstructionId.Value, StringComparer.Ordinal).ToArray(),
         };
         CreditOrderEffect(instruction, Identity.Parse(ConstructionOrderReceipt(receipt.BuildingInstanceId)), 1);
     }
@@ -224,7 +224,7 @@ public sealed partial class WorldRuntime
                 !IdentityRules.Reference(item.ActorId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.BuildingInstanceId, int.MaxValue, requireTrimmed: true) ||
                 !IdentityRules.Reference(item.DefinitionId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.OwnerId, int.MaxValue, requireTrimmed: true) ||
                 !IdentityRules.Reference(item.MaterialOwnerId, int.MaxValue, requireTrimmed: true)) ||
-            receipts.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != receipts.Count ||
+            receipts.Select(item => item.InstructionId.Value).Distinct(StringComparer.Ordinal).Count() != receipts.Count ||
             receipts.Select(item => item.BuildingInstanceId).Distinct(StringComparer.Ordinal).Count() != receipts.Count)
             throw new InvalidDataException("Construction completion receipts must be unique.");
         var householdIds = society.Households.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
@@ -243,12 +243,12 @@ public sealed partial class WorldRuntime
                 !WorldBuildingOrderCatalog.Supports("construct_building", catalog.BuildingKind) ||
                 receipt.MaterialOwnerId == receipt.ActorId && !catalog.Definition.Tags.Contains("house", StringComparer.Ordinal) ||
                 receipt.InputReservationIds is null || receipt.InputReservationIds.Any(id => !IdentityRules.Reference(id, int.MaxValue, requireTrimmed: true)) ||
-                receipt.InputReservationIds.Distinct(StringComparer.Ordinal).Count() != receipt.InputReservationIds.Count)
+                receipt.InputReservationIds.Distinct().Count() != receipt.InputReservationIds.Count)
                 throw new InvalidDataException("A construction receipt does not match its completed owner order.");
             var purpose = "building:" + receipt.BuildingInstanceId;
             var definition = catalog.Definition;
             var paid = society.Inventory.Reservations.Where(item => item.Purpose == purpose).ToArray();
-            if (!paid.Select(item => item.Id).ToHashSet(StringComparer.Ordinal).SetEquals(receipt.InputReservationIds) ||
+            if (!paid.Select(item => item.Id).ToHashSet().SetEquals(receipt.InputReservationIds) ||
                 paid.Any(item => item.State != InventoryReservationState.Completed || item.OwnerId != receipt.MaterialOwnerId ||
                     item.ExpiryTick != receipt.CompletedTick) ||
                 definition.BuildCosts.Select((cost, index) => (cost, index)).Any(entry =>

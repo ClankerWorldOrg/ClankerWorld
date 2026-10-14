@@ -10,7 +10,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 {
     private const string NativeHearingJudge = NormalPathWorld.Founder2;
     private const string NativeHearingHouse = "first-town-house-b";
-    private const int NativeHearingDay = 40;
+    private const int NativeHearingDay = 20;
     private static readonly Lazy<Task<byte[]>> NativeHearingGovernment = new(() => CreateNativeHearingGovernmentAsync(false));
     private static readonly Lazy<Task<byte[]>> NativeJudgeGovernment = new(() => CreateNativeHearingGovernmentAsync(true));
 
@@ -176,7 +176,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task<byte[]> CreateNativeHearingGovernmentAsync(bool nativeJudge, WorldRuntimeState? initialState = null)
     {
-        var state = NativeHearingCalendar(initialState ?? WorldRuntimeCodec.Decode(await ConversationAdult.Value));
+        var state = NativeHearingCalendar(initialState ?? WorldRuntimeCodec.Decode(await ConversationAdult.Value), NativeHearingDay);
         var choices = new NativeLandHearingChoices
         {
             Elect = true,
@@ -189,10 +189,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 
-    private static WorldRuntimeState NativeHearingCalendar(WorldRuntimeState state)
+    private static WorldRuntimeState NativeHearingCalendar(WorldRuntimeState state, int day = 40)
     {
         var society = state.Society.Society;
-        const int day = NativeHearingDay;
         var oldDay = society.Config.TicksPerWorldDay;
         var life = society.LifeTickAt(society.WorldTick);
         var worldConfig = state.WorldSystems!.Config with { TicksPerDay = day, CalendarOffsetTicks = 0 };

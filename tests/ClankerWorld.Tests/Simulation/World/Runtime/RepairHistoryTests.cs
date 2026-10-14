@@ -162,7 +162,7 @@ public sealed class RepairHistoryTests
             inventory = InventoryAuthority.WearSingleUnit(inventory, target, 6_000);
             inventory = InventoryAuthority.AddLot(inventory, input, "cloth", actor, 1);
             inventory = InventoryAuthority.Reserve(inventory, claim, actor, input, 1, "equipment_repair", inventory.WorldTick + 1_000 + index);
-            inventory = InventoryAuthority.RepairSingleUnit(inventory, target, 6_000, [claim]);
+            inventory = InventoryAuthority.RepairSingleUnit(inventory, target, 6_000, [Identity.Parse(claim)]);
             Assert.DoesNotContain(inventory.Lots, lot => lot.Id == input);
         }
         return FarmFieldTests.WithInventory(state, inventory);

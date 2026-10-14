@@ -403,7 +403,7 @@ internal sealed partial class TownSystem
                         var lot = NonLandReturnLot(world, term with { Quantity = remaining })!;
                         var operation = WorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
                         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
-                            term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution"));
+                            term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                         RecordNonLandGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
                         world.AppendEvent("voluntary_goods_returned", $"{actor}:{term.BeneficiaryId}:{lot.Id}:{remaining}");
                     }
@@ -450,18 +450,18 @@ internal sealed partial class TownSystem
         var availableBefore = world.PersonalWarehouseAvailableQuantity(actor, lot.ItemKind);
         var operation = WorldRuntime.CivicSharedRules.WarehouseStockId(world.WorldTick, actor);
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor, warehouse.TownId!,
-            lot.Id, quantity, "town_resources_stored", warehouse.InstanceId));
+            lot.Id, quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
         RecordNonLandGoodsCompletion(world, actor, lot, warehouse.TownId!, quantity, warehouse.InstanceId, operation, "public_service_goods", availableBefore);
         world.AppendEvent("town_resources_stored", $"{actor}:{lot.Id}:{quantity}:{warehouse.InstanceId}");
     }
 
     internal void RecordNonLandRepairCompletion(ITownWorld world, string actor, InventoryLot originalTarget, string repairedLotId,
-        string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds)
+        string nativeReceiptId, GridPoint position, IReadOnlyList<Identity> reservationIds)
     {
         var result = world.Society.Inventory.GetLot(repairedLotId);
         if (result.ConditionBasisPoints <= originalTarget.ConditionBasisPoints) return;
         nativeReceiptId = DerivedId.Create(nativeReceiptId);
-        var receipt = new TownNativeRemedyReceipt(nativeReceiptId, "repair_equipment", actor, world.WorldTick,
+        var receipt = new TownNativeRemedyReceipt(Identity.Parse(nativeReceiptId), "repair_equipment", actor, world.WorldTick,
             originalTarget.OwnerId, originalTarget.ItemKind, 1, originalTarget.Id, originalTarget.Id,
             repairedLotId, originalTarget.OwnerId, result.OwnerId, position,
             originalTarget.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),
@@ -476,7 +476,7 @@ internal sealed partial class TownSystem
     {
         var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : DerivedId.Create(sourceLot.Id + "#transfer:" + nativeReceiptId);
         var result = world.Society.Inventory.GetLot(resultId);
-        var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, world.WorldTick, recipientId,
+        var receipt = new TownNativeRemedyReceipt(Identity.Parse(nativeReceiptId), kind, actor, world.WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,
             sourceLot.OwnerId, result.OwnerId, world.Agents[actor].Position,
             sourceLot.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),

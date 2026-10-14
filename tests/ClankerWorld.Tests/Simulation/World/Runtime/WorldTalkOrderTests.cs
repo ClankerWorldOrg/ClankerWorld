@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation;
-using System.Reflection;
 using System.Text.Json;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
@@ -275,7 +274,7 @@ public sealed partial class WorldConversationTests
             for (var tick = 0; tick < 10 && world.Conversations.Count == 0; tick++) await AdvanceTalkOrderTick(world);
         await WaitForTalkOrderWork(world);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 20 && Assert.Single(world.ExportState().Instructions!).Task!.Status != "finished"; tick++)
             await AdvanceTalkOrderTick(world);
@@ -293,23 +292,12 @@ public sealed partial class WorldConversationTests
     private static async Task AdvanceTalkOrderTick(WorldRuntime world)
     {
         await WaitForTalkOrderWork(world);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
     }
 
     private static async Task WaitForTalkOrderWork(WorldRuntime world)
     {
-        // Await the work this fixture actually started, rather than advancing
-        // invitation deadlines while a scheduled fake response has not run.
-        var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingModelCalls", "pendingConversationTurns" })
-        {
-            var field = typeof(WorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(field);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field.GetValue(world));
-            tasks.AddRange(pending.Values.Cast<object>().Select(item =>
-                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))));
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class TalkOrderProvider(bool decline = false) : IDecisionProvider, IAgentConversationProvider

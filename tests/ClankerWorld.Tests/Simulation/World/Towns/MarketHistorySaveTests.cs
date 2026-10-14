@@ -206,7 +206,7 @@ public sealed class MarketHistorySaveTests
             lot.CarrierId is null && lot.StorageBuildingId is null && lot.GroundPosition is null).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, "history-death:" + lot.Id, lot.Id, estate.Id, lot.Quantity,
                 groundPosition: new(physical.Position.X, physical.Position.Y));
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         state = state with
         {
             Society = state.Society with { Society = checkpoint },

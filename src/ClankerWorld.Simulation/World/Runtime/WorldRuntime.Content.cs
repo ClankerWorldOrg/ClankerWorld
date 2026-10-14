@@ -434,7 +434,7 @@ public sealed partial class WorldRuntime
                 WorldTick,
                 completionTick,
                 WorldProductionJobState.Running,
-                reservationIds.ToArray(), knife?.ToolLotId, ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
+                (reservationIds.ToArray()).Select(Identity.Parse).ToArray(), knife?.ToolLotId, ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
             { OwnerId = productionOwner, OrderInstructionId = orderInstructionId };
             worldSimulation = worldSimulation with
             {

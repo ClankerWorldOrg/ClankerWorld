@@ -242,13 +242,13 @@ public sealed partial class WorldRuntime
     {
         ApplyInventoryTransition(inventory => plan.MoveContainerFamily
             ? InventoryAuthority.Transfer(inventory, operationId, householdId, actor,
-                plan.Carrier.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId)
+                plan.Carrier.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
             : plan.Resource.ContainerLotId == plan.Carrier.Id
                 ? InventoryAuthority.TakeFromContainer(inventory, operationId, householdId, actor,
                     plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity,
-                    destinationDeliveryBuildingId: destinationId)
+                    destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
                 : InventoryAuthority.Transfer(inventory, operationId, householdId, actor,
-                    plan.Resource.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId));
+                    plan.Resource.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         AppendEvent(purpose, $"{actor}:{plan.Resource.Id}:{plan.ResourceQuantity}:{destinationId}");
     }
 }

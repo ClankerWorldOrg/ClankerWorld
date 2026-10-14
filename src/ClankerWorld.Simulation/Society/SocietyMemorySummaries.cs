@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace ClankerWorld.Simulation.Society;
 
 public sealed record SocietyMemorySummarySource(
-    [property: System.Text.Json.Serialization.JsonConverter(typeof(StoredMemoryIdentityJsonConverter))] Identity Id,
+    [property: System.Text.Json.Serialization.JsonConverter(typeof(StoredIdentityJsonConverter))] Identity Id,
     SocietyMemorySourceKind Kind, long SourceTick);
 public sealed record SocietyAgentMemorySummary(Identity Id, string OwnerId, string Choice, string Text,
     long CreatedTick, IReadOnlyList<SocietyMemorySummarySource> Sources);

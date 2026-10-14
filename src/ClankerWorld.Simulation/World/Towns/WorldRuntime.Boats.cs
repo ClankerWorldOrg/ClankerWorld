@@ -259,13 +259,9 @@ public sealed partial class WorldRuntime
             (roots.Contains(lot.Id, StringComparer.Ordinal) || lot.ProvenanceLotId is { } source && roots.Contains(source, StringComparer.Ordinal)) &&
             (preserveCustody || lot.GroundPosition is not null)).Select(lot => lot.Id).Order(StringComparer.Ordinal).ToArray();
         var position = destination ?? boat.Position;
-        ApplyInventoryTransition(inventory => inventory with
-        {
-            Lots = inventory.Lots.Select(lot => remaining.Contains(lot.Id, StringComparer.Ordinal)
-                ? lot with { GroundPosition = new(position.X, position.Y), StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null }
-                : preserveCustody && lot.ContainerLotId is { } container && remaining.Contains(container, StringComparer.Ordinal)
-                    ? lot with { GroundPosition = null, StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null } : lot).ToArray(),
-        });
+        ApplyInventoryTransition(inventory => InventoryAuthority.MoveGroundCargo(inventory, remaining,
+            new(position.X, position.Y), preserveCustody, holdAccess: remaining.SelectMany(id =>
+                InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(id))).Distinct().ToArray()));
         boat = boat with { GroundCargoLotIds = remaining };
         SetBoat(boat);
         return boat;

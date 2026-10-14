@@ -18,7 +18,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 132;
+    public const int StateSchemaVersion = 134;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -436,17 +436,19 @@ public sealed partial class WorldRuntime : IDisposable
                 runtime.Dispose();
                 throw new InvalidDataException("The world instruction idempotency keys are duplicated.");
             }
-
-
         }
 
         foreach (var recorded in state.InstructionReceipts)
             runtime.instructionReceipts.Add(recorded.Receipt.IdempotencyKey, recorded);
 
-        var savedCompletedIds = (state.CompletedInstructionIds ?? []).ToHashSet(StringComparer.Ordinal);
-        runtime.completedSuggestionIds.UnionWith(runtime.instructionsByIdempotency.Values
-            .Where(item => item.Kind == OwnerInstructionKind.Suggestion && savedCompletedIds.Contains(item.InstructionId))
-            .Select(item => item.InstructionId));
+        var suggestionIds = runtime.instructionsByIdempotency.Values
+            .Where(item => item.Kind == OwnerInstructionKind.Suggestion)
+            .Select(item => item.InstructionId).ToHashSet(StringComparer.Ordinal);
+        foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
+        {
+            if (suggestionIds.Contains(completedInstructionId))
+                runtime.completedSuggestionIds.Add(completedInstructionId);
+        }
 
         foreach (var cancellation in state.OrderCancellations ?? [])
         {

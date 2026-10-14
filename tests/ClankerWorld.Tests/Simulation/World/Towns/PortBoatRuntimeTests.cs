@@ -190,8 +190,8 @@ public sealed partial class PortBoatRuntimeTests
         var foodBefore = scenario.World.Society.Inventory.Lots.Where(lot => lot.OwnerId == BoatPolicy.Author && lot.ItemKind == "food").Sum(lot => lot.Quantity);
         var receipt = scenario.World.SubmitInstruction(new("aboard-collect", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.Order, "collect my rope"));
-        Assert.True((await scenario.World.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await policy.HeldStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await scenario.World.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(policy.HeldStarted.Task);
         Assert.Contains(policy.Observations, observation => observation.AgentId == BoatPolicy.Author);
         var lot = scenario.World.Society.Inventory.GetLot("waiting-shore-rope");
         Assert.Null(lot.CarrierId);
@@ -248,8 +248,7 @@ public sealed partial class PortBoatRuntimeTests
             AddLandingBlockers(scenario, scenario.World.Boats[0].Journey!.OriginPortId, 2);
             for (var attempt = 0; attempt < 30 && scenario.World.Society.Estates.Single().WillStatus != "accepted"; attempt++)
             {
-                Assert.True((await scenario.World.AdvanceOneTickNonBlockingAsync()).Advanced);
-                await Task.Delay(10);
+                Assert.True((await scenario.World.TickModelWorkAsync()).Advanced);
             }
             var estate = Assert.Single(scenario.World.Society.Estates);
             Assert.Equal("accepted", estate.WillStatus);
@@ -660,8 +659,8 @@ public sealed partial class PortBoatRuntimeTests
         internal bool RevokeBoatAccess { get; set; }
         internal bool LeaveToTown { get; set; }
         internal string? HoldActor { get; set; }
-        internal TaskCompletionSource<CognitionDecisionResponse> HeldReply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> HeldStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal InlineCompletionSource<CognitionDecisionResponse> HeldReply { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> HeldStarted { get; } = new(TaskCreationOptions.None);
         internal HashSet<string> IdleActors { get; } = new(StringComparer.Ordinal);
         internal ConcurrentQueue<string> Choices { get; } = new();
         internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
