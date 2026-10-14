@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
         var choice = person.Lesson is { Stage: "accepted" or "training" }
             ? new LearningChoice(LearningChoiceKind.Attend) : new LearningChoice(LearningChoiceKind.Teach, ActiveStudent(actor)?.AgentId);
         var plan = originalPlan ?? PlanLearningAction(actor, choice, waitingForModel);
-        if (plan is null || !CheckLearningActionPlan(plan).Allowed) return;
+        if (plan is null || !CheckActionPlan(plan).Allowed) return;
         var storagePosition = plan.Site;
         RecordAttemptedAction(actor, plan.CandidateId);
         if (!IsWithinInteractionRange(person.Position, storagePosition, ResourceInteractionRange))

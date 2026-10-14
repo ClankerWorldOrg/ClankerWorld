@@ -13,10 +13,10 @@ public sealed partial class WorldRuntime
         return care is null ? null : new(actor, choice, household, caregiver, care);
     }
 
-    private ActionCheck CheckReplacementCarePlan(ReplacementCareActionPlan plan)
+    private ActionCheck CheckReplacementCarePlan(ReplacementCareActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? HouseholdCommunityCapabilities);
         if (!capability.Allowed) return capability;
         if (!agents.ContainsKey(plan.Choice.ChildId))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected child is no longer here");
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyReplacementCarePlan(ReplacementCareActionPlan plan)
     {
-        if (CheckReplacementCarePlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteReplacementCare(plan);
     }
 }

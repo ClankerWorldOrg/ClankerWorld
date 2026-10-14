@@ -1,0 +1,1 @@
+- Housing, learning, departure, replacement care, relocation and household work now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining selected people, homes, lessons and jobs.

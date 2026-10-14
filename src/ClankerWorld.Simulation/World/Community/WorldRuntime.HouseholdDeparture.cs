@@ -302,18 +302,18 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return;
         foreach (var job in PausedHouseholdWork(actor))
-            if (PlanHouseholdResume(actor, new(job.Id)) is { } resume && CheckHouseholdResumePlan(resume).Allowed)
+            if (HouseholdResumeDefinition.Offer(this, actor, new(job.Id)) is { } resume)
                 candidates.Add(new CognitionCandidate(resume.CandidateId,
                     "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId)
                 { ActionPlan = resume });
         var home = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (home is not null)
-            if (PlanDepartureAction(actor, new(DepartureChoiceKind.Leave)) is { } leave && CheckDepartureActionPlan(leave).Allowed)
+            if (DepartureDefinition.Offer(this, actor, new(DepartureChoiceKind.Leave)) is { } leave)
                 candidates.Add(new CognitionCandidate("household_leave", "Leave your household without a vote; keep responsibility for your dependent children and collect your personal belongings physically.", 115) { ActionPlan = leave });
         // Built-in rules never give up a home early: the notice period is time to find room
         // or finish an expansion, and the deadline moves the adult out when neither happens.
         if (agents[actor].Housing?.Request is null && MayFoundHousehold(actor) && !AskableHouseholds(actor).Any())
-            if (PlanDepartureAction(actor, new(DepartureChoiceKind.Found)) is { } found && CheckDepartureActionPlan(found).Allowed)
+            if (DepartureDefinition.Offer(this, actor, new(DepartureChoiceKind.Found)) is { } found)
                 candidates.Add(new CognitionCandidate("household_found", home is null
                     ? "Start your own household with your dependent children. A House still needs a legal site, materials and work."
                     : "Move out of your overcrowded House and start your own household with your dependent children. A House still needs a legal site, materials and work.",
@@ -370,7 +370,7 @@ public sealed partial class WorldRuntime
                      person.PrimaryCaregiverId != actor &&
                      // A child with no living caregiver is placed through the guardian search instead.
                      SocietyRules.HasActivePrimaryCaregiver(society.Checkpoint, person.Id)))
-            if (PlanReplacementCare(actor, new(child.Id)) is { } replacement && CheckReplacementCarePlan(replacement).Allowed)
+            if (ReplacementCareDefinition.Offer(this, actor, new(child.Id)) is { } replacement)
                 candidates.Add(new CognitionCandidate(replacement.CandidateId, $"Explicitly accept primary care of {child.Name}, so their current caregiver may leave without taking them.", 112) { ActionPlan = replacement });
     }
 
