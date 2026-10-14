@@ -30,6 +30,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "tool_request_consent", [], [], Definition: ToolRequestConsentDefinition),
         new(ActionPhase.FreshAdmission, "animal_agreement", ["animal:agreement:"], [], Definition: AnimalAgreementDefinition),
         new(ActionPhase.FreshAdmission, "medical_consent", [MedicalConsentChoice.AllowPrefix, MedicalConsentChoice.RevokePrefix], [], Definition: MedicalConsentDefinition),
         new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
@@ -37,11 +38,10 @@ public sealed partial class WorldRuntime
     {
         return IsOrnamentCandidate(action.CandidateId);
     }),
-        new(ActionPhase.BeforeAge, "ToolRequestPrefix", [ToolRequestPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyToolMakingRequestCandidate(action.AgentId, action.State, action.CandidateId, action.ReportIdle, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.BeforeAge, "tool_request_visit", [ToolRequestVisitChoice.Prefix], [], Definition: ToolRequestVisitDefinition),
+        new(ActionPhase.BeforeAge, "tool_request_work", [ToolRequestWorkChoice.Prefix], [], Definition: ToolRequestWorkDefinition),
+        new(ActionPhase.BeforeAge, "tool_request_collect", [ToolRequestCollectionChoice.Prefix], [], Definition: ToolRequestCollectionDefinition),
+        new(ActionPhase.BeforeAge, "ToolRequestPrefix", [ToolRequestPrefix], [], static (_, _) => true),
         RegisterConversationActions(),
         new(ActionPhase.BeforeAge, "TryApplyGuardianPlacementCandidate", [], [], Definition: GuardianTravelDefinition),
         new(ActionPhase.BeforeAge, "guardian_end:", ["guardian_end:"], [], Definition: DependentCareDefinition),
