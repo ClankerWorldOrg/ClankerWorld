@@ -450,6 +450,9 @@ self requests, sponsorship and personal acceptance before membership changes.
 Town founding and resettlement retain the selected site or abandoned Town and
 the founder's prior affiliation and dependent group. The native writer uses
 that selection after the shared check confirms it remains available.
+Public notice reading and relay retain the exact notices and recipient. The
+shared check confirms the notices still exist and the source knows them;
+native receipt ordering and recorded source attribution remain unchanged.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

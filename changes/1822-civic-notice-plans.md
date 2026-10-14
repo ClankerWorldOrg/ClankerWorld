@@ -1,0 +1,1 @@
+- Public notice reading and relay keep the selected notices and recipient when checked before sharing.
