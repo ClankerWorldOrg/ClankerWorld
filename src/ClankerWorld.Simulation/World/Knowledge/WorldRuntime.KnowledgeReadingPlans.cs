@@ -2,10 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckKnowledgeReading(KnowledgeReadingActionPlan plan)
+    private ActionCheck CheckKnowledgeReading(KnowledgeReadingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: plan.Share, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? KnowledgeReadingCapabilities(plan.Share));
         if (!capability.Allowed) return capability;
         if (!HeldKnowledgeArtifacts(plan.Actor).Any(artifact => artifact.Id == plan.Artifact.Id &&
                 TownHearingProcedure.Digest(artifact) == TownHearingProcedure.Digest(plan.Artifact)))
@@ -19,7 +19,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyKnowledgeReading(KnowledgeReadingActionPlan plan)
     {
-        if (CheckKnowledgeReading(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedKnowledgeReading(plan);
+    }
+
+    private void ApplyCheckedKnowledgeReading(KnowledgeReadingActionPlan plan)
+    {
         if (!plan.Share) { ReadIfKnowledgeArtifact(plan.Artifact.LotId, plan.Artifact.CreatorId, plan.Actor, plan.Artifact); return; }
         var learned = LearnArtifactFacts(plan.RecipientId, plan.Actor, plan.Artifact, "shared") +
             LearnArtifactRecipes(plan.RecipientId, plan.Actor, plan.Artifact, "shared");

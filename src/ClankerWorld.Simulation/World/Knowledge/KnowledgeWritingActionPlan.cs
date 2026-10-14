@@ -10,3 +10,20 @@ public sealed record KnowledgeWritingActionPlan(string ActorId, string SelectedC
 {
     public override string Activity => "write that selected knowledge record";
 }
+
+public enum KnowledgeWritingKind { Write, Copy, Continue }
+
+public sealed record KnowledgeWritingChoice(KnowledgeWritingKind Kind, string Subject)
+{
+    public string Encode() => Kind switch
+    {
+        KnowledgeWritingKind.Write => "knowledge_write:" + Subject,
+        KnowledgeWritingKind.Copy => "knowledge_copy:" + Subject,
+        _ => "knowledge_continue",
+    };
+
+    public static KnowledgeWritingChoice? Decode(string candidate) => candidate == "knowledge_continue"
+        ? new(KnowledgeWritingKind.Continue, "")
+        : candidate.StartsWith("knowledge_write:", StringComparison.Ordinal) ? new(KnowledgeWritingKind.Write, candidate["knowledge_write:".Length..])
+        : candidate.StartsWith("knowledge_copy:", StringComparison.Ordinal) ? new(KnowledgeWritingKind.Copy, candidate["knowledge_copy:".Length..]) : null;
+}
