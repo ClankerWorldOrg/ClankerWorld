@@ -221,8 +221,13 @@ public sealed partial class WorldRuntime
         foreach (var lot in OrchardFoodRecoveryGoods(actor))
         {
             if (OrchardReservationForFood(inventory, actor, lot) is not { } reservation) continue;
-            var quantity = Math.Min(missing, lot.Quantity);
-            moves.Add(new(lot, quantity, quantity, reservation.Id));
+            var existing = moves.FindIndex(move => move.Lot.Id == lot.Id);
+            var selected = existing >= 0 ? moves[existing].TransferQuantity : 0;
+            var quantity = Math.Min(missing, lot.Quantity - selected);
+            if (quantity <= 0) continue;
+            var combined = new SpareCargoMove(lot, selected + quantity, selected + quantity, reservation.Id);
+            if (existing >= 0) moves[existing] = combined;
+            else moves.Add(combined);
             missing -= quantity;
             if (missing <= 0) return moves;
         }
