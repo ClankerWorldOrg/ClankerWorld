@@ -103,10 +103,10 @@ public sealed partial class WorldRuntime
         costs.All(cost => ExpansionMaterialLots(actor, building).Where(lot => lot.ItemKind == cost.ResourceId)
             .Sum(AvailableLotQuantity) >= cost.Amount);
 
-    private InventoryLot? ExpansionDelivery(string actor, PlacedBuilding building, string itemKind) =>
+    private InventoryLot? ExpansionDelivery(string actor, PlacedBuilding building, string itemKind, string? lotId = null) =>
         society.Checkpoint.Inventory.Lots
             .Where(lot => lot.OwnerId == actor && lot.ItemKind == itemKind &&
-                lot.DeliveryBuildingId == building.InstanceId && AvailableLotQuantity(lot) > 0)
+                lot.DeliveryBuildingId == building.InstanceId && AvailableLotQuantity(lot) > 0 && (lotId is null || lot.Id == lotId))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private int ExpansionInboundQuantity(PlacedBuilding building, string itemKind) =>
@@ -344,76 +344,55 @@ public sealed partial class WorldRuntime
         if (plan is null) return;
         if (CheckExpansion(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (orderInstruction is not null && ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId) return;
-        var shape = (Position: plan.TargetPosition, Footprint: plan.TargetFootprint);
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        var costs = BuildingStorageRules.ExpansionCosts(definition, building, shape.Footprint);
-        var missing = costs.FirstOrDefault(cost => !HasExpansionMaterials(actor, building, [cost]) &&
-            ExpansionDelivery(actor, building, cost.ResourceId) is not null);
-        if (missing.Amount == 0)
-            missing = costs.FirstOrDefault(cost => !HasExpansionMaterials(actor, building, [cost]));
-        if (missing.Amount > 0)
+        switch (plan.MaterialStep)
         {
-            if (ExpansionDelivery(actor, building, missing.ResourceId) is { } delivery)
-            {
+            case ExpansionDeliveryStep delivery:
                 if (state.Position != building.Position)
                 {
                     MoveToward(actor, state, building.Position, "building_expansion_delivery", 0);
                     return;
                 }
-
                 var owner = ExpansionOwner(building);
-                var storageQuantity = Math.Min(AvailableLotQuantity(delivery),
-                    DestinationRoom(building.InstanceId, delivery));
-                if (storageQuantity > 0)
+                if (delivery.Store)
                 {
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor, owner,
-                        delivery.Id, storageQuantity, "building_expansion_material_delivered",
+                        $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor, owner,
+                        delivery.LotId, delivery.Quantity, "building_expansion_material_delivered",
                         destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
                     AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{storageQuantity}:{building.InstanceId}:stored");
+                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:stored");
                 }
                 else
                 {
-                    var site = ExpansionGroundPosition(building);
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor,
-                        owner, delivery.Id, AvailableLotQuantity(delivery),
-                        "building_expansion_material_delivered", destinationGroundPosition: site, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
+                        $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor,
+                        owner, delivery.LotId, delivery.Quantity,
+                        "building_expansion_material_delivered", destinationGroundPosition: ExpansionGroundPosition(building),
+                        holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
                     AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{AvailableLotQuantity(delivery)}:{building.InstanceId}:ground");
+                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:ground");
                 }
                 return;
-            }
-
-            var sharedPickup = ExpansionSharedMaterialPickup(actor, building, missing);
-            if (sharedPickup.Source is { } shared)
-            {
-                var sourcePosition = HouseholdStockPosition(shared);
-                var interactionRange = HouseholdStockInteractionRange(shared);
-                if (!IsWithinInteractionRange(state.Position, sourcePosition, interactionRange))
+            case ExpansionPickupStep pickup:
+                if (!IsWithinInteractionRange(state.Position, pickup.Position, pickup.InteractionRange))
                 {
-                    MoveToward(actor, state, sourcePosition, "building_expansion_material", interactionRange);
+                    MoveToward(actor, state, pickup.Position, "building_expansion_material", pickup.InteractionRange);
                     return;
                 }
-
-                if (RecheckGoods(DeliveryGoodsRequest(actor, shared.OwnerId, missing.ResourceId, building.InstanceId,
-                        GoodsDeliveryPurpose.Expansion), shared.Id) is not { } available)
-                    return;
-                var quantity = Math.Min(sharedPickup.Quantity, available.Quantity);
-                if (quantity > 0)
+                if (pickup.Quantity > 0)
                 {
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{shared.Id}",
-                        shared.OwnerId, actor, shared.Id, quantity, "building_expansion_material_picked_up",
-                        destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+                        $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{pickup.LotId}",
+                        pickup.OwnerId, actor, pickup.LotId, pickup.Quantity, "building_expansion_material_picked_up",
+                        destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId,
+                        holdAccess: InventoryHoldRules.BorrowedBy(actor)));
                     AppendEvent("building_expansion_material_picked_up",
-                        $"{actor}:{shared.Id}:{quantity}:{building.InstanceId}");
+                        $"{actor}:{pickup.LotId}:{pickup.Quantity}:{building.InstanceId}");
                 }
-            }
-            else if (MaterialSource(missing.ResourceId, actor, building.Position) is { } source)
-                GatherProjectMaterial(actor, state, missing.ResourceId, source, returnTo: building.Position);
-            return;
+                return;
+            case ExpansionGatherStep gather:
+                GatherPlannedProjectMaterial(actor, state, gather.ItemKind, gather.Source, gather.Harvest);
+                return;
         }
         if (state.Position != building.Position) MoveToward(actor, state, building.Position, "building_expansion", 0);
         else StartBuildingExpansionCore(actor, buildingId, orderInstruction, plan);

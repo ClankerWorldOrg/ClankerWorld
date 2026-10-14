@@ -1,0 +1,1 @@
+- Expansion deliveries, pickups and harvests retain their selected material lot or source through shared checks before applying.

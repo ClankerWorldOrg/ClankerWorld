@@ -1042,17 +1042,24 @@ public sealed class BuildingExpansionTests
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? provider : new IdleProvider());
         GridPoint? pickupPosition = null;
+        ExpansionActionPlan? pickupPlan = null;
         for (var tick = 0; tick < 20 && !provider.Seen.SelectMany(request => request.Observation.Candidates)
                  .Any(candidate => candidate.Id == "expand_building:" + house.InstanceId); tick++)
         {
             var step = await world.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
+            pickupPlan ??= step.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => decision.ActionPlan).OfType<ExpansionActionPlan>()
+                .FirstOrDefault(plan => plan.MaterialStep is ExpansionPickupStep);
             if (step.Events.Any(item => item.Kind == "building_expansion_material_picked_up" &&
                     item.Detail.Contains(townWoodId, StringComparison.Ordinal)))
                 pickupPosition = world.Agents.Single(person => person.AgentId == actor).Position;
         }
         Assert.Contains(provider.Seen.SelectMany(request => request.Observation.Candidates),
             candidate => candidate.Id == "expand_building:" + house.InstanceId);
+        var selectedPickup = Assert.IsType<ExpansionPickupStep>(Assert.IsType<ExpansionActionPlan>(pickupPlan).MaterialStep);
+        Assert.Equal((townWoodId, townId, warehouse.Position),
+            (selectedPickup.LotId, selectedPickup.OwnerId, selectedPickup.Position));
 
         for (var tick = 0; tick < 100 && pickupPosition is null; tick++)
         {
@@ -1063,6 +1070,9 @@ public sealed class BuildingExpansionTests
             pickupPosition = world.Agents.Single(person => person.AgentId == actor).Position;
             break;
         }
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "building_expansion_material_picked_up" &&
+            item.Detail == $"{actor}:{selectedPickup.LotId}:{selectedPickup.Quantity}:{house.InstanceId}");
+        Assert.False(world.CheckActionPlan(pickupPlan!).Allowed);
         if (pickupPosition is null)
         {
             var person = world.Agents.Single(item => item.AgentId == actor);
