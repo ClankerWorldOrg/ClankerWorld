@@ -1,0 +1,1 @@
+- Boat requests, waiting and handcart control, cargo, travel, materials and repair now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining exact ports, carts and loads.

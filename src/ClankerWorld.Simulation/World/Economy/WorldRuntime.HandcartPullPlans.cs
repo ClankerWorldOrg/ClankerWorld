@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
 
     private void AddHandcartPullCandidate(List<CognitionCandidate> candidates, HandcartPullActionPlan? plan)
     {
-        if (plan is not null && agents[plan.Actor].Position != plan.Destination && CheckHandcartPullPlan(plan).Allowed)
+        if (plan is not null && agents[plan.Actor].Position != plan.Destination && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId, plan.Route.Count > 0
                 ? "Pull the handcart and its cargo to this building along a legal route."
                 : "The cart's route to this building is blocked. Wait for a route or park the cart here.",
@@ -26,10 +26,10 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartPullPlan(HandcartPullActionPlan plan)
+    private ActionCheck CheckHandcartPullPlan(HandcartPullActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? TransportCapabilities);
         if (!capability.Allowed) return capability;
         var selection = CheckHandcartSelection(plan.Actor, plan.CartId, plan.Origin, plan.Family, plan.Hitch);
         if (!selection.Allowed) return selection;
@@ -44,7 +44,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyHandcartPullPlan(HandcartPullActionPlan plan)
     {
-        if (CheckHandcartPullPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHandcartPull(plan);
+    }
+
+    private void ApplyCheckedHandcartPull(HandcartPullActionPlan plan)
+    {
         MoveToward(plan.Actor, agents[plan.Actor], plan.Destination, "pull_handcart");
     }
 }

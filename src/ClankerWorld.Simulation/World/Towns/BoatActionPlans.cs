@@ -31,3 +31,10 @@ public sealed record BoatWaitingActionPlan(string ActorId, BoatWaitingChoice Cho
 {
     public override string Activity => Choice.Kind == BoatWaitingKind.Cancel ? "cancel the waiting boat trip" : "return to the departure Port";
 }
+
+public sealed record BoatTripRequestChoice(string CandidateId)
+{
+    public string Encode() => CandidateId;
+    public static BoatTripRequestChoice? Decode(string value) => value.StartsWith(BoatTripActionChoice.Prefix, StringComparison.Ordinal)
+        ? new(value) : null;
+}

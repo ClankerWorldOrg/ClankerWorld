@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
 
     private void AddHandcartCargoCandidate(List<CognitionCandidate> candidates, HandcartCargoActionPlan? plan)
     {
-        if (plan is not null && CheckHandcartCargoPlan(plan).Allowed)
+        if (plan is not null && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId, plan.Choice.Kind switch
             {
                 HandcartCargoKind.Load => $"Load up to {plan.DisplayQuantity} nearby {plan.ItemKind.Replace('_', ' ')} into your handcart.",
@@ -42,10 +42,10 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartCargoPlan(HandcartCargoActionPlan plan)
+    private ActionCheck CheckHandcartCargoPlan(HandcartCargoActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? TransportCapabilities);
         if (!capability.Allowed) return capability;
         var selection = CheckHandcartSelection(plan.Actor, plan.CartId, plan.Position, plan.CartFamily, plan.Hitch);
         if (!selection.Allowed) return selection;
@@ -72,7 +72,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyHandcartCargoPlan(HandcartCargoActionPlan plan)
     {
-        if (CheckHandcartCargoPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHandcartCargo(plan);
+    }
+
+    private void ApplyCheckedHandcartCargo(HandcartCargoActionPlan plan)
+    {
         CompleteHandcartCargo(plan, society.Checkpoint.Inventory.GetLot(plan.CartId), society.Checkpoint.Inventory.GetLot(plan.Choice.StockId));
     }
 }

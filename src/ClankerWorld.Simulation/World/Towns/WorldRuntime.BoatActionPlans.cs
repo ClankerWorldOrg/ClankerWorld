@@ -28,10 +28,10 @@ public sealed partial class WorldRuntime
             ? Reach(actor, point, ReachPurpose.BoatDeparture, 0, 0, SwimmingPolicy.WhenCapable) : Array.AsReadOnly<GridPoint>([]));
     }
 
-    private ActionCheck CheckBoatTripPlan(BoatTripActionPlan plan)
+    private ActionCheck CheckBoatTripPlan(BoatTripActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowMounted: false, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? BoatTripCapabilities);
         if (!capability.Allowed) return capability;
         var origin = Port(plan.Choice.OriginPortId);
         var destination = Port(plan.Choice.DestinationPortId);
@@ -48,10 +48,10 @@ public sealed partial class WorldRuntime
             ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected departure Port is out of reach now");
     }
 
-    private ActionCheck CheckBoatWaitingPlan(BoatWaitingActionPlan plan)
+    private ActionCheck CheckBoatWaitingPlan(BoatWaitingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? TransportCapabilities);
         if (!capability.Allowed) return capability;
         if (WaitingBoatRequest(plan.Actor) != plan.Request)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected waiting boat request has changed");
@@ -64,14 +64,24 @@ public sealed partial class WorldRuntime
 
     private void ApplyBoatTripPlan(BoatTripActionPlan plan)
     {
-        if (CheckBoatTripPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedBoatTrip(plan);
+    }
+
+    private void ApplyCheckedBoatTrip(BoatTripActionPlan plan)
+    {
         if (agents[plan.Actor].Position != plan.Approach) { MoveToward(plan.Actor, agents[plan.Actor], plan.Approach, "boat_departure"); return; }
         QueueBoatTrip(plan.Actor, new(plan.CandidateId, plan.Choice.TownId, Port(plan.Choice.OriginPortId)!, Port(plan.Choice.DestinationPortId)!, plan));
     }
 
     private void ApplyBoatWaitingPlan(BoatWaitingActionPlan plan)
     {
-        if (CheckBoatWaitingPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedBoatWaiting(plan);
+    }
+
+    private void ApplyCheckedBoatWaiting(BoatWaitingActionPlan plan)
+    {
         if (plan.Choice.Kind == BoatWaitingKind.Cancel) SetBoatRequest(plan.Request with { Status = "cancelled", SettledTick = WorldTick });
         else MoveToward(plan.Actor, agents[plan.Actor], plan.Approach!.Value, "boat_queue");
     }
