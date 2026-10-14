@@ -126,13 +126,13 @@ public sealed partial class WorldRuntimeTests
         Assert.True(repeatedOrder.RepeatUntilCancelled);
         Assert.Equal(1, repeatedOrder.RequestedUnits);
         Assert.Equal("not_understood", oversized.Task!.Status);
-        Assert.Contains(oversized.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.Contains(oversized.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", unbounded.Task!.Status);
-        Assert.Contains(unbounded.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.Contains(unbounded.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", negative.Task!.Status);
-        Assert.Contains(negative.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.Contains(negative.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", unknownTarget.Task!.Status);
-        Assert.Contains(unknownTarget.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.Contains(unknownTarget.InstructionId, state.CompletedInstructionIds ?? []);
         world.Validate();
     }
 
