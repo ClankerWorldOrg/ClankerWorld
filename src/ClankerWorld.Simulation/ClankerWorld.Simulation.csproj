@@ -11,6 +11,8 @@
     <Compile Include="../ClankerWorld.Shared/BoundedText.cs" Link="Shared/BoundedText.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/Contracts/CalendarRules.cs" Link="Shared/Contracts/CalendarRules.cs" />
+    <Compile Include="../ClankerWorld.Shared/Contracts/NeedStates.cs" Link="Shared/Contracts/NeedStates.cs" />
     <Compile Include="../ClankerWorld.Shared/WorldEvents/*.cs" Link="Shared/WorldEvents/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

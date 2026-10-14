@@ -310,7 +310,7 @@ public partial class Main
         pauseButton.TooltipText = paused ? "Time is stopped. Resume the world (Space)" : "Pause the world (Space)";
 
         var living = snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
-        var hungry = living.Where(person => GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry")
+        var hungry = living.Where(person => GameUiText.NeedLabel(person, "fullness-state") is "hungry" or "very hungry")
             .Select(person => person.DisplayName).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
         agentsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
         agentsButton.TooltipText = $"Agents (R) · {living.Length} living" +

@@ -33,7 +33,7 @@
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingProtocol.cs" Link="GodotClient\Pairing\OwnerPairingProtocol.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerDeviceKey.cs" Link="GodotClient\Pairing\OwnerDeviceKey.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingClient.cs" Link="GodotClient\Pairing\OwnerPairingClient.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\GameUiText.cs" Link="GodotClient\UI\Text\GameUiText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\GameUiText.Client.cs" Link="GodotClient\UI\Text\GameUiText.Client.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandHearingText.cs" Link="GodotClient\UI\Text\LandHearingText.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandTransferText.cs" Link="GodotClient\UI\Text\LandTransferText.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\NonLandHearingText.cs" Link="GodotClient\UI\Text\NonLandHearingText.cs" />

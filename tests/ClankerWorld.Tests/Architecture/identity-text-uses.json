@@ -127,7 +127,6 @@
   "src/ClankerWorld.GodotClient/UI/Map/PlannedPathLayer.cs|length|points.Length \u003C 2": 1,
   "src/ClankerWorld.GodotClient/UI/Map/SmokeLayer.cs|length|buildings.Length \u003E 0": 1,
   "src/ClankerWorld.GodotClient/UI/Map/StoredStockLayer.cs|length|piles.Length \u003E 0": 1,
-  "src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs|length|\u003E 0": 1,
   "src/ClankerWorld.GodotClient/UI/Text/LandHearingText.cs|length|parties.Length \u003E 0": 1,
   "src/ClankerWorld.GodotClient/UI/Text/LandHearingText.cs|length|records.Length \u003E 0": 1,
   "src/ClankerWorld.GodotClient/UI/Text/LandHearingText.cs|length|response.Text.Length \u003E 0": 2,

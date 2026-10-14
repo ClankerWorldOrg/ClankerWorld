@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
     private const int ComfortableFullness = 4_000;
     private const int ComfortableWarmth = 6_000;
     private const int UrgentFullness = 2_000;
-    private const int UrgentWarmth = 3_500;
+    private const int UrgentWarmth = ClankerWorld.Contracts.NeedStates.ColdThreshold;
     // Provisional routine and outing reserves, not owner-approved balance.
     private const int RoutineFoodSeekFullness = 4_500;
     private const int OutingFullnessReserve = 3_000;
