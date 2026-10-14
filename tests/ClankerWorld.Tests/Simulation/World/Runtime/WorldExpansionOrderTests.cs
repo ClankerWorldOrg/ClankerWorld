@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -40,7 +41,7 @@ public sealed partial class WorldExpansionOrderTests
             (binding.BuildingInstanceId, binding.DefinitionId, binding.OwnerId, binding.ExpectedPosition, binding.ExpectedRevision));
         Assert.Equal((job.JobId, job.TargetPosition, job.TargetFootprint),
             (binding.JobId, binding.TargetPosition, binding.TargetFootprint));
-        Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
         Assert.Equal(original, Building(world.ExportState(), buildingId));
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Reserved,
             world.Society.Inventory.GetReservation(id).State));
@@ -65,7 +66,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Equal(stoneBefore - stoneCost, Quantity(world, "stone"));
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Completed,
             world.Society.Inventory.GetReservation(id).State));
-        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
         Assert.Single(world.ExportState().Events, item => item.Kind == "building_expanded");
         await TickTogether(world, replay);
         Assert.Single(world.WorldSimulation.BuildingExpansions!);
@@ -202,7 +203,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Empty(world.Society.Inventory.Reservations);
         Assert.Null(Order(world, receipt).ExpansionBinding);
         var job = await StartJob(world, receipt);
-        Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
         using var replay = Reload(world);
         await TickTogether(world, replay);
     }
@@ -217,23 +218,16 @@ public sealed partial class WorldExpansionOrderTests
         var saved = world.ExportState();
         var order = Order(world, receipt);
         var binding = Assert.IsType<OwnerBuildingExpansionBinding>(order.ExpansionBinding);
-        foreach (var invalid in new[]
-        {
-            order with { ExpansionBinding = null },
-            order with { ExpansionBinding = binding with { JobId = "expansion-missing" } },
-            order with { ExpansionBinding = binding with { OwnerId = OtherHousehold } },
-            order with { ExpansionBinding = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } },
-            order with { ExpansionBinding = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } },
-            order with { Status = "finished", CompletedUnits = 1, LastEffectId = "expand:job:" + new string('0', 64) },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { JobId = "expansion-missing" } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { OwnerId = OtherHousehold } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "expand:job:" + new string('0', 64), ["Status"] = "finished" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         var unlinked = saved with
         {
             WorldSimulation = saved.WorldSimulation! with

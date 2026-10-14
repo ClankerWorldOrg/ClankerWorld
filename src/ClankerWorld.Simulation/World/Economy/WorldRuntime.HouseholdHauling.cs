@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
     }
 
     private sealed record SpareCargoMove(InventoryLot Lot, int TransferQuantity, int PhysicalQuantity,
-        string? OrchardReservationId = null);
+        Identity? OrchardReservationId = null);
 
     private List<SpareCargoMove> SpareCargoForFood(string actor, int missing, string? protectedLotId = null,
         params string[] additionallyProtectedLotIds)
@@ -304,7 +304,7 @@ public sealed partial class WorldRuntime
                         "spare_cargo_stored", destination.StorageBuildingId, destinationGroundPosition: destination.StorageBuildingId is null
                             ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null, holdAccess: InventoryHoldRules.DeliveryFor(actor, destination.StorageBuildingId));
             });
-            AppendEvent("spare_cargo_stored", $"{actor}:{lot.ItemKind}:{quantity}:{destination.StorageBuildingId ?? "pile"}");
+            AppendEvent(new SpareCargoStoredEventPayload(actor, lot.ItemKind, quantity, destination.StorageBuildingId ?? "pile"));
         }
         return true;
     }

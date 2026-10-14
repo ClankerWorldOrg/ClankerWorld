@@ -35,8 +35,8 @@ public sealed partial class WorldRuntimeTests
         var state = world.ExportState();
         Assert.Contains(world.Society.Inventory.Lots, lot =>
             lot.OwnerId == HarvestInstructionActor && lot.ItemKind == itemKind && lot.Quantity == 4);
-        Assert.Contains(harvest.InstructionId, state.CompletedInstructionIds ?? []);
-        Assert.DoesNotContain(eat.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(harvest.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(eat.InstructionId.Value, state.CompletedInstructionIds ?? []);
         var messages = new OwnerWorldObservationStore(world).GetSnapshot().Instructions;
         var closedHarvest = Assert.Single(messages, item => item.InstructionId == harvest.InstructionId);
         Assert.Equal("completed", closedHarvest.State);
@@ -56,7 +56,7 @@ public sealed partial class WorldRuntimeTests
         for (var tick = 0; tick < 50 && !(restored.ExportState().CompletedInstructionIds ?? []).Contains(eat.InstructionId); tick++)
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
 
-        Assert.Contains(eat.InstructionId, restored.ExportState().CompletedInstructionIds ?? []);
+        Assert.Contains(eat.InstructionId.Value, restored.ExportState().CompletedInstructionIds ?? []);
         Assert.Single(restored.ExportState().Events, item => item.Kind == "instruction_applied" &&
             item.Detail == harvest.InstructionId + ":harvest_food");
         Assert.Contains(restored.ExportState().Events, item => item.Kind == "food_consumed" &&
@@ -89,7 +89,7 @@ public sealed partial class WorldRuntimeTests
         var submitted = world.ExportState();
         Assert.Equal("not_understood", Assert.Single(submitted.Instructions!,
             item => item.InstructionId == order.InstructionId).Task!.Status);
-        Assert.Contains(order.InstructionId, submitted.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, submitted.CompletedInstructionIds ?? []);
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -135,14 +135,14 @@ public sealed partial class WorldRuntimeTests
         var harvest = world.SubmitInstruction(new OwnerInstructionRequest("depleted-harvest", "owner:test",
             HarvestInstructionActor, OwnerInstructionKind.Order, "harvest food"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.DoesNotContain(harvest.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(harvest.InstructionId.Value, world.ExportState().CompletedInstructionIds ?? []);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "instruction_applied");
 
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(world.ExportState())), _ =>
                 new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        Assert.DoesNotContain(harvest.InstructionId, restored.ExportState().CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(harvest.InstructionId.Value, restored.ExportState().CompletedInstructionIds ?? []);
         Assert.DoesNotContain(restored.ExportState().Events, item => item.Kind == "food_harvested");
         restored.Validate();
     }

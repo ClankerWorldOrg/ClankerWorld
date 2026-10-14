@@ -15,4 +15,7 @@
     <PackageReference Include="Anthropic" Version="12.55.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/EventVocabulary.cs" Link="Shared/EventVocabulary.cs" />
+  </ItemGroup>
 </Project>

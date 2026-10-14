@@ -669,13 +669,13 @@ public partial class Main
             WorldId: snapshot.WorldId);
         OwnerBuildingManagementResult? result = null;
         var generation = observationSession.RequestGeneration;
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             result = await AwaitCurrentWorldResultAsync(ownerApi.ReassignBuildingAsync(ResolveWorldUri(), authority, deviceId, action,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             return result.Applied ? "Building owner changed" : result.Failure ?? "The building could not be reassigned.";
         });
-        if (IsCurrentWorldRequest(generation) && result is { } changed)
+        if (contextRetained && IsCurrentWorldRequest(generation) && result is { } changed)
             SetStatus(changed.Applied ? "Building owner changed" : changed.Failure ?? "The building could not be reassigned.",
                 good: changed.Applied);
     }
@@ -711,14 +711,14 @@ public partial class Main
 
         OwnerBuildingManagementResult? result = null;
         var generation = observationSession.RequestGeneration;
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             result = await AwaitCurrentWorldResultAsync(ownerApi.RemoveBuildingAsync(ResolveWorldUri(), authority, deviceId,
                 action,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             return result.Applied ? "Building removed" : result.Failure ?? "The building could not be removed.";
         });
-        if (!IsCurrentWorldRequest(generation) || result is not { } removed) return;
+        if (!contextRetained || !IsCurrentWorldRequest(generation) || result is not { } removed) return;
         SetStatus(removed.Applied ? "Building removed" : removed.Failure ?? "The building could not be removed.",
             good: removed.Applied);
         if (removed.Applied && buildingCardSnapshot?.WorldId == worldId && selectedBuildingId == action.InstanceId)

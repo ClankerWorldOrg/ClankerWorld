@@ -141,7 +141,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
             Assert.Null(lot.DeliveryBuildingId);
         });
         Assert.Equal(10, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
-        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
         if (finalStatus == "blocked")
         {
             var cancellation = new OwnerOrderCancelRequest("stop-donation", "owner:test", world.Society.WorldId, actor, receipt.InstructionId);
@@ -227,7 +227,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
         Assert.Equal(16, resumed.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         var deposit = Assert.Single(resumed.ExportState().Events, item => item.Kind == "owner_stock_delivered");
         Assert.Equal($"{actor}:z-bound-wood:2:{Warehouse}", deposit.Detail);
-        Assert.StartsWith("delivery:stock:", Order(resumed, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("delivery:stock:", Order(resumed, receipt).LastEffectId?.Value, StringComparison.Ordinal);
     }
 
     [Theory]
