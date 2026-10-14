@@ -61,7 +61,7 @@ internal sealed partial class FarmingSystem
         var sickleLotId = sickle is null ? null : IsolateFieldToolForWork(world, workerId, position, sickle.ToolLotId);
         SetFarmField(world, field with
         {
-            Work = new(workerId, kind, plannedWork?.WorkTicks ?? world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, reservationId, crop,
+            Work = new(workerId, kind, plannedWork?.WorkTicks ?? world.SkilledWorkTicks(workerId, SkillKind.Farming, FarmFieldRules.WorkTicks(kind)), world.WorldTick, Identity.ParseOptional(reservationId), crop,
                 hoeLotId, sickleLotId, orderInstructionId),
             LastWorkedTick = world.WorldTick,
         });

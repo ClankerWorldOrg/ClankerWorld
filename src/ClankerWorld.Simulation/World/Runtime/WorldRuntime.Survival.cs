@@ -343,11 +343,12 @@ public sealed partial class WorldRuntime
         var borrowedTool = pickup.ItemKind == "tool" || ToolProgressionRules.Find(pickup.ItemKind) is not null;
         var keepOwner = pickup.OwnerId == actor ||
             borrowedTool && pickup.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
+        var operationId = DerivedId.Create($"equipment:{WorldTick}:{actor}:{pickup.ItemKind}");
         ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}",
+            ? InventoryAuthority.Relocate(inventory, operationId, pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
+            : InventoryAuthority.Transfer(inventory, operationId,
                 pickup.OwnerId, actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
+        AppendEvent(new EquipmentCollectedEventPayload(actor, pickup.ItemKind));
     }
 
     private bool HasCarriedEquipmentAtLeast(string actor, string kind)
