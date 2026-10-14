@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Device pairing
@@ -73,6 +73,10 @@ Routine helper changes require `clankerworld.owner-routine-helper.v1`, signing
 the observed world ID, helper, model and optional saved OpenAI key-slot ID. The
 server holds the world-selection gate through validation and persistence, and
 refuses a changed world or an unpaused world.
+Named-key deletion checks the active world's routine helper together with agent
+assignments. It holds the same world-selection gate as helper changes, so an
+active helper's key cannot disappear during a switch. Refusal preserves the key
+file and the world's helper settings.
 A request that names Anthropic or a thinking level requires
 `clankerworld.owner-model-thinking.v1`: model settings, model lists, saved keys,
 Test model and founder or agent placement. Their payloads gain a final
@@ -121,10 +125,17 @@ new observation timeline.
 Aging-override and Jev actions additionally bind the selected world ID into their
 version-2 signed payloads. The server advertises both formats on challenge
 issuance; the client refuses to submit them to a server without that support.
-Both endpoints check the target world under the same mutation gate used by
-world selection, before changing or saving settings. A stale target returns
-409 without changing the newly selected world, and a request without a target
-returns 400. The pairing authority and world-save schema are unchanged.
+World-bound actions use one `OwnerWorldRequestFilter<TAction>`: it validates
+and authenticates the action, then holds the world-selection mutation gate
+through the target-world check, synchronous handler and durable save. This
+covers instructions, order cancellation, building management, life pace, Jev,
+routine helpers, developer edits, autosaves and recovery cleanup. Each route
+keeps its existing refusal response; runtime operations retain their own checks
+for callers outside HTTP. Deletion may deliberately target an inactive world's
+saved files, so its catalog and save-identity checks remain separate. For life pace
+and Jev, a stale target returns 409 without changing the newly selected world,
+and a request without a target returns 400. Building management retains its
+rejected result. The pairing authority and world-save schema are unchanged.
 
 Successful activation and recovery of an already-active pairing both return
 to the Main Menu. Recovery saves the matching registration without opening
@@ -148,6 +159,13 @@ timeline cannot replace the new view. The usual tick, cursor and event-order
 checks still apply within one timeline. Hosts without the capability retain
 the earlier reconnect contract; signed reconnect payloads are unchanged.
 
+The game requires `owner-event-presentation.v2` on the signed owner handshake
+because Event Log descriptions and typed event fields come from the host.
+The host advertises this version without the preceding text-only version.
+A host without it is refused
+with an update explanation, preserving the last accepted view and paired device
+registration. Update a remote host alongside the game.
+
 ## Building ownership changes
 
 Building removal and reassignment payloads require the observed simulation world
@@ -159,6 +177,21 @@ A removal confirmation retains the world and owners shown when it opened;
 observation refreshes cannot silently authorize a different ownership change.
 
 ## Response-loss recovery
+
+The game's `OwnerRequest<T>` runner owns each action's deadline and control
+cleanup. Its context binds ordinary actions to the observation generation and
+the sending panel's visibility and selection. A late answer or refusal from a
+closed panel or an earlier world cannot update the new panel. Pause waits for
+the existing action; duplicate ordinary actions still do not queue. Load,
+create, select and startup recovery deliberately replace the timeline and keep
+their registration binding. Every outcome restores the controls, while the
+pending-submission store below decides whether an uncertain action can be retried.
+
+A same-world observation refresh captures a `PanelDraft` for visible controls.
+It restores editable text and its caret/selection, choice identities and scroll
+positions after updating facts. A timeline change instead resets the old world.
+Name captions use `FittedLabel`, including wrapped headings, with the complete
+caption on hover; the client source guard rejects new plain name labels.
 
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
@@ -354,9 +387,16 @@ The game does this itself when the `package.json` in its folder names a world
 server that is there, and no `--server-url` argument is given (`LocalServer`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
-apart from a server pairing. Before starting the server it checks the port: a
-running server of the exact same version and source revision, started by an
-earlier launch, is reused only after a side-effect-free `GET /api/v1/approval/launch-check`
+apart from a server pairing. The game holds an exclusive per-installation
+`server/startup.lock` handle from the port check through launch and readiness.
+An overlapping game refuses startup
+before changing the secret or logs. The empty lock file stays in place; process
+exit releases its handle, so a crash leaves no stale lock. A failed launch
+restores the prior secret, and cancellation finishes its own starting child's
+stop attempt before releasing the handle. An explicitly refused shutdown keeps
+the server and its paused world available for retry. A running server of the exact same version and
+source revision, started by an earlier launch, is reused only after a
+side-effect-free `GET /api/v1/approval/launch-check`
 confirms the secret already in its file on the approval listener. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
@@ -370,9 +410,10 @@ Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
 `POST /api/v1/approval/shutdown` exists only on a local server. It
-pauses the world, cancels model work and writes its checkpoint before
-returning 202. The response completion callback requests process exit, so server
-teardown follows the acknowledgement. If writing fails, it returns 503 and
+pauses the world, cancels model work, saves pending newborn model bindings in
+provider storage and writes its checkpoint before returning 202. The response
+completion callback requests process exit, so server teardown follows the
+acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
 returns 409 without rewriting the refused checkpoint. Whenever a world
 server stops, it waits for the tick loop to finish and writes a final checkpoint

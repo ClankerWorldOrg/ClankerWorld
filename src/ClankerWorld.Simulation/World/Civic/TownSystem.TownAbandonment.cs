@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
         SetTown(world, town with { ResidentIds = group });
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_resettled", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Agents[actor].Position);
+        world.AppendEvent(new TownResettledEventPayload(actor, town.Id, previous ?? "none", group.Length), world.Agents[actor].Position);
     }
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);

@@ -21,7 +21,7 @@ public partial class Main
             mainMenuOverlay, pauseMenuPanel, settingsPanel, modLibraryPanel, worldMenuOverlay, manualSaveOverlay,
             controlsPanel, founderSetupPanel, agentsPanel, eventLogPanel, worldInfoPanel, filtersPanel, worldMapPanel,
             agentQuickCard, agentProfilePanel, familyTreePanel, memoriesPanel, thoughtsPanel, ordersPanel,
-            conversationPanel, selectedTilePanel, buildingQuickCard, buildingDetailsPanel, developerPanel,
+            conversationPanel, selectedTilePanel, buildingQuickCard, buildingDetailsPanel, developerPanel, pendingSubmissionPanel,
         })
         {
             panel.VisibilityChanged += () =>
@@ -65,6 +65,7 @@ public partial class Main
 
     private Control CurrentKeyboardPanel()
     {
+        if (pendingSubmissionPanel.IsVisibleInTree()) return pendingSubmissionPanel;
         if (manualSaveOverlay.IsVisibleInTree()) return manualSaveOverlay;
         if (worldMenuOverlay.IsVisibleInTree()) return worldMenuOverlay;
         if (pauseMenuPanel.IsVisibleInTree()) return pauseMenuPanel;
