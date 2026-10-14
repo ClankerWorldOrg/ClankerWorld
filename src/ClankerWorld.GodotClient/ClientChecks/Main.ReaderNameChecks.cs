@@ -86,6 +86,8 @@ public partial class Main
                         var displayed = snapshot with { Conversations = [conversation] };
                         var viewer = kind == "nearby" ? third.Id : person.Id;
                         OpenConversationReader(displayed, viewer, conversation.Id);
+                        await SettleAsync();
+                        RenderConversationReader(displayed, conversation, viewer, 0);
                         var heading = kind switch
                         {
                             "marriage_surname" => $"Shared surname · {name} and {otherName}",

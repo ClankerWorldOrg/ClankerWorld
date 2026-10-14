@@ -21,6 +21,7 @@ public partial class FittedLabel : Label
         // here always fits, so Godot never needs to trim it.
         TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
         SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        MouseFilter = MouseFilterEnum.Pass;
     }
 
     /// <summary>The whole text; <see cref="Label.Text"/> holds what fits.</summary>
