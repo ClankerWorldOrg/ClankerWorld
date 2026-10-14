@@ -996,6 +996,7 @@ public partial class Main
         {
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
+            await VerifyPanelDraftPreservationAsync();
             await VerifyNewcomerOfferAsync();
             await VerifyAcknowledgedAgentPlacementAsync();
             VerifyOrnamentPresentation();
@@ -3787,7 +3788,7 @@ public partial class Main
             RenderMap(largeMap);
             var agentListPosition = new OwnerWorldPosition(180, 90);
             OwnerWorldAgent ListedAgent(string id, string name, string lifecycle, int fullness) =>
-                new(id, name, lifecycle, agentListPosition, fullness, [], [],
+                new(id, name, lifecycle, agentListPosition, fullness, [], [new("fullness-state", NeedStates.FullnessState(fullness))],
                     new OwnerWorldRoute("idle", null, null, [], string.Empty),
                     new OwnerWorldSpatialKnowledge(agentListPosition, [agentListPosition], [agentListPosition]), false);
             var agentListMap = largeMap with
@@ -3828,7 +3829,7 @@ public partial class Main
                 Agents = [agentListMap.Agents[0] with
                 {
                     PublicIntention = new OwnerWorldPublicIntention("knowledge_copy:knowledge-artifact-000001",
-                        "knowledge_copy:knowledge-artifact-000001", "deterministic", 1),
+                        "copying a written work", "deterministic", 1),
                 }],
             });
             if (!AgentListCardText(0).Contains("Copying a written work", StringComparison.Ordinal) ||
@@ -4253,7 +4254,7 @@ public partial class Main
                 "First Town recorded a mayoral election or office change. See the Towns page for its result.",
             ];
             var visibleRows = eventRows.GetChildren().OfType<HBoxContainer>()
-                .SelectMany(row => row.GetChildren().OfType<Label>()).Select(label => label.Text).ToArray();
+                .SelectMany(row => row.GetChildren().OfType<Label>()).Select(CaptionForChecks).ToArray();
             var missingDecisions = civicDecisions.Where(text => !visibleRows.Contains(text, StringComparer.Ordinal)).ToArray();
             if (missingDecisions.Length > 0)
                 throw new InvalidOperationException("The Event Log omitted civic decisions: " + string.Join("; ", missingDecisions));

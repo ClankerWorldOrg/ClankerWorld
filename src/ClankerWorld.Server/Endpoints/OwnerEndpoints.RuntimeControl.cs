@@ -16,110 +16,94 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/owner/control/aging-override", (
             OwnerSignedHttpRequest<OwnerAgingOverrideAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services,
             OwnerWorldObservationStore observations,
             ILogger<WorldRuntimeService> logger) =>
         {
-            if (request?.Action is not { } action || action.Rate is not (1 or 365 or 1_460))
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            bool changed;
+            try
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] });
+                changed = runtime.SetAgingOverride(action.Rate);
             }
-            string payload;
-            try { payload = OwnerHttpBinding.AgingOverridePayload(action); }
-            catch (ArgumentException) { return Results.BadRequest(new { error = "Read the current world's settings before changing life pace." }); }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/aging-override", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
+            catch (InvalidOperationException)
             {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                if (action.WorldId != runtime.Society.WorldId)
-                    return Results.Conflict(new { error = "The world changed. Reopen World Settings before changing life pace." });
-                bool changed;
-                try
-                {
-                    changed = runtime.SetAgingOverride(action.Rate);
-                }
-                catch (InvalidOperationException)
-                {
-                    return Results.Conflict(new { error = "Pause the world before changing life pace." });
-                }
-                // A retry must also persist a prior in-memory change whose first save failed.
-                services.GetRequiredService<WorldStateFile>().Save(runtime);
-                if (changed) OwnerAgingOverrideTelemetry.Changed(logger, runtime.WorldTick, action.Rate);
-                return Results.Ok(OwnerControlReceipt.From("aging_override", changed, observations.GetSnapshot()));
+                return Results.Conflict(new { error = "Pause the world before changing life pace." });
             }
-        });
+            // A retry must also persist a prior in-memory change whose first save failed.
+            services.GetRequiredService<WorldStateFile>().Save(runtime);
+            if (changed) OwnerAgingOverrideTelemetry.Changed(logger, runtime.WorldTick, action.Rate);
+            return Results.Ok(OwnerControlReceipt.From("aging_override", changed, observations.GetSnapshot()));
+
+        }).ForWorld<OwnerAgingOverrideAction>(action => action.WorldId,
+            OwnerHttpBinding.AgingOverridePayload,
+            (_, _) => Results.Conflict(new { error = "The world changed. Reopen World Settings before changing life pace." }),
+            validate: action => action.Rate is not (1 or 365 or 1_460) ? Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] }) : null,
+            invalidPayload: (_, _) => Results.BadRequest(new { error = "Read the current world's settings before changing life pace." }),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] }));
 
         app.MapPost("/api/v1/owner/control/jev-assistance", (
             OwnerSignedHttpRequest<OwnerJevAssistanceAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services,
             OwnerWorldObservationStore observations,
             WorldJevPolicy jevPolicy,
             ILogger<WorldRuntimeService> logger) =>
         {
-            if (request?.Action is not { } action)
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A Jev setting is required."] });
-            string payload;
-            try { payload = OwnerHttpBinding.JevAssistancePayload(action); }
-            catch (ArgumentException) { return Results.BadRequest(new { error = "Read the current world's settings before changing Jev assistance." }); }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/jev-assistance", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            bool changed;
+            try
             {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                if (action.WorldId != runtime.Society.WorldId)
-                    return Results.Conflict(new { error = "The world changed. Reopen World Settings before changing Jev assistance." });
-                bool changed;
-                try
-                {
-                    changed = runtime.SetJevEnabled(action.Enabled);
-                }
-                catch (InvalidOperationException)
-                {
-                    return Results.Conflict(new { error = "Pause the world before changing Jev assistance." });
-                }
-                jevPolicy.Set(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                services.GetRequiredService<WorldStateFile>().Save(runtime);
-                if (changed) OwnerJevAssistanceTelemetry.Changed(logger, runtime.WorldTick, runtime.JevEnabled);
-                return Results.Ok(OwnerControlReceipt.From("jev_assistance", changed, observations.GetSnapshot()));
+                changed = runtime.SetJevEnabled(action.Enabled);
             }
-        });
+            catch (InvalidOperationException)
+            {
+                return Results.Conflict(new { error = "Pause the world before changing Jev assistance." });
+            }
+            jevPolicy.Set(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
+            services.GetRequiredService<WorldStateFile>().Save(runtime);
+            if (changed) OwnerJevAssistanceTelemetry.Changed(logger, runtime.WorldTick, runtime.JevEnabled);
+            return Results.Ok(OwnerControlReceipt.From("jev_assistance", changed, observations.GetSnapshot()));
+
+        }).ForWorld<OwnerJevAssistanceAction>(action => action.WorldId,
+            OwnerHttpBinding.JevAssistancePayload,
+            (_, _) => Results.Conflict(new { error = "The world changed. Reopen World Settings before changing Jev assistance." }),
+            invalidPayload: (_, _) => Results.BadRequest(new { error = "Read the current world's settings before changing Jev assistance." }),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A Jev setting is required."] }));
 
         app.MapPost("/api/v1/owner/control/routine-helper", (
             OwnerSignedHttpRequest<OwnerRoutineHelperAction> request,
             OwnerRequestAuthorizer authorizer, IServiceProvider services,
             OwnerWorldObservationStore observations, WorldJevPolicy jevPolicy, ILogger<WorldRuntimeService> logger) =>
         {
-            if (request?.Action is not { } action || string.IsNullOrWhiteSpace(action.WorldId) ||
-                action.WorldId.Length > 128 || action.WorldId.Any(char.IsControl))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] });
+            var action = request.Action;
             var settings = new RoutineHelperSettings(action.Provider, action.Model, action.CredentialSlotId);
-            try { settings.Validate(); }
-            catch (ArgumentException exception)
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            if (settings.CredentialSlotId is { } slotId && services.GetRequiredService<ProviderConfigurationStore>()
+                .CaptureRuntimeConfiguration().CredentialSlots?.Any(slot => slot.Id == slotId && slot.Provider == PlayerDecisionProviders.OpenAi) != true)
+                return Results.Conflict(new { error = "Choose an available saved OpenAI key." });
+            bool changed;
+            try { changed = runtime.SetRoutineHelper(settings, action.WorldId); }
+            catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+            jevPolicy.Set(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
+            // A no-op retry still persists an earlier change whose save failed.
+            services.GetRequiredService<WorldStateFile>().Save(runtime);
+            if (changed) OwnerJevAssistanceTelemetry.HelperChanged(logger, runtime.WorldTick, settings.Provider, settings.Model);
+            return Results.Ok(OwnerControlReceipt.From("routine_helper", changed, observations.GetSnapshot()));
+
+        }).ForWorld<OwnerRoutineHelperAction>(action => action.WorldId,
+            OwnerHttpBinding.RoutineHelperPayload,
+            (_, _) => Results.Conflict(new { error = "The active world changed. Open World Settings again." }),
+            validate: action =>
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/routine-helper",
-                OwnerHttpBinding.RoutineHelperPayload(action));
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
-            {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                if (settings.CredentialSlotId is { } slotId && services.GetRequiredService<ProviderConfigurationStore>()
-                    .CaptureRuntimeConfiguration().CredentialSlots?.Any(slot => slot.Id == slotId && slot.Provider == PlayerDecisionProviders.OpenAi) != true)
-                    return Results.Conflict(new { error = "Choose an available saved OpenAI key." });
-                bool changed;
-                try { changed = runtime.SetRoutineHelper(settings, action.WorldId); }
-                catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
-                jevPolicy.Set(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                // A no-op retry still persists an earlier change whose save failed.
-                services.GetRequiredService<WorldStateFile>().Save(runtime);
-                if (changed) OwnerJevAssistanceTelemetry.HelperChanged(logger, runtime.WorldTick, settings.Provider, settings.Model);
-                return Results.Ok(OwnerControlReceipt.From("routine_helper", changed, observations.GetSnapshot()));
-            }
-        });
+                if (string.IsNullOrWhiteSpace(action.WorldId) || action.WorldId.Length > 128 || action.WorldId.Any(char.IsControl))
+                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] });
+                try { new RoutineHelperSettings(action.Provider, action.Model, action.CredentialSlotId).Validate(); }
+                catch (ArgumentException exception) { return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] }); }
+                return null;
+            },
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] }));
 
         app.MapPost("/api/v1/owner/control/pause", (
             OwnerSignedHttpRequest<OwnerControlAction> request,

@@ -132,11 +132,11 @@ public partial class Main
             TownMarkerTile(westOfSeam, 10, wrapsEastWest: true) is not { X: 9.5f } ||
             TownMarkerTile(inland, 10, wrapsEastWest: true) is not { X: 4.5f })
             throw new InvalidOperationException($"A Town's World Map mark must sit in the middle of its tiles, the short way round a wrapping map: {TownMarkerTile(seamTown, 10, wrapsEastWest: true)}.");
-        var legend = worldMapPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+        var legend = worldMapPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
         if (!legend.Contains("Town") || !legend.Contains("Agent") || !legend.Contains("Your view"))
             throw new InvalidOperationException("The World Map must explain its marks with a legend.");
 
-        var filterText = filtersPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+        var filterText = filtersPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
         string[] descriptions = ["A dashed line around each Town", "Tints the buildings and fields a household owns",
             "A blue edge around land titled to a Town", "Land each household may use, in its colour", "Red stripes where claims overlap or a use right is under review"];
         if (descriptions.Any(line => !filterText.Contains(line)) ||
