@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
         Final
     }
 
-    private readonly record struct ActionContext(string AgentId, AgentState State, string CandidateId, bool ReportIdle);
+    private readonly record struct ActionContext(string AgentId, AgentState State, string CandidateId, bool ReportIdle, ActionPlan? Plan = null);
     private readonly record struct ChoiceContext(List<CognitionCandidate> Candidates, string AgentId, AgentState State, bool HasConversation, SocietyAgent? Agent = null, Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>? ReachableTools = null, Lazy<PlacedBuilding[]>? AccessibleWarehouses = null, List<string>? BuildingsWithoutSites = null);
     private sealed record ActionRegistration(ActionPhase Phase, string Name, string[] Prefixes, string[] ExactIds, Func<WorldRuntime, ActionContext, bool> Apply);
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
         RegisterFieldActions(),
         new(ActionPhase.Ordinary, "child_", ["child_"], [], static (runtime, action) =>
     {
-        runtime.ApplyChildCandidate(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyChildPlan(action.Plan as ChildActionPlan ?? runtime.PlanChildCandidate(action.AgentId, action.CandidateId));
         return true;
     }),
         new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], static (runtime, action) =>

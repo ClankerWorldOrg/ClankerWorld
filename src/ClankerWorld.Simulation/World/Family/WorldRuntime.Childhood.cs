@@ -15,31 +15,12 @@ public sealed partial class WorldRuntime
     // This is the final world-side gate, in addition to the legal candidate list
     // used by cognition admission. It also protects continuing intentions after
     // an age transition and any future direct action caller.
-    private bool AgePermitsCandidate(string actor, string candidate)
-    {
-        var age = society.Checkpoint.GetAgent(actor).AgeBand;
-        if (age == SocietyAgeBand.Infant) return false;
-        if (candidate == "make_room_for_food" && IsChild(actor)) return true;
-        if (age is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
-            return !candidate.StartsWith("child_", StringComparison.Ordinal);
-        return candidate is "safe_idle" or "consume_food" or "drink_milk" or "collect_shared_food" or
-            "seek_food" or "harvest_food" or "talk_to" or "move_to" or "wear_clothing" or "seek_warmth" or "seek_shelter" or "inspect_shelter_site" ||
-            candidate.StartsWith("guardian_accept:", StringComparison.Ordinal) ||
-            candidate.StartsWith("guardian_refuse:", StringComparison.Ordinal) ||
-            candidate.StartsWith("guardian_end:", StringComparison.Ordinal) ||
-            candidate.StartsWith("child_converse:", StringComparison.Ordinal) ||
-            candidate.StartsWith("child_play:", StringComparison.Ordinal) ||
-            candidate.StartsWith("child_learn:", StringComparison.Ordinal) ||
-            candidate.StartsWith("talk:", StringComparison.Ordinal) ||
-            candidate.StartsWith("conversation_", StringComparison.Ordinal) ||
-            candidate.StartsWith(TownSalvagePrefix, StringComparison.Ordinal) ||
-            candidate == "child_help_food" || candidate.StartsWith("child_gather:", StringComparison.Ordinal) ||
-            candidate.StartsWith("child_carry:", StringComparison.Ordinal);
-    }
+    private bool AgePermitsCandidate(string actor, string candidate) =>
+        LifeStageRules.Permits(society.Checkpoint.GetAgent(actor).AgeBand, candidate);
 
     private bool ChildSocialAvailable(string actor, string target, string kind) =>
         IsChild(actor) && actor != target && agents.ContainsKey(target) &&
-        society.Checkpoint.GetAgent(target).AgeBand != SocietyAgeBand.Infant &&
+        !LifeStageRules.IsInfant(society.Checkpoint.GetAgent(target).AgeBand) &&
         !society.Checkpoint.Memories.Any(memory => memory.OwnerId == actor && memory.SubjectId == target &&
             memory.Id.Value.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
             memory.SourceTick > WorldTick - ChildSocialCooldownTicks);
@@ -47,78 +28,42 @@ public sealed partial class WorldRuntime
     private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         var availableTargets = 0;
-        foreach (var target in agents.Keys.Where(id => id != actor &&
-                     society.Checkpoint.GetAgent(id).AgeBand != SocietyAgeBand.Infant)
+        foreach (var target in agents.Keys.Where(id => id != actor)
                  .OrderBy(id => map.FootDistance(state.Position, agents[id].Position))
                  .ThenBy(id => id, StringComparer.Ordinal))
         {
-            if (NeedsUrgentFood(state) && !IsWithinInteractionRange(state.Position, agents[target].Position, ResourceInteractionRange))
-                continue;
-            if (FindUnoccupiedRoute(actor, state.Position, agents[target].Position, ResourceInteractionRange).Count == 0)
-                continue;
             var candidateCount = candidates.Count;
-            if (ChildSocialAvailable(actor, target, "converse"))
-                candidates.Add(new($"child_converse:{target}", "Talk with a nearby person and remember the encounter.", 38, target));
-            if (ChildSocialAvailable(actor, target, "play"))
-                candidates.Add(new($"child_play:{target}", "Play together and build a friendship.", 34, target));
-            if (IsAdult(target) && ChildSocialAvailable(actor, target, "learn"))
-                candidates.Add(new($"child_learn:{target}", "Learn a simple observation from an adult without taking an adult work role.", 42, target));
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Converse, target),
+                "Talk with a nearby person and remember the encounter.", 38, target);
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Play, target),
+                "Play together and build a friendship.", 34, target);
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Learn, target),
+                "Learn a simple observation from an adult without taking an adult work role.", 42, target);
             if (candidates.Count > candidateCount && ++availableTargets == 3) break;
         }
 
-        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         AddChildHelpingCandidates(candidates, actor, state);
-        var house = householdId is null ? null : HouseForHousehold(householdId);
-        if (state.FullnessBasisPoints >= 6_000 && PersonalSpareFood(actor) is not null &&
-            (house is null || DestinationRoom(house.InstanceId) > 0) &&
-            FindUnoccupiedRoute(actor, state.Position,
-                house?.Position ?? SharedStoragePosition,
-                house is null ? ResourceInteractionRange : 0).Count > 0)
-            candidates.Add(new("child_help_food", "Carry one spare food serving back to the household store.", 26));
+        OfferChildChoice(candidates, actor, new(ChildActionKind.HelpFood),
+            "Carry one spare food serving back to the household store.", 26);
     }
 
-    private void ApplyChildCandidate(string actor, AgentState state, string candidate)
-    {
-        if (!IsChild(actor) || NeedsUrgentWarmth(state)) return;
-        if (candidate.StartsWith("child_gather:", StringComparison.Ordinal) ||
-            candidate.StartsWith("child_carry:", StringComparison.Ordinal))
-        {
-            ApplyChildHelpingCandidate(actor, state, candidate);
-            return;
-        }
-        if (candidate == "child_help_food")
-        {
-            if (state.FullnessBasisPoints < 6_000 ||
-                PersonalSpareFood(actor) is not { } lot)
-                return;
-            var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
-            var house = householdId is null ? null : HouseForHousehold(householdId);
-            if (house is not null && DestinationRoom(house.InstanceId) == 0)
-                return;
-            var store = house?.Position ?? SharedStoragePosition;
-            var interactionRange = house is null ? ResourceInteractionRange : 0;
-            if (!IsWithinInteractionRange(state.Position, store, interactionRange))
-            {
-                MoveToward(actor, state, store, "child_help", interactionRange);
-                return;
-            }
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"child-help:{WorldTick}:{actor}", actor, HouseholdFor(actor), lot.Id, 1,
-                "child_household_help", house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house?.InstanceId)));
-            AppendEvent(new ChildHelpedHouseholdEventPayload(actor));
-            return;
-        }
+    private void ApplyChildCandidate(string actor, AgentState state, string candidate) =>
+        ApplyChildPlan(PlanChildCandidate(actor, candidate));
 
-        var separator = candidate.IndexOf(':', StringComparison.Ordinal);
-        if (separator < 0) return;
-        var kind = candidate[6..separator];
-        var target = candidate[(separator + 1)..];
-        if (kind is not ("converse" or "play" or "learn") || !ChildSocialAvailable(actor, target, kind) ||
-            kind == "learn" && !IsAdult(target)) return;
-        var destination = agents[target].Position;
-        if (!IsWithinInteractionRange(state.Position, destination, ResourceInteractionRange))
+    private void ApplyChildSocial(ChildActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var target = plan.Choice.Target!;
+        var kind = plan.Choice.Kind switch
         {
-            MoveToward(actor, state, destination, "child_social", ResourceInteractionRange);
+            ChildActionKind.Converse => "converse",
+            ChildActionKind.Play => "play",
+            _ => "learn",
+        };
+        var state = agents[actor];
+        if (!IsWithinInteractionRange(state.Position, plan.Destination, plan.InteractionRange))
+        {
+            MoveToward(actor, state, plan.Destination, "child_social", plan.InteractionRange);
             return;
         }
 

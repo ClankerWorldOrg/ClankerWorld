@@ -29,6 +29,14 @@ Current-format reload and continued transitions retain the holds; refused
 operations leave the supplied checkpoint unchanged. Earlier alpha worlds are
 refused and preserved without migration. This number is provisional until merge.
 
+## Choice plans
+
+Child action plans are transient server data and add no checkpoint fields.
+The typed `choice_refused` event records the actor, their name, activity and
+plain refusal reason when a selected person, resource, lot or quantity becomes
+unavailable. World schema 137 adds this event payload. Earlier alpha saves are
+refused and preserved without migration.
+
 ## Mod content identities
 
 Content IDs use the 512-character import limit in
@@ -1299,7 +1307,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 136. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 137. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

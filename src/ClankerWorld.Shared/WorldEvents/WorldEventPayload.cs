@@ -8,6 +8,7 @@ public sealed record EventPosition(int X, int Y);
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(ActionRefusedEventPayload), "action_refused")]
+[JsonDerivedType(typeof(ChoiceRefusedEventPayload), "choice_refused")]
 [JsonDerivedType(typeof(AgeActionRejectedEventPayload), "age_action_rejected")]
 [JsonDerivedType(typeof(AgentAddedEventPayload), "agent_added")]
 [JsonDerivedType(typeof(AgentIdentityChosenEventPayload), "agent_identity_chosen")]

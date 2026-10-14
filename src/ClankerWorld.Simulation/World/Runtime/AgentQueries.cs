@@ -17,10 +17,10 @@ public interface IAgentWorld : IWorldEventWorld
 public static class AgentQueries
 {
     public static bool IsAdult(IAgentWorld world, string actor) => world.Agents.ContainsKey(actor) &&
-        world.Society.GetAgent(actor).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+        LifeStageRules.IsAdult(world.Society.GetAgent(actor).AgeBand);
 
     public static bool IsChild(IAgentWorld world, string actor) => world.Agents.ContainsKey(actor) &&
-        world.Society.GetAgent(actor).AgeBand is SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
+        LifeStageRules.IsChild(world.Society.GetAgent(actor).AgeBand);
 
     public static string HouseholdFor(IAgentWorld world, string actor) => world.Society.GetAgent(actor).HouseholdId ?? actor;
 

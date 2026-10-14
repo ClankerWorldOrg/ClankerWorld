@@ -1,0 +1,1 @@
+- Children keep the goods and destination they originally chose. If that choice becomes unavailable before they act, the Event Log explains why they waited. This raises the alpha save format; earlier saves are refused and preserved without migration.

@@ -61,12 +61,12 @@ public sealed partial class WorldRuntime
     private const int SpoiledMealIllnessIncreaseBasisPoints = 300;
     private const int FreshMealIllnessReliefBasisPoints = 100;
 
-    private const int ComfortableFullness = 4_000;
+    private const int ComfortableFullness = NeedThresholds.ComfortableFullness;
     private const int ComfortableWarmth = 6_000;
-    private const int UrgentFullness = 2_000;
+    private const int UrgentFullness = NeedThresholds.UrgentFullness;
     private const int UrgentWarmth = ClankerWorld.Contracts.NeedStates.ColdThreshold;
     // Provisional routine and outing reserves, not owner-approved balance.
-    private const int RoutineFoodSeekFullness = 4_500;
+    private const int RoutineFoodSeekFullness = NeedThresholds.RoutineFoodSeekFullness;
     private const int OutingFullnessReserve = 3_000;
     // Provisional balance (#641, #673): how much colder full night is than
     // the same weather by day, in the per-tick exposure units weather uses.

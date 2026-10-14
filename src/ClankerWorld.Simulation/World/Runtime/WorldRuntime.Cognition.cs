@@ -642,6 +642,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyDecision(SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is { } plan &&
+            (decision.PlanRefusal ?? CheckActionPlan(plan).Refusal) is { } refusal)
+        {
+            RefuseChoice(plan, refusal);
+            return;
+        }
         if (attemptedActions is not null && decision.Admission.Intention is { } attempted)
             attemptedActions[decision.AgentId] = attempted.CandidateId;
         if (withheldActions?.Contains(decision.AgentId) == true) return;
@@ -750,7 +756,7 @@ public sealed partial class WorldRuntime
                     ApplyMarketCandidate(decision.AgentId, state, candidateId);
             }
             else if (!ApplyToolMakingRequestDecision(decision))
-                ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
+                ApplyRegisteredCandidate(decision.AgentId, state, candidateId, reportIdle: true, decision.ActionPlan);
         }
 
     }
@@ -813,7 +819,7 @@ public sealed partial class WorldRuntime
     private void ApplyCandidate(string agentId, AgentState state, string candidateId, bool reportIdle) =>
         ApplyRegisteredCandidate(agentId, state, candidateId, reportIdle);
 
-    private void ApplyRegisteredCandidate(string agentId, AgentState state, string candidateId, bool reportIdle)
+    private void ApplyRegisteredCandidate(string agentId, AgentState state, string candidateId, bool reportIdle, ActionPlan? plan = null)
     {
         if (withheldActions?.Contains(agentId) == true || IsRefusedAction(agentId, candidateId)) return;
         if (attemptedActions is not null) attemptedActions[agentId] = candidateId;
@@ -830,7 +836,7 @@ public sealed partial class WorldRuntime
             state = agents[agentId];
         }
         if (PendingInstructionFor(agentId) is null && ContinueFarmWork(agentId)) return;
-        if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle))) return;
+        if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle, plan))) return;
         if (reportIdle) AppendEvent(new AgentIdleEventPayload(agentId));
     }
 

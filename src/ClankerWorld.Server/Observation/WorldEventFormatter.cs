@@ -107,6 +107,8 @@ public static class WorldEventFormatter
     {
         if (worldEvent.Payload is not { } payload) return worldEvent.Kind switch
         { "town_admission_accepted" => "Someone became a Town resident.", _ => $"{EventVocabulary.HumanizeIdentifier(worldEvent.Kind)}." };
+        if (payload is ChoiceRefusedEventPayload refusal)
+            return $"{refusal.ActorName} didn't {refusal.Activity}: {refusal.Explanation}.";
         if (payload is MarriageAcceptedEventPayload marriage)
             return $"{marriage.InitiatorName} and {marriage.InviteeName} agreed to marry. They haven't chosen a shared surname yet.";
         if (payload is MarriageSurnameAgreedEventPayload agreed)
