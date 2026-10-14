@@ -16,10 +16,10 @@ public sealed partial class WorldRuntime
             Reach(actor, target, ReachPurpose.KnowledgeStorage, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckKnowledgeStorage(KnowledgeStorageActionPlan plan)
+    private ActionCheck CheckKnowledgeStorage(KnowledgeStorageActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? KnowledgeStorageCapabilities);
         if (!capability.Allowed) return capability;
         if (knowledge.Artifacts.SingleOrDefault(item => item.Id == plan.Artifact.Id) is not { } artifact ||
             TownHearingProcedure.Digest(artifact) != TownHearingProcedure.Digest(plan.Artifact) || HouseholdFor(plan.Actor) != plan.HouseholdId)
