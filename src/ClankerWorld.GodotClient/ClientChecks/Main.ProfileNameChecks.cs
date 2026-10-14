@@ -85,12 +85,12 @@ public partial class Main
                     renameAgentButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await host.RenameReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
                     var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
-                    while (DateTime.UtcNow < deadline && (renameRow.Visible || selectedActorNameLabel.Text != shorter))
+                    while (DateTime.UtcNow < deadline && (renameRow.Visible || selectedActorNameLabel.FullText != shorter))
                         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                     await SettleAsync();
                     if (!host.RenameRequests.TryDequeue(out var sent) || sent != new OwnerAgentRenameAction(agentId, shorter) ||
-                        renameRow.Visible || selectedActorNameLabel.Text != shorter)
-                        throw new InvalidOperationException($"The visible Rename button must submit the shorter name and display the accepted result: fieldOpen={renameRow.Visible}, shown={selectedActorNameLabel.Text}, status={statusLabel.Text}.");
+                        renameRow.Visible || selectedActorNameLabel.FullText != shorter)
+                        throw new InvalidOperationException($"The visible Rename button must submit the shorter name and display the accepted result: fieldOpen={renameRow.Visible}, shown={selectedActorNameLabel.FullText}, status={statusLabel.Text}.");
                     Fits(shorter, agentProfilePanel, renameToggleButton, profileCloseButton);
                     profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await SettleAsync();

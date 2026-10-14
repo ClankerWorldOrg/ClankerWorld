@@ -15,7 +15,7 @@ public partial class Main
     private readonly Button addAgentButton = new();
     private readonly Button startWorldButton = new();
     private readonly PanelContainer founderSetupPanel = new();
-    private readonly Label founderSetupHint = new();
+    private readonly FittedLabel founderSetupHint = new();
     private readonly TextureRect founderPlacementIcon = new();
     private readonly OptionButton founderProviderChoice = new();
     private readonly OptionButton founderCredentialChoice = new();

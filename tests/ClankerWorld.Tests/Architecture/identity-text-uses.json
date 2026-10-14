@@ -137,7 +137,6 @@
   "src/ClankerWorld.Server/Content/ApprovedAssetCatalog.cs|length|value.Length \u003E 128": 1,
   "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.DeveloperEdits.cs|length|other.Length \u003E 512": 1,
   "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.DeveloperEdits.cs|length|value.Length \u003E 512": 1,
-  "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Instructions.cs|id|$\u0022owner-device:{authorization.Value!.DeviceId}\u0022": 2,
   "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Observation.cs|length|worldId.Length \u003E 256": 1,
   "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.RuntimeControl.cs|length|action.WorldId.Length \u003E 128": 1,
   "src/ClankerWorld.Server/Endpoints/OwnerEndpoints.cs|length|\u003C 1": 2,
