@@ -415,6 +415,7 @@ still stop that agreement and preserves its latest progress.
 Household leave/founding choices retain their household, moving care group and
 exact loose-food allowance. Native membership, custody and paused-work effects
 use the retained selection; automatic displacement plans its own native step.
+Allowance selection and rechecks respect the native transfer's stock holds.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
