@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -101,23 +102,23 @@ public sealed partial class WorldStorageOrderTests
         var saved = world.ExportState();
         var valid = Order(world, receipt);
         Assert.Equal("store_equipment", valid.Action);
-        foreach (var invalid in new[]
-        {
-            valid with { TargetEquipmentKind = null }, valid with { TargetEquipmentKind = "stone_hoe" },
-            valid with { TargetFoodKind = "berries" }, valid with { TargetMaterialKind = "stone" },
-            valid with { TargetCropKind = "greens" }, valid with { TargetResourceId = "stone" },
-            valid with { TargetPosition = new(10_000_001, 1) }, valid with { RequestedUnits = 0 },
-            valid with { CompletedUnits = -1 }, valid with { ProgressUnit = "collection_loads" },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "store:personal:unearned" },
-            valid with { QuantityIsExplicit = false, ProgressUnit = "storage_loads" },
-            valid with { CompletedUnits = 1, LastEffectId = "collect:personal:wrong-action" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetEquipmentKind"] = null }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "stone_hoe" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetMaterialKind"] = "stone" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetCropKind"] = "greens" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetResourceId"] = "stone" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(10_000_001, 1) }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["RequestedUnits"] = 0 }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["CompletedUnits"] = -1 }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["ProgressUnit"] = "collection_loads" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["ProgressUnit"] = "material_items" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["LastEffectId"] = "store:personal:unearned" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["QuantityIsExplicit"] = false, ["ProgressUnit"] = "storage_loads" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "collect:personal:wrong-action" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
     }
 }

@@ -71,7 +71,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal("queued", Assert.Single(cancelled.Instructions!, item => item.InstructionId == queued.InstructionId).Task!.Status);
         var savedCancellation = Assert.Single(cancelled.OrderCancellations!);
         Assert.Equal(actor, savedCancellation.TargetAgentId);
-        Assert.Equal(instruction.InstructionId, savedCancellation.OrderId);
+        Assert.Equal(instruction.InstructionId.Value, savedCancellation.OrderId);
         Assert.Equal(world.Society.WorldId, savedCancellation.WorldId);
         Assert.Equal(receipt, savedCancellation.Receipt);
         var saved = WorldRuntimeCodec.Encode(cancelled);
@@ -89,9 +89,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             await WaitForRequests(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -113,7 +113,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         world.Resume();
         while (world.Society.AgeAt(world.Society.GetAgent(child), world.WorldTick) < 15)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         world.Pause();
@@ -122,7 +122,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         for (var tick = 0; tick < 40 && (world.Agents.Single(person => person.AgentId == child).IdentityChoicePending ||
                  world.Society.GetAgent(child).NeedsName); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
