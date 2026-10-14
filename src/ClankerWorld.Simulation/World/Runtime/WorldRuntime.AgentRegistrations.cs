@@ -145,12 +145,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "haul_farm_grain", [], ["haul_farm_grain"], static (runtime, action) =>
     {
-        runtime.HaulFarmGrain(action.AgentId, action.State);
+        runtime.ApplyFarmStockAction(action.Plan as FarmStockActionPlan ?? runtime.PlanFarmStockAction(action.AgentId, FarmStockActionKind.Grain));
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_farm_flour", [], ["haul_farm_flour"], static (runtime, action) =>
     {
-        runtime.HaulFarmFlour(action.AgentId, action.State);
+        runtime.ApplyFarmStockAction(action.Plan as FarmStockActionPlan ?? runtime.PlanFarmStockAction(action.AgentId, FarmStockActionKind.Flour));
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_smith_input", [], ["haul_smith_input"], static (runtime, action) =>

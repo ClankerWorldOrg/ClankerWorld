@@ -86,12 +86,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs": [
     "FindUnoccupiedRoute(actor, person.Position, site.Position, 0)"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs": [
-    "FindUnoccupiedRoute(actor, farmhouse.Position, house.Position, 0)",
-    "FindUnoccupiedRoute(actor, position, source, range)",
-    "FindUnoccupiedRoute(actor, source, destination.Position, 0)",
-    "FindUnoccupiedRoute(actor, state.Position, farmhouse.Position, 0)"
-  ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": [
     "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, position, 0)",

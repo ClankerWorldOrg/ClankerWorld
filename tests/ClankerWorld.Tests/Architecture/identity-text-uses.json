@@ -317,8 +317,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs|id|\u0022trade_wait:\u0022 \u002B offer.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs|id|\u0022trust-memory:\u0022 \u002B owner \u002B \u0022:\u0022 \u002B subject": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs|id|$\u0022repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs|id|$\u0022farm-flour-pickup:{WorldTick}:{actor}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs|id|$\u0022farm-grain-pickup:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs|length|kinds.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022cart-gift:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022cart-material:{WorldTick}:{actor}\u0022": 1,

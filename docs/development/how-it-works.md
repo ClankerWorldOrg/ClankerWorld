@@ -177,6 +177,12 @@ The shared `SpareCargo` and `OrchardFoodRecovery` goods uses keep ordinary physi
 stock separate from the urgent adult seed exception. Tool and blacksmith cargo
 callers retain their existing forwarders until their action area moves.
 
+Farm stock choices use `FarmStockActionPlan` for grain and seeds going to private
+farm storage and flour going to the House. The plan keeps the source, destination,
+resource amount and whole-vessel or partial-load transfer form. Its shared check
+revalidates that load, the trip, capacity and any milling deficit; it never selects
+replacement stock or a different store. Existing delivery-order forwarders remain.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
