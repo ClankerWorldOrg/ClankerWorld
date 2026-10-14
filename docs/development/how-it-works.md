@@ -438,6 +438,9 @@ is checked before the native shop writer opens its exchange.
 Civic notice-place visits retain the Town, public destination and route. Their
 shared check covers residents and eligible visitors before the native civic
 action or its ordinary walking continuation; arrival still asks for a fresh act.
+Council candidacy responses retain the chosen Town, nominee or remainder-term
+deadline and the actor's existing agreement. A shared check preserves personal
+consent while other residents' registrations can accumulate in the same tick.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
