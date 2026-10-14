@@ -61,9 +61,9 @@ public sealed partial class WorldRuntime
             harvest?.ToolLotId is { } selectedTool ? inventory.GetLot(selectedTool).OwnerId : null, route, returnRoute);
     }
 
-    private ActionCheck CheckWorkstationSupplyPlan(WorkstationSupplyActionPlan plan)
+    private ActionCheck CheckWorkstationSupplyPlan(WorkstationSupplyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, WorkstationSupplyPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? WorkstationSupplyPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || CarriedHouseDelivery(plan.Actor) is not null)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household or delivery work has changed");
@@ -115,7 +115,12 @@ public sealed partial class WorldRuntime
     private void ApplyWorkstationSupplyPlan(WorkstationSupplyActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckWorkstationSupplyPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedWorkstationSupplyPlan(plan);
+    }
+
+    private void ApplyCheckedWorkstationSupplyPlan(WorkstationSupplyActionPlan plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Target, plan.InteractionRange))
         {

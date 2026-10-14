@@ -90,6 +90,7 @@ public sealed class AgentRegistrationOrderTests
             "Ordinary|IsMarketCandidate||",
             "Ordinary|food_policy_|food_policy_|",
             "Ordinary|trade_|trade_|",
+            "Ordinary|shop_stock_store||shop_stock_store",
             "Ordinary|shop_|shop_|",
             "Ordinary|haul_household_stock||haul_household_stock",
             "Ordinary|recover_household_delivery||recover_household_delivery",

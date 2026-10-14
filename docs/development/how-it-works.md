@@ -133,6 +133,10 @@ Garments, carry aids, equipment repairs and each household-vessel action also
 own definitions. Their selected item, repair inputs or vessel family reaches
 the same native effect after its shared check; each vessel keeps its existing
 urgency policy.
+Smith delivery and gathering, tool collection and repair, rare mining,
+workstation supplies and Store stocking also own typed definitions. Their
+selected source, tool, stock, family and load pass the same check before the
+native effect; Store stocking has its own row beside the other shop actions.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

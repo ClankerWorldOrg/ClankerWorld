@@ -56,9 +56,9 @@ public sealed partial class WorldRuntime
             direct ? Array.AsReadOnly<GridPoint>([]) : ReachLeg(actor, target, load.Store.Position, ReachPurpose.StoreStock, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckStoreStockPlan(StoreStockActionPlan plan)
+    private ActionCheck CheckStoreStockPlan(StoreStockActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, StoreStockPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? StoreStockPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || HouseholdBuildingWithTag(plan.HouseholdId, "store") is not { } store ||
             store.InstanceId != plan.StoreId || store.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null ||
@@ -82,7 +82,12 @@ public sealed partial class WorldRuntime
     private void ApplyStoreStockPlan(StoreStockActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckStoreStockPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedStoreStockPlan(plan);
+    }
+
+    private void ApplyCheckedStoreStockPlan(StoreStockActionPlan plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Target, plan.InteractionRange))
         {

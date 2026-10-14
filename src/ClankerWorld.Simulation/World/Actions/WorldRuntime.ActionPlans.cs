@@ -99,13 +99,6 @@ public sealed partial class WorldRuntime
         AnimalSupplyActionPlan supply => animalSystem.CheckAnimalSupplyPlan(animalWorldAdapter, supply),
         AnimalProductActionPlan animal => animalSystem.CheckAnimalProductPlan(animalWorldAdapter, animal),
         OrnamentActionPlan ornament => CheckOrnamentPlan(ornament),
-        RareMiningActionPlan mining => CheckRareMiningPlan(mining),
-        ToolRepairActionPlan repair => CheckToolRepairPlan(repair),
-        ToolCollectionActionPlan tool => CheckToolCollectionPlan(tool),
-        SmithGatherActionPlan gather => CheckSmithGatherPlan(gather),
-        SmithDeliveryActionPlan smith => CheckSmithDeliveryPlan(smith),
-        StoreStockActionPlan storeStock => CheckStoreStockPlan(storeStock),
-        WorkstationSupplyActionPlan workstation => CheckWorkstationSupplyPlan(workstation),
         FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
