@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
@@ -143,6 +144,7 @@ public sealed partial class TownMembershipTests
             Assert.False(heldTask.IsCompleted);
             if (deferEntry) Assert.False(holding.Started.Task.IsCompleted);
             var offered = heldRequest.Observation;
+            var originalPlan = Assert.IsType<TownAdmissionActionPlan>(offered.Candidates.Single(candidate => candidate.Id == holding.Choice).ActionPlan);
             Assert.Equal(deadline - 1, offered.WorldTick);
             Assert.Contains(offered.Candidates, candidate => candidate.Id == holding.Choice);
             AssertOfferedApprovalClock(offered, proposal, "about 36 world minutes left");
@@ -172,6 +174,7 @@ public sealed partial class TownMembershipTests
             Assert.Equal(HeldAdmissionModel.StaleThought, reply.PrivateThought);
             var outcomes = new List<CognitionAdmissionResult>();
             var discarded = false;
+            SocietyCognitionDispatchResult? refusedPlan = null;
             bool NewerIdle(CognitionAdmissionResult outcome) => outcome is { Accepted: true, FellBack: false } &&
                 outcome.Intention is { CandidateId: "safe_idle", Provider: DecisionProviderKind.LargeLanguageModel } intention &&
                 intention.DecisionGeneration > offered.DecisionGeneration && intention.WorldTick > offered.WorldTick;
@@ -187,11 +190,20 @@ public sealed partial class TownMembershipTests
                 var completed = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(completed.Advanced);
                 discarded |= completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == newcomer);
-                outcomes.AddRange(completed.Decisions.Where(decision => decision.AgentId == newcomer)
+                if (completed.Decisions.SingleOrDefault(decision => decision.AgentId == newcomer && decision.PlanRefusal is not null) is { } refused)
+                {
+                    Assert.Same(originalPlan, refused.ActionPlan);
+                    Assert.Equal(ActionRefusalReason.TargetUnavailable, refused.PlanRefusal!.Reason);
+                    refusedPlan = refused;
+                    discarded = true;
+                }
+                outcomes.AddRange(completed.Decisions.Where(decision => decision.AgentId == newcomer && decision.PlanRefusal is null)
                     .Select(decision => decision.Admission));
             }
             var discard = Assert.Single(world.ExportState().Events, item => item.EventId > beforeReplyEvent &&
-                item.Kind == "hosted_decision_discarded" && item.Detail == newcomer);
+                (item.Kind == "hosted_decision_discarded" && item.Detail == newcomer ||
+                 refusedPlan is not null && item.Kind == "choice_refused" &&
+                 item.Detail.StartsWith(world.Society.GetAgent(newcomer).Name + " didn't " + originalPlan.Activity, StringComparison.Ordinal)));
             Assert.True(discard.WorldTick > deadline);
             Assert.Contains(outcomes, NewerIdle);
             Assert.DoesNotContain(outcomes, outcome => outcome.Intention?.CandidateId == holding.Choice);
