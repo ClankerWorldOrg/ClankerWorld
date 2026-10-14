@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
@@ -163,6 +164,7 @@ public sealed partial class WorldCollectionOrderTests
         };
         if (boundary == "reserved")
             inventory = InventoryAuthority.Reserve(inventory, "collect-reserved", actor, "collect-boundary", 2, "other_work", 120);
+        inventory = StockHoldTestState.Custody(inventory);
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "blocked", food ? "collect food" : "collect wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -260,7 +262,7 @@ public sealed partial class WorldCollectionOrderTests
         var receipt = Submit(world, actor, "long", "collect one wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -342,7 +344,7 @@ public sealed partial class WorldCollectionOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-held-a", kind, actor, 1, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "collect-held-b", kind, actor, 1, storageBuildingId: House);
         var provider = new CollectionChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
-        var entryGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var entryGate = new InlineCompletionSource<bool>(TaskCreationOptions.None);
         if (delayedStartup) provider.EntryGate = entryGate.Task;
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), id => id == actor ? provider : new CollectionChoices());
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
@@ -350,11 +352,11 @@ public sealed partial class WorldCollectionOrderTests
         var receipt = Submit(world, actor, "held", text);
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
-            var invoked = await AwaitCollectionSignal(provider.Invoked.Task, "receive the native request");
+            var invoked = await AwaitCollectionSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
             {
                 Assert.False(provider.Started.Task.IsCompleted);
@@ -362,7 +364,7 @@ public sealed partial class WorldCollectionOrderTests
             }
             Assert.Equal(firstFrame, WorldRuntimeCodec.Encode(world.ExportState()));
             entryGate.TrySetResult(true);
-            var started = await AwaitCollectionSignal(provider.Started.Task, "validate and hold the operative request");
+            var started = await AwaitCollectionSignal(world, provider.Started.Task, "validate and hold the operative request");
             Assert.Same(invoked.Observation, started);
             Assert.Same(started, Assert.Single(provider.Requests));
             // Chosen work can continue during model waits. Keep the first
@@ -372,12 +374,12 @@ public sealed partial class WorldCollectionOrderTests
             Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("collect-held-a"), actor));
             Assert.True(world.CancelOrder(new("cancel-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            var returned = await AwaitCollectionSignal(provider.Returned.Task, "return the late reply");
+            var returned = await AwaitCollectionSignal(world, provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
             Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind switch { "fruit" => "collect_food", "basket" => "collect_equipment", _ => "collect_material" },
                 returned.SelectedCandidateId);
-            for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 5; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             var second = world.Society.Inventory.GetLot("collect-held-b");
             Assert.Equal((actor, 1, House), (second.OwnerId, second.Quantity, second.StorageBuildingId));
@@ -394,9 +396,9 @@ public sealed partial class WorldCollectionOrderTests
         }
     }
 
-    private static async Task<T> AwaitCollectionSignal<T>(Task<T> signal, string phase)
+    private static async Task<T> AwaitCollectionSignal<T>(WorldRuntime world, Task<T> signal, string phase)
     {
-        try { return await signal.WaitAsync(TimeSpan.FromSeconds(30)); }
+        try { return await ModelWorkHarness.For(world).WaitAsync(signal); }
         catch (TimeoutException exception)
         {
             throw new TimeoutException($"The held collection provider did not {phase} within thirty seconds.", exception);
@@ -442,22 +444,20 @@ public sealed partial class WorldCollectionOrderTests
         var receipt = Submit(world, Actor(state), "validation", "collect two wood");
         var saved = world.ExportState();
         var valid = Order(world, receipt);
-        foreach (var invalid in new[]
-        {
-            valid with { TargetAgentId = Actor(state) },
-            valid with { TargetMaterialKind = "cloth" }, valid with { TargetFoodKind = "berries" },
-            valid with { TargetPosition = new(10_000_001, 1) }, valid with { TargetResourceId = "tree" },
-            valid with { RequestedUnits = 0 }, valid with { CompletedUnits = -1 },
-            valid with { ProgressUnit = "harvests" }, valid with { LastEffectId = "collect:personal:unearned" },
-            valid with { CompletedUnits = 1, LastEffectId = "gather:material:wrong-action" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetAgentId"] = Actor(state) }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetMaterialKind"] = "cloth" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(10_000_001, 1) }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetResourceId"] = "tree" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["RequestedUnits"] = 0 }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["CompletedUnits"] = -1 }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["ProgressUnit"] = "harvests" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["LastEffectId"] = "collect:personal:unearned" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "gather:material:wrong-action" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
     }
 
     [Theory]
@@ -515,7 +515,7 @@ public sealed partial class WorldCollectionOrderTests
     private static string Actor(WorldRuntimeState state) =>
         state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new CollectionChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
@@ -527,10 +527,10 @@ public sealed partial class WorldCollectionOrderTests
         public DecisionProviderKind Kind => kind;
         public Task? EntryGate { get; set; }
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.None);
         public long ProviderEpoch => 0;
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

@@ -67,7 +67,7 @@ public sealed class PotteryContentTests
             inventory = InventoryAuthority.AddLot(inventory, "carried-ballast", "test_cargo", actor, 2);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, origin);
         var person = state.Agents.Single(item => item.AgentId == actor);
         Assert.Equal(boundary == "full-hands" ? 0 : boundary == "reserved" ? 1 : boundary == "plain-milk" ? 1 : 2,
@@ -167,7 +167,7 @@ public sealed class PotteryContentTests
             storageBuildingId: contained ? house.InstanceId : null, containerLotId: contained ? potId : null);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 3_000, house.Position);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new IdleProvider());
@@ -210,7 +210,8 @@ public sealed class PotteryContentTests
                 PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
         }
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        inventory = StockHoldTestState.Custody(inventory);
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         using var eating = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new IdleProvider());
         var eat = eating.SubmitInstruction(new("personal-pot-eat", "owner:test", actor,
@@ -296,7 +297,7 @@ public sealed class PotteryContentTests
             adults, storageBuildingId: house.InstanceId);
         supplyState = supplyState with
         {
-            Society = supplyState.Society with { Society = supplyState.Society.Society with { Inventory = toolStock } },
+            Society = supplyState.Society with { Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(toolStock) } },
         };
         supplyState = supplyState with
         {
@@ -322,7 +323,7 @@ public sealed class PotteryContentTests
         {
             Society = supplyState.Society with
             {
-                Society = supplyState.Society.Society with { Inventory = currentInventory },
+                Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(currentInventory) },
             },
         };
         var fullLoadCandidates = await ObservePersistedCandidates(fullLoadState, actor);
@@ -339,7 +340,7 @@ public sealed class PotteryContentTests
         {
             Society = supplyState.Society with
             {
-                Society = supplyState.Society.Society with { Inventory = fullStorageInventory },
+                Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(fullStorageInventory) },
             },
         };
         var fullStorageCandidates = await ObservePersistedCandidates(fullStorageState, actor);
@@ -376,7 +377,7 @@ public sealed class PotteryContentTests
         {
             Society = productionState.Society with
             {
-                Society = productionState.Society.Society with { Inventory = foreignJugInventory },
+                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(foreignJugInventory) },
             },
         }, actor, 10_000, house.Position);
         var foreignJugCandidates = await ObservePersistedCandidates(foreignJugState, actor);
@@ -403,7 +404,7 @@ public sealed class PotteryContentTests
         {
             Society = productionState.Society with
             {
-                Society = productionState.Society.Society with { Inventory = jugAtBlockedShore },
+                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(jugAtBlockedShore) },
             },
         }, actor, 10_000, blockedShoreOrigins[0]);
         var blockedShoreCandidates = await ObservePersistedCandidates(blockedShoreState, actor);
@@ -417,7 +418,7 @@ public sealed class PotteryContentTests
         {
             Society = productionState.Society with
             {
-                Society = productionState.Society.Society with { Inventory = woodStock },
+                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(woodStock) },
             },
         };
         foreach (var recipeLocalId in new[] { "storage-pot", "water-jug" })
@@ -453,7 +454,7 @@ public sealed class PotteryContentTests
         {
             Society = productionState.Society with
             {
-                Society = productionState.Society.Society with { Inventory = lockInventory },
+                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(lockInventory) },
             },
         }, actor, 10_000, house.Position);
         var lockedJugCandidates = await ObservePersistedCandidates(lockedJugState, actor);
@@ -580,7 +581,7 @@ public sealed class PotteryContentTests
         {
             Society = foodState.Society with
             {
-                Society = foodState.Society.Society with { Inventory = foodInventory },
+                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(foodInventory) },
             },
         };
         var houseCapacity = BuildingStorageRules.Capacity(
@@ -593,7 +594,7 @@ public sealed class PotteryContentTests
         {
             Society = foodState.Society with
             {
-                Society = foodState.Society.Society with { Inventory = foodInventory },
+                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(foodInventory) },
             },
         };
         Assert.Equal(houseCapacity, foodInventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId)
@@ -616,7 +617,7 @@ public sealed class PotteryContentTests
         {
             Society = foodState.Society with
             {
-                Society = foodState.Society.Society with { Inventory = carriedFoodInventory },
+                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(carriedFoodInventory) },
             },
         };
         var carriedFoodProvider = new PrefixCandidateProvider("store_food_in_pot");
@@ -671,7 +672,7 @@ public sealed class PotteryContentTests
         {
             Society = foodReload.Society with
             {
-                Society = foodReload.Society.Society with { Inventory = inventoryWithoutCarriedFood },
+                Society = foodReload.Society.Society with { Inventory = StockHoldTestState.Custody(inventoryWithoutCarriedFood) },
             },
         };
         var foodTaker = new PrefixCandidateProvider("take_food_from_pot");
@@ -777,7 +778,7 @@ public sealed class PotteryContentTests
         {
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
 
@@ -787,7 +788,7 @@ public sealed class PotteryContentTests
             var ballast = PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment) - waterQuantity;
             if (ballast > 0)
                 inventory = InventoryAuthority.AddLot(inventory, "water-supply-ballast", "test_cargo", actor, ballast);
-            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         }
         var provider = new ContainerSupplyProvider();
         using var world = WorldRuntime.Restore(state, id => id == actor
@@ -886,10 +887,11 @@ public sealed class PotteryContentTests
                     ? lot with { DeliveryBuildingId = house.InstanceId } : lot).ToArray(),
             };
         }
+        inventory = StockHoldTestState.Custody(inventory);
         var totalBefore = inventory.Lots.Sum(lot => lot.Quantity);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, house.Position) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -951,7 +953,7 @@ public sealed class PotteryContentTests
             storageBuildingId: house.InstanceId);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, origin);
         var candidates = await ObservePersistedCandidates(state, actor);
         Assert.DoesNotContain("store_food_in_pot", candidates);
@@ -996,7 +998,7 @@ public sealed class PotteryContentTests
         Assert.Equal(familyQuantity + (fits ? 1 : 0), PersonalEquipmentRules.FreeCapacity(inventory, actor, null));
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, house.Position);
         state = state with
         {
@@ -1091,7 +1093,7 @@ public sealed class PotteryContentTests
             .Sum(lot => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot))));
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, house.Position);
         state = state with
         {
@@ -1151,7 +1153,7 @@ public sealed class PotteryContentTests
             storageBuildingId: house.InstanceId, containerLotId: potId);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             FoodStewardship = new(state.Agents[0].AgentId, policy, 0),
         }, actor, 6_000, house.Position);
         state = state with
@@ -1198,7 +1200,7 @@ public sealed class PotteryContentTests
             householdId, 2, storageBuildingId: house.InstanceId, containerLotId: potId);
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             FoodStewardship = new(state.Agents[0].AgentId, "open", 0),
         }, actor, 0, house.Position);
         state = state with
@@ -1255,7 +1257,7 @@ public sealed class PotteryContentTests
         Assert.Equal(4, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
         state = SetActorCondition(state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, actor, 10_000, house.Position);
         state = state with
         {

@@ -59,7 +59,8 @@ public sealed class WorldHelperPreflightTests
             var catalog = new WorldCatalogStore(path, active.ExportState(), [], autosave.Capture());
             var entry = catalog.Add("Archived helper", archived.ExportState());
             var selection = new WorldSelectionCoordinator(catalog, active, file, providers, autosave,
-                new WorldJevPolicy(), NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider());
+                new WorldJevPolicy(), NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(),
+                new ManualWorldSaveStore(path, mutationGate: providers.WorldMutationGate));
             var archivedPath = Path.Combine(path + ".worlds", entry.Id + ".save");
             var bytes = File.ReadAllBytes(archivedPath);
             if (warmUp) selection.WarmUp(CancellationToken.None);

@@ -119,7 +119,7 @@ public sealed class GoodsVesselTests
 
     private static WorldRuntime Restore(WorldRuntimeState state, InventoryCheckpoint inventory)
     {
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Idle());
     }
 

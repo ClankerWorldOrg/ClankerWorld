@@ -234,7 +234,7 @@ public partial class Main
                     Fertility = Convert.ToBase64String(Enumerable.Repeat((byte)67, 16).ToArray()),
                 },
                 Fields = [new(new(1, 1), "household:field-smoke", "growing", "cultivated_greens", 67, null, null)],
-                GroundStocks = [new(new(1, 1), "household:field-smoke", "cultivated_greens", 3)],
+                GroundStocks = [new(new(1, 1), "household:field-smoke", "cultivated_greens", 3) { OwnerName = "Farm household" }],
                 Stockpiles = [new("household:field-smoke", "Farm household", [])],
             };
             RenderMap(fieldMap);
@@ -255,6 +255,19 @@ public partial class Main
                 !TileCardText().Contains("Household\nFarm household", StringComparison.Ordinal) ||
                 !TileCardText().Contains("3 cultivated greens", StringComparison.Ordinal))
                 throw new InvalidOperationException("Field ownership, crop and soil inspection must show on the tile card and fit at 200% interface size: " + TileCardText());
+            await VerifyCrowdedTileCardsAsync(fieldMap, displayWindow);
+            foreach (var ownerName in new[] { "Élodie Lake", "Élodie Ridge" })
+            {
+                const string ownerId = "agent:ground-stock-ui";
+                var namedGround = fieldMap with
+                {
+                    GroundStocks = [new(new(1, 1), ownerId, "wood", 2) { OwnerName = ownerName }],
+                };
+                RenderTileInspection(namedGround);
+                if (!TileCardText().Contains("on the ground · " + ownerName, StringComparison.Ordinal) ||
+                    TileCardText().Contains(ownerId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Ground goods must display the server's owner name after each refresh: " + TileCardText());
+            }
             householdPropertyFilter.ButtonPressed = false;
             selectedTile = null;
             selectedTilePanel.Hide();
@@ -650,7 +663,7 @@ public partial class Main
             { Agents = [agent] };
             var reconnect = new OwnerWorldReconnect(
                 new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                         "owner-control.request.v1", "paused-authoring.request.v1"], []),
                 new OwnerWorldReconnectBaseline(snapshot, new OwnerWorldEventSlice(0, 0, [])));
             if (!observationSession.TryAccept(reconnect, 0, out var failure))
@@ -1210,6 +1223,7 @@ public partial class Main
             var originalWindowChoice = windowSizeChoice.Selected;
             try
             {
+                await VerifyOwnerRequestLifecycleAsync();
                 await VerifyFirstWorldListAsync();
                 await VerifyWorldActionSelectionAsync();
                 await VerifyRefusedPendingSubmissionsAsync();
@@ -1595,19 +1609,6 @@ public partial class Main
                 if (!TownListText().Contains(phrase, StringComparison.Ordinal) || TownListText().Contains("Voting closes", StringComparison.Ordinal))
                     throw new InvalidOperationException("The latest completed, failed or cancelled election must remain visible after voting closes.");
             }
-            var secondCivicTown = civicTown with { Id = "town:second", Name = "Second Town" };
-            var civicEventSnapshot = sample with { Towns = [civicTown, secondCivicTown] };
-            foreach (var town in civicEventSnapshot.Towns)
-            {
-                foreach (var kind in new[] { "council", "election", "runoff", "proposal", "result", "cancelled" })
-                {
-                    var eventText = WorldEventText.Describe(new(1, 0, "town_civic_" + kind, town.Id + "|subject-id|notice"), civicEventSnapshot);
-                    if (!eventText.Contains(town.Name, StringComparison.Ordinal) || eventText.Contains(town.Id, StringComparison.Ordinal) ||
-                        kind == "council" && eventText.Contains("proposals", StringComparison.Ordinal) ||
-                        kind == "result" && !eventText.Contains("Towns page", StringComparison.Ordinal))
-                        throw new InvalidOperationException("Civic events must identify the Town, use the real page name and claim only known outcomes.");
-                }
-            }
             var civicWindowSize = displayWindow.Size;
             var civicRenderSize = displayWindow.ContentScaleSize;
             var civicPanelVisible = worldInfoPanel.Visible;
@@ -1668,6 +1669,7 @@ public partial class Main
             VerifyChildModelStatus();
             VerifyModelSetupCheckControls();
             VerifyModelSettingsLayout();
+            await VerifyHelperKeyDeletionRefusalAsync(sample);
             Render(sample with { JevEnabled = true, RoutineHelperProvider = "jev", RoutineHelperModel = "jev-1.13.0" }, []);
             if (SelectedRoutineHelper() != "jev" || routineHelperModelPicker.Model != "jev-1.13.0")
                 throw new InvalidOperationException("World Settings must reflect the saved helper and model.");
@@ -3224,7 +3226,7 @@ public partial class Main
             if (mapStage.Position.DistanceTo(beforeKeyboardPan) < 1)
                 throw new InvalidOperationException("Keyboard panning did not move the world camera.");
             var eventDestination = cameraCenterTiles.X < 8 ? new OwnerWorldPosition(15, 11) : new OwnerWorldPosition(0, 0);
-            knownEvents[100] = new OwnerWorldEvent(100, 1, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", eventDestination);
+            knownEvents[100] = new OwnerWorldEvent(100, 1, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", eventDestination) { Text = "Someone planted a tree." };
             RenderEventLog();
             eventLog.AddText("\nscroll-sentinel");
             RenderEventLog();
@@ -3235,7 +3237,7 @@ public partial class Main
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
             if (cameraCenterTiles.DistanceTo(beforeEventJump) < 0.5f)
                 throw new InvalidOperationException("Clicking a located event did not move the world camera.");
-            knownEvents[101] = new OwnerWorldEvent(101, 2, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", null);
+            knownEvents[101] = new OwnerWorldEvent(101, 2, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", null) { Text = "Someone planted a tree." };
             RenderEventLog();
             var loggedDay = SplitClock(DisplayWorldClock(1)).Date;
             if (eventLog.GetParsedText().Split(loggedDay).Length != 2)
@@ -3247,12 +3249,12 @@ public partial class Main
             eventLogPanel.Hide();
             UpdateUnreadEvents(eventLogWorldId);
             var readBefore = unreadEvents;
-            knownEvents[102] = new OwnerWorldEvent(102, 3, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", null);
+            knownEvents[102] = new OwnerWorldEvent(102, 3, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", null) { Text = "Someone planted a tree." };
             RenderEventLog();
             if (unreadEvents != readBefore + 1 || !eventLogBadge.Visible ||
                 eventLogBadge.Text != (readBefore + 1).ToString(CultureInfo.InvariantCulture))
                 throw new InvalidOperationException($"A new event must show an unread count on the Event Log button: {unreadEvents} after {readBefore}.");
-            knownEvents[103] = new OwnerWorldEvent(103, 3, "model_call_warning", "used:812:limit:1000", null);
+            knownEvents[103] = new OwnerWorldEvent(103, 3, "model_call_warning", "used:812:limit:1000", null) { Text = "Model calls: 812 of 1,000 used across all worlds. Your worlds pause at the limit; raise it in Settings → Game." };
             RenderEventLog();
             var loggedWarning = eventLog.GetParsedText();
             if (unreadEvents != readBefore + 2 ||
@@ -3929,11 +3931,14 @@ public partial class Main
             var deathDestination = cameraCenterTiles.X < 8
                 ? new OwnerWorldPosition(15, 11) : new OwnerWorldPosition(0, 0);
             knownEvents[101] = new OwnerWorldEvent(101, 2, "agent_removed", deceased.Id,
-                deathDestination);
+                deathDestination)
+            { Text = "Mira died." };
             knownEvents[102] = new OwnerWorldEvent(102, 3, "agent_knowledge_artifact_created",
-                deceased.Id + "|knowledge-artifact-000002|book|1", formerPosition);
+                deceased.Id + "|knowledge-artifact-000002|book|1", formerPosition)
+            { Text = "Mira finished writing a book." };
             knownEvents[103] = new OwnerWorldEvent(103, 4, "agent_knowledge_artifact_read",
-                "agent:other|" + deceased.Id + "|knowledge-artifact-000003|1", formerPosition);
+                "agent:other|" + deceased.Id + "|knowledge-artifact-000003|1", formerPosition)
+            { Text = "Mira learned from a written work." };
             RenderEventLog();
             if (!eventLog.GetParsedText().Contains("died.", StringComparison.Ordinal) ||
                 eventLog.GetParsedText().Contains("scroll-sentinel", StringComparison.Ordinal) ||
@@ -4218,18 +4223,18 @@ public partial class Main
         };
         OwnerWorldEvent[] events =
         [
-            new(1, 1, "tree_planted", founderId + ":planted-tree-3-4:broadleaf"),
-            new(2, 1, "field_prepared", "founder-scout:field-2-2:"),
-            new(3, 1, "child_born", childId),
-            new(4, 1, "agent_removed", agentId),
-            new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4"),
-            new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3"),
-            new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui"),
-            new(8, 1, "town_civic_government", "town:first|record-ui|actor-ui"),
-            new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui"),
+            new(1, 1, "tree_planted", founderId + ":planted-tree-3-4:broadleaf") { Text = "Rowan planted a tree." },
+            new(2, 1, "field_prepared", "founder-scout:field-2-2:") { Text = "Scout tilled a field." },
+            new(3, 1, "child_born", childId) { Text = "Mira was born." },
+            new(4, 1, "agent_removed", agentId) { Text = "Aster died." },
+            new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4") { Text = "Rowan joined First Town." },
+            new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3") { Text = "Aster left First Town." },
+            new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui") { Text = "First Town recorded a law decision. See the Towns page for its wording and scope." },
+            new(8, 1, "town_civic_government", "town:first|record-ui|actor-ui") { Text = "First Town recorded a resident government decision. See the Towns page for the vote or handover." },
+            new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui") { Text = "First Town recorded a mayoral election or office change. See the Towns page for its result." },
         ];
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
@@ -4257,6 +4262,7 @@ public partial class Main
             {
                 Agents = snapshot.Agents.Select(person => person.Id == founderId
                     ? person with { DisplayName = "Renamed Rowan" } : person).ToArray(),
+                EventTexts = new Dictionary<long, string> { [1] = "Renamed Rowan planted a tree.", [5] = "Renamed Rowan joined First Town." },
             };
             baseline = baseline with { Snapshot = snapshot };
             if (!observationSession.TryAccept(new(handshake, baseline), 0, out failure))

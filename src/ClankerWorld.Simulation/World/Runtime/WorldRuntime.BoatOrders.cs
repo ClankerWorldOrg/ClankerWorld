@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         var choice = BoatTripChoices(actor).FirstOrDefault(choice => choice.Destination.InstanceId == binding.DestinationPortId);
         if (choice is null)
         {
-            SetOrderStatus(instruction, "blocked", BoatOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, BoatOrderBlockedReason(instruction));
             return;
         }
         if (agents[actor].Position != choice.Origin.Entrance)
@@ -54,7 +54,13 @@ public sealed partial class WorldRuntime
         var request = QueueBoatTrip(actor, choice, instruction.InstructionId);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Task = current.Task! with { BoatTravel = binding with { RequestId = request.Id } } };
+        {
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    TravelByBoatOrderDefinition task => task with { BoatTravel = binding with { RequestId = request.Id } },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+        };
     }
 
     private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction)
@@ -94,7 +100,7 @@ public sealed partial class WorldRuntime
         if (BoundBoatRequest(instruction) is { Status: "waiting" } request)
         {
             SetBoatRequest(request with { Status = "cancelled", SettledTick = WorldTick });
-            AppendEvent("boat_trip_cancelled", $"{request.PassengerId}:{request.Id}:order_cancelled");
+            AppendEvent(new BoatTripCancelledEventPayload(request.PassengerId, request.Id, "order_cancelled"));
         }
     }
 
@@ -105,7 +111,7 @@ public sealed partial class WorldRuntime
                 IsActiveOrder(order.Status) && binding.RequestId == request.Id)
             : null;
 
-    private void SetBoatOrderTravelStatus(BoatTripRequest request, string status, string? reason)
+    private void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason)
     {
         if (ActiveBoatOrder(request) is { } instruction) SetOrderStatus(instruction, status, reason);
     }
@@ -113,12 +119,12 @@ public sealed partial class WorldRuntime
     private void CreditBoatOrderArrival(BoatTripRequest request)
     {
         if (ActiveBoatOrder(request) is { } instruction && instruction.Task!.BoatTravel!.DestinationPortId == request.DestinationPortId)
-            CreditOrderEffect(instruction, BoatOrderArrivalEffectId(request.Id), 1);
+            CreditOrderEffect(instruction, Identity.Parse(BoatOrderArrivalEffectId(request.Id)), 1);
     }
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 
-    private static bool IsValidBoatOrderShape(OrderTask order) =>
+    internal static bool IsValidBoatOrderShape(OrderTask order) =>
         order.BoatTravel is { DestinationPortId.Length: > 0 and <= DerivedId.MaximumLength } binding &&
         !binding.DestinationPortId.Any(char.IsControl) &&
         (binding.RequestId is null || binding.RequestId.Length is > 0 and <= DerivedId.MaximumLength && !binding.RequestId.Any(char.IsControl)) &&

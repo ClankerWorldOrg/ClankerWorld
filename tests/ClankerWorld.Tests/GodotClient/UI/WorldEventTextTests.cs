@@ -22,7 +22,7 @@ public sealed class WorldEventTextTests
         var worldEvent = new OwnerWorldEvent(1, 1, "action_refused", detail);
         Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
         Assert.Equal("Aster couldn't sell milk because of a game error. They waited instead.",
-            WorldEventText.Describe(worldEvent, Snapshot(Person(ChildId, "Aster"))));
+            EventTextFixture.Describe(worldEvent, Snapshot(Person(ChildId, "Aster"))));
         Assert.Single(GameUiText.PlayerEvents([worldEvent]));
         Assert.Equal(detail, worldEvent.Detail);
     }
@@ -38,8 +38,8 @@ public sealed class WorldEventTextTests
     {
         var detail = $"{ChildId}:{Digest}/{content}:first-town-blacksmith:household=household:first";
         var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
-        Assert.Equal(expected, WorldEventText.Describe(worldEvent, null));
-        Assert.Equal(expected, WorldEventText.Describe(worldEvent, Snapshot()));
+        Assert.Equal(expected, EventTextFixture.Describe(worldEvent, null));
+        Assert.Equal(expected, EventTextFixture.Describe(worldEvent, Snapshot()));
         Assert.Equal(detail, worldEvent.Detail);
     }
 
@@ -59,11 +59,11 @@ public sealed class WorldEventTextTests
                 Recipe = new(recipeId, "Smith's wooden axe", [], []),
             }],
         };
-        Assert.Equal("A new Village Clinic was built.", WorldEventText.Describe(new(1, 1, "building_placed", "clinic:" + buildingId), snapshot));
+        Assert.Equal("A new Village Clinic was built.", EventTextFixture.Describe(new(1, 1, "building_placed", "clinic:" + buildingId), snapshot));
         var completed = new OwnerWorldEvent(2, 2, "recipe_completed", "job:" + recipeId);
-        Assert.Equal("A batch of smith's wooden axe was made.", WorldEventText.Describe(completed, snapshot));
-        Assert.Equal("A batch of workshop axe was made.", WorldEventText.Describe(completed, snapshot with { ProductionJobs = [] }));
-        Assert.Equal("A batch of wooden axe was made.", WorldEventText.Describe(completed,
+        Assert.Equal("A batch of smith's wooden axe was made.", EventTextFixture.Describe(completed, snapshot));
+        Assert.Equal("A batch of workshop axe was made.", EventTextFixture.Describe(completed, snapshot with { ProductionJobs = [] }));
+        Assert.Equal("A batch of wooden axe was made.", EventTextFixture.Describe(completed,
             snapshot with { ProductionJobs = [], PlacedBuildings = [] }));
     }
 
@@ -71,10 +71,12 @@ public sealed class WorldEventTextTests
     [InlineData("building_placed", "legacy:clinic", "A new Clinic was built.")]
     [InlineData("recipe_completed", "job:wooden-axe", "A batch of wooden axe was made.")]
     [InlineData("weather_changed", "region:rain", "The weather turned to rain.")]
+    [InlineData("food_policy_adopted", "essential_first", "Scarce shared household food is now reserved for hungry members.")]
+    [InlineData("food_policy_adopted", "open", "Shared household food is open to everyone again.")]
     [InlineData("recipe_completed", "job:sha256:bad/recipe/wooden-axe@1.2.0", "A batch of sha256 was made.")]
     [InlineData("recipe_completed", "job:" + Digest + "/recipe/wooden-axe", "A batch of sha256 was made.")]
     public void LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(string kind, string detail, string expected) =>
-        Assert.Equal(expected, WorldEventText.Describe(new(1, 1, kind, detail), null));
+        Assert.Equal(expected, EventTextFixture.Describe(new(1, 1, kind, detail), null));
 
     [Fact]
     public void FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment()
@@ -93,7 +95,7 @@ public sealed class WorldEventTextTests
             Relationships = [new("proposal-1", ChildId, "partnership", "proposed", "private", 21, "partner"), new("partner-1", FounderId, "partnership", "accepted", "private", 21, "partner")],
         };
         var snapshot = Snapshot(aster, Person(FounderId, "Mira"), child);
-        string Line(long tick, string kind, string detail) => WorldEventText.Describe(new(1, tick, kind, detail), snapshot);
+        string Line(long tick, string kind, string detail) => EventTextFixture.Describe(new(1, tick, kind, detail), snapshot);
 
         Assert.Equal("Corin was born to Mira and Aster.", Line(5, "child_born", ChildId));
         Assert.Equal("Aster and Mira became partners.", Line(20, "partnership_accepted", AgentId));
@@ -127,7 +129,7 @@ public sealed class WorldEventTextTests
                 "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], [])],
             Stockpiles = [new("household:first", "Mira's household", [])],
         };
-        Assert.Equal("Bess now belongs to Mira's household.", WorldEventText.Describe(
+        Assert.Equal("Bess now belongs to Mira's household.", EventTextFixture.Describe(
             new(1, 1, "animal_transferred", "animal-offer-abc:animal-7:household:first"), snapshot));
     }
 
@@ -140,7 +142,7 @@ public sealed class WorldEventTextTests
     public void ScoutingTripsReachTheLog(string kind, string detail, string expected)
     {
         Assert.True(GameUiText.IsPlayerFacingEvent(kind));
-        Assert.Equal(expected, WorldEventText.Describe(new(1, 1, kind, detail), Snapshot(Person(AgentId, "Aster"))));
+        Assert.Equal(expected, EventTextFixture.Describe(new(1, 1, kind, detail), Snapshot(Person(AgentId, "Aster"))));
     }
 
     [Theory]
@@ -170,20 +172,21 @@ public sealed class WorldEventTextTests
         var worldEvent = new OwnerWorldEvent(1, 1, "marriage_accepted",
             "Aster and Mira agreed to marry; their shared surname is still undecided.");
         Assert.Equal("Aster and Mira agreed to marry. They haven't chosen a shared surname yet.",
-            WorldEventText.Describe(worldEvent, Snapshot()));
+            EventTextFixture.Describe(worldEvent, Snapshot()));
     }
 
     [Fact]
     public void ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity()
     {
-        OwnerWorldEvent Status(long id, string status) => new(id, id, "model_attempt_status", $"{ChildId}:{status}");
+        OwnerWorldEvent Status(long id, string status) => new(id, id, "model_attempt_status", $"{ChildId}:{status}")
+        { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload(ChildId, status) };
         var events = new[] { Status(1, "waiting"), Status(2, "waiting"), Status(3, "ready"),
             Status(4, "waiting"), Status(5, "timed_out"), Status(6, "timed_out"), Status(7, "waiting"),
             Status(8, "timed_out"), Status(9, "canceled"), Status(10, "ready"), Status(11, "waiting"), Status(12, "timed_out") };
         var rows = GameUiText.PlayerEvents(events.Reverse()).ToArray();
         Assert.Equal(new long[] { 5, 12 }, rows.Select(item => item.EventId));
         Assert.Equal("Aster could not get a model reply: the model reply timed out.",
-            WorldEventText.Describe(rows[0], Snapshot(Person(FounderId, "Mira"), Person(ChildId, "Aster"))));
+            EventTextFixture.Describe(rows[0], Snapshot(Person(FounderId, "Mira"), Person(ChildId, "Aster"))));
         Assert.Equal(rows, GameUiText.PlayerEvents(events).ToArray());
     }
 
@@ -193,7 +196,7 @@ public sealed class WorldEventTextTests
     [InlineData("{}")]
     public void IncompleteDeveloperEditDetailsHaveASafeDescription(string detail)
     {
-        Assert.Equal("Developer edit.", WorldEventText.Describe(new(1, 0, "developer_edit", detail), null));
+        Assert.Equal("Developer edit.", EventTextFixture.Describe(new(1, 0, "developer_edit", detail), null));
     }
 
     [Theory]
@@ -209,7 +212,7 @@ public sealed class WorldEventTextTests
         var action = new ClankerWorld.Simulation.World.WorldDeveloperEdit("world", 12, ChildId, operation, value, amount, FounderId);
         var detail = System.Text.Json.JsonSerializer.Serialize(action);
         Assert.True(GameUiText.IsPlayerFacingEvent("developer_edit"));
-        Assert.Equal("Developer edit: " + expected + ".", WorldEventText.Describe(new(13, 1, "developer_edit", detail),
+        Assert.Equal("Developer edit: " + expected + ".", EventTextFixture.Describe(new(13, 1, "developer_edit", detail),
             Snapshot(Person(ChildId, "Aster"), Person(FounderId, "Mira"))));
     }
 
@@ -230,9 +233,9 @@ public sealed class WorldEventTextTests
     public void SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds()
     {
         var snapshot = Snapshot(Person(ChildId, "Aster"), Person(FounderId, "Mira", "dead"));
-        Assert.Equal("Aster learned farming from Mira.", WorldEventText.Describe(
+        Assert.Equal("Aster learned farming from Mira.", EventTextFixture.Describe(
             new(1, 1, "skill_learned", $"{ChildId}|farming|{FounderId}"), snapshot));
-        Assert.Equal("Aster learned smithing by doing the work.", WorldEventText.Describe(
+        Assert.Equal("Aster learned smithing by doing the work.", EventTextFixture.Describe(
             new(2, 2, "skill_learned", $"{ChildId}|smithing|work"), snapshot));
     }
 
@@ -262,10 +265,10 @@ public sealed class WorldEventTextTests
         foreach (var (kind, detail, action) in cases)
         {
             var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
-            Assert.Equal($"Aster {action}.", WorldEventText.Describe(worldEvent, snapshot));
+            Assert.Equal($"Aster {action}.", EventTextFixture.Describe(worldEvent, snapshot));
             if (kind.StartsWith("child_", StringComparison.Ordinal)) Assert.True(GameUiText.IsPlayerFacingEvent(kind));
             var renamed = snapshot with { Agents = [Person(id, "Rowan", "dead")] };
-            Assert.Equal($"Rowan {action}.", WorldEventText.Describe(worldEvent, renamed));
+            Assert.Equal($"Rowan {action}.", EventTextFixture.Describe(worldEvent, renamed));
             Assert.Equal(detail, worldEvent.Detail);
         }
     }
@@ -277,7 +280,7 @@ public sealed class WorldEventTextTests
         // Picking materials up is hidden from the log; the returned line reports the move.
         Assert.False(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
         Assert.Equal("Aster is taking unused materials from a Town project back to the Town Warehouse.",
-            WorldEventText.Describe(worldEvent, Snapshot(Person(ChildId, "Aster"))));
+            EventTextFixture.Describe(worldEvent, Snapshot(Person(ChildId, "Aster"))));
     }
 
     [Fact]
@@ -302,7 +305,7 @@ public sealed class WorldEventTextTests
             // Starting and tending repeat what the tilled, planted and harvested lines report.
             Assert.Equal(kind is not ("field_work_started" or "field_tended"), GameUiText.IsPlayerFacingEvent(kind));
             var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
-            Assert.Equal(expected, WorldEventText.Describe(worldEvent, snapshot));
+            Assert.Equal(expected, EventTextFixture.Describe(worldEvent, snapshot));
             Assert.Equal(detail, worldEvent.Detail);
         }
     }
@@ -335,7 +338,7 @@ public sealed class WorldEventTextTests
         {
             Assert.True(GameUiText.IsPlayerFacingEvent(kind));
             var worldEvent = new OwnerWorldEvent(1, 0, kind, detail);
-            Assert.Equal(expected, WorldEventText.Describe(worldEvent, snapshot));
+            Assert.Equal(expected, EventTextFixture.Describe(worldEvent, snapshot));
             Assert.Equal(detail, worldEvent.Detail);
         }
     }
@@ -349,11 +352,11 @@ public sealed class WorldEventTextTests
             Towns = [new("town", "Wrong Town", "founded", 0, [], [], []),
                 new("town:first", "First Town", "founded", 0, [], [], [])],
         };
-        Assert.Equal("Aster gathered food.", WorldEventText.Describe(new(1, 0, "food_harvested", AgentId + ":4"), snapshot));
-        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "agent_removed", AgentId + ":unknown-child"), snapshot));
-        Assert.Equal("Child suggested a new building design.", WorldEventText.Describe(
+        Assert.Equal("Aster gathered food.", EventTextFixture.Describe(new(1, 0, "food_harvested", AgentId + ":4"), snapshot));
+        Assert.Equal("Someone died.", EventTextFixture.Describe(new(2, 0, "agent_removed", AgentId + ":unknown-child"), snapshot));
+        Assert.Equal("Child suggested a new building design.", EventTextFixture.Describe(
             new(3, 0, "agent_building_proposed", "legacy-parent:child:house"), snapshot));
-        Assert.Equal("Child joined First Town.", WorldEventText.Describe(
+        Assert.Equal("Child joined First Town.", EventTextFixture.Describe(
             new(4, 0, "town_resident_joined", "town:first:legacy-parent:child:child_joined:residents:1"), snapshot));
     }
 
@@ -364,22 +367,22 @@ public sealed class WorldEventTextTests
         {
             Stockpiles = [new("household:first", "Alpha stores", [])],
         };
-        Assert.Equal("Aster asked Alpha stores for a place to live in their House.", WorldEventText.Describe(
+        Assert.Equal("Aster asked Alpha stores for a place to live in their House.", EventTextFixture.Describe(
             new(1, 0, "housing_request_made", AgentId + ":household:first"), snapshot));
-        Assert.Equal("Aster now lives with Alpha stores.", WorldEventText.Describe(
+        Assert.Equal("Aster now lives with Alpha stores.", EventTextFixture.Describe(
             new(2, 0, "household_joined", AgentId + ":household:first"), snapshot));
-        Assert.Equal("Alpha stores did not agree to let Aster move in.", WorldEventText.Describe(
+        Assert.Equal("Alpha stores did not agree to let Aster move in.", EventTextFixture.Describe(
             new(3, 0, "housing_request_refused", AgentId + ":household:first"), snapshot));
-        Assert.Equal("a household did not answer Aster's request to move in.", WorldEventText.Describe(
+        Assert.Equal("a household did not answer Aster's request to move in.", EventTextFixture.Describe(
             new(4, 0, "housing_request_expired", AgentId + ":household:second"), snapshot));
         Assert.Equal("Aster has no home: they belong to no household, so no House can be planned for them.",
-            WorldEventText.Describe(new(5, 0, "housing_blocked", AgentId + ":no_household"), snapshot));
+            EventTextFixture.Describe(new(5, 0, "housing_blocked", AgentId + ":no_household"), snapshot));
         Assert.Equal("Aster has no home: their household has no legal site for a House.",
-            WorldEventText.Describe(new(6, 0, "housing_blocked", AgentId + ":no_legal_site"), snapshot));
+            EventTextFixture.Describe(new(6, 0, "housing_blocked", AgentId + ":no_legal_site"), snapshot));
         Assert.Equal("Aster's House is overcrowded: it has more residents than places.",
-            WorldEventText.Describe(new(7, 0, "housing_blocked", AgentId + ":overcrowded"), snapshot));
+            EventTextFixture.Describe(new(7, 0, "housing_blocked", AgentId + ":overcrowded"), snapshot));
         Assert.Equal("Aster is waiting for every adult in the other household to agree to the move.",
-            WorldEventText.Describe(new(8, 0, "housing_blocked", AgentId + ":awaiting_answer"), snapshot));
+            EventTextFixture.Describe(new(8, 0, "housing_blocked", AgentId + ":awaiting_answer"), snapshot));
     }
 
     [Theory]
@@ -391,7 +394,7 @@ public sealed class WorldEventTextTests
         var snapshot = Snapshot(Person(FounderId, "Wrong parent"), Person(ChildId, "Aster"));
         var worldEvent = new OwnerWorldEvent(1, 4, "relocation_notice", $"{ChildId}|household:first|{reason}|100");
         Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
-        Assert.Equal(expected, WorldEventText.Describe(worldEvent, snapshot));
+        Assert.Equal(expected, EventTextFixture.Describe(worldEvent, snapshot));
         Assert.Equal($"{ChildId}|household:first|{reason}|100", worldEvent.Detail);
     }
 
@@ -406,7 +409,7 @@ public sealed class WorldEventTextTests
     {
         var snapshot = Snapshot(Person(AgentId, "Aster"));
         Assert.True(GameUiText.IsPlayerFacingEvent("relocation_cancelled"));
-        Assert.Equal($"Aster's move-out notice was cancelled: {expected}.", WorldEventText.Describe(
+        Assert.Equal($"Aster's move-out notice was cancelled: {expected}.", EventTextFixture.Describe(
             new(1, 4, "relocation_cancelled", $"{AgentId}|household:first|{reason}"), snapshot));
     }
 
@@ -423,7 +426,7 @@ public sealed class WorldEventTextTests
         {
             Towns = [new("town:first", "Riverbend", "founded", 0, [], [], [])],
         };
-        Assert.Equal(expected, WorldEventText.Describe(new(1, 4, kind, detail), snapshot));
+        Assert.Equal(expected, EventTextFixture.Describe(new(1, 4, kind, detail), snapshot));
     }
 
     [Theory]
@@ -431,17 +434,17 @@ public sealed class WorldEventTextTests
     [InlineData("displaced", "Aster moved out of their overcrowded House. They can go back for their belongings.")]
     public void DepartureDistinguishesDisplacementFromAnOrdinaryMove(string reason, string expected)
     {
-        Assert.Equal(expected, WorldEventText.Describe(
+        Assert.Equal(expected, EventTextFixture.Describe(
             new(1, 4, "household_left", $"{AgentId}|household:first|{reason}|2"), Snapshot(Person(AgentId, "Aster"))));
     }
 
     [Fact]
     public void MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors()
     {
-        Assert.Equal("Scout ate.", WorldEventText.Describe(new(1, 0, "food_consumed", "scout"), null));
-        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "agent_removed", AgentId), null));
-        Assert.Equal("Someone ate.", WorldEventText.Describe(new(3, 0, "food_consumed", ""), null));
-        Assert.Equal("Someone planted something new.", WorldEventText.Describe(new(4, 0, "field_planted", ""), null));
+        Assert.Equal("Scout ate.", EventTextFixture.Describe(new(1, 0, "food_consumed", "scout"), null));
+        Assert.Equal("Someone died.", EventTextFixture.Describe(new(2, 0, "agent_removed", AgentId), null));
+        Assert.Equal("Someone ate.", EventTextFixture.Describe(new(3, 0, "food_consumed", ""), null));
+        Assert.Equal("Someone planted something new.", EventTextFixture.Describe(new(4, 0, "field_planted", ""), null));
     }
 
     [Theory]
@@ -452,7 +455,7 @@ public sealed class WorldEventTextTests
     {
         Assert.True(GameUiText.IsPlayerFacingEvent("model_call_warning"));
         Assert.Equal(count + " Your worlds pause at the limit; raise it in Settings → Game.",
-            WorldEventText.Describe(new(1, 0, "model_call_warning", detail), null));
+            EventTextFixture.Describe(new(1, 0, "model_call_warning", detail), null));
     }
 
     [Theory]
@@ -461,8 +464,8 @@ public sealed class WorldEventTextTests
     [InlineData("town:first:proposal:6", "land_use proposal passed: Grant household use.", "A Town's council made a decision. See the Towns page for the result.")]
     public void OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions(string subject, string notice, string expected)
     {
-        Assert.Equal(expected, WorldEventText.Describe(new(1, 0, "town_civic_result", $"town:first|{subject}|{notice}"), Snapshot()));
-        Assert.Equal(expected, WorldEventText.Describe(new(1, 0, "town_civic_result", $"town:first|{subject}|{notice}"), null));
+        Assert.Equal(expected, EventTextFixture.Describe(new(1, 0, "town_civic_result", $"town:first|{subject}|{notice}"), Snapshot()));
+        Assert.Equal(expected, EventTextFixture.Describe(new(1, 0, "town_civic_result", $"town:first|{subject}|{notice}"), null));
     }
 
     [Theory]
@@ -470,7 +473,7 @@ public sealed class WorldEventTextTests
     [InlineData("land_transfer_blocked", "The land handover stopped because its terms no longer apply. ")]
     public void TransferOutcomeLinesStartWithACapital(string kind, string start)
     {
-        Assert.StartsWith(start, WorldEventText.Describe(new(1, 0, kind, "town:first|land-transfer:town:first:5|1||done"), Snapshot()), StringComparison.Ordinal);
+        Assert.StartsWith(start, EventTextFixture.Describe(new(1, 0, kind, "town:first|land-transfer:town:first:5|1||done"), Snapshot()), StringComparison.Ordinal);
     }
 
     [Theory]
@@ -488,8 +491,8 @@ public sealed class WorldEventTextTests
                 new("town:first", "Riverbend", "founded", 0, [], [], []) { Projects = [project] }],
         };
         var detail = $"{ChildId}:{projectId}:{payload}";
-        Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, kind, detail), snapshot), StringComparison.Ordinal);
-        Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, kind, detail),
+        Assert.Contains("Communal Hall", EventTextFixture.Describe(new(1, 4, kind, detail), snapshot), StringComparison.Ordinal);
+        Assert.Contains("Communal Hall", EventTextFixture.Describe(new(1, 4, kind, detail),
             snapshot with { Agents = [Person(ChildId, "Aster", "dead")] }), StringComparison.Ordinal);
     }
 
@@ -504,12 +507,12 @@ public sealed class WorldEventTextTests
         };
         var detail = $"{ChildId}:{project.Id}:lot:{shortProject.Id}:wood";
         Assert.Equal("Aster donated personal materials to Communal Hall.",
-            WorldEventText.Describe(new(1, 4, "town_project_donated", detail), snapshot));
-        Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, "town_project_donated", detail),
+            EventTextFixture.Describe(new(1, 4, "town_project_donated", detail), snapshot));
+        Assert.Contains("Communal Hall", EventTextFixture.Describe(new(1, 4, "town_project_donated", detail),
             snapshot with { Agents = [] }), StringComparison.Ordinal);
-        Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, "town_project_approved",
+        Assert.Contains("Communal Hall", EventTextFixture.Describe(new(1, 4, "town_project_approved",
             $"town:first:{project.Id}:approved"), snapshot), StringComparison.Ordinal);
-        Assert.Contains("a Town project", WorldEventText.Describe(new(1, 4, "town_project_worked",
+        Assert.Contains("a Town project", EventTextFixture.Describe(new(1, 4, "town_project_worked",
             $"{ChildId}:{project.Id}0:10"), snapshot with { Agents = [] }), StringComparison.Ordinal);
     }
 

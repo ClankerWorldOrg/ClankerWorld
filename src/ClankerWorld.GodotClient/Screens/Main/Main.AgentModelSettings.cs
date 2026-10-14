@@ -74,9 +74,10 @@ public partial class Main
             CredentialSlotId: creatingSlot ? Guid.NewGuid().ToString("N") : credentialChoice is null or "default" ? null : credentialChoice,
             NewCredentialLabel: creatingSlot ? EmptyToNull(agentModelCredentialLabelInput.Text) : null,
             Thinking: agentUsesModel ? SelectedThinking(agentModelThinkingChoice) : null);
+        var contextRetained = false;
         try
         {
-            await RunOwnerActionAsync(async () =>
+            contextRetained = await RunOwnerActionAsync(async () =>
             {
                 providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
                     ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
@@ -86,7 +87,7 @@ public partial class Main
         }
         finally
         {
-            if (IsCurrentWorldRequest(generation))
+            if (contextRetained && IsCurrentWorldRequest(generation))
             {
                 agentModelApiKeyInput.Text = string.Empty;
                 agentModelCredentialLabelInput.Text = string.Empty;
@@ -118,13 +119,13 @@ public partial class Main
             EmptyToNull(agentModelPicker.Model),
             null,
             ForgetCredential: true);
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
                 ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             return $"Forgot the saved {ProviderDisplayName(provider)} key.";
         });
-        if (IsCurrentWorldRequest(generation))
+        if (contextRetained && IsCurrentWorldRequest(generation))
         {
             agentModelApiKeyInput.Text = string.Empty;
             RenderProviderConfiguration();
@@ -150,6 +151,11 @@ public partial class Main
                 item.CredentialSlotId == slotId && item.SelectionReason is null) == true)
         {
             SetStatus("An agent is still using this key. Give that agent another key first.", good: false);
+            return;
+        }
+        if (observationSession.Current?.Baseline.Snapshot.RoutineHelperCredentialSlotId == slotId)
+        {
+            SetStatus("The world's routine helper is using this key. Choose another helper key or turn the helper off first.", good: false);
             return;
         }
 

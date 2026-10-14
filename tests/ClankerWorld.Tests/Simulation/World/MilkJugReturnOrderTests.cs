@@ -46,12 +46,12 @@ public sealed partial class AnimalPipelineTests
         var house = collecting.WorldSimulation.Buildings.Single(item => item.HouseholdId == home &&
             collecting.WorldContent.Buildings.Single(definition => definition.CanonicalId == item.DefinitionId).Tags.Contains("house"));
         if (boundary == "reserved")
-            inventory = InventoryAuthority.Reserve(inventory, "return-held-milk", home, milkId, 2, "other_work", collecting.WorldTick + day);
+            inventory = InventoryAuthority.Reserve(inventory, "return-held-milk", home, milkId, 2, "other_work", collecting.WorldTick + day, holdAccess: StockHoldTestState.Access(inventory, milkId));
         if (boundary == "delivery")
             inventory = InventoryAuthority.Transfer(inventory, "return-milk-promise", home, actor, milkId, 2,
-                "delivery", destinationDeliveryBuildingId: "return-store");
+                "delivery", destinationDeliveryBuildingId: "return-store", holdAccess: StockHoldTestState.Access(inventory, milkId));
         state = collecting.ExportState() with
-        { Society = collecting.ExportState().Society with { Society = collecting.Society with { Inventory = inventory } } };
+        { Society = collecting.ExportState().Society with { Society = collecting.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? new AnimalChooser("return_borrowed") : new AnimalChooser());
         world.SubmitInstruction(new("return-collected-milk", "owner", actor, OwnerInstructionKind.Order, "return two borrowed milk"));

@@ -8,12 +8,12 @@ namespace ClankerWorld.Simulation.World;
 internal interface IAnimalWorld
 {
     bool IsAdult(string actor);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     InventoryLot? AttachedHandcart(string actor);
     int AvailableLotQuantity(InventoryLot lot);
     bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
+    void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     GoodsAnswer FindGoods(GoodsRequest request);
     List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);
@@ -30,7 +30,7 @@ internal interface IAnimalWorld
     int PhysicalUnreservedQuantity(InventoryLot lot);
     int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
     GoodsMatch? RecheckGoods(GoodsRequest request, string lotId);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
+    void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason, bool waitForDecision = false);
     List<GridPoint> SharedUnoccupiedRoute(GridPoint origin, HashSet<GridPoint> occupied, GridPoint destination, int interactionRange, bool swimming = false);
     void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind);
     void SyncEcologyResourceStates();

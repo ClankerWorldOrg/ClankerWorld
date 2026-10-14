@@ -92,7 +92,7 @@ public partial class Main
             serverUrlInput.Text = host.Address;
             observedCalendarPace = new OwnerWorldCalendarPace(Day, 40, 10, 10, 10, 10);
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             observationSession.ResetAfterLoad();
             var snapshot = new OwnerWorldSnapshot("timeline-world", 7 * Day, "timeline-map", [new(0, 0, "meadow")], [], [], null, 0)

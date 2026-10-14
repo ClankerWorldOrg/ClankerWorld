@@ -114,7 +114,7 @@ public sealed partial class WorldRuntime
             sequence, actor, choice.TownId, choice.Origin.InstanceId, choice.Destination.InstanceId, WorldTick)
         { OrderInstructionId = orderInstructionId };
         SetBoatRequest(queuedRequest);
-        AppendEvent("boat_trip_requested", $"{actor}:{queuedRequest.Id}:{choice.Origin.InstanceId}:{choice.Destination.InstanceId}");
+        AppendEvent(new BoatTripRequestedEventPayload(actor, queuedRequest.Id, choice.Origin.InstanceId, choice.Destination.InstanceId));
         return queuedRequest;
     }
 
@@ -133,7 +133,7 @@ public sealed partial class WorldRuntime
             if (!agents.ContainsKey(request.PassengerId) || !CanUseTownBoat(request.BoatTownId, request.PassengerId) || origin is null || destination is null)
             {
                 SetBoatRequest(request with { Status = "cancelled", SettledTick = WorldTick });
-                AppendEvent("boat_trip_cancelled", $"{request.PassengerId}:{request.Id}:departure_unavailable");
+                AppendEvent(new BoatTripCancelledEventPayload(request.PassengerId, request.Id, "departure_unavailable"));
                 continue;
             }
             if (!ReadyToBoard(request.PassengerId) || agents[request.PassengerId].Position != origin.Entrance ||
@@ -152,10 +152,10 @@ public sealed partial class WorldRuntime
                         route, 0, WorldTick, checked(WorldTick + BoatStepTicks)),
                 });
                 SetBoatRequest(request with { Status = "underway", BoatId = boat.Id });
-                SetBoatOrderTravelStatus(request, "doing", null);
+                SetBoatOrderTravelStatus(request, OrderStatus.Doing, null);
                 agents[request.PassengerId] = agents[request.PassengerId] with
                 { Position = boat.Position, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
-                AppendEvent("boat_departed", $"{request.PassengerId}:{boat.Id}:{origin.InstanceId}:{destination.InstanceId}", boat.Position);
+                AppendEvent(new BoatDepartedEventPayload(request.PassengerId, boat.Id, origin.InstanceId, destination.InstanceId), boat.Position);
                 break;
             }
         }
@@ -206,8 +206,8 @@ public sealed partial class WorldRuntime
             var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);
             SetBoatRequest(request with { Status = journey.Returning ? "returned" : "arrived", SettledTick = tick });
             if (!journey.Returning) CreditBoatOrderArrival(request);
-            else SetBoatOrderTravelStatus(request, "blocked", "The boat returned to departure; the requested destination has not been reached.");
-            AppendEvent(journey.Returning ? "boat_returned" : "boat_arrived", $"{journey.PassengerId}:{boat.Id}:{target.InstanceId}", landing.Value);
+            else SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat returned to departure; the requested destination has not been reached.");
+            AppendEvent(journey.Returning ? new BoatReturnedEventPayload(journey.PassengerId, boat.Id, target.InstanceId) : new BoatArrivedEventPayload(journey.PassengerId, boat.Id, target.InstanceId), landing.Value);
         }
         ProcessBoatQueue();
     }
@@ -218,8 +218,8 @@ public sealed partial class WorldRuntime
         var since = journey.WaitingSinceTick ?? tick;
         SetBoat(boat with { Journey = journey with { WaitingSinceTick = since, NextMoveTick = checked(tick + BoatStepTicks) } });
         var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);
-        SetBoatOrderTravelStatus(request, "blocked", "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
-        if (journey.WaitingSinceTick is null) AppendEvent("boat_waiting", $"{journey.PassengerId}:{boat.Id}:arrival_blocked", boat.Position);
+        SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
+        if (journey.WaitingSinceTick is null) AppendEvent(new BoatWaitingEventPayload(journey.PassengerId, boat.Id), boat.Position);
         if (!journey.Returning && tick - since < CivicDay) return;
         var recovery = Port(journey.Returning ? journey.DestinationPortId : journey.OriginPortId);
         if (recovery is null || !PortIsLegal(recovery) || AvailablePortLanding(recovery, journey.PassengerId) is null) return;
@@ -239,7 +239,7 @@ public sealed partial class WorldRuntime
                 NextMoveTick = checked(tick + BoatStepTicks),
             }
         });
-        AppendEvent("boat_recovery_started", $"{journey.PassengerId}:{boat.Id}:{recovery.InstanceId}", boat.Position);
+        AppendEvent(new BoatRecoveryStartedEventPayload(journey.PassengerId, boat.Id, recovery.InstanceId), boat.Position);
     }
 
     private string? RecordBoatDeath(string actor)
@@ -259,13 +259,9 @@ public sealed partial class WorldRuntime
             (roots.Contains(lot.Id, StringComparer.Ordinal) || lot.ProvenanceLotId is { } source && roots.Contains(source, StringComparer.Ordinal)) &&
             (preserveCustody || lot.GroundPosition is not null)).Select(lot => lot.Id).Order(StringComparer.Ordinal).ToArray();
         var position = destination ?? boat.Position;
-        ApplyInventoryTransition(inventory => inventory with
-        {
-            Lots = inventory.Lots.Select(lot => remaining.Contains(lot.Id, StringComparer.Ordinal)
-                ? lot with { GroundPosition = new(position.X, position.Y), StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null }
-                : preserveCustody && lot.ContainerLotId is { } container && remaining.Contains(container, StringComparer.Ordinal)
-                    ? lot with { GroundPosition = null, StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null } : lot).ToArray(),
-        });
+        ApplyInventoryTransition(inventory => InventoryAuthority.MoveGroundCargo(inventory, remaining,
+            new(position.X, position.Y), preserveCustody, holdAccess: remaining.SelectMany(id =>
+                InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(id))).Distinct().ToArray()));
         boat = boat with { GroundCargoLotIds = remaining };
         SetBoat(boat);
         return boat;

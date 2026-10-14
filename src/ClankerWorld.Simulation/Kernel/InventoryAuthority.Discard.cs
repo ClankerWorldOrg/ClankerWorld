@@ -3,10 +3,12 @@ namespace ClankerWorld.Simulation.Kernel;
 public static partial class InventoryAuthority
 {
     /// <summary>Explicitly discard unreserved goods, including empty reusable vessels.</summary>
-    public static InventoryCheckpoint Discard(InventoryCheckpoint checkpoint, string ownerId, string lotId, int quantity)
+    public static InventoryCheckpoint Discard(InventoryCheckpoint checkpoint, string ownerId, string lotId, int quantity,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         var lot = checkpoint.GetLot(lotId);
+        EnsureHoldAccess(checkpoint, lot, holdAccess);
         EnsureOwnerAndAvailablePhysicalQuantity(checkpoint, lot, ownerId, quantity);
         if (lot.ContainerLotId is not null || checkpoint.Lots.Any(item => item.ContainerLotId == lotId))
             throw new InvalidOperationException("Empty a vessel before discarding it or its contents.");

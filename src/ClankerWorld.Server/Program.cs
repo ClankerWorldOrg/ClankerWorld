@@ -175,7 +175,8 @@ builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSe
     services.GetRequiredService<WorldAutosaveStore>(),
     services.GetRequiredService<WorldJevPolicy>(),
     services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
-    _ => services.GetRequiredService<IDecisionProvider>()));
+    _ => services.GetRequiredService<IDecisionProvider>(),
+    services.GetRequiredService<ManualWorldSaveStore>()));
 
 builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
     new OwnerWorldObservationStore(services.GetRequiredService<WorldRuntime>()));

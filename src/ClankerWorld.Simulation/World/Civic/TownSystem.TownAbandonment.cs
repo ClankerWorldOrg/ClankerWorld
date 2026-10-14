@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
         SetTown(world, town with { ResidentIds = group });
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_resettled", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Agents[actor].Position);
+        world.AppendEvent(new TownResettledEventPayload(actor, town.Id, previous ?? "none", group.Length), world.Agents[actor].Position);
     }
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);
@@ -82,8 +82,8 @@ internal sealed partial class TownSystem
             world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                 WorldRuntime.CivicSharedRules.TownSalvageOperationId(world.WorldTick, actor, candidate),
                 town.Id, actor, lot.Id, quantity,
-                "town_stock_salvaged"));
-            world.AppendEvent("town_stock_salvaged", $"{town.Id}|{actor}|{lot.ItemKind}|{quantity}", world.Agents[actor].Position);
+                "town_stock_salvaged", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            world.AppendEvent(new TownStockSalvagedEventPayload(actor, town.Id, lot.ItemKind, quantity), world.Agents[actor].Position);
             return;
         }
     }

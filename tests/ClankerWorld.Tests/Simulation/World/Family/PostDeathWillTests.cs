@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -14,6 +15,120 @@ public sealed class PostDeathWillTests
 {
     private const string Words = "Keep the orchard going.";
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task WillRecallsOnlyItsOwnersSavedSummaryWithAttributionAndCorrections(bool helperEnabled, bool corrected)
+    {
+        var idle = new ActionCoverageRecorder(chooseIdle: true);
+        using var seed = NormalPathWorld.CreateGenerated("will-summary-recall", _ => idle, ticksPerDay: 2);
+        var state = seed.ExportState();
+        var owner = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
+        var checkpoint = state.Society.Society;
+        foreach (var actor in new[] { owner, other })
+            for (var index = 0; index < 4; index++)
+                checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(DerivedId.Create($"walk-{actor}-{index}")), actor, other,
+                    "I walked past the orchard and thought about sharing my belongings with my heirs. " + index, "private", 0)).Checkpoint;
+        const string rumorId = "orchard-rumor";
+        checkpoint = SocietyRules.RecordAgentBelief(checkpoint, new(Identity.Parse(rumorId), owner,
+            "Someone told me the orchard needs stone from my belongings; I have not checked it myself.",
+            SocietyBeliefProvenance.Hearsay, 4_200, 0, AboutAgentId: other, SourceAgentId: other));
+        using var aging = WorldRuntime.Restore(state with
+        {
+            JevEnabled = false,
+            RoutineHelper = RoutineHelperSettings.Off,
+            Society = state.Society with { Society = checkpoint },
+        }, _ => idle);
+        for (var tick = 0; tick < 6; tick++) Assert.True((await aging.AdvanceOneTickAsync()).Advanced);
+        checkpoint = aging.Society;
+        Assert.Equal(4, checkpoint.ArchivedMemories.Count(item => item.Memory.OwnerId == owner));
+        Assert.Single(checkpoint.ArchivedBeliefs, item => item.Belief.Id == rumorId);
+        foreach (var actor in new[] { owner, other })
+            checkpoint = SocietyRules.RecordAgentMemorySummary(checkpoint, actor, SocietyMemorySummaryRules.Options(checkpoint, actor)[0]);
+        var summary = Assert.Single(checkpoint.MemorySummaries, item => item.OwnerId == owner);
+        var foreign = Assert.Single(checkpoint.MemorySummaries, item => item.OwnerId == other);
+        if (corrected)
+            checkpoint = SocietyRules.CorrectAgentBelief(checkpoint, owner, rumorId, new(Identity.Parse("orchard-correction"), owner,
+                "I checked the orchard and it does not need stone.", SocietyBeliefProvenance.Firsthand, 9_600, checkpoint.WorldTick));
+        for (var index = 0; index < 4; index++)
+            checkpoint = SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse($"recent-{index}"), owner, owner,
+                "A quiet evening by the riverbank.", "private", checkpoint.WorldTick)).Checkpoint;
+        state = aging.ExportState() with
+        {
+            JevEnabled = helperEnabled,
+            RoutineHelper = helperEnabled ? new("jev", "jev-1.13.0") : RoutineHelperSettings.Off,
+            Society = aging.ExportState().Society with { Society = checkpoint },
+        };
+        state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state));
+        checkpoint = state.Society.Society;
+        var ordinary = WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [], null, owner,
+            checkpoint.WorldTick, [new("remember", "Remember my orchard belongings and heirs.")], checkpoint);
+        var expected = Assert.Single(ordinary, item => item.Id == summary.Id);
+        Assert.Equal(4, ordinary.Count);
+
+        var physical = state.Agents.Single(item => item.AgentId == owner);
+        checkpoint = checkpoint with
+        {
+            Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "will-stone", "stone", owner, 1,
+                groundPosition: new InventoryGroundPosition(physical.Position.X, physical.Position.Y))
+        };
+        checkpoint = SocietyRules.Kill(checkpoint, owner, SocietyDeathCause.Accident).Checkpoint;
+        if (checkpoint.Inventory.Lots.Any(item => item.CarrierId == owner))
+            checkpoint = checkpoint with
+            {
+                Inventory = InventoryAuthority.DropCarrierGoods(checkpoint.Inventory, owner,
+                    new InventoryGroundPosition(physical.Position.X, physical.Position.Y))
+            };
+        state = state with
+        {
+            Society = state.Society with { Society = checkpoint },
+            Agents = state.Agents.Where(item => item.AgentId != owner).ToArray(),
+            DeceasedAgents = [new(owner, checkpoint.WorldTick, checkpoint.AgeAt(checkpoint.GetAgent(owner), checkpoint.WorldTick),
+                physical, state.Towns!.Single(town => town.ResidentIds.Contains(owner)).Id)],
+            // Direct death must also refresh the actual Town's adult council before strict reload.
+            Towns = state.Towns!.Select(town => town with
+            {
+                ResidentIds = town.ResidentIds.Where(id => id != owner).ToArray(),
+                Council = TownCouncilRules.Advance(town.Council!, town.Id, state.WorldSeed,
+                    town.ResidentIds.Where(id => checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active &&
+                        checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder),
+                    checkpoint.WorldTick, checkpoint.Config.TicksPerWorldDay),
+            }).ToArray(),
+        };
+        using var deceasedWorld = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => idle);
+        var bytes = WorldRuntimeCodec.Encode(deceasedWorld.ExportState());
+        var provider = new WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
+            new CognitionWillChoice([observation.Will!.Heirs[0].Key], CognitionWillContext.EqualSplit, FinalWords: Words));
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), id => id == owner ? provider : idle);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        Assert.True(world.Society.Estates.Single(item => item.DeceasedId == owner).WillStatus == "pending",
+            string.Join(" | ", world.ExportState().Events.Where(item => item.Kind.StartsWith("estate_will", StringComparison.Ordinal))));
+        await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
+        var will = Assert.Single(provider.Observations);
+        will.Validate();
+        var recalled = Assert.Single(will.RetrievedMemories!, item => item.Id == summary.Id);
+        Assert.Equal(4, will.RetrievedMemories!.Count);
+        Assert.Equal((owner, summary.Text, summary.CreatedTick, "private", corrected),
+            (recalled.OwnerId, recalled.Summary, recalled.SourceTick, recalled.Visibility, recalled.IsCorrected));
+        Assert.Equal(expected.SummarySources, recalled.SummarySources);
+        var rumor = Assert.Single(recalled.SummarySources!, item => item.Id == rumorId);
+        Assert.Equal(("hearsay", 4_200, other, other, 0L, corrected),
+            (rumor.Provenance, rumor.ConfidenceBasisPoints, rumor.SourceAgentId, rumor.SubjectId, rumor.SourceTick, rumor.IsCorrected));
+        Assert.DoesNotContain(will.RetrievedMemories!, item => item.Id == foreign.Id || item.OwnerId != owner);
+        await AdvanceUntilResolved(world, owner);
+        Assert.Equal("accepted", world.Society.Estates.Single(item => item.DeceasedId == owner).WillStatus);
+        var accepted = WorldRuntimeCodec.Encode(world.ExportState());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(accepted), id => id == owner ? provider : idle);
+        Assert.Equal(accepted, WorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.Equal(1, provider.CallCount);
+    }
+
     [Fact]
     public async Task TwoHeirsShareEquallyAndHearFinalWordsThatSurviveSaveAndReload()
     {
@@ -21,8 +136,8 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira"), HeirKey(observation, "Rowan")],
                 CognitionWillContext.EqualSplit, FinalWords: Words));
         using var world = NewWorld(provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
         await AdvanceUntilResolved(world);
 
         var estate = Assert.Single(world.Society.Estates, item => item.DeceasedId == "founder-scout");
@@ -72,7 +187,7 @@ public sealed class PostDeathWillTests
             ("founder-mira", "Scout's final words were: 'Keep the orchard going.'"),
             ("founder-rowan", "Scout's final words were: 'Keep the orchard going.'"),
         ], FinalWordMemories(reloaded));
-        Assert.All(reloaded.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal)),
+        Assert.All(reloaded.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal)),
             memory => Assert.Equal("private", memory.Visibility));
         Assert.DoesNotContain(reloaded.Memories, memory => memory.OwnerId == "founder-ilya" &&
             memory.Summary.Contains("final words", StringComparison.Ordinal));
@@ -95,8 +210,8 @@ public sealed class PostDeathWillTests
                 });
         });
         using var world = NewWorld(provider, childHeir: true);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
         await AdvanceUntilResolved(world);
 
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
@@ -123,7 +238,7 @@ public sealed class PostDeathWillTests
             (childStone.OwnerId, childStone.Quantity, childStone.CarrierId, childStone.StorageBuildingId, childStone.GroundPosition));
         Assert.Equal(5 + 3 + 1, settled.Inventory.Lots.Where(lot => lot.ProvenanceLotId is "rope-lot" or "seed-lot" or "stone-lot")
             .Sum(lot => lot.Quantity));
-        Assert.DoesNotContain(settled.Memories, memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal));
+        Assert.DoesNotContain(settled.Memories, memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -133,8 +248,8 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira"), HeirKey(observation, "Rowan")],
                 CognitionWillContext.EqualSplit, FinalWords: Words));
         using var world = NewWorld(provider, vessels: true);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
         await AdvanceUntilResolved(world);
 
         var will = Assert.Single(provider.Observations).Will!;
@@ -193,7 +308,7 @@ public sealed class PostDeathWillTests
         using var world = NewWorld(provider);
         var householdBeneficiaries = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout")
             .BeneficiaryIds.ToArray();
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         await AdvanceUntilResolved(world);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal("default", estate.WillStatus);
@@ -283,7 +398,7 @@ public sealed class PostDeathWillTests
         var provider = new WillProvider(CognitionWillContext.HouseholdCandidateId, _ =>
             new CognitionWillChoice([], FinalWords: Words));
         using var world = NewWorld(provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         await AdvanceUntilResolved(world);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal(("default", Words), (estate.WillStatus, estate.FinalWords));
@@ -302,7 +417,7 @@ public sealed class PostDeathWillTests
     {
         using var world = NewWorld(new DeterministicDecisionProvider());
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         var estate = world.Society.Estates.Single(item => item.DeceasedId == "founder-scout");
         Assert.Equal("default", estate.WillStatus);
@@ -324,13 +439,13 @@ public sealed class PostDeathWillTests
             using var world = NewWorld(failing);
             using var service = new WorldRuntimeService(world,
                 new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await failing.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
+            await ModelWorkHarness.WaitForSignalAsync(failing.Called.Task);
             for (var attempt = 0; attempt < 8 &&
                  world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus == "pending"; attempt++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
-                await Task.Delay(10);
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
             Assert.Equal(1, failing.CallCount);
@@ -350,14 +465,14 @@ public sealed class PostDeathWillTests
         var held = new WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit), hold: true);
         using var pending = NewWorld(held);
-        Assert.True((await pending.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await pending.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(held.Called.Task);
         var bytes = WorldRuntimeCodec.Encode(pending.ExportState());
         pending.CancelPendingModelCalls();
-        await held.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.WaitForSignalAsync(held.Cancelled.Task);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
             id => id == "founder-scout" ? held : new DeterministicDecisionProvider());
-        Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await restored.TickModelWorkAsync()).Advanced);
         Assert.Equal("default", restored.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Equal(1, held.CallCount);
     }
@@ -369,16 +484,16 @@ public sealed class PostDeathWillTests
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit),
             hold: true, ignoreCancellation: true);
         using var world = NewWorld(late);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await late.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(late.Called.Task);
         for (var tick = 0; tick < 28; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal("pending", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
 
         late.ReleaseHeldResponse();
-        await late.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        await Task.Delay(50);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(late.Completed.Task);
+        await ModelWorkHarness.For(world).SettleAsync();
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Equal(1, late.CallCount);
@@ -392,12 +507,12 @@ public sealed class PostDeathWillTests
         var held = new WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([HeirKey(observation, "Mira")], CognitionWillContext.EqualSplit), hold: true);
         using var world = NewWorld(held);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(held.Called.Task);
 
         held.ProviderEpoch++;
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await held.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForSignalAsync(held.Cancelled.Task);
 
         Assert.Equal("default", world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus);
         Assert.Contains(world.ExportState().Events,
@@ -418,7 +533,7 @@ public sealed class PostDeathWillTests
             .ToArray();
 
     private static (string OwnerId, string Summary)[] FinalWordMemories(SocietyCheckpoint checkpoint) =>
-        checkpoint.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal))
+        checkpoint.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal))
             .Select(memory => (memory.OwnerId, memory.Summary))
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
 
@@ -439,7 +554,7 @@ public sealed class PostDeathWillTests
             inventory = InventoryAuthority.AddLot(inventory, "pot-lot", InventoryContainerRules.StoragePot, "founder-scout", 1);
             inventory = InventoryAuthority.AddLot(inventory, "pot-berries", "berries", "founder-scout", 2, containerLotId: "pot-lot");
         }
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         if (childHeir)
         {
             var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
@@ -472,7 +587,7 @@ public sealed class PostDeathWillTests
                      lot.CarrierId is null && lot.StorageBuildingId is null && lot.GroundPosition is null).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, $"death:founder-scout:{lot.Id}", lot.Id, estateId, lot.Quantity,
                 groundPosition: new InventoryGroundPosition(physical.Position.X, physical.Position.Y));
-        checkpoint = checkpoint with { Inventory = inventory };
+        checkpoint = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) };
         // Bounded test clock: settle a few ticks after the will instead of after a world day.
         checkpoint = checkpoint with
         {
@@ -491,13 +606,13 @@ public sealed class PostDeathWillTests
         return WorldRuntime.Restore(state, id => id == "founder-scout" ? provider : new DeterministicDecisionProvider());
     }
 
-    private static async Task AdvanceUntilResolved(WorldRuntime world)
+    private static async Task AdvanceUntilResolved(WorldRuntime world, string deceasedId = "founder-scout")
     {
         for (var attempt = 0; attempt < 8; attempt++)
         {
-            if (world.Society.Estates.Single(item => item.DeceasedId == "founder-scout").WillStatus != "pending") return;
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            if (world.Society.Estates.Single(item => item.DeceasedId == deceasedId).WillStatus != "pending") return;
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.Fail("The final will did not resolve within the bounded test window.");
     }
@@ -505,7 +620,7 @@ public sealed class PostDeathWillTests
     private static async Task<SocietyCheckpoint> AdvanceUntilSettled(WorldRuntime world, string estateId)
     {
         for (var attempt = 0; attempt < 12 && !world.Society.GetEstate(estateId).Settled; attempt++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.True(world.Society.GetEstate(estateId).Settled);
         return world.Society;
     }
@@ -517,15 +632,15 @@ public sealed class PostDeathWillTests
         bool hold = false,
         bool ignoreCancellation = false) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<bool> release = new(TaskCreationOptions.None);
 
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch { get; set; } = 42;
         public int CallCount { get; private set; }
         public List<AgentObservation> Observations { get; } = [];
-        public TaskCompletionSource<bool> Called { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Called { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Completed { get; } = new(TaskCreationOptions.None);
 
         public void ReleaseHeldResponse() => release.TrySetResult(true);
 

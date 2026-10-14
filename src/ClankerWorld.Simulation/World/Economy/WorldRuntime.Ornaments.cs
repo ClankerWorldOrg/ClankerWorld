@@ -165,13 +165,13 @@ public sealed partial class WorldRuntime
                 if (lot.OwnerId != actor)
                 {
                     var operation = $"ornament-wear:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
-                    inventory = InventoryAuthority.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected");
+                    inventory = InventoryAuthority.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     equippedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
                 }
                 else if (lot.Quantity > 1)
                 {
                     equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
-                    inventory = InventoryAuthority.SplitLot(inventory, lot.Id, 1, equippedId);
+                    inventory = InventoryAuthority.SplitLot(inventory, lot.Id, 1, equippedId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 }
                 agents[actor] = person with
                 { Equipment = (previous ?? new PersonalEquipment()) with { OrnamentLotId = equippedId } };
@@ -184,7 +184,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_worn", $"{actor}:ornament:{equippedId}");
+        AppendEvent(new OrnamentWornEventPayload(actor, equippedId));
         return new(true, equippedId);
     }
 
@@ -202,7 +202,7 @@ public sealed partial class WorldRuntime
         var person = agents[actor];
         agents[actor] = person with { Equipment = person.Equipment! with { OrnamentLotId = null } };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_removed", $"{actor}:ornament:{id}");
+        AppendEvent(new OrnamentRemovedEventPayload(actor, id));
         return new(true, id);
     }
 
@@ -229,7 +229,7 @@ public sealed partial class WorldRuntime
         {
             ApplyInventoryTransition(inventory =>
             {
-                var updated = InventoryAuthority.Transfer(inventory, operation, actor, recipientId, lot.Id, 1, "ornament_given");
+                var updated = InventoryAuthority.Transfer(inventory, operation, actor, recipientId, lot.Id, 1, "ornament_given", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 if (person.Equipment?.OrnamentLotId == lot.Id)
                     agents[actor] = person with { Equipment = person.Equipment with { OrnamentLotId = null } };
                 return updated;
@@ -241,7 +241,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_given", $"{actor}:ornament_gift:{recipientId}:{lot.Id}:{receivedId}");
+        AppendEvent(new OrnamentGivenEventPayload(actor, recipientId, lot.Id, receivedId));
         return new(true, receivedId);
     }
 }
