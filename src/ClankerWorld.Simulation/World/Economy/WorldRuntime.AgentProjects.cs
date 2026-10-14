@@ -442,7 +442,7 @@ public sealed partial class WorldRuntime
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
             recipeProjectPlans[agentId] = (state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
-                ? previous.StartedTick : WorldTick, recipePlan);
+                ? previous.StartedTick : WorldTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
 
         if (state.Project is { Stage: not ("completed" or "cancelled") } existing &&
             TownConstructionCandidateIds.TryParse(existing.CandidateId, out var current) &&
@@ -594,7 +594,7 @@ public sealed partial class WorldRuntime
             if (recipePlan is null && TryFindRecipeSite(recipe, out var restoredSite, out _, agentId))
             {
                 recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
-                recipeProjectPlans[agentId] = (project.StartedTick, recipePlan);
+                recipeProjectPlans[agentId] = (project.StartedTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
             }
             if (recipePlan is null)
             {

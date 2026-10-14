@@ -123,6 +123,10 @@ and production knife. A running project keeps that selection; a restored
 project binds its next step once from current state. Native job creation
 reserves the selected lot quantities with the existing reservation identities.
 Inputs acquired later are selected once before that reservation step.
+Recipe plan references have a live lifetime. Tick preparation copies entries
+for the same project and order into the trial runtime; successful commit
+copies those entries back without replacing the live cache or saving it.
+
 Household construction preparation retains the selected building need, source,
 tool, harvest quantity and household return destination. The same check
 validates the load and route before the native harvest; a changed tree seed
