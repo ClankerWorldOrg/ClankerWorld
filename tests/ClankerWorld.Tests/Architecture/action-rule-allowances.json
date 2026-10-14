@@ -9,9 +9,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingValidation.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Authority.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],

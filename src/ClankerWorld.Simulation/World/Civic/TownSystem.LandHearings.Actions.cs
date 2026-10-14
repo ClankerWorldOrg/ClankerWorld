@@ -8,37 +8,26 @@ internal sealed partial class TownSystem
     {
         if (!LandHearingAdult(world, actor) || town.Council is not { } council) return;
         var hearings = town.LandRecords;
-        var household = world.HouseholdFor(actor);
         var atBoard = NearCivicBoard(world, actor, town);
         if (!atBoard && MayVisitLandHearing(world, actor, town) && !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !MayVisitAsNewcomer(world, actor, town))
             candidates.Add(new(CivicAction(world, town.Id, "visit"), "Walk to the public notice place to inspect a land case you actually learned concerns you. Visiting changes no membership or property access.", 175));
-        if (atBoard && household is not null)
-        {
-            // Land a settled hearing covered, with permissions unchanged since, cannot start a new case, so it is not named.
-            // Land under a pending hearing can only be filed again as that hearing's exact plot, which joins it.
-            var pending = hearings.Cases.Where(item => item.Status == "pending").SelectMany(item => TownLandHearingRules.CurrentRevision(item).Tiles).ToHashSet();
-            var affected = householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household).SelectMany(right => right.Tiles)
-                .Concat(householdLandUseRequests.Where(request => request.TownId == town.Id && request.HouseholdId == household && request.Status == "pending").SelectMany(TownLandRightsRules.UnresolvedRequestTiles))
-                .Distinct().OrderBy(tile => world.Map.FootDistance(world.Agents[actor].Position, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X)
-                .Where(tile => pending.Contains(tile) || TownLandHearingRules.FilingRefusal(hearings, town.Id, [tile], householdLandUseRights) is null).Take(6).ToArray();
-            if (affected.Length > 0)
-                candidates.Add(new(CivicAction(world, town.Id, "hearing_file", choice: household),
-                    "File a land disagreement affecting your household. State the disagreement and requested_outcome in civic_land_hearing, and exact connected civic_land_tiles. Filing supplies no agreement or permission. Nearby affected tiles: " +
-                    TownLandClaimRules.DescribeTiles(affected) + "." + (affected.Any(pending.Contains)
-                        ? " Land already under a pending hearing can only be filed again as exactly that hearing's plot, which joins it." : ""), 185));
-        }
-        if (atBoard && town.Government is { } government && TownAdults(world, town).Contains(actor, StringComparer.Ordinal))
-        {
-            if (government.Arrangement.Ordinary == TownArrangementRules.Mayor && government.Offices.Any(office =>
-                    office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > world.WorldTick))
-                candidates.Add(new(CivicAction(world, town.Id, "hearing_file_town", choice: government.Offices.Single(office =>
-                        office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > world.WorldTick).ElectionId ?? ""),
-                    "File a land case on the Town's behalf under your recorded governing office. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome. You represent the Town and cannot judge this case.", 185));
-            else if (government.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil or TownArrangementRules.AllAdultCouncil &&
-                     council.Members.Contains(actor, StringComparer.Ordinal))
-                candidates.Add(new(CivicAction(world, town.Id, "hearing_propose_town", choice: "council:" + council.Revision),
-                    "Ask the current Council to authorize a specific Town land case. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome; actual Council approval is required before the Town files.", 185));
-        }
+        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.Household, ""), bindAuthority: true) is { } householdFiling &&
+            CheckLandHearingFiling(world, householdFiling).Allowed)
+            candidates.Add(new(householdFiling.CandidateId,
+                "File a land disagreement affecting your household. State the disagreement and requested_outcome in civic_land_hearing, and exact connected civic_land_tiles. Filing supplies no agreement or permission. Nearby affected tiles: " +
+                TownLandClaimRules.DescribeTiles(householdFiling.NearbyAffectedTiles) + "." + (householdFiling.NearbyPending
+                    ? " Land already under a pending hearing can only be filed again as exactly that hearing's plot, which joins it." : ""), 185)
+            { ActionPlan = householdFiling });
+        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.TownOffice, ""), bindAuthority: true) is { } officeFiling &&
+            CheckLandHearingFiling(world, officeFiling).Allowed)
+            candidates.Add(new(officeFiling.CandidateId,
+                "File a land case on the Town's behalf under your recorded governing office. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome. You represent the Town and cannot judge this case.", 185)
+            { ActionPlan = officeFiling });
+        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.CouncilProposal, ""), bindAuthority: true) is { } councilFiling &&
+            CheckLandHearingFiling(world, councilFiling).Allowed)
+            candidates.Add(new(councilFiling.CandidateId,
+                "Ask the current Council to authorize a specific Town land case. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome; actual Council approval is required before the Town files.", 185)
+            { ActionPlan = councilFiling });
         world.AddTownPropertyCandidates(candidates, actor, town);
         foreach (var item in hearings.Cases)
         {
@@ -165,43 +154,37 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandHearingAction(ITownWorld world, TownRuntimeState town,
             string actor, string action, string subject, string choice, string? proposalText, IReadOnlyList<CognitionLandTile>? landTiles,
-            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government)
+            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government, LandHearingFilingActionPlan? filingPlan = null)
     {
         var currentTown = town with { Council = council, Government = government };
         (council, var hearings) = AdvanceTownLandHearings(world, currentTown, council, government);
         currentTown = currentTown with { Council = council, LandRecords = hearings };
+        if (LandHearingFilingChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } filingChoice)
+        {
+            SetTown(world, currentTown);
+            filingPlan ??= PlanLandHearingFiling(world, actor, filingChoice);
+            if (filingPlan is null) return (council, hearings);
+            filingPlan = BindLandHearingFiling(filingPlan, landTiles, hearingChoice, proposalText);
+            if (CheckLandHearingFiling(world, filingPlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(filingPlan, refusal); return (council, hearings); }
+            var filing = filingPlan.Filing!;
+            if (filingPlan.Choice.Kind == LandHearingFilingKind.CouncilProposal)
+            {
+                council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
+                    "Authorize this Town land case.", "council:" + council.Revision, TownAdults(world, town), world.WorldTick, CivicDay(world),
+                    noticeText: TownLandGovernmentFilingRules.Describe(filing), landHearingRequest: filing);
+                return (council, hearings);
+            }
+            var office = filingPlan.Choice.Kind == LandHearingFilingKind.TownOffice ? filingPlan.Office : null;
+            return OpenLandHearing(world, currentTown, council, hearings, new(actor, office is null ? "dispute" : "town", filing.Statement, filing.RequestedOutcome,
+                world.WorldTick, office?.ElectionId), filing.Tiles, office is null ? filingPlan.Household : null, office is null ? null : actor);
+        }
         var candidates = new List<CognitionCandidate>();
         AddTownLandHearingCandidates(world, candidates, actor, currentTown);
         if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
             throw new InvalidOperationException("The hearing choice no longer has current authority or informed eligibility.");
         if (action == "hearing_property_request")
             return world.RequestPropertyCase(currentTown, actor, subject, choice, LandHearingText(hearingChoice?.Statement ?? proposalText), council, government);
-        if (action is "hearing_file" or "hearing_file_town" or "hearing_propose_town")
-        {
-            var tiles = TownLandRightsRules.OrderTiles(landTiles?.Select(tile => new GridPoint(tile.X, tile.Y)) ?? []);
-            var outcome = LandHearingOutcome(world, hearingChoice?.RequestedOutcome ?? "", hearingChoice);
-            var text = LandHearingText(hearingChoice?.Statement ?? proposalText);
-            if (tiles.Length == 0 || !TownLandRightsRules.IsValidPlot(world.Map, tiles, world.WorldTick, world.WorldTick) ||
-                tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles)))
-                throw new InvalidOperationException("A filing must name a connected plot under this Town's title.");
-            if (action == "hearing_propose_town")
-            {
-                // A plot the Town could not file on now is refused before the Council spends a vote on it.
-                if (TownLandHearingRules.FilingRefusal(hearings, town.Id, tiles, householdLandUseRights) is { } refusal)
-                    throw new InvalidOperationException(refusal);
-                var filing = new TownLandFilingRequest(tiles, outcome, text);
-                council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
-                    "Authorize this Town land case.", "council:" + council.Revision, TownAdults(world, town), world.WorldTick, CivicDay(world),
-                    noticeText: TownLandGovernmentFilingRules.Describe(filing), landHearingRequest: filing);
-                return (council, hearings);
-            }
-            var household = action == "hearing_file" ? world.HouseholdFor(actor) : null;
-            if (household is not null && !LandHearingParties(world, currentTown, tiles).Any(party => party.HouseholdId == household))
-                throw new InvalidOperationException("A household filer must actually be affected by the named plot.");
-            var office = action == "hearing_file_town" ? government.Offices.Single(office => office.Mandates == "ordinary" && office.HolderId == actor) : null;
-            return OpenLandHearing(world, currentTown, council, hearings, new(actor, office is null ? "dispute" : "town", text, outcome,
-                world.WorldTick, office?.ElectionId), tiles, household, office is null ? null : actor);
-        }
         var item = hearings.Cases.Single(item => CivicAgentToken(TownLandHearingRules.RevisionToken(item)) == subject ||
             item.Contest is { } contest && CivicAgentToken(TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest)) == subject);
         var revision = TownLandHearingRules.CurrentRevision(item);
@@ -348,7 +331,7 @@ internal sealed partial class TownSystem
         return outcome;
     }
 
-    internal static string LandHearingText(string? text) => TownLandHearingRules.ValidText(text, 256) ? text!.Trim() :
+    internal static string LandHearingText(string? text) => TownLandHearingRules.ValidText(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
             throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
 
 }

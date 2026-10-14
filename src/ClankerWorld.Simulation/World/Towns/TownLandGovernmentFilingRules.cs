@@ -5,6 +5,7 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>Exact Council authorization to file a public case on the Town's behalf.</summary>
 public static class TownLandGovernmentFilingRules
 {
+    public const int MaximumStatementLength = 256;
     public static string Describe(TownLandFilingRequest request) =>
         "Exact hearing plot: " + TownLandClaimRules.DescribeTiles(request.Tiles) + ". " +
         "Disagreement: " + request.Statement + " Requested result: " + request.RequestedOutcome.Kind +
@@ -23,7 +24,7 @@ public static class TownLandGovernmentFilingRules
         request is not null && request.Tiles is { Count: > 0 and <= 64 } &&
         request.Tiles.Distinct().Count() == request.Tiles.Count &&
         request.Tiles.SequenceEqual(TownLandRightsRules.OrderTiles(request.Tiles)) &&
-        TownLandHearingRules.ValidText(request.Statement, 256) &&
+        TownLandHearingRules.ValidText(request.Statement, MaximumStatementLength) &&
         TownLandHearingRules.IsValidOutcome(request.RequestedOutcome, tick) &&
         (request.Property is null ? request.RequestedOutcome.Kind is not ("reclaim" or "grant") :
             TownPropertyRules.IsValid(request.Property) && request.RequestedOutcome == TownPropertyRules.Outcome(request.Property));
