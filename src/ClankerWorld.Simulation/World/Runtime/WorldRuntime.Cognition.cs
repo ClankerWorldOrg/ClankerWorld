@@ -972,7 +972,7 @@ public sealed partial class WorldRuntime
         var candidates = CreateUnfilteredCandidates(agentId, state, restrictForOrder);
         if (actionRefusals.Count > 0)
             candidates.RemoveAll(candidate => IsRefusedAction(agentId, candidate.Id));
-        if (candidates.Count == 0) candidates.Add(new("safe_idle", "Wait safely.", 100));
+        if (candidates.Count == 0) candidates.Add(WaitingCandidate(agentId, "Wait safely."));
         return candidates;
     }
 
@@ -981,7 +981,7 @@ public sealed partial class WorldRuntime
     {
         if (PassengerBoat(agentId) is not null)
         {
-            var aboard = new List<CognitionCandidate> { new("safe_idle", "Stay aboard while the boat travels or waits for a safe Port.", 100) };
+            var aboard = new List<CognitionCandidate> { WaitingCandidate(agentId, "Stay aboard while the boat travels or waits for a safe Port.") };
             if (state.FullnessBasisPoints < ComfortableFullness)
                 AddFoodPlanCandidate(aboard, PlanFoodConsumption(agentId), "Eat one carried food item aboard the boat.", 0);
             if (state.FullnessBasisPoints < ComfortableFullness) AddMilkCandidate(aboard, agentId);
@@ -996,7 +996,7 @@ public sealed partial class WorldRuntime
              currentConversation.Status == AgentConversationStatus.Proposed && currentConversation.InitiatorId == agentId))
         {
             if (candidates.Count == 0)
-                candidates.Add(new CognitionCandidate("safe_idle", "Continue safely without starting a new task.", 100));
+                candidates.Add(WaitingCandidate(agentId, "Continue safely without starting a new task."));
             return candidates;
         }
         var context = new ChoiceContext(candidates, agentId, state, currentConversation is not null);

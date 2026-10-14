@@ -29,6 +29,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], static (runtime, action) => runtime.ApplyWaiting(action, beforeAge: true)),
         new(ActionPhase.BeforeAge, "IsOrnamentCandidate", [], [], static (runtime, action) =>
     {
         return IsOrnamentCandidate(action.CandidateId);
@@ -50,6 +51,7 @@ public sealed partial class WorldRuntime
         runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
+        new(ActionPhase.Ordinary, "safe_idle", [], [WaitingChoice.Candidate], static (runtime, action) => runtime.ApplyWaiting(action, beforeAge: false)),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
     {
         runtime.ApplyMedicalCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
@@ -399,7 +401,7 @@ public sealed partial class WorldRuntime
         new(ChoiceGroup.UrgentAdult, "urgent_market", static (runtime, context) => runtime.AddMarketCandidates(context.Candidates, context.AgentId), null),
         new(ChoiceGroup.Final, "town_projects", static (runtime, context) => runtime.AddTownProjectCandidates(context.Candidates, context.AgentId), null),
         RegisterConversationChoices(),
-        new(ChoiceGroup.Final, "safe_idle", static (runtime, context) => context.Candidates.Add(new CognitionCandidate("safe_idle", "Continue safely without starting a new task.", 100)), null)
+        new(ChoiceGroup.Final, "safe_idle", static (runtime, context) => context.Candidates.Add(runtime.WaitingCandidate(context.AgentId, "Continue safely without starting a new task.")), null)
     ]);
     private bool TryRegisteredAction(ActionPhase phase, ActionContext action)
     {
