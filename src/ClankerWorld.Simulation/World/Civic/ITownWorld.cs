@@ -19,7 +19,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor);
     void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool IsAdult(string actor);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     bool CanContinueEquipmentRepair(string actor);

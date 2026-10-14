@@ -7,9 +7,9 @@ namespace ClankerWorld.Simulation.World;
 public static class TownPropertyRules
 {
     public static bool IsValid(TownPropertyRequest request) => request is not null &&
-        TownLandHearingRules.ValidText(request.BuildingId, 128) &&
+BoundedText.IsValid(request.BuildingId, 128) &&
         (request.SourceHouseholdId is not null ^ request.TargetHouseholdId is not null) &&
-        TownHearingProcedure.Id(request.SourceHouseholdId ?? request.TargetHouseholdId);
+IdentityRules.Reference(request.SourceHouseholdId ?? request.TargetHouseholdId, int.MaxValue, requireTrimmed: true);
 
     public static TownLandRequestedOutcome Outcome(TownPropertyRequest request) =>
         request.SourceHouseholdId is { } source ? new("reclaim", source) : new("grant", request.TargetHouseholdId);

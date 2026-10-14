@@ -47,7 +47,7 @@ public sealed class OrderListObservationTests
         var orders = received.Where(item => item.Kind == "order").ToArray();
         // More orders than the card's four-message history holds all reach the game.
         Assert.Equal(
-            new[] { replaced, current }.Concat(queued).Append(typo).Select(item => item.InstructionId).ToArray(),
+            new[] { replaced, current }.Concat(queued).Append(typo).Select(item => item.InstructionId.Value).ToArray(),
             orders.Select(item => item.InstructionId).ToArray());
         Assert.Contains(received, item => item.InstructionId == suggestion.InstructionId && item.Kind == "suggestion");
 

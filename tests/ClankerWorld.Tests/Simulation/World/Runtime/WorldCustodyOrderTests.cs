@@ -1,4 +1,5 @@
 using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -119,7 +120,7 @@ public sealed class WorldCustodyOrderTests
         if (boundary == "carry-room") inventory = InventoryAuthority.AddLot(inventory, "ballast", "wood", actor, 4);
         if (boundary == "house-room") inventory = FillHouse(state, inventory, House, 4);
         if (boundary == "reserved-content") inventory = InventoryAuthority.Reserve(inventory,
-            "held-water", actor, "vessel-contents", 1, "other_work", 1_000);
+            "held-water", actor, "vessel-contents", 1, "other_work", 1_000, holdAccess: StockHoldTestState.Access(inventory, "vessel-contents"));
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "blocked-vessel", action + " one water jug");
         for (var tick = 0; tick < 2; tick++) await Tick(world);
@@ -139,7 +140,7 @@ public sealed class WorldCustodyOrderTests
         var state = Prepared(atOtherHouse: true);
         var actor = Actor(state);
         var inventory = AddVessel(state.Society.Society.Inventory, OtherHousehold, "water_jug", "fresh_water", 4, OtherHouse);
-        inventory = InventoryAuthority.Relocate(inventory, "borrow-jug", "vessel", OtherHousehold, 1, carrierId: actor);
+        inventory = InventoryAuthority.Relocate(inventory, "borrow-jug", "vessel", OtherHousehold, 1, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, "vessel"));
         inventory = FillHouse(state, inventory, OtherHouse, 4);
         using var initial = Restore(WithInventory(state, inventory));
         var receipt = Submit(initial, actor, "return-jug", "return one borrowed water jug");
@@ -174,9 +175,9 @@ public sealed class WorldCustodyOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "loan-a", kind, OtherHousehold, 2,
             storageBuildingId: OtherHouse);
         inventory = InventoryAuthority.AddLot(inventory, "loan-b", kind, OtherHousehold, 2, storageBuildingId: OtherHouse);
-        inventory = InventoryAuthority.Relocate(inventory, "borrow-cloth-a", "loan-a", OtherHousehold, 2, carrierId: actor);
-        inventory = InventoryAuthority.Relocate(inventory, "borrow-cloth-b", "loan-b", OtherHousehold, 2, carrierId: actor);
-        inventory = InventoryAuthority.Reserve(inventory, "loan-b-held", OtherHousehold, "loan-b", 1, "other_work", 1_000);
+        inventory = InventoryAuthority.Relocate(inventory, "borrow-cloth-a", "loan-a", OtherHousehold, 2, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, "loan-a"));
+        inventory = InventoryAuthority.Relocate(inventory, "borrow-cloth-b", "loan-b", OtherHousehold, 2, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, "loan-b"));
+        inventory = InventoryAuthority.Reserve(inventory, "loan-b-held", OtherHousehold, "loan-b", 1, "other_work", 1_000, holdAccess: StockHoldTestState.Access(inventory, "loan-b"));
         inventory = InventoryAuthority.AddLot(inventory, "my-cloth", kind, actor, 2);
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "partial-return", "return three borrowed " + kind.Replace('_', ' '));
@@ -219,7 +220,7 @@ public sealed class WorldCustodyOrderTests
         foreach (var id in new[] { "loan-a", "loan-b" })
         {
             inventory = InventoryAuthority.AddLot(inventory, id, "cloth", OtherHousehold, 2, storageBuildingId: OtherHouse);
-            inventory = InventoryAuthority.Relocate(inventory, "borrow-" + id, id, OtherHousehold, 2, carrierId: actor);
+            inventory = InventoryAuthority.Relocate(inventory, "borrow-" + id, id, OtherHousehold, 2, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, id));
         }
         using var initial = Restore(WithInventory(state, inventory));
         var receipt = Submit(initial, actor, "bound-loan", "return two borrowed cloth");
@@ -229,7 +230,7 @@ public sealed class WorldCustodyOrderTests
         AssertPinned(Order(initial, receipt), Home(state, OtherHouse));
         state = initial.ExportState();
         state = WithInventory(state, InventoryAuthority.Relocate(state.Society.Society.Inventory,
-            "external-delivery", "loan-a", OtherHousehold, 2, storageBuildingId: OtherHouse));
+            "external-delivery", "loan-a", OtherHousehold, 2, storageBuildingId: OtherHouse, holdAccess: StockHoldTestState.Access(state.Society.Society.Inventory, "loan-a")));
         using var world = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         using var replay = Reload(world);
         await TickTogether(world, replay);
@@ -254,16 +255,16 @@ public sealed class WorldCustodyOrderTests
         var inventory = boundary == "reserved-loan"
             ? InventoryAuthority.AddLot(state.Society.Society.Inventory, "vessel", "cloth", owner, 1, storageBuildingId: OtherHouse)
             : AddVessel(state.Society.Society.Inventory, owner, "water_jug", "fresh_water", 4, OtherHouse);
-        inventory = InventoryAuthority.Relocate(inventory, "borrow-protected", "vessel", owner, 1, carrierId: actor);
+        inventory = InventoryAuthority.Relocate(inventory, "borrow-protected", "vessel", owner, 1, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, "vessel"));
         if (boundary == "delivery")
         {
             // Delivery custody remains personal property until the promised household transfer occurs.
             inventory = InventoryAuthority.Transfer(inventory, "promise-vessel", owner, actor, "vessel", 1, "delivery",
-                destinationDeliveryBuildingId: House);
+                destinationDeliveryBuildingId: House, holdAccess: StockHoldTestState.Access(inventory, "vessel"));
         }
         if (boundary is "reserved-loan" or "reserved-content")
             inventory = InventoryAuthority.Reserve(inventory, "protected-loan", owner,
-                boundary == "reserved-loan" ? "vessel" : "vessel-contents", 1, "other_work", 1_000);
+                boundary == "reserved-loan" ? "vessel" : "vessel-contents", 1, "other_work", 1_000, holdAccess: StockHoldTestState.Access(inventory, boundary == "reserved-loan" ? "vessel" : "vessel-contents"));
         using var world = Restore(WithInventory(state, inventory));
         var receipt = Submit(world, actor, "protected-return",
             boundary == "reserved-loan" ? "return borrowed cloth" : "return borrowed water jugs");
@@ -373,7 +374,7 @@ public sealed class WorldCustodyOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "working-hoe", "wooden_hoe", owner, 1,
             storageBuildingId: borrowed ? OtherHouse : null);
         if (borrowed)
-            inventory = InventoryAuthority.Relocate(inventory, "borrow-working-hoe", "working-hoe", owner, 1, carrierId: actor);
+            inventory = InventoryAuthority.Relocate(inventory, "borrow-working-hoe", "working-hoe", owner, 1, carrierId: actor, holdAccess: StockHoldTestState.Access(inventory, "working-hoe"));
         if (moveSpare)
             inventory = InventoryAuthority.AddLot(inventory, "a-spare-hoe", "wooden_hoe", actor, 1, conditionBasisPoints: 5_000);
         state = WithInventory(state, inventory) with
@@ -458,12 +459,8 @@ public sealed class WorldCustodyOrderTests
         Assert.NotEqual("unknown", Order(world, receipt).Action);
         using var valid = Restore(saved);
         Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { TargetAgentId = actor } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
+        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     [Fact]
@@ -478,22 +475,19 @@ public sealed class WorldCustodyOrderTests
         var saved = world.ExportState();
         var order = Order(world, receipt);
         AssertPinned(order, Home(state));
-        foreach (var invalid in new[]
-        {
-            order with { TargetItemKind = null }, order with { TargetItemKind = "fresh_water" },
-            order with { TargetStorageBuildingId = null }, order with { TargetStorageOwnerId = null },
-            order with { TargetStoragePosition = null }, order with { TargetStoragePosition = new(10_000_001, 0) },
-            order with { TargetLotId = "saved-cloth" }, order with { TargetEquipmentKind = "basket" },
-            order with { ProgressUnit = "production_batches" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = "fresh_water" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageBuildingId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageOwnerId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = new GridPoint(10_000_001, 0) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetLotId"] = "saved-cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "production_batches" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         using var replay = Reload(world);
         await TickTogether(world, replay);
         Assert.Equal("finished", Order(world, receipt).Status);
@@ -501,7 +495,7 @@ public sealed class WorldCustodyOrderTests
         var completedOrder = Order(world, receipt);
         var wrongAction = completedOrder with
         {
-            LastEffectId = "collect:personal:" + completedOrder.LastEffectId!["store:personal:".Length..],
+            LastEffectId = Identity.Parse("collect:personal:" + completedOrder.LastEffectId!.Value["store:personal:".Length..]),
         };
         Assert.Throws<InvalidDataException>(() => Restore(finished with
         {
@@ -525,7 +519,7 @@ public sealed class WorldCustodyOrderTests
         for (var tick = 0; tick < 3; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == unknown.InstructionId ||
             request.ObserverGuidance?.Any(message => message.InstructionId == unknown.InstructionId) == true);
-        Assert.Contains(unknown.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
     }
 
@@ -575,7 +569,7 @@ public sealed class WorldCustodyOrderTests
     {
         inventory = InventoryAuthority.AddLot(inventory, "vessel", kind, owner, 1, storageBuildingId: building);
         return InventoryAuthority.AddLot(inventory, "vessel-contents", contentKind, owner, amount,
-            storageBuildingId: building, containerLotId: "vessel");
+            storageBuildingId: building, containerLotId: "vessel", holdAccess: StockHoldTestState.Access(inventory, "vessel"));
     }
     private static InventoryCheckpoint FillHouse(WorldRuntimeState state, InventoryCheckpoint inventory, string id, int room)
     {
@@ -604,7 +598,7 @@ public sealed class WorldCustodyOrderTests
     private static PlacedBuilding Home(WorldRuntimeState state, string id = House) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == id);
     private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new CustodyChoices());
     private static WorldRuntime Reload(WorldRuntime world)
     {

@@ -32,22 +32,25 @@ public static class InventoryRules
     public static bool HasUnreservedQuantity(InventoryIndex index, InventoryLot lot, int quantity) =>
         index.ReservedQuantity(lot.Id) <= lot.Quantity - quantity;
 
-    public static int ReservableQuantity(InventoryIndex index, InventoryLot lot)
+    public static int ReservableQuantity(InventoryIndex index, InventoryLot lot, IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         var quantity = UsableQuantity(index, lot);
-        return CanReserve(index, lot, lot.OwnerId, quantity) ? quantity : 0;
+        return CanReserve(index, lot, lot.OwnerId, quantity, holdAccess) ? quantity : 0;
     }
 
-    public static bool CanReserve(InventoryIndex index, InventoryLot lot, string ownerId, int quantity) =>
+    public static bool CanReserve(InventoryIndex index, InventoryLot lot, string ownerId, int quantity,
+        IReadOnlyList<InventoryHold>? holdAccess = null) =>
         !InventoryContainerRules.IsContainer(lot.ItemKind) && HasUsableContainer(index, lot) &&
-        HasOwnedUsableQuantity(lot, ownerId, quantity) && HasUnreservedQuantity(index, lot, quantity);
+        HasOwnedUsableQuantity(lot, ownerId, quantity) && HasUnreservedQuantity(index, lot, quantity) &&
+        InventoryHoldRules.Allows(index, lot, holdAccess);
 
     public static bool AreUnreserved(InventoryIndex index, IEnumerable<string> lotIds) =>
         !lotIds.Any(index.HasActiveReservation);
 
     // Damage does not prevent moving physical property; an active family reservation does.
-    public static bool CanMoveFamily(InventoryIndex index, InventoryLot root) =>
-        root.ContainerLotId is null && !index.HasReservedFamily(root.Id);
+    public static bool CanMoveFamily(InventoryIndex index, InventoryLot root, IReadOnlyList<InventoryHold>? holdAccess = null) =>
+        root.ContainerLotId is null && !index.HasReservedFamily(root.Id) &&
+        index.ContentsOf(root.Id).Prepend(root).All(lot => InventoryHoldRules.Allows(index, lot, holdAccess));
 
     public static bool SharesContainerOwnerAndLocation(InventoryLot container, InventoryLot contents, string ownerId) =>
         InventoryContainerRules.IsContainer(container.ItemKind) && container.Quantity == 1 &&
@@ -56,8 +59,9 @@ public static class InventoryRules
         container.CarrierId == contents.CarrierId && (contents.ContainerLotId == container.Id
             ? contents.GroundPosition is null : container.GroundPosition == contents.GroundPosition);
 
-    public static bool CanTakeOut(InventoryIndex index, InventoryLot contents, string ownerId, int quantity) =>
+    public static bool CanTakeOut(InventoryIndex index, InventoryLot contents, string ownerId, int quantity,
+        IReadOnlyList<InventoryHold>? holdAccess = null) =>
         contents.ContainerLotId is { } id && index.Find(id) is { } container && IsUsableContainer(container) &&
         HasOwnedPhysicalQuantity(contents, ownerId, quantity) && HasUnreservedQuantity(index, contents, quantity) &&
-        SharesContainerOwnerAndLocation(container, contents, ownerId) && CanMoveFamily(index, container);
+        SharesContainerOwnerAndLocation(container, contents, ownerId) && CanMoveFamily(index, container, holdAccess);
 }

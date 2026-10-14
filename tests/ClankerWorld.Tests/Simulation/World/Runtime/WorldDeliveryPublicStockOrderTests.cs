@@ -142,7 +142,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
             Assert.Null(lot.DeliveryBuildingId);
         });
         Assert.Equal(10, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
-        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
         if (finalStatus == "blocked")
         {
             var cancellation = new OwnerOrderCancelRequest("stop-donation", "owner:test", world.Society.WorldId, actor, receipt.InstructionId);
@@ -228,7 +228,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
         Assert.Equal(16, resumed.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         var deposit = Assert.Single(resumed.ExportState().Events, item => item.Kind == "owner_stock_delivered");
         Assert.Equal($"{actor}:z-bound-wood:2:{Warehouse}", deposit.Detail);
-        Assert.StartsWith("delivery:stock:", Order(resumed, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("delivery:stock:", Order(resumed, receipt).LastEffectId?.Value, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -631,7 +631,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
     private static string Actor(WorldRuntimeState state) => state.Society.Society.GetHousehold(Household).MemberIds[0];
     private static PlacedBuilding Building(WorldRuntimeState state, string id) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == id);
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text) =>
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>

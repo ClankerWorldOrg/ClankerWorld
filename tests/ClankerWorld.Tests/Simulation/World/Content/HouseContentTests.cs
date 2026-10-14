@@ -232,7 +232,7 @@ public sealed class HouseContentTests
         }
         var pickupState = finished with
         {
-            Society = finished.Society with { Society = finished.Society.Society with { Inventory = pickupInventory } },
+            Society = finished.Society with { Society = finished.Society.Society with { Inventory = StockHoldTestState.Custody(pickupInventory) } },
             Agents = finished.Agents.Select(person => person.AgentId == beta
                 ? person with { Position = houseApproach, FullnessBasisPoints = 2_000 }
                 : person.AgentId == otherBeta ? person with { Position = site }

@@ -2,6 +2,8 @@ using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Simulation.Content;
+using ClankerWorld.GodotClient.UI;
 using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
@@ -10,12 +12,27 @@ public sealed class TownLandTransferProjectionTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    [Fact]
-    public void ExactPublishedTransferTermsReachClientWithCurrentAdultsAndNoConsentUntilPersonalAcceptance()
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("tree_seed", "tree seeds")]
+    [InlineData("medicinal_herbs", "medicinal herbs")]
+    [InlineData("gold_ore", "gold ore")]
+    [InlineData("named-content", "Moon pearls")]
+    public void ExactPublishedTransferTermsReachClientWithCurrentAdultsAndNoConsentUntilPersonalAcceptance(string? kind, string? name)
     {
         using var generated = NormalPathWorld.CreateGenerated("government-personal-path",
             _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = generated.ExportState();
+        if (kind == "named-content")
+        {
+            var digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            var contentVersion = ContentVersion.Parse("1.0.0");
+            var definition = new ContentDefinition("item", "moon-pearl", contentVersion, name!, digest);
+            var registry = ContentPackageRegistry.Restore(initial.Content);
+            registry.Propose(new("named-sale-goods", contentVersion, digest, [], [definition], []));
+            initial = initial with { Content = registry.ExportState() };
+            kind = definition.CanonicalId(digest);
+        }
         var town = Assert.Single(initial.Towns!);
         // A bounded term exercises the full public permission contract; generated private property stays intact.
         var permission = initial.HouseholdLandUseRights![0] with { AgreedEndTick = 72 };
@@ -31,7 +48,8 @@ public sealed class TownLandTransferProjectionTests
         var council = town.Council!;
         var noticeId = "notice:" + (council.Notices.Count + 1);
         var ledger = TownLandTransferRules.Propose(town.LandRecords, initial.Map, town.Id, filer, permission.Tiles,
-            target.Id, rights, parties, [], 0, noticeId);
+            target.Id, rights, parties, [], 0, noticeId,
+            price: kind is null ? null : new(permission.HouseholdId, kind, 2));
         var transfer = Assert.Single(ledger.Transfers);
         council = TownCouncilRules.PostNotice(council, "land_transfer", TownLandTransferRules.TermsToken(transfer),
             "The affected households may separately accept this existing permission transfer.", 0);
@@ -47,6 +65,15 @@ public sealed class TownLandTransferProjectionTests
         var client = JsonSerializer.Deserialize<GodotSnapshot>(JsonSerializer.Serialize(snapshot, JsonOptions), JsonOptions)!;
         var clientTown = Assert.Single(client.Towns);
         var received = Assert.Single(clientTown.LandTransfers);
+        if (kind is not null)
+        {
+            Assert.Equal((kind, 2), (received.Price!.ItemKind, received.Price.Quantity));
+            Assert.Equal(name, received.Price.ItemName);
+            Assert.Contains(LandTransferText.Details(received, tick => "time " + tick),
+                line => line.StartsWith("Goods price: 2 " + name + " to ", StringComparison.Ordinal));
+            Assert.Equal((kind, 2), (transfer.Price!.ItemKind, transfer.Price.Quantity));
+        }
+        else Assert.Null(received.Price);
         Assert.Equal(1, clientTown.LandTransferCount);
         Assert.Equal((transfer.Id, "pending", 0L, noticeId), (received.Id, received.Status, received.ProposedTick, received.NoticeId));
         Assert.Equal(people.Single(person => person.Id == filer).Name, received.FilerName);

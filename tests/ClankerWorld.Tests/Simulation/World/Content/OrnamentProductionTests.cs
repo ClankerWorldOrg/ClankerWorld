@@ -283,7 +283,7 @@ public sealed class OrnamentProductionTests
     }
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+    { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private sealed class Choices(string[] preferences) : IDecisionProvider
     {

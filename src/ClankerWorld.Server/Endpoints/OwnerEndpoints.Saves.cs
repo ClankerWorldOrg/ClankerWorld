@@ -202,6 +202,7 @@ internal static partial class OwnerEndpoints
             ProviderConfigurationStore providers,
             WorldAutosaveStore autosave,
             WorldJevPolicy jevPolicy,
+            IHostApplicationLifetime lifetime,
             ILogger<WorldRuntimeService> logger) =>
         {
             if (request?.Action is not { Operation: "load" } action)
@@ -223,8 +224,6 @@ internal static partial class OwnerEndpoints
                     var committed = saves.ReadCommitted(action.Value);
                     var checkpoint = committed.Checkpoint;
                     stateFile.VerifyRequiredHistory(checkpoint);
-                    var assignments = committed.Assignments;
-                    var autosaveSettings = committed.AutosaveSettings;
                     var current = runtime.ExportState();
                     if (!string.Equals(checkpoint.WorldSeed, current.WorldSeed, StringComparison.Ordinal) ||
                         !string.Equals(checkpoint.Society.Society.WorldId, current.Society.Society.WorldId, StringComparison.Ordinal))
@@ -239,27 +238,15 @@ internal static partial class OwnerEndpoints
                     var currentAutosave = autosave.Capture();
                     var backup = saves.FindUnchangedSave(runtime, currentAssignments, currentAutosave)
                         ?? saves.CreateLoadRecovery(runtime, currentAssignments, currentAutosave);
-                    var timelineRestore = saves.ContinueFrom(action.Value);
-                    try
-                    {
-                        runtime.LoadPausedCheckpoint(checkpoint);
-                        stateFile.Save(runtime);
-                        providers.RestoreWorldAssignments(assignments);
-                        if (autosaveSettings is not null) autosave.RestoreFromCheckpoint(autosaveSettings);
-                        jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                        saves.RecordLoadedState(runtime);
-                    }
+                    try { saves.Load(action.Value, backup.Id, runtime, stateFile, providers, autosave); }
                     catch
                     {
-                        runtime.LoadPausedCheckpoint(saves.Read(backup.Id));
-                        stateFile.Save(runtime);
-                        providers.RestoreWorldAssignments(saves.ReadAssignments(backup.Id));
-                        if (saves.ReadAutosaveSettings(backup.Id) is { } previousAutosave)
-                            autosave.RestoreFromCheckpoint(previousAutosave);
-                        jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                        saves.RestoreTimeline(timelineRestore);
+                        // An unfinished rollback still owns this world. Stop
+                        // serving it until startup can finish the durable intent.
+                        if (saves.HasPendingLoad) lifetime.StopApplication();
                         throw;
                     }
+                    jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
                     ManualWorldSaveTelemetry.Loaded(logger, action.Value, backup.Id, runtime.WorldTick);
                     return Results.Ok(new { loadedId = action.Value, backupId = backup.Id, worldTick = runtime.WorldTick });
                 }

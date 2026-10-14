@@ -94,7 +94,7 @@ public sealed partial class WorldConstructionOrderTests
             Assert.True(proof.StartedTick > originalProject.StartedTick);
             Assert.Equal(proof.BuildingInstanceId, Order(world, receipt).ConstructionInstanceId);
             Assert.NotNull(Order(world, receipt).LastEffectId);
-            Assert.Equal(receipt.InstructionId, Person(world, setup.Actor).Project!.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Person(world, setup.Actor).Project!.OrderInstructionId);
         }
         else
         {

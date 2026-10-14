@@ -52,7 +52,7 @@ public sealed class TownNonLandRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, toolId, "wooden_axe", household, 1, conditionBasisPoints: 3_000);
         inventory = InventoryAuthority.Relocate(inventory, "borrow-for-remedy", toolId, household, 1, carrierId: subject);
         var carriedToolId = inventory.Lots.Single(lot => lot.Id == toolId && lot.CarrierId == subject).Id;
-        found = found with { Society = found.Society with { Society = found.Society.Society with { Inventory = inventory } } };
+        found = found with { Society = found.Society with { Society = found.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         var name = found.Society.Society.GetAgent(subject).Name;
         var offering = new NonLandTestProvider
         {
