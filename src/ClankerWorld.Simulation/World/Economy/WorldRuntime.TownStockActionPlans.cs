@@ -4,6 +4,31 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    private static ActionDefinition<TownStockRequest, TownStockActionPlan> WarehouseStockDefinition => TownStockActions.Warehouse;
+    private static ActionDefinition<TownStockRequest, TownStockActionPlan> SalvageStockDefinition => TownStockActions.Salvage;
+
+    private static class TownStockActions
+    {
+        internal static readonly ActionDefinition<TownStockRequest, TownStockActionPlan> Warehouse = Create(
+            TownStockRequest.TryDecodeWarehouse,
+            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        internal static readonly ActionDefinition<TownStockRequest, TownStockActionPlan> Salvage = Create(
+            TownStockRequest.TryDecodeSalvage, TownSystem.SalvageCapabilities);
+
+        private static ActionDefinition<TownStockRequest, TownStockActionPlan> Create(
+            ChoiceDecoder<TownStockRequest> decode, ActorCapabilityPolicy policy) => new(
+            decode, static choice => choice.Encode(), policy,
+            static (world, actor, choice, _) => choice.Kind == TownStockActionKind.StoreSurplus
+                ? world.PlanWarehouseSurplus(actor)
+                : world.townSystem.PlanTownSalvage(world.civicWorld, actor, choice.CandidateId),
+            static (world, plan, capabilities) => world.CheckTownStockPlan(plan, capabilities),
+            static (world, plan, _, _) =>
+            {
+                world.ApplyCheckedTownStockPlan(plan);
+                return true;
+            });
+    }
+
     private TownStockActionPlan? PlanWarehouseSurplus(string actor)
     {
         if (WarehouseForResident(actor) is not { } warehouse) return null;
@@ -18,11 +43,10 @@ public sealed partial class WorldRuntime
             Reach(actor, warehouse.Position, ReachPurpose.TownWarehouse, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckTownStockPlan(TownStockActionPlan plan)
+    private ActionCheck CheckTownStockPlan(TownStockActionPlan plan, ActorCapabilityPolicy policy)
     {
-        if (plan.Choice.Kind == TownStockActionKind.Salvage) return townSystem.CheckTownSalvagePlan(civicWorld, plan);
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        if (plan.Choice.Kind == TownStockActionKind.Salvage) return townSystem.CheckTownSalvagePlan(civicWorld, plan, policy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy);
         if (!capability.Allowed) return capability;
         if (TownForResident(plan.Actor) != plan.Choice.TownId ||
             WarehousesForTown(plan.Choice.TownId).SingleOrDefault(building => building.InstanceId == plan.WarehouseId) is not { } warehouse ||
@@ -46,6 +70,11 @@ public sealed partial class WorldRuntime
             RefuseChoice(plan, refusal);
             return;
         }
+        ApplyCheckedTownStockPlan(plan);
+    }
+
+    private void ApplyCheckedTownStockPlan(TownStockActionPlan plan)
+    {
         if (plan.Choice.Kind == TownStockActionKind.Salvage)
         {
             TownSystem.ApplyTownSalvagePlan(civicWorld, plan);
