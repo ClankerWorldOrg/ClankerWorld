@@ -1,0 +1,1 @@
+- Shared-food policy actions now own their codec, planner, capability policy, checks and native application in one definition while retaining the original ballot and resolution rules.

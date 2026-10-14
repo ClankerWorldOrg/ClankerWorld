@@ -2,11 +2,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionRegistration RegisterFoodPolicyActions() => new(ActionPhase.Ordinary, "food_policy_", ["food_policy_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyFoodPolicyCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    });
+    private static ActionRegistration RegisterFoodPolicyActions() => new(ActionPhase.Ordinary, "food_policy_", ["food_policy_"], [], Definition: FoodPolicyDefinition);
     private static ActionRegistration RegisterCivicPersonalActions() => new(ActionPhase.Ordinary, "civic|", ["civic|"], [], static (runtime, action) =>
     {
         // Civic choices execute only through the personal admission path above.
