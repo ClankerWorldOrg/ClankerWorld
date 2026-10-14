@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
@@ -24,13 +25,13 @@ public sealed class MemoryUnicodeBoundaryTests
         var owner = state.Society.Society.Agents[0].Id;
         var subject = state.Society.Society.Agents[1].Id;
         var text = new string('a', prefixLength) + "😀tail";
-        var memory = new SocietySocialMemory("unicode-experience", owner, subject, text, "private", state.Society.Society.WorldTick);
+        var memory = new SocietySocialMemory(Identity.Parse("unicode-experience"), owner, subject, text, "private", state.Society.Society.WorldTick);
         var society = SocietyRules.RecordSocialMemory(state.Society.Society, memory).Checkpoint;
-        var belief = new SocietyAgentBelief("unicode-belief", owner, text, SocietyBeliefProvenance.Hearsay,
+        var belief = new SocietyAgentBelief(Identity.Parse("unicode-belief"), owner, text, SocietyBeliefProvenance.Hearsay,
             4_200, state.Society.Society.WorldTick, SourceAgentId: subject, AboutAgentId: subject);
         society = SocietyRules.RecordAgentBelief(society, belief);
         for (var index = 0; index < 2; index++)
-            society = SocietyRules.RecordSocialMemory(society, new("unicode-padding-" + index, owner, subject,
+            society = SocietyRules.RecordSocialMemory(society, new(Identity.Parse("unicode-padding-" + index), owner, subject,
                 "A quiet day.", "private", state.Society.Society.WorldTick)).Checkpoint;
         state = state with
         {

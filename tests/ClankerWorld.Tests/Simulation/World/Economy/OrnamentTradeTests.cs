@@ -8,6 +8,9 @@ namespace ClankerWorld.Tests;
 public sealed class OrnamentTradeTests
 {
     private const string Smith = "first-town-blacksmith";
+    private sealed record MadeFixture(byte[] State, string Seller, string Buyer, string Lot);
+    private static readonly Lazy<Task<MadeFixture>> GoldFixture = new(() => CreateMadeOrnament(false));
+    private static readonly Lazy<Task<MadeFixture>> DiamondFixture = new(() => CreateMadeOrnament(true));
 
     [Theory]
     [InlineData(false, false)]
@@ -26,8 +29,8 @@ public sealed class OrnamentTradeTests
         var tool = producing.WorldContent.Recipes.Single(recipe => recipe.LocalId == "iron-axe");
         var started = producing.StartProduction(tool.CanonicalId, Smith, seller);
         Assert.True(started.Applied, started.Failure);
-        for (var tick = 0; tick < 30; tick++) Assert.True((await producing.AdvanceOneTickAsync()).Advanced);
         var axe = started.JobId + ":output:00";
+        await Until(producing, () => producing.Society.Inventory.Lots.Any(lot => lot.Id == axe), 30);
         state = producing.ExportState();
         state = At(state, buyer, FreePlace(state, shop.Position, buyer, 1, 1));
         state = At(state, seller, FreePlace(state, shop.Position, seller, 0, 1));
@@ -187,8 +190,25 @@ public sealed class OrnamentTradeTests
         var (state, first, second, made) = await MadeOrnament(false);
         var owner = state.Society.Society.GetAgent(first).HouseholdId!;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "guarded-personal-ornament", owner,
-            first, made, 1, "collect", destinationDeliveryBuildingId: boundary == "promised" ? Smith : null);
+            first, made, 1, "collect");
         inventory = InventoryAuthority.AddLot(inventory, "ornament-barter-clothing", "clothing", second, 2);
+        state = WithInventory(state, inventory);
+        var startingSite = MeetingPoint(state);
+        state = At(state, first, FreePlace(state, startingSite, first, 0, 1));
+        state = At(state, second, FreePlace(state, startingSite, second, 0, 1));
+        var controlChoices = new Choices(["trade_propose:" + second]);
+        using (var control = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
+                   id => id == first ? controlChoices : new Choices([])))
+        {
+            await Until(control, () => controlChoices.Offered.Contains("safe_idle"), 35);
+            Assert.Contains("trade_propose:" + second, controlChoices.Offered);
+            Assert.Single(control.Society.Inventory.Offers);
+            control.Validate();
+        }
+        if (boundary == "promised") inventory = inventory with
+        {
+            Lots = inventory.Lots.Select(lot => lot.Id == made ? lot with { DeliveryBuildingId = Smith } : lot).ToArray(),
+        };
         if (boundary == "reserved") inventory = InventoryAuthority.Reserve(inventory, "ornament-reserved-other-task",
             first, made, 1, "other_work", inventory.WorldTick + 120);
         if (boundary == "overloaded-recipient")
@@ -201,9 +221,6 @@ public sealed class OrnamentTradeTests
                 capacity - carried + 1);
         }
         state = WithInventory(state, inventory);
-        var startingSite = MeetingPoint(state);
-        state = At(state, first, FreePlace(state, startingSite, first, 0, 1));
-        state = At(state, second, FreePlace(state, startingSite, second, 0, 1));
         if (boundary == "worn") state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == first
@@ -212,7 +229,7 @@ public sealed class OrnamentTradeTests
         var choices = new Choices(["trade_propose:" + second]);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), id => id == first ? choices : new Choices([]));
-        for (var tick = 0; tick < 35; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        await Until(world, () => choices.Offered.Contains("safe_idle"), 35);
         Assert.NotEmpty(choices.Offered);
         Assert.DoesNotContain("trade_propose:" + second, choices.Offered);
         Assert.Empty(world.Society.Inventory.Offers);
@@ -264,6 +281,14 @@ public sealed class OrnamentTradeTests
 
     private static async Task<(WorldRuntimeState State, string Seller, string Buyer, string Made)> MadeOrnament(bool diamond)
     {
+        // Cache only strict checkpoint bytes from actual paid native production.
+        // Every case decodes fresh state and creates its own runtime/providers.
+        var made = await (diamond ? DiamondFixture : GoldFixture).Value;
+        return (WorldRuntimeCodec.Decode(made.State), made.Seller, made.Buyer, made.Lot);
+    }
+
+    private static async Task<MadeFixture> CreateMadeOrnament(bool diamond)
+    {
         using var setup = NormalPathWorld.CreateGenerated("ornament-local-trade", _ => new Choices([]));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
@@ -278,8 +303,8 @@ public sealed class OrnamentTradeTests
         var recipe = made.WorldContent.Recipes.Single(item => item.LocalId == "gold-ornament");
         var started = made.StartProduction(recipe.CanonicalId, Smith, seller);
         Assert.True(started.Applied, started.Failure);
-        for (var tick = 0; tick < 24; tick++) Assert.True((await made.AdvanceOneTickAsync()).Advanced);
         var output = started.JobId + ":output:00";
+        await Until(made, () => made.Society.Inventory.Lots.Any(lot => lot.Id == output), 24);
         var paid = made.WorldSimulation.ProductionJobs.Single(item => item.JobId == started.JobId).InputReservationIds
             .Select(made.Society.Inventory.GetReservation).ToArray();
         var gold = Assert.Single(paid);
@@ -290,16 +315,17 @@ public sealed class OrnamentTradeTests
             recipe = made.WorldContent.Recipes.Single(item => item.LocalId == "set-diamond");
             started = made.StartProduction(recipe.CanonicalId, Smith, seller);
             Assert.True(started.Applied, started.Failure);
-            for (var tick = 0; tick < 28; tick++) Assert.True((await made.AdvanceOneTickAsync()).Advanced);
+            var setOutput = started.JobId + ":output:00";
+            await Until(made, () => made.Society.Inventory.Lots.Any(lot => lot.Id == setOutput), 28);
             var set = made.WorldSimulation.ProductionJobs.Single(item => item.JobId == started.JobId).InputReservationIds
                 .Select(made.Society.Inventory.GetReservation).ToArray();
             Assert.Contains(set, item => item.LotId == output && item.Quantity == 1 && item.State == InventoryReservationState.Completed);
             Assert.Contains(set, item => item.LotId == "ornament-trade-diamond" && item.Quantity == 1 && item.State == InventoryReservationState.Completed);
-            output = started.JobId + ":output:00";
+            output = setOutput;
         }
         Assert.Equal((owner, Smith, 1), (made.Society.Inventory.GetLot(output).OwnerId,
             made.Society.Inventory.GetLot(output).StorageBuildingId, made.Society.Inventory.GetLot(output).Quantity));
-        return (made.ExportState(), seller, buyer, output);
+        return new(WorldRuntimeCodec.Encode(made.ExportState()), seller, buyer, output);
     }
 
     private static GridPoint MeetingPoint(WorldRuntimeState state) =>
@@ -325,7 +351,7 @@ public sealed class OrnamentTradeTests
     private static async Task Until(WorldRuntime world, Func<bool> complete, int limit)
     {
         for (var tick = 0; tick < limit && !complete(); tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.True(complete(), "The actual local exchange did not reach its required phase.");
+        Assert.True(complete(), "The native setup or exchange did not reach its required phase.");
     }
 
     private sealed class Choices(string[] preferences) : IDecisionProvider

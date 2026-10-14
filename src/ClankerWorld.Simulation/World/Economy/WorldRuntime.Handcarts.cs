@@ -126,7 +126,7 @@ public sealed partial class WorldRuntime
             throw new InvalidOperationException("The cart and puller must share a legal physical step.");
         ApplyInventoryTransition(inventory => InventoryAuthority.MoveHandcart(inventory, actor, cart.Id,
             new(to.X, to.Y), IsRoadSurface(from) && IsRoadSurface(to) ? 5 : 20));
-        AppendEvent("handcart_moved", $"{actor}:{cart.Id}");
+        AppendEvent(new HandcartMovedEventPayload(actor, cart.Id));
         if (society.Checkpoint.Inventory.GetLot(cart.Id).ConditionBasisPoints == 0)
             ParkHandcart(actor, "broken");
     }
@@ -135,7 +135,7 @@ public sealed partial class WorldRuntime
     {
         if (handcartHitches.FirstOrDefault(hitch => hitch.PullerId == actor) is not { } hitch) return;
         handcartHitches.Remove(hitch);
-        AppendEvent("handcart_parked", $"{actor}:{hitch.CartLotId}:{reason}");
+        AppendEvent(new HandcartParkedEventPayload(actor, hitch.CartLotId, reason));
     }
 
     private void ReconcileHandcartHitches()
@@ -320,7 +320,7 @@ public sealed partial class WorldRuntime
                 }
                 return InventoryAuthority.LoadHandcart(updated, $"load:{WorldTick}:{actor}", actor, cartHere.Id, cargoId, quantity);
             });
-            AppendEvent("handcart_loaded", $"{actor}:{cartHere.Id}:{lot.ItemKind}:{quantity}");
+            AppendEvent(new HandcartLoadedEventPayload(actor, cartHere.Id, lot.ItemKind, quantity));
         }
         else if (isUnload)
         {
@@ -331,7 +331,7 @@ public sealed partial class WorldRuntime
             if (quantity <= 0) return true;
             ApplyInventoryTransition(inventory => InventoryAuthority.UnloadHandcart(inventory, $"unload:{WorldTick}:{actor}",
                 actor, cartHere.Id, cargo.Id, quantity, ontoGround));
-            AppendEvent("handcart_unloaded", $"{actor}:{cartHere.Id}:{cargo.ItemKind}:{quantity}");
+            AppendEvent(new HandcartUnloadedEventPayload(actor, cartHere.Id, cargo.ItemKind, quantity));
         }
         else if (isRepair)
         {
@@ -349,11 +349,11 @@ public sealed partial class WorldRuntime
                     updated = InventoryAuthority.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     reservations.Add(id);
                 }
-                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
             });
             RecordNonLandRepairCompletion(actor, cartHere, cartHere.Id,
-                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations);
-            AppendEvent("handcart_repaired", $"{actor}:{cartHere.Id}");
+                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations.Select(Identity.Parse).ToArray());
+            AppendEvent(new HandcartRepairedEventPayload(actor, cartHere.Id));
         }
         return true;
     }
@@ -363,7 +363,7 @@ public sealed partial class WorldRuntime
         if (plan.Choice.Kind == HandcartControlKind.Attach)
         {
             handcartHitches.Add(new(cart.Id, plan.Actor));
-            AppendEvent("handcart_attached", $"{plan.Actor}:{cart.Id}");
+            AppendEvent(new HandcartAttachedEventPayload(plan.Actor, cart.Id));
         }
         else if (plan.Choice.Kind == HandcartControlKind.Park) ParkHandcart(plan.Actor);
         else
@@ -372,7 +372,7 @@ public sealed partial class WorldRuntime
             var recipient = plan.Choice.TargetId!;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{WorldTick}:{actor}",
                 actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-            AppendEvent("handcart_transferred", $"{actor}:{cart.Id}:{recipient}");
+            AppendEvent(new HandcartTransferredEventPayload(actor, cart.Id, recipient));
         }
     }
 

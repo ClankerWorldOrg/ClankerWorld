@@ -38,10 +38,13 @@ public sealed record WorldProductionJob(
     long StartedTick,
     long CompletionTick,
     WorldProductionJobState State,
-    IReadOnlyList<string> InputReservationIds,
+    IReadOnlyList<Identity> InputReservationIds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolMakingRequestId = null)
 {
+    internal static WorldProductionJob? OutputSource(IEnumerable<WorldProductionJob> jobs, string originId) =>
+        jobs.FirstOrDefault(job => originId.StartsWith(job.JobId + ":output:", StringComparison.Ordinal));
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public long? PausedAtTick { get; init; }
 
@@ -61,6 +64,8 @@ public sealed record WorldContentSimulationState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HouseGuestInvitation>? GuestInvitations = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WorldConstructionReceipt>? ConstructionReceipts = null)
 {
+    [JsonRequired] public long ArchivedProductionJobCount { get; init; }
+
     public static WorldContentSimulationState Empty { get; } = new([], [], 1, []);
 }
 
@@ -113,7 +118,8 @@ public static class WorldContentSimulationRules
         ArgumentNullException.ThrowIfNull(map);
         ArgumentOutOfRangeException.ThrowIfNegative(worldTick);
         definitions.Validate();
-        if (state.NextProductionJobSequence <= 0)
+        if (state.NextProductionJobSequence <= 0 || state.ArchivedProductionJobCount < 0 ||
+            state.ArchivedProductionJobCount >= state.NextProductionJobSequence)
         {
             throw new InvalidDataException("The next production job sequence must be positive.");
         }
@@ -182,7 +188,7 @@ public static class WorldContentSimulationRules
                 job.CompletionTick <= job.StartedTick || job.CompletionTick < worldTick &&
                 job.State == WorldProductionJobState.Running ||
                 job.InputReservationIds is null ||
-                job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
+                job.InputReservationIds.Count != job.InputReservationIds.Distinct().Count() ||
                 job.ToolLotId is { } toolLotId && (string.IsNullOrWhiteSpace(toolLotId) ||
                     toolLotId.Any(char.IsControl) || !ToolProgressionRules.UsesKnife(recipe)))
             {
