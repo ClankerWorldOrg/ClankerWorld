@@ -4,9 +4,9 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static readonly ActorCapabilityPolicy FirePolicy = new(ActionLifeStages.Adults,
+    private static ActorCapabilityPolicy FirePolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
-    private static readonly ActorCapabilityPolicy WarmthPolicy = new(ActionLifeStages.NonInfants,
+    private static ActorCapabilityPolicy WarmthPolicy => new(ActionLifeStages.NonInfants,
         AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
     private GoodsMatch? CarriedFirewood(string actor) => SpendingGoods(actor, GoodsUse.Spend, [actor], "wood")
