@@ -81,7 +81,7 @@ public sealed partial class TownLandTransferRuntimeTests
         var completed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("transferred", completed.Status);
         Assert.Equal(4, completed.Responses.Count);
-        Assert.Contains(responsePlans, plan => plan.Choice.Kind == LandTransferResponseKind.Read);
+        Assert.Contains(provider.Selected, selected => selected.Contains("|read|", StringComparison.Ordinal));
         Assert.Equal(4, responsePlans.Count(plan => plan.Choice.Kind == LandTransferResponseKind.Accept));
         Assert.All(responsePlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.All(completed.Responses, response =>
