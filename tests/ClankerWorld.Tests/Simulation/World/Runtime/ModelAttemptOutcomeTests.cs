@@ -37,11 +37,13 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal(expectedStatus, Status(world));
         var failureRows = ClientFailures(world);
         var failure = Assert.Single(failureRows);
-        Assert.Equal($"{TargetId}:{expectedStatus}", failure.Detail);
+        var payload = Assert.IsType<ModelAttemptStatusEventPayload>(failure.Payload);
+        Assert.Equal(TargetId, payload.ActorId);
+        Assert.Equal(expectedStatus, payload.Status);
         var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot()),
             ClientJson)!;
-        var description = EventTextFixture.Describe(failure, clientSnapshot);
+        var description = ClankerWorld.GodotClient.UI.WorldEventText.Describe(failure, clientSnapshot);
         Assert.Contains("could not get a model reply:", description, StringComparison.Ordinal);
         Assert.DoesNotContain(TargetId, description, StringComparison.Ordinal);
         Assert.DoesNotContain("sk-private-status", description, StringComparison.Ordinal);
@@ -113,10 +115,10 @@ public sealed class ModelAttemptOutcomeTests
 
     private static ClankerWorld.GodotClient.Protocol.OwnerWorldEvent[] ClientFailures(WorldRuntime world)
     {
-        var events = new OwnerWorldObservationStore(world).GetEventsAfter(0).Events.Select(item =>
-            new ClankerWorld.GodotClient.Protocol.OwnerWorldEvent(item.EventId, item.WorldTick, item.Kind, item.Detail));
+        var events = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldEventSlice>(
+            JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetEventsAfter(0)), ClientJson)!.Events;
         return ClankerWorld.GodotClient.UI.GameUiText.PlayerEvents(events)
-            .Where(item => item.Kind == "model_attempt_status" && item.Detail.StartsWith(TargetId + ":", StringComparison.Ordinal)).ToArray();
+            .Where(item => item.Payload is ModelAttemptStatusEventPayload payload && payload.ActorId == TargetId).ToArray();
     }
 
     private static string Status(WorldRuntime world) =>

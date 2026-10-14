@@ -18,7 +18,7 @@ public partial class Main
             PanelSmokeAgent($"roster-keyboard-{index}", $"Agent {index:D2}", new OwnerWorldPosition(index + 1, 1))).ToArray();
         var snapshot = original with { Agents = people, LatestEventId = 0 };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                 "owner-control.request.v1", "paused-authoring.request.v1"], []);
         async Task LayoutAsync()
         {

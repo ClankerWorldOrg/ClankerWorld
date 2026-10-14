@@ -344,7 +344,7 @@ public sealed partial class OwnerWorldObservationStore
 
     public HandshakeView GetOwnerHandshake() => new(
         new ProtocolVersion(Major: 1, Minor: 1),
-        [.. OwnerServerCapabilities, "owner-event-presentation.v1", "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
+        [.. OwnerServerCapabilities, "owner-event-presentation.v2", "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
         OwnerClientCapabilities.ToArray());
 
     public WorldSnapshotView GetSnapshot()
@@ -1917,7 +1917,8 @@ public sealed partial class OwnerWorldObservationStore
         worldEvent.Kind,
         worldEvent.Detail,
         worldEvent.Position is { } position ? ToPosition(position) : null);
-        return view with { Payload = worldEvent.Payload, Text = WorldEventFormatter.Describe(view, snapshot) };
+        view = view with { Payload = worldEvent.Payload };
+        return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
     }
 
     private static CognitionView ToCognition(WorldRuntimeState state)

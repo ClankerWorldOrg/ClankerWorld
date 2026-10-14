@@ -19,9 +19,17 @@ public sealed class EventPresentationBoundaryTests
     [Fact]
     public void EventTextDoesNotParseDetailInTheGame()
     {
-        var path = Path.Combine(RuntimeWriterScan.RepositoryRoot,
-            "src/ClankerWorld.GodotClient/UI/Text/WorldEventText.cs");
-        Assert.DoesNotContain(".Detail", File.ReadAllText(path), StringComparison.Ordinal);
+        var root = Path.Combine(RuntimeWriterScan.RepositoryRoot, "src/ClankerWorld.GodotClient");
+        var formatter = File.ReadAllText(Path.Combine(root, "UI/Text/WorldEventText.cs"));
+        Assert.DoesNotContain(".Detail", formatter, StringComparison.Ordinal);
+        foreach (var path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/obj/", StringComparison.Ordinal) && !path.Replace(Path.DirectorySeparatorChar, '/').Contains("/.godot/", StringComparison.Ordinal)))
+        {
+            var source = File.ReadAllText(path);
+            Assert.DoesNotContain("Detail.Split", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Detail.LastIndexOf", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Detail.IndexOf", source, StringComparison.Ordinal);
+        }
     }
     [Fact]
     public async Task ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions()
@@ -42,7 +50,13 @@ public sealed class EventPresentationBoundaryTests
         Assert.Contains("Zoë 🌿 Vale", current.EventTexts[original.EventId], StringComparison.Ordinal);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(current, options), options)!;
-        var clientEvent = JsonSerializer.Deserialize<OwnerWorldEvent>(JsonSerializer.Serialize(original, options), options)!;
+        var observationJson = JsonSerializer.Serialize(original, options);
+        using var observation = JsonDocument.Parse(observationJson);
+        Assert.False(observation.RootElement.TryGetProperty("detail", out _));
+        var clientEvent = JsonSerializer.Deserialize<OwnerWorldEvent>(observationJson, options)!;
+        Assert.Equal(original.Text, clientEvent.Text);
+        Assert.Equal(original.Payload, clientEvent.Payload);
+        Assert.Equal(child, Assert.IsType<InstructionNotUnderstoodEventPayload>(clientEvent.Payload).ActorId);
         Assert.Equal(current.EventTexts[original.EventId], WorldEventText.Describe(clientEvent, client));
         Assert.DoesNotContain("eventTexts", System.Text.Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
     }

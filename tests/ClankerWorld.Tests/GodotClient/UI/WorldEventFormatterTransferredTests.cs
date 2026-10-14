@@ -112,7 +112,8 @@ public sealed class WorldEventFormatterTransferredTests
         {
             Animals = [new("smoke-horse", "Moss", "horse", "female", 300, "adult", new(0, 0), "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], [])],
         };
-        Assert.Equal("Moss got a day's feed and water.", Line("animal_cared", "smoke-horse", snapshot));
+        Assert.Equal("Moss got a day's feed and water.", EventTextFixture.Describe(new(1, 25, "animal_cared", "smoke-horse")
+        { Payload = new ClankerWorld.Simulation.World.AnimalCaredEventPayload(null, "smoke-horse") }, snapshot));
     }
 
     private static string Line(string kind, string detail, OwnerWorldSnapshot snapshot) => EventTextFixture.Describe(new(1, 25, kind, detail), snapshot);

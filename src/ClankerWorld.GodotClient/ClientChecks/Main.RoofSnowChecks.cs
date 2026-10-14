@@ -38,7 +38,7 @@ public partial class Main
             PlacedBuildings = [new("snow-roof", "test/house", new(14, 12), 0, "House", ["house"], 2, 2)],
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         async Task Show()
         {

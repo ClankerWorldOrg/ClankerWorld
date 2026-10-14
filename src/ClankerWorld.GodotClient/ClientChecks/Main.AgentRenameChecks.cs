@@ -40,7 +40,7 @@ public partial class Main
                 new OwnerWorldSpatialKnowledge(position, [position], [position]), false);
             OwnerWorldReconnect World(string worldId, long tick, string rowanName = "Rowan Lake") => new(
                 new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1"], []),
                 new(new OwnerWorldSnapshot(worldId, tick, "rename-ui-map",
                     Enumerable.Range(0, 9).Select(index => new OwnerWorldTile(index % 3, index / 3, "meadow")).ToArray(),

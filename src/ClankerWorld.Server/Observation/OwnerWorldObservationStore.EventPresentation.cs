@@ -31,6 +31,6 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     private static bool NeedsCurrentEventText(WorldEventEntry item) =>
-        EventVocabulary.IsPlayerFacingEvent(item.Kind) || item.Kind == "model_attempt_status" &&
-        EventVocabulary.IsPlayerFacingModelStatus(EventVocabulary.ModelStatusFields(item.Detail).Status);
+        EventVocabulary.IsPlayerFacingEvent(item.Kind) || item.Payload is ModelAttemptStatusEventPayload status &&
+        EventVocabulary.IsPlayerFacingModelStatus(status.Status);
 }

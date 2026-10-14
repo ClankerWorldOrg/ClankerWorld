@@ -418,7 +418,7 @@ public sealed class OwnerWorldObservationSessionTests
             Protocol: new OwnerWorldProtocolVersion(1, 1),
             ServerCapabilities:
             [
-                "owner-observation.read.v1", "owner-event-presentation.v1",
+                "owner-observation.read.v1", "owner-event-presentation.v2",
                 "agent-inspection.read.v1",
                 "spatial-knowledge.read.v1",
                 "owner-control.request.v1",

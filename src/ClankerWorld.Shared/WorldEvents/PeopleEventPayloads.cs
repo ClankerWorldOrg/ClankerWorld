@@ -1039,6 +1039,24 @@ public sealed record SocialStandingChangedEventPayload(string? ActorId, [propert
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record AgentSleptEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "agent_slept";
+    [JsonIgnore] public override string DiagnosticDetail => ActorId ?? "";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
+    [JsonIgnore] public override bool FieldsAreValid => true;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record AgentBuildingProposedEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "agent_building_proposed";
+    [JsonIgnore] public override string DiagnosticDetail => ActorId ?? "";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
+    [JsonIgnore] public override bool FieldsAreValid => true;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HousingRequestCancelledEventPayload(string? ActorId, [property: JsonRequired] string HouseholdId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "housing_request_cancelled";

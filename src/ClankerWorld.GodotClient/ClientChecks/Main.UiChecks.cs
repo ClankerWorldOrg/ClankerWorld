@@ -663,7 +663,7 @@ public partial class Main
             { Agents = [agent] };
             var reconnect = new OwnerWorldReconnect(
                 new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                         "owner-control.request.v1", "paused-authoring.request.v1"], []),
                 new OwnerWorldReconnectBaseline(snapshot, new OwnerWorldEventSlice(0, 0, [])));
             if (!observationSession.TryAccept(reconnect, 0, out var failure))
@@ -4232,7 +4232,7 @@ public partial class Main
             new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui") { Text = "First Town recorded a mayoral election or office change. See the Towns page for its result." },
         ];
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {

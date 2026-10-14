@@ -195,9 +195,10 @@ public sealed class HouseToolsBootstrapTests
         var store = new OwnerWorldObservationStore(world);
         var snapshot = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(store.GetSnapshot(), WebJson), WebJson)!;
         var events = JsonSerializer.Deserialize<OwnerWorldEventSlice>(JsonSerializer.Serialize(store.GetEventsAfter(0), WebJson), WebJson)!;
-        var made = Assert.Single(events.Events, item => item.Kind == "house_tool_made" && item.Detail == Actor + "|" + kind);
+        var made = Assert.Single(events.Events, item => item.Payload is HouseToolMadeEventPayload payload &&
+            payload.ActorId == Actor && payload.ItemKind == kind);
         Assert.True(GameUiText.IsPlayerFacingEvent(made.Kind));
-        Assert.Equal(world.Society.GetAgent(Actor).Name + " made a " + kind.Replace('_', ' ') + ".", EventTextFixture.Describe(made, snapshot));
+        Assert.Equal(world.Society.GetAgent(Actor).Name + " made a " + kind.Replace('_', ' ') + ".", WorldEventText.Describe(made, snapshot));
         Assert.Contains(snapshot.Agents, person => person.Id == Actor);
         var house = world.WorldSimulation.Buildings.Single(building => building.HouseholdId == world.Society.GetAgent(Actor).HouseholdId &&
             building.DefinitionId == HouseContent.House1x1().CanonicalId);

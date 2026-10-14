@@ -34,7 +34,7 @@ public partial class Main
                 RoutineHelperCredentialSlotId = slotId,
             };
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "owner-event-presentation.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(0, 0, []))), 0, out var failure))
                 throw new InvalidOperationException("Helper key observation refused: " + failure);

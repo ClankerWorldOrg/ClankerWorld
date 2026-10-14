@@ -430,6 +430,8 @@ public sealed record EventPosition(int X, int Y);
 [JsonDerivedType(typeof(WorkstationSuppliedEventPayload), "workstation_supplied")]
 [JsonDerivedType(typeof(WorldCreatedEventPayload), "world_created")]
 [JsonDerivedType(typeof(WorldStartedEventPayload), "world_started")]
+[JsonDerivedType(typeof(AgentSleptEventPayload), "agent_slept")]
+[JsonDerivedType(typeof(AgentBuildingProposedEventPayload), "agent_building_proposed")]
 [JsonDerivedType(typeof(AnimalContentStagedEventPayload), "animal_content_staged")]
 [JsonDerivedType(typeof(CareContentStagedEventPayload), "care_content_staged")]
 [JsonDerivedType(typeof(HouseToolsContentStagedEventPayload), "house_tools_content_staged")]

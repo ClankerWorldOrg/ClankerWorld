@@ -14,7 +14,8 @@ public static class GameUiText
     /// <summary>A continuing model problem produces one row until recovery; waits and cancellations stay out of the log.</summary>
     public static IEnumerable<OwnerWorldEvent> PlayerEvents(IEnumerable<OwnerWorldEvent> events) =>
         ClankerWorld.Presentation.EventVocabulary.PlayerEvents(events, item => item.EventId,
-            item => item.Kind, item => ClankerWorld.Presentation.EventVocabulary.ModelStatusFields(item.Detail));
+            item => item.Kind, item => item.Payload is ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload status
+                ? (status.ActorId, status.Status) : (null, null));
 
     public static string ModelStatus(string? status) => status switch
     {

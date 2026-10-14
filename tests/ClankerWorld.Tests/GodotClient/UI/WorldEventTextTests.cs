@@ -178,7 +178,8 @@ public sealed class WorldEventTextTests
     [Fact]
     public void ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity()
     {
-        OwnerWorldEvent Status(long id, string status) => new(id, id, "model_attempt_status", $"{ChildId}:{status}");
+        OwnerWorldEvent Status(long id, string status) => new(id, id, "model_attempt_status", $"{ChildId}:{status}")
+        { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload(ChildId, status) };
         var events = new[] { Status(1, "waiting"), Status(2, "waiting"), Status(3, "ready"),
             Status(4, "waiting"), Status(5, "timed_out"), Status(6, "timed_out"), Status(7, "waiting"),
             Status(8, "timed_out"), Status(9, "canceled"), Status(10, "ready"), Status(11, "waiting"), Status(12, "timed_out") };
