@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -28,7 +29,7 @@ public sealed partial class WorldRuntimeTests
             (order.Action, order.Status, order.CompletedUnits, order.ProgressUnit, order.TargetMaterialKind));
         var lot = Assert.Single(world.Society.Inventory.Lots, item => item.OwnerId == HarvestInstructionActor && item.ItemKind == kind);
         Assert.Equal(quantity, lot.Quantity);
-        Assert.Equal("gather:" + lot.Id, order.LastEffectId);
+        Assert.Equal("gather:" + lot.Id, order.LastEffectId?.Value);
         Assert.Equal(0, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
         if (tool is not null)
             Assert.Equal(10_000 - ToolProgressionRules.Find(tool)!.WearLossBasisPoints,
@@ -233,18 +234,17 @@ public sealed partial class WorldRuntimeTests
         var receipt = SubmitMaterialOrder(world, "validation", "gather two fiber");
         var saved = world.ExportState();
         var order = CancellationOrder(saved, receipt.InstructionId);
-        foreach (var invalid in new[] { order with { TargetMaterialKind = null }, order with { TargetMaterialKind = "cloth" },
-                     order with { TargetFoodKind = "berries" }, order with { TargetAgentId = HarvestInstructionActor },
-                     order with { ProgressUnit = "food_items" },
-                     order with { LastEffectId = "gather:material:fake" }, order with { CompletedUnits = 1 } })
-        {
-            var damaged = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = invalid } : item).ToArray()
-            };
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(damaged)));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = HarvestInstructionActor }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "food_items" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "gather:material:fake" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
     }
 
     [Fact]
@@ -324,18 +324,16 @@ public sealed partial class WorldRuntimeTests
         var receipt = SubmitMaterialOrder(world, "held", $"keep gathering fiber from {source.Id}");
         try
         {
-            // The tick dispatches the call itself; only the thread-pool start of the
-            // provider is left to scheduling, which a loaded parallel run can delay.
-            var deadline = TimeSpan.FromSeconds(10);
-            var dispatch = await world.AdvanceOneTickNonBlockingAsync();
+            // Commit native dispatch, then enter the held provider through the scheduler.
+            var dispatch = await world.TickModelWorkAsync();
             Assert.True(dispatch.Advanced);
             Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == HarvestInstructionActor);
-            await provider.Started.Task.WaitAsync(deadline);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.Equal(1, CancellationOrder(world.ExportState(), receipt.InstructionId).CompletedUnits);
             CancelTravelOrder(world, receipt.InstructionId, "cancel-held-material");
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(deadline);
-            for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
+            for (var tick = 0; tick < 8; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal("cancelled", CancellationOrder(world.ExportState(), receipt.InstructionId).Status);
             Assert.Equal(2, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
             Assert.Single(world.ExportState().Events, item => item.Kind == "material_gathered" &&

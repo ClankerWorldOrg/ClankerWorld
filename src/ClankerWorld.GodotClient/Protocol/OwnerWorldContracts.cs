@@ -67,7 +67,10 @@ public sealed record OwnerWorldBoat(string Id, string TownId, string TownName, O
 public sealed record OwnerWorldBoatTripRequest(string Id, long Sequence, string PassengerId, string PassengerName,
     string BoatTownId, string OriginPortId, string DestinationPortId, string Status, string? BoatId);
 
-public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity);
+public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity)
+{
+    public string OwnerName { get; init; } = "Unknown owner";
+}
 
 public sealed record OwnerWorldObject(string Id, string Kind, OwnerWorldPosition Position);
 
@@ -221,7 +224,10 @@ public sealed record OwnerLandTransfer(string Id, string FilerId, string FilerNa
     public OwnerLandSalePrice? Price { get; init; }
     public OwnerLandSalePayment? Payment { get; init; }
 }
-public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity);
+public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity)
+{
+    public string ItemName { get; init; } = "goods";
+}
 public sealed record OwnerLandSalePayment(string BuyerAgentId, string BuyerName, string SellerAgentId, string SellerName,
     OwnerWorldPosition Position, long Tick);
 
@@ -684,6 +690,9 @@ public sealed record OwnerWorldSnapshot(
 
     public OwnerWorldAuthoringState? Authoring { get; init; }
 
+    /// <summary>Current server text for the visible retained events, including renamed people.</summary>
+    public IReadOnlyDictionary<long, string> EventTexts { get; init; } = new Dictionary<long, string>();
+
     public IReadOnlyList<OwnerWorldInstruction> Instructions { get; init; } = [];
 
     public OwnerWorldCognition? Cognition { get; init; }
@@ -699,7 +708,11 @@ public sealed record OwnerWorldSnapshot(
     public IReadOnlyList<OwnerWorldProductionJob> ProductionJobs { get; init; } = [];
 }
 
-public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, string Detail, OwnerWorldPosition? Position = null);
+public sealed record OwnerWorldEvent(long EventId, long WorldTick, string Kind, [property: System.Text.Json.Serialization.JsonIgnore] string Detail, OwnerWorldPosition? Position = null)
+{
+    public string Text { get; init; } = string.Empty;
+    public ClankerWorld.Simulation.World.WorldEventPayload? Payload { get; init; }
+}
 
 public sealed record OwnerWorldEventSlice(
     long SnapshotTick,

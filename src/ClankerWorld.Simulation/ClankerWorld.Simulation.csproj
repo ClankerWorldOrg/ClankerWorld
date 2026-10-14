@@ -9,4 +9,7 @@
     <InternalsVisibleTo Include="ClankerWorld.Tests" />
     <Compile Include="../ClankerWorld.Shared/AgentPlacementRules.cs" Link="Shared/AgentPlacementRules.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/WorldEvents/*.cs" Link="Shared/WorldEvents/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

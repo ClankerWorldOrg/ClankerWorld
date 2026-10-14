@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
@@ -9,10 +10,10 @@ namespace ClankerWorld.Tests;
 /// <summary>Rules of a paid Market checked from one shared, genuinely built Market instead of the long construction run.</summary>
 public sealed class MarketRulesTests
 {
-    private const string Founder1 = "founder:00000000000000000000000000000001";
-    private const string Founder2 = "founder:00000000000000000000000000000002";
-    private const string Founder3 = "founder:00000000000000000000000000000003";
-    private const string Founder4 = "founder:00000000000000000000000000000004";
+    private const string Founder1 = NormalPathWorld.Founder1;
+    private const string Founder2 = NormalPathWorld.Founder2;
+    private const string Founder3 = NormalPathWorld.Founder3;
+    private const string Founder4 = NormalPathWorld.Founder4;
     private const string StallProposalPrefix = "civic|town:first|project|market-stall-1x1|";
 
     [Fact]
@@ -241,7 +242,7 @@ public sealed class MarketRulesTests
         var occupancy = Assert.Single(market.Occupancies);
         var worldTick = state.Society.Society.WorldTick;
         var proposedTick = damage == "far-future-offer" ? long.MaxValue - 5 : worldTick;
-        var trade = new MarketTradeState("market-trade:forged", occupancy.Id, stall.BuildingId, Founder3, "household:second",
+        var trade = new MarketTradeState(Identity.Parse("market-trade:forged"), occupancy.Id, stall.BuildingId, Founder3, "household:second",
             "household:second", Founder1, PaidMarketWorld.StallTile(state, 0), proposedTick, "cloth", "wood");
         var offer = new DirectBarterOffer(trade.OfferId, 1, "household:second", Founder1, "goods-lot", 1, "payment-lot", 1,
             proposedTick + 1, DirectBarterState.Open, [Founder1]);
@@ -256,7 +257,7 @@ public sealed class MarketRulesTests
                 Events = inventory.Events.Append(new InventoryEvent(eventId, worldTick, "inventory_relocated",
                     receiptId + ":deposit:household:second:stall-source:2")).ToArray(),
             };
-            receipts = [new MarketStockReceipt(receiptId, occupancy.Id, Founder3, "household:second", "stall-source", "stall-source",
+            receipts = [new MarketStockReceipt(Identity.Parse(receiptId), occupancy.Id, Founder3, "household:second", "stall-source", "stall-source",
                 "wood", 2, worldTick, eventId, trade.OfferId)];
         }
         inventory = inventory with { Offers = damage == "duplicate-offer" ? [offer, offer] : [offer] };
