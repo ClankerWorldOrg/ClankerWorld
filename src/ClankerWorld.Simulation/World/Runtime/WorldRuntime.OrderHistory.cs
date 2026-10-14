@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
                     ? job with { OrderInstructionId = null } : job).ToArray(),
                 ConstructionReceipts = worldSimulation.ConstructionReceipts?.Where(receipt => !retired.Contains(receipt.InstructionId)).ToArray(),
             };
-            RetireClosedOrderProjectReferences(retired);
+            RetireClosedOrderAgentReferences(retired);
             boatTransport = boatTransport with
             {
                 Requests = boatTransport.Requests.Select(request => retired.Contains(request.OrderInstructionId ?? "")
@@ -44,4 +44,27 @@ public sealed partial class WorldRuntime
             .Select(item => item.IdempotencyKey).ToArray();
         foreach (var key in expiredRetries) orderCancellations.Remove(key);
     }
+
+    private void RetireClosedOrderAgentReferences(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person =>
+                     retired.Contains(person.Project?.OrderInstructionId ?? "") ||
+                     retired.Contains(person.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            agents[person.AgentId] = person with
+            {
+                Project = retired.Contains(person.Project?.OrderInstructionId ?? "")
+                    ? person.Project! with { OrderInstructionId = null } : person.Project,
+                Exploration = RetireClosedOrderExplorationGoal(person.Exploration, retired),
+            };
+        foreach (var person in deceasedAgents.Values.Where(person =>
+                     retired.Contains(person.LastPhysical.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            deceasedAgents[person.AgentId] = person with
+            {
+                LastPhysical = person.LastPhysical with
+                { Exploration = RetireClosedOrderExplorationGoal(person.LastPhysical.Exploration, retired) },
+            };
+    }
+
+    private static ExplorationState? RetireClosedOrderExplorationGoal(ExplorationState? exploration, HashSet<string> retired) =>
+        retired.Contains(exploration?.Goal?.OrderInstructionId ?? "") ? exploration! with { Goal = null } : exploration;
 }

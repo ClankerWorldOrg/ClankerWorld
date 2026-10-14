@@ -15,12 +15,6 @@ public sealed record WorldConstructionReceipt(
 
 public sealed partial class WorldRuntime
 {
-    private void RetireClosedOrderProjectReferences(HashSet<string> retired)
-    {
-        foreach (var person in agents.Values.Where(person => person.Project?.OrderInstructionId is { } id && retired.Contains(id)).ToArray())
-            agents[person.AgentId] = person with { Project = person.Project! with { OrderInstructionId = null } };
-    }
-
     private static string ConstructionInstanceId(string instructionId) =>
         DerivedId.Hash(instructionId, "ordered-building-");
 

@@ -818,7 +818,10 @@ refused. These receipts contain no status and do not duplicate completion state.
 Retirement drops order-only construction evidence and clears optional owner
 order links on native work and written artifacts. It preserves the actual
 inventory, consumed reservations, buildings, artifact contents and native work
-outcomes. Loading validates retained order links and rebuilds the active index.
+outcomes. Retired exploration purposes are cleared in live and deceased records,
+while their recorded paths and discoveries stay intact. Construction completion
+uses the actual placed building even when its order receipt retires in the same
+action. Loading validates retained order links and rebuilds the active index.
 Earlier alpha schemas are refused and preserved without migration. The schema
 number is provisional until merge.
 Current-format reload, cancellation and rejected-tick checks retain the same

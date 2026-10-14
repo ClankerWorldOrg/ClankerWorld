@@ -54,6 +54,29 @@ public sealed class OrderHistoryTests
     }
 
     [Fact]
+    public async Task CancellationRetryCapIsIndependentOfOrderRetirementAndUsesStableReceiptOrdering()
+    {
+        var (world, actor) = await CreateWorldAsync();
+        using var ownedWorld = world;
+        var order = world.SubmitInstruction(Request(actor, "one-retained-order", "gather berries"));
+        var keys = new[] { "retry-z", "retry-a", "retry-b", "retry-c", "retry-d", "retry-e", "retry-f" };
+        var requests = keys.Select(key => Cancel(world, actor, order, key)).ToArray();
+        OwnerOrderControlReceipt? latest = null;
+        foreach (var request in requests) latest = world.CancelOrder(request);
+        var state = world.ExportState();
+        Assert.Equal(order.InstructionId.Value, Assert.Single(state.Instructions!).InstructionId);
+        Assert.Equal(OrderStatus.Cancelled, Assert.Single(state.Instructions!).Task!.LifecycleStatus);
+        var retainedKeys = new[] { "retry-b", "retry-c", "retry-d", "retry-e", "retry-f", "retry-z" };
+        Assert.Equal(retainedKeys,
+            state.OrderCancellations!.Select(item => item.IdempotencyKey).Order(StringComparer.Ordinal));
+        var encoded = WorldRuntimeCodec.Encode(state);
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded));
+        Assert.Equal(latest, restored.CancelOrder(requests[^1]));
+        Assert.Throws<InvalidOperationException>(() => restored.CancelOrder(requests[^1] with { OrderId = "different-order" }));
+        Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
+    }
+
+    [Fact]
     public async Task SubmissionReceiptsMustMatchRetainedMessages()
     {
         var (world, actor) = await CreateWorldAsync();
