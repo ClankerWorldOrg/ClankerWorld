@@ -15,10 +15,10 @@ public sealed partial class WorldRuntime
             relationship.ProposerId == actor ? relationship.TargetId : relationship.ProposerId, relationship);
     }
 
-    private ActionCheck CheckPartnershipActionPlan(PartnershipActionPlan plan)
+    private ActionCheck CheckPartnershipActionPlan(PartnershipActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? FamilyCareCapabilities);
         if (!capability.Allowed) return capability;
         if (plan.Choice.Kind == PartnershipChoiceKind.Propose)
             return agents.ContainsKey(plan.PartnerId) && CanProposePartnership(plan.Actor, plan.PartnerId)
@@ -42,14 +42,13 @@ public sealed partial class WorldRuntime
         var options = new List<CognitionCandidate>();
         AddFamilyCandidateOptions(options, actor);
         foreach (var candidate in options)
-            if (PartnershipChoice.Decode(candidate.Id) is { } choice && PlanPartnershipAction(actor, choice) is { } plan &&
-                CheckPartnershipActionPlan(plan).Allowed)
+            if (PartnershipChoice.Decode(candidate.Id) is { } choice && PartnershipDefinition.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
     }
 
     private void ApplyPartnershipActionPlan(PartnershipActionPlan plan)
     {
-        if (CheckPartnershipActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompletePartnershipAction(plan);
     }
 }

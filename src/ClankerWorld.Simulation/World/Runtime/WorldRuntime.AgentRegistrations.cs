@@ -40,17 +40,8 @@ public sealed partial class WorldRuntime
         return true;
     }),
         RegisterConversationActions(),
-        new(ActionPhase.BeforeAge, "TryApplyGuardianPlacementCandidate", [], [], static (runtime, action) =>
-    {
-        return runtime.TryApplyGuardianPlacementCandidate(action.AgentId, action.CandidateId, action.Plan);
-    }),
-        new(ActionPhase.BeforeAge, "guardian_end:", ["guardian_end:"], [], static (runtime, action) =>
-    {
-        if (!runtime.HasGuardianPlacementTask(action.AgentId))
-            return false;
-        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.BeforeAge, "TryApplyGuardianPlacementCandidate", [], [], Definition: GuardianTravelDefinition),
+        new(ActionPhase.BeforeAge, "guardian_end:", ["guardian_end:"], [], Definition: DependentCareDefinition),
         new(ActionPhase.Ordinary, "safe_idle", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
     {
@@ -59,21 +50,10 @@ public sealed partial class WorldRuntime
     }),
         RegisterFieldActions(),
         new(ActionPhase.Ordinary, "child_", ["child_"], [], Definition: ChildDefinition),
-        new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "parent_", ["parent_", "care:"], [], static (runtime, action) =>
-    {
-        runtime.ApplyParenthoodCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "partner_", ["partner_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyFamilyCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "care", ["care:", "guardian_tend:"], [], Definition: PracticalCareDefinition),
+        new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], Definition: DependentCareDefinition),
+        new(ActionPhase.Ordinary, "parent_", ["parent_"], [], Definition: ParenthoodDefinition),
+        new(ActionPhase.Ordinary, "partner_", ["partner_"], [], Definition: PartnershipDefinition),
         new(ActionPhase.Ordinary, "household_", ["household_"], [], static (runtime, action) =>
     {
         runtime.ApplyHousingCandidate(action.AgentId, action.CandidateId, action.Plan);

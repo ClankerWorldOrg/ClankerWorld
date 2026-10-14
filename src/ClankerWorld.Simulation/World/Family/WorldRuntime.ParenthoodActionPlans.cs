@@ -37,12 +37,10 @@ public sealed partial class WorldRuntime
         return new(actor, choice, owner, partner, original, partnership, ContinuityCoupleFor(owner, partner), caregiver, home);
     }
 
-    private ActionCheck CheckParenthoodActionPlan(ParenthoodActionPlan plan)
+    private ActionCheck CheckParenthoodActionPlan(ParenthoodActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var reproductive = plan.Choice.Kind is ParenthoodChoiceKind.Propose or ParenthoodChoiceKind.Accept;
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(reproductive ? ActionLifeStages.ReproductiveAdults : ActionLifeStages.Adults, AllowBoat: true,
-                AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? ParenthoodCapabilities(plan.Choice.Kind));
         if (!capability.Allowed) return capability;
         if (!agents.TryGetValue(plan.OwnerId, out var owner) || !agents.ContainsKey(plan.PartnerId) || owner.Parenthood != plan.Original ||
             plan.Partnership is null || !RelationshipPlan.Matches(society.Checkpoint.Relationships.FirstOrDefault(edge => edge.Id == plan.Partnership.Id), plan.Partnership) ||
@@ -83,7 +81,7 @@ public sealed partial class WorldRuntime
         {
             var candidate = candidates[index];
             if (ParenthoodChoice.Decode(candidate.Id) is not { } choice) { index++; continue; }
-            if (PlanParenthoodAction(actor, choice) is { } plan && CheckParenthoodActionPlan(plan).Allowed)
+            if (ParenthoodDefinition.Offer(this, actor, choice) is { } plan)
             {
                 candidates[index] = candidate with { ActionPlan = plan };
                 index++;
@@ -94,7 +92,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyParenthoodActionPlan(ParenthoodActionPlan plan)
     {
-        if (CheckParenthoodActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteParenthoodAction(plan);
     }
 }

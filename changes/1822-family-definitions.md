@@ -1,0 +1,1 @@
+- Partnership, parenthood and dependent care and travel now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining selected consent, homes and people.

@@ -245,7 +245,7 @@ public sealed partial class WorldRuntime
         foreach (var dependent in IllDependentsNeedingCare(actor).Where(dependent =>
                      !NeedsUrgentFood(agents[actor]) || IsWithinInteractionRange(agents[actor].Position, agents[dependent].Position, ResourceInteractionRange)))
         {
-            if (PlanPracticalCare(actor, new(PracticalCareKind.IllDependent, dependent)) is { } care && CheckPracticalCarePlan(care).Allowed)
+            if (PracticalCareDefinition.Offer(this, actor, new(PracticalCareKind.IllDependent, dependent)) is { } care)
                 candidates.Add(new CognitionCandidate(care.CandidateId, "Offer warmth and practical care to your ill dependent.", 75) { ActionPlan = care });
         }
         foreach (var child in agents.Keys.Order(StringComparer.Ordinal).Where(child => CanAcceptGuardian(actor, child)))
