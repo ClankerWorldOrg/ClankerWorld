@@ -7,6 +7,7 @@ public sealed partial class WorldRuntime
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
         FieldActionPlan field => farmingSystem.CheckFieldPlan(farmingWorld, field),
+        TreeActionPlan tree => FarmingSystem.CheckTreePlan(farmingWorld, tree),
         RareMiningActionPlan mining => CheckRareMiningPlan(mining),
         ToolRepairActionPlan repair => CheckToolRepairPlan(repair),
         ToolCollectionActionPlan tool => CheckToolCollectionPlan(tool),

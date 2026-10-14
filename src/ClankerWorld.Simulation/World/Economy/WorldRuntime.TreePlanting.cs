@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
         FarmingSystem.OrchardReplantingReservationId(lotId);
 
     private int PlantingSeedQuantity(InventoryLot lot) =>
-        FarmingSystem.PlantingSeedQuantity(farmingWorld, lot);
+        TreePlantingGoodsQuantity(InventoryIndex.For(society.Checkpoint.Inventory), lot);
 
     private InventoryLot? CarriedPlantingSeed(string actor, string kind) =>
         FarmingSystem.CarriedPlantingSeed(farmingWorld, actor, kind);
@@ -25,8 +25,12 @@ public sealed partial class WorldRuntime
     private MapResource? ReplantableTree(string actor, GridPoint origin) =>
         FarmingSystem.ReplantableTree(farmingWorld, actor, origin);
 
-    private void ReplantTree(string actor, AgentState state) =>
-        FarmingSystem.ReplantTree(farmingWorld, actor, state);
+    private void ApplyTreeActionPlan(TreeActionPlan? plan)
+    {
+        if (plan is null) return;
+        if (FarmingSystem.CheckTreePlan(farmingWorld, plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        FarmingSystem.ApplyTreePlan(farmingWorld, plan);
+    }
 
     public TreePlantingResult PlantTree(string planterId, string species, string seedLotId, GridPoint destination)
     {
@@ -46,9 +50,6 @@ public sealed partial class WorldRuntime
 
     private TreePlantingResult PlantTreeCore(string planterId, string species, string seedLotId, GridPoint destination) =>
         FarmingSystem.PlantTreeCore(farmingWorld, planterId, species, seedLotId, destination);
-
-    private void PlantTreeNearby(string actor, AgentState state, bool orchard = false) =>
-        FarmingSystem.PlantTreeNearby(farmingWorld, actor, state, orchard);
 
     private GridPoint? PlantingSite(string actor, GridPoint origin) =>
         FarmingSystem.PlantingSite(farmingWorld, actor, origin);

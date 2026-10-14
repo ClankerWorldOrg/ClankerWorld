@@ -285,12 +285,12 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "replant_tree", [], ["replant_tree"], static (runtime, action) =>
     {
-        runtime.ReplantTree(action.AgentId, action.State);
+        runtime.ApplyTreeActionPlan(action.Plan as TreeActionPlan ?? FarmingSystem.PlanTreeAction(runtime.farmingWorld, action.AgentId, TreeChoice.Replant));
         return true;
     }),
         new(ActionPhase.Ordinary, "plant_tree", [], ["plant_tree", "plant_orchard"], static (runtime, action) =>
     {
-        runtime.PlantTreeNearby(action.AgentId, action.State, action.CandidateId == "plant_orchard");
+        runtime.ApplyTreeActionPlan(action.Plan as TreeActionPlan ?? FarmingSystem.PlanTreeAction(runtime.farmingWorld, action.AgentId, action.CandidateId == "plant_orchard" ? TreeChoice.Orchard : TreeChoice.Plant));
         return true;
     }),
         new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], static (runtime, action) =>

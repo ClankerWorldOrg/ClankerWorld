@@ -245,6 +245,13 @@ checks that same plan before starting work or collecting its exact seed.
 replanting reservation. Field reach explicitly uses terrain eligibility while
 temporary occupants pass; movement continues to check the actual route.
 
+Tree planting and replanting carry `TreeActionPlan` with the exact seed, its
+orchard reservation, the selected open tile or stump, and the chosen species.
+The same check preserves those selections before pickup or planting. Shared
+seeds use the common exact equipment pickup operation. `TreePlanting` goods
+queries include only the seed's own orchard claim alongside free usable stock;
+new claims and regrown or newly occupied targets refuse the original plan.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
