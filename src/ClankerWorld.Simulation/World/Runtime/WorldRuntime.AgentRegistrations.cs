@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
         if (action.CandidateId == "shop_stock_store")
             runtime.ApplyStoreStockPlan(action.Plan as StoreStockActionPlan ?? runtime.PlanStoreStock(action.AgentId));
         else
-            runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId);
+            runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_household_stock", [], ["haul_household_stock"], static (runtime, action) =>

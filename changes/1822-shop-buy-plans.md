@@ -1,0 +1,1 @@
+- Shop buyers retain the selected shop trip or exact goods and payment quote through shared checks.

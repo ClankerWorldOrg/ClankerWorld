@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
         return inputs.Any(itemKind => ShopRules.MaySell(kind, itemKind) && RestaurantInputDemand(buyer, itemKind) > 0) &&
             ShopPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
                 RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
+            Reach(buyer, building.Position, ReachPurpose.ShopBuy, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
     }
 
     private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building)
@@ -222,7 +222,7 @@ public sealed partial class WorldRuntime
         return mealKinds.Any(kind => ShopRules.MaySell("restaurant", kind) && WantsTradeFoodKind(buyer, kind)) &&
             ShopPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
                 RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
+            Reach(buyer, building.Position, ReachPurpose.ShopBuy, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
     }
 
     private bool ShopQuoteContext(string buyer, PlacedBuilding building) =>
@@ -310,22 +310,21 @@ public sealed partial class WorldRuntime
                 "Cancel this exchange and release the goods and receiving space.", 65, trade.BuildingInstanceId));
         }
         foreach (var building in worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal))
-            if (ShopOpportunity(actor, building) is { } choice)
-                candidates.Add(new("shop_buy:" + building.InstanceId,
-                    $"Offer {choice.PaymentQuantity} {choice.Payment.ItemKind} for {choice.GoodsQuantity} {choice.Goods.ItemKind} stocked at this shop; the household may refuse.",
-                    14, building.InstanceId));
-            else if (RestaurantIngredientShopTrip(actor, building))
-                candidates.Add(new("shop_buy:" + building.InstanceId,
-                    "Visit this Town shop to ask about missing Restaurant ingredients; any offer is checked there.",
-                    14, building.InstanceId));
-            else if (RestaurantMealShopTrip(actor, building))
-                candidates.Add(new("shop_buy:" + building.InstanceId,
-                    "Visit this Restaurant to ask about a meal; any offer is checked there.",
-                    14, building.InstanceId));
+        {
+            var plan = PlanShopBuy(actor, building);
+            if (plan is null || !CheckShopBuy(plan).Allowed) continue;
+            var text = plan.Quote is { } choice
+                ? $"Offer {choice.PaymentQuantity} {choice.Payment.ItemKind} for {choice.GoodsQuantity} {choice.Goods.ItemKind} stocked at this shop; the household may refuse."
+                : plan.Kind == ShopBuyKind.IngredientsTrip
+                    ? "Visit this Town shop to ask about missing Restaurant ingredients; any offer is checked there."
+                    : "Visit this Restaurant to ask about a meal; any offer is checked there.";
+            candidates.Add(new(plan.CandidateId, text, 14, building.InstanceId) { ActionPlan = plan });
+        }
     }
 
-    private void ApplyShopCandidate(string actor, AgentState state, string candidate)
+    private void ApplyShopCandidate(string actor, AgentState state, string candidate, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is ShopBuyActionPlan buyPlan) { ApplyShopBuy(buyPlan); return; }
         if (candidate == "shop_stock_store")
         {
             StockStore(actor, state);
@@ -334,15 +333,7 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("shop_buy:", StringComparison.Ordinal))
         {
             var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidate["shop_buy:".Length..]);
-            if (building is null) return;
-            if (!IsWithinInteractionRange(state.Position, building.Position, ResourceInteractionRange))
-            {
-                if (RestaurantIngredientShopTrip(actor, building) || RestaurantMealShopTrip(actor, building))
-                    MoveToward(actor, state, building.Position, "shop_buy", ResourceInteractionRange);
-                return;
-            }
-            if (ShopOpportunity(actor, building) is not { } choice) return;
-            _ = OpenShopQuote(actor, building, choice);
+            if (building is not null && PlanShopBuy(actor, building) is { } plan) ApplyShopBuy(plan);
             return;
         }
         var cancel = candidate.StartsWith("shop_cancel:", StringComparison.Ordinal);
