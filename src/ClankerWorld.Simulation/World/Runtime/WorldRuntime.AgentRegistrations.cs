@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.BeforeAge, "ToolRequestPrefix", [ToolRequestPrefix], [], static (runtime, action) =>
     {
-        runtime.ApplyToolMakingRequestCandidate(action.AgentId, action.State, action.CandidateId, action.ReportIdle);
+        runtime.ApplyToolMakingRequestCandidate(action.AgentId, action.State, action.CandidateId, action.ReportIdle, action.Plan);
         return true;
     }),
         RegisterConversationActions(),

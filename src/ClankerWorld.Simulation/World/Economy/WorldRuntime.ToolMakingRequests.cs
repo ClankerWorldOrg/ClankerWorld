@@ -31,6 +31,7 @@ public sealed partial class WorldRuntime
     private static string ToolRequestChoice(string verb, params string[] identity) =>
         Enum.TryParse<ToolRequestConsentKind>(verb, true, out var consent)
             ? ToolRequestConsentChoice.Encode(consent, identity)
+            : verb == "visit" ? ToolRequestVisitChoice.Encode(identity[0], identity[1])
             : DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
@@ -173,15 +174,15 @@ public sealed partial class WorldRuntime
     }
 
     // Authority-changing actions above never execute from a continuing or fallback intention.
-    private void ApplyToolMakingRequestCandidate(string actor, AgentState person, string candidate, bool freshChoice)
+    private void ApplyToolMakingRequestCandidate(string actor, AgentState person, string candidate, bool freshChoice, ActionPlan? originalPlan = null)
     {
+        if (ToolRequestVisitChoice.Decode(candidate) is { } choice)
+        {
+            var plan = originalPlan as ToolRequestVisitActionPlan ?? PlanToolRequestVisit(actor, choice);
+            if (plan is not null) ApplyToolRequestVisitPlan(plan);
+            return;
+        }
         if (!IsAdult(actor)) return;
-        foreach (var (building, recipe) in ToolRequestOptions(actor))
-            if (candidate == ToolRequestChoice("visit", building.InstanceId, recipe.CanonicalId) && IdleForToolRequest(actor))
-            {
-                MoveToward(actor, person, building.Position, "tool_request", ResourceInteractionRange);
-                return;
-            }
         foreach (var request in toolMakingRequests.ToArray())
         {
             if (candidate == ToolRequestChoice("work", request.Id) && request.Status == ToolMakingRequestStatus.Accepted &&
@@ -204,6 +205,9 @@ public sealed partial class WorldRuntime
             return;
         }
     }
+
+    private void CompleteToolRequestVisit(ToolRequestVisitActionPlan plan) =>
+        MoveToward(plan.Actor, agents[plan.Actor], plan.Smith.Position, "tool_request", ResourceInteractionRange);
 
     private ShopQuote? ToolRequestQuote(string actor, ToolMakingRequestState request, PlacedBuilding shop) =>
         request.JobId is { } jobId && worldSimulation.ProductionJobs.Any(job => job.JobId == jobId && job.State == WorldProductionJobState.Completed)

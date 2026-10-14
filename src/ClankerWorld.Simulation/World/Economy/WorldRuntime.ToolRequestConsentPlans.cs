@@ -51,6 +51,12 @@ public sealed partial class WorldRuntime
         AddToolMakingRequestCandidateOptions(options, actor);
         foreach (var candidate in options)
         {
+            if (ToolRequestVisitChoice.Decode(candidate.Id) is { } visit)
+            {
+                if (PlanToolRequestVisit(actor, visit) is { } journey && CheckToolRequestVisitPlan(journey).Allowed)
+                    candidates.Add(candidate with { ActionPlan = journey });
+                continue;
+            }
             if (ToolRequestConsentChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
             if (PlanToolRequestConsent(actor, choice) is { } plan && CheckToolRequestConsentPlan(plan).Allowed)
                 candidates.Add(candidate with { ActionPlan = plan });
