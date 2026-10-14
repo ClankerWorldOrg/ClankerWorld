@@ -29,10 +29,6 @@ public static class TownHearingProcedure
     public static string Digest<T>(T value) => DerivedId.Hash(JsonSerializer.Serialize(value));
     internal static string JudgeContestId(string caseId, int ordinal) =>
         DerivedId.Create(caseId + ":judge:" + ordinal.ToString(CultureInfo.InvariantCulture));
-    internal static bool Id(string? value) => !string.IsNullOrWhiteSpace(value) && value == value.Trim() && !value.Any(char.IsControl);
-    internal static bool DerivedIdentity(string? value) => Id(value) && value!.Length <= DerivedId.MaximumLength;
-    internal static bool Text(string? value) => !string.IsNullOrWhiteSpace(value) && value == value.Trim() &&
-        value.Length <= 1024 && !value.Any(char.IsControl);
     internal static string[] Ordered(IEnumerable<string> values) => values.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     /// <summary>One case-election step, shared by land and non-land adapters.</summary>

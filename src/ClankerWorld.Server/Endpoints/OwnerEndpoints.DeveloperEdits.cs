@@ -11,25 +11,23 @@ internal static partial class OwnerEndpoints
     {
         app.MapPost("/api/v1/owner/developer-edit", (
             OwnerSignedHttpRequest<OwnerDeveloperEditAction> request,
-            OwnerRequestAuthorizer authorizer, IServiceProvider services) =>
+            IServiceProvider services) =>
         {
-            if (request?.Action is not { } action || action.ExpectedEventId < 0 ||
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var result = services.GetRequiredService<WorldStateFile>().ApplyDeveloperEdit(runtime,
+                new(action.WorldId, action.ExpectedEventId, action.AgentId, action.Operation, action.Value, action.Amount, action.OtherAgentId));
+            if (result.Failure is { } failure) return Results.Conflict(new { error = failure });
+            return Results.Ok(OwnerControlReceipt.From("developer_edit", result.Applied, runtime.ExportState()));
+
+        }).ForWorld<OwnerDeveloperEditAction>(action => action.WorldId,
+            OwnerHttpBinding.DeveloperEditPayload,
+            (_, _) => Results.Conflict(new { error = "The active world changed. Refresh before editing." }),
+            validate: action => action.ExpectedEventId < 0 ||
                 new[] { action.WorldId, action.AgentId, action.Operation, action.Value }
                     .Any(value => string.IsNullOrWhiteSpace(value) || value.Length > 512 || value.Any(char.IsControl)) ||
-                action.OtherAgentId is { } other && (other.Length > 512 || other.Any(char.IsControl)))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and a valid developer edit."] });
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/developer-edit",
-                OwnerHttpBinding.DeveloperEditPayload(action));
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
-            {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                var result = services.GetRequiredService<WorldStateFile>().ApplyDeveloperEdit(runtime,
-                    new(action.WorldId, action.ExpectedEventId, action.AgentId, action.Operation, action.Value, action.Amount, action.OtherAgentId));
-                if (result.Failure is { } failure) return Results.Conflict(new { error = failure });
-                return Results.Ok(OwnerControlReceipt.From("developer_edit", result.Applied, runtime.ExportState()));
-            }
-        });
+                action.OtherAgentId is { } other && (other.Length > 512 || other.Any(char.IsControl))
+                ? Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and a valid developer edit."] }) : null,
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and a valid developer edit."] }));
     }
 }
