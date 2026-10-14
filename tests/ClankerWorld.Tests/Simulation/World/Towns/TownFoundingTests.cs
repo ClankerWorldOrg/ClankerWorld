@@ -184,6 +184,8 @@ public sealed partial class TownMembershipTests
             await Task.Delay(10);
         }
         Assert.NotNull(model.Pending);
+        var originalPlan = Assert.IsType<TownFoundingActionPlan>(model.Pending.Observation.Candidates
+            .Single(candidate => candidate.Id.StartsWith(FoundTownChoice, StringComparison.Ordinal)).ActionPlan);
         var town = Assert.Single(world.Towns, item => item.Id != First);
         Assert.Equal([settler], town.ResidentIds);
         model.Resolve();
@@ -193,8 +195,14 @@ public sealed partial class TownMembershipTests
             await Task.Delay(10);
             var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.PlanRefusal is not null) ||
+                step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == actor);
+            if (step.Decisions.SingleOrDefault(decision => decision.AgentId == actor && decision.PlanRefusal is not null) is { } refused)
+            {
+                Assert.Same(originalPlan, refused.ActionPlan);
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, refused.PlanRefusal!.Reason);
+            }
         }
         Assert.True(completed, "The host must process and refuse the previously valid founding reply after title is claimed.");
         Assert.Equal(2, world.Towns.Count);
