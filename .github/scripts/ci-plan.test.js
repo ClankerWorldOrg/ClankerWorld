@@ -396,6 +396,16 @@ test('a push of a commit the merge queue already passed runs nothing but scope a
   assert.match(job('verify'), /test "\$SCOPE" = success\n\s+if \[ -n "\$QUEUE_RUN" \]; then [^\n]*exit 0; fi/);
 });
 
+test('Windows source boundaries run for all code and retain the base allowance history', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'ci.yml'), 'utf8');
+  const job = workflow.slice(workflow.indexOf('\n  windows-documentation:')).split('\n  windows-provider-storage:')[0];
+  assert.match(job, /actions\/checkout@v5\n        with:\n          fetch-depth: 2/);
+  assert.match(job, /SOURCE_CODE: \$\{\{ needs\.scope\.outputs\.code \}\}/);
+  assert.match(job, /\$filter = 'FullyQualifiedName~DocumentationTests'/);
+  assert.match(job, /if \(\$env:SOURCE_CODE -ne 'false'\) \{ \$filter \+= '\|FullyQualifiedName~IdentityTextBoundaryTests' \}/);
+  assert.match(job, /dotnet test [^\n]*--filter \$filter/);
+});
+
 test('a merge-queue run cancels only older runs of the same pull request', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'ci.yml'), 'utf8');
   const job = workflow.slice(workflow.indexOf('\n  cancel-stale-queue-runs:\n'));

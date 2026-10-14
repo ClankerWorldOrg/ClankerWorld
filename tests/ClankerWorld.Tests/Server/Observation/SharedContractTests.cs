@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using ClankerWorld.Contracts;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
@@ -29,7 +30,9 @@ public sealed class SharedContractTests
                     type.GetMethod("<Clone>$", BindingFlags.Public | BindingFlags.Instance) is not null).ToArray();
             Assert.True(records.Length > 200);
             var values = new Dictionary<Type, object?>();
-            foreach (var server in records)
+            var payloads = typeof(WorldEventPayload).GetCustomAttributes<JsonDerivedTypeAttribute>()
+                .Select(attribute => attribute.DerivedType);
+            foreach (var server in records.Concat(payloads))
             {
                 var client = game.GetType(server.FullName!, throwOnError: true)!;
                 var sent = JsonSerializer.Serialize(MakeValue(server, values), server, Json);
@@ -51,6 +54,8 @@ public sealed class SharedContractTests
     private static object? MakeValue(Type type, Dictionary<Type, object?> values)
     {
         if (Nullable.GetUnderlyingType(type) is { } underlying) return MakeValue(underlying, values);
+        if (type.IsAbstract)
+            return MakeValue(type.GetCustomAttributes<JsonDerivedTypeAttribute>().First().DerivedType, values);
         if (type == typeof(string)) return "Zoë 🌲 e\u0301";
         if (type == typeof(bool)) return true;
         if (type == typeof(DateTimeOffset)) return new DateTimeOffset(2026, 10, 13, 12, 30, 0, TimeSpan.Zero);

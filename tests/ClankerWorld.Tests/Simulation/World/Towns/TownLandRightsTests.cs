@@ -339,7 +339,7 @@ public sealed class TownLandRightsTests
             Lots = inventory.Lots.Where(lot => !removed.Contains(lot.Id)).ToArray(),
             Reservations = inventory.Reservations.Where(item => !removed.Contains(item.LotId)).ToArray(),
         };
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         world.Dispose();
         return WorldRuntime.Restore(state);
     }

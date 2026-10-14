@@ -35,6 +35,9 @@ public sealed partial class WorldStartupRecovery
         this.providers = providers;
         this.providerFactory = providerFactory;
         this.logger = logger;
+        // A pending manual load owns the checkpoint, routing, schedule and
+        // timeline until it is complete. Failure must not expose a mixed world.
+        saves.RecoverInterruptedLoad(stateFile, providers, providerFactory);
         try
         {
             runtime = stateFile.LoadOrCreate(seed);

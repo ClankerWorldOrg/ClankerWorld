@@ -1,4 +1,5 @@
 using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -12,7 +13,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class WorldProductionOrderTests
+public sealed partial class WorldProductionOrderTests
 {
     private const string Household = "household:first";
     private const string House = "first-town-house-a";
@@ -56,7 +57,7 @@ public sealed class WorldProductionOrderTests
         {
             Assert.Equal(WorldProductionJobState.Completed, job.State);
             Assert.Equal(actor, job.WorkerId);
-            Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
             Assert.Equal(Shop, job.BuildingInstanceId);
             Assert.Equal(Household, job.OwnerId);
             var output = world.Society.Inventory.GetLot(job.JobId + ":output:00");
@@ -405,17 +406,17 @@ public sealed class WorldProductionOrderTests
         var receipt = Submit(world, actor, "held-production", "make rope");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             for (var tick = 0; tick < 20 && world.WorldSimulation.ProductionJobs.Count == 0; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             var job = Assert.Single(world.WorldSimulation.ProductionJobs);
             Assert.True(world.CancelOrder(new("stop-held-production", "owner:test", world.Society.WorldId,
                 actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             while (world.WorldTick <= job.CompletionTick + 2)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(WorldProductionJobState.Cancelled, Job(world, job.JobId).State);
             Assert.Equal(0, Produced(world, "rope"));
@@ -436,25 +437,14 @@ public sealed class WorldProductionOrderTests
         var job = await StartJob(world);
         var saved = world.ExportState();
         var order = Order(world, receipt);
-        foreach (var invalid in new[]
-        {
-            order with
-            {
-                CompletedUnits = 1,
-                LastEffectId = "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId))),
-            },
-            order with { ProductionJobId = "production-9999999999" },
-            order with { ProductionBuildingId = Shop },
-            order with { TargetOutputKind = "sack" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId))) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProductionJobId"] = "production-9999999999" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProductionBuildingId"] = Shop }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetOutputKind"] = "sack" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         var missingReceipt = saved with
         {
             WorldSimulation = saved.WorldSimulation! with
@@ -488,7 +478,7 @@ public sealed class WorldProductionOrderTests
             id => id == actor ? provider : new ProductionChoices());
         var receipt = Submit(world, actor, "unknown-production", "make a sword");
         Assert.Equal("not_understood", Order(world, receipt).Status);
-        Assert.Contains(receipt.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(receipt.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.Empty(provider.Requests);
         for (var tick = 0; tick < 4; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == receipt.InstructionId ||
@@ -598,9 +588,9 @@ public sealed class WorldProductionOrderTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();

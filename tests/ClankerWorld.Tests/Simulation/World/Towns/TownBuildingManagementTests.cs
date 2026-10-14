@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -15,7 +16,7 @@ public sealed class TownBuildingManagementTests
             "fiber", "household:first", 2, storageBuildingId: "first-town-house-a");
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using (var setup = WorldRuntime.Restore(state, _ => new IdleProvider()))
         {
@@ -99,7 +100,7 @@ public sealed class TownBuildingManagementTests
         };
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
 
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -153,13 +154,13 @@ public sealed class TownBuildingManagementTests
             "equipment_repair", tick + 120);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = tailor.Position,
                     FullnessBasisPoints = 9_000,
-                    Equipment = new(Repair: new EquipmentRepairWork("repair-site-coat", tailorId, tick, 0, [reservationId])),
+                    Equipment = new(Repair: new EquipmentRepairWork("repair-site-coat", tailorId, tick, 0, [Identity.Parse(reservationId)])),
                 }
                 : person).ToArray(),
         };
@@ -210,7 +211,7 @@ public sealed class TownBuildingManagementTests
         state = state with
         {
             Towns = [firstTown, quietTown],
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var originalBorders = world.Towns.ToDictionary(item => item.Id, item => item.BorderTiles.ToArray(), StringComparer.Ordinal);
@@ -241,7 +242,7 @@ public sealed class TownBuildingManagementTests
         {
             Society = reassignedState.Society with
             {
-                Society = reassignedState.Society.Society with { Inventory = stockInventory },
+                Society = reassignedState.Society.Society with { Inventory = StockHoldTestState.Custody(stockInventory) },
             },
         };
 
@@ -297,7 +298,7 @@ public sealed class TownBuildingManagementTests
         var worker = state.Society.Society.Agents.First(item => item.HouseholdId == house.HouseholdId).Id;
         var expansion = new BuildingExpansionJob("historic-expansion", house.InstanceId, worker,
             house.HouseholdId!, 0, house.Position, house.Position, new(1, 2, 1),
-            0, 1, WorldProductionJobState.Completed, ["historic-reservation"]);
+            0, 1, WorldProductionJobState.Completed, [Identity.Parse("historic-reservation")]);
         var recipe = state.WorldContent!.Recipes.First(item => !item.IsCrop);
         var production = new WorldProductionJob("historic-production", recipe.CanonicalId,
             house.InstanceId, worker, 0, 1, WorldProductionJobState.Completed, []);
@@ -308,7 +309,7 @@ public sealed class TownBuildingManagementTests
                 cost.ResourceId, house.HouseholdId!, cost.Amount);
         state = state with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             WorldSimulation = state.WorldSimulation! with
             {
                 BuildingExpansions = [expansion],
@@ -354,7 +355,7 @@ public sealed class TownBuildingManagementTests
         var worker = state.Towns!.Single(item => item.Id == warehouse.TownId).ResidentIds[0];
         var expansion = new BuildingExpansionJob("historic-expansion", warehouse.InstanceId, worker,
             warehouse.TownId!, 0, warehouse.Position, warehouse.Position, new(2, 3, 1),
-            0, 1, WorldProductionJobState.Completed, ["historic-reservation"]);
+            0, 1, WorldProductionJobState.Completed, [Identity.Parse("historic-reservation")]);
         state = state with { WorldSimulation = state.WorldSimulation! with { BuildingExpansions = [expansion] } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
@@ -412,7 +413,7 @@ public sealed class TownBuildingManagementTests
             Lots = state.Society.Society.Inventory.Lots.Where(lot => !removedLotIds.Contains(lot.Id)).ToArray(),
             Reservations = state.Society.Society.Inventory.Reservations.Where(item => !removedLotIds.Contains(item.LotId)).ToArray(),
         };
-        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     }
 
     private static WorldRuntimeState StartedState(string seed)

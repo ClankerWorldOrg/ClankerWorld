@@ -95,7 +95,7 @@ internal sealed partial class FarmingSystem
         };
         world.ReplaceEcologyResource(tree.Id, planted);
         world.SyncEcologyResourceStates();
-        world.AppendEvent("tree_replanted", $"{actor}:{tree.Id}:{tree.TreeKind}");
+        world.AppendEvent(new TreeReplantedEventPayload(actor, tree.Id, tree.TreeKind));
     }
 
     internal static TreePlantingResult PlantTreeCore(IFarmingWorld world, string planterId, string species, string seedLotId, GridPoint destination)
@@ -140,7 +140,7 @@ internal sealed partial class FarmingSystem
         world.PlantTree(tree, day, chunk);
         world.SyncEcologyResourceStates();
         world.RecordKnowledgeFact(planterId, destination);
-        world.AppendEvent("tree_planted", $"{planterId}:{tree.Id}:{species}");
+        world.AppendEvent(new TreePlantedEventPayload(planterId, tree.Id, species));
         return TreePlantingResult.Success(tree.Id, species);
     }
 
@@ -160,7 +160,7 @@ internal sealed partial class FarmingSystem
         }
         var result = PlantTreeCore(world, actor, orchard ? TreeGrowthRules.Orchard : PlantingSpecies(world, site), seed.Id, site);
         if (!result.Planted)
-            world.AppendEvent("tree_planting_refused", $"{actor}:{result.Refusal}");
+            world.AppendEvent(new TreePlantingRefusedEventPayload(actor, Convert.ToString(result.Refusal, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty));
     }
 
     /// <summary>

@@ -7,10 +7,9 @@ using ClankerWorld.Simulation.Kernel;
 namespace ClankerWorld.Server.Observation;
 
 /// <summary>
-/// Server-side projection of the world runtime and the fixture world. It converts the
-/// protected simulation records into stable view DTOs while retaining the
-/// distinction between the live fixture topology, cognition state, and paused
-/// authoring state.
+/// Server-side projection of the supported world runtime. It converts protected
+/// simulation records into stable owner views, including cognition and native
+/// world metadata.
 /// </summary>
 public sealed partial class OwnerWorldObservationStore
 {
@@ -244,7 +243,10 @@ public sealed partial class OwnerWorldObservationStore
                         HouseholdName(response.HouseholdId), response.AgentId, AgentName(response.AgentId), response.Kind, response.Tick,
                         response.PartyAdults.ToArray())).ToArray(), request.Status, request.SettledTick, request.Reason, request.Receipt?.AdjustmentId)
                 {
-                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity) : null,
+                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity)
+                    {
+                        ItemName = GoodsNameText.ForQuantity(price.ItemKind, price.Quantity, state.Content),
+                    } : null,
                     Payment = request.Receipt?.Payment is { } payment ? new(payment.BuyerAgentId, AgentName(payment.BuyerAgentId),
                         payment.SellerAgentId, AgentName(payment.SellerAgentId), ToPosition(payment.Position), request.Receipt.Tick) : null
                 };
@@ -280,7 +282,7 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     private const int AgentKnowledgeArtifactLimit = 8;
-    private const int RecentClosedInstructionLimitPerAgent = 6;
+    private const int RecentClosedInstructionLimitPerAgent = OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent;
     public const int RecentCivicProposalLimit = 8;
     public const int RecentSettledLandHearingLimit = 8;
     public const int RecentClosedLandTransferLimit = 8;
@@ -342,24 +344,25 @@ public sealed partial class OwnerWorldObservationStore
 
     public HandshakeView GetOwnerHandshake() => new(
         new ProtocolVersion(Major: 1, Minor: 1),
-        [.. OwnerServerCapabilities, "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
+        [.. OwnerServerCapabilities, "owner-event-presentation.v2", "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
         OwnerClientCapabilities.ToArray());
 
     public WorldSnapshotView GetSnapshot()
     {
-        var (state, diagnostics) = worldRuntime.ExportStateWithDiagnostics();
-        return ToSnapshot(state, diagnostics);
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        return ToSnapshot(state, diagnostics, retainedEvents);
     }
 
     public EventSliceView GetEventsAfter(long afterEventId)
     {
-        var state = worldRuntime.ExportState();
+        var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents);
         return new EventSliceView(
             state.Society.Society.WorldTick,
             afterEventId,
             state.Events
                 .Where(worldEvent => worldEvent.EventId > afterEventId)
-                .Select(ToEvent)
+                .Select(item => ToEvent(item, snapshot))
                 .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor);
     }
 
@@ -367,8 +370,8 @@ public sealed partial class OwnerWorldObservationStore
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
-        var (state, diagnostics, timeline) = worldRuntime.ExportObservation();
-        var snapshot = ToSnapshot(state, diagnostics, knownTerrainWorldId, knownTerrainDigest,
+        var (state, diagnostics, timeline, retainedEvents) = CapturePresentationObservation();
+        var snapshot = ToSnapshot(state, diagnostics, retainedEvents, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return new ReconnectBaselineView(
             snapshot,
@@ -377,7 +380,7 @@ public sealed partial class OwnerWorldObservationStore
                 afterEventId,
                 state.Events
                     .Where(worldEvent => worldEvent.EventId > afterEventId)
-                    .Select(ToEvent)
+                    .Select(item => ToEvent(item, snapshot))
                     .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor),
             new ObserverTimelineView(timeline.InstanceId, timeline.Generation));
     }
@@ -405,7 +408,7 @@ public sealed partial class OwnerWorldObservationStore
             state.Society.Society.Inventory.Events.Count == 0;
     }
 
-    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics,
+    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldEventEntry[] retainedEvents,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
@@ -425,7 +428,7 @@ public sealed partial class OwnerWorldObservationStore
                     recipe.Outputs.Any(output => output.ResourceId == "food")))
             .ToLookup(recipe => recipe.WorkstationBuildingId!, recipe => productionRecipes![recipe.CanonicalId], StringComparer.Ordinal);
         var inventoryLots = state.Society.Society.Inventory.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
-        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id, StringComparer.Ordinal);
+        var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id.Value, StringComparer.Ordinal);
         var activeAgents = state.Society.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active)
             .OrderBy(item => item.Id, StringComparer.Ordinal)
@@ -530,7 +533,8 @@ public sealed partial class OwnerWorldObservationStore
                 inventory.Where(item => item.Kind == "food").Sum(item => item.Quantity),
                 inventory.Where(item => item.Kind == "wood").Sum(item => item.Quantity));
         }
-        var jobs = state.WorldSimulation?.ProductionJobs.Concat(state.WorldSimulation.CropBuilds ?? []).ToArray() ?? [];
+        var jobs = state.WorldSimulation is { } jobSimulation
+            ? WorldHistory.ProductionJobsForInspection(jobSimulation) : [];
         var latestEventId = state.Events.Count == 0 ? 0 : state.Events[^1].EventId;
         var terrainUnchanged = state.Geography is not null &&
             string.Equals(knownTerrainWorldId, state.Society.Society.WorldId, StringComparison.Ordinal) &&
@@ -546,7 +550,7 @@ public sealed partial class OwnerWorldObservationStore
             ? WeatherRules.At(currentSystems,
                 weatherAnchor, map.Height)
             : WeatherKind.Clear;
-        return new WorldSnapshotView(
+        var snapshot = new WorldSnapshotView(
             state.Society.Society.WorldId,
             state.Society.Society.WorldTick,
             map.ManifestDigest,
@@ -602,7 +606,10 @@ public sealed partial class OwnerWorldObservationStore
                 .OrderBy(group => group.Key.Position.Y).ThenBy(group => group.Key.Position.X)
                 .ThenBy(group => group.Key.ItemKind, StringComparer.Ordinal).ThenBy(group => group.Key.OwnerId, StringComparer.Ordinal)
                 .Select(group => new GroundStockView(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
-                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))).ToArray(),
+                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))
+                {
+                    OwnerName = MarketOwnerName(group.Key.OwnerId),
+                }).ToArray(),
             WrapsEastWest = state.Geography?.WrapEastWest == true,
             Generation = state.Geography is { } geography
                 ? new WorldGenerationView(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),
@@ -934,6 +941,14 @@ public sealed partial class OwnerWorldObservationStore
                         .ToArray(),
                 })
                 .ToArray(),
+        };
+        return snapshot with
+        {
+            // Devices can retain different prefixes and coalesce model failures
+            // differently. Refresh every potentially visible cached row.
+            EventTexts = retainedEvents
+                .Where(NeedsCurrentEventText)
+                .ToDictionary(item => item.EventId, item => ToEvent(item, snapshot).Text),
         };
     }
 
@@ -1542,9 +1557,9 @@ public sealed partial class OwnerWorldObservationStore
     private static int LegacyTrustScore(WorldRuntimeState state, string ownerId, string subjectId) =>
         Math.Min(10, state.Society.Society.Memories.Where(memory => memory.OwnerId == ownerId &&
                 memory.SubjectId == subjectId && memory.TombstonedTick is null)
-            .Sum(memory => memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
+            .Sum(memory => memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
 
     private static AgentRelationshipView[] RelationshipsFor(
         WorldRuntimeState state,
@@ -1577,11 +1592,7 @@ public sealed partial class OwnerWorldObservationStore
             { Returning: false, OutingPath.Count: > 0, Goal: { Kind: "resource", OrderInstructionId: { } id } goal } exploration ||
             exploration.OutingPath[^1] != physical.Position)
             return null;
-        var instruction = (state.Instructions ?? []).Where(item =>
-                item.TargetAgentId == physical.AgentId && item.Kind == OwnerInstructionKind.Order &&
-                item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" } &&
-                !(state.CompletedInstructionIds ?? []).Contains(item.InstructionId, StringComparer.Ordinal))
-            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+        var instruction = WorldRuntime.FirstActiveOrderFor(state.Instructions ?? [], physical.AgentId);
         if (instruction is null || instruction.InstructionId != id || instruction.Task is not
             { Status: "doing", TargetResourceId: null, TargetPosition: null } order)
             return null;
@@ -1904,12 +1915,17 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static EventView ToEvent(WorldEventEntry worldEvent) => new(
+    private static EventView ToEvent(WorldEventEntry worldEvent, WorldSnapshotView snapshot)
+    {
+        var view = new EventView(
         worldEvent.EventId,
         worldEvent.WorldTick,
         worldEvent.Kind,
         worldEvent.Detail,
         worldEvent.Position is { } position ? ToPosition(position) : null);
+        view = view with { Payload = worldEvent.Payload };
+        return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
+    }
 
     private static CognitionView ToCognition(WorldRuntimeState state)
     {

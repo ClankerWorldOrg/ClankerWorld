@@ -59,7 +59,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             inventory = InventoryAuthority.AddLot(inventory, "repair-stock:" + material.ResourceId + ":" + new string('m', 100),
                 material.ResourceId, actor, material.Amount + 1);
         var priorLots = inventory.Lots.Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        var priorHolds = inventory.Reservations.Select(hold => hold.Id).ToHashSet(StringComparer.Ordinal);
+        var priorHolds = inventory.Reservations.Select(hold => hold.Id.Value).ToHashSet(StringComparer.Ordinal);
         state = state with
         {
             JevEnabled = false,
@@ -95,13 +95,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         if (borrowed)
             Assert.Contains(choices.Selected, row => row.Actor == actor && row.Choice == "repair_tool:" + stockId);
         var ids = world.Society.Inventory.Lots.Where(lot => !priorLots.Contains(lot.Id)).Select(lot => lot.Id)
-            .Concat(holds.Select(hold => hold.Id))
+            .Concat(holds.Select(hold => hold.Id.Value))
             .Concat(holds.Where(hold => !priorLots.Contains(hold.LotId)).Select(hold => hold.LotId)).ToList();
         if (order is not null)
         {
             var result = world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == order.InstructionId).Task!;
             Assert.Equal(("finished", 1), (result.Status, result.CompletedUnits));
-            ids.Add(Assert.IsType<string>(result.LastEffectId));
+            ids.Add(Assert.IsType<Identity>(result.LastEffectId).Value);
         }
         world.Pause();
         state = world.ExportState();
@@ -110,7 +110,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
             const string summary = "I remember nativereservationrepair work.";
             var checkpoint = SocietyRules.RecordSocialMemory(state.Society.Society,
-                new(id, actor, relative, summary, "private", world.WorldTick)).Checkpoint;
+                new(Identity.Parse(id), actor, relative, summary, "private", world.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));

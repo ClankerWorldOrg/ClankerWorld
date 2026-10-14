@@ -27,6 +27,22 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal("safe_idle", visible.PublicIntention.CandidateId);
         Assert.Equal(("cancelled", 0), (Order(loaded, receipt.InstructionId).Status, Order(loaded, receipt.InstructionId).CompletedUnits));
         loaded.Validate();
+
+        var exploration = Person(loaded, actor).Exploration!;
+        var inventory = loaded.Society.Inventory;
+        for (var index = 0; index < OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent; index++)
+            loaded.SubmitInstruction(new($"retire-purpose-{index}", "owner:test", actor, OwnerInstructionKind.Order, "dance"));
+        Assert.DoesNotContain(loaded.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
+        var retired = WorldRuntimeCodec.Encode(loaded.ExportState());
+        Assert.Equal(exploration with { Goal = null }, Person(loaded, actor).Exploration);
+        Assert.Equal(inventory, loaded.Society.Inventory);
+        using var retiredReplay = Restore(WorldRuntimeCodec.Decode(retired));
+        Assert.Equal(retired, WorldRuntimeCodec.Encode(retiredReplay.ExportState()));
+        loaded.Resume();
+        retiredReplay.Resume();
+        Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await retiredReplay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(loaded.ExportState()), WorldRuntimeCodec.Encode(retiredReplay.ExportState()));
     }
 
     private static void AssertPurpose(WorldRuntime world, string actor, string target)

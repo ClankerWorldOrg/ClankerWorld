@@ -11,7 +11,7 @@ internal sealed class SocietyBeliefValidationIndex
     internal SocietyBeliefValidationIndex(SocietyCheckpoint checkpoint,
         IReadOnlyDictionary<string, SocietyAgentBelief>? beliefsById = null)
     {
-        byId = beliefsById ?? checkpoint.AllBeliefs().ToDictionary(item => item.Id, StringComparer.Ordinal);
+        byId = beliefsById ?? checkpoint.AllBeliefs().ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         agents = checkpoint.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var belief in byId.Values)
         {
