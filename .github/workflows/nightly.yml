@@ -80,8 +80,8 @@ jobs:
         run: |
           sha="$(git rev-parse HEAD)"
           echo "sha=${sha}" >> "${GITHUB_OUTPUT}"
-          last="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate --slurp \
-            --jq '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""')"
+          releases="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate)"
+          last="$(jq -sr '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""' <<<"${releases}")"
           if [[ "${last}" == "${sha}" ]]; then
             echo "The newest nightly build already has ${sha}."
             echo "build=false" >> "${GITHUB_OUTPUT}"
@@ -131,9 +131,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api "repos/${GH_REPO}/releases?per_page=100" --paginate --slurp \
-            --jq "[.[][] | select(.tag_name | test(\"^v[0-9.]+-nightly\\\\.\"))] | sort_by(.created_at) | reverse | .[${KEEP_NIGHTLIES}:] | .[].tag_name" |
+          releases="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate)"
+          jq -sr --argjson keep "${KEEP_NIGHTLIES}" \
+            '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | reverse | .[$keep:] | .[].tag_name' <<<"${releases}" |
           while IFS= read -r tag; do
             echo "Removing ${tag}"
             gh release delete "${tag}" --yes --cleanup-tag
           done
+
+  model-work:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+      - name: Verify controlled model work with one processor
+        env:
+          DOTNET_PROCESSOR_COUNT: 1
+        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~ModelWorkHarnessTests

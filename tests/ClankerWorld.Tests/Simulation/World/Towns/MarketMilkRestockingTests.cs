@@ -27,7 +27,8 @@ public sealed class MarketMilkRestockingTests
             state = PaidMarketWorld.WithInventory(state, InventoryAuthority.Relocate(state.Society.Society.Inventory,
                 "milk-stock-control-" + boundary, Milk, household, 2,
                 storageBuildingId: boundary == "house" ? house.InstanceId : null,
-                carrierId: boundary == "carried" ? collector : null));
+                carrierId: boundary == "carried" ? collector : null,
+                holdAccess: state.Society.Society.Inventory.GetLot(Milk).Holds));
             source = house.Position;
         }
         state = PaidMarketWorld.At(Fresh(state), collector, source);

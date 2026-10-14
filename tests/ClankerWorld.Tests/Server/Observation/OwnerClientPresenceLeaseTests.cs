@@ -23,11 +23,11 @@ public sealed class OwnerClientPresenceLeaseTests
             using var service = new WorldRuntimeService(runtime,
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence);
             presence.RecordAuthenticatedReconnect("owner");
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             var committedTick = runtime.WorldTick;
             clock.Advance(TimeSpan.FromSeconds(5));
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.True(provider.ReceivedCancellation.IsCancellationRequested);
             Assert.Equal(committedTick, runtime.WorldTick);
             Assert.Contains(runtime.ExportState().Society.Cognition.Queue,
@@ -41,7 +41,7 @@ public sealed class OwnerClientPresenceLeaseTests
 
     private sealed class WaitingModelProvider : IDecisionProvider
     {
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public CancellationToken ReceivedCancellation { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
@@ -72,14 +72,13 @@ public sealed class OwnerClientPresenceLeaseTests
             using var service = new WorldRuntimeService(runtime,
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence, logger);
             presence.RecordAuthenticatedReconnect("owner");
-            Assert.True(await service.TryAdvanceOnceAsync());
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             for (var attempt = 0; attempt < 50 &&
                  !logger.Messages.Any(message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                      message.Contains("model_unavailable", StringComparison.Ordinal)); attempt++)
             {
-                await service.TryAdvanceOnceAsync();
-                await Task.Delay(10);
+                await service.AdvanceWithModelWorkAsync(runtime);
             }
             Assert.Contains(logger.Messages, message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                 message.Contains("model_unavailable", StringComparison.Ordinal));
@@ -97,7 +96,7 @@ public sealed class OwnerClientPresenceLeaseTests
     private sealed class ThrowingModelProvider : IDecisionProvider
     {
         public int Calls { get; private set; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(
@@ -127,12 +126,14 @@ public sealed class OwnerClientPresenceLeaseTests
                 new WorldStateFile(Path.Combine(directory, "world.json")), presence);
             using var lifetime = new CancellationTokenSource();
             presence.RecordAuthenticatedReconnect("owner");
+            var harness = ModelWorkHarness.For(runtime);
             var tick = service.TryAdvanceOnceAsync(lifetime.Token).AsTask();
             // This deterministic provider belongs to the uncommitted tick itself.
-            var completion = GrownAgentHelperMemoryTests.WaitForRequests(runtime, tick);
+            var completion = ModelWorkHarness.WaitForExistingAsync(runtime,
+                item => item.Transition.Kind == ModelWorkKind.Decision, tick);
             try
             {
-                await Task.WhenAny(provider.Started.Task, completion).WaitAsync(TimeSpan.FromSeconds(30));
+                await harness.WaitAsync(Task.WhenAny(provider.Started.Task, completion));
                 Assert.True(provider.Started.Task.IsCompleted, "The tick finished before provider entry.");
                 Assert.False(completion.IsCompleted);
                 if (manualPause)
@@ -144,7 +145,7 @@ public sealed class OwnerClientPresenceLeaseTests
                     clock.Advance(TimeSpan.FromSeconds(5));
                 }
                 var expected = WorldRuntimeCodec.Encode(runtime.ExportState());
-                await provider.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                await harness.WaitAsync(provider.Cancelled.Task);
                 Assert.True(provider.ReceivedCancellation.IsCancellationRequested);
                 if (deferCancellation)
                 {
@@ -178,10 +179,10 @@ public sealed class OwnerClientPresenceLeaseTests
 
     private sealed class WaitingProvider(bool deferCancellation) : IDecisionProvider, IDisposable
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> response = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> response = new();
         private readonly ConcurrentBag<CancellationTokenRegistration> registrations = [];
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new();
+        public InlineCompletionSource<bool> Cancelled { get; } = new();
         public CancellationToken ReceivedCancellation { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -250,15 +251,15 @@ public sealed class OwnerClientPresenceLeaseTests
             var logger = new RecordingLogger<WorldRuntimeService>();
             var service = new WorldRuntimeService(runtime, stateFile, presence, logger);
 
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(0, runtime.WorldTick);
 
             presence.RecordAuthenticatedReconnect("device-one");
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(1, runtime.WorldTick);
 
             runtime.Pause();
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(1, runtime.WorldTick);
             Assert.Contains(logger.Messages, message =>
                 message.Contains("world_tick_gate state=waiting_for_client", StringComparison.Ordinal));
@@ -272,13 +273,13 @@ public sealed class OwnerClientPresenceLeaseTests
             runtime.Resume();
             for (var tick = 0; tick < 20; tick++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
             }
             Assert.Contains(logger.Messages, message => message.Contains("project_activity", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("Cooking fire", StringComparison.Ordinal));
             var tickBeforeDisconnect = runtime.WorldTick;
             clock.Advance(TimeSpan.FromSeconds(5));
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(tickBeforeDisconnect, runtime.WorldTick);
         }
         finally
@@ -304,17 +305,17 @@ public sealed class OwnerClientPresenceLeaseTests
             var logger = new RecordingLogger<WorldRuntimeService>();
             var file = new WorldStateFile(Path.Combine(blocker, "world.json"));
             using var service = new WorldRuntimeService(runtime, file, presence, logger, failurePolicy: failurePolicy);
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(1, runtime.WorldTick);
             Assert.True(runtime.Society.IsPaused);
             runtime.Resume();
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(1, runtime.WorldTick);
             Assert.True(runtime.Society.IsPaused);
             Assert.Single(logger.Messages, message => message.Contains("held_for_write", StringComparison.Ordinal));
             File.Delete(blocker);
             Directory.CreateDirectory(blocker);
-            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.False(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(1, runtime.WorldTick);
             Assert.True(runtime.Society.IsPaused);
             Assert.True(File.Exists(file.Path));
@@ -322,7 +323,7 @@ public sealed class OwnerClientPresenceLeaseTests
             Assert.DoesNotContain(logger.Messages, message => message.Contains(directory, StringComparison.Ordinal) ||
                 message.Contains("secret-key", StringComparison.Ordinal));
             runtime.Resume();
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.Equal(2, runtime.WorldTick);
         }
         finally { Directory.Delete(directory, recursive: true); }

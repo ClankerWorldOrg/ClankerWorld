@@ -23,7 +23,7 @@ public sealed partial class PlayerRenameTests
         // A saved zero assessment cannot make the permanent rename fade; recent ordinary sources can be highly ranked.
         var assessments = ordinary.Take(255).Select(item => new SocietyAgentMemoryImportance(
             item.Id, SocietyMemorySourceKind.Experience, 0, 10_000, 10_000, 0)).Append(new(
-                history[^1].Id, SocietyMemorySourceKind.Experience, 0, 0, 0, 0)).OrderBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+                history[^1].Id, SocietyMemorySourceKind.Experience, 0, 0, 0, 0)).OrderBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         state = state with
         {
             JevEnabled = false,
@@ -32,7 +32,7 @@ public sealed partial class PlayerRenameTests
             {
                 Society = state.Society.Society with
                 {
-                    Memories = history.Concat(ordinary).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                    Memories = history.Concat(ordinary).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
                     MemoryCompactions = [new(First, assessments)],
                 },
             },

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -216,7 +217,7 @@ public sealed class FarmFieldTests
         {
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
                 Cognition = state.Society.Cognition with
                 {
                     Queue = [],
@@ -323,7 +324,7 @@ public sealed class FarmFieldTests
         state = WithInventory(state, inventory) with
         {
             Fields = [state.Fields!.Single() with { Stage = FarmFieldStage.Harvested, Cycle = 1,
-                ReplantingReservationId = "old-replanting" }],
+                ReplantingReservationId = Identity.Parse("old-replanting") }],
         };
         using var starting = Restore(state);
         Assert.True(starting.StartFieldWork(actor, point, FarmWorkKind.Plant, crop, "new-crop-seed").Accepted);
@@ -932,7 +933,7 @@ public sealed class FarmFieldTests
 
     internal static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
     {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
     internal static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new IdleProvider());
     internal static IDecisionProvider HaulProvider() => new ChooseProvider("haul_farm_grain", "haul_household_stock");

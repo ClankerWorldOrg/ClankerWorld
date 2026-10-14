@@ -51,8 +51,8 @@ public sealed class AgentLifeMomentIdentityTests
         for (var tick = 0; tick < 35 && !handler.RoutineBodies.Any(body =>
                      body.Contains("More willing to take chances", StringComparison.Ordinal)); tick++)
         {
-            await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(10);
+            await world.TickModelWorkAsync();
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.Contains(handler.RoutineBodies, body =>
             body.Contains("More willing to take chances", StringComparison.Ordinal) &&
@@ -62,7 +62,7 @@ public sealed class AgentLifeMomentIdentityTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Route(model));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Resume();
-        for (var tick = 0; tick < 12; tick++) await restored.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 12; tick++) await restored.TickModelWorkAsync();
         Assert.Equal(person.Personality, restored.Agents.Single(item => item.AgentId == ActorId).Personality);
         Assert.Single(handler.MomentBodies);
     }
@@ -80,12 +80,12 @@ public sealed class AgentLifeMomentIdentityTests
         using var world = WorldRuntime.Restore(MidlifeState(), Route(model));
         await UntilResolved(world);
         AssertKept(world);
-        for (var tick = 0; tick < 12; tick++) await world.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 12; tick++) await world.TickModelWorkAsync();
         world.Pause();
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), Route(model));
         restored.Resume();
-        for (var tick = 0; tick < 5; tick++) await restored.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 5; tick++) await restored.TickModelWorkAsync();
         AssertKept(restored);
         Assert.Single(handler.MomentBodies);
     }
@@ -99,19 +99,19 @@ public sealed class AgentLifeMomentIdentityTests
     {
         var provider = new HeldIdentityProvider();
         using var world = WorldRuntime.Restore(MidlifeState(), Route(provider));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Equal("requested", world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!.Single().Outcome);
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         if (interruption == "pause") world.Pause();
         else if (interruption == "disconnect" || interruption == "reload") world.CancelPendingModelCalls();
         else provider.Epoch++;
         provider.Release.TrySetResult(true);
-        await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
         using var restored = interruption == "reload" ? WorldRuntime.Restore(saved, Route(provider)) : null;
         var current = restored ?? world;
         current.Resume();
-        for (var tick = 0; tick < 8; tick++) await current.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 8; tick++) await current.TickModelWorkAsync();
         Assert.Equal(Personality, current.Agents.Single(item => item.AgentId == ActorId).Personality);
         Assert.Equal(Aspiration, current.Agents.Single(item => item.AgentId == ActorId).Aspiration);
         Assert.DoesNotContain(current.ExportState().Events, item => item.Kind == "agent_identity_revised");
@@ -125,7 +125,7 @@ public sealed class AgentLifeMomentIdentityTests
         var provider = new HeldIdentityProvider();
         using var world = WorldRuntime.Restore(MidlifeState(), Route(provider));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(0, provider.CallCount);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
     }
@@ -156,12 +156,12 @@ public sealed class AgentLifeMomentIdentityTests
         };
         var provider = new HeldIdentityProvider();
         using var world = WorldRuntime.Restore(state, Route(provider));
-        await world.AdvanceOneTickNonBlockingAsync();
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await world.TickModelWorkAsync();
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         provider.Release.TrySetResult(true);
-        await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        await Task.Delay(10);
-        await world.AdvanceOneTickNonBlockingAsync();
+        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
+        await ModelWorkHarness.For(world).SettleAsync();
+        await world.TickModelWorkAsync();
         var deceased = world.ExportState().DeceasedAgents!.Single(item => item.AgentId == ActorId);
         Assert.Equal(Personality, deceased.LastPhysical.Personality);
         Assert.Equal("interrupted", deceased.LastPhysical.IdentityMoments!
@@ -169,7 +169,7 @@ public sealed class AgentLifeMomentIdentityTests
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_identity_revised");
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), Route(provider));
-        for (var tick = 0; tick < 3; tick++) await restored.AdvanceOneTickNonBlockingAsync();
+        for (var tick = 0; tick < 3; tick++) await restored.TickModelWorkAsync();
         Assert.Equal(1, provider.CallCount);
         Assert.Equal("interrupted", restored.ExportState().DeceasedAgents!
             .Single(item => item.AgentId == ActorId).LastPhysical.IdentityMoments!
@@ -191,8 +191,8 @@ public sealed class AgentLifeMomentIdentityTests
             presence.RecordAuthenticatedReconnect("owner");
             for (var tick = 0; tick < 30 && !logger.Messages.Any(item => item.Contains("agent_identity_changed", StringComparison.Ordinal)); tick++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
-                await Task.Delay(10);
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.Contains(logger.Messages, item => item.Contains("agent_identity_changed", StringComparison.Ordinal) &&
                 item.Contains(ActorId, StringComparison.Ordinal));
@@ -262,8 +262,8 @@ public sealed class AgentLifeMomentIdentityTests
         using var world = WorldRuntime.Restore(state, Route(provider));
         for (var tickIndex = 0; tickIndex < 25 && provider.Calls.Count < 5; tickIndex++)
         {
-            await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(10);
+            await world.TickModelWorkAsync();
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         await UntilResolved(world);
         Assert.Equal(5, provider.Calls.Count);
@@ -273,7 +273,7 @@ public sealed class AgentLifeMomentIdentityTests
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), Route(provider));
         restored.Resume();
-        for (var index = 0; index < 8; index++) await restored.AdvanceOneTickNonBlockingAsync();
+        for (var index = 0; index < 8; index++) await restored.TickModelWorkAsync();
         Assert.Equal(5, provider.Calls.Count);
     }
 
@@ -353,17 +353,17 @@ public sealed class AgentLifeMomentIdentityTests
             using var handler = new IdentityHandler();
             var router = new ConfigurableDecisionProvider(configuration, new ClientFactory(handler), usageStore: usage);
             using var world = WorldRuntime.Restore(MidlifeState(), Route(router));
-            var paused = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var paused = new InlineCompletionSource<bool>(TaskCreationOptions.None);
             void PauseAtLimit()
             {
                 world.Pause();
                 paused.TrySetResult(true);
             }
             usage.LimitReached += PauseAtLimit;
-            await world.AdvanceOneTickNonBlockingAsync();
+            await world.TickModelWorkAsync();
             // Wait for the real accounting callback to finish pausing. A short
             // polling window raced the background provider on busy CI runners.
-            await paused.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await ModelWorkHarness.For(world).WaitAsync(paused.Task);
             Assert.True(world.Society.IsPaused);
             Assert.Single(handler.MomentBodies);
             Assert.Equal(1, usage.Capture().Attempts);
@@ -372,7 +372,7 @@ public sealed class AgentLifeMomentIdentityTests
             Assert.Equal("interrupted", Assert.Single(world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!).Outcome);
             usage.LimitReached -= PauseAtLimit;
             world.Resume();
-            for (var tick = 0; tick < 8; tick++) await world.AdvanceOneTickNonBlockingAsync();
+            for (var tick = 0; tick < 8; tick++) await world.TickModelWorkAsync();
             Assert.Single(handler.MomentBodies);
             Assert.Equal(1, usage.Capture().Attempts);
         }
@@ -429,14 +429,14 @@ public sealed class AgentLifeMomentIdentityTests
             Assert.Equal(1, writes);
             if (boundary == "admitted")
             {
-                await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
                 var saved = WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path));
                 Assert.Equal("requested", Assert.Single(saved.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Single(saved.Events, item => item.Kind == "agent_identity_moment_started" && item.Detail.StartsWith(ActorId, StringComparison.Ordinal));
                 world.Pause();
                 using var restored = file.LoadOrCreate(saved.WorldSeed);
                 restored.Resume();
-                for (var step = 0; step < 3; step++) await restored.AdvanceOneTickNonBlockingAsync();
+                for (var step = 0; step < 3; step++) await restored.TickModelWorkAsync();
                 Assert.Equal("interrupted", Assert.Single(restored.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Equal(1, provider.CallCount);
             }
@@ -448,7 +448,7 @@ public sealed class AgentLifeMomentIdentityTests
                 world.Pause();
                 file.Save(world);
                 world.Resume();
-                for (var step = 0; step < 3; step++) await world.AdvanceOneTickNonBlockingAsync();
+                for (var step = 0; step < 3; step++) await world.TickModelWorkAsync();
                 Assert.Equal("interrupted", Assert.Single(world.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Equal(0, provider.CallCount);
             }
@@ -501,10 +501,10 @@ public sealed class AgentLifeMomentIdentityTests
     {
         for (var attempt = 0; attempt < 35; attempt++)
         {
-            await world.AdvanceOneTickNonBlockingAsync();
+            await world.TickModelWorkAsync();
             if (world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments is { Count: > 0 } moments &&
                 moments.All(item => item.Outcome is not ("waiting" or "requested"))) return;
-            await Task.Delay(10);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         throw new TimeoutException("The synthetic life-moment reply did not complete.");
     }
@@ -558,9 +558,9 @@ public sealed class AgentLifeMomentIdentityTests
 
     private sealed class HeldIdentityProvider : IDecisionProvider
     {
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public int CallCount { get; private set; }
         public long Epoch { get; set; } = 1;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;

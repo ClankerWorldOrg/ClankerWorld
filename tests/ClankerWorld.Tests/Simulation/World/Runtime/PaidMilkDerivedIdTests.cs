@@ -23,7 +23,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             offer.State == DirectBarterState.Settled));
         Assert.All(trades, held =>
         {
-            Assert.InRange(held.Id.Length, 1, DerivedId.MaximumLength);
+            Assert.InRange(held.Id.Value.Length, 1, DerivedId.MaximumLength);
             Assert.Equal((1, InventoryReservationState.Completed), (held.Quantity, held.State));
         });
         Assert.Equal(3, restored.Society.Births.Count);
@@ -60,7 +60,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var operation = DerivedId.Create("native-resale:" + people[seller] + ":" + people[buyer] + ":" + round);
             var beforePayment = inventory.GetLot(payments[buyer]).Quantity;
             inventory = InventoryAuthority.CreateDirectBarterOffer(inventory,
-                new(operation, 1, people[seller], people[buyer], milk.Id, 1, payments[buyer], 1, inventory.WorldTick + 30));
+                new(Identity.Parse(operation), 1, people[seller], people[buyer], milk.Id, 1, payments[buyer], 1, inventory.WorldTick + 30));
             inventory = InventoryAuthority.AcceptDirectBarterOffer(inventory, operation, 1, people[seller]);
             Assert.Equal(DirectBarterState.Open, inventory.GetOffer(operation).State);
             Assert.Equal(people[seller], inventory.GetLot(milk.Id).OwnerId);

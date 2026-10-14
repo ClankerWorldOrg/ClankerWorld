@@ -11,6 +11,24 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Stock holds
+
+World schema 132 introduced optional typed holds to inventory lots and matching
+authorization to reservations. Each hold records a purpose and an exact holder;
+the inventory core checks both, including vessel families. Splits keep their
+effective holds when goods leave a vessel, and a saved reservation rechecks its
+authorization before consumption or barter settlement.
+
+World schema 133 requires matching holds for saved custody and promises.
+Delivery holders are destination buildings, borrowers and
+supply-trip holders are their actors, and Market holders are occupancy IDs.
+Strict world validation checks each hold against its corresponding saved promise
+and refuses a missing or inconsistent link. Hold lists have unique entries in purpose/holder order and
+participate in checkpoint bytes and inventory digests. Empty lists are omitted.
+Current-format reload and continued transitions retain the holds; refused
+operations leave the supplied checkpoint unchanged. Earlier alpha worlds are
+refused and preserved without migration. This number is provisional until merge.
+
 ## Mod content identities
 
 Content IDs use the 512-character import limit in
@@ -61,6 +79,14 @@ mod content identifiers and parsed action payloads retain their own contracts.
 The [generator inventory](derived-identities.md#executable-generator-inventory)
 describes the native transition, factory, save and recall evidence.
 
+
+Typed memory, reservation, offer and receipt handles retain their existing JSON
+string spelling, including strings in saved input lists. Save readers retain
+existing nonblank spellings; validation applies each record's original rules.
+This preserves legal long or control-containing inventory keys while keeping
+the stricter belief, receipt and repair-material checks. Complete provenance
+references keep their own limits. No fields, schema, spelling or migration
+change. See [Derived identities](derived-identities.md).
 
 ## Save-space warning
 
@@ -1247,7 +1273,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 131. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 133. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

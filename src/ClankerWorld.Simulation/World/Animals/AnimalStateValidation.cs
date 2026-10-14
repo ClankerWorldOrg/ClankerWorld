@@ -21,14 +21,14 @@ public sealed partial class WorldRuntime
                 values.Distinct(StringComparer.Ordinal).Count() != values.Length)
                 throw new InvalidDataException("Animal agent references must name unique, known people.");
         }
-        static void Unique(IEnumerable<string> ids)
+        static void Unique(IEnumerable<string?> ids)
         {
             var values = ids.ToArray();
             if (values.Any(value => !IdentityRules.Reference(value, DerivedId.MaximumLength)) || values.Distinct(StringComparer.Ordinal).Count() != values.Length)
                 throw new InvalidDataException("Animal identities and permissions must be unique, short identifiers.");
         }
         Unique(world.Animals.Select(animal => animal.Id));
-        Unique(world.Offers.Select(offer => offer.Id));
+        Unique(world.Offers.Select(offer => (string?)offer.Id));
         UniqueAgents(world.SupplyTrips.Select(trip => trip.ActorId));
         UniqueAgents(world.Animals.Select(animal => animal.RiderId).OfType<string>());
         UniqueAgents(world.Animals.Select(animal => animal.LeaderId).OfType<string>());
