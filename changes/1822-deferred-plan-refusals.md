@@ -1,0 +1,2 @@
+- A held reply for a planned choice now reaches its plain refusal when that choice disappears, instead of being dropped before the selected plan is checked.
+- A malformed reply keeps its safe idle fallback without the refused choice's plan metadata.

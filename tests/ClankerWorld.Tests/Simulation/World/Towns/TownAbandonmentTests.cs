@@ -337,6 +337,8 @@ public sealed partial class TownMembershipTests
         Assert.NotNull(model.Pending);
         Assert.Contains(settler, world.Towns.Single(town => town.Id == Second).ResidentIds);
         Assert.Contains(model.Pending!.Observation.Candidates, candidate => candidate.Id.StartsWith("town_salvage:", StringComparison.Ordinal));
+        var originalPlan = Assert.IsType<TownStockActionPlan>(model.Pending.Observation.Candidates
+            .Single(candidate => candidate.Id.StartsWith("town_salvage:", StringComparison.Ordinal)).ActionPlan);
         model.Resolve();
         var completed = false;
         for (var tick = 0; tick < 10 && !completed; tick++)
@@ -344,13 +346,21 @@ public sealed partial class TownMembershipTests
             await ModelWorkHarness.For(world).SettleAsync();
             var step = await world.TickModelWorkAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.PlanRefusal is not null) ||
+                step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == visitor);
+            if (step.Decisions.SingleOrDefault(decision => decision.AgentId == visitor && decision.PlanRefusal is not null) is { } refused)
+            {
+                Assert.Same(originalPlan, refused.ActionPlan);
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, refused.PlanRefusal!.Reason);
+            }
         }
         Assert.True(completed, "The host must process and refuse the previously valid salvage reply after revival.");
         Assert.Equal((Second, 4), (world.Society.Inventory.GetLot("delayed-stock").OwnerId,
             world.Society.Inventory.GetLot("delayed-stock").Quantity));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "town_stock_salvaged");
+        Assert.Single(world.ExportState().Events, item => item.Kind == "choice_refused" &&
+            item.Detail.StartsWith(world.Society.GetAgent(visitor).Name + " didn't", StringComparison.Ordinal));
         Assert.Equal([settler], world.Towns.Single(town => town.Id == Second).ResidentIds);
         Assert.Contains(visitor, world.Towns.Single(town => town.Id == First).ResidentIds);
         AssertRoundTrip(world);
