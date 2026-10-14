@@ -408,6 +408,8 @@ transitions and marriage cleanup remain their native commit path.
 Housing admission choices retain their request, House and adult electorate.
 Other members' answers can accumulate without changing that selection; a changed
 House, electorate or request receives the same check at all three boundaries.
+The House's definition and original placement tick stay bound if its ID is
+reused. Expanding that same House still uses the current capacity checks.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
@@ -622,7 +624,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 215 references across 59 files. Named delivery, hold and cargo operations
+is 190 references across 53 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
