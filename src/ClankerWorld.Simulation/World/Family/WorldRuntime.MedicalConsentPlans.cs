@@ -18,10 +18,10 @@ public sealed partial class WorldRuntime
                 ? person.MedicalTreatment.DoseReservationId : null);
     }
 
-    private ActionCheck CheckMedicalConsentPlan(MedicalConsentActionPlan plan)
+    private ActionCheck CheckMedicalConsentPlan(MedicalConsentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? MedicalCareCapabilities);
         if (!capability.Allowed) return capability;
         if (PendingInstructionFor(plan.Actor)?.Kind == OwnerInstructionKind.Order)
             return ActionCheck.Refuse(ActionRefusalReason.ActiveOrder, "their current order comes first");
@@ -49,8 +49,8 @@ public sealed partial class WorldRuntime
         var offered = 0;
         foreach (var caregiver in caregivers)
         {
-            var plan = PlanMedicalConsent(actor, new(caregiver, allow));
-            if (!CheckMedicalConsentPlan(plan).Allowed) continue;
+            var plan = MedicalConsentDefinition.Offer(this, actor, new(caregiver, allow));
+            if (plan is null) continue;
             var name = society.Checkpoint.GetAgent(caregiver).Name;
             candidates.Add(new(plan.CandidateId, allow
                 ? $"Allow {name} to provide medical care to you. Your personal choice is required."
@@ -63,7 +63,6 @@ public sealed partial class WorldRuntime
 
     private void ApplyMedicalConsentPlan(MedicalConsentActionPlan plan)
     {
-        if (CheckMedicalConsentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteMedicalConsent(plan);
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(plan.Actor, agents[plan.Actor], plan.CandidateId, false, plan));
     }
 }

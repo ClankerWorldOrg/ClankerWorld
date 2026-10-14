@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
         if (target.Refusal is { } refusal) return new(false, refusal.Explanation);
         var plan = PlanMedicalTreatment(caregiver, new(patient, kind), 1, allowBoat: true);
         if (plan is null) return new(false, MedicalSupplyFailure);
-        var check = CheckMedicalTreatmentPlan(plan);
+        var check = CheckActionPlan(plan);
         if (check.Refusal is { } unavailable) return new(false, unavailable.Explanation);
         return CompleteMedicalTreatment(caregiver, patient, kind, society.Checkpoint.Inventory.GetLot(plan.StockId));
     }
@@ -198,7 +198,7 @@ public sealed partial class WorldRuntime
         if (!LivingMedicalAdult(actor)) return;
         AddMedicalConsentCandidates(candidates, actor, allow: false);
         foreach (var patient in ObservableMedicalNeeds(actor))
-            if (PlanMedicalTreatment(actor, new(patient)) is { } plan && CheckMedicalTreatmentPlan(plan).Allowed)
+            if (MedicalTreatmentDefinition.Offer(this, actor, new(patient)) is { } plan)
                 candidates.Add(new(plan.CandidateId, "Apply one dose of medicine to support gradual illness recovery.", 7,
                     patient, society.Checkpoint.GetAgent(patient).Name)
                 { ActionPlan = plan });

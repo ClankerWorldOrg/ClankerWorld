@@ -1,0 +1,1 @@
+- Medical supply, treatment and consent now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows; consent remains limited to fresh admission and supply retains its pickup or return step.
