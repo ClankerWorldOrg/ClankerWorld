@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        TownFoundingActionPlan founding => townSystem.CheckTownFoundingPlan(civicWorld, founding),
         TownAdmissionActionPlan admission => townSystem.CheckTownAdmissionPlan(civicWorld, admission),
         CouncilBallotActionPlan councilBallot => TownSystem.CheckCouncilBallot(civicWorld, councilBallot),
         CouncilConsentActionPlan councilConsent => TownSystem.CheckCouncilConsent(civicWorld, councilConsent),

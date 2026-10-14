@@ -30,6 +30,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (TownFoundingChoice.Decode(candidate.Id) is { } founding)
+            {
+                if ((candidate.ActionPlan as TownFoundingActionPlan ?? PlanTownFounding(world, actor, founding)) is { } settlement &&
+                    CheckTownFoundingPlan(world, settlement).Allowed)
+                    candidates[index] = candidate with { ActionPlan = settlement };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (TownAdmissionChoice.Decode(candidate.Id) is { } admission)
             {
                 if ((candidate.ActionPlan as TownAdmissionActionPlan ?? PlanTownAdmission(world, actor, admission)) is { } joining &&

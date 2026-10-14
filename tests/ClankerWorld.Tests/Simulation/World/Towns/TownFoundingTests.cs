@@ -23,7 +23,12 @@ public sealed partial class TownMembershipTests
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var foundingStep = await world.AdvanceOneTickAsync();
+        Assert.True(foundingStep.Advanced);
+        var foundingPlan = Assert.IsType<TownFoundingActionPlan>(foundingStep.Decisions.Single(decision => decision.AgentId == founder).ActionPlan);
+        Assert.Equal(site, foundingPlan.Site);
+        Assert.Equal(foundingPlan.Choice, TownFoundingChoice.Decode(foundingPlan.CandidateId));
+        Assert.Equal(new[] { founder }.Concat(children).Order(StringComparer.Ordinal), foundingPlan.CareGroup);
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         var founded = Assert.Single(world.Towns, town => town.Id != First);
         Assert.Equal(site, founded.OriginSite);
@@ -57,6 +62,7 @@ public sealed partial class TownMembershipTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_founded" && item.Detail.StartsWith(founded.Id, StringComparison.Ordinal));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         AssertRoundTrip(world);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(foundingPlan).Refusal!.Reason);
     }
 
     [Theory]
