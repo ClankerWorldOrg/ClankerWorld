@@ -54,8 +54,6 @@ public sealed class SharedContractTests
     private static object? MakeValue(Type type, Dictionary<Type, object?> values)
     {
         if (Nullable.GetUnderlyingType(type) is { } underlying) return MakeValue(underlying, values);
-        if (type.IsAbstract)
-            return MakeValue(type.GetCustomAttributes<JsonDerivedTypeAttribute>().First().DerivedType, values);
         if (type == typeof(string)) return "Zoë 🌲 e\u0301";
         if (type == typeof(bool)) return true;
         if (type == typeof(DateTimeOffset)) return new DateTimeOffset(2026, 10, 13, 12, 30, 0, TimeSpan.Zero);
@@ -75,6 +73,8 @@ public sealed class SharedContractTests
             dictionary.Add(MakeValue(arguments[0], values)!, MakeValue(arguments[1], values));
             return dictionary;
         }
+        if (type.IsAbstract)
+            return MakeValue(type.GetCustomAttributes<JsonDerivedTypeAttribute>().First().DerivedType, values);
         values[type] = null;
         var constructor = type.GetConstructors().OrderByDescending(candidate => candidate.GetParameters().Length).First();
         var result = constructor.Invoke(constructor.GetParameters().Select(parameter => MakeValue(parameter.ParameterType, values)).ToArray());
