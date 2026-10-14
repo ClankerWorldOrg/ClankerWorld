@@ -92,6 +92,36 @@ public partial class Main
                         });
                 });
             }
+            await CheckAsync("model settings refresh retains provider controls", async host =>
+            {
+                ShowSettingsForCheck(worldSpecific: true);
+                if (agentModelPanel.GetParent() != worldSettingsContent)
+                    agentModelPanel.Reparent(worldSettingsContent, keepGlobalTransform: false);
+                agentModelTargetChoice.Show();
+                agentModelPanel.Show();
+                selectedAgentModelScroll.Hide();
+                settingsScroll.Show();
+                var saved = new OwnerProviderConfigurationStatus("deterministic", "deterministic", 0,
+                    [new("openai", "lifecycle-model", true)]);
+                providerConfiguration = saved;
+                host.ActionHandler = (path, _, _) => Task.FromResult<object?>(
+                    path == OwnerPairingEndpoints.OwnerProviderStatus ? saved : null);
+                PopulateAgentModelTargets();
+                agentModelTargetChoice.Select(0);
+                agentModelRoleChoice.Select(1);
+                PopulateProviderChoices("openai");
+                PopulateCredentialChoices();
+                RenderProviderConfiguration();
+                agentModelApiKeyInput.Text = "disposable-loopback-draft";
+                if (!agentModelProviderChoice.IsVisibleInTree() || !agentModelApiKeyInput.IsVisibleInTree())
+                    throw new InvalidOperationException($"The refresh regression needs visible planning-provider controls: provider={SelectedProviderId()}, role={SelectedRoleId()}, providerVisible={agentModelProviderChoice.IsVisibleInTree()}, keyVisible={agentModelApiKeyInput.IsVisibleInTree()}.");
+                refreshAgentModelProviderButton.GrabFocus();
+                await RefreshProviderConfigurationAsync();
+                if (SelectedProviderId() != "openai" || !agentModelPicker.Visible ||
+                    !agentModelApiKeyInput.Visible || agentModelApiKeyInput.Text != "disposable-loopback-draft" ||
+                    !host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus))
+                    throw new InvalidOperationException($"Refreshing model settings must keep the provider draft and render its model/key controls: provider={SelectedProviderId()}, picker={agentModelPicker.Visible}, keyVisible={agentModelApiKeyInput.Visible}, draftKept={agentModelApiKeyInput.Text == "disposable-loopback-draft"}, read={host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus)}, status={statusLabel.Text}.");
+            });
             await CheckAsync("obsolete key save feedback", async host =>
             {
                 ShowSettingsForCheck(worldSpecific: false);

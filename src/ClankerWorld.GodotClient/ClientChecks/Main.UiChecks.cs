@@ -996,6 +996,7 @@ public partial class Main
         {
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
+            await VerifyPanelDraftPreservationAsync();
             await VerifyNewcomerOfferAsync();
             await VerifyAcknowledgedAgentPlacementAsync();
             VerifyOrnamentPresentation();
@@ -4253,7 +4254,7 @@ public partial class Main
                 "First Town recorded a mayoral election or office change. See the Towns page for its result.",
             ];
             var visibleRows = eventRows.GetChildren().OfType<HBoxContainer>()
-                .SelectMany(row => row.GetChildren().OfType<Label>()).Select(label => label.Text).ToArray();
+                .SelectMany(row => row.GetChildren().OfType<Label>()).Select(CaptionForChecks).ToArray();
             var missingDecisions = civicDecisions.Where(text => !visibleRows.Contains(text, StringComparer.Ordinal)).ToArray();
             if (missingDecisions.Length > 0)
                 throw new InvalidOperationException("The Event Log omitted civic decisions: " + string.Join("; ", missingDecisions));

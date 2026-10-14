@@ -463,7 +463,7 @@ public partial class Launcher : Control
         var line = new HBoxContainer();
         line.AddThemeConstantOverride("separation", 8);
         var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        text.AddChild(new Label { Text = name });
+        text.AddChild(new FittedLabel { Text = name });
         var small = new Label { Text = detail, AutowrapMode = TextServer.AutowrapMode.WordSmart };
         small.AddThemeColorOverride("font_color", UiTheme.Current.InkMuted);
         text.AddChild(small);
