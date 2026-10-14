@@ -156,6 +156,35 @@ public partial class Main
                             throw new InvalidOperationException("Closing/reopening Manual Saves must bind the pending request to its original panel revision.");
                     });
             });
+            await CheckAsync("obsolete founder map placement", async host =>
+            {
+                pauseMenuPanel.Hide();
+                providerConfiguration = providers;
+                PopulateFounderCredentials();
+                founderModelPicker.SetModel("lifecycle-model", isNewAgent: true);
+                founderSetupPanel.Show();
+                GetViewport().GuiReleaseFocus();
+                if (GetViewport().GuiGetFocusOwner() is not null)
+                    throw new InvalidOperationException("Mouse map placement must begin after actual focus release.");
+                await HeldAsync(host, OwnerPairingEndpoints.OwnerFounderPlace,
+                    new OwnerFounderPlacementReceipt("placed-founder", "lifecycle-household", 2, 4), false,
+                    // This is the async handler dispatched by ActivateMapTile after mouse focus release.
+                    () => PlaceFounderAtAsync(new(0, 0)),
+                    () =>
+                    {
+                        founderSetupPanel.Hide();
+                        founderSetupPanel.Show();
+                        founderModelSetupCheckStatus.Text = "Replacement founder form";
+                        SetStatus("Replacement founder screen", good: true);
+                    },
+                    () =>
+                    {
+                        if (!founderSetupPanel.Visible || founderModelSetupCheckStatus.Text != "Replacement founder form" ||
+                            statusLabel.Text != "Replacement founder screen" ||
+                            host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus))
+                            throw new InvalidOperationException("An obsolete map placement must keep its explicit sending form and skip its provider follow-up.");
+                    });
+            });
             foreach (var selected in new[] { false, true })
                 await CheckAsync($"founder undo / selected={selected}", async host =>
                 {

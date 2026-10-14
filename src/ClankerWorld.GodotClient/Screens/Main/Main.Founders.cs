@@ -406,7 +406,7 @@ public partial class Main
                     return $"{detail} · Model settings could not be refreshed. Open World Settings to refresh them.";
                 }
                 return detail;
-            }, conflictMessage: "The placement changed. Check the tile and try again.");
+            }, conflictMessage: "The placement changed. Check the tile and try again.", sendingPanel: founderSetupPanel);
             if (contextRetained && placed)
             {
                 placingAddedAgent = false;
@@ -469,7 +469,7 @@ public partial class Main
                     ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
                 PopulateFounderCredentials();
                 return $"Founder {receipt.Placed}/{receipt.Required} placed · joins {GameUiText.PartyName(snapshot, receipt.HouseholdId)}";
-            });
+            }, sendingPanel: founderSetupPanel);
         }
         finally
         {

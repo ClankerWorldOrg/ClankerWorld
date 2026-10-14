@@ -330,9 +330,9 @@ public partial class Main
         }
     }
 
-    private Func<bool> CaptureOwnerRequestPanel()
+    private Func<bool> CaptureOwnerRequestPanel(Control? sendingPanel = null)
     {
-        var panel = GetViewport().GuiGetFocusOwner();
+        var panel = sendingPanel ?? GetViewport().GuiGetFocusOwner();
         while (panel is not null && !ownerPanelRevisions.ContainsKey(panel)) panel = panel.GetParent() as Control;
         var revision = panel is null ? 0 : ownerPanelRevisions[panel];
         var agent = selectedAgentId;
@@ -342,11 +342,11 @@ public partial class Main
     }
 
     private async Task<T> RunOwnerLifecycleAsync<T>(Func<Task<T>> action, Action<bool> setBusy,
-        bool bindPanel = true, bool bindWorld = true)
+        bool bindPanel = true, bool bindWorld = true, Control? sendingPanel = null)
     {
         var generation = observationSession.RequestGeneration;
         var owner = registration;
-        var panelIsCurrent = CaptureOwnerRequestPanel();
+        var panelIsCurrent = CaptureOwnerRequestPanel(sendingPanel);
         var runner = new OwnerRequest<T>(() => ReferenceEquals(owner, registration) &&
             (!bindWorld || IsCurrentWorldRequest(generation)) && (!bindPanel || panelIsCurrent()), setBusy);
         return await runner.RunAsync(async context =>
@@ -367,7 +367,7 @@ public partial class Main
 
     // A skipped or obsolete request cannot authorize follow-up UI changes.
     private async Task<bool> RunOwnerActionAsync(Func<Task<string>> action, bool waitForTurn = false,
-        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null, bool changesTimeline = false)
+        string? conflictMessage = null, OwnerPendingSubmission? retainedSubmission = null, bool changesTimeline = false, Control? sendingPanel = null)
     {
         var generation = observationSession.RequestGeneration;
         if (!IsCurrentWorldRequest(generation)) return false;
@@ -385,7 +385,7 @@ public partial class Main
                     SetStatus(detail, good: true);
                     await RefreshAsync();
                     return true;
-                }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline);
+                }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline, sendingPanel: sendingPanel);
             }
             catch (ObsoleteOwnerRequestException) { return; }
             catch (System.Net.Http.HttpRequestException exception)
