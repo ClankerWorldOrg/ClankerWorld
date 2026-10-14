@@ -31,10 +31,9 @@ public sealed partial class WorldRuntime
                 checked(harvest!.Quantity + harvest.TreeSeedQuantity), range));
     }
 
-    private ActionCheck CheckProjectAssistance(ProjectAssistanceActionPlan plan)
+    private ActionCheck CheckProjectAssistance(ProjectAssistanceActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? ProjectMaterialCapabilities);
         if (!capability.Allowed) return capability;
         var house = HouseForHousehold(plan.OwnerId);
         if (!agents.TryGetValue(plan.RequesterId, out var requester) || requester.Project is not { } project ||

@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed record BuildingMaterialChoice(string ItemKind)
 {
     public const string Prefix = "gather_building_material:";
+    public static BuildingMaterialChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
+        ? new(candidate[Prefix.Length..]) : null;
     public string Encode() => Prefix + ItemKind;
 }
 

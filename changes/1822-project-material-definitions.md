@@ -1,0 +1,1 @@
+- Household building preparation and project assistance now bind their typed codecs, planners, capability policy, shared checks and native effects to ordered action rows, retaining requested materials, recipients and loads.
