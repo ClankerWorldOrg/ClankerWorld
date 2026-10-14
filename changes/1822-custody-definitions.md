@@ -1,0 +1,1 @@
+- Personal collection, storage, borrowed-item returns and house-guest permissions now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining exact stock families and invitation targets.

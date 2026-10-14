@@ -160,6 +160,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Personal collection, storage, borrowed-item returns and house-guest permissions
+own their typed codecs, planners, capability policies, checks and native
+application in ordered action rows. The retained custody mode or invitation
+source keeps the existing limits on boat travel; automatic borrowed-item
+returns keep their age exception.
+
 Housing, learning, departure, replacement care, relocation and household work
 own their typed codecs, planners, capability policies, checks and native
 application in ordered action rows. Their retained plans keep the selected

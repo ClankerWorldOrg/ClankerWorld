@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
     {
         var plan = originalPlan ?? PlanHouseGuest(actor, new(guestId, invited), houseId, offeredChoice: false);
         if (plan is null) return new(false, "Only an adult member of the House's household can invite or revoke a guest.");
-        if (CheckHouseGuest(plan).Refusal is { } refusal)
+        if (CheckActionPlan(plan).Refusal is { } refusal)
             return new(false, refusal.Reason is ActionRefusalReason.ActorUnavailable or ActionRefusalReason.LifeStage
                 ? "Only an adult member of the House's household can invite or revoke a guest." : refusal.Explanation);
         var existing = (worldSimulation.GuestInvitations ?? []).SingleOrDefault(item =>
@@ -56,8 +56,8 @@ public sealed partial class WorldRuntime
                      !HasHouseGuestInvitation(person.AgentId, house.InstanceId) &&
                      IsWithinInteractionRange(agents[actor].Position, person.Position, 2))
                  .OrderBy(person => person.AgentId, StringComparer.Ordinal)
-                 .Select(person => PlanHouseGuest(actor, new(person.AgentId, true)))
-                 .Where(plan => plan is not null && CheckHouseGuest(plan).Allowed).Take(4))
+                 .Select(person => HouseGuestDefinition.Offer(this, actor, new(person.AgentId, true)))
+                 .Where(plan => plan is not null).Take(4))
             candidates.Add(new(plan!.CandidateId,
                 $"Invite {plan.GuestName} to shelter in the House during storms, without stock or cooking access.",
                 110, plan.Choice.GuestId)
@@ -65,8 +65,8 @@ public sealed partial class WorldRuntime
         foreach (var invitation in (worldSimulation.GuestInvitations ?? []).Where(item =>
                      item.HouseInstanceId == house.InstanceId && item.Active && agents.ContainsKey(item.GuestId)))
         {
-            var plan = PlanHouseGuest(actor, new(invitation.GuestId, false));
-            if (plan is not null && CheckHouseGuest(plan).Allowed)
+            var plan = HouseGuestDefinition.Offer(this, actor, new(invitation.GuestId, false));
+            if (plan is not null)
                 candidates.Add(new(plan.CandidateId,
                     $"End {plan.GuestName}'s invitation to shelter in the House.", 110, invitation.GuestId)
                 { ActionPlan = plan });

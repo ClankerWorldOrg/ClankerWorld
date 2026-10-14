@@ -63,11 +63,7 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "replacement_care", [ReplacementCareChoice.Prefix], [], Definition: ReplacementCareDefinition),
         new(ActionPhase.Ordinary, "household_resume", [HouseholdResumeChoice.Prefix], [], Definition: HouseholdResumeDefinition),
         new(ActionPhase.Ordinary, "relocation", [], [RelocationChoice.Id], Definition: RelocationDefinition),
-        new(ActionPhase.Ordinary, "household_", ["household_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyHousingCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "household_", ["household_"], [], Definition: PersonalGoodsDefinition),
         new(ActionPhase.Ordinary, "learn:", ["learn:", "lesson_"], [], Definition: LearningDefinition),
         RegisterCivicPersonalActions(),
         new(ActionPhase.Ordinary, "IsTownProjectDonationCandidate", [], [], static (runtime, action) =>
@@ -139,11 +135,7 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "FillWaterJugPrefix", [VesselChoice.FillPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.FillJug)),
         new(ActionPhase.Ordinary, "GatherBuildingMaterialPrefix", [BuildingMaterialChoice.Prefix], [], Definition: BuildingMaterialDefinition),
         new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpansionChoice.Prefix], [], Definition: ExpansionDefinition),
-        new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyHouseGuest(action.AgentId, action.CandidateId, action.Plan as HouseGuestActionPlan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], Definition: HouseGuestDefinition),
         new(ActionPhase.Ordinary, "recipe", [], [], Definition: RecipeActionDefinition),
         new(ActionPhase.Ordinary, "build:", ["build:"], [], Definition: ConstructionDefinition),
         new(ActionPhase.Ordinary, "assist:", [ProjectAssistanceChoice.Prefix], [], Definition: ProjectAssistanceDefinition),

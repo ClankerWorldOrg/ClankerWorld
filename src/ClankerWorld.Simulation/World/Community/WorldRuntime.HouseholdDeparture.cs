@@ -331,8 +331,8 @@ public sealed partial class WorldRuntime
                 // Knowledge safely stored at home is not a recovery errand.
                 // Keep collection available to a deliberate choice without
                 // making the built-in chooser undo its own storage next tick.
-                var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Collect, lot.Id));
-                if (plan is not null && CheckPersonalGoods(plan).Allowed)
+                var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Collect, lot.Id));
+                if (plan is not null)
                     candidates.Add(new(plan.CandidateId,
                         $"Physically collect your own {lot.ItemKind.Replace('_', ' ')}; other household stock remains private.",
                         knowledgeAtHome ? lot.ItemKind == "book" ? 190 : 110 : 20)
@@ -346,8 +346,8 @@ public sealed partial class WorldRuntime
             var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
                 PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse && DestinationRoom(ownHouse.InstanceId) > 0;
             if (!foreign && !own) continue;
-            var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Return, lot.Id));
-            if (plan is not null && CheckPersonalGoods(plan).Allowed)
+            var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Return, lot.Id));
+            if (plan is not null)
                 candidates.Add(new(plan.CandidateId, foreign
                     ? $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household."
                     : $"Carry your household's {lot.ItemKind.Replace('_', ' ')} back to its House.", 22)
@@ -357,8 +357,8 @@ public sealed partial class WorldRuntime
         {
             foreach (var lot in PersonalStorageLots(actor, house.InstanceId))
             {
-                var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Store, lot.Id));
-                if (plan is not null && CheckPersonalGoods(plan).Allowed)
+                var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Store, lot.Id));
+                if (plan is not null)
                     candidates.Add(new(plan.CandidateId, $"Store your own {lot.ItemKind.Replace('_', ' ')} in your House while keeping personal ownership.",
                         KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110)
                     { ActionPlan = plan });
