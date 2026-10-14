@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
     }
 
     private CognitionCandidate WaitingCandidate(string actor, string text) =>
-        new(WaitingDefinition.Encode(new()), text, 100) { ActionPlan = WaitingDefinition.Plan(this, actor, new()) };
+        new(WaitingDefinition.Encode(new()), text, 100) { ActionPlan = WaitingDefinition.Offer(this, actor, new()) };
 
     private bool ApplyWaiting(ActionContext action, WaitingActionPlan plan, bool beforeAge)
     {

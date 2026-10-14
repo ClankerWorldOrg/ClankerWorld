@@ -24,9 +24,11 @@ public sealed partial class WorldRuntime
     {
         public override Type PlanType => typeof(TPlan);
 
-        public TPlan? Plan(WorldRuntime world, string actor, TChoice choice)
+        public TPlan? Plan(WorldRuntime world, string actor, TChoice choice) => PlanChoice(world, actor, choice, Capabilities);
+
+        public TPlan? Offer(WorldRuntime world, string actor, TChoice choice)
         {
-            var plan = PlanChoice(world, actor, choice, Capabilities);
+            var plan = Plan(world, actor, choice);
             return plan is not null && CheckPlan(world, plan, Capabilities).Allowed ? plan : null;
         }
 
