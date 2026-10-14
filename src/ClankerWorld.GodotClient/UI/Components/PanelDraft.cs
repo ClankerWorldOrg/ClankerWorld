@@ -54,8 +54,9 @@ public sealed class PanelDraft : IDisposable
                 restore.Add(() =>
                 {
                     if (!GodotObject.IsInstanceValid(choice)) return;
+                    using var identity = new Godot.Collections.Array { metadata };
                     for (var index = 0; index < choice.ItemCount; index++)
-                        if (choice.GetItemMetadata(index).Equals(metadata) &&
+                        if (identity.Contains(choice.GetItemMetadata(index)) &&
                             (metadata.VariantType != Variant.Type.Nil || choice.GetItemId(index) == id))
                         { choice.Select(index); break; }
                 });

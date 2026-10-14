@@ -16,6 +16,8 @@ public partial class Main
         using var choice = new OptionButton();
         choice.AddItem("First", 1);
         choice.AddItem("Second", 2);
+        choice.SetItemMetadata(0, "first");
+        choice.SetItemMetadata(1, "second");
         choice.Select(1);
         panel.AddChild(name);
         panel.AddChild(message);
@@ -31,6 +33,8 @@ public partial class Main
             choice.Clear();
             choice.AddItem("Second", 2);
             choice.AddItem("First", 1);
+            choice.SetItemMetadata(0, "second");
+            choice.SetItemMetadata(1, "first");
             choice.Select(1);
         }
         if (name.Text != "Zoë 🌲 de la Montaña" || name.CaretColumn != 4 ||
