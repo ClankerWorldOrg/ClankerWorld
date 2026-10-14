@@ -242,6 +242,7 @@ internal sealed partial class TownSystem
         var transferProposalPlan = originalPlan as LandTransferProposalActionPlan;
         var transferResponsePlan = originalPlan as LandTransferResponseActionPlan;
         var landSaleCollectionPlan = originalPlan as LandSaleCollectionActionPlan;
+        var landSaleExchangePlan = originalPlan as LandSaleExchangeActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -285,6 +286,12 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (LandSaleExchangeChoice.Decode(selectedId) is { } exchangeChoice)
+        {
+            landSaleExchangePlan ??= PlanLandSaleExchange(world, actor, exchangeChoice);
+            if (landSaleExchangePlan is null) return;
+            if (CheckLandSaleExchange(world, landSaleExchangePlan).Refusal is { } refusal) { world.RefuseChoice(landSaleExchangePlan, refusal); return; }
         }
         else if (LandSaleCollectionChoice.Decode(selectedId) is { } collectionChoice)
         {
@@ -396,7 +403,7 @@ internal sealed partial class TownSystem
             else if (parts[2].StartsWith("land_transfer_", StringComparison.Ordinal))
             {
                 var transferUpdate = ApplyTownLandTransferAction(world, town with { Council = state, Government = government },
-                    actor, parts[2], parts[3], parts[4], landTiles, hearingChoice, state, transferProposalPlan, transferResponsePlan, landSaleCollectionPlan);
+                    actor, parts[2], parts[3], parts[4], landTiles, hearingChoice, state, transferProposalPlan, transferResponsePlan, landSaleCollectionPlan, landSaleExchangePlan);
                 state = transferUpdate.Council;
                 town = town with { LandRecords = transferUpdate.LandRecords };
                 SetTown(world, town with { Council = state, Government = government });

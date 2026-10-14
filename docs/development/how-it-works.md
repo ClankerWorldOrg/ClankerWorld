@@ -487,6 +487,10 @@ The shared native transfer validator checks those terms before publication.
 Accepted sale collection retains its household stock, exact pickup quantity
 and notice place. The same check verifies consent, usable goods, reserves and
 carrying room for that selected load before collection.
+Sale travel retains the notice place and household role. Payment retains its
+exact personal goods lots and quantities and the actual seller at that place;
+arrival or a newly arrived seller requires a fresh personal payment choice.
+The native exchange publishes its goods and permission changes together.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.

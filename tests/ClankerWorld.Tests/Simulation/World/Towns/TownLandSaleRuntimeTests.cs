@@ -54,6 +54,7 @@ public sealed partial class TownLandTransferRuntimeTests
             restored.SubmitInstruction(new("sale-payment-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestion,
                 "Consider bringing the actual agreed goods to the notice place to finish the accepted land-use sale."));
         var collectionPlans = new List<LandSaleCollectionActionPlan>();
+        var exchangePlans = new List<LandSaleExchangeActionPlan>();
         for (var tick = 0; tick < 100 && restored.Towns[0].LandRecords.Transfers[0].Status == "pending"; tick++)
         {
             var unchanged = WorldRuntimeCodec.Encode(restored.ExportState());
@@ -72,6 +73,14 @@ public sealed partial class TownLandTransferRuntimeTests
                 Assert.InRange(plan.Quantity, 1, pending.Price!.Quantity);
                 collectionPlans.Add(plan);
             }
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is LandSaleExchangeActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<LandSaleExchangeActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, LandSaleExchangeChoice.Decode(plan.CandidateId));
+                Assert.Equal(pending.Id, plan.Request.Id);
+                Assert.Equal(pending.Price, plan.Request.Price);
+                exchangePlans.Add(plan);
+            }
         }
         Assert.True(restored.Towns[0].LandRecords.Transfers[0].Status == "transferred",
             string.Join("\n", provider.Selected.TakeLast(24)) + "\n" + JsonSerializer.Serialize(restored.ExportState().Agents.Select(person => new { person.AgentId, person.Position, person.MoveWaitTicks })) +
@@ -79,6 +88,13 @@ public sealed partial class TownLandTransferRuntimeTests
         var completed = Assert.Single(restored.Towns[0].LandRecords.Transfers);
         var payment = Assert.IsType<TownLandSalePayment>(completed.Receipt!.Payment);
         Assert.Equal(2, payment.Lots.Sum(lot => lot.Quantity));
+        var paidPlan = Assert.Single(exchangePlans, plan => plan.Stage == LandSaleExchangeStage.Exchange);
+        Assert.Equal(LandSaleExchangeKind.Pay, paidPlan.Choice.Kind);
+        Assert.Equal(payment.BuyerAgentId, paidPlan.Actor);
+        Assert.Equal(payment.SellerAgentId, paidPlan.Seller);
+        Assert.Equal(payment.Position, paidPlan.NoticePlace);
+        Assert.Equal(payment.Lots.Select(lot => new LandSalePaymentStock(lot.SourceLotId, lot.Quantity)), paidPlan.Goods);
+        Assert.All(exchangePlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, restored.CheckActionPlan(plan).Refusal!.Reason));
         Assert.Equal(sellerWood + 2, restored.Society.Inventory.Lots.Where(lot => lot.OwnerId == provider.SourceHouseholdId && lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.Equal(totalWood, restored.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.All(provider.Plot, tile => Assert.Contains(restored.HouseholdLandUseRights, right => right.HouseholdId == provider.TargetHouseholdId && right.Tiles.Contains(tile)));
@@ -256,7 +272,17 @@ public sealed partial class TownLandTransferRuntimeTests
         var before = world.ExportState();
         world.SubmitInstruction(new("sale-meeting-payment", "owner:test", Beneficiary, OwnerInstructionKind.Suggestion,
             "Consider paying the accepted price to the seller adult at the notice place."));
-        for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var waitingPlans = new List<LandSaleExchangeActionPlan>();
+        for (var tick = 0; tick < 8; tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            waitingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandSaleExchangeActionPlan && decision.Admission.Accepted)
+                .Select(decision => Assert.IsType<LandSaleExchangeActionPlan>(decision.ActionPlan)));
+        }
+        Assert.NotEmpty(waitingPlans);
+        Assert.All(waitingPlans, plan => Assert.Null(plan.Seller));
+        Assert.Contains(waitingPlans, plan => plan.Choice.Kind == LandSaleExchangeKind.Pay && plan.Stage == LandSaleExchangeStage.Wait);
         Assert.Contains(provider.Selected, choice => choice.Contains("|land_transfer_pay|", StringComparison.Ordinal));
         var unpaid = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("pending", unpaid.Status);
