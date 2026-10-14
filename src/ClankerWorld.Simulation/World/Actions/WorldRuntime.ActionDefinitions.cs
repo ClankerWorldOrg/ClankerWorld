@@ -9,6 +9,7 @@ public sealed partial class WorldRuntime
     private abstract record ActionDefinition
     {
         public abstract Type PlanType { get; }
+        public abstract bool Matches(string candidate);
         public abstract ActionCheck Check(WorldRuntime world, ActionPlan plan);
         public abstract bool Apply(WorldRuntime world, ActionContext context, ActionPhase phase);
     }
@@ -23,6 +24,7 @@ public sealed partial class WorldRuntime
         where TPlan : ActionPlan
     {
         public override Type PlanType => typeof(TPlan);
+        public override bool Matches(string candidate) => Decode(candidate, out _);
 
         public TPlan? Plan(WorldRuntime world, string actor, TChoice choice) => PlanChoice(world, actor, choice, Capabilities);
 
@@ -49,9 +51,14 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private static readonly Lazy<FrozenDictionary<Type, ActionDefinition>> RegisteredActionDefinitions = new(BuildRegisteredActionDefinitions);
+    private static readonly Lazy<FrozenDictionary<Type, ActionDefinition[]>> RegisteredActionDefinitions = new(BuildRegisteredActionDefinitions);
 
-    private static FrozenDictionary<Type, ActionDefinition> BuildRegisteredActionDefinitions() =>
+    private static FrozenDictionary<Type, ActionDefinition[]> BuildRegisteredActionDefinitions() =>
         ActionRegistrations.Where(row => row.Definition is not null).Select(row => row.Definition!)
-            .Distinct().ToFrozenDictionary(definition => definition.PlanType);
+            .Distinct().GroupBy(definition => definition.PlanType)
+            .ToFrozenDictionary(group => group.Key, group => group.ToArray());
+
+    private static ActionDefinition? DefinitionFor(ActionPlan plan) =>
+        RegisteredActionDefinitions.Value.TryGetValue(plan.GetType(), out var definitions)
+            ? definitions.FirstOrDefault(definition => definition.Matches(plan.CandidateId)) : null;
 }
