@@ -114,6 +114,74 @@ public sealed class EventPresentationRegressionTests
         }
     }
 
+    [Fact]
+    public void LaterProjectionCannotEvictTheEarlierCapturesVisibleRow()
+    {
+        var directory = Directory.CreateTempSubdirectory("clanker-event-presentation-capture-");
+        try
+        {
+            using var world = NormalPathWorld.CreateGenerated("event-presentation-capture", _ => new DeterministicDecisionProvider());
+            world.Pause();
+            var founder = NormalPathWorld.Founder1;
+            Assert.True(world.RenameAgent(founder, "Aster Vale"));
+            world.SubmitInstruction(new OwnerInstructionRequest("capture-event-text", "owner", founder, OwnerInstructionKind.Order, "dance"));
+            var store = new OwnerWorldObservationStore(world);
+            var initial = store.GetReconnectBaseline(0);
+            var row = initial.Events.Events.Last(item => item.Kind == "instruction_not_understood");
+            var target = row.EventId + ClankerWorld.Presentation.EventVocabulary.RetainedEventCount - 1;
+            var count = checked((int)(target - initial.Snapshot.LatestEventId));
+            for (var index = 0; index < count; index++)
+                Assert.True(world.RenameAgent(founder, index == count - 1 ? "Zoë 🌿 Vale" : index % 2 == 0 ? "Corin Vale" : "Aster Vale"));
+            var held = store.GetReconnectBaseline(initial.Snapshot.LatestEventId);
+            Assert.Equal(target, held.Snapshot.LatestEventId);
+            Assert.Contains("Zoë 🌿 Vale", held.Snapshot.EventTexts[row.EventId], StringComparison.Ordinal);
+            Assert.True(new WorldStateFile(Path.Combine(directory.FullName, "world.json")).Save(world));
+            Assert.DoesNotContain(world.ExportState().Events, item => item.EventId == row.EventId);
+
+            // Delay the actual projection on its existing map-cache gate. The
+            // owning thread can re-enter it to project another device's reply.
+            // No world events, snapshot values or public test hooks are injected.
+            var projectionGate = typeof(OwnerWorldObservationStore).GetField("mapProjectionGate",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(store)!;
+            ReconnectBaselineView? earlier = null;
+            Exception? failure = null;
+            var worker = new Thread(() =>
+            {
+                try { earlier = store.GetReconnectBaseline(held.Snapshot.LatestEventId); }
+                catch (Exception exception) { failure = exception; }
+            })
+            { IsBackground = true };
+            Monitor.Enter(projectionGate);
+            try
+            {
+                worker.Start();
+                Assert.True(SpinWait.SpinUntil(() => (worker.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0,
+                    TimeSpan.FromSeconds(30)), "The earlier native projection did not reach its held gate.");
+                Assert.True(world.RenameAgent(founder, "Noël Vale"));
+                var later = store.GetSnapshot();
+                Assert.Equal(target + 1, later.LatestEventId);
+                Assert.DoesNotContain(row.EventId, later.EventTexts.Keys);
+            }
+            finally
+            {
+                Monitor.Exit(projectionGate);
+                Assert.True(worker.Join(TimeSpan.FromSeconds(30)), "The held native projection did not finish.");
+            }
+            Assert.Null(failure);
+            var captured = Assert.IsType<ReconnectBaselineView>(earlier);
+            Assert.Equal(target, captured.Snapshot.LatestEventId);
+            Assert.False(captured.Events.ResetRequired);
+            Assert.Empty(captured.Events.Events);
+            Assert.Contains(row.EventId, captured.Snapshot.EventTexts.Keys);
+            Assert.Contains("Zoë 🌿 Vale", WorldEventText.Describe(RoundTrip<OwnerWorldEvent>(row),
+                RoundTrip<OwnerWorldSnapshot>(captured.Snapshot)), StringComparison.Ordinal);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
     private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
         new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
             RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));

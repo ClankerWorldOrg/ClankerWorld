@@ -11,7 +11,7 @@ public sealed partial class OwnerWorldObservationStore
 
     // Connected clients retain more events than a compacted checkpoint. Keep
     // only that bounded observer window, without changing saved history.
-    private IReadOnlyList<WorldEventEntry> PresentationEvents(WorldRuntimeState state,
+    private WorldEventEntry[] PresentationEvents(WorldRuntimeState state,
         WorldObserverTimeline timeline, long latestEventId)
     {
         lock (eventPresentationGate)
