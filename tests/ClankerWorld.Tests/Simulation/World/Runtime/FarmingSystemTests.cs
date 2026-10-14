@@ -42,7 +42,7 @@ public sealed class FarmingSystemTests
             InventoryAuthority.AddLot(inventory, "seed", FarmFieldRules.GrainSeed, "agent", 1),
             "planting", "agent", "seed", 1, "field_planting", long.MaxValue));
         var field = new FarmFieldState(new(1, 1), "household", FarmFieldStage.Prepared,
-            Work: new("agent", FarmWorkKind.Plant, 4, 0, "planting", FarmFieldRules.Grain));
+            Work: new("agent", FarmWorkKind.Plant, 4, 0, Identity.Parse("planting"), FarmFieldRules.Grain));
         var committed = new FarmingSystem(new([field]), "farming-system");
         var proposed = committed.Fork();
         proposed.CancelFieldWorkForUnavailableWorkers(world);
@@ -63,7 +63,7 @@ public sealed class FarmingSystemTests
             "replant", "household", "seed", 1, "field_replanting", long.MaxValue));
         var field = new FarmFieldState(new(1, 1), "household", FarmFieldStage.Harvested,
             FarmFieldRules.Grain, PlantedTick: 1, ReadyTick: 2, Tended: true,
-            ReplantingReservationId: "replant", LastWorkedTick: 3);
+            ReplantingReservationId: Identity.Parse("replant"), LastWorkedTick: 3);
         var system = new FarmingSystem(new([field]), "farming-system");
         var deadline = 3 + FarmFieldRules.IdleTicksBeforeGrass(world.Environment.Config);
         world.WorldTick = deadline - 1;
@@ -132,7 +132,7 @@ public sealed class FarmingSystemTests
         public GroundOccupancy Ground => new(Map, Content, Simulation);
         public List<(string, string)> Events { get; } = [];
         public HashSet<GridPoint> Roads { get; } = [];
-        public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
+        public void AppendEvent(WorldEventPayload payload) => Events.Add((payload.Kind, payload.DiagnosticDetail));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) =>
             Society = Society with { Inventory = transition(Society.Inventory) };
         public void SetMap(WorldMap map) => Map = map;

@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
         var root = index.Root(lot);
         if (root.CarrierId is { } carrier && carrier != actor) return GoodsReason.Custody;
         if (!MayCollectGoodsAt(actor, root)) return GoodsReason.Place;
-        if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root))
+        if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root, InventoryHoldRules.BorrowedBy(actor)))
             return GoodsReason.Reservation;
         if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || agents.Values.Any(person =>
                 PersonalEquipmentRules.IsSelected(person.Equipment, root.Id))) return GoodsReason.Custody;

@@ -3,15 +3,11 @@ using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Server.Providers;
 
-public sealed record ProviderUsageRow(string Provider, string Model, string Role,
-    long Attempts, long Completed, long Failed, long Abandoned,
-    long InputTokens, long OutputTokens);
 
-public sealed record ProviderUsageStatus(long Attempts, long Completed, long Failed,
-    long Abandoned, long InputTokens, long OutputTokens, long? AttemptLimit,
-    bool LimitReached, IReadOnlyList<ProviderUsageRow> Rows, string? AccountingError = null);
 
-public sealed record ProviderUsageLimitAction(long? AttemptLimit, long AdditionalCalls = 0);
+
+
+
 
 /// <summary>The reservation that first reached 80% of the limit in force.</summary>
 public sealed record ProviderUsageWarning(long Attempts, long AttemptLimit);

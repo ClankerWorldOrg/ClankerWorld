@@ -7,6 +7,45 @@ namespace ClankerWorld.Tests;
 public sealed class SmithDeliveryActionPlanTests
 {
     [Fact]
+    public async Task NativePersonalStorageInvalidatesTheCapturedDirectSmithInputLoad()
+    {
+        var (state, actor, smith) = Prepared();
+        var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == smith.HouseholdId &&
+            building.InstanceId.StartsWith("first-town-house-", StringComparison.Ordinal));
+        var inventory = InventoryAuthority.AddLot(FoodCapacityTestFixture.WithoutPersonalCargo(state, actor),
+            "smith-plan-stored-wood", "wood", actor, 8);
+        state = FoodCapacityTestFixture.WithInventory(state, inventory) with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { Position = house.Position } : person).ToArray(),
+        };
+        var choices = new OreChoices(actor, choose: false, candidateId: "haul_smith_input");
+        using var world = WorldRuntime.Restore(state, _ => choices);
+        for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<SmithDeliveryActionPlan>(choices.Plan);
+        Assert.Equal((SmithDeliveryKind.Input, "smith-plan-stored-wood", true), (plan.Kind, plan.StockId, plan.DirectDelivery));
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+
+        var receipt = world.SubmitInstruction(new("store-captured-smith-input", "owner:test", actor,
+            OwnerInstructionKind.Order, "store wood in my House"));
+        for (var tick = 0; tick < 8 && world.Society.Inventory.GetLot(plan.StockId).StorageBuildingId is null; tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal("finished", world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!.Status);
+        var stored = world.Society.Inventory.GetLot(plan.StockId);
+        Assert.Equal((actor, house.InstanceId, 8), (stored.OwnerId, stored.StorageBuildingId, stored.Quantity));
+        Assert.False(PersonalEquipmentRules.IsCarried(stored, actor));
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "personal_goods_stored");
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False(world.CheckActionPlan(plan).Allowed);
+        Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.False(reopened.CheckActionPlan(plan).Allowed);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(reopened.ExportState()));
+        reopened.Validate();
+    }
+
+    [Fact]
     public async Task AnEarlierCollectedShipmentRefusesTheLaterLoadWhenTheRemainingInputNeedShrinks()
     {
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new OreChoices("", choose: false));
@@ -131,14 +170,14 @@ public sealed class SmithDeliveryActionPlanTests
         }
     }
 
-    private sealed class OreChoices(string actor, bool choose) : IDecisionProvider
+    private sealed class OreChoices(string actor, bool choose, string candidateId = "deliver_smith_ore") : IDecisionProvider
     {
         public ActionPlan? Plan { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.SingleOrDefault(item => item.Id == "deliver_smith_ore") : null;
+            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.SingleOrDefault(item => item.Id == candidateId) : null;
             if (candidate is not null) Plan = candidate.ActionPlan;
             var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
