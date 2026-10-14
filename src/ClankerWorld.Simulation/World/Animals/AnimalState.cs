@@ -10,7 +10,7 @@ public sealed record AnimalPregnancy([property: JsonRequired] string FatherId, [
 /// <summary>One physical animal. Ownership, care, offspring places and permissions survive checkpoints.</summary>
 public sealed record AnimalState([property: JsonRequired] string Id, [property: JsonRequired] string Name, [property: JsonRequired] string Species, [property: JsonRequired] string Sex, [property: JsonRequired] long BornTick,
     [property: JsonRequired] GridPoint Position, [property: JsonRequired] string HerdId, [property: JsonRequired] string? HouseholdId = null, [property: JsonRequired] string? YardId = null,
-    [property: JsonRequired] long CareUntilTick = 0, [property: JsonRequired] int ProductProgressTicks = 0, [property: JsonRequired] string? ReadyProductLotId = null, [property: JsonRequired] string? ReadyProductReservationId = null,
+    [property: JsonRequired] long CareUntilTick = 0, [property: JsonRequired] int ProductProgressTicks = 0, [property: JsonRequired] string? ReadyProductLotId = null, [property: JsonRequired] Identity? ReadyProductReservationId = null,
     [property: JsonRequired] AnimalPregnancy? Pregnancy = null, [property: JsonRequired] long BreedingReadyTick = 0, [property: JsonRequired] long? DiedTick = null,
     [property: JsonRequired] string? RiderId = null, [property: JsonRequired] string? LeaderId = null, [property: JsonRequired] string? SaddleLotId = null,
     [property: JsonRequired] GridPoint? LeadDestination = null, [property: JsonRequired] AnimalTamingWork? TamingWork = null,
@@ -18,10 +18,10 @@ public sealed record AnimalState([property: JsonRequired] string Id, [property: 
 {
     [JsonRequired] public IReadOnlyList<string> CarePermissions { get; init; } = [];
     [JsonRequired] public IReadOnlyList<string> RidingPermissions { get; init; } = [];
-    [JsonRequired] public string? SaddleReservationId { get; init; }
+    [JsonRequired] public Identity? SaddleReservationId { get; init; }
 }
 
-public sealed record AnimalTradeOffer([property: JsonRequired] string Id, [property: JsonRequired] string AnimalId,
+public sealed record AnimalTradeOffer([property: JsonRequired] Identity Id, [property: JsonRequired] string AnimalId,
     [property: JsonRequired] string SellerId, [property: JsonRequired] string BuyerId,
     [property: JsonRequired] string ReceivingHouseholdId, [property: JsonRequired] string ReceivingYardId,
     [property: JsonRequired] string? PaymentKind, [property: JsonRequired] int PaymentQuantity, [property: JsonRequired] long OfferedTick)
