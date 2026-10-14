@@ -119,7 +119,7 @@ public sealed class TownCivicVisitContinuationTests
         Assert.Equal("pending", proposal.Status);
     }
 
-    private static GridPoint ReachableDistantPosition(WorldRuntimeState state, string visitor, GridPoint board)
+    internal static GridPoint ReachableDistantPosition(WorldRuntimeState state, string visitor, GridPoint board, bool allowOccupiedBoard = false)
     {
         var occupied = state.Agents.Where(person => person.AgentId != visitor)
             .Select(person => person.Position).ToHashSet();
@@ -131,7 +131,7 @@ public sealed class TownCivicVisitContinuationTests
                      .OrderBy(point => state.Map.FootDistance(point, board)).ThenBy(point => point.Y).ThenBy(point => point.X))
         {
             if (!DeterministicRouteFinder.TryFind(state.Map, point, board, out var route) ||
-                route.Any(occupied.Contains)) continue;
+                route.Any(point => occupied.Contains(point) && (!allowOccupiedBoard || point != board))) continue;
             var steps = route.Zip(route.Skip(1)).ToArray();
             if (steps.Any(step => state.Map.IsDiagonalFootStep(step.First, step.Second) &&
                     (occupied.Contains(new GridPoint(step.Second.X, step.First.Y)) ||

@@ -35,10 +35,6 @@ public sealed partial class WorldRuntime
         HouseholdLandFilingActionPlan landFiling => townSystem.CheckHouseholdLandFiling(civicWorld, landFiling),
         HouseholdLandResponseActionPlan landResponse => TownSystem.CheckHouseholdLandResponse(civicWorld, landResponse),
         TownLandClaimActionPlan claim => TownSystem.CheckTownLandClaim(civicWorld, claim),
-        CivicNoticeActionPlan civicNotice => TownSystem.CheckCivicNoticePlan(civicWorld, civicNotice),
-        TownFoundingActionPlan founding => townSystem.CheckTownFoundingPlan(civicWorld, founding),
-        TownAdmissionActionPlan admission => townSystem.CheckTownAdmissionPlan(civicWorld, admission),
-        CivicVisitActionPlan civicVisit => townSystem.CheckCivicVisit(civicWorld, civicVisit),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 

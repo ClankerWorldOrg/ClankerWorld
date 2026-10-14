@@ -17,7 +17,7 @@ public static class LifeStageRules
         if (candidate == "make_room_for_food" && IsChild(age)) return true;
         if (IsAdult(age)) return !candidate.StartsWith("child_", StringComparison.Ordinal);
         if (candidate.StartsWith("nonviolent_relay:", StringComparison.Ordinal)) return true;
-        if (candidate.Split('|') is ["civic", _, "law_case_inspect" or "law_case_statement" or "law_case_evidence" or "law_case_relay" or "law_case_reopen", _, _]) return true;
+        if (candidate.Split('|') is ["civic", _, "visit" or "law_case_inspect" or "law_case_statement" or "law_case_evidence" or "law_case_relay" or "law_case_reopen", _, _]) return true;
         return candidate is "safe_idle" or "consume_food" or "drink_milk" or "collect_shared_food" or
             "seek_food" or "harvest_food" or "talk_to" or "move_to" or "wear_clothing" or "seek_warmth" or "seek_shelter" or "inspect_shelter_site" ||
             candidate.StartsWith("guardian_accept:", StringComparison.Ordinal) ||

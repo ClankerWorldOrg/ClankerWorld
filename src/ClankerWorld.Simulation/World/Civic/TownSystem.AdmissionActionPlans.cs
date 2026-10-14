@@ -23,10 +23,10 @@ internal sealed partial class TownSystem
             choice.Kind == TownAdmissionChoiceKind.Accept ? ApprovedAdmission(world, town, actor) : null);
     }
 
-    internal ActionCheck CheckTownAdmissionPlan(ITownWorld world, TownAdmissionActionPlan plan)
+    internal ActionCheck CheckTownAdmissionPlan(ITownWorld world, TownAdmissionActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CivicMembershipCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: not null } town ||
             !world.Agents.ContainsKey(plan.Subject) || TownForResident(world, plan.Subject) != plan.PreviousTown ||
