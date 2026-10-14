@@ -40,11 +40,5 @@ public sealed partial class WorldRuntime
     private void ApplyFieldCandidate(string actor, AgentState state, string candidate, string? orderInstructionId = null) =>
         farmingSystem.ApplyFieldCandidate(farmingWorld, actor, state, candidate, orderInstructionId);
 
-    private void ApplyFieldActionPlan(FieldActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (farmingSystem.CheckFieldPlan(farmingWorld, plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        farmingSystem.ApplyFieldPlan(farmingWorld, plan);
-    }
 
 }
