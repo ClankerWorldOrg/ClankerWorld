@@ -86,7 +86,7 @@ public sealed partial class WorldRuntime
                     return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected food source is no longer available");
                 if (FreeCarryCapacity(plan.Actor) < gathering.Quantity + gathering.SeedQuantity)
                     return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected food harvest");
-                if (!CanReachByFootOrSwimming(plan.Actor, agents[plan.Actor].Position, gathering.Source.Position) ||
+                if (!CanReachTerrain(plan.Actor, gathering.Source.Position, ReachPurpose.FoodSource, 0, SwimmingPolicy.WhenCapable) ||
                     Reach(plan.Actor, gathering.Source.Position, ReachPurpose.FoodSource, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
                     return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected food source is out of reach now");
                 return gathering.Selected.Kind != FoodActionKind.Harvest || IsWithinInteractionRange(agents[plan.Actor].Position,

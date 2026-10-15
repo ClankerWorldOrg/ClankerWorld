@@ -1,0 +1,1 @@
+- Pure foot/freshwater geography eligibility moves into the shared actor-position reach service with explicit purpose, load and swimming policy. Its original cheap checks are preserved without constructing a physical route, and the specialized Town route port is removed.
