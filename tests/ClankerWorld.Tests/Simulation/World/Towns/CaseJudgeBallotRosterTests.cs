@@ -31,6 +31,8 @@ public sealed partial class TownLandHearingRuntimeTests
             {
                 var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
                 Assert.True(result.Advanced);
+                if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Waiver))
+                    await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Waiver);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Judge))
                 {
                     var call = await provider.Entered.Reader.ReadAsync().AsTask().WaitAsync(CaseBallotDeadline);
@@ -56,6 +58,8 @@ public sealed partial class TownLandHearingRuntimeTests
             {
                 var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
                 Assert.True(result.Advanced);
+                if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Waiver))
+                    await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Waiver);
                 foreach (var decision in result.Decisions.Where(decision => decision.AgentId == Waiver &&
                     decision.ActionPlan is LandHearingJudgeActionPlan { Choice.Kind: LandHearingJudgeKind.Withdraw }))
                 {
