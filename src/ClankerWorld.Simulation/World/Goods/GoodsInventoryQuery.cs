@@ -111,7 +111,9 @@ internal static class GoodsInventoryQuery
             return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) || lot.OwnerId != request.Actor ? GoodsReason.Owner :
                 !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :
                 !PersonalEquipmentRules.IsCarried(lot, request.Actor!) || lot.ContainerLotId is not null || lot.DeliveryBuildingId is not null ? GoodsReason.Place :
-                InventoryRules.AvailableQuantity(index, lot) <= 0 ? GoodsReason.Reservation : null;
+                InventoryRules.AvailableQuantity(index, lot) <= 0 ||
+                !InventoryHoldRules.Allows(index, lot, InventoryHoldRules.BorrowedBy(request.Actor!))
+                    ? GoodsReason.Reservation : null;
         if (request.Use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution)
             return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) ? GoodsReason.Owner :
                 !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :

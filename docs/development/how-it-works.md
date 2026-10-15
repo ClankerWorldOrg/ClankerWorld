@@ -134,6 +134,7 @@ yield refuses that stale selection.
 Project assistance retains the requesting project, recipient and exact personal
 lot or material harvest. Its shared contribution query keeps physical stock
 availability and inventory order; transfers use that selected lot and quantity.
+Its hold-access check leaves stock promised to another task with that task.
 Construction preparation and assistance share one harvest and tool check.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
