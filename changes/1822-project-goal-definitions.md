@@ -1,0 +1,1 @@
+- Native building goals without a selected site and recipe goals awaiting a workstation now retain typed plans and use their definition's checks before starting, with the same goal IDs and project behavior.
