@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -24,7 +25,7 @@ public sealed class FieldActionPlanTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Fields = [new(point, field.HouseholdId, FarmFieldStage.Harvested, FarmFieldRules.Grain,
-                ReadyTick: 1, Tended: true, ReplantingReservationId: reserved ? "field-plan-replanting" : null)],
+                ReadyTick: 1, Tended: true, ReplantingReservationId: reserved ? Identity.Parse("field-plan-replanting") : null)],
         };
         var choices = new Choices(actor, FarmWorkKind.Plant, choose: true);
         using var world = WorldRuntime.Restore(state, _ => choices);
