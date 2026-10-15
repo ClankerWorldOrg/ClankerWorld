@@ -2,6 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy TownProjectProposalCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static TownProjectProposalActionPlan? PlanTownProjectProposal(ITownWorld world, string actor,
         TownProjectProposalChoice choice, TownProjectPayload? selected = null)
     {
@@ -15,10 +17,10 @@ internal sealed partial class TownSystem
     internal static TownProjectProposalActionPlan BindTownProjectName(TownProjectProposalActionPlan plan, string? name) =>
         plan.Bound ? plan : plan with { Bound = true, Project = plan.Project with { Name = string.IsNullOrWhiteSpace(name) ? plan.Project.Name : name.Trim() } };
 
-    internal static ActionCheck CheckTownProjectProposal(ITownWorld world, TownProjectProposalActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckTownProjectProposal(ITownWorld world, TownProjectProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? TownProjectProposalCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) || town.Council.Revision != plan.CouncilRevision)

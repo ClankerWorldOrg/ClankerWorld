@@ -483,33 +483,18 @@ public sealed partial class WorldRuntime
         candidates.AddRange(eligible.Take(16));
     }
 
-    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id, ActionPlan? originalPlan = null)
-    {
-        if (!IsTownProjectCandidate(id)) return false;
-        if (originalPlan is TownProjectLoadActionPlan load) { ApplyTownProjectLoad(load); return true; }
-        if (originalPlan is TownProjectWorkActionPlan work) { ApplyTownProjectWork(work); return true; }
-        if (originalPlan is TownProjectRecoveryActionPlan recovery) { ApplyTownProjectRecovery(recovery); return true; }
-        var choice = TownProjectChoices(actor).FirstOrDefault(item => item.Id == id);
-        if (choice is null) return true;
-        if (choice.Kind is "supply" or "deliver") { ApplyTownProjectLoad(PlanTownProjectLoad(actor, choice)); return true; }
-        if (choice.Kind is "work" or "gather")
-        {
-            if (PlanTownProjectWork(actor, choice) is { } plan) ApplyTownProjectWork(plan);
-            return true;
-        }
-        ApplyTownProjectRecovery(PlanTownProjectRecovery(actor, choice));
-        return true;
-    }
-
     // Only a fresh, exact personal-model admission may call this final donation path.
     private bool ApplyTownProjectDonation(string actor, string id, TownProjectDonationActionPlan? originalPlan = null)
     {
         if (!IsTownProjectDonationCandidate(id)) return false;
-        var plan = originalPlan;
-        if (plan is null && TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id) is { } selected)
-            plan = PlanTownProjectDonation(actor, selected);
-        if (plan is null) return true;
-        if (CheckTownProjectDonation(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return true; }
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], id, false, originalPlan));
+        return true;
+    }
+
+    private bool ApplyCheckedTownProjectDonation(TownProjectDonationActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var id = plan.CandidateId;
         var town = towns.Single(item => item.Id == plan.TownId);
         var project = town.Projects.Single(item => item.Id == plan.Choice.ProjectId);
         var lot = PersonalTownProjectDonationLots(actor, plan.ItemKind).Single(item => item.Id == plan.Choice.StockId);

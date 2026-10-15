@@ -10,11 +10,6 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
     {
         ProjectInputActionPlan projectInput => CheckProjectInput(projectInput),
-        TownProjectRecoveryActionPlan projectRecovery => CheckTownProjectRecovery(projectRecovery),
-        TownProjectWorkActionPlan projectWork => CheckTownProjectWork(projectWork),
-        TownProjectLoadActionPlan projectLoad => CheckTownProjectLoad(projectLoad),
-        TownProjectDonationActionPlan projectDonation => CheckTownProjectDonation(projectDonation),
-        TownProjectProposalActionPlan projectProposal => TownSystem.CheckTownProjectProposal(civicWorld, projectProposal),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 
