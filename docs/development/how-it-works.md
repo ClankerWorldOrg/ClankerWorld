@@ -453,8 +453,9 @@ one per-call reach service with an explicit swimming policy and separate
 prospective return origin. Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The source guard in `ActionRuleBoundaryTests` records
-existing raw age gates, unnamed need comparisons and direct route calls;
-child code has no allowance. Lower its expression allowances as later action
+remaining unnamed need comparisons and direct route calls; copied age-band
+predicates have no allowance outside the shared life-stage rules, and child
+code has no allowance. Lower its expression allowances as later action
 areas move to these services. Child stock selection and exact-lot rechecks use
 the shared goods query before applying the original child load and trip limits.
 
