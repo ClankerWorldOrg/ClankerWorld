@@ -480,9 +480,8 @@ internal sealed partial class TownSystem
                         TownAdults(world, town), world.WorldTick, CivicDay(world), project: plan);
                     break;
                 case "claim_land":
-                    if (landClaimPlan!.SelectedTiles is null) return;
-                    if (CheckTownLandClaim(world, landClaimPlan, town with { Council = state, Government = government }).Refusal is { } claimRefusal)
-                    { world.RefuseChoice(landClaimPlan, claimRefusal); return; }
+                    if (CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal is { } claimRefusal)
+                    { world.RefuseChoice(landClaimPlan!, claimRefusal); return; }
                     state = SubmitTownLandClaim(world, town, state, actor, landTiles, landClaimPlan);
                     break;
                 case "request_land_use" or "request_expansion_land":
