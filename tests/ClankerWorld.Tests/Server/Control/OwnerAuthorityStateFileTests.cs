@@ -15,7 +15,6 @@ public sealed class OwnerAuthorityStateFileTests
             var stateFile = new OwnerAuthorityStateFile(System.IO.Path.Combine(directory.FullName, "owner-authority.json"));
             var first = stateFile.StoredOrNewServerAuthorityId();
             Assert.Matches("^[0-9a-f]{32}$", first);
-            Assert.DoesNotContain(Environment.MachineName, first, StringComparison.OrdinalIgnoreCase);
             Assert.NotEqual(first, stateFile.StoredOrNewServerAuthorityId());
 
             var created = stateFile.LoadOrCreate(new OwnerAuthorityIdentity(first, "world-test-file"));
@@ -56,6 +55,7 @@ public sealed class OwnerAuthorityStateFileTests
             Assert.DoesNotContain(pairing.PairingCode, persistedText, StringComparison.Ordinal);
 
             var restarted = stateFile.LoadOrCreate(identity, clock, CryptographicOwnerAuthorityRandom.Instance);
+            Assert.Equal(identity.ServerAuthorityId, stateFile.StoredOrNewServerAuthorityId());
             var approval = restarted.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode);
             Assert.True(approval.IsSuccess);
             stateFile.Save(restarted);

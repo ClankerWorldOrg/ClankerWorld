@@ -229,6 +229,47 @@ public sealed class OwnerAuthorityStoreTests
             exported.Challenges.Count(challenge => challenge.State != OwnerStoredChallengeState.Pending));
     }
 
+    [Fact]
+    public void ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        var keys = new List<ECDsa>();
+        var earlier = new List<(ECDsa Key, OwnerChallenge Challenge)>();
+        try
+        {
+            for (var device = 0; device <= OwnerAuthorityStore.MaximumPendingChallenges /
+                     OwnerAuthorityStore.MaximumPendingChallengesPerDevice; device++)
+            {
+                var key = CreateP256Key();
+                keys.Add(key);
+                var pairing = StartPairing(store, key);
+                Assert.True(store.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode).IsSuccess);
+                Assert.True(store.ActivatePairing(new(pairing.PairingId, pairing.ActivationCanonicalProof,
+                    Sign(key, pairing.ActivationCanonicalProof))).IsSuccess);
+                var count = earlier.Count < OwnerAuthorityStore.MaximumPendingChallenges
+                    ? OwnerAuthorityStore.MaximumPendingChallengesPerDevice : 1;
+                for (var index = 0; index < count; index++)
+                {
+                    earlier.Add((key, IssueChallenge(store, key, pairing.DeviceId, $"global-cap-{device}-{index}")));
+                    clock.UtcNow = clock.UtcNow.AddSeconds(1);
+                }
+            }
+
+            // Consume through the real authorization boundary before ExportState can trim anything.
+            var oldest = earlier[0];
+            Assert.Equal(OwnerAuthorityFailure.ChallengeExpired, store.ConsumeChallenge(CreateConsumptionRequest(
+                store.Identity, oldest.Challenge.DeviceId, oldest.Challenge, "global-cap-oldest", oldest.Key)).Failure);
+            foreach (var (key, challenge) in earlier.Skip(1))
+                Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+                    store.Identity, challenge.DeviceId, challenge, "global-cap-retained", key)).IsSuccess);
+        }
+        finally
+        {
+            foreach (var key in keys) key.Dispose();
+        }
+    }
+
     private static OwnerAuthorityStore NewStore(MutableClock clock) => new(
         new OwnerAuthorityIdentity("authority-test-1", "world-test-1"),
         clock,

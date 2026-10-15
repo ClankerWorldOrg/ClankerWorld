@@ -99,8 +99,9 @@ runtime. The authority file contains public keys, fingerprints, state, and
 anti-replay hashes—not device private keys or raw comparison codes. It also
 holds the server authority ID that pairing replies and signed proofs name. Unless
 `ClankerWorld:Pairing:ServerAuthorityId` sets one, a new server picks a random
-ID and keeps the file's ID after that, so it says nothing about the computer. The runtime
-file contains world state and never becomes credential storage. Both files are
+ID and keeps the file's ID after that. Existing servers retain their stored ID,
+including IDs made from a computer name by older builds, so paired devices stay
+paired. The runtime file contains world state and never becomes credential storage. Both files are
 written atomically and use owner-only filesystem permissions on Unix servers.
 
 ## Server-origin binding
