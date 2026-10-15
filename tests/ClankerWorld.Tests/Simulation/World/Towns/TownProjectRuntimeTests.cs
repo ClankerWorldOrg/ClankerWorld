@@ -65,14 +65,14 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.HoldDonationForActor = traveler.Actor;
         for (var tick = 0; tick < 100 && !scenario.Policy.DonationStarted.Task.IsCompleted; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
+            ObserveGathering(await scenario.World.AdvanceOneTickNonBlockingAsync());
             await Task.Delay(2);
         }
         await scenario.Policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(scenario.Project.Plan.Site, scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         for (var tick = 0; tick < 3; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
+            ObserveGathering(await scenario.World.AdvanceOneTickNonBlockingAsync());
             Assert.Equal(traveler.Actor, scenario.World.Society.Inventory.GetLot(carried.Id).OwnerId);
             Assert.DoesNotContain(scenario.Project.Deliveries, delivery => delivery.SourceLotId == carried.Id);
         }
