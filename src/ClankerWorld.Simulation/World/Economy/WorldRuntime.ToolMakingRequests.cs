@@ -33,6 +33,7 @@ public sealed partial class WorldRuntime
             ? ToolRequestConsentChoice.Encode(consent, identity)
             : verb == "visit" ? ToolRequestVisitChoice.Encode(identity[0], identity[1])
             : verb == "work" ? ToolRequestWorkChoice.Encode(identity[0])
+            : verb == "collect" ? ToolRequestCollectionChoice.Encode(identity[0])
             : DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
@@ -92,13 +93,15 @@ public sealed partial class WorldRuntime
             {
                 candidates.Add(new(ToolRequestChoice("withdraw", request.Id),
                     "Withdraw your tool request. Household materials and work remain household property.", PersonalToolRequestPriority, request.BuildingInstanceId));
-                if (request.Status == ToolMakingRequestStatus.Ready && IdleForToolRequest(actor) && ToolRequestShop(request) is { } shop)
+                if (ToolRequestCollectionChoice.Decode(ToolRequestChoice("collect", request.Id)) is { } collectChoice &&
+                    PlanToolRequestCollection(actor, collectChoice) is { } collection && CheckToolRequestCollectionPlan(collection).Allowed)
                 {
-                    if (!IsWithinInteractionRange(agents[actor].Position, shop.Position, ResourceInteractionRange))
-                        candidates.Add(new(ToolRequestChoice("collect", request.Id), "Walk to the Blacksmith to discuss payment for the finished tool.", 14, shop.InstanceId));
-                    else if (ToolRequestQuote(actor, request, shop) is { } quote)
+                    if (!IsWithinInteractionRange(agents[actor].Position, collection.Smith.Position, ResourceInteractionRange))
+                        candidates.Add(new(ToolRequestChoice("collect", request.Id), "Walk to the Blacksmith to discuss payment for the finished tool.", 14, collection.Smith.InstanceId) { ActionPlan = collection });
+                    else if (collection.Quote is { } quote)
                         candidates.Add(new(ToolRequestChoice("collect", request.Id),
-                            $"Offer {quote.PaymentQuantity} {quote.Payment.ItemKind} for the actual finished {request.ItemKind.Replace('_', ' ')}. The household may refuse.", 14, shop.InstanceId));
+                            $"Offer {quote.PaymentQuantity} {quote.Payment.ItemKind} for the actual finished {request.ItemKind.Replace('_', ' ')}. The household may refuse.", 14, collection.Smith.InstanceId)
+                        { ActionPlan = collection });
                 }
             }
             if (!IsToolRequestSeller(actor, request)) continue;
@@ -188,19 +191,21 @@ public sealed partial class WorldRuntime
             if (plan is not null) ApplyToolRequestWorkPlan(plan, freshChoice);
             return;
         }
-        if (!IsAdult(actor)) return;
-        foreach (var request in toolMakingRequests.ToArray())
+        if (ToolRequestCollectionChoice.Decode(candidate) is { } collectionChoice)
         {
-            if (candidate != ToolRequestChoice("collect", request.Id) || request.Status != ToolMakingRequestStatus.Ready ||
-                request.RequesterId != actor || !IdleForToolRequest(actor) || ToolRequestShop(request) is not { } shop) continue;
-            if (!IsWithinInteractionRange(person.Position, shop.Position, ResourceInteractionRange))
-                MoveToward(actor, person, shop.Position, "tool_request", ResourceInteractionRange);
-            else if (ToolRequestQuote(actor, request, shop) is { } quote)
-            {
-                var offerId = OpenShopQuote(actor, shop, quote);
-                SetToolRequest(request with { Status = ToolMakingRequestStatus.Offered, OfferId = Identity.Parse(offerId), Blocker = null });
-            }
-            return;
+            var plan = originalPlan as ToolRequestCollectionActionPlan ?? PlanToolRequestCollection(actor, collectionChoice);
+            if (plan is not null) ApplyToolRequestCollectionPlan(plan);
+        }
+    }
+
+    private void CompleteToolRequestCollection(ToolRequestCollectionActionPlan plan)
+    {
+        if (!IsWithinInteractionRange(agents[plan.Actor].Position, plan.Smith.Position, ResourceInteractionRange))
+            MoveToward(plan.Actor, agents[plan.Actor], plan.Smith.Position, "tool_request", ResourceInteractionRange);
+        else if (plan.Quote is { } quote)
+        {
+            var offerId = OpenShopQuote(plan.Actor, plan.Smith, new(quote.Goods, quote.GoodsQuantity, quote.Payment, quote.PaymentQuantity));
+            SetToolRequest(plan.Request with { Status = ToolMakingRequestStatus.Offered, OfferId = Identity.Parse(offerId), Blocker = null });
         }
     }
 

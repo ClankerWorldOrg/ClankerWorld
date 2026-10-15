@@ -475,6 +475,10 @@ movement writer keeps its original interaction range and arrival behavior.
 Tool commission continuation retains the request, worker, project, Smith and
 recipe. Shared checks bind that agreement before the existing project writer
 continues its native production step.
+Finished-tool collection retains its request and Smith; an on-site quote also
+retains the exact finished output, payment and quantities. Shared shop checks
+recheck those lots' current availability and stock promises before the native
+writer opens the exchange, allowing ordinary processing without choosing other stock.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
