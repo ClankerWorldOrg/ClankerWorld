@@ -128,7 +128,7 @@ public sealed partial class WorldRuntime
 
     private string ProductionOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        if (!AgePermitsCandidate(instruction.TargetAgentId, "produce_item"))
+        if (!MayFollowOwnerOrder(instruction.TargetAgentId, instruction.Task!))
             return "This agent is too young to do workstation production.";
         if (WorldProductionOrderCatalog.Find(worldContent, instruction.Task!.TargetRecipeId) is null)
             return "The requested recipe is not active.";

@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         var goods = CollectionOrderGoodsName(instruction.Task!);
         var pluralGoods = instruction.Task!.Action == "collect_material" ? "materials" : goods;
-        if (!AgePermitsCandidate(actor, instruction.Task.Action))
+        if (!MayFollowOwnerOrder(actor, instruction.Task!))
             return $"This agent is too young to collect stored {pluralGoods}.";
         if (instruction.Task!.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";

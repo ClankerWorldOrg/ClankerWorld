@@ -441,8 +441,10 @@ keeps the original swimming and carried-load rules, with a named purpose.
 definition. Candidate spelling does not add a second age rule inside that
 primitive. Cognition prepares an unplanned ordinary step through its registered
 definition once and checks the retained plan before dispatch; application checks
-the same plan again. Only the owner-order compatibility age gate remains under
-migration.
+the same plan again. Owner orders declare their command life stages through
+`OwnerOrderCapabilities`, using the Action projection shared with typed orders;
+the production API uses the existing recipe-goal policy. The former candidate-name
+age whitelist is removed, leaving life-stage primitives in `LifeStageRules`.
 
 `Actions/LifeStageRules.cs` owns action age eligibility and the shared adult and
 dependent checks used by Town membership, governance, hearings, markets and care.
