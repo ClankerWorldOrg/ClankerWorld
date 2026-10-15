@@ -1,1 +1,2 @@
 - House guest invitations and revocations retain their selected House and named guest through shared checks.
+- Guest choices refuse a rebuilt House while keeping their permission through an expansion of the original House.

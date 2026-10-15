@@ -159,6 +159,8 @@ House guest choices retain the selected House, household and named guest.
 The same check validates membership, invitation state and the proximity needed
 to invite; revocations retain their existing remote behavior. Invitation caps
 follow filtering. Direct access requests keep their idempotent results.
+The original placement tick distinguishes a rebuilt House. Expanding the same
+House may move its anchor without changing its guest permission.
 Personal collection, storage and borrowed returns retain their selected lot,
 quantity, custody and House or pickup position. Stored and returned goods also
 retain the House's definition and placement tick, so rebuilding the same ID
