@@ -180,12 +180,6 @@ public sealed partial class WorldRuntime
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
-    private bool CanReachWorkstation(string actor, PlacedBuilding building)
-    {
-        var position = agents[actor].Position;
-        return position == building.Position || Reach(actor, building.Position, ReachPurpose.WorkstationSupply, 0, 0, SwimmingPolicy.WhenCapable).Count > 0;
-    }
-
     private void AddWorkstationSupplyCandidate(List<CognitionCandidate> candidates, string actor)
     {
         if (PlanWorkstationSupply(actor) is not { } plan || !CheckActionPlan(plan).Allowed) return;
