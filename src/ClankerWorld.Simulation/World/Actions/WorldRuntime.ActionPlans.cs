@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        ParenthoodActionPlan parenthood => CheckParenthoodActionPlan(parenthood),
         GuardianTravelActionPlan guardianTravel => CheckGuardianTravelPlan(guardianTravel),
         PracticalCareActionPlan practicalCare => CheckPracticalCarePlan(practicalCare),
         DependentCareActionPlan dependentCare => CheckDependentCarePlan(dependentCare),

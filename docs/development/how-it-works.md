@@ -436,6 +436,9 @@ feeding, warmth and illness relief remain in their existing writers.
 Guardian travel retains the selected child, accepted caregiver/care revision
 and exact home. Shared checks allow collection and escort phases to progress,
 including infant following, while refusing a changed authority or destination.
+Parenthood choices retain their partnership, original request, continuity
+deadline and selected caregiver/home. One check controls offer, admission and
+application; native preparation, birth and continuity maintenance remain.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
