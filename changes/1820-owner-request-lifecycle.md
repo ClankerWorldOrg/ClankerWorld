@@ -1,0 +1,1 @@
+- Owner actions share a deadline and discard replies from screens you have closed, so old results cannot overwrite your current work.
