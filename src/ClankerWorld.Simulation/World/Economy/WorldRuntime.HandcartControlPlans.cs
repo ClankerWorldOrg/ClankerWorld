@@ -31,12 +31,10 @@ public sealed partial class WorldRuntime
             new(ActionLifeStages.Adults, AllowMounted: plan.Choice.Kind != HandcartControlKind.Attach,
                 AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
-        if (RecheckGoods(new(GoodsUse.HandcartControl, plan.Actor, GoodsOwners.One(plan.Actor), GoodsKinds.One(InventoryContainerRules.Handcart)), plan.CartId) is not { Lot: var cart } ||
-            cart.GroundPosition != new InventoryGroundPosition(plan.Position.X, plan.Position.Y) || !GoodsPlanFamily.Matches(society.Checkpoint.Inventory, cart, plan.Family))
-            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected cart or cargo has changed");
+        var selection = CheckHandcartSelection(plan.Actor, plan.CartId, plan.Position, plan.Family, plan.Hitch);
+        if (!selection.Allowed) return selection;
+        var cart = society.Checkpoint.Inventory.GetLot(plan.CartId);
         var hitch = handcartHitches.FirstOrDefault(item => item.PullerId == plan.Actor);
-        if (hitch != plan.Hitch)
-            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected cart attachment has changed");
         if (plan.Choice.Kind == HandcartControlKind.Park)
             return hitch?.CartLotId == plan.CartId && agents[plan.Actor].Position == plan.Position ? new() :
                 ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected handcart is no longer attached here");
@@ -63,5 +61,15 @@ public sealed partial class WorldRuntime
         if (plan.Choice.Kind == HandcartControlKind.Attach && agents[plan.Actor].Position != plan.Position)
         { MoveToward(plan.Actor, agents[plan.Actor], plan.Position, "attach_handcart"); return; }
         CompleteHandcartControl(plan, society.Checkpoint.Inventory.GetLot(plan.CartId));
+    }
+
+    private ActionCheck CheckHandcartSelection(string actor, string cartId, GridPoint position,
+        IReadOnlyList<PlannedStockMember> family, HandcartHitch? hitch)
+    {
+        if (RecheckGoods(new(GoodsUse.HandcartControl, actor, GoodsOwners.One(actor), GoodsKinds.One(InventoryContainerRules.Handcart)), cartId) is not { Lot: var cart } ||
+            cart.GroundPosition != new InventoryGroundPosition(position.X, position.Y) || !GoodsPlanFamily.Matches(society.Checkpoint.Inventory, cart, family))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected cart or cargo has changed");
+        return handcartHitches.FirstOrDefault(item => item.PullerId == actor) == hitch ? new() :
+            ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected cart attachment has changed");
     }
 }

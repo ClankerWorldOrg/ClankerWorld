@@ -312,7 +312,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|CollectCartMaterialPrefix \u002B input.ResourceId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|CollectCartRepairPrefix \u002B kind": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|LoadCartPrefix \u002B lot.Id": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|PullCartPrefix \u002B building.InstanceId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|RepairCartPrefix \u002B cart.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|UnloadCartGroundPrefix \u002B lot.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|UnloadCartPrefix \u002B lot.Id": 1,

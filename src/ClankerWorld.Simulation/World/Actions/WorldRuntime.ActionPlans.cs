@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        HandcartPullActionPlan cartPull => CheckHandcartPullPlan(cartPull),
         HandcartControlActionPlan cartControl => CheckHandcartControlPlan(cartControl),
         AnimalAgreementActionPlan agreement => animalSystem.CheckAnimalAgreementPlan(animalWorldAdapter, agreement),
         AnimalTravelActionPlan travel => animalSystem.CheckAnimalTravelPlan(animalWorldAdapter, travel),
