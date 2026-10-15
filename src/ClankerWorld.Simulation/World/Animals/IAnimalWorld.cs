@@ -22,7 +22,6 @@ internal interface IAnimalWorld
     GoodsAnswer FindGoods(GoodsRequest request);
     IReadOnlyList<GoodsMatch> DismountCargo(string actor);
     IReadOnlyList<GoodsMatch> AnimalPayments(string actor);
-    List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);
     int FreeCarryCapacity(string actor);
     GridPoint[] FreshWaterShorePositions();
     long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds);

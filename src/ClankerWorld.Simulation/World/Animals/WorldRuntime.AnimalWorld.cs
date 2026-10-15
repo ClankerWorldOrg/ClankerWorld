@@ -24,7 +24,6 @@ public sealed partial class WorldRuntime
         public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
         public IReadOnlyList<GoodsMatch> DismountCargo(string actor) => runtime.DismountCargo(actor);
         public IReadOnlyList<GoodsMatch> AnimalPayments(string actor) => runtime.AnimalPayments(actor);
-        public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public GridPoint[] FreshWaterShorePositions() => runtime.FreshWaterShorePositions();
         public long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds) => runtime.HoldingsTotal(owners, kinds);

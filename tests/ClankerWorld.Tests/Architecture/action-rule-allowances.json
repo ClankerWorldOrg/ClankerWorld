@@ -1,7 +1,4 @@
 {
-  "src/ClankerWorld.Simulation/World/Animals/WorldRuntime.AnimalWorld.cs": [
-    "runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
     "world.FindUnoccupiedRoute(actor, position, destination, range)"
   ],
