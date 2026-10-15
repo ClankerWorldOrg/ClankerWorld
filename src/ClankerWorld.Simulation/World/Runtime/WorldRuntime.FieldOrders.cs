@@ -91,7 +91,7 @@ public sealed partial class WorldRuntime
     private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
         var actor = instruction.TargetAgentId;
-        if (!AgePermitsCandidate(actor, instruction.Task!.Action)) return "This agent is too young to work on fields.";
+        if (!MayFollowOwnerOrder(actor, instruction.Task!)) return "This agent is too young to work on fields.";
         if (instruction.Task.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";
         if (FarmhouseForHousehold(HouseholdFor(actor)) is null) return "The agent needs a household with a Farmhouse.";

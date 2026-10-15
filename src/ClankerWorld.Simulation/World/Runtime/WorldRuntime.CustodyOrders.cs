@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
     {
         var actor = instruction.TargetAgentId;
         var order = instruction.Task!;
-        if (!AgePermitsCandidate(actor, order.Action)) return "This agent is too young to return borrowed goods.";
+        if (!MayFollowOwnerOrder(actor, order)) return "This agent is too young to return borrowed goods.";
         if (order.TargetStorageOwnerId is { } owner && CustodyOrderHouse(instruction, owner) is null)
             return "The selected return House moved, changed owner or is no longer available; the order keeps its original destination.";
         var lots = ReturnOrderGoods(instruction).ToArray();
