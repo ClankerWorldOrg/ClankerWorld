@@ -37,6 +37,71 @@ public sealed class OwnerAuthorityStoreTests
     }
 
     [Fact]
+    public void OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings()
+    {
+        var store = NewStore(NewClock());
+        using var key = CreateP256Key();
+        var first = StartPairing(store, key);
+        var second = StartPairing(store, key);
+        var third = StartPairing(store, key);
+        Assert.True(store.ApprovePendingPairingLocally(first.PairingId, first.PairingCode).IsSuccess);
+        Assert.True(store.ApprovePendingPairingLocally(second.PairingId, second.PairingCode).IsSuccess);
+        var device = store.ActivatePairing(new(first.PairingId, first.ActivationCanonicalProof,
+            Sign(key, first.ActivationCanonicalProof)));
+        Assert.True(device.IsSuccess);
+
+        // The same key cannot become a second active device, approved or not.
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered, store.ActivatePairing(new(second.PairingId,
+            second.ActivationCanonicalProof, Sign(key, second.ActivationCanonicalProof))).Failure);
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered,
+            store.ApprovePendingPairing(third.PairingId, third.PairingCode).Failure);
+        Assert.Single(store.GetDevices(), item => item.State == OwnerDeviceState.Active);
+
+        // Revoking the device cancels every pending or approved pairing for its key.
+        Assert.True(store.RevokeDevice(device.Value!.DeviceId).IsSuccess);
+        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(second.PairingId).Value!.State);
+        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(third.PairingId).Value!.State);
+        Assert.Equal(OwnerAuthorityFailure.PairingExpired, store.ActivatePairing(new(second.PairingId,
+            second.ActivationCanonicalProof, Sign(key, second.ActivationCanonicalProof))).Failure);
+        Assert.DoesNotContain(store.GetDevices(), item => item.State == OwnerDeviceState.Active);
+    }
+
+    [Fact]
+    public void ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var key = CreateP256Key();
+        var spki = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        var original = StartPairing(store, key);
+        Assert.True(store.ApprovePendingPairingLocally(original.PairingId, original.PairingCode).IsSuccess);
+        var device = store.ActivatePairing(new(original.PairingId, original.ActivationCanonicalProof,
+            Sign(key, original.ActivationCanonicalProof))).Value!;
+        Assert.True(store.RevokeDevice(device.DeviceId).IsSuccess);
+
+        Assert.Equal(OwnerAuthorityFailure.DeviceRevoked, store.StartPairing(new(spki)).Failure);
+
+        // The approval listener on the server's own computer can deliberately re-admit it.
+        var readmitted = store.StartPairingLocally(new(spki));
+        Assert.True(readmitted.IsSuccess);
+        Assert.Equal(OwnerAuthorityFailure.DeviceRevoked,
+            store.ApprovePendingPairing(readmitted.Value!.PairingId, readmitted.Value.PairingCode).Failure);
+        Assert.Equal(OwnerPairingState.Pending, store.GetPairingStatus(readmitted.Value.PairingId).Value!.State);
+        Assert.True(store.ApprovePendingPairingLocally(readmitted.Value!.PairingId, readmitted.Value.PairingCode).IsSuccess);
+        var replacement = store.ActivatePairing(new(readmitted.Value.PairingId, readmitted.Value.ActivationCanonicalProof,
+            Sign(key, readmitted.Value.ActivationCanonicalProof)));
+        Assert.True(replacement.IsSuccess);
+        Assert.NotEqual(device.DeviceId, replacement.Value!.DeviceId);
+        Assert.Equal(OwnerDeviceState.Revoked, store.GetDevice(device.DeviceId).Value!.State);
+
+        // The revoked record and its replacement survive a restart together.
+        var restored = OwnerAuthorityStore.Restore(JsonSerializer.Deserialize<OwnerAuthorityState>(
+            JsonSerializer.Serialize(store.ExportState()))!, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.Equal(OwnerDeviceState.Active, restored.GetDevice(replacement.Value.DeviceId).Value!.State);
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered, restored.StartPairingLocally(new(spki)).Failure);
+    }
+
+    [Fact]
     public void PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore()
     {
         var clock = NewClock();
@@ -165,7 +230,7 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(OwnerAuthorityFailure.ChallengeConsumed, replay.Failure);
 
         var outstandingChallenge = IssueChallenge(store, deviceKey, pairing.DeviceId, "challenge-request-2");
-        Assert.True(store.RevokeDeviceLocally(pairing.DeviceId).IsSuccess);
+        Assert.True(store.RevokeDevice(pairing.DeviceId).IsSuccess);
         var afterRevocation = store.ConsumeChallenge(
             CreateConsumptionRequest(
                 store.Identity,
@@ -194,15 +259,26 @@ public sealed class OwnerAuthorityStoreTests
                 pairing.ActivationCanonicalProof,
                 Sign(deviceKey, pairing.ActivationCanonicalProof))).IsSuccess);
 
+        var earlier = new List<OwnerChallenge>();
         for (var index = 0; index < OwnerAuthorityStore.MaximumPendingChallengesPerDevice; index++)
         {
-            IssueChallenge(store, deviceKey, pairing.DeviceId, $"pending-cap-{index}");
+            earlier.Add(IssueChallenge(store, deviceKey, pairing.DeviceId, $"pending-cap-{index}"));
+            clock.UtcNow = clock.UtcNow.AddSeconds(1);
         }
 
-        var overCapacity = store.IssueChallenge(
-            CreateChallengeIssueRequest(store.Identity, pairing.DeviceId, "pending-cap-overflow", deviceKey));
-
-        Assert.Equal(OwnerAuthorityFailure.ChallengeCapacityExceeded, overCapacity.Failure);
+        // A full set never refuses a new challenge, even for a repeated issue
+        // request: the oldest unanswered one makes room, and the new one works.
+        var beyondCapacity = store.IssueChallenge(
+            CreateChallengeIssueRequest(store.Identity, pairing.DeviceId, "pending-cap-0", deviceKey));
+        Assert.True(beyondCapacity.IsSuccess);
+        Assert.Equal(OwnerAuthorityStore.MaximumPendingChallengesPerDevice,
+            store.ExportState().Challenges.Count(challenge => challenge.State == OwnerStoredChallengeState.Pending));
+        Assert.Equal(OwnerAuthorityFailure.ChallengeExpired, store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, earlier[0], "control-request-sha256:oldest", deviceKey)).Failure);
+        Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, earlier[1], "control-request-sha256:second", deviceKey)).IsSuccess);
+        Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, beyondCapacity.Value!, "control-request-sha256:newest", deviceKey)).IsSuccess);
 
         clock.UtcNow = clock.UtcNow.Add(OwnerAuthorityStore.ChallengeLifetime);
         for (var index = 0; index <= OwnerAuthorityStore.MaximumRetainedTerminalChallenges; index++)
@@ -216,6 +292,47 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(
             OwnerAuthorityStore.MaximumRetainedTerminalChallenges,
             exported.Challenges.Count(challenge => challenge.State != OwnerStoredChallengeState.Pending));
+    }
+
+    [Fact]
+    public void ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        var keys = new List<ECDsa>();
+        var earlier = new List<(ECDsa Key, OwnerChallenge Challenge)>();
+        try
+        {
+            for (var device = 0; device <= OwnerAuthorityStore.MaximumPendingChallenges /
+                     OwnerAuthorityStore.MaximumPendingChallengesPerDevice; device++)
+            {
+                var key = CreateP256Key();
+                keys.Add(key);
+                var pairing = StartPairing(store, key);
+                Assert.True(store.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode).IsSuccess);
+                Assert.True(store.ActivatePairing(new(pairing.PairingId, pairing.ActivationCanonicalProof,
+                    Sign(key, pairing.ActivationCanonicalProof))).IsSuccess);
+                var count = earlier.Count < OwnerAuthorityStore.MaximumPendingChallenges
+                    ? OwnerAuthorityStore.MaximumPendingChallengesPerDevice : 1;
+                for (var index = 0; index < count; index++)
+                {
+                    earlier.Add((key, IssueChallenge(store, key, pairing.DeviceId, $"global-cap-{device}-{index}")));
+                    clock.UtcNow = clock.UtcNow.AddSeconds(1);
+                }
+            }
+
+            // Consume through the real authorization boundary before ExportState can trim anything.
+            var oldest = earlier[0];
+            Assert.Equal(OwnerAuthorityFailure.ChallengeExpired, store.ConsumeChallenge(CreateConsumptionRequest(
+                store.Identity, oldest.Challenge.DeviceId, oldest.Challenge, "global-cap-oldest", oldest.Key)).Failure);
+            foreach (var (key, challenge) in earlier.Skip(1))
+                Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+                    store.Identity, challenge.DeviceId, challenge, "global-cap-retained", key)).IsSuccess);
+        }
+        finally
+        {
+            foreach (var key in keys) key.Dispose();
+        }
     }
 
     private static OwnerAuthorityStore NewStore(MutableClock clock) => new(
