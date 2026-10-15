@@ -478,6 +478,9 @@ forwarder and field-specific route predicate are removed.
 Pure terrain/geography eligibility also belongs to the reach service. It keeps
 the existing foot/freshwater checks without building a physical route or checking
 temporary occupants; every call names its purpose, load and swimming policy.
+Stock-trip and household-tool access checks keep their domain-specific source,
+ownership and borrowed-stall rules while sharing the same boolean reach queries
+for each physical leg.
 Exploration supply, household tool coverage and tool repair also use actor-position
 reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
 predicate, unnamed need comparison or direct route call outside the shared rules.

@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
         {
             if (sourceLotId is not null && lot.Id != sourceLotId) continue;
             var quantity = StoreStockLoadLimit(actor, householdId, store, lot, sources, protectedToolIds, foodSurpluses);
-            if (quantity <= 0 || !CanReachStoreStock(actor, store, lot)) continue;
+            if (quantity <= 0 || !StoreStockTripIsReachable(actor, store, lot)) continue;
             return new(store, lot, quantity);
         }
         return null;
