@@ -1,1 +1,2 @@
 - Knowledge writing and copying retain their selected contents, source, material lots and original work project through shared checks.
+- Original writing refuses an unrecorded fact version before reserving materials, keeping its resulting save valid.
