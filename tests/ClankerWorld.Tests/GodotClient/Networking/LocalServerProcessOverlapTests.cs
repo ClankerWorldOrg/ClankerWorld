@@ -133,7 +133,41 @@ public sealed partial class LocalServerTests
         while (!CompanionExited(companion)) await Task.Delay(20, timeout.Token);
     }
 
-    private static bool CompanionExited(Process companion)
+    [Fact]
+    public async Task CompanionExitDuringAnOpenProcessStateReadIsObservedWithoutHidingOtherIoErrors()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+        using var process = Process.Start(new ProcessStartInfo("/bin/sh")
+        {
+            ArgumentList = { "-c", "read line" },
+            RedirectStandardInput = true,
+            UseShellExecute = false,
+        })!;
+        try
+        {
+            Assert.False(CompanionExited(process));
+            var failure = new IOException("An unrelated process-state read failure.");
+            Assert.Same(failure, Assert.Throws<IOException>(() => CompanionExited(process, _ => throw failure)));
+            var readFailedAfterExit = false;
+            Assert.True(await ModelWorkHarness.WaitForSignalAsync(Task.Run(() => CompanionExited(process, path =>
+            {
+                // Open procfs while the process is alive, then reap it before the read.
+                using var reader = File.OpenText(path);
+                process.Kill();
+                process.WaitForExit();
+                try { return reader.ReadToEnd(); }
+                catch (IOException) { readFailedAfterExit = true; throw; }
+            }))));
+            Assert.True(readFailedAfterExit);
+        }
+        finally
+        {
+            if (!process.HasExited) process.Kill();
+            await ModelWorkHarness.WaitForSignalAsync(process.WaitForExitAsync());
+        }
+    }
+
+    private static bool CompanionExited(Process companion, Func<string, string>? readState = null)
     {
         if (companion.HasExited) return true;
         if (!OperatingSystem.IsLinux()) return false;
@@ -141,10 +175,11 @@ public sealed partial class LocalServerTests
         // processes leave an exited orphan as a zombie rather than reaping it.
         try
         {
-            var stat = File.ReadAllText($"/proc/{companion.Id}/stat");
+            var stat = (readState ?? File.ReadAllText)($"/proc/{companion.Id}/stat");
             return stat[stat.LastIndexOf(')') + 2] == 'Z';
         }
-        catch (FileNotFoundException) { return true; }
-        catch (DirectoryNotFoundException) { return true; }
+        // An open procfs file can fail with ESRCH after the process is reaped.
+        // Confirm exit again rather than treating every read failure as an exit.
+        catch (IOException) when (companion.HasExited) { return true; }
     }
 }

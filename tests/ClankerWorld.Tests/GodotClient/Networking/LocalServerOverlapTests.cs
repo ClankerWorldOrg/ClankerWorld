@@ -1,11 +1,83 @@
 using System.Net;
 using System.Security.Cryptography;
+using ClankerWorld.Contracts;
 using ClankerWorld.GodotClient.Networking;
 
 namespace ClankerWorld.Tests;
 
 public sealed partial class LocalServerTests
 {
+    [Fact]
+    public async Task StartingANewChildDoesNotReuseAnEarlierListenersProof()
+    {
+        var directory = Directory.CreateTempSubdirectory("local-server-new-proof-");
+        var assembly = typeof(Program).Assembly;
+        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        const string Previous = "synthetic-previous-launch-value-0123456789";
+        Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
+        File.WriteAllText(layout.SecretPath, Previous);
+        using var handler = new ReplacedListenerHandler(Previous);
+        using var http = new HttpClient(handler);
+        var game = new LocalServer(layout, http, FreePort(), FreePort());
+        try
+        {
+            Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync("1.2.3", "abc", CancellationToken.None)).Outcome);
+            handler.ReplaceListener = true;
+            Assert.Equal(LocalServerStartOutcome.PortInUse, (await game.StartAsync("1.2.3", "abc", CancellationToken.None)).Outcome);
+            Assert.False(handler.SentSecretAfterReplacement);
+            Assert.False(game.StartedServer);
+        }
+        finally
+        {
+            // Also settle the child when running against the regression.
+            if (game.StartedServerProcessId is { } id)
+            {
+                using var child = System.Diagnostics.Process.GetProcessById(id);
+                if (!child.HasExited) child.Kill(entireProcessTree: true);
+                await child.WaitForExitAsync();
+            }
+            handler.AllowCleanup = true;
+            await game.StopAsync(CancellationToken.None);
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private sealed class ReplacedListenerHandler(string previousSecret) : HttpMessageHandler
+    {
+        public bool ReplaceListener { get; set; }
+        public bool AllowCleanup { get; set; }
+        private int requestsAfterReplacement;
+        public bool SentSecretAfterReplacement { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (ReplaceListener)
+            {
+                requestsAfterReplacement++;
+                SentSecretAfterReplacement |= request.Headers.Contains(LocalServer.SecretHeader);
+                if (requestsAfterReplacement == 1)
+                    throw new HttpRequestException(HttpRequestError.ConnectionError, "The previous listener has stopped.");
+            }
+            return Task.FromResult(request.RequestUri!.AbsolutePath switch
+            {
+                "/api/v1/handshake" => new HttpResponseMessage(HttpStatusCode.OK),
+                "/api/v1/status" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(ReplaceListener
+                        ? """{"version":"another-build","sourceRevision":"other"}"""
+                        : """{"version":"1.2.3","sourceRevision":"abc"}"""),
+                },
+                "/api/v1/approval/launch-check" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = System.Net.Http.Json.JsonContent.Create(new LocalServerLaunchCheckAnswer(
+                        LocalServerLaunchCheck.Answer(previousSecret, request.Headers.GetValues(LocalServerLaunchCheck.ChallengeHeader).Single()))),
+                },
+                _ => new HttpResponseMessage(AllowCleanup ? HttpStatusCode.OK : HttpStatusCode.Conflict),
+            });
+        }
+    }
+
     [Fact]
     public async Task CancellingOwnedStartupSettlesTheChildAndReleasesInstallationStartup()
     {
