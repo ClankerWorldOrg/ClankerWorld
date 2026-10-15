@@ -131,7 +131,11 @@ eligibility and calendar links. Government and law record contracts run at
 publication too. A deciding government-change vote remains valid until the
 existing advance step settles it; that completed step checks its resulting
 status and Council authority before returning. The save boundary keeps resident,
-Council-decision, land-title and calendar links.
+Council-decision, land-title and calendar links. Admission outcomes, household
+land-request consent and settlement shapes, and project stages and material
+delivery records also use local TownSystem contracts. Publication permits
+separately staged Council, population and inventory changes; the save boundary
+checks their completed approvals, membership, physical receipts and sites.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
