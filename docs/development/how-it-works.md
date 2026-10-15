@@ -524,8 +524,9 @@ Known-act relays retain their listener, personal statement and source chain.
 Voluntary non-land terms retain their named contributor, beneficiary, target,
 quantity, duration and reasons. Personal responses retain the exact noticed
 offer and allow other contributors to accept. Shared native feasibility and
-refusal checks validate the retained terms; IDs are minted by the original
-publication counter, and acceptance reserves no stock or starts any work.
+refusal checks validate the retained terms with the IDs that the current
+publication counter will mint, so another accepted repair cannot be mistaken
+for the proposed contribution. Acceptance reserves no stock or starts any work.
 Non-land findings and reopening retain the exact case material, independent
 judge and response parties. Admitted citations resolve against the retained
 file and reasons bind once. Shared native validators check the same finding,
