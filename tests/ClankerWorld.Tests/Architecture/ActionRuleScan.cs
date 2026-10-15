@@ -15,7 +15,9 @@ internal static class ActionRuleScan
 
     private static bool IsRule(SyntaxNode node) => node switch
     {
-        InvocationExpressionSyntax call => call.Expression is IdentifierNameSyntax { Identifier.ValueText: "FindUnoccupiedRoute" },
+        InvocationExpressionSyntax call => call.Expression is IdentifierNameSyntax { Identifier.ValueText: "FindUnoccupiedRoute" } or
+            MemberAccessExpressionSyntax { Name.Identifier.ValueText: "FindUnoccupiedRoute" } or
+            MemberBindingExpressionSyntax { Name.Identifier.ValueText: "FindUnoccupiedRoute" },
         IsPatternExpressionSyntax pattern => IsAge(pattern.Expression),
         BinaryExpressionSyntax comparison when comparison.IsKind(SyntaxKind.EqualsExpression) || comparison.IsKind(SyntaxKind.NotEqualsExpression) =>
             IsAge(comparison.Left) || IsAge(comparison.Right),
