@@ -1,3 +1,5 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -90,7 +92,7 @@ public sealed class MedicalTreatmentConsentTests
                 OwnerInstructionKind.Order, "eat food"));
             Assert.Contains(world.ExportState().Instructions!, item => item.InstructionId == order.InstructionId &&
                 item.Kind == OwnerInstructionKind.Order && item.State == OwnerInstructionState.Queued);
-            Assert.DoesNotContain(order.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
+            Assert.DoesNotContain(order.InstructionId.Value, world.ExportState().CompletedInstructionIds ?? []);
         }
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         // An active order narrows the choices to the order, so permission cannot be chosen under one.
@@ -100,7 +102,7 @@ public sealed class MedicalTreatmentConsentTests
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "medical-forced-berry");
             Assert.True(Physical(world, patient).FullnessBasisPoints > 3_000);
-            Assert.Contains(order.InstructionId, world.ExportState().CompletedInstructionIds!);
+            Assert.Contains(order.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
             Assert.Contains(world.ExportState().Events, item => item.Kind == "instruction_applied" &&
                 item.Detail == order.InstructionId + ":consume_food");
         }
@@ -139,7 +141,7 @@ public sealed class MedicalTreatmentConsentTests
         var observed = Assert.Single(result.Instructions!, message => message.InstructionId == receipt.InstructionId);
         Assert.Equal(world.WorldTick, observed.ObservedTick);
         Assert.Equal(replyText, observed.ObserverReply);
-        Assert.Contains(receipt.InstructionId, result.CompletedInstructionIds!);
+        Assert.Contains(receipt.InstructionId.Value, result.CompletedInstructionIds!);
         // Completed suggestions are recorded as completed instructions, not as order events.
         Assert.DoesNotContain(result.Events, item => item.Kind == "instruction_applied");
 
@@ -431,7 +433,7 @@ public sealed class MedicalTreatmentConsentTests
             "progress" => original with { RemainingTicks = 19 },
             "start" => original with { StartedTick = original.StartedTick + 1 },
             "kind" => original with { Kind = "bandage" },
-            "reservation" => original with { DoseReservationId = "not-consumed" },
+            "reservation" => original with { DoseReservationId = Identity.Parse("not-consumed") },
             _ => original,
         };
         var forged = active with

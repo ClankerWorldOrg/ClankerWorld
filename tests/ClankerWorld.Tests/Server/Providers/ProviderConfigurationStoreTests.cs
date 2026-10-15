@@ -723,7 +723,7 @@ public sealed partial class ProviderConfigurationStoreTests
     public void CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides()
     {
         var action = new OwnerCredentialSlotDeletionAction(Guid.NewGuid().ToString("N"));
-        var clientAction = new ClankerWorld.GodotClient.Protocol.OwnerCredentialSlotDeletionAction(action.CredentialSlotId);
+        var clientAction = new ClankerWorld.Contracts.OwnerCredentialSlotDeletionAction(action.CredentialSlotId);
         Assert.Equal(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.CredentialSlotDeletion(clientAction));
         Assert.NotEqual(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
@@ -792,7 +792,7 @@ public sealed partial class ProviderConfigurationStoreTests
     public void AssignmentTargetIsBoundByBothClientAndServerSignatures()
     {
         var action = new OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
-        var clientAction = new ClankerWorld.GodotClient.Protocol.OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
+        var clientAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.ProviderConfiguration(clientAction));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
@@ -800,7 +800,7 @@ public sealed partial class ProviderConfigurationStoreTests
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
             OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = null }));
         var slotAction = action with { Provider = "openai", CredentialSlotId = Guid.NewGuid().ToString("N"), NewCredentialLabel = "Personal" };
-        var clientSlotAction = new ClankerWorld.GodotClient.Protocol.OwnerProviderConfigurationAction(
+        var clientSlotAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction(
             slotAction.Role, slotAction.Provider, slotAction.Model, slotAction.ApiKey,
             slotAction.ForgetCredential, slotAction.AgentId, slotAction.CredentialSlotId, slotAction.NewCredentialLabel);
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
