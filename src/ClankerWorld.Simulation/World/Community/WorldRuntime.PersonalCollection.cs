@@ -28,7 +28,7 @@ public sealed partial class WorldRuntime
         var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
             moveId, lot.Id, lot.OwnerId, quantity, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("personal_goods_collected", $"{actor}|{lot.ItemKind}|{quantity}|{lot.OwnerId}");
+        AppendEvent(new PersonalGoodsCollectedEventPayload(actor, lot.ItemKind, quantity, lot.OwnerId));
         return new(moveId, lot.ItemKind, quantity);
     }
 }

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
@@ -368,7 +369,7 @@ public sealed partial class HouseholdLandGrantTests
     private static void Refresh(WorldRuntime world, IEnumerable<string> actors)
     {
         foreach (var actor in actors)
-            world.SubmitInstruction(new OwnerInstructionRequest("consider-land-" + actor + "-" + world.WorldTick,
+            world.SubmitInstruction(new OwnerInstructionRequest(DerivedId.Create("consider-land-" + actor + "-" + world.WorldTick),
                 "owner:test", actor, OwnerInstructionKind.Suggestion, "Consider the pending land request."));
     }
 
