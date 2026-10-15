@@ -90,6 +90,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("LessonGratitudeMemoryId")]
     [InlineData("ProjectGratitudeMemoryId")]
     [InlineData("TrustMemoryId")]
+    [InlineData("CartBuildMaterialTransferId")]
     [InlineData("CartRepairReservationId")]
     [InlineData("NativeCartRepairId")]
     [InlineData("FoodPotTransferId")]
@@ -295,6 +296,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 [factory["ChildSocialMemoryId-".Length..], actor, relative, society.WorldTick],
             "LessonGratitudeMemoryId" => [actor, relative, SkillKind.Farming],
             "ProjectGratitudeMemoryId" or "TrustMemoryId" => [actor, relative],
+            "CartBuildMaterialTransferId" => [society.WorldTick, actor],
             "CartRepairReservationId" => [society.WorldTick, actor, "wood"],
             "NativeCartRepairId" => [society.WorldTick, actor, cartId],
             "FoodPotTransferId" => [society.WorldTick, actor],
