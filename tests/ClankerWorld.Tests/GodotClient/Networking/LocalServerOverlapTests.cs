@@ -19,7 +19,8 @@ public sealed partial class LocalServerTests
         File.WriteAllText(layout.SecretPath, Previous);
         using var handler = new ReplacedListenerHandler(Previous);
         using var http = new HttpClient(handler);
-        var game = new LocalServer(layout, http, FreePort(), FreePort());
+        var (port, approval) = FreePorts();
+        var game = new LocalServer(layout, http, port, approval);
         try
         {
             Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync("1.2.3", "abc", CancellationToken.None)).Outcome);
@@ -86,7 +87,7 @@ public sealed partial class LocalServerTests
         var (version, revision) = BuildOf(assembly);
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         using var held = new HeldLaunchProofHandler();
         using var http = new HttpClient(held);
         using var caller = new CancellationTokenSource();
@@ -125,7 +126,7 @@ public sealed partial class LocalServerTests
         var (version, revision) = BuildOf(assembly);
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         using var held = new HeldLaunchProofHandler();
         using var firstHttp = new HttpClient(held);
         using var secondHttp = new HttpClient(new EmptyPortHandler());
