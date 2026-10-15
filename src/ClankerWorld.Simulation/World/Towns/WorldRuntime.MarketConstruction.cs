@@ -25,6 +25,7 @@ public sealed partial class WorldRuntime
             foreach (var market in town.Markets)
             {
                 if (market is null) throw new InvalidDataException("A Market ledger entry is missing.");
+                MarketSystem.ValidateLocalMarket(market);
                 var project = town.Projects.SingleOrDefault(item => item.Id == market.ProjectId);
                 if (!marketIds.Add(market.Id) || project is not { Stage: "completed" } ||
                     project.Plan.DefinitionId != MarketContent.Hall2x2().CanonicalId ||

@@ -7,13 +7,14 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    private IMarketDemandWorld MarketDemandWorld => new MarketWorldAdapter(this);
     private IMarketAdministrationWorld MarketAdministrationWorld => new MarketWorldAdapter(this);
     private IMarketStallWorld MarketStallWorld => new MarketWorldAdapter(this);
     private IMarketBarterWorld MarketBarterWorld => new MarketWorldAdapter(this);
     private IMarketShopPlanningWorld MarketShopPlanningWorld => new MarketWorldAdapter(this);
     private IMarketShopWorld MarketShopWorld => new MarketWorldAdapter(this);
 
-    private sealed class MarketWorldAdapter(WorldRuntime runtime) : IMarketShopWorld, IMarketShopPlanningWorld, IMarketBarterWorld, IMarketStallWorld, IMarketAdministrationWorld
+    private sealed class MarketWorldAdapter(WorldRuntime runtime) : IMarketShopWorld, IMarketShopPlanningWorld, IMarketBarterWorld, IMarketStallWorld, IMarketAdministrationWorld, IMarketDemandWorld
     {
         public IMarketShopWorld Shops => this;
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
@@ -107,6 +108,21 @@ public sealed partial class WorldRuntime
             Reservations = inventory.Reservations.Where(claim => !claims.Contains(claim.Id)).ToArray(),
         });
         void IMarketAdministrationWorld.AppendEvent(string kind, string detail, GridPoint? position) => runtime.AppendEvent(kind, detail, position);
+        public int WorkstationInputTarget(PlacedBuilding building, string kind) => runtime.WorkstationInputTarget(building, kind);
+        public int WorkstationOnsiteQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => WorldRuntime.WorkstationOnsiteQuantity(inventory, building, kind);
+        public int WorkstationIncomingQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => runtime.WorkstationIncomingQuantity(inventory, building, kind);
+        public bool UnusableDeliveryStock(InventoryCheckpoint inventory, InventoryLot lot) => WorldRuntime.UnusableDeliveryStock(inventory, lot);
+        public int ContainerFamilyQuantity(InventoryCheckpoint inventory, string container) => WorldRuntime.ContainerFamilyQuantity(inventory, container);
+        public int UsableWorkstationQuantity(InventoryCheckpoint inventory, InventoryLot lot) => WorldRuntime.UsableWorkstationQuantity(inventory, lot);
+        public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
+        public GoodsRequest DeliveryGoodsRequest(string actor, string owner, string kind, string destination) => WorldRuntime.DeliveryGoodsRequest(actor, owner, kind, destination);
+        public int WorkstationPickupQuantity(string actor, InventoryCheckpoint inventory, InventoryLot stock, string building, int maximum) => runtime.WorkstationPickupQuantity(actor, inventory, stock, building, maximum);
+        public int WorkstationSourceSurplus(InventoryCheckpoint inventory, InventoryLot lot) => runtime.WorkstationSourceSurplus(inventory, lot);
+        public bool WantsFieldPlantingStock(string actor, string kind) => runtime.WantsFieldPlantingStock(actor, kind);
+        public WeatherKind WeatherAt(GridPoint position) => runtime.WeatherAt(position);
+        public bool WantsTradeItem(string actor, InventoryLot lot) => runtime.WantsTradeItem(actor, lot);
+        public PlacedBuilding? HouseholdBuildingWithTag(string household, string tag) => runtime.HouseholdBuildingWithTag(household, tag);
+        public long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds) => runtime.HoldingsTotal(owners, kinds);
         public AgentStore PhysicalAgents => runtime.agentStore;
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public DeclarativeWorldContentState Content => runtime.worldContent;
