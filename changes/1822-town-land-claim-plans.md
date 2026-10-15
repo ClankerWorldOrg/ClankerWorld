@@ -1,1 +1,2 @@
 - Town title claims retain their offered plot options and admitted exact tiles through shared checks.
+- Personal land-claim replies without a plot receive an explained refusal before proposal submission.
