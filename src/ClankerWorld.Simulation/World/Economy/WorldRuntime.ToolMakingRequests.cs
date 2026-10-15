@@ -153,7 +153,7 @@ public sealed partial class WorldRuntime
             AppendEvent("tool_request_placed", actor + ":" + id);
             return;
         }
-        var request = plan.Original!;
+        var request = toolMakingRequests.Single(item => item.Id == plan.Original!.Id);
         switch (plan.Choice.Kind)
         {
             case ToolRequestConsentKind.Withdraw:
