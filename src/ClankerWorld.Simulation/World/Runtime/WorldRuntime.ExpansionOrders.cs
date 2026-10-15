@@ -114,11 +114,7 @@ public sealed partial class WorldRuntime
             {
                 var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
                 ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.InputReservationIds, deadline));
-                constructionState = WorldConstructionState.From(worldSimulation with
-                {
-                    BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
-                        ? item with { State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null } : item).ToArray(),
-                });
+                constructionSystem.Buildings.ResumeExpansion(job.JobId, deadline);
                 AppendEvent("expansion_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
             }
             return;
@@ -197,11 +193,7 @@ public sealed partial class WorldRuntime
     {
         if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running } job) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, job.InputReservationIds));
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
-                ? item with { State = WorldProductionJobState.Paused, PausedAtTick = WorldTick } : item).ToArray(),
-        });
+        constructionSystem.Buildings.PauseExpansion(job.JobId, WorldTick);
         AppendEvent("expansion_order_paused", $"{instruction.InstructionId}:{job.JobId}");
     }
 
@@ -216,11 +208,7 @@ public sealed partial class WorldRuntime
                     inventory = InventoryAuthority.ReleaseReservation(inventory, id, "owner_expansion_stopped");
             return inventory;
         });
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = worldSimulation.BuildingExpansions!.Select(item => item.JobId == job.JobId
-                ? item with { State = WorldProductionJobState.Cancelled, Failure = "The expansion order stopped." } : item).ToArray(),
-        });
+        constructionSystem.Buildings.CancelPausedExpansions(new HashSet<string>(StringComparer.Ordinal) { job.JobId }, "The expansion order stopped.");
         AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:The expansion order stopped.");
     }
 

@@ -446,7 +446,7 @@ public sealed partial class WorldRuntime
         townSystem = proposed.townSystem;
         continuity = proposed.continuity;
         worldContent = proposed.worldContent;
-        constructionState = proposed.constructionState;
+        constructionSystem = proposed.constructionSystem;
         productionSystem = proposed.productionSystem;
         assetReservations = proposed.assetReservations;
         agents = proposed.agents;

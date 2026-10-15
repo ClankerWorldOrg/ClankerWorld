@@ -195,133 +195,11 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private BuildingPlacementResult PlaceBuildingCore(
-        string instanceId,
-        string definitionId,
-        GridPoint position,
-        string eventKind,
-        string? assignedTownId = null,
-        string? householdId = null,
-        string? constructionOwnerId = null,
-        string? constructionInstructionId = null,
-        IReadOnlyList<ConstructionMaterialInput>? selectedMaterials = null)
-    {
-        try
-        {
-            var normalizedInstanceId = NormalizeRequiredText(instanceId, nameof(instanceId));
-            var normalizedDefinitionId = NormalizeRequiredText(definitionId, nameof(definitionId));
-            ContentPackageRules.ValidateLocalId(normalizedInstanceId);
-            var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == normalizedDefinitionId);
-            if (definition is null)
-            {
-                return BuildingPlacementResult.Rejected(
-                    normalizedInstanceId,
-                    normalizedDefinitionId,
-                    position,
-                    $"Building definition '{normalizedDefinitionId}' is not active.");
-            }
-
-            if (PortNavigationRules.IsPort(definition))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    "A Port needs a Council-approved project, delivered Town materials and completed building work.");
-
-            if (definition.Tags.Contains(TownHallContent.HallTag, StringComparer.Ordinal) ||
-                StreetLanternContent.IsLantern(definition.CanonicalId))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    StreetLanternContent.IsLantern(definition.CanonicalId)
-                        ? $"{definition.DisplayName} needs a Council-approved project, delivered materials and completed building work."
-                        : "The Town Hall needs a Council-approved project, delivered materials and completed building work.");
-
-            if (definition.Tags.Any(tag => tag is MarketContent.HallTag or MarketContent.StallTag))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    "A Market or stall needs a Council-approved project, delivered Town materials and completed building work.");
-
-            if (worldSimulation.Buildings.Any(item => item.InstanceId == normalizedInstanceId))
-            {
-                return BuildingPlacementResult.Rejected(
-                    normalizedInstanceId,
-                    normalizedDefinitionId,
-                    position,
-                    $"Building instance '{normalizedInstanceId}' already exists.");
-            }
-
-            if (BuildingIdentityIsReserved(normalizedInstanceId, constructionInstructionId))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    $"Building instance '{normalizedInstanceId}' is reserved for building orders.");
-
-            if (assignedTownId is not null && !towns.Any(item => item.Id == assignedTownId))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    "The assigned Town does not exist.");
-
-            var isHouse = definition.Tags.Contains("house", StringComparer.Ordinal);
-            var acceptsHouseholdOwner = definition.Tags.Any(IsHouseholdBuildingTag);
-            if (isHouse && householdId is null || householdId is not null && !acceptsHouseholdOwner ||
-                householdId is not null && !society.Checkpoint.Households.Any(item => item.Id == householdId))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    "A House requires an existing household; only household work buildings may take household ownership.");
-
-            if (definition.Tags.Contains("warehouse", StringComparer.Ordinal) &&
-                (assignedTownId is null || worldSimulation.Buildings.Any(building =>
-                    building.TownId == assignedTownId && worldContent.Buildings.Any(existing =>
-                        existing.CanonicalId == building.DefinitionId &&
-                        existing.Tags.Contains("warehouse", StringComparer.Ordinal)))))
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    "A Warehouse must join a Town that does not already have one.");
-
-            if (!CanPlaceBuilding(definition, position, out var placementFailure))
-            {
-                return BuildingPlacementResult.Rejected(
-                    normalizedInstanceId,
-                    normalizedDefinitionId,
-                    position,
-                    placementFailure);
-            }
-
-            var materialOwner = constructionOwnerId ?? householdId ?? HouseholdId;
-            selectedMaterials ??= PlanConstructionInputs(definition.BuildCosts, materialOwner);
-            if (selectedMaterials is null)
-            {
-                var missing = definition.BuildCosts.First(cost => ProductionGoods(society.Checkpoint.Inventory,
-                    new(GoodsUse.Holdings, null, GoodsOwners.One(materialOwner), GoodsKinds.One(cost.ResourceId))).Sum(match => (long)match.Quantity) < cost.Amount);
-                var available = ProductionGoods(society.Checkpoint.Inventory,
-                    new(GoodsUse.Holdings, null, GoodsOwners.One(materialOwner), GoodsKinds.One(missing.ResourceId))).Sum(match => (long)match.Quantity);
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
-                    $"Insufficient '{missing.ResourceId}' for building:{normalizedInstanceId}; missing {(missing.Amount - available).ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
-            }
-            if (CheckConstructionInputs(materialOwner, selectedMaterials).Refusal is { } materialRefusal)
-                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position, materialRefusal.Explanation);
-            ApplyInventoryTransition(inventory => ConsumeConstructionInputs(inventory, selectedMaterials, $"building:{normalizedInstanceId}", materialOwner));
-            var placed = new PlacedBuilding(
-                normalizedInstanceId,
-                definition.CanonicalId,
-                position,
-                WorldTick,
-                assignedTownId,
-                householdId);
-            constructionState = WorldConstructionState.From(new WorldContentSimulationState(
-                worldSimulation.Buildings
-                    .Append(placed)
-                    .OrderBy(item => item.InstanceId, StringComparer.Ordinal)
-                    .ToArray(),
-                worldSimulation.ProductionJobs,
-                worldSimulation.NextProductionJobSequence,
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts));
-            if (assignedTownId is not null)
-                AssignBuildingToTown(placed, definition);
-            AppendEvent(eventKind, $"{placed.InstanceId}:{placed.DefinitionId}:{position.X},{position.Y}" +
-                (householdId is null ? string.Empty : $":household={householdId}"));
-            return BuildingPlacementResult.Success(placed);
-        }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
-        {
-            return BuildingPlacementResult.Rejected(
-                instanceId?.Trim() ?? string.Empty,
-                definitionId?.Trim() ?? string.Empty,
-                position,
-                exception.Message);
-        }
-    }
+    private BuildingPlacementResult PlaceBuildingCore(string instanceId, string definitionId, GridPoint position, string eventKind,
+        string? assignedTownId = null, string? householdId = null, string? constructionOwnerId = null,
+        string? constructionInstructionId = null, IReadOnlyList<ConstructionMaterialInput>? selectedMaterials = null) =>
+        constructionSystem.PlaceBuilding(ConstructionPlacementWorld, instanceId, definitionId, position, eventKind,
+            assignedTownId, householdId, constructionOwnerId, constructionInstructionId, selectedMaterials);
 
     public ProductionStartResult StartProduction(
         string recipeId,
@@ -362,7 +240,7 @@ public sealed partial class WorldRuntime
             if (toolMakingRequests.Any(request => !ToolMakingRequestRules.IsTerminal(request.Status) &&
                     packageRecipes.Contains(request.RecipeId)))
                 throw new InvalidOperationException("Content referenced by active tool requests requires an explicit migration before removal.");
-            var remainingSimulation = WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
+            WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
             if (agents.Values.Any(person => person.Project is { } project &&
                 (project.CandidateId.StartsWith($"build:building:{manifest.PackageDigest}/", StringComparison.Ordinal) ||
                  project.CandidateId.StartsWith($"build:recipe:{manifest.PackageDigest}/", StringComparison.Ordinal))))
@@ -383,7 +261,6 @@ public sealed partial class WorldRuntime
                 throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
             var record = contentRegistry.Rollback(packageId, WorldTick, reason);
             worldContent = remainingContent;
-            constructionState = WorldConstructionState.From(remainingSimulation);
             if (survivalState is not null)
             {
                 survivalState = survivalState with

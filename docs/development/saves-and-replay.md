@@ -116,6 +116,13 @@ live state and are copied during trusted tick preparation. The production
 system checks local job shape; save validation checks job links to recipes,
 buildings and the world clock. This ownership split changes no save shape.
 
+Construction captures placements, expansions, guest access and completion
+receipts from one building store. Local record validation belongs to that
+store; loading still checks links to content, terrain, people, inventory,
+Town records and orders. Live construction plans copy across trusted tick
+preparation and stay outside checkpoints. Existing construction save fields
+and event order are unchanged.
+
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
 Cognition diagnostics retain their world ticks through export and restore.
