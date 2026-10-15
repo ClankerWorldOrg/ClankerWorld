@@ -70,7 +70,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void AddFamilyCandidates(List<CognitionCandidate> candidates, string actor)
+    private void AddFamilyCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
         if (survivalState is null || !IsAdult(actor) || !ReadyForBriefInteraction(actor))
         {
@@ -97,52 +97,38 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyFamilyCandidate(string actor, string candidate)
+    private void ApplyFamilyCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
-        var separator = candidate.IndexOf(':', StringComparison.Ordinal);
-        if (separator < 0 || !IsAdult(actor))
+        var plan = originalPlan as PartnershipActionPlan ?? (PartnershipChoice.Decode(candidate) is { } choice ? PlanPartnershipAction(actor, choice) : null);
+        if (plan is not null) ApplyPartnershipActionPlan(plan);
+    }
+
+    private void CompletePartnershipAction(PartnershipActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var target = plan.Choice.TargetId;
+        switch (plan.Choice.Kind)
         {
-            return;
-        }
-        var target = candidate[(separator + 1)..];
-        if (candidate.StartsWith("partner_propose:", StringComparison.Ordinal))
-        {
-            if (CanProposePartnership(actor, target))
-            {
-                var id = NewPartnershipId(actor, target, WorldTick);
+            case PartnershipChoiceKind.Propose:
+                var id = NewPartnershipId(actor, plan.PartnerId, WorldTick);
                 society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
-                    new(id, 1, SocietyRelationshipType.Partnership, actor, target, WorldTick, PrivacyClass: "public")));
+                    new(id, 1, SocietyRelationshipType.Partnership, actor, plan.PartnerId, WorldTick, PrivacyClass: "public")));
                 AppendEvent(new PartnershipProposedEventPayload(actor));
-            }
-            return;
-        }
-        var relationship = Partnerships(actor).FirstOrDefault(item => item.Id == target);
-        if (relationship is null)
-        {
-            return;
-        }
-        if (candidate.StartsWith("partner_accept:", StringComparison.Ordinal) &&
-            relationship.State == SocietyRelationshipState.Proposed && relationship.TargetId == actor &&
-            IsAdult(relationship.ProposerId) && !CloseKin(actor, relationship.ProposerId))
-        {
-            society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, target, relationship.Revision, actor));
-            if (society.Checkpoint.GetRelationship(target).State == SocietyRelationshipState.Accepted)
-            {
-                AppendEvent(new PartnershipAcceptedEventPayload(actor));
-            }
-        }
-        else if (candidate.StartsWith("partner_refuse:", StringComparison.Ordinal) &&
-            relationship.State == SocietyRelationshipState.Proposed && relationship.TargetId == actor)
-        {
-            society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, target, relationship.Revision, actor));
-            AppendEvent(new PartnershipRefusedEventPayload(actor));
-        }
-        else if (candidate.StartsWith("partner_leave:", StringComparison.Ordinal) &&
-            relationship.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted)
-        {
-            society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, target, actor));
-            MaintainMarriages();
-            AppendEvent(new PartnershipEndedEventPayload(actor));
+                break;
+            case PartnershipChoiceKind.Accept:
+                society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, target, plan.Original!.Revision, actor));
+                if (society.Checkpoint.GetRelationship(target).State == SocietyRelationshipState.Accepted)
+                    AppendEvent(new PartnershipAcceptedEventPayload(actor));
+                break;
+            case PartnershipChoiceKind.Refuse:
+                society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, target, plan.Original!.Revision, actor));
+                AppendEvent(new PartnershipRefusedEventPayload(actor));
+                break;
+            case PartnershipChoiceKind.Leave:
+                society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, target, actor));
+                MaintainMarriages();
+                AppendEvent(new PartnershipEndedEventPayload(actor));
+                break;
         }
     }
 }

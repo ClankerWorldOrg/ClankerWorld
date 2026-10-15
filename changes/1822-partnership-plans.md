@@ -1,0 +1,1 @@
+- Partnership choices now explain when the selected proposal or consent changes before they can act.

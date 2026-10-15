@@ -439,6 +439,9 @@ including infant following, while refusing a changed authority or destination.
 Parenthood choices retain their partnership, original request, continuity
 deadline and selected caregiver/home. One check controls offer, admission and
 application; native preparation, birth and continuity maintenance remain.
+Partnership choices retain the selected person or exact relationship and consent
+revision. The shared check runs at all three boundaries; existing Society
+transitions and marriage cleanup remain their native commit path.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

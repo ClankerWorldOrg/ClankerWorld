@@ -8,7 +8,7 @@ using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
-public sealed class FamilyTests
+public sealed partial class FamilyTests
 {
     [Fact]
     public async Task LegacyRevokedParentageStillCountsAsFamilyHistory()
