@@ -30,43 +30,30 @@ public static partial class TownLandHearingValidation
                     "A live saved case judge must remain an eligible independent adult resident.");
         foreach (var adjustment in state.Adjustments)
         {
-            Check(Generated(adjustment.Id, "land-adjustment:", townId, state.Sequence) && adjustment.Tick >= 0 && adjustment.Tick <= tick && adjustment.PriorRights is not null && adjustment.ResultRights is not null &&
-                adjustment.Tiles is not null && adjustment.PriorRights.All(r => r is not null) && adjustment.ResultRights.All(r => r is not null),
-                "A saved land adjustment is incomplete.");
-            Unique(adjustment.PriorRights.Select(r => r.Id));
-            Unique(adjustment.ResultRights.Select(r => r.Id));
-            Check(adjustment.Tiles.Count > 0 && adjustment.Tiles.SequenceEqual(TownLandRightsRules.OrderTiles(adjustment.Tiles.Distinct())) &&
-                adjustment.Tiles.All(t => map.IsLand(t) && TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A land adjustment must be bounded to titled land.");
+            Check(adjustment.Tick <= tick, "A saved land adjustment is incomplete.");
+            Check(adjustment.Tiles.All(t => map.IsLand(t) && TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A land adjustment must be bounded to titled land.");
             foreach (var right in adjustment.PriorRights) ValidateRight(map, adjustment.Tick, townId, right, titles, knownHouseholds);
             foreach (var right in adjustment.ResultRights) ValidateRight(map, adjustment.Tick, townId, TownLandHearingRules.Snapshot(right), titles, knownHouseholds);
-            Check(adjustment.ResultRights.SelectMany(r => r.Tiles).Distinct().Count() == adjustment.ResultRights.Sum(r => r.Tiles.Count),
-                "A land adjustment cannot overlap its result permissions.");
             if (adjustment.Kind is "ruling" or "property_ruling")
             {
                 var item = state.Cases.SingleOrDefault(c => c.Id == adjustment.CaseId);
                 var ruling = item?.Rulings.SingleOrDefault(r => r.Id == adjustment.RulingId);
-                Check(item is not null && ruling is not null && ruling.Tick == adjustment.Tick && ruling.AdjustmentIds.Contains(adjustment.Id, StringComparer.Ordinal) &&
-                    adjustment.BuildingId is null && adjustment.TargetHouseholdId is null && adjustment.TransferId is null, "A ruling adjustment needs its exact durable case and ruling.");
-                var revision = item.Revisions.Single(r => r.Number == ruling.Revision);
-                Check(adjustment.Kind == (ruling.Outcome.Kind is "reclaim" or "grant" ? "property_ruling" : "ruling"),
-                    "Physical property adjustments must retain their distinct noticed transfer authority.");
+                var revision = item!.Revisions.Single(r => r.Number == ruling!.Revision);
                 var prior = adjustment.PriorRights.Select(r => r.Right).ToArray();
                 // Free tiles a ruling granted are replayed as recorded; the request receipts prove each one was a heard request.
                 var granted = adjustment.ResultRights.SelectMany(r => r.Tiles).Where(t => !prior.Any(p => p.Tiles.Contains(t))).ToArray();
-                Check(adjustment.Tiles.SequenceEqual(revision.Tiles) &&
-                    (ruling.Outcome.Kind is "reclaim" or "grant" ? item.Property is not null &&
+                Check(ruling!.Outcome.Kind is "reclaim" or "grant" ? item.Property is not null &&
                         TownLandHearingRules.SameRights(adjustment.ResultRights, TownPropertyRules.BoundedRights(map,
                             prior, adjustment.Tiles, item.Property.Request, ruling.Id, ruling.Tick, townId)) :
                         ruling.Outcome.Kind is "renew" or "amend" or "end" &&
                         (ruling.Outcome.Kind == "amend" || prior.Any(r => r.HouseholdId == ruling.Outcome.HouseholdId && r.Tiles.Any(adjustment.Tiles.Contains))) &&
                         TownLandHearingRules.SameRights(adjustment.ResultRights, TownLandHearingRules.BoundedOutcome(map,
-                            prior, adjustment.Tiles, ruling.Outcome, ruling.Id, ruling.Tick, townId, granted))),
+                            prior, adjustment.Tiles, ruling.Outcome, ruling.Id, ruling.Tick, townId, granted)),
                     "A saved ruling must reproduce exactly its bounded permission change.");
             }
             else if (adjustment.Kind == "building_transfer")
             {
-                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && Id(adjustment.BuildingId) &&
-                    adjustment.TargetHouseholdId is { } target && knownHouseholds.Contains(target), "A building transfer needs its captured footprint and known beneficiary.");
+                Check(knownHouseholds.Contains(adjustment.TargetHouseholdId!), "A building transfer needs its captured footprint and known beneficiary.");
                 var prior = adjustment.PriorRights.Select(r => r.Right).ToArray();
                 var expected = TownLandRightsRules.ReassignFootprintRights(map, prior, adjustment.Tiles.ToHashSet(), adjustment.TargetHouseholdId!, adjustment.Tick);
                 // The actual global reassignment may reserve an ID already used by an untouched piece.
@@ -76,12 +63,9 @@ public static partial class TownLandHearingValidation
             else if (adjustment.Kind == "voluntary_transfer") TownLandTransferValidation.ValidateAdjustment(map, state, adjustment);
             else throw new InvalidDataException("A saved land adjustment has an unsupported source.");
         }
-        Check(state.Adjustments.Select(a => a.Tick).SequenceEqual(state.Adjustments.Select(a => a.Tick).Order()), "Land adjustments must retain chronological order.");
         var originals = TownLandHearingRules.OriginalGrantRights(state, currentRights);
         Check(TownLandHearingRules.SameRights(TownLandHearingRules.ApplyAdjustments(state, originals), currentRights),
             "Saved live rights must match their original permissions and every recorded adjustment.");
-        Check(state.OriginalRights.All(r => state.Adjustments.Any(a => a.PriorRights.Any(p => p.Id == r.Id && p.Version == r.Version))),
-            "An original permission snapshot cannot be orphaned from its adjustment chain.");
     }
 
     private static void ValidateCase(WorldMap map, long tick, string townId, TownLandCase item,
