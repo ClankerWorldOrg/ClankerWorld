@@ -1,0 +1,1 @@
+- Town-project donation limits count checked plans, keeping four offers per budget entry and sixteen overall. Native selected-choice lookup remains independent of presentation caps, and each offer retains its exact checked plan.
