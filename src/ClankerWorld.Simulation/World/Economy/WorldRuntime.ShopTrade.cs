@@ -239,17 +239,22 @@ public sealed partial class WorldRuntime
     {
         if (!ShopQuoteContext(buyer, building))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shop exchange is no longer available");
+        var index = InventoryIndex.For(society.Checkpoint.Inventory);
+        var goods = SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
+            .Where(match => match.Lot.Id == quote.Goods.Id && match.Lot.OwnerId == quote.Goods.OwnerId &&
+                match.Lot.ItemKind == quote.Goods.ItemKind && match.Quantity >= quote.GoodsQuantity)
+            .Select(match => match.Lot).FirstOrDefault();
+        var payment = ShopPaymentLots(buyer, building).FirstOrDefault(lot => lot.Id == quote.Payment.Id &&
+            lot.OwnerId == quote.Payment.OwnerId && lot.ItemKind == quote.Payment.ItemKind);
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) is not { } kind || !ShopRules.MaySell(kind, quote.Goods.ItemKind) ||
-            !IsLooseShopLot(quote.Goods) || quote.Goods.ItemKind == quote.Payment.ItemKind ||
-            !SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
-                .Any(match => match.Lot == quote.Goods && match.Quantity >= quote.GoodsQuantity) ||
-            !ShopPaymentLots(buyer, building).Any(lot => lot == quote.Payment) ||
-            AvailableLotQuantity(quote.Payment) < quote.PaymentQuantity ||
-            ShopQuoteAmounts(building, quote.Goods, quote.Payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
-            !requestedGoods && (!ShopBuyerWants(buyer, quote.Goods) ||
-                !ShopBuyerWantsWithoutRestaurant(buyer, quote.Goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, quote.Goods.ItemKind)) ||
-            RestaurantInputDemand(buyer, quote.Payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, quote.Payment.ItemKind))
+        if (goods is null || payment is null || ShopRules.KindOf(definition) is not { } kind ||
+            !ShopRules.MaySell(kind, goods.ItemKind) || !IsLooseShopLot(goods) || goods.ItemKind == payment.ItemKind ||
+            !InventoryHoldRules.Allows(index, goods) || !InventoryHoldRules.Allows(index, payment) ||
+            AvailableLotQuantity(payment) < quote.PaymentQuantity ||
+            ShopQuoteAmounts(building, goods, payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
+            !requestedGoods && (!ShopBuyerWants(buyer, goods) ||
+                !ShopBuyerWantsWithoutRestaurant(buyer, goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, goods.ItemKind)) ||
+            RestaurantInputDemand(buyer, payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, payment.ItemKind))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods or payment are no longer available");
         return ShopReceivingSpace(buyer, building, quote.GoodsQuantity, quote.PaymentQuantity)
             ? new() : ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected shop exchange");
@@ -277,7 +282,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private bool IsShopFoodCandidate(string actor, string candidateId)
+    private bool IsShopFoodCandidate(string actor, string candidateId, ShopBuyActionPlan? selectedPlan = null)
     {
         // Only the buyer's ready food can interrupt an order. Raw ingredients,
         // equipment and a seller's response still follow ordinary work rules.
@@ -287,8 +292,10 @@ public sealed partial class WorldRuntime
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
         if (building is null) return false;
-        if (ShopOpportunity(actor, building) is { } quote)
-            return IsEdibleFood(quote.Goods.ItemKind) && WantsTradeFoodKind(actor, quote.Goods.ItemKind);
+        var kind = selectedPlan?.Quote?.Goods.ItemKind ??
+            (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
+        if (kind is not null)
+            return IsEdibleFood(kind) && WantsTradeFoodKind(actor, kind);
         return RestaurantMealShopTrip(actor, building);
     }
 
