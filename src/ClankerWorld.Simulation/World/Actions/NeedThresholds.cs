@@ -14,4 +14,8 @@ public static class NeedThresholds
     public const int UrgentFullness = 2_000;
     public const int ChildHelpingFullness = 6_000;
     public const int SpareFoodStorageFullness = ChildHelpingFullness;
+    public const int HouseholdFoodDeliveryFullness = 6_000;
+    public const int IllnessExposureWarmth = 2_500;
+    public const int IllnessStarvationFullness = 500;
+    public const int IllnessRecoveryFullness = 3_500;
 }

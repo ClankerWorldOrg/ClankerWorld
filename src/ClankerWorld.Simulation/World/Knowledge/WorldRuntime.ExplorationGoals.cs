@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
     {
         // Needs and recipe inputs identify a purpose. No unseen site's position
         // participates in this choice or in ranking the next scouting step.
-        if (person.FullnessBasisPoints < 7_000 && FreeCarryCapacity(actor) > 0 &&
+        if (person.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && FreeCarryCapacity(actor) > 0 &&
             !PreferredFood(actor, actor).Any() && AvailableSharedFood(actor) is null &&
             !KnownExplorationSources(actor, person, "food").Any())
             return "food";

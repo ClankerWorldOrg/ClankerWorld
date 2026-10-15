@@ -448,12 +448,15 @@ migration.
 dependent checks used by Town membership, governance, hearings, markets and care.
 Medical permission, retained care trips, guardian placement and infant-family
 continuity use these same primitives without changing their allowed life stages.
-`Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
+`Actions/NeedThresholds.cs` names the shared food and warmth thresholds, including
+food exploration, household delivery and illness exposure/recovery. Source
+scanning covers both need properties and the local fullness/warmth variables.
+Child routes use
 one per-call reach service with an explicit swimming policy and separate
 prospective return origin. Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The source guard in `ActionRuleBoundaryTests` records
-remaining unnamed need comparisons and direct route calls; copied age-band
+remaining direct route calls; copied age-band and unnamed need
 predicates have no allowance outside the shared life-stage rules, and child
 code has no allowance. Lower its expression allowances as later action
 areas move to these services. Child stock selection and exact-lot rechecks use

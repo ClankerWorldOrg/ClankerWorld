@@ -34,7 +34,8 @@ internal static class ActionRuleScan
         IdentifierNameSyntax { Identifier.ValueText: "age" or "ageBand" };
 
     private static bool IsNeed(ExpressionSyntax expression) => expression is
-        MemberAccessExpressionSyntax { Name.Identifier.ValueText: "FullnessBasisPoints" or "WarmthBasisPoints" };
+        MemberAccessExpressionSyntax { Name.Identifier.ValueText: "FullnessBasisPoints" or "WarmthBasisPoints" } or
+        IdentifierNameSyntax { Identifier.ValueText: "fullness" or "warmth" };
 
     private static bool IsNumber(ExpressionSyntax expression) => expression is LiteralExpressionSyntax literal &&
         literal.IsKind(SyntaxKind.NumericLiteralExpression);

@@ -267,9 +267,9 @@ public sealed partial class WorldRuntime
         {
             var old = person.Survival ?? new SurvivalCondition();
             var warmth = Math.Clamp(old.WarmthBasisPoints + WarmthChange(person), 0, 10_000);
-            var illnessChange = warmth < 2_500 || person.FullnessBasisPoints < 500
+            var illnessChange = warmth < NeedThresholds.IllnessExposureWarmth || person.FullnessBasisPoints < NeedThresholds.IllnessStarvationFullness
                 ? ExposureIllnessIncreasePerTick
-                : warmth > 6_000 && person.FullnessBasisPoints > 3_500
+                : warmth > NeedThresholds.ComfortableWarmth && person.FullnessBasisPoints > NeedThresholds.IllnessRecoveryFullness
                     ? -(IllnessRecoveryPerTick + (NearShelter(person.AgentId, person.Position) ? ShelteredIllnessRecoveryBonusPerTick : 0))
                     : 0;
             var illness = Math.Clamp(old.IllnessBasisPoints + illnessChange, 0, 10_000);
