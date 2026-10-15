@@ -1,0 +1,1 @@
+- Saved keys used by the world's routine helper cannot be deleted until you choose another helper key or turn the helper off.

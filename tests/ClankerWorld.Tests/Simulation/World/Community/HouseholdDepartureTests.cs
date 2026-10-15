@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
@@ -151,7 +152,7 @@ public sealed class HouseholdDepartureTests
                 initial.WorldTick, [fact])
             {
                 WritingProjectId = projectId,
-                Materials = [new AgentKnowledgeMaterial(reservationId, paperId, "paper", 1)],
+                Materials = [new AgentKnowledgeMaterial(Identity.Parse(reservationId), paperId, "paper", 1)],
             });
         }
         foreach (var kind in kinds)
@@ -533,7 +534,7 @@ public sealed class HouseholdDepartureTests
             WorldSimulation = state.WorldSimulation! with
             {
                 ProductionJobs = [new WorldProductionJob("departure-private-job", recipe.CanonicalId, house.InstanceId,
-                    actor, initial.WorldTick, initial.WorldTick + 30, WorldProductionJobState.Running, reservationIds) { OwnerId = Alpha }],
+                    actor, initial.WorldTick, initial.WorldTick + 30, WorldProductionJobState.Running, (reservationIds).Select(Identity.Parse).ToArray()) { OwnerId = Alpha }],
             },
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
