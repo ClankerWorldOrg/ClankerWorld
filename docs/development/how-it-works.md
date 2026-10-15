@@ -141,6 +141,8 @@ ownership and available material lots. Matching project/order plans are copied
 through tick preparation and commit without entering saves. Material payment
 uses the selected quantities and existing reservation identities; supplies
 acquired later are selected once when the payment inputs become available.
+A builder whose selected materials become unavailable gets fresh construction
+choices. The paused goal still prevents another member from duplicating that kind.
 Expansion choices retain the selected building revision, ownership, target
 position and footprint. Available payment lots and quantities are retained
 through native job reservation; later deliveries are selected by their own

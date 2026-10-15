@@ -73,8 +73,9 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(person.AgentId).HouseholdId == householdId &&
             worldContent.Buildings.FirstOrDefault(definition => definition.CanonicalId == selection.DefinitionId) is { } planned &&
             HouseholdBuildingKind(planned) is { } plannedKind && (kind is null || plannedKind == kind) &&
-            !(person.AgentId == retryingActor && project.Stage == "blocked" &&
-                WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks));
+            !(person.AgentId == retryingActor &&
+                (project.RequiresFreshChoice || project.Stage == "blocked" &&
+                    WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks)));
 
     /// <summary>Materials the household owns, wherever it stores them, plus what its members carry.</summary>
     private bool HouseholdHasMaterialsInHand(string householdId, IReadOnlyList<ContentQuantity> costs) =>
