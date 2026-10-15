@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -16,13 +17,13 @@ public sealed partial class PlayerRenameTests
         var state = initial.ExportState();
         var history = state.Society.Society.Memories.Where(item => item.OwnerId == First).ToArray();
         Assert.Equal(names.Length, history.Length);
-        Assert.Equal(names.Length, history.Select(item => item.Id).Distinct().Count());
+        Assert.Equal(names.Length, history.Select(item => item.Id.Value).Distinct().Count());
         var ordinary = Enumerable.Range(0, 300).Select(index => new SocietySocialMemory(
-            $"a-new-experience-{index:D3}", First, Second, "Gather food and build shelter near home.", "private", 0)).ToArray();
+            Identity.Create($"a-new-experience-{index:D3}"), First, Second, "Gather food and build shelter near home.", "private", 0)).ToArray();
         // A saved zero assessment cannot make the permanent rename fade; recent ordinary sources can be highly ranked.
         var assessments = ordinary.Take(255).Select(item => new SocietyAgentMemoryImportance(
             item.Id, SocietyMemorySourceKind.Experience, 0, 10_000, 10_000, 0)).Append(new(
-                history[^1].Id, SocietyMemorySourceKind.Experience, 0, 0, 0, 0)).OrderBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+                history[^1].Id, SocietyMemorySourceKind.Experience, 0, 0, 0, 0)).OrderBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         state = state with
         {
             JevEnabled = false,
@@ -31,7 +32,7 @@ public sealed partial class PlayerRenameTests
             {
                 Society = state.Society.Society with
                 {
-                    Memories = history.Concat(ordinary).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                    Memories = history.Concat(ordinary).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
                     MemoryCompactions = [new(First, assessments)],
                 },
             },

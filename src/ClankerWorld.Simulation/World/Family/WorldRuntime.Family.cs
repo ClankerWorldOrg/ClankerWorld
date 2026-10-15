@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
                 WorldTick - relationship.ProposedTick > 120)
             {
                 society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, relationship.Id, relationship.ProposerId));
-                AppendEvent("partnership_expired", relationship.ProposerId);
+                AppendEvent(new PartnershipExpiredEventPayload(relationship.ProposerId));
             }
         }
     }
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
                 var id = NewPartnershipId(actor, target, WorldTick);
                 society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
                     new(id, 1, SocietyRelationshipType.Partnership, actor, target, WorldTick, PrivacyClass: "public")));
-                AppendEvent("partnership_proposed", actor);
+                AppendEvent(new PartnershipProposedEventPayload(actor));
             }
             return;
         }
@@ -128,21 +128,21 @@ public sealed partial class WorldRuntime
             society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, target, relationship.Revision, actor));
             if (society.Checkpoint.GetRelationship(target).State == SocietyRelationshipState.Accepted)
             {
-                AppendEvent("partnership_accepted", actor);
+                AppendEvent(new PartnershipAcceptedEventPayload(actor));
             }
         }
         else if (candidate.StartsWith("partner_refuse:", StringComparison.Ordinal) &&
             relationship.State == SocietyRelationshipState.Proposed && relationship.TargetId == actor)
         {
             society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, target, relationship.Revision, actor));
-            AppendEvent("partnership_refused", actor);
+            AppendEvent(new PartnershipRefusedEventPayload(actor));
         }
         else if (candidate.StartsWith("partner_leave:", StringComparison.Ordinal) &&
             relationship.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted)
         {
             society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, target, actor));
             MaintainMarriages();
-            AppendEvent("partnership_ended", actor);
+            AppendEvent(new PartnershipEndedEventPayload(actor));
         }
     }
 }
