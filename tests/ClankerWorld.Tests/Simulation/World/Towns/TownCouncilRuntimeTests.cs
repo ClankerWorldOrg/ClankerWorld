@@ -190,7 +190,25 @@ public sealed class TownCouncilRuntimeTests
             .Replace(FirstAuthor, firstCandidate, StringComparison.Ordinal);
         using var generated = WorldRuntime.Restore(WorldRuntimeCodec.Decode(Encoding.UTF8.GetBytes(initialJson)),
             _ => new ElectionProvider(observed));
-        await generated.AdvanceOneTickAsync();
+        var beforeRegistration = WorldRuntimeCodec.Encode(generated.ExportState());
+        Assert.False((await generated.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(beforeRegistration, WorldRuntimeCodec.Encode(generated.ExportState()));
+        observed.Clear();
+        var registration = await generated.AdvanceOneTickAsync();
+        Assert.True(registration.Advanced);
+        var registrations = registration.Decisions.Where(decision => decision.Admission.Intention?.CandidateId.Contains("|register|", StringComparison.Ordinal) == true).ToArray();
+        Assert.Equal(4, registrations.Length);
+        Assert.All(registrations,
+            decision =>
+            {
+                var offered = observed.Last(observation => observation.AgentId == decision.AgentId).Candidates
+                    .Single(candidate => candidate.Id == decision.Admission.Intention!.CandidateId);
+                var plan = Assert.IsType<CouncilConsentActionPlan>(offered.ActionPlan);
+                Assert.Same(plan, decision.ActionPlan);
+                Assert.Equal(CouncilConsentKind.Register, plan.Choice.Kind);
+                Assert.Equal(plan.Choice, CouncilConsentChoice.Decode(plan.CandidateId));
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, generated.CheckActionPlan(plan).Refusal!.Reason);
+            });
         Assert.Equal(4, generated.Towns[0].Council!.Candidates.Count);
         var opening = generated.Towns[0].Council!.Election!;
         Assert.Equal(4, opening.Voters.Count);

@@ -484,6 +484,9 @@ shared check covers residents and eligible visitors, including children who
 actually know a non-land report or case, before the native civic action or its
 ordinary walking continuation; arrival still asks for a fresh act. A child's
 visit grants no adult civic rights, and urgent food or warmth still comes first.
+Council candidacy responses retain the chosen Town, nominee or remainder-term
+deadline and the actor's existing agreement. A shared check preserves personal
+consent while other residents' registrations can accumulate in the same tick.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
