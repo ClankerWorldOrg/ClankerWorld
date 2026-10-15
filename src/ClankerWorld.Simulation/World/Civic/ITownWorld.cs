@@ -78,6 +78,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
             IReadOnlyList<string>? protectedToolIds = null);
     int SkilledWorkTicks(string actor, SkillKind skill, int ticks);
     IReadOnlyList<TownLandTitleRecord> TownLandTitles { get; }
+    bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan);
     string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
             string? projectId = null, string? actor = null, bool ignorePendingRequests = false);
     int TravelStepCost(string actor, GridPoint from, GridPoint to);
