@@ -513,6 +513,8 @@ Non-land judge consent and resignation retain the exact personal consent or
 case mandate. Ballots retain the opening round, rosters and selected candidate
 while allowing ballots to accumulate; the same check verifies case knowledge
 and the native election deadline before the original writer runs.
+Native roster progress preserves an original ballot while its selected voter
+and candidate remain eligible in both the opening and current rosters.
 Non-land case material and responses retain the exact file revision, selected
 known sources and historical law, legitimate response party or nearby recipient.
 Relays retain all evidence, response, finding and reopening references actually
