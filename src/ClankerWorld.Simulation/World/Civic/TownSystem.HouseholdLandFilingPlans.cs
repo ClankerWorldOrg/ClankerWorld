@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
     }
 
     internal static HouseholdLandFilingActionPlan BindHouseholdLandFiling(HouseholdLandFilingActionPlan plan, IReadOnlyList<CognitionLandTile>? tiles) =>
-        plan.SelectedTiles is not null || tiles is null ? plan : plan with { SelectedTiles = tiles.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() };
+        plan.SelectedTiles is not null ? plan : plan with { SelectedTiles = tiles?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() ?? [] };
 
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null)
     {
