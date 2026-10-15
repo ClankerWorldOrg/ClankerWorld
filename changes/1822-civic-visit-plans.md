@@ -1,1 +1,2 @@
 - Civic visits keep their selected public notice place and explain when that visit is no longer available.
+- Children who know a reported act can still personally walk to its public notice place without gaining adult civic rights.
