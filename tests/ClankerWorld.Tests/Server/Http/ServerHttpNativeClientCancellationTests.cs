@@ -14,10 +14,11 @@ using Microsoft.Extensions.DependencyInjection;
 using ClientAction = ClankerWorld.Contracts.OwnerOrderCancelAction;
 using ClientAuthority = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
 using OwnerInstructionReceipt = ClankerWorld.Contracts.OwnerInstructionReceipt;
+using static ClankerWorld.Tests.ServerHttpTests;
 
 namespace ClankerWorld.Tests;
 
-public sealed partial class ServerHttpTests
+public sealed class ServerHttpNativeClientCancellationTests
 {
     [Theory]
     [InlineData(true)]
@@ -65,8 +66,10 @@ public sealed partial class ServerHttpTests
 
             using var handler = new LostCancellationReceiptHandler(host.Server.CreateHandler());
             using var client = new HttpClient(handler) { BaseAddress = pairingClient.BaseAddress };
-            using var signer = new SettingsKeySigner(key);
-            var api = new OwnerWorldApi(client);
+            using var signer = new ActionCompatibilitySigner(key);
+            // This tests lost receipts and retries; runner delay must not spend the signed-flow deadline.
+            var clock = new ManualTimeProvider();
+            var api = new OwnerWorldApi(client, clock);
             await Assert.ThrowsAsync<HttpRequestException>(() => api.CancelOrderAsync(client.BaseAddress,
                 authority, device.DeviceId, action, signer, CancellationToken.None));
             Assert.Equal("cancelled", Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!.Status);
@@ -82,7 +85,7 @@ public sealed partial class ServerHttpTests
             Assert.Null(restartedStore.TryLoad(binding with { DeviceId = "other-device" }));
             Assert.Null(restartedStore.TryLoad(binding with { ObservedWorldId = "other-world" }));
             Assert.Null(restartedStore.TryLoad(binding with { Timeline = new(timeline.InstanceId, timeline.Generation + 1) }));
-            var confirmed = await new OwnerWorldApi(client).CancelOrderAsync(client.BaseAddress,
+            var confirmed = await new OwnerWorldApi(client, clock).CancelOrderAsync(client.BaseAddress,
                 authority, device.DeviceId, retained.OrderCancel.ToAction(), signer, CancellationToken.None);
             Assert.Equal((original.Receipt.OrderId, original.Receipt.Status, original.Receipt.Changed),
                 (confirmed.OrderId, confirmed.Status, confirmed.Changed));
