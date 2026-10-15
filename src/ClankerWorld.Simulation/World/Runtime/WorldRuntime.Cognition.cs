@@ -683,7 +683,7 @@ public sealed partial class WorldRuntime
             ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
             return;
         }
-        if (candidateId != "safe_idle") guardianPlacementActions.Add(decision.AgentId);
+        if (candidateId != "safe_idle") guardianPlacementActions.RecordAction(decision.AgentId);
         if (decision.Admission.Intention.OperativeOrderInstructionId != pendingInstruction?.InstructionId)
         {
             AppendEvent("instruction_order_stale_decision", decision.AgentId);
@@ -820,7 +820,7 @@ public sealed partial class WorldRuntime
     {
         if (withheldActions?.Contains(agentId) == true || IsRefusedAction(agentId, candidateId)) return;
         if (attemptedActions is not null) attemptedActions[agentId] = candidateId;
-        if (candidateId != "safe_idle") guardianPlacementActions.Add(agentId);
+        if (candidateId != "safe_idle") guardianPlacementActions.RecordAction(agentId);
         if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle, plan))) return;
         plan ??= PlanRegisteredOrdinaryAction(agentId, candidateId);
         if (plan is not null && CheckActionPlan(plan).Refusal is { } refusal)

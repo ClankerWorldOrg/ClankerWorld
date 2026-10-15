@@ -131,6 +131,14 @@ and knowledge checks are shared with save validation, which still checks their
 links to society, inventory and the clock. These ownership changes preserve
 existing save fields, event ordering and replay bytes.
 
+FamilySystem captures population continuity in the existing field. Family
+components remain physical-agent records written through AgentStore, with local
+family checks shared by test writes and loading. Live will requests and their
+cancellation reasons stay in FamilyWillService and never enter a checkpoint or
+transfer from a prepared runtime. Guardian action marks are per-tick scratch
+state. Family ordering, provider decisions, birth food and consumed medical-dose
+receipts keep their existing save and replay behavior.
+
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
 Cognition diagnostics retain their world ticks through export and restore.

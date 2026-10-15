@@ -12,31 +12,22 @@ public sealed partial class WorldRuntime
     private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
     private const string MedicalTreatPrefix = MedicalTreatmentChoice.Prefix;
 
-    private bool LivingMedicalAdult(string actor) => IsAdult(actor) &&
-        society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active;
+    private bool LivingMedicalAdult(string actor) =>
+        FamilySystem.LivingMedicalAdult(FamilyMedicalWorld, actor);
 
     private bool CanObserveMedicalPatient(string caregiver, string patient) =>
-        agents.TryGetValue(caregiver, out var actor) && agents.TryGetValue(patient, out var other) &&
-        (caregiver == patient || IsWithinInteractionRange(actor.Position, other.Position, ResourceInteractionRange));
+        FamilySystem.CanObserveMedicalPatient(FamilyMedicalWorld, caregiver, patient);
 
     private bool HasMedicalPermission(string caregiver, string patient) =>
-        MedicalPermission(society.Checkpoint, agents[patient], caregiver);
+        FamilySystem.HasMedicalPermission(FamilyMedicalWorld, caregiver, patient);
 
     private static bool MedicalPermission(SocietyCheckpoint checkpoint, AgentState patient,
-        string caregiver)
-    {
-        var recipient = checkpoint.GetAgent(patient.AgentId);
-        if (LifeStageRules.IsAdult(recipient.AgeBand))
-            return caregiver == patient.AgentId ||
-                patient.MedicalConsent?.CaregiverIds.Contains(caregiver, StringComparer.Ordinal) == true;
-        return checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
-            edge.State == SocietyRelationshipState.Accepted && edge.EffectiveTick <= checkpoint.WorldTick &&
-            edge.ProposerId == caregiver && edge.TargetId == patient.AgentId);
-    }
+        string caregiver) =>
+        FamilySystem.MedicalPermission(checkpoint, patient, caregiver);
 
     private static string MedicalDosePurpose(string caregiver, string patient, string kind, string owner,
-        long startedTick) => "medical_treatment:" + JsonSerializer.Serialize(new[]
-        { caregiver, patient, kind, owner, startedTick.ToString(CultureInfo.InvariantCulture) });
+        long startedTick) =>
+        FamilySystem.MedicalDosePurpose(caregiver, patient, kind, owner, startedTick);
 
     // Permission is handled only at fresh admission. Continuing intentions and
     // ApplyMedicalCandidate deliberately have no permission-changing branch.
@@ -54,22 +45,11 @@ public sealed partial class WorldRuntime
         return true;
     }
 
-    private void CompleteMedicalConsent(MedicalConsentActionPlan plan)
-    {
-        var patient = plan.Actor;
-        var caregiver = plan.Choice.CaregiverId;
-        var allowed = plan.Choice.Allow;
-        var person = agents[patient];
-        var ids = plan.ResultingCaregivers;
-        if (!allowed && person.MedicalTreatment is { } interrupted && interrupted.CaregiverId == caregiver)
-            CloseMedicalDose(patient, interrupted);
-        agentStore.RecordMedicalConsent(patient, person, ids.Count == 0 ? null : new(ids), !allowed && person.MedicalTreatment?.CaregiverId == caregiver
-                ? null : person.MedicalTreatment);
-        checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(allowed ? "medical_care_allowed" : "medical_care_revoked", $"{patient}:medical_caregiver:{caregiver}");
-    }
+    private void CompleteMedicalConsent(MedicalConsentActionPlan plan) =>
+        FamilySystem.CompleteMedicalConsent(FamilyTreatmentWorld, plan);
 
-    private InventoryLot? MedicalSupplyAtHand(string caregiver) => MedicalDoseStock(caregiver).FirstOrDefault()?.Lot;
+    private InventoryLot? MedicalSupplyAtHand(string caregiver) =>
+        FamilySystem.MedicalSupplyAtHand(FamilyMedicalWorld, caregiver);
 
     public MedicalCareResult TreatPatient(string caregiver, string patient, string kind)
     {
@@ -78,109 +58,32 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
-    private MedicalCareResult TreatPatientCore(string caregiver, string patient, string kind)
-    {
-        if (kind != "medicine") return new(false, "Injury treatment is not available yet; medicine supports illness recovery.");
-        var target = CheckMedicalTreatmentTarget(caregiver, patient, 1);
-        if (target.Refusal is { } refusal) return new(false, refusal.Explanation);
-        var plan = PlanMedicalTreatment(caregiver, new(patient, kind), 1, allowBoat: true);
-        if (plan is null) return new(false, MedicalSupplyFailure);
-        var check = CheckActionPlan(plan);
-        if (check.Refusal is { } unavailable) return new(false, unavailable.Explanation);
-        return CompleteMedicalTreatment(caregiver, patient, kind, society.Checkpoint.Inventory.GetLot(plan.StockId));
-    }
+    private MedicalCareResult TreatPatientCore(string caregiver, string patient, string kind) =>
+        FamilySystem.TreatPatientCore(FamilyTreatmentWorld, caregiver, patient, kind);
 
-    private MedicalCareResult CompleteMedicalTreatment(string caregiver, string patient, string kind, InventoryLot supply)
-    {
-        var person = agents[patient];
-        var id = MedicalDoseId(WorldTick, nextEventId, caregiver, patient);
-        ApplyInventoryTransition(inventory => InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory,
-            id, supply.OwnerId, supply.Id, 1,
-            MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
-        agentStore.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, id, kind, WorldTick, WorldTick,
-                MedicalCareRules.TreatmentTicks));
-        if (agents[caregiver].MedicalSupplyTrip?.PatientId == patient)
-            agentStore.RecordMedicalSupplyTrip(caregiver, agents[caregiver], null);
-        checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("medical_treatment_started", $"{patient}:medicine:{caregiver}:{supply.Id}");
-        return new(true);
-    }
+    private MedicalCareResult CompleteMedicalTreatment(string caregiver, string patient, string kind, InventoryLot supply) =>
+        FamilySystem.CompleteMedicalTreatment(FamilyTreatmentWorld, caregiver, patient, kind, supply);
 
     // Keep the consumed reservation as the authoritative receipt. Closing its
     // medical purpose never releases or refunds goods, and permanently prevents
     // the spent effect from being reattached after permission is renewed.
-    private void CloseMedicalDose(string patient, MedicalTreatmentState treatment)
-    {
-        var purpose = MedicalDosePurpose(treatment.CaregiverId, patient, treatment.Kind,
-            treatment.SupplyOwnerId, treatment.StartedTick);
-        ApplyInventoryTransition(inventory =>
-        {
-            var receipt = inventory.GetReservation(treatment.DoseReservationId);
-            if (receipt.State != InventoryReservationState.Completed || receipt.Purpose != purpose)
-                throw new InvalidDataException("Only the original consumed medical dose can be closed.");
-            return inventory with
-            {
-                Reservations = inventory.Reservations.Select(item => item.Id == receipt.Id
-                    ? item with { Purpose = purpose + ":closed" } : item).ToArray(),
-            };
-        });
-    }
+    private void CloseMedicalDose(string patient, MedicalTreatmentState treatment) =>
+        FamilySystem.CloseMedicalDose(FamilyTreatmentWorld, patient, treatment);
 
-    private void AdvanceMedicalTreatments()
-    {
-        foreach (var person in agents.Values.OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray())
-        {
-            if (person.MedicalTreatment is not { } treatment) continue;
-            if (society.Checkpoint.GetAgent(person.AgentId).Status != SocietyAgentStatus.Active ||
-                !LivingMedicalAdult(treatment.CaregiverId) || !HasMedicalPermission(treatment.CaregiverId, person.AgentId))
-            {
-                CloseMedicalDose(person.AgentId, treatment);
-                agentStore.RecordMedicalTreatment(person.AgentId, person, null);
-                AppendEvent("medical_treatment_interrupted", person.AgentId);
-                continue;
-            }
-            if (treatment.LastProcessedTick >= WorldTick) continue;
-            var survival = person.Survival ?? new();
-            var remaining = treatment.RemainingTicks - 1;
-            if (remaining == 0) CloseMedicalDose(person.AgentId, treatment);
-            agentStore.RecordMedicalRecovery(person.AgentId, person, survival with
-            {
-                IllnessBasisPoints = Math.Max(0,
-                    survival.IllnessBasisPoints - MedicalCareRules.MedicineIllnessPerTick)
-            }, remaining == 0 ? null : treatment with
-            { LastProcessedTick = WorldTick, RemainingTicks = remaining });
-            if (remaining == 0) AppendEvent("medical_treatment_completed", person.AgentId);
-        }
-    }
+    private void AdvanceMedicalTreatments() =>
+        FamilySystem.AdvanceMedicalTreatments(FamilyTreatmentWorld);
 
-    private IEnumerable<string> ObservableMedicalNeeds(string caregiver) => agents.Values
-        .Where(person => CanObserveMedicalPatient(caregiver, person.AgentId) &&
-            HasMedicalPermission(caregiver, person.AgentId) && person.MedicalTreatment is null &&
-            (person.Survival?.IllnessBasisPoints ?? 0) >= NeedThresholds.MedicalCareIllness)
-        .OrderBy(person => person.AgentId == caregiver ? 0 : 1)
-        .ThenBy(person => person.AgentId, StringComparer.Ordinal).Select(person => person.AgentId);
+    private IEnumerable<string> ObservableMedicalNeeds(string caregiver) =>
+        FamilySystem.ObservableMedicalNeeds(FamilyMedicalWorld, caregiver);
 
     private MedicalSupplyTrip? AuthorizedMedicalSupplyTrip(string caregiver) =>
-        agents[caregiver].MedicalSupplyTrip is { } trip && LivingMedicalAdult(caregiver) &&
-        agents.ContainsKey(trip.PatientId) && HasMedicalPermission(caregiver, trip.PatientId) ? trip : null;
+        FamilySystem.AuthorizedMedicalSupplyTrip(FamilyMedicalWorld, caregiver);
 
-    private void ReconcileMedicalSupplyTrips()
-    {
-        foreach (var person in agents.Values.ToArray())
-        {
-            if (person.MedicalSupplyTrip is not { } trip) continue;
-            var observed = CanObserveMedicalPatient(person.AgentId, trip.PatientId);
-            if (AuthorizedMedicalSupplyTrip(person.AgentId) is null ||
-                observed && !ObservableMedicalNeeds(person.AgentId).Contains(trip.PatientId, StringComparer.Ordinal) ||
-                !observed && HasCarriedOwnItem(person.AgentId, "medicine") &&
-                IsWithinInteractionRange(person.Position, trip.LastSeenPosition, ResourceInteractionRange))
-                agentStore.RecordMedicalSupplyTrip(person.AgentId, person, null);
-        }
-    }
+    private void ReconcileMedicalSupplyTrips() =>
+        FamilySystem.ReconcileMedicalSupplyTrips(FamilyMedicalWorld);
 
-    private bool MedicalSupplyWanted(string actor, string kind) => kind == "medicine" && LivingMedicalAdult(actor) &&
-        (ObservableMedicalNeeds(actor).Any() || AuthorizedMedicalSupplyTrip(actor) is not null) &&
-        MedicalSupplyAtHand(actor) is null && SharedPreparationItem(kind, actor) is null;
+    private bool MedicalSupplyWanted(string actor, string kind) =>
+        FamilySystem.MedicalSupplyWanted(FamilyMedicalWorld, actor, kind);
 
     private void AddMedicalCareCandidates(List<CognitionCandidate> candidates, string actor)
     {
@@ -209,11 +112,8 @@ public sealed partial class WorldRuntime
             ApplyMedicalTreatmentPlan(plan);
     }
 
-    private void BeginMedicalSupplyTrip(MedicalSupplyActionPlan plan)
-    {
-        if (plan.OriginalTrip is null)
-            agentStore.RecordMedicalSupplyTrip(plan.Actor, agents[plan.Actor], new(plan.PatientId, plan.LastSeenPosition, WorldTick));
-    }
+    private void BeginMedicalSupplyTrip(MedicalSupplyActionPlan plan) =>
+        FamilySystem.BeginMedicalSupplyTrip(FamilyMedicalWorld, plan);
 
     public string? MedicalCareNote(string actor)
     {
