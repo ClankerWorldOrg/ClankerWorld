@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
     {
         if (!ActorCapabilities.Check(CapabilitiesFor(actor), new WorkstationSupplyChoice(itemKind ?? "supplies").Encode(), WorkstationSupplyPolicy).Allowed ||
             HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
-            WorkstationSupplyNeeds(actor, itemKind).FirstOrDefault(need => CanReachWorkstation(actor, need.Building)) is not { } need)
+            WorkstationSupplyNeeds(actor, itemKind).FirstOrDefault(need => CanReach(actor, need.Building.Position, ReachPurpose.WorkstationSupply, 0, 0, SwimmingPolicy.WhenCapable)) is not { } need)
             return null;
         var inventory = society.Checkpoint.Inventory;
         var stock = need.Carried ?? need.HouseholdStock;
@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
         }
         if (DestinationRoom(plan.BuildingId) < (plan.Kind == WorkstationSupplyKind.Gather ? 1 : plan.PhysicalQuantity))
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected workstation has no room for supplies");
-        if (!CanReachWorkstation(plan.Actor, building) || !IsWithinInteractionRange(agents[plan.Actor].Position, plan.Target, plan.InteractionRange) &&
+        if (!CanReach(plan.Actor, building.Position, ReachPurpose.WorkstationSupply, 0, 0, SwimmingPolicy.WhenCapable) || !IsWithinInteractionRange(agents[plan.Actor].Position, plan.Target, plan.InteractionRange) &&
             Reach(plan.Actor, plan.Target, ReachPurpose.WorkstationSupply, plan.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected supply trip is out of reach now");
         return new();
