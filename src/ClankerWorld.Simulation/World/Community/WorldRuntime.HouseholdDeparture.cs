@@ -33,14 +33,14 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
-    private bool DepartHousehold(string actor, string cause)
+    private bool DepartHousehold(string actor, string cause, DepartureActionPlan? originalPlan = null)
     {
         if (!IsAdult(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
             return false;
         if (cause == "displaced" && (HasDependentInPrimaryCare(actor) ||
             HoldsRelocationNotice(actor) && !MayRelocateFromHousehold(actor)))
             return false;
-        var group = MovingCareGroup(actor);
+        var group = originalPlan?.CareGroup ?? MovingCareGroup(actor);
         var sharedProject = agents[actor].Project;
         if (group.Any(id => society.Checkpoint.GetAgent(id).HouseholdId != householdId)) return false;
         var allowanceIds = new List<string>();
@@ -48,13 +48,10 @@ public sealed partial class WorldRuntime
         // Ownership changes now, location does not. Collection remains a separate physical action.
         var nextInventory = society.Checkpoint.Inventory;
         // Food sealed in a storage pot stays with the household; the allowance takes loose portions.
-        foreach (var match in FindGoods(nextInventory, new(GoodsUse.Holdings, null,
-                     GoodsOwners.One(householdId), EdibleFoodGoods)).Matches.Where(match =>
-                     match.Lot.CarrierId is null && match.Lot.ContainerLotId is null))
+        foreach (var selected in originalPlan?.Allowance ?? PlanDepartureAllowance(actor, householdId))
         {
-            var lot = match.Lot;
-            var quantity = Math.Min(2 - allowance, match.Quantity);
-            if (quantity <= 0) continue;
+            var lot = nextInventory.GetLot(selected.Stock.Id);
+            var quantity = selected.Quantity;
             var transferId = DepartureTransferId(actor, WorldTick, agents[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SharedStoragePosition.X, SharedStoragePosition.Y)
@@ -63,7 +60,6 @@ public sealed partial class WorldRuntime
                 lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground, holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.StorageBuildingId));
             allowanceIds.Add(quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + transferId));
             allowance += quantity;
-            if (allowance == 2) break;
         }
         var result = society.Apply(checkpoint => SocietyRules.LeaveHousehold(checkpoint, actor));
         if (result.CreatedId is null) return false;
@@ -308,14 +304,17 @@ public sealed partial class WorldRuntime
                     "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId));
         var home = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (home is not null)
-            candidates.Add(new("household_leave", "Leave your household without a vote; keep responsibility for your dependent children and collect your personal belongings physically.", 115));
+            if (PlanDepartureAction(actor, new(DepartureChoiceKind.Leave)) is { } leave && CheckDepartureActionPlan(leave).Allowed)
+                candidates.Add(new CognitionCandidate("household_leave", "Leave your household without a vote; keep responsibility for your dependent children and collect your personal belongings physically.", 115) { ActionPlan = leave });
         // Built-in rules never give up a home early: the notice period is time to find room
         // or finish an expansion, and the deadline moves the adult out when neither happens.
         if (agents[actor].Housing?.Request is null && MayFoundHousehold(actor) && !AskableHouseholds(actor).Any())
-            candidates.Add(new("household_found", home is null
+            if (PlanDepartureAction(actor, new(DepartureChoiceKind.Found)) is { } found && CheckDepartureActionPlan(found).Allowed)
+                candidates.Add(new CognitionCandidate("household_found", home is null
                     ? "Start your own household with your dependent children. A House still needs a legal site, materials and work."
                     : "Move out of your overcrowded House and start your own household with your dependent children. A House still needs a legal site, materials and work.",
-                home is null ? 19 : 104));
+                home is null ? 19 : 104)
+                { ActionPlan = found });
         if (FreeCarryCapacity(actor) > 0)
         {
             foreach (var lot in RecoverablePersonalGoods(actor)
@@ -409,28 +408,29 @@ public sealed partial class WorldRuntime
                     !heldByOthers.Contains(tile)));
     }
 
-    private void ApplyDepartureCandidate(string actor, string candidate)
+    private void CompleteDepartureAction(DepartureActionPlan plan)
+    {
+        if (plan.HouseholdId is not null && !DepartHousehold(plan.Actor, plan.Cause, plan)) return;
+        if (plan.Choice.Kind != DepartureChoiceKind.Found) return;
+        var householdId = SoloHouseholdId(plan.Actor, WorldTick);
+        society.Apply(checkpoint => SocietyRules.CreateHousehold(checkpoint, householdId,
+            society.Checkpoint.GetAgent(plan.Actor).Name + "'s household", plan.CareGroup));
+        foreach (var id in plan.CareGroup)
+            agents[id] = agents[id] with { Housing = new(Blocker: HousingBlocker(id)), LastDecisionContext = null };
+        AppendEvent(new HouseholdFoundedEventPayload(plan.Actor, householdId));
+    }
+
+    private void ApplyDepartureCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
         if (candidate.StartsWith("household_resume_work:", StringComparison.Ordinal))
         {
             ResumePausedHouseholdWork(actor, candidate["household_resume_work:".Length..]);
             return;
         }
-        if (candidate == "household_leave") { DepartHousehold(actor, MayRelocateFromHousehold(actor) ? "displaced" : "voluntary"); return; }
-        if (candidate == "household_found")
+        if (DepartureChoice.Decode(candidate) is { } choice)
         {
-            if (!IsAdult(actor) || !MayFoundHousehold(actor) ||
-                agents[actor].Housing?.Request is not null || AskableHouseholds(actor).Any()) return;
-            // Splitting from an overcrowded House is an ordinary departure first.
-            if (society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
-                !DepartHousehold(actor, MayRelocateFromHousehold(actor) ? "displaced" : "voluntary")) return;
-            var householdId = SoloHouseholdId(actor, WorldTick);
-            var group = MovingCareGroup(actor);
-            society.Apply(checkpoint => SocietyRules.CreateHousehold(checkpoint, householdId,
-                society.Checkpoint.GetAgent(actor).Name + "'s household", group));
-            foreach (var id in group)
-                agents[id] = agents[id] with { Housing = new(Blocker: HousingBlocker(id)), LastDecisionContext = null };
-            AppendEvent(new HouseholdFoundedEventPayload(actor, householdId));
+            var plan = originalPlan as DepartureActionPlan ?? PlanDepartureAction(actor, choice);
+            if (plan is not null) ApplyDepartureActionPlan(plan);
             return;
         }
         if (candidate.StartsWith("household_accept_care:", StringComparison.Ordinal))

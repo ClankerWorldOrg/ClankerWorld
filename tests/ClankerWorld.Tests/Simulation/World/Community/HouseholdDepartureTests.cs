@@ -10,7 +10,7 @@ using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
-public sealed class HouseholdDepartureTests
+public sealed partial class HouseholdDepartureTests
 {
     private const string Alpha = "household:first";
     private const string Beta = "household:second";

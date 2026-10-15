@@ -168,6 +168,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyHousingCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is DepartureActionPlan departure) { ApplyDepartureActionPlan(departure); return; }
         if (originalPlan is HousingActionPlan housing) { ApplyHousingActionPlan(housing); return; }
         if (HousingChoice.Decode(candidate) is { } choice)
         {
@@ -176,7 +177,7 @@ public sealed partial class WorldRuntime
         }
         if (!IsAdult(actor)) return;
         if (candidate == HouseholdVolunteerCandidate) { ApplyVolunteerToRelocate(actor); return; }
-        ApplyDepartureCandidate(actor, candidate);
+        ApplyDepartureCandidate(actor, candidate, originalPlan);
     }
 
     private void CompleteHousingAction(HousingActionPlan plan)
