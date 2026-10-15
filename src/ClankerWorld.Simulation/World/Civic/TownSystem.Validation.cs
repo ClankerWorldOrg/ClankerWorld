@@ -20,6 +20,8 @@ internal sealed partial class TownSystem
             throw new InvalidDataException("A founder-setup world must keep its original first Town and unique Town identities.");
         foreach (var town in towns)
         {
+            TownLandHearingValidation.ValidateLocal(town.Id, town.LandRecords);
+            TownNonLandValidation.ValidateLocal(town.Id, town.NonLandHearings);
             ValidateLocalAdmissions(town);
             ValidateLocalProjects(town.Projects);
             if (town.Council is { } council) ValidateLocalCouncil(town.Id, council);
