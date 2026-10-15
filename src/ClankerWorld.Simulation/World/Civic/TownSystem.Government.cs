@@ -9,7 +9,13 @@ internal sealed partial class TownSystem
         TownCouncilState council, TownGovernmentState government)
     {
         var adults = TownAdults(world, town);
-        return TownGovernmentRules.Advance(council, government, town.Id, town.Name, world.WorldSeed, adults, world.WorldTick, CivicDay(world), TownLandHearingElectionBusy(town) || TownNonLandElectionBusy(town));
+        var result = TownGovernmentRules.Advance(council, government, town.Id, town.Name, world.WorldSeed, adults, world.WorldTick, CivicDay(world), TownLandHearingElectionBusy(town) || TownNonLandElectionBusy(town));
+        if (SystemInvariantChecks.Enabled)
+        {
+            TownGovernmentStateValidation.ValidateLocal(town.Id, result.Government, allowIntermediateVotes: false);
+            ValidateCompletedGovernmentAuthority(result.Council, result.Government);
+        }
+        return result;
     }
 
     internal static void AddTownLawCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
