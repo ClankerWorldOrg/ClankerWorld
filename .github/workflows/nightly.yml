@@ -3,7 +3,7 @@ name: Nightly
 # Publishes a nightly build of main as a GitHub pre-release tagged
 # v<version>-nightly.<date>.<run>, which the launcher offers only in Developer
 # mode (#1566; the owner's choice in chat, October 10). It skips a day when main
-# hasn't changed or main's CI hasn't passed on its newest commit, and keeps the
+# hasn't changed or main's CI hasn't passed on the triggering commit, and keeps the
 # seven newest nightly releases. See docs/development/releasing.md#nightly-builds.
 on:
   schedule:
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: ignore
 
   nightly:
-    if: github.repository == 'ClankerWorldOrg/ClankerWorld'
+    if: github.repository == 'ClankerWorldOrg/ClankerWorld' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -73,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Decide whether main needs a new nightly build
         id: decide
@@ -141,7 +141,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.nightly.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:

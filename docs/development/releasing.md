@@ -205,8 +205,10 @@ needs no release gate:
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.
-- It runs only when main has a commit the newest nightly doesn't have and
-  main's CI passed on that commit. Run it by hand from Actions to publish one
+- Both build jobs use the commit on main that triggered the workflow, even
+  when main advances before either job starts. It runs only when the newest
+  nightly has a different commit and main's CI passed on the selected commit.
+  Run it by hand from Actions with the main branch selected to publish one
   sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
   tags, the one exception to never deleting a pushed tag. Never use a nightly
