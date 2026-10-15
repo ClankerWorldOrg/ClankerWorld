@@ -136,11 +136,11 @@ everything that is available in the current build. See [what works today](../wha
     launcher connects by itself. Pairing happens in the launcher, so the game
     has no pairing screen of its own.
   - **When the host isn't running.** If the launcher on the playing computer
-    can't reach the host, it says the world isn't running and how to start
-    it. For a launcher host it says to open ClankerWorld on that computer and
-    choose **Start hosting**. For a terminal-only host it shows the exact
-    command to run there. The launcher knows which applies, because the host
-    says what kind it is when a device pairs.
+    can't reach the host, it says it can't connect and explains how to start
+    the host if it is stopped. For a launcher host it says to open ClankerWorld
+    on that computer and choose **Start hosting**. For a terminal-only host it
+    shows the exact command to run there. The launcher knows which applies,
+    because the host says what kind it is when a device pairs.
   - **An always-on Linux machine, such as a VPS.** There is a server-only
     download, one command that installs it as a service, which also starts it
     again whenever the machine restarts, and one command that approves a
