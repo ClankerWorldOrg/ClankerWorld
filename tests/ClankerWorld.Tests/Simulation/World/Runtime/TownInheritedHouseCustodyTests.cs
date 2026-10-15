@@ -168,9 +168,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             }
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             await WaitForRequests(world);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-                .GetField("pendingWills", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world));
-            await Task.WhenAll(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!))
+            var pending = NativeWillFixture.PendingItems(typeof(WorldRuntime)
+                .GetField("familyWills", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world)!);
+            await Task.WhenAll(pending.Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!))
                 .WaitAsync(TimeSpan.FromSeconds(30));
         }
         throw new Xunit.Sdk.XunitException("The natural family deaths did not reach a stored-food estate expiry.");

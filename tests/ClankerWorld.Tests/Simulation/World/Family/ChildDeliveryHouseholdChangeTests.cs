@@ -224,7 +224,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
 
     private sealed class CheckpointHost : IDisposable
     {
-        private static readonly string[] PendingInputQueues = ["pendingModelCalls", "pendingIdentityMoments", "pendingWills", "pendingConversationTurns"];
+        private static readonly string[] PendingInputQueues = ["pendingModelCalls", "pendingIdentityMoments", "familyWills", "pendingConversationTurns"];
         private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("child-house-change-");
         private readonly WorldStateFile file;
         private readonly WorldRuntimeService service;
@@ -258,8 +258,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
             }
             Assert.True(await service.TryAdvanceOnceAsync(), $"Native host halted at tick {World.WorldTick}.");
             // Replies are sampled by the next tick. Match every external input before either continuation advances.
-            var tasks = PendingInputQueues.SelectMany(name => ((IDictionary)typeof(WorldRuntime)
-                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(World)!).Values.Cast<object>())
+            var tasks = PendingInputQueues.SelectMany(name => NativeWillFixture.PendingItems(typeof(WorldRuntime)
+                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(World)!))
                 .Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!);
             await Task.WhenAll(tasks)
                 .WaitAsync(TimeSpan.FromSeconds(30));
