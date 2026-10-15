@@ -717,6 +717,10 @@ public sealed partial class WorldRuntime
                     if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                         IsMarketFoodCandidate(decision.AgentId, candidateId))
                         ApplyMarketCandidate(decision.AgentId, state, candidateId, decision.ActionPlan);
+                    else if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
+                        decision.ActionPlan is ShopBuyActionPlan selectedShop &&
+                        IsShopFoodCandidate(decision.AgentId, candidateId, selectedShop))
+                        ApplyShopBuy(selectedShop);
                     else if (urgentCandidate is not null)
                         ApplyCandidate(decision.AgentId, state, urgentCandidate.Id, reportIdle: true);
                 }
