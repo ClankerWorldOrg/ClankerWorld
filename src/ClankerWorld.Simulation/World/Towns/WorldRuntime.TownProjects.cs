@@ -427,7 +427,7 @@ public sealed partial class WorldRuntime
                 SharedItem(available.ItemKind, actor) is not { ContainerLotId: null } tool) return null;
             pickup = new(tool.Id, tool.OwnerId, tool.ItemKind, HouseholdStockPosition(tool), HouseholdStockInteractionRange(tool));
         }
-        var selectedTool = harvest?.ToolLotId is { } toolId ? TownProjectGatheringTool(actor, toolId) : null;
+        var selectedTool = harvest?.ToolLotId is { } toolId ? society.Checkpoint.Inventory.GetLot(toolId) : null;
         var target = gather ? choice.Resource!.Position : TownProjectRules.WorkSite(choice.Project.Plan);
         return new(actor, new(choice.Project.Id, gather ? choice.ItemKind : null), choice.Town.Id, choice.Project.ProposalId,
             choice.Project.Plan, TownProjectRules.WorkSite(choice.Project.Plan), hammer,
@@ -437,11 +437,10 @@ public sealed partial class WorldRuntime
                 gather ? ResourceInteractionRange : 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private InventoryLot? TownProjectGatheringTool(string actor, string toolId) =>
-        FindGoods(new(GoodsUse.CarriedInputs, actor,
-            new(new[] { actor, HouseholdFor(actor), TownForResident(actor) }.OfType<string>().Distinct(StringComparer.Ordinal).ToArray()),
-            new(ToolProgressionRules.All.Select(definition => definition.ItemKind).ToArray()))).Matches
-            .Select(match => match.Lot).SingleOrDefault(lot => lot.Id == toolId && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor));
+    private InventoryLot? CarriedTownProjectTool(string actor, string toolId) =>
+        InventoryIndex.For(society.Checkpoint.Inventory).Find(toolId) is { } selected &&
+        RecheckGoods(new(GoodsUse.CarriedInputs, actor, GoodsOwners.One(selected.OwnerId), GoodsKinds.One(selected.ItemKind)),
+            toolId) is { Lot: var tool } && ToolProgressionRules.IsTopLevelCarriedLot(tool, actor) ? tool : null;
 
     private void AddTownProjectCandidates(List<CognitionCandidate> candidates, string actor)
     {
