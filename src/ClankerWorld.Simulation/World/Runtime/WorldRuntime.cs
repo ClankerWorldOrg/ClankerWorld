@@ -98,12 +98,13 @@ public sealed partial class WorldRuntime : IDisposable
     private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => townSystem.State.TownLandTitles; set => townSystem.RestoreTownLandTitles(value); }
     private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => townSystem.State.HouseholdLandUseRights; set => townSystem.RestoreHouseholdLandUseRights(value); }
     private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => townSystem.State.HouseholdLandUseRequests; set => townSystem.RestoreHouseholdLandUseRequests(value); }
-    private HashSet<GridPoint> roadTiles = [];
+    private IReadOnlySet<GridPoint> roadTiles => transportSystem.Roads;
     private AnimalSystem animalSystem = new(AnimalWorldState.Empty);
     private AnimalWorldState animalWorld => animalSystem.State;
     private readonly IAnimalWorld animalWorldAdapter;
     public IReadOnlyList<AnimalState> Animals => animalWorld.Animals;
-    private List<HandcartHitch> handcartHitches = [];
+    private TransportSystem transportSystem = new();
+    private IReadOnlyList<HandcartHitch> handcartHitches => transportSystem.Hitches;
     private ConversationSystem conversationSystem = new(new([], [], []));
     private readonly IConversationWorld conversationWorld;
     private TownSystem townSystem = new(CivicState.Empty);
@@ -369,8 +370,7 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.jevEnabled = state.JevEnabled ?? true;
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
-        runtime.handcartHitches = state.HandcartHitches!.ToList();
-        runtime.boatTransport = state.BoatTransport;
+        runtime.transportSystem.RestoreVehicles(state.HandcartHitches!, state.BoatTransport);
         runtime.animalSystem = new(state.AnimalWorld);
         runtime.farmingSystem = trustedPreparedState && preparedFarming is not null
             ? preparedFarming.Fork() : new(new(state.Fields!.OrderBy(field => field.Position.Y)
@@ -387,9 +387,8 @@ public sealed partial class WorldRuntime : IDisposable
             runtime.householdLandUseRequests = state.HouseholdLandUseRequests!
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
         }
-        runtime.roadTiles = state.RoadTiles!.ToHashSet();
-        runtime.bridges = state.Bridges!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
-        runtime.bridgeTraffic = state.BridgeTraffic!;
+        runtime.transportSystem.RestoreRoads(state.RoadTiles!);
+        runtime.transportSystem.RestoreBridges(state.Bridges!.OrderBy(item => item.Id, StringComparer.Ordinal), state.BridgeTraffic!);
         runtime.conversationSystem = new(trustedPreparedState && preparedConversations is not null
             ? preparedConversations : new(state.Conversations!, state.ConversationBudgets!, state.Marriages));
         runtime.marketSystem.RestoreTrades(state.ShopTrades!);

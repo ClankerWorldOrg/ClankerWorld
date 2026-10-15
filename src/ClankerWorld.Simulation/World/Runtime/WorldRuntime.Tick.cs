@@ -437,8 +437,7 @@ public sealed partial class WorldRuntime
         worldSeed = proposed.worldSeed;
         map = proposed.map;
         farmingSystem = proposed.farmingSystem;
-        handcartHitches = proposed.handcartHitches;
-        boatTransport = proposed.boatTransport;
+        transportSystem = proposed.transportSystem;
         animalSystem = proposed.animalSystem;
         geographyOptions = proposed.geographyOptions;
         contentRegistry = proposed.contentRegistry;
@@ -462,11 +461,7 @@ public sealed partial class WorldRuntime
         jevEnabled = proposed.jevEnabled;
         routineHelper = proposed.routineHelper;
         jevPolicyRevision = proposed.jevPolicyRevision;
-        roadTiles = proposed.roadTiles;
-        bridges = proposed.bridges;
-        bridgeTraffic = proposed.bridgeTraffic;
         conversationSystem = proposed.conversationSystem;
-        roadBridgeDecks = proposed.roadBridgeDecks;
         nextInstructionSequence = proposed.nextInstructionSequence;
         actionRefusals = proposed.actionRefusals;
         refusedActionCount = proposed.refusedActionCount;

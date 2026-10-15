@@ -255,8 +255,10 @@ public sealed class BridgeStreetHeadingTests
         void SetField(string name, object value) => typeof(WorldRuntime)
             .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(world, value);
         SetField("map", map);
-        SetField("roadTiles", roadTiles);
-        SetField("bridges", bridges.Select(bridge => RiverBridgeRules.ToBridge(bridge, BridgeTriggers.Road, 0, "road:test")).ToList());
+        var transport = new TransportSystem();
+        transport.RestoreRoads(roadTiles);
+        transport.RestoreBridges(bridges.Select(bridge => RiverBridgeRules.ToBridge(bridge, BridgeTriggers.Road, 0, "road:test")), BridgeTrafficState.Empty);
+        SetField("transportSystem", transport);
         SetField("constructionSystem", new ConstructionSystem(WorldConstructionState.From(WorldContentSimulationState.Empty with { Buildings = [building] })));
         var result = typeof(WorldRuntime).GetMethod("ExtendStreetsPastDoors", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(world, [building, occupied]);

@@ -51,7 +51,7 @@
   "src/ClankerWorld.Simulation/World/ToolProgressionRules.cs": 3,
   "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": 4,
   "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs": 1,
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs": 3,
+  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs": 0,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketHistory.cs": 0,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": 0,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs": 3,
@@ -65,5 +65,6 @@
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Demand.cs": 3,
   "src/ClankerWorld.Simulation/World/Markets/WorldRuntime.MarketWorld.cs": 2,
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.ShopLifecycle.cs": 2,
-  "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Barter.cs": 4
+  "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Barter.cs": 4,
+  "src/ClankerWorld.Simulation/World/Transport/TransportSystem.Boats.cs": 3
 }

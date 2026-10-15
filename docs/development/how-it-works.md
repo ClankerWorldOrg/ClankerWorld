@@ -168,6 +168,16 @@ receipts and retirement. Local market checks run before test writes publish;
 source guards limit record writers to the market system and its town projection.
 Existing action definitions and retained plans keep their ordering and checks.
 
+`Transport/TransportSystem.cs` owns handcart attachments, boats and their request
+queue, roads, bridges and traffic evidence. It also owns retained transport-plan
+checks, journey and cart lifecycles, road generation and detached boat-history
+retention. Per-call boat, handcart and road ports read current world views and
+request named inventory, building, order-credit and event operations. Saved
+transport transfers together on commit; the road-deck view is rebuilt at the
+same original points. Local identity, attachment and progress checks run before
+test mutations publish and are reused by save validation. Existing geometry
+fixtures target the system through their existing reflection sites.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

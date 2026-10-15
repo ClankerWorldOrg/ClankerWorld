@@ -2,9 +2,6 @@
   "saved": [
     "animalSystem",
     "assetReservations",
-    "boatTransport",
-    "bridgeTraffic",
-    "bridges",
     "checkpointSchemaVersion",
     "completedInstructionIds",
     "contentRegistry",
@@ -12,7 +9,6 @@
     "conversationSystem",
     "townSystem",
     "geographyOptions",
-    "handcartHitches",
     "instructionReceipts",
     "instructionsByIdempotency",
     "jevEnabled",
@@ -22,8 +18,6 @@
     "nextInstructionSequence",
     "orderCancellations",
     "resources",
-    "roadBridgeDecks",
-    "roadTiles",
     "routineHelper",
     "society",
     "survivalState",
@@ -36,7 +30,8 @@
     "farmingSystem",
     "productionSystem",
     "constructionSystem",
-    "agentStore"
+    "agentStore",
+    "transportSystem"
   ],
   "live": [
     "animalWorldAdapter",
