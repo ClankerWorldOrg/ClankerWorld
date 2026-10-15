@@ -23,6 +23,9 @@ public static partial class TownLandHearingValidation
         foreach (var item in state.Cases) ValidateLocalCaseHistory(townId, item);
         foreach (var item in state.Cases) ValidateLocalRulings(state, townId, item);
         foreach (var item in state.Cases) ValidateLocalReopening(state, townId, item);
+        TownLandTransferValidation.ValidateLocal(townId, state);
+        TownPropertyValidation.ValidateLocalFiles(state, townId);
+        ValidateLocalAdjustments(townId, state);
         Check(!state.Cases.Where(c => c.Status == "pending").SelectMany(c => TownLandHearingRules.CurrentRevision(c).Tiles)
             .GroupBy(tile => tile).Any(group => group.Count() > 1), "Pending land hearings cannot overlap their plots.");
         Unique(state.Cases.Select(c => c.Id));
@@ -201,5 +204,42 @@ public static partial class TownLandHearingValidation
                     (request.Kind == "material_evidence" ? TownLandHearingRules.MaterialNewEvidence(item, request, state) : TownLandHearingRules.DemonstratedProceduralError(item, request)),
                     "An accepted reopening needs established grounds and a fresh full hearing notice.");
         }
+    }
+    private static void ValidateLocalAdjustments(string townId, TownLandRecords state)
+    {
+        foreach (var adjustment in state.Adjustments)
+        {
+            Check(Generated(adjustment.Id, "land-adjustment:", townId, state.Sequence) && adjustment.Tick >= 0 && adjustment.PriorRights is not null && adjustment.ResultRights is not null &&
+                adjustment.Tiles is not null && adjustment.PriorRights.All(r => r is not null) && adjustment.ResultRights.All(r => r is not null),
+                "A saved land adjustment is incomplete.");
+            Unique(adjustment.PriorRights.Select(r => r.Id));
+            Unique(adjustment.ResultRights.Select(r => r.Id));
+            Check(adjustment.Tiles.Count > 0 && adjustment.Tiles.SequenceEqual(TownLandRightsRules.OrderTiles(adjustment.Tiles.Distinct())), "A land adjustment must be bounded to titled land.");
+            Check(adjustment.ResultRights.SelectMany(r => r.Tiles).Distinct().Count() == adjustment.ResultRights.Sum(r => r.Tiles.Count),
+                "A land adjustment cannot overlap its result permissions.");
+            Check(adjustment.PriorRights.All(right => right.Right.GrantedTick <= adjustment.Tick) &&
+                adjustment.ResultRights.All(right => right.GrantedTick <= adjustment.Tick), "A saved right snapshot must retain its exact known holder, plot, terms and version.");
+            if (adjustment.Kind is "ruling" or "property_ruling")
+            {
+                var item = state.Cases.SingleOrDefault(c => c.Id == adjustment.CaseId);
+                var ruling = item?.Rulings.SingleOrDefault(r => r.Id == adjustment.RulingId);
+                Check(item is not null && ruling is not null && ruling.Tick == adjustment.Tick && ruling.AdjustmentIds.Contains(adjustment.Id, StringComparer.Ordinal) &&
+                    adjustment.BuildingId is null && adjustment.TargetHouseholdId is null && adjustment.TransferId is null, "A ruling adjustment needs its exact durable case and ruling.");
+                var revision = item.Revisions.Single(r => r.Number == ruling.Revision);
+                Check(adjustment.Kind == (ruling.Outcome.Kind is "reclaim" or "grant" ? "property_ruling" : "ruling"),
+                    "Physical property adjustments must retain their distinct noticed transfer authority.");
+                Check(adjustment.Tiles.SequenceEqual(revision.Tiles), "A saved ruling must reproduce exactly its bounded permission change.");
+            }
+            else if (adjustment.Kind == "building_transfer")
+            {
+                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && Id(adjustment.BuildingId) &&
+                    adjustment.TargetHouseholdId is not null, "A building transfer needs its captured footprint and known beneficiary.");
+            }
+            else if (adjustment.Kind == "voluntary_transfer") TownLandTransferValidation.ValidateLocalAdjustment(state, adjustment);
+            else throw new InvalidDataException("A saved land adjustment has an unsupported source.");
+        }
+        Check(state.Adjustments.Select(a => a.Tick).SequenceEqual(state.Adjustments.Select(a => a.Tick).Order()), "Land adjustments must retain chronological order.");
+        Check(state.OriginalRights.All(r => state.Adjustments.Any(a => a.PriorRights.Any(p => p.Id == r.Id && p.Version == r.Version))),
+            "An original permission snapshot cannot be orphaned from its adjustment chain.");
     }
 }

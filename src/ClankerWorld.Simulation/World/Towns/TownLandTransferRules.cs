@@ -80,11 +80,20 @@ public static class TownLandTransferRules
         return Replace(state, request with { Status = "withdrawn", SettledTick = tick, Reason = "filer_withdrew" });
     }
 
+    private static TownLandTransferResponse? RecordedAcceptance(TownLandTransferRequest request, TownLandTransferParty party, string actor, long tick)
+    {
+        var response = request.Responses.LastOrDefault(response => response.HouseholdId == party.HouseholdId && response.AgentId == actor && response.Tick <= tick);
+        return response is { Kind: "accept" } && response.PartyAdults.Contains(actor, StringComparer.Ordinal) ? response : null;
+    }
+
     public static IReadOnlyList<string> AcceptedAdults(TownLandTransferRequest request, TownLandTransferParty currentParty,
         IReadOnlyList<TownCivicReceipt> receipts, long tick) => currentParty.AdultIds.Where(actor =>
-            request.Responses.LastOrDefault(response => response.HouseholdId == currentParty.HouseholdId && response.AgentId == actor && response.Tick <= tick)
-                is { Kind: "accept" } acceptance && acceptance.PartyAdults.Contains(actor, StringComparer.Ordinal) &&
+            RecordedAcceptance(request, currentParty, actor, tick) is { } acceptance &&
             HasNotice(request, actor, acceptance.Tick, receipts)).Order(StringComparer.Ordinal).ToArray();
+
+    internal static bool HasAllRecordedConsents(TownLandTransferRequest request, IReadOnlyList<TownLandTransferParty> parties, long tick) =>
+        ValidParties(request.RightVersions.Select(version => version.Right), request.TargetHouseholdId, parties) &&
+        parties.All(party => party.AdultIds.Count > 0 && party.AdultIds.All(actor => RecordedAcceptance(request, party, actor, tick) is not null));
 
     public static bool HasAllConsents(TownLandTransferRequest request, IReadOnlyList<TownLandTransferParty> currentParties,
         IReadOnlyList<TownCivicReceipt> receipts, long tick) =>
