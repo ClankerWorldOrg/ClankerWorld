@@ -167,7 +167,10 @@ In Claude Code, `/loop` keeps a session going, for example
 - **Check it fixes by simplifying.** A fix that adds a one-off check where a
   shared one exists, or another special case where removing a rule would do,
   is a finding. So is a description without its lines added and removed
-  ([Every change](../../CONTRIBUTING.md#every-change)).
+  ([Every change](../../CONTRIBUTING.md#every-change)), and a refactor that
+  adds more source lines than it deletes without saying why and naming what
+  removes the old code. Refactors opened before October 16, 2026, such as the
+  #1822 and #1826 chain, are exempt.
 - **Check that no doc still contradicts the change.** Run
   `node scripts/find-stale-docs.js` with the names of what changed and read
   every place it lists. A sentence elsewhere that the change made false, such

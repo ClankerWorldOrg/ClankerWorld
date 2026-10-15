@@ -354,7 +354,11 @@ them.
   shared goods query, call it rather than writing another. The pull request
   says how many lines it adds and removes in source, tests and docs, and why
   a fix that only adds could not remove something instead. Reviewers push
-  back on a new one-off check where a shared one would do.
+  back on a new one-off check where a shared one would do. **A refactor
+  deletes more source lines than it adds.** If it can't, for example because
+  it adds a new shared structure that a later step will use to remove the old
+  code, its description says why and names the pull request or issue that
+  does the removal.
 - **Fill in the [pull request template](.github/pull_request_template.md)** for
   someone who has not read the conversation, with a short title about the
   effect, such as `Show fullness instead of hunger on the agent panel`.
