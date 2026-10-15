@@ -93,11 +93,7 @@ public sealed partial class WorldRuntime
             MoveToward(plan.Actor, state, plan.Target, "store_stock", plan.InteractionRange);
             return;
         }
-        ApplyInventoryTransition(inventory => plan.DirectDelivery
-            ? InventoryAuthority.Transfer(inventory, $"store-stock:{WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId, plan.StockId, plan.Quantity,
-                "store_stock_delivered", destinationStorageBuildingId: plan.StoreId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.StoreId))
-            : InventoryAuthority.Transfer(inventory, $"store-pickup:{WorldTick}:{plan.Actor}", plan.HouseholdId, plan.Actor, plan.StockId, plan.Quantity,
-                "store_stock_collected", destinationDeliveryBuildingId: plan.StoreId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedStoreStockPlan(InventoryEconomyWorld, plan));
         AppendEvent(plan.DirectDelivery ? "store_stock_delivered" : "store_stock_collected", $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.StoreId}");
     }
 }

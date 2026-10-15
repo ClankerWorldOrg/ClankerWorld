@@ -133,6 +133,8 @@ public sealed class FarmingSystemTests
         public List<(string, string)> Events { get; } = [];
         public HashSet<GridPoint> Roads { get; } = [];
         public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
+        public void RunInventoryCommand(InventorySystem.Command command) =>
+            Society = Society with { Inventory = command.Transform(Society.Inventory) };
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) =>
             Society = Society with { Inventory = transition(Society.Inventory) };
         public void SetMap(WorldMap map) => Map = map;

@@ -38,16 +38,9 @@ public sealed partial class WorldRuntime
         public ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
         public string ProductionOrderReceipt(string jobId) => WorldRuntime.ProductionOrderReceipt(jobId);
         public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
-        public void ExtendOrderReservations(IReadOnlyList<string> reservations, long deadline) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, reservations, deadline));
-        public void HoldOrderReservations(IReadOnlyList<string> reservations) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, reservations));
-        public void ReleaseProductionOrderInputs(WorldProductionJob job) => runtime.ApplyInventoryTransition(inventory =>
-            {
-                foreach (var id in job.InputReservationIds)
-                    if (inventory.Reservations.FirstOrDefault(item => item.Id == id) is
-                        { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, "production_order_cancelled");
-                return inventory;
-            });
+        public void ExtendOrderReservations(IReadOnlyList<string> reservations, long deadline) => runtime.RunInventoryCommand(InventorySystem.OrdersExtendOrderReservations(reservations, deadline));
+        public void HoldOrderReservations(IReadOnlyList<string> reservations) => runtime.RunInventoryCommand(InventorySystem.OrdersHoldOrderReservations(reservations));
+        public void ReleaseProductionOrderInputs(WorldProductionJob job) => runtime.RunInventoryCommand(InventorySystem.ReleaseProductionOrderInputs(job));
         public void ResumeProductionJob(string job, long deadline, string? knife) => runtime.productionSystem.ResumeJob(job, deadline, knife);
         public void PauseProductionJob(string job, long tick) => runtime.productionSystem.PauseJob(job, tick);
         public void CancelProductionJobs(IReadOnlySet<string> jobs) => runtime.productionSystem.CancelJobs(jobs);

@@ -1042,9 +1042,7 @@ public sealed partial class WorldRuntime
         }
         var recipient = plan.RecipientId;
         var quantity = plan.Quantity;
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"project-share:{WorldTick}:{helperId}",
-            helperId, recipient, plan.LotId, quantity, "project_request_fulfilled",
-            plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(helperId, plan.HouseId)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedProjectAssistance(InventoryEconomyWorld, plan, helperId, recipient, quantity));
         IncreaseTrust(plan.RequesterId, helperId, 2, "material_help");
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.

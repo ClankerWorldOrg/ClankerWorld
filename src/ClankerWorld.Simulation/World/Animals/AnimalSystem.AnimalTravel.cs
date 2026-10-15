@@ -18,9 +18,7 @@ internal sealed partial class AnimalSystem
         var operation = AnimalSaddleOperationId(animal.Id, world.WorldTick, world.NextEventId);
         var unitId = saddle.Quantity == 1 ? saddle.Id : DerivedId.Create(saddle.Id + "#move:" + operation);
         var reservationId = AnimalSaddleReservationId(operation);
-        world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(InventoryAuthority.Relocate(inventory, operation,
-            saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y), holdAccess: InventoryHoldRules.SupplyTripFor(actor)), reservationId,
-            saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
+        world.RunInventoryCommand(InventorySystem.CompleteAnimalSaddling(actor, animal, saddle, operation, unitId, reservationId));
         SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = reservationId });
         FinishAnimalSupplyTrip(world, actor);
         world.AppendEvent("animal_saddled", actor + ":" + animal.Id, animal.Position);
@@ -42,10 +40,7 @@ internal sealed partial class AnimalSystem
         var animal = Animal(plan.AnimalId)!;
         SetAnimal(animal with { RiderId = null });
         foreach (var cargo in plan.Cargo)
-            world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
-                AnimalCargoDismountId(plan.Actor, world.WorldTick, world.NextEventId, cargo.StockId),
-                cargo.StockId, cargo.OwnerId, cargo.Quantity, groundPosition: new(plan.Position.X, plan.Position.Y),
-                holdAccess: InventoryHoldRules.SupplyTripFor(plan.Actor)));
+            world.RunInventoryCommand(InventorySystem.CompleteAnimalDismount(world, plan, cargo));
         world.AppendEvent("horse_dismounted", plan.Actor + ":" + animal.Id + ":" + reason, plan.Position);
     }
 
@@ -53,11 +48,9 @@ internal sealed partial class AnimalSystem
     {
         if (!world.Map.CanFootStep(animal.Position, next)) throw new InvalidOperationException("Animals use legal foot steps.");
         if (animal.SaddleLotId is { } saddle && animal.SaddleReservationId is { } held)
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.MoveAnimalSaddle(inventory, saddle, held, animal.Id,
-                new(animal.Position.X, animal.Position.Y), new(next.X, next.Y), world.Map.WrapsEastWest ? world.Map.Width : 0));
+            world.RunInventoryCommand(InventorySystem.MoveSaddleWithAnimal(world, animal, next, saddle, held));
         if (animal.ReadyProductLotId is { } product && animal.ReadyProductReservationId is { } productHeld)
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.MoveAnimalProduct(inventory, product, productHeld, animal.Id,
-                new(animal.Position.X, animal.Position.Y), new(next.X, next.Y), world.Map.WrapsEastWest ? world.Map.Width : 0));
+            world.RunInventoryCommand(InventorySystem.MoveProductWithAnimal(world, animal, next, product, productHeld));
         SetAnimal(animal with { Position = next });
     }
 

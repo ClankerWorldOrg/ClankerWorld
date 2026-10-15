@@ -54,8 +54,7 @@ internal sealed partial class FarmingSystem
             reservationId = WorldRuntime.FarmingSharedRules.FieldPlantingReservationId(position, field.Cycle, world.WorldTick, workerId);
             // This seed belongs to active work, including illness and conversation
             // pauses. Completion consumes it; every work cancellation releases it.
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(inventory, reservationId,
-                workerId, seed.Id, 1, "field_planting", long.MaxValue));
+            world.RunInventoryCommand(InventorySystem.StartFieldWorkCore(workerId, reservationId, seed));
         }
         var hoeLotId = hoe is null ? null : IsolateFieldToolForWork(world, workerId, position, hoe.ToolLotId);
         var sickleLotId = sickle is null ? null : IsolateFieldToolForWork(world, workerId, position, sickle.ToolLotId);
@@ -77,7 +76,7 @@ internal sealed partial class FarmingSystem
         var lot = inventory.GetLot(lotId);
         if (lot.Quantity == 1) return lot.Id;
         var isolatedId = WorldRuntime.FarmingSharedRules.FieldToolLotId(lot.Id, position, world.WorldTick, workerId);
-        world.ApplyInventoryTransition(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId, holdAccess: InventoryHoldRules.BorrowedBy(workerId)));
+        world.RunInventoryCommand(InventorySystem.IsolateFieldToolForWork(workerId, lot, isolatedId));
         return isolatedId;
     }
 
@@ -134,7 +133,7 @@ internal sealed partial class FarmingSystem
     internal void ReturnFieldToGrass(IFarmingWorld world, FarmFieldState field)
     {
         if (field.ReplantingReservationId is { } reserve && ActiveFarmReservation(world, reserve))
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, reserve, "field_returned_to_grass"));
+            world.RunInventoryCommand(InventorySystem.ReturnFieldToGrass(reserve));
         RemoveField(field.Position);
         world.AppendEvent("field_returned_to_grass", $"{FarmFieldRules.FieldId(field.Position)}:{field.HouseholdId}");
     }
@@ -145,7 +144,7 @@ internal sealed partial class FarmingSystem
     internal void CancelFarmWork(IFarmingWorld world, FarmFieldState field)
     {
         if (field.Work?.SeedReservationId is { } reservationId && ActiveFarmReservation(world, reservationId))
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, reservationId, "field_work_interrupted"));
+            world.RunInventoryCommand(InventorySystem.CancelFarmWork(reservationId));
         if (field.Stage == FarmFieldStage.Preparing) RemoveField(field.Position);
         else SetFarmField(world, field with { Work = null });
         world.AppendEvent("field_work_interrupted", FarmFieldRules.FieldId(field.Position));
@@ -208,12 +207,7 @@ internal sealed partial class FarmingSystem
                 SetFarmField(world, field with { Stage = FarmFieldStage.Prepared, Work = null });
                 break;
             case FarmWorkKind.Plant:
-                world.ApplyInventoryTransition(inventory =>
-                {
-                    if (field.ReplantingReservationId is { } previous && ActiveFarmReservation(world, previous))
-                        inventory = InventoryAuthority.ReleaseReservation(inventory, previous, "field_replanting_completed");
-                    return InventoryAuthority.ConsumeReservation(inventory, work.SeedReservationId!);
-                });
+                world.RunInventoryCommand(InventorySystem.ContinueFarmWork(world, work, field));
                 SetFarmField(world, field with
                 {
                     Stage = FarmFieldStage.Planted,
@@ -289,18 +283,7 @@ internal sealed partial class FarmingSystem
         if (weather == WeatherKind.Snow) quantity = Math.Max(1, quantity / 2);
         else if (weather == WeatherKind.Storm || moisture < 15) quantity = Math.Max(1, quantity * 3 / 4);
         else if (moisture >= 50) quantity += Math.Max(1, quantity / 4);
-        world.ApplyInventoryTransition(inventory =>
-        {
-            var next = InventoryAuthority.AddLot(inventory, WorldRuntime.FarmingSharedRules.FieldHarvestId(field.Position, cycle, "crop"), crop, field.HouseholdId,
-                quantity, world.WorldTick,
-                groundPosition: new(field.Position.X, field.Position.Y));
-            if (plantingItem != crop)
-                next = InventoryAuthority.AddLot(next, plantingLotId, plantingItem, field.HouseholdId, 2, world.WorldTick,
-                    groundPosition: new(field.Position.X, field.Position.Y));
-            next = InventoryAuthority.Reserve(next, replantId, field.HouseholdId, plantingLotId, 1,
-                "field_replanting", long.MaxValue);
-            return WorldRuntime.FarmingSharedRules.ApplyToolWorkToInventory(next, field.Work!.WorkerId, world.WorldTick, toolPlans);
-        });
+        world.RunInventoryCommand(InventorySystem.CompleteFieldHarvest(world, field, toolPlans, cycle, crop, plantingItem, plantingLotId, replantId, quantity));
         SetFarmField(world, field with { Stage = FarmFieldStage.Harvested, Cycle = cycle, Work = null, ReplantingReservationId = replantId });
         if (weather is WeatherKind.Snow or WeatherKind.Storm)
             world.AppendEvent("crop_weather_loss", $"{prefix}:{weather.ToString().ToLowerInvariant()}");

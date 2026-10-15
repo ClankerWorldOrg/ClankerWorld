@@ -93,13 +93,11 @@ internal sealed partial class AnimalSystem
             {
                 EndAnimalRide(world, animal, "old_age");
                 if (animal.SaddleReservationId is { } saddleHeld)
-                    world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, saddleHeld, "animal_died"));
+                    world.RunInventoryCommand(InventorySystem.ReleaseDeadAnimalSaddle(saddleHeld));
                 animal = Animal(animal.Id)!;
                 ClearAnimalProduct(world, animal, discard: true);
                 if (animal.Species != "chicken")
-                    world.ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(inventory,
-                        AnimalHideId(animal.Id), "hide", animal.HouseholdId ?? animal.Id, 1, tick,
-                        groundPosition: new(animal.Position.X, animal.Position.Y)));
+                    world.RunInventoryCommand(InventorySystem.CreateAnimalHide(tick, animal));
                 SetAnimal(animal with
                 {
                     DiedTick = tick,
@@ -143,10 +141,7 @@ internal sealed partial class AnimalSystem
                 {
                     var productId = AnimalProductId(animal.Id, tick);
                     var reservationId = AnimalProductReservationId(productId);
-                    world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(InventoryAuthority.AddLot(inventory,
-                        productId, definition.Product!, animal.HouseholdId, definition.ProductQuantity, tick,
-                        groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
-                        animal.HouseholdId, productId, definition.ProductQuantity, "animal-product:" + animal.Id, long.MaxValue));
+                    world.RunInventoryCommand(InventorySystem.CreateReservedAnimalProduct(tick, animal, definition, productId, reservationId));
                     animal = animal with { ProductProgressTicks = 0, ReadyProductLotId = productId, ReadyProductReservationId = reservationId };
                     world.AppendEvent("animal_product_ready", animal.Id + ":" + definition.Product, animal.Position);
                 }
@@ -245,9 +240,9 @@ internal sealed partial class AnimalSystem
     {
         if (animal.ReadyProductReservationId is { } reservationId && world.Society.Inventory.Reservations.Any(item =>
                 item.Id == reservationId && item.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed))
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, reservationId, "animal_product_released"));
+            world.RunInventoryCommand(InventorySystem.ReleaseAnimalProductClaim(reservationId));
         if (discard && animal.ReadyProductLotId is { } lotId && world.Society.Inventory.Lots.FirstOrDefault(item => item.Id == lotId) is { } lot)
-            world.ApplyInventoryTransition(inventory => InventoryAuthority.Discard(inventory, lot.OwnerId, lot.Id, lot.Quantity));
+            world.RunInventoryCommand(InventorySystem.DiscardOldAnimalProduct(lot));
     }
 
     internal void WanderAnimal(IAnimalWorld world, AnimalState animal, long tick)

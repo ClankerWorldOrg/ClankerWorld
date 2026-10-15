@@ -25,7 +25,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<string> ReserveProductionInputs(RecipeProjectActionPlan plan, string purpose, long expiry)
         {
             IReadOnlyList<string> ids = [];
-            runtime.ApplyInventoryTransition(inventory => ReserveRecipeInputs(inventory, plan, purpose, expiry, out ids));
+            runtime.RunInventoryCommand(InventorySystem.ReserveProductionInputs(InventoryProductionWorld, plan, purpose, expiry, ids, inventoryResultValue => ids = inventoryResultValue));
             return ids;
         }
         public string? ToolMakingRequestJobFor(string worker, RecipeDefinition recipe, string building) => runtime.ToolMakingRequestJobFor(worker, recipe, building);
@@ -40,13 +40,7 @@ public sealed partial class WorldRuntime
             runtime.ProductionGoods(inventory, request, carried);
         public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target,
             ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
-        public void ReleaseProductionInputs(IReadOnlyList<string> ids, string reason) => runtime.ApplyInventoryTransition(inventory =>
-        {
-            foreach (var id in ids)
-                if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, reason);
-            return inventory;
-        });
+        public void ReleaseProductionInputs(IReadOnlyList<string> ids, string reason) => runtime.RunInventoryCommand(InventorySystem.ReleaseProductionInputs(ids, reason));
         public void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knife, long tick) =>
             runtime.CompleteRecipeInventory(job, recipe, knife, tick);
         public void CreditProducedWork(string worker, RecipeDefinition recipe) =>

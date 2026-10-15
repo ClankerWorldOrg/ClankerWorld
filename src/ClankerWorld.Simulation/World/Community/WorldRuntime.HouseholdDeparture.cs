@@ -45,11 +45,8 @@ public sealed partial class WorldRuntime
                          building.InstanceId == delivery && building.HouseholdId == householdId)).ToArray())
         {
             var carrier = lot.CarrierId ?? actor;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"{transition}-delivery:{actor}:{WorldTick}:{lot.Id}", actor, householdId, lot.Id, lot.Quantity,
-                "delivery_ownership_restored", holdAccess: InventoryHoldRules.DeliveryFor(actor, lot.DeliveryBuildingId)));
-            ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            RunInventoryCommand(InventorySystem.RestoreDeliveryOwnership(InventoryCommunityWorld, actor, householdId, transition, lot));
+            RunInventoryCommand(InventorySystem.RestoreDeliveryCustody(InventoryCommunityWorld, actor, householdId, transition, lot, carrier));
         }
     }
 

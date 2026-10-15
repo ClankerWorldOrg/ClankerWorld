@@ -111,16 +111,8 @@ public sealed partial class WorldRuntime
         public InventoryLot? SharedPreparationItem(string kind, string actor) => runtime.SharedPreparationItem(kind, actor);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public string MedicalDoseId(long tick, long eventId, string caregiver, string patient) => WorldRuntime.MedicalDoseId(tick, eventId, caregiver, patient);
-        public void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind) => runtime.ApplyInventoryTransition(inventory =>
-            InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory, id, supply.OwnerId, supply.Id, 1,
-                WorldRuntime.MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, runtime.WorldTick), runtime.WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
-        public void CloseMedicalDoseReceipt(string reservation, string purpose) => runtime.ApplyInventoryTransition(inventory =>
-        {
-            var receipt = inventory.GetReservation(reservation);
-            if (receipt.State != InventoryReservationState.Completed || receipt.Purpose != purpose)
-                throw new InvalidDataException("Only the original consumed medical dose can be closed.");
-            return InventoryStore.PrepareReservationLedger(inventory, inventory.Reservations.Select(item => item.Id == receipt.Id ? InventoryStore.PrepareReservationPurpose(item, purpose + ":closed") : item).ToArray());
-        });
+        public void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind) => runtime.RunInventoryCommand(InventorySystem.ConsumeMedicalDose(runtime.InventoryFamilyWorld, id, supply, caregiver, patient, kind));
+        public void CloseMedicalDoseReceipt(string reservation, string purpose) => runtime.RunInventoryCommand(InventorySystem.CloseMedicalDoseReceipt(reservation, purpose));
         public InventoryLot? SharedItem(string kind, string actor, GridPoint destination, int range) => runtime.SharedItem(kind, actor, destination, range);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public int HouseholdStockInteractionRange(InventoryLot lot) => WorldRuntime.HouseholdStockInteractionRange(lot);
@@ -152,20 +144,17 @@ public sealed partial class WorldRuntime
         public void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice, string description, int priority, string? destinationId = null) => runtime.OfferChildChoice(candidates, actor, choice, description, priority, destinationId);
         public void RecordChildSocialMemory(string id, string actor, string target, string kind) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
             new(id, actor, target, kind switch { "converse" => "Talked with another person.", "play" => "Played with another person.", _ => "Learned by observing an adult." }, "public", runtime.WorldTick)));
-        public void DeliverChildLoad(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-delivery:{runtime.WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId!, plan.StockId!, plan.Quantity, "child_household_delivery", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-        public void CollectChildLoad(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-pickup:{runtime.WorldTick}:{plan.Actor}", plan.HouseholdId!, plan.Actor, plan.StockId!, plan.Quantity, "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        public void DeliverChildLoad(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.DeliverChildLoad(runtime.InventoryFamilyWorld, plan));
+        public void CollectChildLoad(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.CollectChildLoad(runtime.InventoryFamilyWorld, plan));
         public void GatherChildLoad(ChildActionPlan plan)
         {
             var resource = runtime.map.Resources.Single(source => source.Id == plan.Choice.Target);
             var state = runtime.agents[plan.Actor];
             if (plan.Choice.Kind == ChildActionKind.GatherWood) runtime.GatherProjectMaterial(plan.Actor, state, "wood", resource, deliveryBuildingId: plan.HouseId);
             else if (runtime.HarvestFood(plan.Actor, state, resource) is { } food)
-                runtime.ApplyInventoryTransition(inventory => WorldRuntime.MarkBuildingMaterialDelivery(inventory, food.LotId, plan.HouseId!));
+                runtime.RunInventoryCommand(InventorySystem.GatherChildLoad(runtime.InventoryFamilyWorld, plan, food));
         }
-        public void ShareChildFood(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-help:{runtime.WorldTick}:{plan.Actor}", plan.Actor, runtime.HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity, "child_household_help", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+        public void ShareChildFood(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.ShareChildFood(runtime.InventoryFamilyWorld, plan));
         public IFamilyCareWorld CareWorld => this;
         public IFamilyParenthoodWorld ParenthoodWorld => this;
         public FoodActionPlan? PlanFoodConsumption(string actor) => runtime.PlanFoodConsumption(actor);

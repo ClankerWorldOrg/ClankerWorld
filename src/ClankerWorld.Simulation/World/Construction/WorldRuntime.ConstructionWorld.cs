@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<string> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry)
         {
             IReadOnlyList<string> ids = [];
-            runtime.ApplyInventoryTransition(inventory => WorldRuntime.ReserveExpansionInputs(inventory, inputs, actor, id, expiry, out ids));
+            runtime.RunInventoryCommand(InventorySystem.ReserveExpansionInputs(InventoryConstructionWorld, inputs, actor, id, expiry, ids, inventoryResultValue => ids = inventoryResultValue));
             return ids;
         }
         public void AdvanceExpansionSequence() => runtime.productionSystem.AdvanceExpansionSequence();
@@ -56,14 +56,7 @@ public sealed partial class WorldRuntime
             runtime.CanFitExpansion(building, position, footprint, out failure, jobId);
         public void CompleteExpansionInputs(IReadOnlyList<string> ids) => ResolveExpansionInputs(ids, completed: true);
         public void CancelExpansionInputs(IReadOnlyList<string> ids) => ResolveExpansionInputs(ids, completed: false);
-        private void ResolveExpansionInputs(IReadOnlyList<string> ids, bool completed) => runtime.ApplyInventoryTransition(inventory =>
-        {
-            foreach (var id in ids)
-                if (completed) inventory = InventoryAuthority.ConsumeReservation(inventory, id);
-                else if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, "expansion_cancelled");
-            return inventory;
-        });
+        private void ResolveExpansionInputs(IReadOnlyList<string> ids, bool completed) => runtime.RunInventoryCommand(InventorySystem.ResolveExpansionInputs(ids, completed));
         public void RecordExpandedWork(PlacedBuilding building, BuildingExpansionJob job)
         {
             if (runtime.towns.SingleOrDefault(town => town.Id == building.TownId) is { } town)
@@ -75,7 +68,7 @@ public sealed partial class WorldRuntime
         public string NormalizeRequiredText(string? value, string name) => WorldRuntime.NormalizeRequiredText(value, name);
         public bool CanPlaceBuilding(BuildingDefinition definition, GridPoint position, out string failure) => runtime.CanPlaceBuilding(definition, position, out failure);
         public void ConsumeConstructionInputs(IReadOnlyList<ConstructionMaterialInput> inputs, string purpose, string owner) =>
-            runtime.ApplyInventoryTransition(inventory => WorldRuntime.ConsumeConstructionInputs(inventory, inputs, purpose, owner));
+            runtime.RunInventoryCommand(InventorySystem.ConsumeConstructionInputs(InventoryConstructionWorld, inputs, purpose, owner));
         public void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => runtime.AssignBuildingToTown(building, definition);
         public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);

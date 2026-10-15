@@ -82,14 +82,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var purpose = plan.Kind == SmithDeliveryKind.Ore ? "smith_ore_delivered" : plan.DirectDelivery ? "smith_input_delivered" : "smith_input_picked_up";
-        ApplyInventoryTransition(inventory => plan.Kind == SmithDeliveryKind.Ore
-            ? InventoryAuthority.Transfer(inventory, $"smith-ore-delivery:{WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId, plan.StockId,
-                plan.Quantity, purpose, plan.SmithId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.SmithId))
-            : plan.DirectDelivery
-                ? InventoryAuthority.Transfer(inventory, $"smith-input-delivery:{WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId, plan.StockId,
-                    plan.Quantity, purpose, destinationStorageBuildingId: plan.SmithId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.SmithId))
-                : InventoryAuthority.Transfer(inventory, $"smith-input-pickup:{WorldTick}:{plan.Actor}", plan.OwnerId, plan.Actor, plan.StockId,
-                    plan.Quantity, purpose, destinationDeliveryBuildingId: plan.SmithId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedSmithDeliveryPlan(InventoryEconomyWorld, plan, purpose));
         AppendEvent(purpose, $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.SmithId}");
     }
 }

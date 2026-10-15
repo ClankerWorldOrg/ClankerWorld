@@ -141,11 +141,7 @@ public sealed partial class WorldRuntime
                     SetProject(plan.Actor, project with { Stage = "blocked", Blocker = "House storage is full; expand it before delivering more." });
                     return;
                 }
-                ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                    $"project-delivery:{WorldTick}:{plan.Actor}", plan.Actor, plan.OwnerId, delivery.LotId,
-                    delivery.Quantity, "project_contribution", plan.HouseId,
-                    destinationGroundPosition: plan.HouseId is null ? new InventoryGroundPosition(plan.Destination.Value.X, plan.Destination.Value.Y) : null,
-                    holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+                RunInventoryCommand(InventorySystem.DeliverProjectInput(InventoryEconomyWorld, plan, delivery));
                 AppendEvent("project_material_delivered", $"{plan.Actor}:{plan.Input.ResourceId}");
                 return;
             case ProjectInputPickup pickup:
@@ -156,9 +152,7 @@ public sealed partial class WorldRuntime
                     return;
                 }
                 if (pickup.Quantity == 0) return;
-                ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                    $"warehouse-pickup:{WorldTick}:{plan.Actor}", pickup.Warehouse.TownId!, plan.Actor,
-                    pickup.LotId, pickup.Quantity, "town_resource_collected", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+                RunInventoryCommand(InventorySystem.CollectWarehouseProjectInput(InventoryEconomyWorld, plan, pickup));
                 AppendEvent("town_resource_collected", $"{plan.Actor}:{pickup.LotId}:{pickup.Quantity}:{pickup.Warehouse.InstanceId}");
                 return;
             case ProjectInputHarvest harvest:
