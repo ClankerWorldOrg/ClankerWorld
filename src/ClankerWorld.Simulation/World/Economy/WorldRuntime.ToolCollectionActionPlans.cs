@@ -50,24 +50,25 @@ public sealed partial class WorldRuntime
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household can no longer use this tool family");
         if (HasCarriedEquipmentAtLeast(plan.Actor, plan.Choice.ItemKind))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they already carry a tool at least this good");
-        var pickup = CheckGatheringToolPickup(plan.Actor, plan.Pickup);
+        var pickup = CheckEquipmentPickup(plan.Actor, plan.Pickup);
         if (!pickup.Allowed) return pickup;
         if (FreeCarryCapacity(plan.Actor) - 1 + (plan.FutureCargoStorage?.Cargo.Sum(move => move.PhysicalQuantity) ?? 0) < plan.MinimumFreeAfterPickup)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected tool would leave no room for the planned harvest");
         return plan.FutureCargoStorage is { } cargo ? CheckCargoStorage(cargo) : new();
     }
 
-    private ActionCheck CheckGatheringToolPickup(string actor, PlannedEquipmentPickup pickup)
+    private ActionCheck CheckEquipmentPickup(string actor, PlannedEquipmentPickup pickup, string description = "tool",
+        ReachPurpose purpose = ReachPurpose.MaterialGathering)
     {
         if (FreeCarryCapacity(actor) <= 0)
-            return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected tool");
+            return ActionCheck.Refuse(ActionRefusalReason.Capacity, $"there is no room for the selected {description}");
         if (RecheckGoods(SharedCollectionRequest(actor, pickup.OwnerId, pickup.ItemKind), pickup.StockId) is not { Lot: var selected } ||
             selected.ContainerLotId is not null || selected.CarrierId is not null ||
             HouseholdStockPosition(selected) != pickup.Position || HouseholdStockInteractionRange(selected) != pickup.InteractionRange)
-            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected shared tool is no longer available");
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, $"the selected shared {description} is no longer available");
         return IsWithinInteractionRange(agents[actor].Position, pickup.Position, pickup.InteractionRange) ||
-            Reach(actor, pickup.Position, ReachPurpose.MaterialGathering, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
-            ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected tool is out of reach now");
+            Reach(actor, pickup.Position, purpose, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
+            ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, $"the selected {description} is out of reach now");
     }
 
     private void ApplyToolCollectionPlan(ToolCollectionActionPlan? plan)

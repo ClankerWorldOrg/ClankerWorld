@@ -15,8 +15,8 @@ public sealed partial class WorldRuntime
     private const string UnloadCartPrefix = HandcartCargoChoice.UnloadPrefix;
     private const string UnloadCartGroundPrefix = HandcartCargoChoice.GroundPrefix;
     private const string CollectCartMaterialPrefix = "collect_handcart_material:";
-    private const string CollectCartRepairPrefix = "collect_handcart_repair:";
-    private const string RepairCartPrefix = "repair_handcart:";
+    private const string CollectCartRepairPrefix = HandcartRepairInputChoice.Prefix;
+    private const string RepairCartPrefix = HandcartRepairChoice.Prefix;
     private const string PullCartPrefix = HandcartPullChoice.Prefix;
     // Generic cart controls have no delivery intention. Keep them selectable by models without
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
@@ -180,23 +180,12 @@ public sealed partial class WorldRuntime
             foreach (var building in worldSimulation.Buildings.OrderBy(item => item.InstanceId, StringComparer.Ordinal))
                 AddHandcartPullCandidate(candidates, PlanHandcartPull(actor, new(building.InstanceId)));
         }
-        var worn = inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-            lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 &&
-            !HasActiveContainerReservation(inventory, lot.Id)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
-        if (worn.Length > 0)
+        if (WornHandcarts(actor).Any())
         {
             foreach (var kind in CartRepairKinds)
-                if (!HasCarriedMaterial(actor, kind, 1) && FreeCarryCapacity(actor) > 0 && SharedItem(kind, actor) is not null)
-                    candidates.Add(new(CollectCartRepairPrefix + kind,
-                        $"Collect physically accessible {kind.Replace('_', ' ')} to repair your handcart.", 21));
-            if (CartRepairKinds.All(kind => HasCarriedMaterial(actor, kind, 1)))
-                foreach (var cart in worn)
-                {
-                    var site = new GridPoint(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
-                    if (site == person.Position || FindUnoccupiedRoute(actor, person.Position, site, 0).Count > 0)
-                        candidates.Add(new(RepairCartPrefix + cart.Id,
-                            "Reach and repair your handcart using one carried wood, iron fittings and rope.", 18));
-                }
+                AddHandcartRepairCandidate(candidates, PlanHandcartRepairInput(actor, new(kind)));
+            foreach (var cart in WornHandcarts(actor))
+                AddHandcartRepairCandidate(candidates, PlanHandcartRepair(actor, new(cart.Id)));
         }
         if (NearbyOwnedHandcart(actor, person.Position) is not { } nearby) return;
         foreach (var lot in HandcartLoadStock(actor))
@@ -242,13 +231,11 @@ public sealed partial class WorldRuntime
                 stock.OwnerId, actor, stock.Id, quantity, "handcart_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
             return true;
         }
-        if (candidateId.StartsWith(CollectCartRepairPrefix, StringComparison.Ordinal))
+        if (originalPlan is HandcartRepairInputActionPlan repairInput)
+        { ApplyHandcartRepairInputPlan(repairInput); return true; }
+        if (HandcartRepairInputChoice.Decode(candidateId) is { } repairInputChoice)
         {
-            var kind = candidateId[CollectCartRepairPrefix.Length..];
-            if (CartRepairKinds.Contains(kind, StringComparer.Ordinal) && !HasCarriedMaterial(actor, kind, 1) &&
-                society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                    lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000))
-                CollectEquipment(actor, person, kind);
+            if (PlanHandcartRepairInput(actor, repairInputChoice) is { } plan) ApplyHandcartRepairInputPlan(plan);
             return true;
         }
         if (originalPlan is HandcartPullActionPlan pullPlan)
@@ -265,41 +252,36 @@ public sealed partial class WorldRuntime
             if (PlanHandcartCargo(actor, cargoChoice, targetCartId, maximumQuantity) is { } plan) ApplyHandcartCargoPlan(plan);
             return true;
         }
-        if (!candidateId.StartsWith(RepairCartPrefix, StringComparison.Ordinal)) return false;
-        var cartHere = targetCartId is not null
-            ? NearbyOwnedHandcarts(actor, person.Position).FirstOrDefault(cart => cart.Id == targetCartId)
-            : society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == candidateId[RepairCartPrefix.Length..] &&
-                lot.OwnerId == actor && lot.ItemKind == InventoryContainerRules.Handcart);
-        if (cartHere is { GroundPosition: { } repairSite } &&
-            person.Position != new GridPoint(repairSite.X, repairSite.Y))
+        if (originalPlan is HandcartRepairActionPlan repairPlan)
+        { ApplyHandcartRepairPlan(repairPlan); return true; }
+        if (HandcartRepairChoice.Decode(candidateId) is { } repairChoice)
         {
-            MoveToward(actor, person, new(repairSite.X, repairSite.Y), "repair_handcart");
+            if (targetCartId is not null && targetCartId != repairChoice.CartId) return true;
+            if (PlanHandcartRepair(actor, repairChoice) is { } plan) ApplyHandcartRepairPlan(plan);
             return true;
         }
-        if (cartHere is null || HasActiveContainerReservation(society.Checkpoint.Inventory, cartHere.Id))
-            return true;
+        return false;
+    }
+
+    private void CompleteHandcartRepair(HandcartRepairActionPlan plan, InventoryLot cart)
+    {
+        var actor = plan.Actor;
+        var reservations = new List<string>();
+        ApplyInventoryTransition(inventory =>
         {
-            if (cartHere.Id != candidateId[RepairCartPrefix.Length..] || cartHere.ConditionBasisPoints >= 10_000 ||
-                !HasCarriedMaterial(actor, "wood", 1) || !HasCarriedMaterial(actor, "iron_fittings", 1) || !HasCarriedMaterial(actor, "rope", 1)) return true;
-            var reservations = new List<string>();
-            ApplyInventoryTransition(inventory =>
+            var updated = inventory;
+            foreach (var material in plan.Materials)
             {
-                var updated = inventory;
-                foreach (var kind in CartRepairKinds)
-                {
-                    var material = SpendingGoods(actor, GoodsUse.Spend, [actor], kind, inventory: updated)
-                        .First(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor)).Lot;
-                    var id = CartRepairReservationId(WorldTick, actor, kind);
-                    updated = InventoryAuthority.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                    reservations.Add(id);
-                }
-                return InventoryAuthority.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
-            });
-            RecordNonLandRepairCompletion(actor, cartHere, cartHere.Id,
-                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations.Select(Identity.Parse).ToArray());
-            AppendEvent(new HandcartRepairedEventPayload(actor, cartHere.Id));
-        }
-        return true;
+                var id = CartRepairReservationId(WorldTick, actor, material.ItemKind);
+                updated = InventoryAuthority.Reserve(updated, id, actor, material.StockId, material.Quantity, "equipment_repair",
+                    WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                reservations.Add(id);
+            }
+            return InventoryAuthority.RepairSingleUnit(updated, cart.Id, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
+        });
+        RecordNonLandRepairCompletion(actor, cart, cart.Id, NativeCartRepairId(WorldTick, actor, cart.Id),
+            agents[actor].Position, reservations.Select(Identity.Parse).ToArray());
+        AppendEvent(new HandcartRepairedEventPayload(actor, cart.Id));
     }
 
     private void CompleteHandcartCargo(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot)

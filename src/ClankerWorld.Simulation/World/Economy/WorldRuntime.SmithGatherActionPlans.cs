@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
         {
             if (FreeCarryCapacity(plan.Actor) <= 0 || HasCarriedEquipmentAtLeast(plan.Actor, pickup.ItemKind))
                 return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected tool is no longer needed or cannot be carried");
-            var sharedTool = CheckGatheringToolPickup(plan.Actor, pickup);
+            var sharedTool = CheckEquipmentPickup(plan.Actor, pickup);
             if (!sharedTool.Allowed) return sharedTool;
         }
         else if (FreeCarryCapacity(plan.Actor) < plan.PhysicalQuantity)
