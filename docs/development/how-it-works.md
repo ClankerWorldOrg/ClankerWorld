@@ -286,6 +286,14 @@ cover or decision to remain protected. Checking and applying preserve current
 cover that already stops cooling. A lost destination or blocked route gets a
 plain refusal instead of selecting another destination while applying.
 
+Ornament choices use typed wear/remove/gift identities with their original
+bounded hash spelling. `OrnamentActionPlan` retains the selected unit, owner,
+pickup, previous worn slot or recipient as each operation needs. One check
+serves offer, admission and application; limits follow eligibility filtering.
+Fresh personal admission remains necessary to wear, remove or give an ornament.
+Continuing an intention can only walk toward that exact stock; public operations
+and plans share the native one-unit commits and rollback behavior.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach

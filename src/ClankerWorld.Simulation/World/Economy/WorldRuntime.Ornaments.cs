@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -11,16 +8,13 @@ public sealed record OrnamentChangeResult(bool Applied, string? LotId = null, st
 
 public sealed partial class WorldRuntime
 {
-    private const string WearOrnamentPrefix = "wear_ornament:";
-    private const string RemoveOrnamentCandidate = "remove_ornament";
-    private const string GiftOrnamentPrefix = "gift_ornament:";
+    private const string WearOrnamentPrefix = OrnamentChoice.WearPrefix;
+    private const string RemoveOrnamentCandidate = OrnamentChoice.RemoveId;
+    private const string GiftOrnamentPrefix = OrnamentChoice.GiftPrefix;
 
     private static bool IsOrnamentCandidate(string candidate) => candidate == RemoveOrnamentCandidate ||
         candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal) ||
         candidate.StartsWith(GiftOrnamentPrefix, StringComparison.Ordinal);
-
-    // Preserve complete lot/agent identities without delimiter ambiguity or unbounded action IDs.
-    private static string OrnamentChoiceId(string prefix, params string[] identity) => DerivedId.Hash(JsonSerializer.Serialize(identity), prefix);
 
     private bool LivingOrnamentAdult(string actor) => agents.ContainsKey(actor) && IsAdult(actor);
 
@@ -46,39 +40,45 @@ public sealed partial class WorldRuntime
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         var owners = household is not null ? new[] { actor, household } : [actor];
         return owners.SelectMany(owner => FindGoods(OrnamentCollectionRequest(actor, owner)).Matches)
-            .Select(match => match.Lot).Where(lot => lot.ContainerLotId is null &&
-                (IsPersonallyCarriedOrnament(lot, actor) || household is not null && lot.OwnerId == household &&
-                    (lot.CarrierId is null || lot.CarrierId == actor) && FreeCarryCapacity(actor) > 0 &&
-                    (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
-                        building.InstanceId == lot.StorageBuildingId && building.HouseholdId == household))))
+            .Select(match => match.Lot).Where(lot => IsOrnamentSource(actor, lot))
             .OrderBy(lot => lot.OwnerId == actor ? 0 : 1).ThenBy(lot => lot.Id, StringComparer.Ordinal);
     }
 
     private IEnumerable<AgentState> LocalOrnamentRecipients(string actor) => agents.Values
-        .Where(person => person.AgentId != actor && LivingOrnamentAdult(person.AgentId) &&
-            IsWithinInteractionRange(agents[actor].Position, person.Position, ResourceInteractionRange) &&
-            FreeCarryCapacity(person.AgentId) > 0)
+        .Where(person => IsLocalOrnamentRecipient(actor, person.AgentId))
         .OrderBy(person => person.AgentId, StringComparer.Ordinal).Take(8);
 
     private void AddOrnamentCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (!LivingOrnamentAdult(actor) || BusyWithOrnamentIncompatibleWork(actor)) return;
-        foreach (var lot in OrnamentSources(actor).Where(lot => lot.Id != agents[actor].Equipment?.OrnamentLotId).Take(8))
-            candidates.Add(new(OrnamentChoiceId(WearOrnamentPrefix, lot.Id),
-                $"Choose and wear an accessible {lot.ItemKind.Replace('_', ' ')}. It stays one carried item.", 180,
-                lot.StorageBuildingId));
-        if (agents[actor].Equipment?.OrnamentLotId is not null)
-            candidates.Add(new(RemoveOrnamentCandidate, "Remove your worn ornament and keep it among your carried goods.", 181));
+        foreach (var plan in OrnamentSources(actor).Where(lot => lot.Id != agents[actor].Equipment?.OrnamentLotId)
+            .Select(lot => PlanOrnamentWear(actor, lot)).Where(plan => CheckOrnamentPlan(plan).Allowed).Take(8))
+            candidates.Add(new(plan.CandidateId,
+                $"Choose and wear an accessible {plan.ItemKind.Replace('_', ' ')}. It stays one carried item.", 180,
+                society.Checkpoint.Inventory.GetLot(plan.Selected.StockId).StorageBuildingId)
+            { ActionPlan = plan });
+        if (agents[actor].Equipment?.OrnamentLotId is { } worn)
+        {
+            var plan = new RemoveOrnamentActionPlan(actor, worn);
+            if (CheckOrnamentPlan(plan).Allowed)
+                candidates.Add(new(RemoveOrnamentCandidate, "Remove your worn ornament and keep it among your carried goods.", 181) { ActionPlan = plan });
+        }
+        var recipients = LocalOrnamentRecipients(actor).ToArray();
+        if (recipients.Length == 0) return;
         var gifts = 0;
-        foreach (var lot in PersonalOrnamentsToGive(actor)
-                     .OrderBy(lot => lot.Id, StringComparer.Ordinal).Take(4))
-            foreach (var recipient in LocalOrnamentRecipients(actor))
+        foreach (var plans in PersonalOrnamentsToGive(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal)
+            .Select(lot => recipients.Select(recipient => PlanOrnamentGift(actor, lot, recipient.AgentId))
+                .Where(plan => CheckOrnamentPlan(plan).Allowed).ToArray())
+            .Where(plans => plans is [_, ..]).Take(4))
+            foreach (var plan in plans)
             {
                 if (gifts++ >= 16) return;
-                var name = society.Checkpoint.GetAgent(recipient.AgentId).Name;
-                candidates.Add(new(OrnamentChoiceId(GiftOrnamentPrefix, lot.Id, recipient.AgentId),
-                    $"Give one personally carried {lot.ItemKind.Replace('_', ' ')} to {name} nearby.", 190,
-                    recipient.AgentId, name));
+                var recipient = plan.Selected.RecipientId;
+                var name = society.Checkpoint.GetAgent(recipient).Name;
+                candidates.Add(new(plan.CandidateId,
+                    $"Give one personally carried {plan.ItemKind.Replace('_', ' ')} to {name} nearby.", 190,
+                    recipient, name)
+                { ActionPlan = plan });
             }
     }
 
@@ -93,31 +93,25 @@ public sealed partial class WorldRuntime
             selected.Provider != DecisionProviderKind.LargeLanguageModel || selected.AgentId != decision.AgentId ||
             !LivingOrnamentAdult(decision.AgentId) || BusyWithOrnamentIncompatibleWork(decision.AgentId)) return true;
         var actor = decision.AgentId;
-        if (selected.CandidateId == RemoveOrnamentCandidate)
+        var plan = decision.ActionPlan as OrnamentActionPlan ?? CurrentOrnamentPlan(actor, selected.CandidateId);
+        if (plan is not null) ApplyOrnamentPlan(plan);
+        return true;
+    }
+
+    private OrnamentActionPlan? CurrentOrnamentPlan(string actor, string candidate)
+    {
+        if (candidate == RemoveOrnamentCandidate && agents[actor].Equipment?.OrnamentLotId is { } worn)
+            return new RemoveOrnamentActionPlan(actor, worn);
+        if (candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal))
         {
-            _ = RemoveOrnamentCore(actor);
-            return true;
-        }
-        if (selected.CandidateId.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal))
-        {
-            var source = OrnamentSources(actor).FirstOrDefault(lot =>
-                OrnamentChoiceId(WearOrnamentPrefix, lot.Id) == selected.CandidateId);
-            if (source is null) return true;
-            var person = agents[actor];
-            if (source.OwnerId != actor && !IsWithinInteractionRange(person.Position, HouseholdStockPosition(source),
-                    HouseholdStockInteractionRange(source)))
-                MoveToward(actor, person, HouseholdStockPosition(source), "ornament", HouseholdStockInteractionRange(source));
-            else _ = WearOrnamentCore(actor, source.Id);
-            return true;
+            var stock = OrnamentSources(actor).FirstOrDefault(lot => new WearOrnamentChoice(lot.Id).Encode() == candidate);
+            return stock is null ? null : PlanOrnamentWear(actor, stock);
         }
         foreach (var lot in PersonalOrnamentsToGive(actor))
             foreach (var recipient in LocalOrnamentRecipients(actor))
-                if (OrnamentChoiceId(GiftOrnamentPrefix, lot.Id, recipient.AgentId) == selected.CandidateId)
-                {
-                    _ = GiveOrnamentCore(actor, recipient.AgentId, lot.Id);
-                    return true;
-                }
-        return true;
+                if (new GiftOrnamentChoice(lot.Id, recipient.AgentId).Encode() == candidate)
+                    return PlanOrnamentGift(actor, lot, recipient.AgentId);
+        return null;
     }
 
     /// <summary>
@@ -129,11 +123,12 @@ public sealed partial class WorldRuntime
         if (!candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal) || !LivingOrnamentAdult(actor) ||
             BusyWithOrnamentIncompatibleWork(actor) || NeedsUrgentFood(agents[actor]) ||
             NeedsUrgentWarmth(agents[actor])) return;
-        var source = OrnamentSources(actor).FirstOrDefault(lot => OrnamentChoiceId(WearOrnamentPrefix, lot.Id) == candidate);
+        if (CurrentOrnamentPlan(actor, candidate) is not WearOrnamentActionPlan plan) return;
+        if (CheckOrnamentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var person = agents[actor];
-        if (source is null || source.OwnerId == actor || IsWithinInteractionRange(person.Position,
-                HouseholdStockPosition(source), HouseholdStockInteractionRange(source))) return;
-        MoveToward(actor, person, HouseholdStockPosition(source), "ornament", HouseholdStockInteractionRange(source));
+        var stock = society.Checkpoint.Inventory.GetLot(plan.Selected.StockId);
+        if (PersonalEquipmentRules.IsCarried(stock, actor) || IsWithinInteractionRange(person.Position, plan.Position, plan.InteractionRange)) return;
+        MoveToward(actor, person, plan.Position, "ornament", plan.InteractionRange);
     }
 
     public OrnamentChangeResult WearOrnament(string actor, string lotId)
@@ -156,6 +151,12 @@ public sealed partial class WorldRuntime
         if (RecheckGoods(OrnamentCollectionRequest(actor, lot.OwnerId), lot.Id) is not { } match)
             return new(false, Failure: "Choose a usable, unreserved ornament you carry or your household holds.");
         lot = match.Lot;
+        return CompleteOrnamentWear(actor, lot);
+    }
+
+    private OrnamentChangeResult CompleteOrnamentWear(string actor, InventoryLot lot)
+    {
+        var person = agents[actor];
         var previous = person.Equipment;
         var equippedId = lot.Id;
         try
@@ -199,6 +200,11 @@ public sealed partial class WorldRuntime
     {
         if (!LivingOrnamentAdult(actor) || agents[actor].Equipment?.OrnamentLotId is not { } id)
             return new(false, Failure: "This adult is not wearing an ornament.");
+        return CompleteOrnamentRemoval(actor, id);
+    }
+
+    private OrnamentChangeResult CompleteOrnamentRemoval(string actor, string id)
+    {
         var person = agents[actor];
         agents[actor] = person with { Equipment = person.Equipment! with { OrnamentLotId = null } };
         checkpointSchemaVersion = StateSchemaVersion;
@@ -222,6 +228,11 @@ public sealed partial class WorldRuntime
         if (lot is not null && !IsPersonallyCarriedOrnament(lot, actor)) lot = null;
         if (lot is null) return new(false, Failure: "The giver must personally carry one usable, unreserved ornament.");
         if (FreeCarryCapacity(recipientId) < 1) return new(false, Failure: "The recipient has no room to carry the gift.");
+        return CompleteOrnamentGift(actor, recipientId, lot);
+    }
+
+    private OrnamentChangeResult CompleteOrnamentGift(string actor, string recipientId, InventoryLot lot)
+    {
         var person = agents[actor];
         var operation = $"ornament-gift:{WorldTick}:{nextEventId}:{actor}:{recipientId}:{lot.Id}";
         var receivedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
