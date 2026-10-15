@@ -7,7 +7,6 @@
   "src/ClankerWorld.Simulation/Kernel/InventoryHolds.cs": 4,
   "src/ClankerWorld.Simulation/Kernel/InventoryIndex.cs": 7,
   "src/ClankerWorld.Simulation/Kernel/InventoryStorageHistory.cs": 4,
-  "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.AnimalAgreements.cs": 2,
   "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.AnimalSupply.cs": 1,
   "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.Animals.cs": 5,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs": 1,

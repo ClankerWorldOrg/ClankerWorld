@@ -383,6 +383,11 @@ Checks refuse changed cargo rather than dropping a different load. Native
 ride-loss cleanup uses the same planning and commit operations. Dropping a
 trip-held load cancels that trip before splitting its stock; dropping unrelated
 cargo keeps the trip and its promise.
+Animal permission and trade choices retain their recipient, offer, receiving
+yard, payment lot and any rider cargo preparation. Shared checks run before
+caps and at admission and apply; fresh personal-model consent remains required.
+Payment queries use exact uncommitted private stock and match native transfer
+access. Acceptance retains its planned leading preparation.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

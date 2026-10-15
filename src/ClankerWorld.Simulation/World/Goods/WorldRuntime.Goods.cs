@@ -51,6 +51,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
+        if (request.Use == GoodsUse.AnimalPayment) return AnimalPaymentExclusion(request.Actor!, index, lot);
         if (request.Use == GoodsUse.DismountCargo) return DismountCargoExclusion(request.Actor!, index, lot);
         if (request.Use == GoodsUse.AnimalSupplyTrip) return AnimalTripGoodsExclusion(request, index, lot);
         if (request.Use is GoodsUse.AnimalProduct or GoodsUse.AnimalHide) return AnimalProductGoodsExclusion(request, index, lot);
