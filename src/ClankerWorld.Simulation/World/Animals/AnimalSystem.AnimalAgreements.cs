@@ -133,7 +133,7 @@ internal sealed partial class AnimalSystem
             var offer = new AnimalTradeOffer(AnimalOfferId(actor, animal.Id, world.WorldTick, world.NextEventId),
                 animal.Id, actor, agreement.OtherId, home, plan.ReceivingYardId!, payment?.ItemKind, payment is null ? 0 : 1, world.WorldTick)
             { PaymentLotId = payment?.Id };
-            State = State with { Offers = State.Offers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() };
+            Commit(State with { Offers = State.Offers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() });
             world.AppendEvent("animal_trade_offered", offer.Id + ":" + animal.Id + ":" + (payment?.Id ?? "gift"));
         }
         else
@@ -161,7 +161,7 @@ internal sealed partial class AnimalSystem
                 });
                 world.AppendEvent("animal_transferred", offer.Id + ":" + animal.Id + ":" + offer.ReceivingHouseholdId, animal.Position);
             }
-            State = State with { Offers = State.Offers.Where(item => item.Id != offer.Id).ToArray() };
+            Commit(State with { Offers = State.Offers.Where(item => item.Id != offer.Id).ToArray() });
         }
     }
 }
