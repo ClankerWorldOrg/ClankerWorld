@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using ClankerWorld.GodotClient.ClientState;
@@ -482,12 +484,34 @@ public sealed class LocalServer : IAsyncDisposable
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return Probe.Unresponsive;
+            // Windows can take longer than the request deadline to refuse a
+            // connection to an empty loopback port. A timeout alone cannot say
+            // whether a listener exists; an exclusive bind can prove it is free.
+            return CanBindPort() ? Probe.Nothing : Probe.Unresponsive;
         }
         catch (Exception exception) when (exception is HttpRequestException or System.Text.Json.JsonException or
             NotSupportedException)
         {
             return Probe.NotClankerWorld;
+        }
+    }
+
+    private bool CanBindPort()
+    {
+        try
+        {
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                ExclusiveAddressUse = true,
+            };
+            socket.Bind(new IPEndPoint(IPAddress.Loopback, port));
+            return true;
+        }
+        catch (SocketException)
+        {
+            // A listener, reserved port or denied bind is not proof of a free
+            // port. Leave its process, secret and logs alone and keep waiting.
+            return false;
         }
     }
 
