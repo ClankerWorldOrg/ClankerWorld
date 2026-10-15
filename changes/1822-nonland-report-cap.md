@@ -1,0 +1,1 @@
+- Civic conduct reporting keeps its six-report limit and variant ordering, counting reports only after a filing plan passes the existing offer check.
