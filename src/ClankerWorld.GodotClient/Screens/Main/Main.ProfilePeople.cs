@@ -43,7 +43,7 @@ public partial class Main
             row.AddThemeConstantOverride("separation", 6);
             row.AddChild(new TextureRect { Texture = icon, StretchMode = TextureRect.StretchModeEnum.KeepCentered, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             row.AddChild(new Label { Text = relation, ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
-            row.AddChild(new Label { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+            row.AddChild(new FittedLabel { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             if (extra is not null) row.AddChild(extra);
             profilePeople.AddChild(row);
         }
@@ -80,6 +80,6 @@ public partial class Main
 
     /// <summary>Each People row as one line of text, for checks and assistive reading.</summary>
     private string ProfilePeopleText() => string.Join("\n", profilePeople.GetChildren().OfType<Control>().Select(row => row is Label label
-        ? label.Text
-        : string.Join(" ", row.GetChildren().OfType<Label>().Select(part => part.Text))));
+        ? label is FittedLabel fitted ? fitted.FullText : label.Text
+        : string.Join(" ", row.GetChildren().OfType<Label>().Select(part => part is FittedLabel fittedPart ? fittedPart.FullText : part.Text))));
 }

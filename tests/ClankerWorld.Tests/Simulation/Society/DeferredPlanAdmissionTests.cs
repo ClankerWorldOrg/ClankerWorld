@@ -67,6 +67,39 @@ public sealed partial class SchedulerDeferredObservationTests
         scheduler.Validate();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MalformedDeferredRepliesKeepTheirSafeIdleFallbackWithoutAnotherPlansRefusal(bool fallbackPlanned)
+    {
+        var scheduler = CreateScheduler();
+        var selected = new OfferedPlan(Actor, "planned_supply");
+        var fallback = fallbackPlanned ? new OfferedPlan(Actor, "safe_idle") : null;
+        var earlier = Observation(1) with
+        {
+            Candidates = [new("safe_idle", "Rest safely.") { ActionPlan = fallback },
+                new("planned_supply", "Fetch supplies.") { ActionPlan = selected }],
+        };
+        Assert.True(scheduler.Enqueue(Entry(earlier, "routine_tick")));
+        var request = Preview(scheduler);
+        var response = PlannedReply(request) with { Confidence = double.NaN };
+        var prepared = DeferredPlanAdmission.Prepare(request, response,
+            new HashSet<string>(["safe_idle"], StringComparer.Ordinal), candidate =>
+            {
+                Assert.Same(selected, candidate);
+                return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected supplies are gone");
+            }, false);
+        var decision = prepared.Complete(scheduler.CompleteDeferred(request, response, null, 0, prepared.LegalCandidateIds));
+        Assert.NotNull(decision);
+        Assert.True(decision.Admission.Accepted);
+        Assert.True(decision.Admission.FellBack);
+        Assert.Equal("safe_idle", decision.Admission.Intention!.CandidateId);
+        Assert.Same(fallback, decision.ActionPlan);
+        Assert.Null(decision.PlanRefusal);
+        Assert.Empty(scheduler.ExportState().Queue);
+        scheduler.Validate();
+    }
+
     private static CognitionDecisionResponse PlannedReply(CognitionDecisionRequest request) => new(
         request.RequestId, Actor, DecisionProviderKind.LargeLanguageModel, request.ProviderEpoch,
         request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
