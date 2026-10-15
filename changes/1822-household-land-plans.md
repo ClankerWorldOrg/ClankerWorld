@@ -1,1 +1,2 @@
 - Household land acceptance, decline and withdrawal retain the exact request and terms through shared checks.
+- Opening a Council ballot preserves pending personal responses to unchanged household land terms.
