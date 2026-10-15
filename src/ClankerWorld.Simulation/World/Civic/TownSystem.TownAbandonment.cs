@@ -20,20 +20,21 @@ internal sealed partial class TownSystem
         return $"Explicitly resettle abandoned {town.Name} where you stand and become its first resident. Its council restarts from living adult residents; existing laws remain.{leaving}{care} This gives no House, private property or household membership.";
     }
 
-    internal void ResettleTown(ITownWorld world, string actor, TownRuntimeState town)
+    internal void ResettleTown(ITownWorld world, string actor, TownRuntimeState town, TownFoundingActionPlan? selected = null)
     {
-        // Recheck immediately before committing: another accepted choice may already have revived it.
-        town = towns.Single(item => item.Id == town.Id);
-        if (!MayResettleTown(world, actor, town)) return;
-        var previous = TownForResident(world, actor);
-        var group = TownCareGroup(world, actor, previous);
+        selected ??= PlanTownFounding(world, actor, new(town.Id, true));
+        if (selected is null) return;
+        if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
+        town = towns.Single(item => item.Id == selected.Town.Id);
+        var previous = selected.PreviousTown;
+        var group = selected.CareGroup;
         var moving = group.ToHashSet(StringComparer.Ordinal);
         foreach (var other in towns.Where(item => item.Id != town.Id && item.ResidentIds.Any(moving.Contains)).ToArray())
             SetTown(world, other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         SetTown(world, town with { ResidentIds = group });
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent(new TownResettledEventPayload(actor, town.Id, previous ?? "none", group.Length), world.Agents[actor].Position);
+        world.AppendEvent(new TownResettledEventPayload(actor, town.Id, previous ?? "none", group.Count), world.Agents[actor].Position);
     }
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);

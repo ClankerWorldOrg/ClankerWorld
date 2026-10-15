@@ -107,12 +107,11 @@ internal sealed partial class TownSystem
             ? $"No legal building site is available for {string.Join(", ", buildingsWithoutSites)}. "
             : string.Empty;
         if (TownFoundingLayout(world, actor) is { } founding)
-            candidates.Add(new(CivicAction(world, founding.Id, "found"),
-                "Explicitly found a new Town here on unclaimed land. You leave your previous Town and your dependent children join without moving or changing care. The new council begins with its adult residents. Existing household property stays owned; no House, goods or household membership are supplied.", 170));
+            OfferTownSettlement(world, candidates, actor, founding, false,
+                "Explicitly found a new Town here on unclaimed land. You leave your previous Town and your dependent children join without moving or changing care. The new council begins with its adult residents. Existing household property stays owned; no House, goods or household membership are supplied.");
         foreach (var town in world.Towns.Where(t => t.Council is not null))
         {
-            if (MayResettleTown(world, actor, town))
-                candidates.Add(new(CivicAction(world, town.Id, "resettle"), ResettlementText(world, actor, town), 170));
+            OfferTownSettlement(world, candidates, actor, town, true, ResettlementText(world, actor, town));
             var state = town.Council!;
             var history = CivicHistory(town);
             var known = history.Known(actor);
@@ -214,7 +213,10 @@ internal sealed partial class TownSystem
         if (parts.Length != 5) return;
         if (parts[2] == "found")
         {
-            FoundTown(world, actor, candidate);
+            var founding = originalPlan as TownFoundingActionPlan ??
+                (TownFoundingChoice.Decode(candidate) is { } choice ? PlanTownFounding(world, actor, choice) : null);
+            if (founding is null) return;
+            FoundTown(world, actor, candidate, founding);
             return;
         }
         var selectedId = candidate;
@@ -227,6 +229,7 @@ internal sealed partial class TownSystem
         var consentPlan = originalPlan as CouncilConsentActionPlan;
         var ballotPlan = originalPlan as CouncilBallotActionPlan;
         var admissionPlan = originalPlan as TownAdmissionActionPlan;
+        var resettlementPlan = originalPlan as TownFoundingActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -253,6 +256,12 @@ internal sealed partial class TownSystem
             if (admissionPlan is null) return;
             if (CheckTownAdmissionPlan(world, admissionPlan).Refusal is { } refusal) { world.RefuseChoice(admissionPlan, refusal); return; }
         }
+        else if (TownFoundingChoice.Decode(selectedId) is { Resettle: true } resettlement)
+        {
+            resettlementPlan ??= PlanTownFounding(world, actor, resettlement);
+            if (resettlementPlan is null) return;
+            if (CheckTownFoundingPlan(world, resettlementPlan).Refusal is { } refusal) { world.RefuseChoice(resettlementPlan, refusal); return; }
+        }
         else
         {
             var current = new List<CognitionCandidate>();
@@ -262,7 +271,7 @@ internal sealed partial class TownSystem
         }
         if (parts[2] == "resettle")
         {
-            ResettleTown(world, actor, town);
+            ResettleTown(world, actor, town, resettlementPlan);
             return;
         }
         if (parts[2] == "accept_admission")

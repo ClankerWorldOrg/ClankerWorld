@@ -49,18 +49,25 @@ internal sealed partial class TownSystem
         var id = "town:site:" + DerivedId.Hash(
             world.WorldSeed + "|" + site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture));
         if (towns.Any(town => town.Id == id)) return null;
-        return new TownRuntimeState(id, $"Town at {site.X.ToString(CultureInfo.InvariantCulture)}, {site.Y.ToString(CultureInfo.InvariantCulture)}",
+        var layout = new TownRuntimeState(id, $"Town at {site.X.ToString(CultureInfo.InvariantCulture)}, {site.Y.ToString(CultureInfo.InvariantCulture)}",
             "founded", world.WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site,
             Government: TownGovernmentState.Create(world.WorldTick));
+        return SelectedFoundingLayoutAvailable(world, actor, layout) ? layout : null;
     }
 
-    internal void FoundTown(ITownWorld world, string actor, string candidate)
+    internal void FoundTown(ITownWorld world, string actor, string candidate, TownFoundingActionPlan? selected = null)
     {
-        // Bind the model choice to the adult's current physical site, and recheck after
-        // earlier choices have committed their titles. A stale or invented choice does nothing.
-        if (TownFoundingLayout(world, actor) is not { } town || CivicAction(world, town.Id, "found") != candidate) return;
-        var previous = TownForResident(world, actor);
-        var group = TownCareGroup(world, actor, previous);
+        selected ??= TownFoundingChoice.Decode(candidate) is { } choice ? PlanTownFounding(world, actor, choice) : null;
+        if (selected is null) return;
+        if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
+        var town = selected.Town with
+        {
+            FoundedTick = world.WorldTick,
+            FirstBuildingCompletedTick = selected.Town.AssignedBuildingIds.Count > 0 ? world.WorldTick : null,
+            Government = TownGovernmentState.Create(world.WorldTick),
+        };
+        var previous = selected.PreviousTown;
+        var group = selected.CareGroup;
         var moving = group.ToHashSet(StringComparer.Ordinal);
         foreach (var other in towns.Where(item => item.ResidentIds.Any(moving.Contains)).ToArray())
             SetTown(world, other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
@@ -85,7 +92,7 @@ internal sealed partial class TownSystem
         };
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent(new TownFoundedEventPayload(actor, town.Id, previous ?? "none", group.Length, false), world.Agents[actor].Position);
+        world.AppendEvent(new TownFoundedEventPayload(actor, town.Id, previous ?? "none", group.Count, false), world.Agents[actor].Position);
         if (world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId))
             .OrderBy(building => building.PlacedTick).ThenBy(building => building.InstanceId, StringComparer.Ordinal)
             .FirstOrDefault() is { } firstBuilding)

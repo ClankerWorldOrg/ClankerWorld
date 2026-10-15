@@ -23,7 +23,12 @@ public sealed partial class TownMembershipTests
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var foundingStep = await world.AdvanceOneTickAsync();
+        Assert.True(foundingStep.Advanced);
+        var foundingPlan = Assert.IsType<TownFoundingActionPlan>(foundingStep.Decisions.Single(decision => decision.AgentId == founder).ActionPlan);
+        Assert.Equal(site, foundingPlan.Site);
+        Assert.Equal(foundingPlan.Choice, TownFoundingChoice.Decode(foundingPlan.CandidateId));
+        Assert.Equal(new[] { founder }.Concat(children).Order(StringComparer.Ordinal), foundingPlan.CareGroup);
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         var founded = Assert.Single(world.Towns, town => town.Id != First);
         Assert.Equal(site, founded.OriginSite);
@@ -57,6 +62,7 @@ public sealed partial class TownMembershipTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_founded" && item.Detail.StartsWith(founded.Id, StringComparison.Ordinal));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         AssertRoundTrip(world);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(foundingPlan).Refusal!.Reason);
     }
 
     [Theory]
@@ -161,6 +167,68 @@ public sealed partial class TownMembershipTests
         AssertRoundTrip(world);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ADelayedSuccessfulFoundingRecordsAdoptedBuildingsAtItsActualCommitTick(bool adoptsHouse)
+    {
+        var actor = Founders[0];
+        var state = Generated("town-delayed-founded-building");
+        var site = NewTownSite(state);
+        if (adoptsHouse)
+        {
+            var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "house-1x1");
+            var inventory = state.Society.Society.Inventory;
+            foreach (var cost in definition.BuildCosts)
+                inventory = ClankerWorld.Simulation.Kernel.InventoryAuthority.AddLot(inventory,
+                    "delayed-house-cost:" + cost.ResourceId, cost.ResourceId, Alpha, cost.Amount);
+            using var placing = Reopen(WithInventory(state, inventory), new ScriptedModel());
+            Assert.True(placing.PlaceBuilding("delayed-founding-house", definition.CanonicalId, site, Alpha).Applied);
+            state = placing.ExportState();
+        }
+        var model = new DeferredTownFoundingModel(actor);
+        using var world = Reopen(Calm(At(state, site, actor)), model);
+        for (var tick = 0; tick < 8 && model.Pending is null; tick++)
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+        Assert.NotNull(model.Pending);
+        var original = Assert.IsType<TownFoundingActionPlan>(model.Pending.Observation.Candidates
+            .Single(candidate => candidate.Id.StartsWith(FoundTownChoice, StringComparison.Ordinal)).ActionPlan);
+        Assert.Equal(adoptsHouse, original.Town.AssignedBuildingIds.Count > 0);
+        for (var tick = 0; tick < 3; tick++)
+        {
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            Assert.Single(world.Towns);
+        }
+        Assert.True(world.WorldTick > original.Town.FoundedTick);
+        Assert.True(world.CheckActionPlan(original).Allowed);
+        model.Resolve();
+        TownFoundingActionPlan? applied = null;
+        for (var tick = 0; tick < 8 && applied is null; tick++)
+        {
+            var result = await world.TickModelWorkAsync();
+            Assert.True(result.Advanced);
+            foreach (var decision in result.Decisions.Where(decision => decision.AgentId == actor &&
+                         decision.Admission.Accepted && !decision.Admission.FellBack && decision.PlanRefusal is null))
+                if (result.Events.Any(item => item.Kind == "town_founded"))
+                    applied = Assert.IsType<TownFoundingActionPlan>(decision.ActionPlan);
+        }
+        Assert.Same(original, applied);
+        var founded = Assert.Single(world.Towns, town => town.Id != First);
+        Assert.True(founded.FoundedTick > original.Town.FoundedTick);
+        Assert.Equal(site, founded.OriginSite);
+        Assert.Equal(original.Town.BorderTiles, founded.BorderTiles);
+        Assert.Equal(original.Town.AssignedBuildingIds, founded.AssignedBuildingIds);
+        Assert.Equal(original.CareGroup, founded.ResidentIds);
+        if (adoptsHouse)
+        {
+            var house = Assert.Single(world.WorldSimulation.Buildings, building => building.InstanceId == "delayed-founding-house");
+            Assert.Equal((Alpha, founded.Id), (house.HouseholdId, house.TownId));
+        }
+        Assert.All(founded.Government!.Offices, office => Assert.Equal(founded.FoundedTick, office.VacantSinceTick));
+        AssertRoundTrip(world);
+        Assert.Equal(adoptsHouse ? founded.FoundedTick : (long?)null, founded.FirstBuildingCompletedTick);
+    }
+
     [Fact]
     public async Task ADelayedFoundingReplyCannotClaimLandAfterAnotherAdultFoundsThere()
     {
@@ -178,6 +246,8 @@ public sealed partial class TownMembershipTests
             await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.NotNull(model.Pending);
+        var originalPlan = Assert.IsType<TownFoundingActionPlan>(model.Pending.Observation.Candidates
+            .Single(candidate => candidate.Id.StartsWith(FoundTownChoice, StringComparison.Ordinal)).ActionPlan);
         var town = Assert.Single(world.Towns, item => item.Id != First);
         Assert.Equal([settler], town.ResidentIds);
         model.Resolve();
@@ -187,8 +257,14 @@ public sealed partial class TownMembershipTests
             await ModelWorkHarness.For(world).SettleAsync();
             var step = await world.TickModelWorkAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.PlanRefusal is not null) ||
+                step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == actor);
+            if (step.Decisions.SingleOrDefault(decision => decision.AgentId == actor && decision.PlanRefusal is not null) is { } refused)
+            {
+                Assert.Same(originalPlan, refused.ActionPlan);
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, refused.PlanRefusal!.Reason);
+            }
         }
         Assert.True(completed, "The host must process and refuse the previously valid founding reply after title is claimed.");
         Assert.Equal(2, world.Towns.Count);

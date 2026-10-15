@@ -493,6 +493,10 @@ the same selected IDs are checked again before the native vote writer runs.
 Town admission choices retain the applicant, prior affiliation and dependent
 group; acceptance retains the exact approved proposal. Shared checks cover
 self requests, sponsorship and personal acceptance before membership changes.
+Town founding and resettlement retain the selected site or abandoned Town and
+the founder's prior affiliation and dependent group. The native writer uses
+that selection after the shared check confirms it remains available. Founding
+records adopted buildings at the actual founding time.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
