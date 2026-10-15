@@ -142,6 +142,9 @@ test publication. Their population, Council-notice, map and current-time links
 remain at the boundary. Case election rounds, local judge mandates, land rulings,
 civil findings and reopening records also check before publication. Save checks
 retain current population, historical office authority, law and calendar links.
+Remedy offers, exact personal consent, agreement history and credited physical
+quantities also have local contracts. Current-time expiry and overdue status,
+actual notice knowledge and physical-source links stay at their existing boundary.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
