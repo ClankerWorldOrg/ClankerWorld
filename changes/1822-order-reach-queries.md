@@ -1,0 +1,1 @@
+- Delivery, field, shelter and material orders share one prospective-leg reach query, preserving explicit origins and interaction shortcuts while removing four private route predicates.

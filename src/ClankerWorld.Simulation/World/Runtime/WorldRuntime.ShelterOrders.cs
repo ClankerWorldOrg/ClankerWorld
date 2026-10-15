@@ -23,9 +23,6 @@ public sealed partial class WorldRuntime
             ? IsWithinInteractionRange(point, building.Position, ResourceInteractionRange)
             : WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building).Contains(point));
 
-    private bool ShelterRouteIsOpen(string actor, GridPoint origin, GridPoint destination) =>
-        origin == destination || ReachLeg(actor, origin, destination, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private PlacedBuilding? BoundShelterBuilding(string actor, OrderTask order)
     {
         if (order.ShelterBinding is not { Kind: "building" } binding) return null;
@@ -77,12 +74,12 @@ public sealed partial class WorldRuntime
                 position = ReachableHallShelterPoint(actor, person.Position, building);
             else if (building.HouseholdId is null)
                 position = map.FootNeighbors(building.Position).Append(building.Position)
-                    .Where(point => map.IsPassable(point) && ShelterRouteIsOpen(actor, person.Position, point))
+                    .Where(point => map.IsPassable(point) && CanReachLeg(actor, person.Position, point, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable))
                     .OrderBy(point => map.FootDistance(person.Position, point)).ThenBy(point => point.Y).ThenBy(point => point.X)
                     .Select(point => (GridPoint?)point).FirstOrDefault();
             else
                 position = building.Position;
-            if (position is not { } destination || !ShelterRouteIsOpen(actor, person.Position, destination)) continue;
+            if (position is not { } destination || !CanReachLeg(actor, person.Position, destination, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable)) continue;
             choices.Add(new OwnerShelterBinding("building", destination, building.InstanceId, building.DefinitionId,
                 building.HouseholdId, building.Position, building.PlacedTick));
         }
@@ -95,7 +92,7 @@ public sealed partial class WorldRuntime
                 : WeatherAt(person.Position) == WeatherKind.Storm
                     ? NaturalStormCover(person.Position) ? person.Position : NearbyNaturalStormCover(actor, person.Position)
                     : null;
-            if (natural is { } cover && WeatherAt(cover) == WeatherKind.Storm && ShelterRouteIsOpen(actor, person.Position, cover))
+            if (natural is { } cover && WeatherAt(cover) == WeatherKind.Storm && CanReachLeg(actor, person.Position, cover, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable))
                 choices.Add(new OwnerShelterBinding("natural", cover));
         }
         return choices.OrderBy(choice => map.FootDistance(person.Position, choice.Position))
@@ -123,7 +120,7 @@ public sealed partial class WorldRuntime
                 FreeCarryCapacity(actor) > 0 &&
                 (ProjectMaterialHarvest(actor, "wood", source) is not { } harvest ||
                     FreeCarryCapacity(actor) >= harvest.Quantity + harvest.TreeSeedQuantity) &&
-                MaterialOrderRouteIsOpen(actor, person.Position, source.Position) &&
+                CanReachLeg(actor, person.Position, source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable) &&
                 (returnTo is null || CanReturnWithHarvest(actor, "wood", source, returnTo.Value)));
     }
 
@@ -139,7 +136,7 @@ public sealed partial class WorldRuntime
             return CanInspectShelterTarget(order, instruction.TargetAgentId, person)
                 ? new CognitionCandidate("inspect_shelter_site", "Travel to observe the shelter site named by this order.", 0) : null;
         if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order with { ShelterBinding = binding }) ||
-            !ShelterRouteIsOpen(instruction.TargetAgentId, person.Position, binding.Position) ||
+            !CanReachLeg(instruction.TargetAgentId, person.Position, binding.Position, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable) ||
             order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetAgentId, person, binding.Position)) return null;
         return new CognitionCandidate(order.Action,
             order.Action == "seek_shelter" ? "Reach the requested permitted shelter." : "Light one permitted hearth using your own wood.",
@@ -172,7 +169,7 @@ public sealed partial class WorldRuntime
             instructionsByIdempotency[current.IdempotencyKey] = current;
             checkpointSchemaVersion = StateSchemaVersion;
         }
-        if (!ShelterBindingIsAvailable(actor, order) || !ShelterRouteIsOpen(actor, person.Position, binding.Position))
+        if (!ShelterBindingIsAvailable(actor, order) || !CanReachLeg(actor, person.Position, binding.Position, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable))
         {
             SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
             return;
