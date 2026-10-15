@@ -14,16 +14,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         WorldRuntimeState state, string actor, bool quietFirstRefusal = false, bool heldIdentityReply = false,
         bool cancelFoundReply = false)
     {
-        const string identityActor = "founder:00000000000000000000000000000001";
+        const string identityActor = NormalPathWorld.Founder1;
         var choices = new NativeLandFormationChoices(actor, quietFirstRefusal)
         { HeldIdentityId = heldIdentityReply ? identityActor : null, HoldFoundReply = cancelFoundReply };
         Func<WorldRuntime, Task> awaitRequests = WaitForTransferChoices;
         var identityWaitChecked = false;
         var foundCancellationChecked = false;
         using var world = WorldRuntime.Restore(state, _ => choices);
-        var modelCalls = cancelFoundReply ? Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-            .GetField("pendingModelCalls", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(world)) : null;
         world.Resume();
         world.SubmitInstruction(new("consider-native-household", "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider founding your own household when existing households refuse your request to join."));
@@ -64,21 +61,20 @@ public sealed partial class GrownAgentHelperMemoryTests
                             ? "Consider your next household choice, including founding after existing households refuse."
                             : "Consider the pending request to join your household and make your own choice."));
                 }
-                Assert.True(await host.TryAdvanceOnceAsync());
-                if (cancelFoundReply && !foundCancellationChecked && modelCalls![actor] is { } pending &&
-                    pending.GetType().GetProperty("Request")!.GetValue(pending) is CognitionDecisionRequest foundRequest &&
+                Assert.True(await host.AdvanceWithModelWorkAsync(world));
+                if (cancelFoundReply && !foundCancellationChecked && world.PendingModelWork.FirstOrDefault(item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == actor) is { DecisionRequest: { } foundRequest } pending &&
                     foundRequest.Observation.Candidates.Any(candidate => candidate.Id == "household_found"))
                 {
-                    var offered = await choices.FoundCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    var offered = await ModelWorkHarness.For(world).WaitAsync(choices.FoundCalled.Task);
                     Assert.Equal(foundRequest.RequestId, offered.RequestId);
                     Assert.Equal(actor, offered.Observation.AgentId);
                     Assert.Null(world.Society.GetAgent(actor).HouseholdId);
-                    var task = Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
+                    var task = pending.Completion;
                     world.Pause();
                     world.Resume();
                     var cancelledState = WorldRuntimeCodec.Encode(world.ExportState());
                     var cancelledCheckpoint = File.ReadAllBytes(file.Path);
-                    try { await task.WaitAsync(TimeSpan.FromSeconds(30)); }
+                    try { await ModelWorkHarness.For(world).WaitAsync(task); }
                     finally { choices.ReleaseFound.TrySetResult(); }
                     Assert.Equal(cancelledState, WorldRuntimeCodec.Encode(world.ExportState()));
                     Assert.Equal(cancelledCheckpoint, File.ReadAllBytes(file.Path));
@@ -90,7 +86,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     .Any(moment => moment.Outcome == "requested") == true)
                 {
                     await WaitForRequests(world);
-                    var identity = await choices.IdentityCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    var identity = await ModelWorkHarness.For(world).WaitAsync(choices.IdentityCalled.Task);
                     Assert.Equal(identityActor, identity.Observation.AgentId);
                     Assert.NotNull(identity.Observation.IdentityMoment);
                     var heldState = WorldRuntimeCodec.Encode(world.ExportState());
@@ -151,11 +147,11 @@ public sealed partial class GrownAgentHelperMemoryTests
         public HashSet<string> QuietAdmissions { get; } = new(StringComparer.Ordinal);
         public ConcurrentQueue<string> Selected { get; } = new();
         public string? HeldIdentityId { get; init; }
-        public TaskCompletionSource<CognitionDecisionRequest> IdentityCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ReleaseIdentity { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> IdentityCalled { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ReleaseIdentity { get; } = new(TaskCreationOptions.None);
         public bool HoldFoundReply { get; init; }
-        public TaskCompletionSource<CognitionDecisionRequest> FoundCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource ReleaseFound { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<CognitionDecisionRequest> FoundCalled { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource ReleaseFound { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
         private async ValueTask<CognitionDecisionResponse> KeepIdentityAsync(CognitionDecisionRequest request, CancellationToken cancellationToken)

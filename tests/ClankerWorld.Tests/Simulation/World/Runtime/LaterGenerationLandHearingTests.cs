@@ -237,7 +237,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             world.Resume();
             for (var tick = 0; tick < 40 && world.Society.AgeAt(world.Society.GetAgent(parent), world.WorldTick) < 15; tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 await WaitForRequests(world);
             }
             world.Pause();
@@ -246,7 +246,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             for (var tick = 0; tick < 40 && (world.Society.GetAgent(parent).NeedsName ||
                 world.Agents.Single(item => item.AgentId == parent).IdentityChoicePending); tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
                 await WaitForRequests(world);
             }
             Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(parent).AgeBand);

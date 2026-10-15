@@ -9,9 +9,9 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class TownLandHearingRuntimeTests
 {
-    private const string Judge = "founder:00000000000000000000000000000001";
-    private const string Filer = "founder:00000000000000000000000000000003";
-    private const string Waiver = "founder:00000000000000000000000000000004";
+    private const string Judge = NormalPathWorld.Founder1;
+    private const string Filer = NormalPathWorld.Founder3;
+    private const string Waiver = NormalPathWorld.Founder4;
     private const int Day = 40;
 
     [Fact]

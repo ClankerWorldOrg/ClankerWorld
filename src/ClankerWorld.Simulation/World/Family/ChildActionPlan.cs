@@ -6,13 +6,13 @@ public readonly record struct ChildChoice(ChildActionKind Kind, string? Target =
 {
     public string Id => Kind switch
     {
-        ChildActionKind.Converse => "child_converse:" + Target,
-        ChildActionKind.Play => "child_play:" + Target,
-        ChildActionKind.Learn => "child_learn:" + Target,
+        ChildActionKind.Converse => IdentityRules.PrefixedReference("child_converse:", Target),
+        ChildActionKind.Play => IdentityRules.PrefixedReference("child_play:", Target),
+        ChildActionKind.Learn => IdentityRules.PrefixedReference("child_learn:", Target),
         ChildActionKind.HelpFood => "child_help_food",
-        ChildActionKind.Carry => "child_carry:" + Target,
-        ChildActionKind.GatherFood => "child_gather:food:" + Target,
-        ChildActionKind.GatherWood => "child_gather:wood:" + Target,
+        ChildActionKind.Carry => IdentityRules.PrefixedReference("child_carry:", Target),
+        ChildActionKind.GatherFood => IdentityRules.PrefixedReference("child_gather:food:", Target),
+        ChildActionKind.GatherWood => IdentityRules.PrefixedReference("child_gather:wood:", Target),
         _ => throw new InvalidOperationException("Unknown child choice."),
     };
 

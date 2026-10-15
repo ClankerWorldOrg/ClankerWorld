@@ -53,7 +53,7 @@ public sealed record InventoryLot(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InventoryHoldSet? Holds = null);
 
 public sealed record InventoryReservation(
-    string Id,
+    Identity Id,
     string OwnerId,
     string LotId,
     int Quantity,
@@ -64,7 +64,7 @@ public sealed record InventoryReservation(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InventoryHoldSet? HoldAccess = null);
 
 public sealed record DirectBarterOffer(
-    string Id,
+    Identity Id,
     int Revision,
     string FirstPartyId,
     string SecondPartyId,
@@ -92,13 +92,17 @@ public sealed record InventoryCheckpoint(
     IReadOnlyList<InventoryEvent> Events,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0)
 {
+    [JsonRequired]
+    public long ArchivedRepairReservationCount { get; init; }
+
     public InventoryLot GetLot(string id) => Lots.Single(lot => string.Equals(lot.Id, id, StringComparison.Ordinal));
+    public InventoryReservation GetReservation(Identity id) => GetReservation(id.Value);
     public InventoryReservation GetReservation(string id) => Reservations.Single(reservation => string.Equals(reservation.Id, id, StringComparison.Ordinal));
     public DirectBarterOffer GetOffer(string id) => Offers.Single(offer => string.Equals(offer.Id, id, StringComparison.Ordinal));
 }
 
 public sealed record DirectBarterProposal(
-    string Id,
+    Identity Id,
     int Revision,
     string FirstPartyId,
     string SecondPartyId,
@@ -334,10 +338,10 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A reusable vessel cannot be consumed as a production input.");
         EnsureOwnerAndAvailableQuantity(checkpoint, lot, ownerId, quantity);
         var reservation = new InventoryReservation(
-            reservationId, ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), lot).ToArray()));
+            Identity.ParseStored(reservationId), ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), lot).ToArray()));
         return Commit(
             checkpoint,
-            reservations: checkpoint.Reservations.Append(reservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            reservations: checkpoint.Reservations.Append(reservation).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
             eventKind: "inventory_reserved",
             detail: reservationId);
     }
@@ -368,7 +372,7 @@ public static partial class InventoryAuthority
         var reservations = checkpoint.Reservations.Select(candidate => candidate.Id == reservation.Id
                 ? candidate with { State = InventoryReservationState.Completed }
                 : candidate)
-            .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
+            .OrderBy(candidate => candidate.Id.Value, StringComparer.Ordinal)
             .ToArray();
         return Commit(
             checkpoint,
@@ -395,7 +399,7 @@ public static partial class InventoryAuthority
             .Select(candidate => candidate.Id == reservationId
                 ? candidate with { State = InventoryReservationState.Released }
                 : candidate)
-            .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
+            .OrderBy(candidate => candidate.Id.Value, StringComparer.Ordinal)
             .ToArray();
         return Commit(
             checkpoint,
@@ -615,6 +619,7 @@ public static partial class InventoryAuthority
         // into storage, a delivery or the carrier's own hands.
         var takenCarrier = destinationStorageBuildingId is null && destinationDeliveryBuildingId is null &&
             source.CarrierId != recipientId ? source.CarrierId : null;
+        var takenHolds = CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), source).ToArray());
         InventoryLot[] lots;
         if (quantity == source.Quantity)
         {
@@ -624,6 +629,7 @@ public static partial class InventoryAuthority
                         OwnerId = recipientId,
                         CarrierId = takenCarrier,
                         ContainerLotId = null,
+                        Holds = takenHolds,
                         StorageBuildingId = destinationStorageBuildingId,
                         DeliveryBuildingId = destinationDeliveryBuildingId,
                         GroundPosition = null,
@@ -647,6 +653,7 @@ public static partial class InventoryAuthority
                     Quantity = quantity,
                     ProvenanceLotId = source.Id,
                     ContainerLotId = null,
+                    Holds = takenHolds,
                     StorageBuildingId = destinationStorageBuildingId,
                     DeliveryBuildingId = destinationDeliveryBuildingId,
                     GroundPosition = null,
@@ -671,8 +678,9 @@ public static partial class InventoryAuthority
         var movedId = DerivedId.Create($"{lotId}#move:{moveId}");
         // An owner carrying their own goods is recorded without a separate carrier.
         if (carrierId == ownerId && storageBuildingId is null && groundPosition is null) carrierId = null;
+        // Whole-lot moves keep the source identity; only a split creates movedId.
         if (source.OwnerId != ownerId || quantity <= 0 || quantity > source.Quantity ||
-            checkpoint.Lots.Any(lot => lot.Id == movedId))
+            quantity < source.Quantity && checkpoint.Lots.Any(lot => lot.Id == movedId))
             throw new InvalidOperationException("The exact owned physical quantity is unavailable.");
         if (source.ContainerLotId is not null)
             throw new InvalidOperationException("Container contents require an explicit physical take before they can move.");
@@ -718,15 +726,15 @@ public static partial class InventoryAuthority
     }
 
     /// <summary>Paused shared work keeps its exact committed inputs instead of losing them at the former worker's deadline.</summary>
-    public static InventoryCheckpoint HoldReservations(InventoryCheckpoint checkpoint, IReadOnlyList<string> reservationIds) =>
+    public static InventoryCheckpoint HoldReservations(InventoryCheckpoint checkpoint, IReadOnlyList<Identity> reservationIds) =>
         SetReservationDeadline(checkpoint, reservationIds, long.MaxValue);
 
     public static InventoryCheckpoint SetReservationDeadline(InventoryCheckpoint checkpoint,
-        IReadOnlyList<string> reservationIds, long deadline)
+        IReadOnlyList<Identity> reservationIds, long deadline)
     {
         ValidateCheckpoint(checkpoint);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(deadline, checkpoint.WorldTick);
-        var ids = reservationIds.ToHashSet(StringComparer.Ordinal);
+        var ids = reservationIds.ToHashSet();
         if (ids.Count != reservationIds.Count || ids.Any(id => checkpoint.Reservations.All(item => item.Id != id ||
             item.State is not (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed))))
             throw new InvalidOperationException("Only existing active work reservations can be held.");
@@ -764,15 +772,15 @@ public static partial class InventoryAuthority
 
         var released = checkpoint.Reservations.Where(reservation =>
             reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed && reservation.ExpiryTick < targetTick)
-            .Select(reservation => reservation.Id)
+            .Select(reservation => reservation.Id.Value)
             .ToHashSet(StringComparer.Ordinal);
         var reservations = checkpoint.Reservations.Select(reservation => released.Contains(reservation.Id)
                 ? reservation with { State = InventoryReservationState.Released }
                 : reservation)
-            .OrderBy(reservation => reservation.Id, StringComparer.Ordinal)
+            .OrderBy(reservation => reservation.Id.Value, StringComparer.Ordinal)
             .ToArray();
         var expiredOffers = checkpoint.Offers.Where(offer => offer.State == DirectBarterState.Open && offer.ExpiryTick < targetTick)
-            .Select(offer => offer.Id).ToHashSet(StringComparer.Ordinal);
+            .Select(offer => offer.Id.Value).ToHashSet(StringComparer.Ordinal);
         var offers = checkpoint.Offers.Select(offer => expiredOffers.Contains(offer.Id)
             ? offer with { State = DirectBarterState.Cancelled } : offer).ToArray();
         var events = released.OrderBy(id => id, StringComparer.Ordinal)
@@ -804,10 +812,10 @@ public static partial class InventoryAuthority
         EnsureOwnerAndAvailableQuantity(checkpoint, firstLot, proposal.FirstPartyId, proposal.FirstQuantity);
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
         var firstReservation = new InventoryReservation(
-            DerivedId.Create($"{proposal.Id}:first"), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
+            Identity.Parse(DerivedId.Create($"{proposal.Id}:first")), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), firstLot).ToArray()));
         var secondReservation = new InventoryReservation(
-            DerivedId.Create($"{proposal.Id}:second"), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
+            Identity.Parse(DerivedId.Create($"{proposal.Id}:second")), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), secondLot).ToArray()));
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||
@@ -823,8 +831,8 @@ public static partial class InventoryAuthority
         return Commit(
             checkpoint,
             reservations: checkpoint.Reservations.Append(firstReservation).Append(secondReservation)
-                .OrderBy(reservation => reservation.Id, StringComparer.Ordinal).ToArray(),
-            offers: checkpoint.Offers.Append(offer).OrderBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(reservation => reservation.Id.Value, StringComparer.Ordinal).ToArray(),
+            offers: checkpoint.Offers.Append(offer).OrderBy(candidate => candidate.Id.Value, StringComparer.Ordinal).ToArray(),
             eventKind: "barter_offered",
             detail: $"{proposal.Id}:r{proposal.Revision}");
     }
@@ -853,7 +861,7 @@ public static partial class InventoryAuthority
         var offers = checkpoint.Offers.Select(candidate => string.Equals(candidate.Id, offer.Id, StringComparison.Ordinal)
                 ? acceptedOffer
                 : candidate)
-            .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
+            .OrderBy(candidate => candidate.Id.Value, StringComparer.Ordinal)
             .ToArray();
         var accepted = Commit(checkpoint, offers: offers, eventKind: "barter_accepted", detail: $"{offer.Id}:{partyId}:r{revision}");
         return acceptedBy.Length == 2 ? Settle(accepted, acceptedOffer) : accepted;
@@ -904,10 +912,10 @@ public static partial class InventoryAuthority
         var reservations = checkpoint.Reservations.Select(reservation =>
             reservation.Id == firstReservation.Id || reservation.Id == secondReservation.Id
                 ? reservation with { State = InventoryReservationState.Completed }
-                : reservation).OrderBy(reservation => reservation.Id, StringComparer.Ordinal).ToArray();
+                : reservation).OrderBy(reservation => reservation.Id.Value, StringComparer.Ordinal).ToArray();
         var offers = checkpoint.Offers.Select(candidate => candidate.Id == offer.Id
                 ? candidate with { State = DirectBarterState.Settled }
-                : candidate).OrderBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
+                : candidate).OrderBy(candidate => candidate.Id.Value, StringComparer.Ordinal).ToArray();
         return Commit(checkpoint, lots: afterBothTransfers, reservations: reservations, offers: offers,
             eventKind: "barter_settled", detail: $"{offer.Id}:r{offer.Revision}");
     }
@@ -1030,7 +1038,10 @@ public static partial class InventoryAuthority
             lots is null ? checkpoint.Lots : UpdateCustodyHolds(checkpoint, lots),
             reservations ?? checkpoint.Reservations,
             offers ?? checkpoint.Offers,
-            events, checkpoint.EventHistoryFloor);
+            events, checkpoint.EventHistoryFloor)
+        {
+            ArchivedRepairReservationCount = checkpoint.ArchivedRepairReservationCount,
+        };
         ValidateCheckpoint(next);
         return InventoryStorageHistory.RecordTransition(checkpoint, next);
     }
@@ -1038,15 +1049,15 @@ public static partial class InventoryAuthority
     private static void ValidateCheckpoint(InventoryCheckpoint checkpoint)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
-        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0)
+        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0 || checkpoint.ArchivedRepairReservationCount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(checkpoint));
         }
 
         ValidateLots(checkpoint.Lots);
         ValidateContainerGroups(checkpoint.Lots);
-        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => reservation.Id), "reservations");
-        EnsureCanonicalIds(checkpoint.Offers.Select(offer => offer.Id), "offers");
+        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => (string?)reservation.Id), "reservations");
+        EnsureCanonicalIds(checkpoint.Offers.Select(offer => (string?)offer.Id), "offers");
         var lotsById = checkpoint.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
         foreach (var reservation in checkpoint.Reservations) ValidateHolds(reservation.HoldAccess);
         foreach (var reservation in checkpoint.Reservations.Where(reservation =>
@@ -1149,7 +1160,7 @@ public static partial class InventoryAuthority
         }
     }
 
-    private static void EnsureCanonicalIds(IEnumerable<string> ids, string collectionName)
+    private static void EnsureCanonicalIds(IEnumerable<string?> ids, string collectionName)
     {
         var actual = ids.ToArray();
         if (actual.Any(string.IsNullOrWhiteSpace) || actual.Distinct(StringComparer.Ordinal).Count() != actual.Length ||
@@ -1180,6 +1191,7 @@ public static class InventoryCheckpointCodec
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
+        Converters = { new StoredIdentityJsonConverter() },
     };
 
     private sealed record InventoryCheckpointDocument(
@@ -1188,7 +1200,10 @@ public static class InventoryCheckpointCodec
         InventoryReservation[] Reservations,
         DirectBarterOffer[] Offers,
         InventoryEvent[] Events,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0)
+    {
+        [JsonRequired] public long ArchivedRepairReservationCount { get; init; }
+    }
 
     public static byte[] Encode(InventoryCheckpoint checkpoint)
     {
@@ -1197,15 +1212,16 @@ public static class InventoryCheckpointCodec
         var document = new InventoryCheckpointDocument(
             checkpoint.WorldTick,
             checkpoint.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            checkpoint.Reservations.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            checkpoint.Reservations.OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             checkpoint.Offers
-                .OrderBy(item => item.Id, StringComparer.Ordinal)
+                .OrderBy(item => (string?)item.Id, StringComparer.Ordinal)
                 .Select(item => item with
                 {
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
                 })
                 .ToArray(),
-            checkpoint.Events.OrderBy(item => item.EventId).ToArray(), checkpoint.EventHistoryFloor);
+            checkpoint.Events.OrderBy(item => item.EventId).ToArray(), checkpoint.EventHistoryFloor)
+        { ArchivedRepairReservationCount = checkpoint.ArchivedRepairReservationCount };
         return Encoding.UTF8.GetBytes($"{Header}\n{JsonSerializer.Serialize(document, JsonOptions)}");
     }
 
@@ -1222,7 +1238,8 @@ public static class InventoryCheckpointCodec
         var header = text[..separator];
         if (header == LegacyHeader)
         {
-            return DecodeLegacyV1(text.Split('\n', StringSplitOptions.RemoveEmptyEntries));
+            try { return DecodeLegacyV1(text.Split('\n', StringSplitOptions.RemoveEmptyEntries)); }
+            catch (ArgumentException exception) { throw new InvalidDataException("The saved inventory identity is invalid.", exception); }
         }
 
         if (header != Header)
@@ -1249,15 +1266,16 @@ public static class InventoryCheckpointCodec
         var checkpoint = new InventoryCheckpoint(
             document.WorldTick,
             document.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            document.Reservations.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            document.Reservations.OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             document.Offers
-                .OrderBy(item => item.Id, StringComparer.Ordinal)
+                .OrderBy(item => (string?)item.Id, StringComparer.Ordinal)
                 .Select(item => item with
                 {
                     AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
                 })
                 .ToArray(),
-            document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor);
+            document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor)
+        { ArchivedRepairReservationCount = document.ArchivedRepairReservationCount };
         InventoryAuthority.ValidateCheckpointForCodec(checkpoint);
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;
@@ -1273,8 +1291,8 @@ public static class InventoryCheckpointCodec
         var checkpoint = new InventoryCheckpoint(
             ParseLong(ValueAfterPrefix(lines[1], "tick=")),
             lines.Skip(2).Where(line => line.StartsWith("lot=", StringComparison.Ordinal)).Select(ParseLot).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
+            lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => (string?)item.Id, StringComparer.Ordinal).ToArray(),
             lines.Skip(2).Where(line => line.StartsWith("event=", StringComparison.Ordinal)).Select(ParseEvent).OrderBy(item => item.EventId).ToArray());
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;
@@ -1291,7 +1309,7 @@ public static class InventoryCheckpointCodec
     {
         var parts = ValueAfterPrefix(line, "reservation=").Split('|');
         if (parts.Length != 8 || !Enum.TryParse<InventoryReservationState>(parts[7], out var state)) throw new InvalidDataException("The saved reservation is invalid.");
-        return new InventoryReservation(parts[0], parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
+        return new InventoryReservation(Identity.ParseStored(parts[0]), parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
     }
 
     private static DirectBarterOffer ParseOffer(string line)
@@ -1299,7 +1317,7 @@ public static class InventoryCheckpointCodec
         var parts = ValueAfterPrefix(line, "offer=").Split('|');
         if (parts.Length != 11 || !Enum.TryParse<DirectBarterState>(parts[9], out var state)) throw new InvalidDataException("The saved barter offer is invalid.");
         var accepted = string.IsNullOrEmpty(parts[10]) ? [] : parts[10].Split(',', StringSplitOptions.RemoveEmptyEntries).OrderBy(id => id, StringComparer.Ordinal).ToArray();
-        return new DirectBarterOffer(parts[0], ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
+        return new DirectBarterOffer(Identity.ParseStored(parts[0]), ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
     }
 
     private static InventoryEvent ParseEvent(string line)

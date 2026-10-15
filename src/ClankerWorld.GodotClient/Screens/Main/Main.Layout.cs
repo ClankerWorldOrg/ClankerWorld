@@ -648,7 +648,7 @@ public partial class Main
         if (!string.IsNullOrWhiteSpace(title) && closable)
         {
             var headingRow = new HBoxContainer();
-            var heading = new Label { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            var heading = new FittedLabel { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             heading.ThemeTypeVariation = "HeadingLabel";
             headingRow.AddChild(heading);
             var close = CloseButton($"Close {title}");
@@ -665,7 +665,7 @@ public partial class Main
         {
             // A box inside a menu, such as API keys, takes a small section label
             // so several fit on screen together.
-            var heading = new Label { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
+            var heading = new FittedLabel { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
             body.AddChild(heading);
         }
 

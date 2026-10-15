@@ -3,7 +3,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record CivicVisitChoice(string TownId)
 {
     public string Encode() => $"civic|{TownId}|visit||";
-    public static CivicVisitChoice? Decode(string value) => value.Split('|') is ["civic", var town, "visit", "", ""] && town.Length > 0
+    public static CivicVisitChoice? Decode(string value) => value.Split('|') is ["civic", var town, "visit", "", ""] && IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true)
         ? new(town) : null;
 }
 
