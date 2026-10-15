@@ -73,6 +73,11 @@ current release's label
   [how we work](../../CONTRIBUTING.md#priorities). A pull request shows one
   priority: one added by hand takes its place when it is higher, and a lower
   one added by hand comes off.
+- **Release:** the earliest release of the open issues it closes, and any
+  other release label comes off. Otherwise a release label set by hand stays.
+  Issues it only refers to don't count, because part of an issue can belong to
+  an earlier release than the rest
+  ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - **Type:** one, from the first ticked **Type of change** box, or `type:docs`
   when none is ticked and only documentation changes.
 - **Areas:** at most two, from the files it changes, set when it opens,
