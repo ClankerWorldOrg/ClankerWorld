@@ -278,7 +278,7 @@ public partial class Main
         SelectBuilding("night-stone-north");
         RenderBuildingCard(abandonedStreet);
         var lanternStatus = string.Join('\n', buildingQuickStatus.FindChildren("*", nameof(Label), owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         if (!lanternStatus.Contains("Dark · its Town is abandoned", StringComparison.Ordinal))
             throw new InvalidOperationException($"A dark lantern's card must say its Town is abandoned: {lanternStatus}");
         var resettledStreet = abandonedStreet with
@@ -302,7 +302,7 @@ public partial class Main
         }
         RenderBuildingCard(resettledStreet);
         lanternStatus = string.Join('\n', buildingQuickStatus.FindChildren("*", nameof(Label), owned: false)
-            .OfType<Label>().Select(label => label.Text));
+            .OfType<Label>().Select(CaptionForChecks));
         ClearBuildingSelection();
         if (!lanternStatus.Contains("Lit · lights automatically at dusk", StringComparison.Ordinal) ||
             lanternStatus.Contains("Town is abandoned", StringComparison.Ordinal))
@@ -350,7 +350,7 @@ public partial class Main
             }
             if (selectedBuildingId != "night-port") SelectBuilding("night-port");
             RenderBuildingCard(harbour);
-            var portFacts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            var portFacts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (portFacts.Contains("Dark · its Town is abandoned", StringComparison.Ordinal) != abandoned ||
                 portFacts.Contains("Lights automatically at dusk · no fuel", StringComparison.Ordinal) == abandoned)
                 throw new InvalidOperationException($"The same Port card must explain darkness and refresh after resettlement: {portFacts}");

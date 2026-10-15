@@ -21,6 +21,7 @@ public sealed partial class WorldConversationTests
         var idle = new PlanningOnlyConversationProvider(new ConversationProvider(new HashSet<string>(StringComparer.Ordinal)));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == farmer || id == other ? speaker : idle);
+        var harness = ModelWorkHarness.For(world);
         world.Resume();
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         // Await fresh resume decisions before advancing more work. A farmer who
@@ -29,13 +30,13 @@ public sealed partial class WorldConversationTests
             Assert.True((await world.AdvanceOneTickAsync(deadline.Token)).Advanced);
         Assert.Contains(speaker.PlanningRequests, request => request.Observation.AgentId == farmer &&
             request.Observation.Candidates.Any(candidate => candidate.Id == "conversation_resume:conversation:farmer-resume"));
+        harness.RunPendingWork();
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
         var remaining = Assert.Single(world.Fields).Work!.RemainingTicks;
         Assert.InRange(remaining, 1, initialRemaining);
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
-            await Task.Delay(3, deadline.Token);
+            Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             Assert.Equal(remaining, Assert.Single(world.Fields).Work!.RemainingTicks);
         }
 
@@ -45,9 +46,8 @@ public sealed partial class WorldConversationTests
             // measure field work rather than thread-pool scheduling.
             var step = world.Conversations.Single().Status == AgentConversationStatus.Closed
                 ? await world.AdvanceOneTickAsync(deadline.Token)
-                : await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token);
+                : await world.TickModelWorkAsync(cancellationToken: deadline.Token);
             Assert.True(step.Advanced);
-            await Task.Delay(3, deadline.Token);
             if (world.Conversations.Single().Status is AgentConversationStatus.Ready or
                 AgentConversationStatus.AwaitingSpeaker or AgentConversationStatus.WrapUp)
                 Assert.Equal<int?>(remaining, Assert.Single(world.Fields).Work?.RemainingTicks);
@@ -76,8 +76,7 @@ public sealed partial class WorldConversationTests
         world.Resume();
         for (var tick = 0; tick < 20 && world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker; tick++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(3);
+            _ = await world.TickModelWorkAsync();
         }
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
         var before = WorldRuntimeCodec.Encode(world.ExportState());

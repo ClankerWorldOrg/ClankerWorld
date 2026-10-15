@@ -40,7 +40,7 @@ public sealed class ChildSocialCooldownTargetsTests
         // Opaque world IDs can put the child after the four adults in the
         // cognition queue. Use the existing bounded native wait for its turn.
         for (var tick = 0; tick < 16 && !world.Society.Memories.Any(memory =>
-                 memory.OwnerId == child && memory.SubjectId == adults[3] && memory.Id.StartsWith("child-social:play:", StringComparison.Ordinal)); tick++)
+                 memory.OwnerId == child && memory.SubjectId == adults[3] && memory.Id.Value.StartsWith("child-social:play:", StringComparison.Ordinal)); tick++)
         {
             await world.AdvanceOneTickAsync();
             await replay.AdvanceOneTickAsync();
@@ -49,9 +49,9 @@ public sealed class ChildSocialCooldownTargetsTests
         Assert.Contains(provider.Wanted, provider.ChildCandidates);
         Assert.DoesNotContain(provider.ChildCandidates, candidate => adults.Take(3).Any(id => candidate.EndsWith(":" + id, StringComparison.Ordinal)));
         Assert.Single(world.Society.Memories, memory => memory.OwnerId == child && memory.SubjectId == adults[3] &&
-            memory.Id.StartsWith("child-social:play:", StringComparison.Ordinal));
+            memory.Id.Value.StartsWith("child-social:play:", StringComparison.Ordinal));
         Assert.Equal(9, world.Society.Memories.Count(memory => memory.OwnerId == child && adults.Take(3).Contains(memory.SubjectId) &&
-            memory.Id.StartsWith("child-social:", StringComparison.Ordinal)));
+            memory.Id.Value.StartsWith("child-social:", StringComparison.Ordinal)));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
@@ -119,10 +119,10 @@ public sealed class ChildSocialCooldownTargetsTests
             {
                 provider.Wanted = "child_" + kind + ":" + adult;
                 for (var tick = 0; tick < 16 && !world.Society.Memories.Any(memory => memory.OwnerId == child && memory.SubjectId == adult &&
-                         memory.Id.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal)); tick++)
+                         memory.Id.Value.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal)); tick++)
                     await world.AdvanceOneTickAsync();
                 Assert.Single(world.Society.Memories, memory => memory.OwnerId == child && memory.SubjectId == adult &&
-                    memory.Id.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
+                    memory.Id.Value.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
             }
         var cooled = world.ExportState();
         return WorldRuntimeCodec.Encode(cooled with
