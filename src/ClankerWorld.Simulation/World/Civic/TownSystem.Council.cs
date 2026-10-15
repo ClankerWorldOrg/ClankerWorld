@@ -114,11 +114,9 @@ internal sealed partial class TownSystem
             OfferTownSettlement(world, candidates, actor, town, true, ResettlementText(world, actor, town));
             var state = town.Council!;
             var history = CivicHistory(town);
-            var known = history.Known(actor);
             var adults = TownAdults(world, town);
             var resident = adults.Contains(actor, StringComparer.Ordinal);
-            if (NearCivicBoard(world, actor, town) && known.Count < state.Notices.Count)
-                candidates.Add(new(CivicAction(world, town.Id, "read"), $"Read the actual civic notices posted at {town.Name}.", 155));
+            OfferCivicNotice(world, candidates, actor, town, null, $"Read the actual civic notices posted at {town.Name}.", 155);
             if (resident)
             {
                 if (!NearCivicBoard(world, actor, town) && CivicBoard(world, town) is not null)
@@ -191,9 +189,8 @@ internal sealed partial class TownSystem
             }
             foreach (var recipient in world.Agents.Values.Where(p => p.AgentId != actor && world.IsWithinInteractionRange(p.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
             {
-                var recipientKnows = history.Known(recipient.AgentId);
-                if (!known.Any(id => !recipientKnows.Contains(id))) continue;
-                candidates.Add(new(CivicAction(world, town.Id, "relay", recipient.AgentId), $"Relay the civic notices you actually learned in {town.Name} to {world.Society.GetAgent(recipient.AgentId).Name} nearby.", 180));
+                OfferCivicNotice(world, candidates, actor, town, recipient.AgentId,
+                    $"Relay the civic notices you actually learned in {town.Name} to {world.Society.GetAgent(recipient.AgentId).Name} nearby.", 180);
             }
         }
     }
@@ -230,6 +227,7 @@ internal sealed partial class TownSystem
         var ballotPlan = originalPlan as CouncilBallotActionPlan;
         var admissionPlan = originalPlan as TownAdmissionActionPlan;
         var resettlementPlan = originalPlan as TownFoundingActionPlan;
+        var noticePlan = originalPlan as CivicNoticeActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -261,6 +259,12 @@ internal sealed partial class TownSystem
             resettlementPlan ??= PlanTownFounding(world, actor, resettlement);
             if (resettlementPlan is null) return;
             if (CheckTownFoundingPlan(world, resettlementPlan).Refusal is { } refusal) { world.RefuseChoice(resettlementPlan, refusal); return; }
+        }
+        else if (CivicNoticeChoice.Decode(selectedId) is { } noticeChoice)
+        {
+            noticePlan ??= PlanCivicNotice(world, actor, noticeChoice);
+            if (noticePlan is null) return;
+            if (CheckCivicNoticePlan(world, noticePlan).Refusal is { } refusal) { world.RefuseChoice(noticePlan, refusal); return; }
         }
         else
         {
@@ -318,11 +322,11 @@ internal sealed partial class TownSystem
                     world.MoveToward(actor, world.Agents[actor], visitPlan!.NoticePlace, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                     break;
                 case "read":
-                    state = TownCouncilRules.LearnNotices(state, actor, state.Notices.Select(n => n.Id), world.WorldTick);
+                    state = TownCouncilRules.LearnNotices(state, actor, noticePlan!.ReadsCurrentBoard
+                        ? state.Notices.Select(notice => notice.Id) : noticePlan.Notices.Select(notice => notice.Id), world.WorldTick);
                     break;
                 case "relay":
-                    var known = CivicHistory(town).Known(actor);
-                    state = TownCouncilRules.LearnNotices(state, parts[3], state.Notices.Where(n => known.Contains(n.Id)).Select(n => n.Id), world.WorldTick, actor);
+                    state = TownCouncilRules.LearnNotices(state, noticePlan!.Recipient, noticePlan.Notices.Select(notice => notice.Id), world.WorldTick, actor);
                     break;
                 case "nominate": state = TownCouncilRules.Nominate(state, actor, consentPlan!.Nominee!, TownAdults(world, town), world.WorldTick); break;
                 case "request_admission":

@@ -497,6 +497,12 @@ Town founding and resettlement retain the selected site or abandoned Town and
 the founder's prior affiliation and dependent group. The native writer uses
 that selection after the shared check confirms it remains available. Founding
 records adopted buildings at the actual founding time.
+Public notice reading retains the Town board and recipient and reads its
+current contents, including notices published during native council processing.
+Saving may archive older notices while a read is pending without invalidating
+the selected board.
+Relay retains the exact learned notices and recipient. The shared check confirms
+the selected history remains available; receipt ordering and sources stay the same.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

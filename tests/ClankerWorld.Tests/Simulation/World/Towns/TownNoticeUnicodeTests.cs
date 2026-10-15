@@ -12,6 +12,78 @@ public sealed class TownNoticeUnicodeTests
     private static readonly Lazy<Task<byte[]>> Baseline = new(CreateBaseline);
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task NativeNoticePlanRetainsExactHistoryAndRecipientAcrossRollbackReplayAndReload(bool relay)
+    {
+        var state = WorldRuntimeCodec.Decode(await Baseline.Value);
+        var town = state.Towns![0];
+        var actor = town.ResidentIds[0];
+        var recipient = relay ? town.ResidentIds[1] : actor;
+        var council = TownCouncilRules.SubmitProposal(town.Council!, town.Id, actor, "law", null,
+            "Élodie 🧭 keeps the harvest notices", "notice-plan", town.ResidentIds, state.Society.Society.WorldTick,
+            state.WorldSystems!.Config.TicksPerDay);
+        if (relay) council = TownCouncilRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), state.Society.Society.WorldTick);
+        state = state with
+        {
+            Towns = [town with { Council = council }],
+            Agents = state.Agents.Select(person => person with
+            { Position = town.OriginSite!.Value, FullnessBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
+        };
+        var chooser = new NoticePlanProvider(actor, recipient, relay);
+        using var world = WorldRuntime.Restore(state, _ => chooser);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new NoticePlanProvider(actor, recipient, relay));
+        var step = await world.AdvanceOneTickAsync();
+        Assert.True(step.Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        var plan = Assert.IsType<CivicNoticeActionPlan>(chooser.Plan);
+        Assert.Same(plan, step.Decisions.Single(decision => decision.AgentId == actor).ActionPlan);
+        Assert.Equal(recipient, plan.Recipient);
+        Assert.Equal(plan.Choice, CivicNoticeChoice.Decode(plan.CandidateId));
+        var receipts = world.Towns[0].Council!.Knowledge.Where(receipt => receipt.AgentId == recipient).ToArray();
+        Assert.Equal(plan.Notices.Select(notice => notice.Id), receipts.Select(receipt => receipt.NoticeId));
+        Assert.All(receipts, receipt => Assert.Equal(relay ? actor : null, receipt.SourceAgentId));
+        var unchanged = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(unchanged)));
+        if (!relay)
+        {
+            Assert.True(plan.ReadsCurrentBoard);
+            var readState = world.ExportState();
+            var readTown = readState.Towns![0];
+            var updatedCouncil = TownCouncilRules.SubmitProposal(readTown.Council!, readTown.Id, actor, "law", null,
+                "A later board notice", "notice-plan-later", readTown.ResidentIds, world.WorldTick,
+                readState.WorldSystems!.Config.TicksPerDay);
+            using var later = WorldRuntime.Restore(readState with { Towns = [readTown with { Council = updatedCouncil }] });
+            Assert.True(later.CheckActionPlan(plan).Allowed);
+            Assert.DoesNotContain(plan.Notices, notice => notice.Id == updatedCouncil.Notices[^1].Id);
+        }
+    }
+
+    private sealed class NoticePlanProvider(string actor, string recipient, bool relay) : IDecisionProvider
+    {
+        public CivicNoticeActionPlan? Plan { get; private set; }
+        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(candidate =>
+                candidate.ActionPlan is CivicNoticeActionPlan plan && plan.Recipient == recipient &&
+                (plan.Choice.RecipientToken is not null) == relay) : null;
+            if (candidate is not null) Plan = Assert.IsType<CivicNoticeActionPlan>(candidate.ActionPlan);
+            var selected = candidate?.Id ?? "safe_idle";
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
+                request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
+                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
+        }
+    }
+
+    [Theory]
     [InlineData(false, -1)]
     [InlineData(false, 0)]
     [InlineData(false, 1)]

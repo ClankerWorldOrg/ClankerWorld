@@ -1,0 +1,1 @@
+- Public notice reads retain their board and recipient, including when saving archives older notices while a reply is pending; relay retains its selected learned notices and recipient when checked before sharing.
