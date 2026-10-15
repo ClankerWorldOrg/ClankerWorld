@@ -25,7 +25,11 @@ public sealed partial class WorldRuntime
                 targets = people.Where(person => string.Equals(AgentNameRules.CanonicalKey(person.Name), key, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(AgentNameRules.FirstNameKey(person.Name), key, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (targets.Length != 1) return null;
-            return new("talk_to", "queued", 1, 0, "conversations", false, TargetAgentId: targets[0].Id);
+            return new OrderTask(new TalkToOrderDefinition(TargetAgentId: (targets[0].Id)!),
+    "queued",
+    1,
+    0,
+    "conversations", false);
         }
         return null;
     }
@@ -74,24 +78,32 @@ public sealed partial class WorldRuntime
         {
             CompleteClosedTalkOrders();
             if (UnacceptedMarriageOrderBlocker(instruction) is { } eligibilityBlocker)
-                SetOrderStatus(instruction, "blocked", eligibilityBlocker);
+                SetOrderStatus(instruction, OrderStatus.Blocked, eligibilityBlocker);
             else if (ConversationForOrder(instruction)?.Status == AgentConversationStatus.Suspended)
-                SetOrderStatus(instruction, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "Conversation stopped; both people must choose to resume, or you may end it.");
             else if (instruction.Task!.Action == "propose_marriage" && marriages.Any(item => item.Consent.Id == instruction.Task.TalkConversationId && item.CompletedTick is null) &&
                 ConversationForOrder(instruction)?.Outcome == "participant_unavailable")
-                SetOrderStatus(instruction, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
             return;
         }
         if (TalkOrderBlocker(instruction, person) is { } blocker)
         {
-            SetOrderStatus(instruction, "blocked", blocker);
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
         var actor = instruction.TargetAgentId;
         if (instruction.Task!.TargetAgentId is null)
         {
             var bound = instructionsByIdempotency[instruction.IdempotencyKey];
-            instruction = bound with { Task = bound.Task! with { TargetAgentId = CurrentMarriageOrderPartner(actor) } };
+            instruction = bound with
+            {
+                Task = bound.Task!.UpdateDefinition(definition => definition switch
+{
+    TalkToOrderDefinition task => task with { TargetAgentId = CurrentMarriageOrderPartner(actor)! },
+    ProposeMarriageOrderDefinition task => task with { TargetAgentId = CurrentMarriageOrderPartner(actor) },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+            };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
         }
         var target = instruction.Task!.TargetAgentId!;
@@ -102,13 +114,20 @@ public sealed partial class WorldRuntime
         }
         if (!ProposeConversation(actor, target))
         {
-            SetOrderStatus(instruction, "blocked", "Waiting for a face-to-face invitation to become possible.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, "Waiting for a face-to-face invitation to become possible.");
             return;
         }
         var conversation = ConversationFor(actor)!;
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Task = current.Task! with { TalkConversationId = conversation.Id, Status = "doing", BlockedReason = null } };
+        {
+            Task = (current.Task!.UpdateDefinition(definition => definition switch
+{
+    TalkToOrderDefinition task => task with { TalkConversationId = conversation.Id },
+    ProposeMarriageOrderDefinition task => task with { TalkConversationId = conversation.Id },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})).Transition(OrderStatus.Doing)
+        };
     }
 
     private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision)
@@ -118,7 +137,7 @@ public sealed partial class WorldRuntime
         var person = agents[actor];
         if ((NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) && IsSurvivalCandidate(actor, candidate))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                 IsMarketFoodCandidate(actor, candidate))
                 ApplyMarketCandidate(actor, person, candidate);
@@ -149,18 +168,26 @@ public sealed partial class WorldRuntime
             if (conversation?.Status != AgentConversationStatus.Closed) continue;
             var outcome = instruction.Task!.Action == "propose_marriage" ? MarriageOrderOutcome(conversation, marriages) : conversation.Outcome;
             if (outcome is null) continue; // Accepted marriage still has its own unfinished surname session.
-            var current = instruction with { Task = instruction.Task! with { TalkOutcome = outcome } };
+            var current = instruction with
+            {
+                Task = instruction.Task!.UpdateDefinition(definition => definition switch
+{
+    TalkToOrderDefinition task => task with { TalkOutcome = outcome },
+    ProposeMarriageOrderDefinition task => task with { TalkOutcome = outcome },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+            };
             instructionsByIdempotency[current.IdempotencyKey] = current;
-            CreditOrderEffect(current, TalkOrderEffectId(current), 1);
+            CreditOrderEffect(current, Identity.Parse(TalkOrderEffectId(current)), 1);
         }
     }
 
-    private static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
+    internal static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
         (instruction.Task!.Action == "propose_marriage" ? "marriage-order:" : "talk-order:") +
         DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.TargetAgentId}|{instruction.Task.TalkConversationId}|{instruction.Task.TalkOutcome}");
 
-    private static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
+    internal static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
         "disagreed" or "withdrawn" or "participant_unavailable";
 
     private static void ValidateTalkOrderBindings(IEnumerable<OwnerQueuedInstruction> instructions, IEnumerable<AgentConversation> conversations, IEnumerable<AgentMarriage> marriageRecords)
