@@ -41,7 +41,7 @@ internal sealed partial class TownSystem
             "Title, household membership, private buildings, crops and other goods keep their current records and owners.";
 
     internal static void LandTransferEvent(ITownWorld world, string kind, TownRuntimeState town, TownLandTransferRequest request, string? actor, string status) =>
-            world.AppendEvent("land_transfer_" + kind, $"{town.Id}|{request.Id}|1|{actor ?? ""}|{status}", CivicBoard(world, town));
+            world.AppendEvent(WorldEvents.LandTransfer(kind, actor, town.Id, request.Id, status), CivicBoard(world, town));
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) AdvanceTownLandTransfers(
     ITownWorld world, TownRuntimeState town, TownCouncilState council)

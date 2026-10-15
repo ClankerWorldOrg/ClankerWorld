@@ -1,1 +1,2 @@
 - Keep tool repairs tied to their selected tool, materials and preparation, and explain when that work is no longer possible.
+- Refuse pending repair supplies from a Town Warehouse after the agent loses permission to collect them.

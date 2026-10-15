@@ -27,7 +27,7 @@ internal sealed partial class TownSystem
             var before = hearings.Transfers.Count;
             hearings = TownLandTransferRules.Propose(hearings, world.Map, town.Id, actor, tiles, target, householdLandUseRights,
                 TownLandTransferRules.PartiesFor(householdLandUseRights, tiles, target, LandTransferAdultHouseholds(world)),
-                householdLandUseRequests, world.WorldTick, "notice:" + (council.Notices.Count + 1), price);
+                householdLandUseRequests, world.WorldTick, TownCouncilRules.NextNoticeId(council), price);
             if (hearings.Transfers.Count > before)
             {
                 var proposed = hearings.Transfers[^1];

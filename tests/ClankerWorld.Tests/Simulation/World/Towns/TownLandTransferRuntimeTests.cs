@@ -7,9 +7,9 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class TownLandTransferRuntimeTests
 {
-    private const string Filer = "founder:00000000000000000000000000000003";
-    private const string SourcePartner = "founder:00000000000000000000000000000004";
-    private const string Beneficiary = "founder:00000000000000000000000000000001";
+    private const string Filer = NormalPathWorld.Founder3;
+    private const string SourcePartner = NormalPathWorld.Founder4;
+    private const string Beneficiary = NormalPathWorld.Founder1;
     private const string Newcomer = "agent:00000000000000000000000000000093";
     private const int Day = 40;
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
@@ -82,7 +82,7 @@ public sealed partial class TownLandTransferRuntimeTests
         var adjustment = Assert.Single(world.Towns[0].LandRecords.Adjustments);
         Assert.Equal("voluntary_transfer", adjustment.Kind);
         Assert.Equal(completed.Id, adjustment.TransferId);
-        Assert.Equal(receipt.AdjustmentId, adjustment.Id);
+        Assert.Equal(receipt.AdjustmentId.Value, adjustment.Id);
         Assert.All(grantPlot, tile =>
         {
             var right = Assert.Single(world.HouseholdLandUseRights, right => right.Tiles.Contains(tile));
@@ -187,10 +187,10 @@ public sealed partial class TownLandTransferRuntimeTests
             for (var attempt = 0; attempt < 40 && (!provider.Started.Task.IsCompleted ||
                      world.Towns[0].LandRecords.Transfers.Count == 0 || world.Towns[0].LandRecords.Transfers[0].Responses.Count < 3); attempt++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
-                await Task.Delay(10);
+                Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
-            await provider.Started.Task.WaitAsync(Deadline);
+            await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
             Assert.Equal(3, pending.Responses.Count);
@@ -204,8 +204,8 @@ public sealed partial class TownLandTransferRuntimeTests
             provider.Release();
             for (var attempt = 0; attempt < 20 && world.Towns[0].LandRecords.Transfers[0].Responses.Count < 4; attempt++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
-                await Task.Delay(10);
+                Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
@@ -414,9 +414,9 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private sealed class TransferProvider(DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> release = new(TaskCreationOptions.None);
         private CognitionDecisionResponse? held;
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public ConcurrentQueue<string> Selected { get; } = new();
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
