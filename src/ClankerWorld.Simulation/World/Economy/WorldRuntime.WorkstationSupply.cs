@@ -1,3 +1,4 @@
+using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -19,7 +20,7 @@ public sealed partial class WorldRuntime
     /// <summary>Enough on-site stock for two batches of the largest recipe needing the item.</summary>
     private const int SupplyBatches = 2;
 
-    private sealed record WorkstationSupplyNeed(PlacedBuilding Building, BuildingDefinition Definition,
+    internal sealed record WorkstationSupplyNeed(PlacedBuilding Building, BuildingDefinition Definition,
         string ItemKind, int Missing, InventoryLot? Carried, InventoryLot? HouseholdStock, MapResource? Source);
 
     private static bool HasDedicatedSupply(BuildingDefinition definition) =>

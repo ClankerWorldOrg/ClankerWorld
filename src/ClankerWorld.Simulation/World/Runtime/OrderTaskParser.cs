@@ -179,8 +179,7 @@ internal static class OrderTaskParser
                 if (repeatPrefix) return null;
                 if (!ReadWord("now")) _ = ReadWord("please");
                 return position == end
-                    ? new OrderTask("move_to", "queued", 1, 0, "arrivals", false,
-                        TargetPosition: destination)
+                    ? OrderStore.CreateOrderTask("move_to", "queued", 1, 0, "arrivals", false, TargetPosition: destination)
                     : null;
             }
 
@@ -237,31 +236,19 @@ internal static class OrderTaskParser
             if (targetResourceId is not null && targetPosition is not null)
                 return null;
 
-            return new OrderTask(
-                action,
-                "queued",
-                hasExplicitQuantity ? requestedUnits : 1,
-                0,
-                action switch
-                {
-                    "seek_food" => "arrivals",
-                    "harvest_food" when !hasExplicitQuantity => "harvests",
-                    "gather_material" => hasExplicitQuantity ? "material_items" : "harvests",
-                    "collect_material" => hasExplicitQuantity ? "material_items" : "collection_loads",
-                    "store_material" => hasExplicitQuantity ? "material_items" : "storage_loads",
-                    "store_equipment" => hasExplicitQuantity ? "equipment_items" : "storage_loads",
-                    "collect_food" => hasExplicitQuantity ? "food_items" : "collection_loads",
-                    "collect_equipment" => hasExplicitQuantity ? "equipment_items" : "collection_loads",
-                    "repair_equipment" or "repair_tool" => "repairs",
-                    _ => "food_items",
-                },
-                repeat,
-                hasExplicitQuantity,
-                targetFoodKind,
-                targetResourceId,
-                targetPosition,
-                TargetMaterialKind: materialKind,
-                TargetEquipmentKind: equipmentKind);
+            return OrderStore.CreateOrderTask(action, "queued", hasExplicitQuantity ? requestedUnits : 1, 0, action switch
+            {
+                "seek_food" => "arrivals",
+                "harvest_food" when !hasExplicitQuantity => "harvests",
+                "gather_material" => hasExplicitQuantity ? "material_items" : "harvests",
+                "collect_material" => hasExplicitQuantity ? "material_items" : "collection_loads",
+                "store_material" => hasExplicitQuantity ? "material_items" : "storage_loads",
+                "store_equipment" => hasExplicitQuantity ? "equipment_items" : "storage_loads",
+                "collect_food" => hasExplicitQuantity ? "food_items" : "collection_loads",
+                "collect_equipment" => hasExplicitQuantity ? "equipment_items" : "collection_loads",
+                "repair_equipment" or "repair_tool" => "repairs",
+                _ => "food_items",
+            }, repeat, hasExplicitQuantity, targetFoodKind, targetResourceId, targetPosition, TargetMaterialKind: materialKind, TargetEquipmentKind: equipmentKind);
         }
 
         private OrderTask? TryReadShelterOrder(int end, bool repeat)
@@ -306,8 +293,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new(action, "queued", 1, 0, action == "seek_shelter" ? "shelters" : "fires", false,
-                TargetPosition: targetPosition, TargetBuildingKind: buildingKind);
+            return OrderStore.CreateOrderTask(action, "queued", 1, 0, action == "seek_shelter" ? "shelters" : "fires", false, TargetPosition: targetPosition, TargetBuildingKind: buildingKind);
         }
 
         private OrderTask? TryReadBuildingOrder(int end, bool repeat)
@@ -340,9 +326,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new(action, "queued", 1, 0, action == "construct_building" ? "buildings" : "expansions", false,
-                explicitQuantity, TargetPosition: targetPosition, TargetBuildingKind: kind,
-                TargetDefinitionId: action == "construct_building" ? definition.Definition.CanonicalId : null);
+            return OrderStore.CreateOrderTask(action, "queued", 1, 0, action == "construct_building" ? "buildings" : "expansions", false, explicitQuantity, TargetPosition: targetPosition, TargetBuildingKind: kind, TargetDefinitionId: action == "construct_building" ? definition.Definition.CanonicalId : null);
         }
 
         private OrderTask? TryReadDeliveryOrder(int end, bool repeat, bool keep)
@@ -395,9 +379,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new("deliver_stock", "queued", quantity, 0, explicitQuantity ? "goods_items" : "delivery_loads",
-                repeat, explicitQuantity, TargetPosition: targetPosition, TargetItemKind: subject.ItemKind,
-                DeliveryPurpose: purpose, TargetBuildingKind: building);
+            return OrderStore.CreateOrderTask("deliver_stock", "queued", quantity, 0, explicitQuantity ? "goods_items" : "delivery_loads", repeat, explicitQuantity, TargetPosition: targetPosition, TargetItemKind: subject.ItemKind, DeliveryPurpose: purpose, TargetBuildingKind: building);
         }
 
         private OrderTask? TryReadCustodyOrder(int end, bool repeat, bool keep)
@@ -440,8 +422,7 @@ internal static class OrderTaskParser
                 "store_goods" => "storage_loads",
                 _ => "return_loads",
             };
-            return new(action, "queued", quantity, 0, progress, repeat, explicitQuantity,
-                TargetPosition: targetPosition, TargetItemKind: itemKind);
+            return OrderStore.CreateOrderTask(action, "queued", quantity, 0, progress, repeat, explicitQuantity, TargetPosition: targetPosition, TargetItemKind: itemKind);
         }
 
         private string? TryReadReturnSubject()
@@ -516,9 +497,7 @@ internal static class OrderTaskParser
                 repeat = true;
             }
             if (!ReadWord("now")) _ = ReadWord("please");
-            return position == end ? new OrderTask(verb == "copy" ? "copy_knowledge" : "write_knowledge", "queued", quantity, 0,
-                verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity)
-            { TargetKnowledgeKind = kind } : null;
+            return position == end ? OrderStore.PrepareKnowledgeKind(OrderStore.CreateOrderTask(verb == "copy" ? "copy_knowledge" : "write_knowledge", "queued", quantity, 0, verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity), kind) : null;
         }
 
         private OrderTask? TryReadProductionOrder(int end, bool repeat, bool keep)
@@ -584,9 +563,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new("produce_item", "queued", quantity, 0, progress, repeat, explicitQuantity,
-                TargetPosition: targetPosition, TargetRecipeId: selected.Recipe.CanonicalId,
-                TargetOutputKind: selected.OutputKind);
+            return OrderStore.CreateOrderTask("produce_item", "queued", quantity, 0, progress, repeat, explicitQuantity, TargetPosition: targetPosition, TargetRecipeId: selected.Recipe.CanonicalId, TargetOutputKind: selected.OutputKind);
         }
 
         private OrderTask? TryReadFieldOrder(int end, bool repeat, bool keep)
@@ -630,8 +607,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new(action, "queued", explicitQuantity ? quantity : 1, 0, "fields", repeat,
-                explicitQuantity, TargetPosition: targetPosition, TargetCropKind: crop);
+            return OrderStore.CreateOrderTask(action, "queued", explicitQuantity ? quantity : 1, 0, "fields", repeat, explicitQuantity, TargetPosition: targetPosition, TargetCropKind: crop);
         }
 
         private OrderTask? TryReadTreePlantingOrder(int end, bool repeat, bool keep)
@@ -660,8 +636,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return new(action, "queued", explicitQuantity ? quantity : 1, 0, "trees", repeat,
-                explicitQuantity, TargetPosition: targetPosition);
+            return OrderStore.CreateOrderTask(action, "queued", explicitQuantity ? quantity : 1, 0, "trees", repeat, explicitQuantity, TargetPosition: targetPosition);
         }
 
         private bool TryReadCollectionLocation(ref GridPoint? targetPosition)
@@ -1050,8 +1025,7 @@ internal static class OrderTaskParser
             if (position != end) return null;
             var matches = ports.Where(port => port.Position == destination).ToArray();
             return matches.Length == 1
-                ? new OrderTask("travel_by_boat", "queued", 1, 0, "arrivals", false, TargetPosition: destination)
-                { BoatTravel = new(matches[0].InstanceId) }
+                ? OrderStore.PrepareBoatTravel(OrderStore.CreateOrderTask("travel_by_boat", "queued", 1, 0, "arrivals", false, TargetPosition: destination), OrderStore.CreateOwnerBoatTravelBinding(matches[0].InstanceId))
                 : null;
         }
 

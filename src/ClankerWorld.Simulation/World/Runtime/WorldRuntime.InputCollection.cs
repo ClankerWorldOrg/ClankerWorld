@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record InputCollectionStep(string Kind, GridPoint Position, int Range, int CarryUnits,
+    internal sealed record InputCollectionStep(string Kind, GridPoint Position, int Range, int CarryUnits,
         InventoryLot? Stock = null, MapResource? Harvest = null, string? HarvestToolLotId = null);
 
     // These recipes have at most three inputs. Try their existing order first,

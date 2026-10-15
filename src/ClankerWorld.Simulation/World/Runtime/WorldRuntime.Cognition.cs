@@ -223,10 +223,7 @@ public sealed partial class WorldRuntime
                         item.InstructionId == message.InstructionId);
                     if (instruction is not null && instruction.GuidancePromptedTick is null)
                     {
-                        instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
-                        {
-                            GuidancePromptedTick = WorldTick,
-                        };
+                        orderStore.RecordGuidancePrompt(instruction.IdempotencyKey, OrderStore.PreparePromptedGuidance(instruction, WorldTick));
                     }
                 }
                 if (observerGuidance.Length > 0)
@@ -796,17 +793,13 @@ public sealed partial class WorldRuntime
             var observerReply = replies.TryGetValue(instruction.InstructionId, out var reply)
                 ? reply.Text
                 : instruction.ObserverReply;
-            instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
-            {
-                ObservedTick = instruction.ObservedTick ?? admission.Intention.WorldTick,
-                ObserverReply = observerReply,
-            };
+            orderStore.RecordObserverReply(instruction.IdempotencyKey, OrderStore.PrepareObservedReply(instruction, instruction.ObservedTick ?? admission.Intention.WorldTick, observerReply));
             checkpointSchemaVersion = StateSchemaVersion;
             // A reply for an order that has since finished is set aside as stale,
             // so a suggestion it carried stays open for the next fresh request.
             if (instruction.Kind == OwnerInstructionKind.Suggestion &&
                 admission.Intention.OperativeOrderInstructionId == PendingInstructionFor(agentId)?.InstructionId &&
-                completedInstructionIds.Add(instruction.InstructionId))
+                orderStore.CompleteInstruction(instruction.InstructionId))
                 completedSuggestions.Add(instruction.InstructionId);
         }
 

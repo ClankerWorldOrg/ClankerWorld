@@ -350,7 +350,7 @@ public sealed partial class WorldRuntime
         return carried is not null && ToolProgressionRules.Find(carried.ItemKind)!.Tier >= requested.Tier;
     }
 
-    private sealed record FireFuelEffect(string BuildingId, string FuelReservationId);
+    internal sealed record FireFuelEffect(string BuildingId, string FuelReservationId);
 
     private FireFuelEffect? TendFireAt(string actor, AgentState person, PlacedBuilding building)
     {

@@ -75,13 +75,12 @@ public sealed partial class WorldRuntime : IDisposable
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private CommunitySystem communitySystem = new(WorldKnowledgeState.Empty);
     private WorldKnowledgeState knowledge => communitySystem.State;
-    private Dictionary<string, OwnerQueuedInstruction> instructionsByIdempotency =
-        new(StringComparer.Ordinal);
-    private Dictionary<string, OwnerInstructionReceipt> instructionReceipts =
-        new(StringComparer.Ordinal);
-    private Dictionary<string, OwnerOrderCancellation> orderCancellations =
-        new(StringComparer.Ordinal);
-    private HashSet<string> completedInstructionIds = new(StringComparer.Ordinal);
+    private OrderSystem orderSystem = new();
+    private OrderStore orderStore => orderSystem.Store;
+    private IReadOnlyDictionary<string, OwnerQueuedInstruction> instructionsByIdempotency => orderStore.Instructions;
+    private IReadOnlyDictionary<string, OwnerInstructionReceipt> instructionReceipts => orderStore.Receipts;
+    private IReadOnlyDictionary<string, OwnerOrderCancellation> orderCancellations => orderStore.Cancellations;
+    private IReadOnlySet<string> completedInstructionIds => orderStore.Completed;
     private WorldEventLog worldEventLog = new([]);
     private readonly IAgentWorld agentWorld;
     private readonly IEnvironmentAgentWorld environmentWorld;
@@ -121,7 +120,7 @@ public sealed partial class WorldRuntime : IDisposable
         map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
-    private long nextInstructionSequence = 1;
+    private long nextInstructionSequence => orderStore.NextSequence;
     private readonly Dictionary<string, PendingModelDecision> pendingModelCalls = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PendingConversationTurn> pendingConversationTurns = new(StringComparer.Ordinal);
     private readonly List<WorldMemoryCompactionTransition> memoryCompactionTransitions = [];
@@ -407,45 +406,15 @@ public sealed partial class WorldRuntime : IDisposable
         }
         runtime.communitySystem = new(state.Knowledge!);
 
-        runtime.instructionsByIdempotency.Clear();
-        runtime.instructionReceipts.Clear();
-        runtime.orderCancellations.Clear();
-        runtime.completedInstructionIds.Clear();
-        foreach (var instruction in state.Instructions ?? [])
+        try
         {
-            if (!runtime.instructionsByIdempotency.TryAdd(instruction.IdempotencyKey, instruction))
-            {
-                runtime.Dispose();
-                throw new InvalidDataException("The world instruction idempotency keys are duplicated.");
-            }
-
-            runtime.instructionReceipts.Add(
-                instruction.IdempotencyKey,
-                new OwnerInstructionReceipt(
-                    instruction.InstructionId,
-                    instruction.IdempotencyKey,
-                    instruction.SubmittedTick,
-                    instruction.RunEpoch,
-                    instruction.SubmissionSequence));
+            runtime.orderStore.Restore(state.Instructions ?? [], state.CompletedInstructionIds ?? [], state.OrderCancellations ?? []);
         }
-
-        foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
+        catch (InvalidDataException)
         {
-            runtime.completedInstructionIds.Add(completedInstructionId);
+            runtime.Dispose();
+            throw;
         }
-
-        foreach (var cancellation in state.OrderCancellations ?? [])
-        {
-            if (!runtime.orderCancellations.TryAdd(cancellation.IdempotencyKey, cancellation))
-            {
-                runtime.Dispose();
-                throw new InvalidDataException("The world order cancellation idempotency keys are duplicated.");
-            }
-        }
-
-        runtime.nextInstructionSequence = runtime.instructionsByIdempotency.Count == 0
-            ? 1
-            : checked(runtime.instructionsByIdempotency.Values.Max(item => item.SubmissionSequence) + 1);
 
         runtime.worldEventLog = new(state.Events, state.EventHistoryFloor, state.HistoryArchiveHead);
         if (!trustedPreparedState)

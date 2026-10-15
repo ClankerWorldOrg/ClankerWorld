@@ -5,78 +5,32 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MarriageOrderTask = "attempt marriage with your current partner; both people keep their consent and surname choices";
-    private const string MarriageAdultBlocker = "Only an adult can propose marriage.";
-    private const string MarriagePartnerBlocker = "Waiting for an eligible current partner before attempting marriage.";
-    private const string MarriageChangedPartnerBlocker = "The selected person is no longer your current partner; this order will not choose someone else.";
-    private const string MarriageEligibilityBlocker = "This partnership is not currently eligible for marriage; both adults need chosen full names and must be free to marry.";
+    private const string MarriageOrderTask = OrderSystem.MarriageOrderTask;
+    private const string MarriageAdultBlocker = OrderSystem.MarriageAdultBlocker;
+    private const string MarriagePartnerBlocker = OrderSystem.MarriagePartnerBlocker;
+    private const string MarriageChangedPartnerBlocker = OrderSystem.MarriageChangedPartnerBlocker;
+    private const string MarriageEligibilityBlocker = OrderSystem.MarriageEligibilityBlocker;
 
-    private OrderTask? ParseMarriageOrder(string text, string actor)
-    {
-        text = text.Trim();
-        if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
-        if (!IsAdult(actor) || !text.Equals("propose marriage", StringComparison.OrdinalIgnoreCase) &&
-            !text.Equals("propose marriage to my partner", StringComparison.OrdinalIgnoreCase)) return null;
-        return new("propose_marriage", "queued", 1, 0, "marriage_attempts", false,
-            TargetAgentId: CurrentMarriageOrderPartner(actor));
-    }
+    private OrderTask? ParseMarriageOrder(string text, string actor) =>
+        OrderSystem.ParseMarriageOrder(MarriageOrdersWorld, text, actor);
 
-    private string? CurrentMarriageOrderPartner(string actor)
-    {
-        var partnership = society.Checkpoint.Relationships.SingleOrDefault(item => item.Type == SocietyRelationshipType.Partnership &&
-            item.State == SocietyRelationshipState.Accepted && (item.ProposerId == actor || item.TargetId == actor));
-        return partnership is null ? null : partnership.ProposerId == actor ? partnership.TargetId : partnership.ProposerId;
-    }
+    private string? CurrentMarriageOrderPartner(string actor) =>
+        OrderSystem.CurrentMarriageOrderPartner(MarriageOrdersWorld, actor);
 
-    private string? MarriageOrderBlocker(OwnerQueuedInstruction instruction)
-    {
-        var actor = instruction.TargetAgentId;
-        if (!IsAdult(actor)) return MarriageAdultBlocker;
-        var target = instruction.Task!.TargetAgentId ?? CurrentMarriageOrderPartner(actor);
-        if (target is null) return MarriagePartnerBlocker;
-        if (AgentMarriageRules.Partnership(society.Checkpoint, actor, target) is null)
-            return MarriageChangedPartnerBlocker;
-        return AgentMarriageRules.CanPropose(society.Checkpoint, marriages, actor, target) ? null :
-            MarriageEligibilityBlocker;
-    }
+    private string? MarriageOrderBlocker(OwnerQueuedInstruction instruction) =>
+        OrderSystem.MarriageOrderBlocker(MarriageOrdersWorld, instruction);
 
     private string? UnacceptedMarriageOrderBlocker(OwnerQueuedInstruction instruction) =>
-        instruction.Task is { Action: "propose_marriage" } order && !marriages.Any(item => item.Consent.Id == order.TalkConversationId)
-            ? MarriageOrderBlocker(instruction) : null;
+        OrderSystem.UnacceptedMarriageOrderBlocker(MarriageOrdersWorld, instruction);
 
-    private void RefreshMarriageOrderEligibilityStatus(OwnerQueuedInstruction instruction)
-    {
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        if (current.Task is not { Action: "propose_marriage", TalkConversationId: not null } order || !IsActiveOrder(order.Status)) return;
-        if (UnacceptedMarriageOrderBlocker(current) is { } blocker)
-        {
-            SetOrderStatus(current, "blocked", blocker);
-            return;
-        }
-        // Clear only a recovered eligibility blocker, preserving independently owned interruptions and failures.
-        if (order.Status != "blocked" || order.BlockedReason is not
-            (MarriageAdultBlocker or MarriagePartnerBlocker or MarriageChangedPartnerBlocker or MarriageEligibilityBlocker)) return;
-        if (ConversationForOrder(current)?.Status == AgentConversationStatus.Suspended)
-            SetOrderStatus(current, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
-        else if (ConversationForOrder(current)?.Outcome == "participant_unavailable")
-            SetOrderStatus(current, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
-        else
-            SetOrderStatus(current, "doing", null);
-    }
+    private void RefreshMarriageOrderEligibilityStatus(OwnerQueuedInstruction instruction) =>
+        OrderSystem.RefreshMarriageOrderEligibilityStatus(MarriageOrdersWorld, instruction);
 
-    private AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction)
-    {
-        var id = instruction.Task!.TalkConversationId;
-        if (instruction.Task.Action == "propose_marriage" && marriages.FirstOrDefault(item => item.Consent.Id == id) is { } marriage)
-            id = marriage.SurnameConversationId;
-        return conversations.FirstOrDefault(item => item.Id == id);
-    }
+    private AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.ConversationForOrder(MarriageOrdersWorld, instruction);
 
     private string? RequestedConversationActivity(AgentConversation conversation, string speaker) =>
-        conversation.Kind == AgentConversationKind.Ordinary && instructionsByIdempotency.Values.Any(instruction =>
-            instruction.TargetAgentId == speaker && instruction.Task is { Action: "propose_marriage" } order &&
-            IsActiveOrder(order.Status) && order.TalkConversationId == conversation.Id && MarriageOrderBlocker(instruction) is null)
-                ? "propose_marriage" : null;
+        OrderSystem.RequestedConversationActivity(MarriageOrdersWorld, conversation, speaker);
 
     private static string? MarriageOrderOutcome(AgentConversation conversation, IEnumerable<AgentMarriage> marriages)
     {

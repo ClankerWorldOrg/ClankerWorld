@@ -1,3 +1,4 @@
+using ExpansionOrderPlan = ClankerWorld.Simulation.World.OrderSystem.ExpansionOrderPlan;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Cognition;
@@ -9,23 +10,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record ExpansionOrderPlan(PlacedBuilding Building, GridPoint Position,
-        BuildingFootprintRevision Footprint);
 
-    private PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction)
-    {
-        if (instruction.Task is not { Action: "expand_building", ExpansionBinding: { } binding } order ||
-            !IsAdult(instruction.TargetAgentId)) return null;
-        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == binding.BuildingInstanceId);
-        if (building is null || building.DefinitionId != binding.DefinitionId || building.Position != binding.ExpectedPosition ||
-            (building.Footprint?.Revision ?? 0) != binding.ExpectedRevision || ExpansionOwner(building) != binding.OwnerId ||
-            order.TargetPosition is { } requested && requested != binding.ExpectedPosition ||
-            WorldBuildingOrderCatalog.Find(worldContent, building.DefinitionId)?.BuildingKind != order.TargetBuildingKind)
-            return null;
-        return order.TargetBuildingKind is "house" or "animal-yard"
-            ? HouseholdFor(instruction.TargetAgentId) == building.HouseholdId ? building : null
-            : TownForResident(instruction.TargetAgentId) == building.TownId ? building : null;
-    }
+
+    private PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction) =>
+        OrderSystem.ExpansionOrderBuilding(ExpansionOrdersWorld, instruction);
 
     private static bool ExpansionJobMatchesOrder(BuildingExpansionJob job, OwnerQueuedInstruction instruction) =>
         instruction.Task is { Action: "expand_building", ExpansionBinding: { } binding } &&
@@ -36,204 +24,44 @@ public sealed partial class WorldRuntime
         job.TargetFootprint == binding.TargetFootprint && job.StartedTick >= instruction.SubmittedTick;
 
     private BuildingExpansionJob? BoundExpansionJob(OwnerQueuedInstruction instruction) =>
-        instruction.Task?.ExpansionBinding?.JobId is { } id
-            ? (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(job => job.JobId == id &&
-                ExpansionJobMatchesOrder(job, instruction)) : null;
+        OrderSystem.BoundExpansionJob(ExpansionOrdersWorld, instruction);
 
     private (GridPoint Position, BuildingFootprintRevision Footprint) ExpansionShapeForOrder(
         PlacedBuilding building, OwnerQueuedInstruction? instruction) =>
-        ExpansionShapes(building).FirstOrDefault(shape =>
-            (instruction?.Task?.ExpansionBinding is not { } binding ||
-             shape.Position == binding.TargetPosition && shape.Footprint == binding.TargetFootprint) &&
-            CanFitExpansion(building, shape.Position, shape.Footprint, out _));
+        OrderSystem.ExpansionShapeForOrder(ExpansionOrdersWorld, building, instruction);
 
-    private ExpansionOrderPlan? ExpansionPlanFor(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        var order = instruction.Task!;
-        if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return null;
-        var candidates = order.ExpansionBinding is null
-            ? worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal)
-            : worldSimulation.Buildings.Where(building => ExpansionOrderBuilding(instruction)?.InstanceId == building.InstanceId);
-        foreach (var building in candidates)
-        {
-            if (WorldBuildingOrderCatalog.Find(worldContent, building.DefinitionId)?.BuildingKind != order.TargetBuildingKind ||
-                order.TargetPosition is { } position && position != building.Position ||
-                !MayExpandBuilding(actor, building, out _) ||
-                person.Position != building.Position && Reach(actor, building.Position, ReachPurpose.BuildingExpansion, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
-                continue;
-            var shape = ExpansionShapeForOrder(building, instruction);
-            if (shape.Footprint is null) continue;
-            var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-            var costs = BuildingStorageRules.ExpansionCosts(definition, building, shape.Footprint);
-            if (!CanAcquireProjectInputs(costs, HouseholdFor(actor), actor) ||
-                !CanAcquireExpansionMaterials(actor, building, costs)) continue;
-            return new(building, shape.Position, shape.Footprint);
-        }
-        return null;
-    }
+    private ExpansionOrderPlan? ExpansionPlanFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExpansionPlanFor(ExpansionOrdersWorld, instruction, person);
 
-    private CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        if (!ReadyForBriefInteraction(instruction.TargetAgentId)) return null;
-        if (BoundExpansionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
-            return ExpansionOrderBuilding(instruction) is { } building &&
-                CanFitExpansion(building, job.TargetPosition, job.TargetFootprint, out _, job.JobId) &&
-                ExpansionOrderInputsAvailable(job, building) &&
-                (person.Position == building.Position || Reach(person.AgentId, building.Position, ReachPurpose.BuildingExpansion, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
-                ? new("expand_building", "Continue the ordered expansion using its committed materials.", 0, job.BuildingInstanceId) : null;
-        return ExpansionPlanFor(instruction, person) is { } plan
-            ? new("expand_building", "Bring the materials and complete the building's next permitted expansion.", 0, plan.Building.InstanceId) : null;
-    }
+    private CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExpansionOrderCandidateFor(ExpansionOrdersWorld, instruction, person);
 
-    private void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        instruction = instructionsByIdempotency[instruction.IdempotencyKey];
-        var actor = instruction.TargetAgentId;
-        if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
-        {
-            PauseExpansionForOrder(instruction);
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
-            return;
-        }
-        if (BoundExpansionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
-        {
-            if (ExpansionOrderCandidateFor(instruction, person) is null || ExpansionOrderBuilding(instruction) is not { } building)
-            {
-                PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
-                return;
-            }
-            if (person.Position != building.Position)
-            {
-                PauseExpansionForOrder(instruction);
-                MoveToward(actor, person, building.Position, "building_expansion", 0);
-                return;
-            }
-            if (job.State == WorldProductionJobState.Paused)
-            {
-                var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
-                ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.InputReservationIds, deadline));
-                constructionSystem.Buildings.ResumeExpansion(job.JobId, deadline);
-                AppendEvent("expansion_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
-            }
-            return;
-        }
-        if (ExpansionPlanFor(instruction, person) is not { } plan)
-        {
-            SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
-            return;
-        }
-        if (instruction.Task!.ExpansionBinding is null)
-        {
-            instruction = instruction with
-            {
-                Task = instruction.Task with
-                {
-                    ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
-                    plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint),
-                }
-            };
-            instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
-            checkpointSchemaVersion = StateSchemaVersion;
-        }
-        ApplyBuildingExpansionCandidate(actor, person, plan.Building.InstanceId, instruction);
-    }
+    private void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteExpansionOrderStep(ExpansionOrdersWorld, instruction, person);
 
-    private void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job)
-    {
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[instruction.IdempotencyKey] = current with
-        {
-            Task = current.Task! with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
-        };
-    }
+    private void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job) =>
+        OrderSystem.BindStartedExpansionOrder(ExpansionOrdersWorld, instruction, job);
 
-    private bool ExpansionOrderInputsAvailable(BuildingExpansionJob job, PlacedBuilding building)
-    {
-        var inventory = society.Checkpoint.Inventory;
-        var site = ExpansionGroundPosition(building);
-        return job.InputReservationIds.All(id =>
-        {
-            var reservation = inventory.Reservations.SingleOrDefault(item => item.Id == id);
-            var lot = reservation is null ? null : inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);
-            return reservation is { State: InventoryReservationState.Reserved } &&
-                lot is { ConditionBasisPoints: > 0, FreshnessBasisPoints: > 0 } && lot.Quantity >= reservation.Quantity &&
-                reservation.OwnerId == lot.OwnerId && lot.DeliveryBuildingId is null &&
-                (lot.OwnerId == job.OwnerId && (lot.StorageBuildingId == building.InstanceId || lot.GroundPosition == site) ||
-                 lot.OwnerId == job.WorkerId && PersonalEquipmentRules.IsCarried(lot, job.WorkerId));
-        });
-    }
+    private bool ExpansionOrderInputsAvailable(BuildingExpansionJob job, PlacedBuilding building) =>
+        OrderSystem.ExpansionOrderInputsAvailable(ExpansionOrdersWorld, job, building);
 
-    private void MaintainExpansionOrdersBeforeTick()
-    {
-        foreach (var instruction in instructionsByIdempotency.Values.Where(item =>
-                     item.Task is { Action: "expand_building" } order && IsActiveOrder(order.Status)).ToArray())
-        {
-            if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job) continue;
-            if (!agents.TryGetValue(instruction.TargetAgentId, out var person) ||
-                ExpansionOrderBuilding(instruction) is not { } building || !ExpansionOrderInputsAvailable(job, building))
-            {
-                CancelExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The selected building, worker or committed materials are no longer available.");
-                continue;
-            }
-            if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
-            {
-                PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
-            }
-            else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
-                     instruction.Task!.WaitForDecisionAfterFailure)
-                PauseExpansionForOrder(instruction);
-        }
-    }
+    private void MaintainExpansionOrdersBeforeTick() =>
+        OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
 
-    private void PauseExpansionForOrder(OwnerQueuedInstruction instruction)
-    {
-        if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running } job) return;
-        ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, job.InputReservationIds));
-        constructionSystem.Buildings.PauseExpansion(job.JobId, WorldTick);
-        AppendEvent("expansion_order_paused", $"{instruction.InstructionId}:{job.JobId}");
-    }
+    private void PauseExpansionForOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.PauseExpansionForOrder(ExpansionOrdersWorld, instruction);
 
-    private void CancelExpansionForOrder(OwnerQueuedInstruction instruction)
-    {
-        if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job) return;
-        ApplyInventoryTransition(inventory =>
-        {
-            foreach (var id in job.InputReservationIds)
-                if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is
-                    { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, "owner_expansion_stopped");
-            return inventory;
-        });
-        constructionSystem.Buildings.CancelPausedExpansions(new HashSet<string>(StringComparer.Ordinal) { job.JobId }, "The expansion order stopped.");
-        AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:The expansion order stopped.");
-    }
+    private void CancelExpansionForOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.CancelExpansionForOrder(ExpansionOrdersWorld, instruction);
 
-    private void CreditExpansionOrderJob(BuildingExpansionJob job)
-    {
-        if (job.OrderInstructionId is not { } id) return;
-        var instruction = instructionsByIdempotency.Values.SingleOrDefault(item => item.InstructionId == id);
-        if (instruction is null || BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Completed } completed ||
-            completed.JobId != job.JobId) return;
-        CreditOrderEffect(instruction, ExpansionOrderReceipt(job.JobId), 1);
-    }
+    private void CreditExpansionOrderJob(BuildingExpansionJob job) =>
+        OrderSystem.CreditExpansionOrderJob(ExpansionOrdersWorld, job);
 
     private static string ExpansionOrderReceipt(string jobId) =>
         DerivedId.Hash(jobId, "expand:job:");
 
-    private string ExpansionOrderBlockedReason(OwnerQueuedInstruction instruction)
-    {
-        if (!IsAdult(instruction.TargetAgentId)) return "An adult resident is needed to expand a building.";
-        if (instruction.Task!.ExpansionBinding is not null && ExpansionOrderBuilding(instruction) is null)
-            return "The selected building moved, changed owner or changed size; this order keeps its original building and expansion.";
-        if (instruction.Task.ExpansionBinding is { } binding && ExpansionOrderBuilding(instruction) is { } building &&
-            !CanFitExpansion(building, binding.TargetPosition, binding.TargetFootprint, out var failure, binding.JobId))
-            return failure;
-        return "The building needs more space, a permitted expansion site, reachable materials and a worker who may build there before this order can continue.";
-    }
+    private string ExpansionOrderBlockedReason(OwnerQueuedInstruction instruction) =>
+        OrderSystem.ExpansionOrderBlockedReason(ExpansionOrdersWorld, instruction);
 
     private static void ValidateExpansionOrderBindings(WorldContentSimulationState? simulation,
         DeclarativeWorldContentState content, SocietyCheckpoint society, IReadOnlyList<TownRuntimeState>? savedTowns,
