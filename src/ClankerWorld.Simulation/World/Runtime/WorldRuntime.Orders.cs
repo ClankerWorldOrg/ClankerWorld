@@ -72,7 +72,7 @@ public sealed partial class WorldRuntime
             return !MovementOrderNeedsHouseInvitation(instruction.TargetAgentId, destination) &&
                 (person.Position == destination ||
                  (map.IsPassable(destination) || CanSwim(instruction.TargetAgentId) && SwimmingRules.IsSwimmingWater(map, destination)) &&
-                 FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0).Count > 0)
+                 Reach(instruction.TargetAgentId, destination, ReachPurpose.Movement, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
                     ? new CognitionCandidate("move_to", $"Travel to tile ({destination.X}, {destination.Y}).", 0)
                     : null;
 
@@ -152,7 +152,7 @@ public sealed partial class WorldRuntime
             .OrderBy(resource => map.FootDistance(person.Position, resource.Position))
             .ThenBy(resource => resource.Id, StringComparer.Ordinal)
             .FirstOrDefault(resource => IsWithinInteractionRange(person.Position, resource.Position, ResourceInteractionRange) ||
-                FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange).Count > 0);
+                Reach(instruction.TargetAgentId, resource.Position, ReachPurpose.FoodSource, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0);
     }
 
     private bool KnownTargetIsUnavailable(OwnerQueuedInstruction instruction)

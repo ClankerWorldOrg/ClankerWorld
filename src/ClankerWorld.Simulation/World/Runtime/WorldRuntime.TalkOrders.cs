@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
             !conversations.Any(conversation => conversation.Status == AgentConversationStatus.Closed && !ActiveTalkOrderUses(conversation.Id)))
             return "Waiting for space in the conversation history.";
         return IsWithinInteractionRange(person.Position, other.Position, ResourceInteractionRange) ||
-            FindUnoccupiedRoute(actor, person.Position, other.Position, ResourceInteractionRange).Count > 0
+            Reach(actor, other.Position, ReachPurpose.Movement, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
                 ? null : "Waiting for an open route to the named person.";
     }
 
