@@ -385,7 +385,7 @@ public sealed class FarmhouseSiloReplenishmentTests
     private static void AssertUnrelatedHouseCargoClaims(WorldRuntime world, Setup setup)
     {
         var initial = setup.State.Society.Society.Inventory;
-        var claims = initial.Reservations.Where(item => item.Id.StartsWith(UnrelatedHouseCargoClaimPrefix,
+        var claims = initial.Reservations.Where(item => item.Id.Value.StartsWith(UnrelatedHouseCargoClaimPrefix,
             StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(claims);
         foreach (var claim in claims)

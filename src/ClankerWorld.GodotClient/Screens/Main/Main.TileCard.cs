@@ -12,11 +12,13 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     private readonly TextureRect tileSwatch = new();
-    private readonly Label tileTitle = new();
-    private readonly Label tileSubtitle = new();
+    private readonly FittedLabel tileTitle = new();
+    private readonly FittedLabel tileSubtitle = new();
     private readonly GridContainer tileFacts = new();
     private readonly Label tileThingsHeading = new();
     private readonly VBoxContainer tileThings = new();
+    private readonly ScrollContainer tileDetailsScroll = new();
+    private readonly VBoxContainer tileDetailsContent = new();
 
     private void BuildTileCard(Control content)
     {
@@ -41,16 +43,23 @@ public partial class Main
         header.AddChild(closeTile);
         body.AddChild(header);
 
+        tileDetailsScroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        tileDetailsContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        tileDetailsContent.AddThemeConstantOverride("separation", 8);
+        tileDetailsScroll.AddChild(tileDetailsContent);
+        body.AddChild(tileDetailsScroll);
+        tileDetailsContent.MinimumSizeChanged += () => Callable.From(PositionSelectedTilePanel).CallDeferred();
+
         tileFacts.Columns = 2;
         tileFacts.AddThemeConstantOverride("h_separation", 14);
         tileFacts.AddThemeConstantOverride("v_separation", 2);
-        body.AddChild(tileFacts);
+        tileDetailsContent.AddChild(tileFacts);
 
         tileThingsHeading.Text = "HERE";
         tileThingsHeading.ThemeTypeVariation = "SectionLabel";
-        body.AddChild(tileThingsHeading);
+        tileDetailsContent.AddChild(tileThingsHeading);
         tileThings.AddThemeConstantOverride("separation", 4);
-        body.AddChild(tileThings);
+        tileDetailsContent.AddChild(tileThings);
 
         // The facts also stay as plain text for checks and assistive reading.
         selectedTileText.Hide();
@@ -75,7 +84,7 @@ public partial class Main
     private void AddTileFact(string key, string value)
     {
         tileFacts.AddChild(new Label { Text = key, ThemeTypeVariation = "DimLabel" });
-        tileFacts.AddChild(new Label
+        tileFacts.AddChild(new FittedLabel
         {
             Text = value,
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
@@ -96,7 +105,7 @@ public partial class Main
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
             SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
         });
-        row.AddChild(new Label { Text = name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+        row.AddChild(new FittedLabel { Text = name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
         if (detail.Length > 0)
             row.AddChild(new Label { Text = detail, ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
         tileThings.AddChild(row);
@@ -116,7 +125,7 @@ public partial class Main
     private string TileCardText() => string.Join("\n",
         new[] { tileTitle.Text, tileSubtitle.Text }.Concat(tileFacts.GetChildren().Concat(tileThings.GetChildren())
             .SelectMany(node => node is Label label ? [label] : node.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>())
-            .Select(label => label.Text)));
+            .Select(label => label is FittedLabel fitted ? fitted.FullText : label.Text)));
 
     private void RenderTileCard(OwnerWorldSnapshot snapshot, Vector2I tile, OwnerWorldTown? town,
         IReadOnlyList<(string Key, string Value)> landFacts, string? weather, int? moisture)
@@ -198,7 +207,7 @@ public partial class Main
                 worker is null ? HouseholdName(field.HouseholdId) : $"{worker} working");
         }
         foreach (var stock in snapshot.GroundStocks.Where(item => item.Position.X == tile.X && item.Position.Y == tile.Y))
-            AddTileThing(ItemIcons.Texture(stock.Kind, 16), $"{stock.Quantity} {GameUiText.ItemName(stock.Kind).ToLowerInvariant()}", "on the ground · " + HouseholdName(stock.OwnerId));
+            AddTileThing(ItemIcons.Texture(stock.Kind, 16), $"{stock.Quantity} {GameUiText.ItemName(stock.Kind).ToLowerInvariant()}", "on the ground · " + stock.OwnerName);
         foreach (var item in snapshot.Objects.Where(item => item.Position.X == tile.X && item.Position.Y == tile.Y))
             AddTileThing(null, Pretty(item.Kind), string.Empty);
         if (snapshot.RoadTiles.Any(point => point.X == tile.X && point.Y == tile.Y))

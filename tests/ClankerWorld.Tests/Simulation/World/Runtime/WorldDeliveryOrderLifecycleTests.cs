@@ -160,12 +160,12 @@ public sealed partial class WorldDeliveryOrderTests
         var receipt = Submit(world, actor, "held-delivery", "haul two cloth to my House");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-delivery", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
+            for (var tick = 0; tick < 4; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Null(Order(world, receipt).LastEffectId);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "owner_stock_delivered");
@@ -186,25 +186,21 @@ public sealed partial class WorldDeliveryOrderTests
         await Tick(world);
         var saved = world.ExportState();
         var order = Order(world, receipt);
-        foreach (var bad in new[]
-        {
-            order with { DeliveryQuantity = 3 },
-            order with { DeliveryQuantity = null },
-            order with { DeliveryRoute = "household_food" },
-            order with { TargetStorageOwnerId = "household:missing" },
-            order with { TargetStoragePosition = null },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = bad } : item).ToArray(),
-            }));
+        foreach (var bad in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryQuantity"] = 3 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryQuantity"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryRoute"] = "household_food" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageOwnerId"] = "household:missing" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = null })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, bad));
         var provider = new DeliveryChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new DeliveryChoices());
         var unknown = Submit(unsupported, actor, "unsupported-delivery", "supply two photons to my Clinic");
         Assert.Equal("not_understood", Order(unsupported, unknown).Status);
         Assert.Empty(provider.Requests);
-        Assert.Contains(unknown.InstructionId, unsupported.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, unsupported.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(unsupported.ExportState().Events, item => item.Kind is "owner_stock_picked_up" or "owner_stock_delivered");
     }
 

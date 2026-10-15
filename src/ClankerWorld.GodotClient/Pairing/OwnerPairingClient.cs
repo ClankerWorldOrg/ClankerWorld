@@ -122,16 +122,18 @@ public sealed class OwnerPairingClient
     };
 
     private readonly HttpClient httpClient;
+    private readonly TimeProvider timeProvider;
     private readonly OwnerPairingEndpointPaths endpoints;
 
     /// <summary>
     /// Creates a reusable client. The caller owns the supplied
     /// <see cref="HttpClient"/> and is responsible for its lifetime.
     /// </summary>
-    public OwnerPairingClient(HttpClient httpClient, OwnerPairingEndpointPaths? endpoints = null)
+    public OwnerPairingClient(HttpClient httpClient, OwnerPairingEndpointPaths? endpoints = null, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         this.httpClient = httpClient;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         this.endpoints = endpoints ?? new OwnerPairingEndpointPaths();
         this.endpoints.Validate();
     }
@@ -395,10 +397,9 @@ public sealed class OwnerPairingClient
     {
         // ResponseHeadersRead ends HttpClient's timeout at the headers. Keep
         // a deadline alive across both JSON bodies and the complete signed flow.
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var maximum = maximumDuration ?? TimeSpan.FromSeconds(15);
-        deadline.CancelAfter(httpClient.Timeout == Timeout.InfiniteTimeSpan || httpClient.Timeout > maximum
-            ? maximum : httpClient.Timeout);
+        using var deadline = new RequestDeadline(httpClient.Timeout == Timeout.InfiniteTimeSpan || httpClient.Timeout > maximum
+            ? maximum : httpClient.Timeout, timeProvider, cancellationToken);
         cancellationToken = deadline.Token;
         var challenge = await IssueChallengeAsync(
             serverBaseUri,
@@ -467,15 +468,26 @@ public sealed class OwnerPairingClient
         }
     }
 
-    private CancellationTokenSource CreatePairingDeadline(CancellationToken cancellationToken)
+    private sealed class RequestDeadline : IDisposable
+    {
+        private readonly CancellationTokenSource timeout;
+        private readonly CancellationTokenSource linked;
+        public RequestDeadline(TimeSpan duration, TimeProvider clock, CancellationToken caller)
+        {
+            timeout = new(duration, clock);
+            linked = CancellationTokenSource.CreateLinkedTokenSource(caller, timeout.Token);
+        }
+        public CancellationToken Token => linked.Token;
+        public void Dispose() { linked.Dispose(); timeout.Dispose(); }
+    }
+
+    private RequestDeadline CreatePairingDeadline(CancellationToken cancellationToken)
     {
         // HttpClient's timeout stops at successful headers with ResponseHeadersRead.
         // Public pairing needs the same bounded body read as signed owner actions.
-        var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var maximum = TimeSpan.FromSeconds(15);
-        deadline.CancelAfter(httpClient.Timeout == Timeout.InfiniteTimeSpan || httpClient.Timeout > maximum
-            ? maximum : httpClient.Timeout);
-        return deadline;
+        return new RequestDeadline(httpClient.Timeout == Timeout.InfiniteTimeSpan || httpClient.Timeout > maximum
+            ? maximum : httpClient.Timeout, timeProvider, cancellationToken);
     }
 
     private async Task<TResponse> GetJsonAsync<TResponse>(Uri endpointUri, CancellationToken cancellationToken)

@@ -12,10 +12,10 @@ namespace ClankerWorld.Server.Pairing;
 /// These types intentionally carry no bearer token. Every protected operation
 /// is authorized by consuming a short-lived, one-use signed challenge.
 /// </summary>
-public sealed record OwnerDeletionAction(string Kind, string Id, string WorldId, DateTimeOffset? ExpectedCreatedUtc = null);
-public sealed record OwnerDeletionReceipt(string Id, bool CleanupComplete);
-public sealed record OwnerRecoveryCleanupAction(string Operation, string WorldId, int KeepCount, string? ExpectedDigest = null);
-public sealed record OwnerRecoveryCleanupReceipt(IReadOnlyList<string> RemovedIds, bool CleanupComplete);
+
+
+
+
 
 public sealed record StartOwnerPairingHttpRequest(string PublicKeySpkiBase64);
 
@@ -41,49 +41,40 @@ public sealed record OwnerSignedHttpRequest<TAction>(
     TAction Action)
     where TAction : class;
 
-public sealed record OwnerReconnectAction(long AfterEventId,
-    string? KnownTerrainWorldId = null, string? KnownTerrainDigest = null,
-    string? KnownMapLayersDigest = null);
 
-public sealed record OwnerControlAction(string Operation);
-public sealed record OwnerManualSaveAction(string Operation, string Value);
-public sealed record OwnerWorldCreationAction(string Name, string Seed, string Size,
-    int WaterPercent, bool WrapEastWest, string ClimateMode = "Balanced",
-    string SelectedClimate = "Temperate", bool LatitudeCooling = true,
-    string ResourceAbundance = "Normal", string ForestCover = "Normal",
-    string MountainRelief = "Normal", string RiverAbundance = "Normal",
-    int? CandidateAttempt = null, string? ExpectedManifestDigest = null,
-    string? ExpectedMapLayersDigest = null, bool AcceptUnmetTargets = false);
-public sealed record OwnerAutosaveConfigurationAction(bool Enabled, int IntervalMinutes, int RotationCount, string WorldId);
-public sealed record OwnerDeveloperEditAction(string WorldId, long ExpectedEventId, string AgentId,
-    string Operation, string Value, int Amount = 0, string? OtherAgentId = null);
 
-public sealed record OwnerAgingOverrideAction(int Rate, string WorldId);
-public sealed record OwnerJevAssistanceAction(bool Enabled, string WorldId);
-public sealed record OwnerRoutineHelperAction(string WorldId, string Provider, string Model, string? CredentialSlotId = null);
 
-public sealed record OwnerPairingApprovalAction(string PairingId, string PairingCode);
 
-public sealed record OwnerDeviceManagementAction(string DeviceId);
+
+
+
+
+
+
+
+
+
+
+
 
 /// <summary>
 /// Deliberately empty action body for a signed paired-device registry query.
 /// The endpoint and its fixed canonical payload make this read just as
 /// challenge-bound and one-use as a world-changing owner request.
 /// </summary>
-public sealed record OwnerDeviceListAction;
+
 
 /// <summary>
 /// Empty signed action used to read only non-secret provider status. API keys
 /// are never represented in the response contract.
 /// </summary>
-public sealed record OwnerProviderStatusAction;
 
-public sealed record OwnerUsageStatusAction;
 
-public sealed record OwnerCredentialSlotDeletionAction(string CredentialSlotId);
 
-public sealed record OwnerCredentialSlotCreationAction(string CredentialSlotId, string Provider, string Label, string ApiKey);
+
+
+
+
 
 /// <summary>
 /// Asks the host for the game's model list for a provider. With
@@ -92,8 +83,7 @@ public sealed record OwnerCredentialSlotCreationAction(string CredentialSlotId, 
 /// pasted and not saved yet; it is used for this check only. Without it, the
 /// named key slot or the provider's saved key is used.
 /// </summary>
-public sealed record OwnerProviderModelListAction(
-    string Provider, string? CredentialSlotId = null, string? ApiKey = null, bool CheckKey = true);
+
 
 /// <summary>
 /// Explicitly tests one model with either a saved provider key, a named
@@ -101,14 +91,13 @@ public sealed record OwnerProviderModelListAction(
 /// level (<see langword="null"/> for the model default). This action does not
 /// change provider configuration and always represents one metered model call.
 /// </summary>
-public sealed record OwnerProviderSetupCheckAction(
-    string Provider, string Model, string? CredentialSlotId = null, string? ApiKey = null, string? Thinking = null);
+
 
 /// <summary>A bounded result for an owner-triggered, metered model setup check.</summary>
-public sealed record OwnerProviderSetupCheckResult(string Outcome, string Message, bool IsReady);
+
 
 /// <summary>One listed model, and whether the checked key can use it.</summary>
-public sealed record OwnerProviderModelChoice(string Model, bool Available);
+
 
 /// <summary>
 /// The game's models for a provider, in display order. <see cref="DefaultModel"/>
@@ -116,101 +105,53 @@ public sealed record OwnerProviderModelChoice(string Model, bool Available);
 /// key can use it. <see cref="Error"/> explains, in plain words, a key that
 /// couldn't be checked; the models are then all shown as usable.
 /// </summary>
-public sealed record OwnerProviderModelList(
-    string Provider, IReadOnlyList<OwnerProviderModelChoice> Models, string DefaultModel, string? Error);
 
-public sealed record OwnerProviderConfigurationAction(
-    string Role,
-    string Provider,
-    string? Model,
-    string? ApiKey,
-    bool ForgetCredential,
-    string? AgentId = null,
-    string? CredentialSlotId = null,
-    string? NewCredentialLabel = null,
-    string? Thinking = null);
+
+
 
 /// <summary>
 /// One agent's model for one role. <see cref="Thinking"/> is how much a hosted
 /// model reasons before answering: low, medium or high, or
 /// <see langword="null"/> for the model's own default, which saved files leave out.
 /// </summary>
-public sealed record AgentProviderAssignment(
-    string AgentId,
-    string Role,
-    string Provider,
-    string? Model = null,
-    string? CredentialSlotId = null,
-    string? SelectionReason = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Thinking = null);
 
-public sealed record OwnerProviderCredentialStatus(string Id, string Provider, string Label);
 
-public sealed record OwnerFounderPlacementAction(
-    string FounderId, int X, int Y, OwnerProviderConfigurationAction Cognition);
 
-public sealed record OwnerFounderPlacementReceipt(string FounderId, string HouseholdId, int Placed, int Required);
-public sealed record OwnerFounderMoveAction(string FounderId, int X, int Y);
-public sealed record OwnerFounderMoveReceipt(string FounderId, int X, int Y, bool Changed);
-public sealed record OwnerFounderUndoAction(string FounderId);
-public sealed record OwnerFounderUndoReceipt(string FounderId, int Placed, int Required);
-public sealed record OwnerFirstTownLayoutAction(int X, int Y);
-public sealed record OwnerFirstTownLayoutReceipt(int X, int Y, int Buildings, int RoadTiles);
 
-public sealed record OwnerAgentPlacementAction(
-    string AgentId, int X, int Y, OwnerProviderConfigurationAction Cognition,
-    string? ExpectedHouseholdId, string? ExpectedTownId);
 
-public sealed record OwnerAgentPlacementReceipt(string AgentId, string? HouseholdId, string? TownId = null);
 
-public sealed record OwnerAgentRenameAction(string AgentId, string Name);
 
-public sealed record OwnerAgentRenameReceipt(string AgentId, string Name, bool Changed);
 
-public sealed record OwnerProviderOptionStatus(
-    string Provider,
-    string Model,
-    bool HasCredential);
 
-public sealed record OwnerProviderConfigurationStatus(
-    string RoutineProvider,
-    string PlanningProvider,
-    long Revision,
-    IReadOnlyList<OwnerProviderOptionStatus> Providers,
-    IReadOnlyList<AgentProviderAssignment>? Assignments = null,
-    IReadOnlyList<OwnerProviderCredentialStatus>? CredentialSlots = null);
 
-public sealed record OwnerInstructionAction(
-    string IdempotencyKey,
-    string TargetAgentId,
-    string Kind,
-    string Text,
-    string WorldId,
-    bool Queue = false);
 
-public sealed record OwnerOrderCancelAction(
-    string IdempotencyKey,
-    string TargetAgentId,
-    string OrderId,
-    string WorldId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /// <summary>
 /// A stable scalar representation keeps authoring requests independent of a
 /// client JSON serializer's ordering or polymorphism behavior. The server
 /// maps it to a typed simulation operation only after signed authorization.
 /// </summary>
-public sealed record OwnerAuthoringOperationAction(
-    string Kind,
-    string? Id,
-    string? Value,
-    string? SecondaryValue,
-    int? X,
-    int? Y,
-    bool? IsRenewable);
 
-public sealed record OwnerAuthoringBatchAction(
-    string BatchId,
-    IReadOnlyList<OwnerAuthoringOperationAction> Operations);
+
+
 
 public static class OwnerHttpBinding
 {
