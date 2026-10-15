@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ClankerWorld.Tests" />
+    <Compile Include="../ClankerWorld.Shared/Contracts/**/*.cs" Exclude="../ClankerWorld.Shared/Contracts/NeedStates.cs;../ClankerWorld.Shared/Contracts/CalendarRules.cs" Link="Shared/Contracts/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../ClankerWorld.Shared/BuildInformation.cs" Link="Shared/BuildInformation.cs" />
     <ProjectReference Include="..\ClankerWorld.Simulation\ClankerWorld.Simulation.csproj" />
   </ItemGroup>
@@ -15,4 +16,7 @@
     <PackageReference Include="Anthropic" Version="12.55.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/EventVocabulary.cs" Link="Shared/EventVocabulary.cs" />
+  </ItemGroup>
 </Project>

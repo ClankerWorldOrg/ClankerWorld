@@ -44,7 +44,7 @@ public partial class Main
         try
         {
             var list = await ownerApi.ListProviderModelsAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerProviderModelListAction(provider, credentialSlotId, apiKey, checkKey), signer, CancellationToken.None);
+                new OwnerProviderModelListAction(provider, credentialSlotId, apiKey, checkKey), signer, OwnerRequestToken);
             if (!IsCurrentWorldRequest(generation) || !picker.IsLatest(lookup)) return;
             if (checkKey) picker.ShowList(list.Models, list.DefaultModel, list.Error);
             else picker.ShowList(list.Models, list.DefaultModel, PasteKeyNote, canRetry: false);
@@ -232,7 +232,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             _ = await AwaitCurrentWorldResultAsync(ownerApi.SetRoutineHelperAsync(ResolveWorldUri(), authority, deviceId,
-                action, signer, CancellationToken.None));
+                action, signer, OwnerRequestToken));
             return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} will help in this world";
         });
     }
