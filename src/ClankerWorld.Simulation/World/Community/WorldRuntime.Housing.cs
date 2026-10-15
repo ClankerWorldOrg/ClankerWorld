@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
 
     private string[] HouseholdAdults(string householdId) => society.Checkpoint.Agents.Where(person =>
             person.Status == SocietyAgentStatus.Active && person.HouseholdId == householdId &&
-            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+            LifeStageRules.IsAdult(person.AgeBand))
         .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
     private bool HasHome(string actor) =>
@@ -140,7 +140,7 @@ public sealed partial class WorldRuntime
 
     private bool HasHousingDecision(string actor) => ReadyForBriefInteraction(actor) && PendingHousingRequestsFor(actor).Any();
 
-    private void AddHousingCandidates(List<CognitionCandidate> candidates, string actor)
+    private void AddHousingCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor))
             return;
@@ -166,44 +166,40 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyHousingCandidate(string actor, string candidate)
+    private void ApplyHousingCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
-        if (!IsAdult(actor))
-            return;
-        if (candidate == HouseholdVolunteerCandidate)
+        if (originalPlan is HousingActionPlan housing) { ApplyHousingActionPlan(housing); return; }
+        if (HousingChoice.Decode(candidate) is { } choice)
         {
-            ApplyVolunteerToRelocate(actor);
+            if (PlanHousingAction(actor, choice) is { } plan) ApplyHousingActionPlan(plan);
             return;
         }
+        if (!IsAdult(actor)) return;
+        if (candidate == HouseholdVolunteerCandidate) { ApplyVolunteerToRelocate(actor); return; }
         ApplyDepartureCandidate(actor, candidate);
-        if (candidate.StartsWith(HousingAskPrefix, StringComparison.Ordinal))
+    }
+
+    private void CompleteHousingAction(HousingActionPlan plan)
+    {
+        if (plan.Choice.Kind == HousingChoiceKind.Ask)
         {
-            var householdId = candidate[HousingAskPrefix.Length..];
-            if (AskableHouseholds(actor).All(household => household.Id != householdId))
-                return;
-            SetHousing(actor, (agents[actor].Housing ?? new()) with
+            SetHousing(plan.Actor, (agents[plan.Actor].Housing ?? new()) with
             {
-                Request = new(householdId, WorldTick, WorldTick + HousingRequestTicks, HouseholdAdults(householdId), [], []),
+                Request = new(plan.HouseholdId, WorldTick, WorldTick + HousingRequestTicks, plan.AdultMembers, [], []),
             });
-            AppendEvent(new HousingRequestMadeEventPayload(actor, householdId));
+            AppendEvent(new HousingRequestMadeEventPayload(plan.Actor, plan.HouseholdId));
             return;
         }
-
-        var admit = candidate.StartsWith(HousingAdmitPrefix, StringComparison.Ordinal);
-        if (!admit && !candidate.StartsWith(HousingRefusePrefix, StringComparison.Ordinal))
-            return;
-        var applicant = candidate[(admit ? HousingAdmitPrefix : HousingRefusePrefix).Length..];
-        if (!PendingHousingRequestsFor(actor).Contains(applicant, StringComparer.Ordinal) ||
-            agents[applicant].Housing is not { Request: { } request } housing)
-            return;
-        SetHousing(applicant, housing with
+        var housing = agents[plan.ApplicantId].Housing!;
+        var request = housing.Request!;
+        SetHousing(plan.ApplicantId, housing with
         {
-            Request = admit
-                ? request with { Approvals = request.Approvals.Append(actor).Order(StringComparer.Ordinal).ToArray() }
-                : request with { Rejections = request.Rejections.Append(actor).Order(StringComparer.Ordinal).ToArray() },
+            Request = plan.Choice.Kind == HousingChoiceKind.Admit
+                ? request with { Approvals = request.Approvals.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() }
+                : request with { Rejections = request.Rejections.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() },
         });
-        AppendEvent(new HousingAnswerRecordedEventPayload(actor, applicant));
-        ResolveHousingRequest(applicant);
+        AppendEvent(new HousingAnswerRecordedEventPayload(plan.Actor, plan.ApplicantId));
+        ResolveHousingRequest(plan.ApplicantId);
     }
 
     private void MaintainHousing()
@@ -417,7 +413,7 @@ public sealed partial class WorldRuntime
             var hasAdultAdmissionState = housing.Request is not null || housing.Refusals is { Count: > 0 };
             var isAdultResident = people.TryGetValue(person.AgentId, out var societyPerson) &&
                 societyPerson.Status == SocietyAgentStatus.Active &&
-                societyPerson.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+                LifeStageRules.IsAdult(societyPerson.AgeBand);
             if (hasAdultAdmissionState && !isAdultResident ||
                 housing.Blocker == HousingBlockers.AwaitingAnswer && housing.Request is null)
                 throw new InvalidDataException("Saved household admission state is only valid for an adult applicant.");

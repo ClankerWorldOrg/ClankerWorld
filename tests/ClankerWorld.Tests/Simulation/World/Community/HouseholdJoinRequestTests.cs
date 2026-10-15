@@ -14,7 +14,7 @@ namespace ClankerWorld.Tests;
 /// construction is considered (#464). Every adult member must agree; nothing
 /// is granted by standing nearby or while the request is pending.
 /// </summary>
-public sealed class HouseholdJoinRequestTests
+public sealed partial class HouseholdJoinRequestTests
 {
     private const string Alpha = "household:first";
     private const string Beta = "household:second";
