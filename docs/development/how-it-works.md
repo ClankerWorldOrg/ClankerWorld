@@ -526,6 +526,8 @@ before the retained project reaches its original Council writer.
 Physical non-land work retains its agreement, exact remaining term, selected
 return lot or service load and destination. Repair uses the retained native
 cart, tool or equipment plan, then continues its existing reserved work.
+Return stock uses the transfer's inventory access rule, so another task's
+promise prevents both a new return choice and an already selected return.
 Known-act relays retain their listener, personal statement and source chain.
 Voluntary non-land terms retain their named contributor, beneficiary, target,
 quantity, duration and reasons. Personal responses retain the exact noticed
