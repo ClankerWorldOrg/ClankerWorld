@@ -472,6 +472,9 @@ current job, offer and payment state when it acts.
 Tool-request visits retain the chosen Smith, recipe and route. The shared check
 uses that exact selection at offer, admission and application; the native
 movement writer keeps its original interaction range and arrival behavior.
+Tool commission continuation retains the request, worker, project, Smith and
+recipe. Shared checks bind that agreement before the existing project writer
+continues its native production step.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

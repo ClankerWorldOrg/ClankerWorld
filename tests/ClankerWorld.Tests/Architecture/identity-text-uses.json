@@ -318,7 +318,7 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs|id|\u0022shop_buy:\u0022 \u002B building.InstanceId": 3,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs|id|\u0022shop_cancel:\u0022 \u002B offer.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs|id|\u0022shop_continue:\u0022 \u002B offer.Id": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs|id|\u0022build:recipe:\u0022 \u002B request.RecipeId": 2,
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs|id|\u0022build:recipe:\u0022 \u002B request.RecipeId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs|length|\u003E 160": 1,
   "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs|id|$\u0022death:{id}:{lot.Id}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.ChildHelping.cs|id|$\u0022child-delivery:{WorldTick}:{actor}\u0022": 1,
