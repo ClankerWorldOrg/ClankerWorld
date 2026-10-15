@@ -295,8 +295,8 @@ Revoking also cancels any pending or approved pairing for the same key.
 
 One key belongs to at most one active device: approving or activating a second
 pairing for a key that is already active is refused. A revoked key cannot start
-a pairing on the public route, so a paired device cannot approve it again; the
-approval listener on the server's own computer can still deliberately pair it,
+a pairing or have one approved on the public routes. The approval listener on
+the server's own computer can still deliberately start and approve its pairing,
 which gives it a new device ID beside the revoked record. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.

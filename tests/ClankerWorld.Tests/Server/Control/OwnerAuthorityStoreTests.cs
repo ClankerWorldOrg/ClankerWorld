@@ -84,6 +84,9 @@ public sealed class OwnerAuthorityStoreTests
         // The approval listener on the server's own computer can deliberately re-admit it.
         var readmitted = store.StartPairingLocally(new(spki));
         Assert.True(readmitted.IsSuccess);
+        Assert.Equal(OwnerAuthorityFailure.DeviceRevoked,
+            store.ApprovePendingPairing(readmitted.Value!.PairingId, readmitted.Value.PairingCode).Failure);
+        Assert.Equal(OwnerPairingState.Pending, store.GetPairingStatus(readmitted.Value.PairingId).Value!.State);
         Assert.True(store.ApprovePendingPairingLocally(readmitted.Value!.PairingId, readmitted.Value.PairingCode).IsSuccess);
         var replacement = store.ActivatePairing(new(readmitted.Value.PairingId, readmitted.Value.ActivationCanonicalProof,
             Sign(key, readmitted.Value.ActivationCanonicalProof)));

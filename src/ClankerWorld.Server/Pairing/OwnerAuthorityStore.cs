@@ -538,17 +538,20 @@ public sealed class OwnerAuthorityStore
     /// </summary>
     public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairingLocally(
         string pairingId,
-        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode);
+        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, allowRevokedKey: true);
 
     /// <summary>
-    /// Applies the pairing confirmation after an ingress layer has established
-    /// either host-local bootstrap authority or an already paired owner device.
-    /// This class deliberately does not decide which of those authorities was
-    /// used; it only performs the one-way state transition.
+    /// Applies confirmation by an already paired owner device. Deliberate
+    /// recovery of a revoked key requires <see cref="ApprovePendingPairingLocally"/>.
     /// </summary>
     public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairing(
         string pairingId,
-        string visibleCode)
+        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, allowRevokedKey: false);
+
+    private OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairing(
+        string pairingId,
+        string visibleCode,
+        bool allowRevokedKey)
     {
         if (!IsReasonableIdentifier(pairingId) || !IsVisibleCode(visibleCode))
         {
@@ -575,7 +578,7 @@ public sealed class OwnerAuthorityStore
             }
 
             // Another pairing for the same key may have activated since this one started.
-            if (RegisteredKeyFailureUnsafe(pairing.PublicKeyFingerprint, allowRevoked: true) is { } keyFailure)
+            if (RegisteredKeyFailureUnsafe(pairing.PublicKeyFingerprint, allowRevokedKey) is { } keyFailure)
             {
                 return OwnerAuthorityResult<OwnerPairingApproval>.Fail(keyFailure);
             }
