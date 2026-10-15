@@ -1,3 +1,5 @@
+using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -8,7 +10,7 @@ public partial class Main
     private readonly Button recoveryCleanupButton = new();
     private readonly SpinBox recoveryKeepCount = new() { MinValue = 1, MaxValue = 10, Step = 1, Value = 3 };
     private readonly ConfirmationDialog recoveryCleanupConfirmation = new();
-    private readonly Label recoveryCleanupSummary = new();
+    private readonly FittedLabel recoveryCleanupSummary = new();
     private RecoveryCleanupPreview? pendingRecoveryCleanup;
 
     private void BuildRecoveryCleanup(VBoxContainer body)
@@ -53,9 +55,9 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var preview = await AwaitCurrentWorldResultAsync(ownerApi.PreviewRecoveryCleanupAsync(ResolveWorldUri(), authority,
-                deviceId, new("preview", worldId, count), signer, CancellationToken.None));
+                deviceId, new("preview", worldId, count), signer, OwnerRequestToken));
             if (!manualSaveOverlay.Visible || listedSaveWorldId != worldId || preview.WorldId != worldId)
-                throw new ObsoleteWorldRequestException();
+                throw new ObsoleteOwnerRequestException();
             ShowRecoveryCleanupPreview(preview);
             return preview.Remove.Count == 0 ? "No verified older recovery copies to remove." : "Review the recovery copies before deleting.";
         });
@@ -84,7 +86,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.CleanRecoveryHistoryAsync(ResolveWorldUri(), authority,
-                deviceId, new("apply", preview.WorldId, preview.KeepCount, preview.Digest), signer, CancellationToken.None));
+                deviceId, new("apply", preview.WorldId, preview.KeepCount, preview.Digest), signer, OwnerRequestToken));
             await OpenManualSavesAsync(manualSaveLoadMode);
             return $"Removed {receipt.RemovedIds.Count} recovery copies.";
         }, waitForTurn: true);

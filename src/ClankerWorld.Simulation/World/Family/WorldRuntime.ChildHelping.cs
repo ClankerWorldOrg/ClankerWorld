@@ -112,14 +112,14 @@ public sealed partial class WorldRuntime
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                     $"child-delivery:{WorldTick}:{actor}", actor, plan.HouseholdId!, plan.StockId!, plan.Quantity,
                     "child_household_delivery", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.HouseId)));
-                AppendEvent("child_delivered_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
+                AppendEvent(new ChildDeliveredHouseholdEventPayload(actor, plan.ItemKind!, plan.Quantity, plan.HouseId!));
             }
             else
             {
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
                     $"child-pickup:{WorldTick}:{actor}", plan.HouseholdId!, actor, plan.StockId!, plan.Quantity,
                     "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-                AppendEvent("child_collected_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}");
+                AppendEvent(new ChildCollectedHouseholdEventPayload(actor, plan.ItemKind!, plan.Quantity));
             }
             return;
         }

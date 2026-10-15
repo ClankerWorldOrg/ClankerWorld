@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Xml.Linq;
 using ClankerWorld.Simulation.World;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -59,9 +60,18 @@ internal static class RuntimeWriterScan
     internal static CSharpCompilation CreateCompilation(string root)
     {
         var source = Path.Combine(root, "src/ClankerWorld.Simulation");
+        var linkedPaths = XDocument.Load(Path.Combine(source, "ClankerWorld.Simulation.csproj"))
+            .Descendants("Compile").Select(element => element.Attribute("Include")?.Value)
+            .Where(include => include is not null).SelectMany(include =>
+            {
+                var path = Path.GetFullPath(Path.Combine(source, include!.Replace('\\', Path.DirectorySeparatorChar)));
+                return Path.GetFileName(path).Contains('*')
+                    ? Directory.EnumerateFiles(Path.GetDirectoryName(path)!, Path.GetFileName(path))
+                    : new[] { path };
+            });
         var paths = Directory.EnumerateFiles(source, "*.cs", SearchOption.AllDirectories)
             .Where(path => !Path.GetRelativePath(source, path).Split(Path.DirectorySeparatorChar).Any(part => part is "obj" or "bin"))
-            .Append(Path.Combine(root, "src/ClankerWorld.Shared/AgentPlacementRules.cs"));
+            .Concat(linkedPaths);
         var trees = paths.Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path)).ToList();
         trees.Add(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; " +
             "global using System.IO; global using System.Linq; global using System.Net.Http; " +
