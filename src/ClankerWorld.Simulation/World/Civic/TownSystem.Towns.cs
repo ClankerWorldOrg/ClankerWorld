@@ -28,7 +28,7 @@ internal sealed partial class TownSystem
                         "undecided", "find a purpose", IdentityChoicePending: true));
         founderSetup = setup with { FounderIds = [.. setup.FounderIds, founderId] };
         AddTownResident(world, TownBorderRules.FirstTownId, founderId, "founder_joined");
-        world.AppendEvent("founder_placed", $"{founderId}:{householdId}");
+        world.AppendEvent(new FounderPlacedEventPayload(founderId, householdId));
         return householdId;
     }
 
@@ -46,7 +46,7 @@ internal sealed partial class TownSystem
             throw new ArgumentException("Choose an empty passable tile for this founder.", nameof(position));
         if (founder.Position == position) return false;
         world.SetAgent(founderId, founder with { Position = position });
-        world.AppendEvent("founder_moved", $"{founderId}:{founder.Position.X},{founder.Position.Y}->{position.X},{position.Y}");
+        world.AppendEvent(new FounderMovedEventPayload(founderId, founder.Position.X, founder.Position.Y, position.X, position.Y));
         return true;
     }
 
@@ -61,7 +61,7 @@ internal sealed partial class TownSystem
         world.RemoveAgent(founderId);
         founderSetup = setup with { FounderIds = setup.FounderIds.Take(setup.FounderIds.Count - 1).ToArray() };
         RemoveTownResident(world, founderId);
-        world.AppendEvent("founder_placement_undone", founderId);
+        world.AppendEvent(new FounderPlacementUndoneEventPayload(founderId));
         return founderSetup.FounderIds.Count;
     }
 
@@ -93,8 +93,8 @@ internal sealed partial class TownSystem
         world.AddAgent(agentId, new AgentState(agentId, position, 6_500, 0,
                     "undecided", "find a purpose", IdentityChoicePending: true));
         if (town is not null) AddTownResident(world, town.Id, agentId, "agent_joined");
-        else world.AppendEvent("town_membership_evaluated", $"{agentId}:unaffiliated");
-        world.AppendEvent("agent_added", agentId);
+        else world.AppendEvent(new TownMembershipEvaluatedEventPayload(agentId));
+        world.AppendEvent(new AgentAddedEventPayload(agentId));
         return householdId;
     }
 
@@ -184,12 +184,12 @@ internal sealed partial class TownSystem
         if (towns.SingleOrDefault(item => item.Id == TownBorderRules.FirstTownId) is { } firstTown)
         {
             SetTown(world, firstTown with { FoundingState = "founded" });
-            world.AppendEvent("town_founded", $"{firstTown.Id}:residents:{firstTown.ResidentIds.Count}");
+            world.AppendEvent(new TownFoundedEventPayload(null, firstTown.Id, null, firstTown.ResidentIds.Count, true));
         }
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
         if (resume) world.ResumeSociety();
-        world.AppendEvent("world_started", "four_founders_ready");
+        world.AppendEvent(new WorldStartedEventPayload(null));
     }
 
     internal void AddTownResident(ITownWorld world, string townId, string residentId, string reason)
@@ -203,7 +203,7 @@ internal sealed partial class TownSystem
         });
         AdvanceTownCouncil(world);
         var updated = towns.Single(item => item.Id == townId);
-        world.AppendEvent("town_resident_joined", $"{updated.Id}:{residentId}:{reason}:residents:{updated.ResidentIds.Count}");
+        world.AppendEvent(new TownResidentJoinedEventPayload(null, updated.Id, residentId, reason, updated.ResidentIds.Count));
         SettleTownAdmissions(world);
     }
 
@@ -214,7 +214,7 @@ internal sealed partial class TownSystem
         var residents = town.ResidentIds.Where(id => id != residentId).ToArray();
         SetTown(world, town with { ResidentIds = residents });
         AdvanceTownCouncil(world);
-        world.AppendEvent("town_resident_left", $"{town.Id}:{residentId}:residents:{residents.Length}");
+        world.AppendEvent(new TownResidentLeftEventPayload(null, town.Id, residentId, residents.Length));
         SettleTownAdmissions(world);
     }
 
@@ -239,9 +239,9 @@ internal sealed partial class TownSystem
             FirstBuildingCompletedTick = town.FirstBuildingCompletedTick ?? world.WorldTick,
         });
         var updated = towns.Single(item => item.Id == town.Id);
-        world.AppendEvent("town_building_assigned", $"{town.Id}:{building.InstanceId}:buildings:{updated.AssignedBuildingIds.Count}");
+        world.AppendEvent(new TownBuildingAssignedEventPayload(null, town.Id, building.InstanceId, updated.AssignedBuildingIds.Count));
         if (!town.BorderTiles.SequenceEqual(border))
-            world.AppendEvent("town_border_expanded", $"{town.Id}:{building.InstanceId}:tiles:{border.Count}");
+            world.AppendEvent(new TownBorderExpandedEventPayload(null, town.Id, building.InstanceId, border.Count));
         if (town.FirstBuildingCompletedTick is null)
             world.GenerateRoadBetweenTowns(updated, building);
         var laid = world.GenerateRoadToBuilding(building, updated.BorderTiles.ToHashSet());
@@ -250,7 +250,7 @@ internal sealed partial class TownSystem
         var withRoad = TownBorderRules.Expand(world.Map, updated, laid);
         if (withRoad.Count == updated.BorderTiles.Count) return;
         SetTown(world, updated with { BorderTiles = withRoad });
-        world.AppendEvent("town_border_expanded", $"{town.Id}:{building.InstanceId}:tiles:{withRoad.Count}");
+        world.AppendEvent(new TownBorderExpandedEventPayload(null, town.Id, building.InstanceId, withRoad.Count));
     }
 
     internal void SetTown(ICivicWorld world, TownRuntimeState updated)
@@ -265,9 +265,9 @@ internal sealed partial class TownSystem
         };
         SetTownState(updated);
         if (!previous.IsAbandoned && updated.IsAbandoned)
-            world.AppendEvent("town_abandoned", updated.Id);
+            world.AppendEvent(new TownAbandonedEventPayload(null, updated.Id));
         else if (previous.IsAbandoned && !updated.IsAbandoned)
-            world.AppendEvent("town_revived", updated.Id);
+            world.AppendEvent(new TownRevivedEventPayload(null, updated.Id));
     }
 
 }

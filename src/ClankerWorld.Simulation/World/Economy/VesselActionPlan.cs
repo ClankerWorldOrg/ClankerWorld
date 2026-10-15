@@ -14,7 +14,7 @@ public sealed record VesselChoice(VesselActionKind Kind, GridPoint? Shore = null
         VesselActionKind.ReturnJug => "return_water_jug",
         VesselActionKind.StoreFood => "store_food_in_pot",
         VesselActionKind.TakeFood => "take_food_from_pot",
-        VesselActionKind.ReturnEmpty => EmptyPrefix + StockId,
+        VesselActionKind.ReturnEmpty => IdentityRules.PrefixedReference(EmptyPrefix, StockId),
         _ => $"{FillPrefix}{Shore!.Value.X.ToString(CultureInfo.InvariantCulture)},{Shore.Value.Y.ToString(CultureInfo.InvariantCulture)}",
     };
 
