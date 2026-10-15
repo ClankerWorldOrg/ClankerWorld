@@ -136,6 +136,10 @@ land-request consent and settlement shapes, and project stages and material
 delivery records also use local TownSystem contracts. Publication permits
 separately staged Council, population and inventory changes; the save boundary
 checks their completed approvals, membership, physical receipts and sites.
+Land and civil hearing ledgers check their file completeness, revision order,
+retained evidence, responses, consent history and internal read provenance before
+test publication. Their population, Council-notice, map and current-time links
+remain at the boundary.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,

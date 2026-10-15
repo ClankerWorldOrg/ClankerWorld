@@ -5,34 +5,15 @@ using ClankerWorld.Simulation.Society;
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Validates the durable civil procedure, consent and performance file before it is used.</summary>
-public static class TownNonLandValidation
+public static partial class TownNonLandValidation
 {
     public static void Validate(WorldMap map, SocietyCheckpoint society, TownRuntimeState town,
         IReadOnlyList<TownLandTitleRecord> titles, int day)
     {
         var state = town.NonLandHearings;
         var tick = society.WorldTick;
-        Check(state is not null && state.Sequence >= 0 && state.Cases is not null && state.Offers is not null &&
-            state.Agreements is not null && state.Effects is not null && day > 0, "The Town must retain its nonviolent case and remedy records.");
-        Check(state.Cases.All(c => c is not null) && state.Offers.All(o => o is not null) &&
-            state.Agreements.All(a => a is not null) && state.Effects.All(e => e is not null), "Nonviolent records cannot contain null entries.");
-        // Establish the shape of every file before any cross-case reference lookup.
-        foreach (var item in state.Cases) Shape(item);
-        foreach (var offer in state.Offers)
-            Check(TownHearingProcedure.DerivedIdentity(offer.Id) && TownHearingProcedure.DerivedIdentity(offer.CaseId) && TownHearingProcedure.DerivedIdentity(offer.FindingId) && TownRemedyRules.ValidTerms(offer.Terms) &&
-                offer.Responses is not null && offer.Responses.All(r => r is not null), "A remedy offer must retain its typed terms and responses.");
-        foreach (var agreement in state.Agreements)
-            Check(TownHearingProcedure.DerivedIdentity(agreement.Id) && TownHearingProcedure.DerivedIdentity(agreement.OfferId) && TownRemedyRules.ValidTerms(agreement.Terms) &&
-                agreement.Consents is not null && agreement.Consents.All(r => r is not null), "An agreement must retain its terms and personal consents.");
-        foreach (var effect in state.Effects)
-            Check(TownHearingProcedure.DerivedIdentity(effect.Id) && TownHearingProcedure.DerivedIdentity(effect.AgreementId) && Id(effect.TermId) && Id(effect.ActorId) &&
-                Id(effect.NativeReceiptId) && Id(effect.NativeReceiptVersion), "A remedy effect needs actual named physical provenance.");
-        Unique(state.Cases.Select(c => c.Key));
-        Unique(state.Cases.Select(c => c.Id).Concat(state.Cases.SelectMany(c => c.Findings.Select(f => f.Id)))
-            .Concat(state.Cases.SelectMany(c => c.ReopenRequests.Select(r => r.Id))).Concat(state.Offers.Select(o => o.Id))
-            .Concat(state.Agreements.Select(a => a.Id)).Concat(state.Effects.Select(e => e.Id)));
-        Check(state.Sequence >= state.Cases.Count + state.Cases.Sum(c => c.Findings.Count + c.ReopenRequests.Count) +
-            state.Offers.Count + state.Agreements.Count, "The nonviolent record sequence cannot precede its saved records.");
+        ValidateLocal(town.Id, state);
+        Check(day > 0, "The Town must retain its nonviolent case and remedy records.");
         var people = society.Agents.ToDictionary(p => p.Id, StringComparer.Ordinal);
         var households = society.Households.Select(h => h.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in state.Cases) ValidateCase(map, society, town, item, people, households, titles, day);
@@ -51,29 +32,12 @@ public static class TownNonLandValidation
         }
     }
 
-    private static void Shape(TownNonLandCase item)
-    {
-        Check(TownHearingProcedure.DerivedIdentity(item.Id) && Id(item.Key) && Id(item.TownId) && TownNonLandRules.ValidAllegation(item.Allegation) &&
-            item.Revisions is { Count: > 0 } && item.Filings is { Count: > 0 } && item.Evidence is not null && item.Reads is not null &&
-            item.Responses is not null && item.Findings is not null && item.JudgeHistory is not null && item.JudgeConsents is not null &&
-            item.ContestHistory is not null && item.ReopenRequests is not null && Canonical(item.DirectStakeIds), "A case must retain its complete file.");
-        Check(item.Revisions.All(r => r is not null && TownNonLandRules.ValidParties(r.Parties)) &&
-            item.Filings.All(f => f is not null && f.EvidenceIds is not null) &&
-            item.Evidence.All(e => e is not null) && item.Reads.All(r => r is not null && r.EvidenceIds is not null && r.ReopenRequestIds is not null && r.ResponseIds is not null && r.FindingIds is not null) &&
-            item.Responses.All(r => r is not null) && item.Findings.All(f => f is not null && TownHearingProcedure.DerivedIdentity(f.Id) && f.Judge is not null &&
-                f.EvidenceIds is not null && TownNonLandRules.ValidParties(f.Parties)) &&
-            item.JudgeHistory.All(h => h is not null && h.Judge is not null) && item.JudgeConsents.All(c => c is not null) &&
-            item.ContestHistory.All(c => c is not null) && item.ReopenRequests.All(r => r is not null && TownHearingProcedure.DerivedIdentity(r.Id) && r.EvidenceIds is not null),
-            "A nonviolent case cannot contain incomplete file entries.");
-    }
-
     private static void ValidateCase(WorldMap map, SocietyCheckpoint society, TownRuntimeState town,
         TownNonLandCase item, Dictionary<string, SocietyAgent> people, HashSet<string> households,
         IReadOnlyList<TownLandTitleRecord> titles, int day)
     {
         var tick = society.WorldTick;
-        Check(item.TownId == town.Id && item.Key == TownNonLandRules.CaseKey(town.Id, item.Allegation) &&
-            item.Status is "pending" or "settled" && item.FiledTick >= item.Allegation.ConductTick && item.FiledTick <= tick &&
+        Check(item.FiledTick <= tick &&
             map.Contains(item.Allegation.Position) && people.ContainsKey(item.Allegation.SubjectId), "A saved allegation must identify its actual Town, person, place and time.");
         var law = town.Government?.Laws.SingleOrDefault(l => l.Id == item.Allegation.LawId);
         // Native conduct captures the actual wording before another action can amend
@@ -88,8 +52,6 @@ public static class TownNonLandValidation
                 "A later Town claim cannot create earlier territorial jurisdiction.");
         // Resident-duty context and actual source acquisition are checked against the
         // native conduct snapshot by the runtime's physical-source validator.
-        Check(item.Revisions.Select(r => r.Number).SequenceEqual(Enumerable.Range(1, item.Revisions.Count)) &&
-            item.Revisions[0].PublishedTick == item.FiledTick && OrderedTimes(item.Revisions.Select(r => r.PublishedTick)), "Hearing revisions must retain their original and later notice windows.");
         foreach (var revision in item.Revisions)
         {
             Check(revision.PublishedTick >= item.FiledTick && revision.PublishedTick <= tick &&
@@ -102,50 +64,25 @@ public static class TownNonLandValidation
         }
         Check(item.DirectStakeIds.All(people.ContainsKey), "Direct stakes must name known people.");
         foreach (var filing in item.Filings)
-            Check(Id(filing.AgentId) && people.ContainsKey(filing.AgentId) && filing.Kind is "witness" or "affected" or "town" &&
-                Text(filing.Statement) && filing.Tick >= item.FiledTick && filing.Tick <= tick && Canonical(filing.EvidenceIds) &&
+            Check(people.ContainsKey(filing.AgentId) && filing.Tick <= tick &&
                 (filing.Kind != "town" || ValidTownFiling(town, item, filing)), "A filing must retain a specific informed reporter and source.");
-        Unique(item.Evidence.Select(e => e.Id));
         foreach (var evidence in item.Evidence)
-            Check(TownNonLandRules.ValidEvidence(evidence) && people.ContainsKey(evidence.SourceAgentId) && people.ContainsKey(evidence.SubmittedByAgentId) &&
+            Check(people.ContainsKey(evidence.SourceAgentId) && people.ContainsKey(evidence.SubmittedByAgentId) &&
                 evidence.SubmittedTick <= tick && item.Revisions.Any(r => r.Number == evidence.Revision &&
                     TownNonLandRules.HasNoticeReceipt(r, evidence.SubmittedByAgentId, evidence.SubmittedTick, town.Council!.Knowledge)),
                 "Evidence must preserve its source and actual informed submission.");
-        Unique(item.Responses.Select(TownNonLandRules.ResponseToken));
         foreach (var response in item.Responses)
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == response.Revision);
             var party = revision?.Parties.SingleOrDefault(p => p.Id == response.PartyId);
-            Check(revision is not null && party is not null && response.AgentId == party.RespondingAdultId && response.RepresentedAgentId == party.SubjectId &&
-                response.Kind is "answer" or "waive" && Text(response.Text) && response.Tick <= tick &&
-                TownNonLandRules.HasNoticeReceipt(revision, response.AgentId, response.Tick, town.Council!.Knowledge),
+            Check(response.Tick <= tick &&
+                TownNonLandRules.HasNoticeReceipt(revision!, response.AgentId, response.Tick, town.Council!.Knowledge),
                 "A response must belong to the noticed person or their recorded caregiver support.");
         }
-        for (var index = 0; index < item.Reads.Count; index++)
-        {
-            var read = item.Reads[index];
-            Check(Id(read.AgentId) && people.ContainsKey(read.AgentId) && read.ReadTick <= tick && Canonical(read.EvidenceIds) && Canonical(read.ReopenRequestIds) && Canonical(read.ResponseIds) && Canonical(read.FindingIds) &&
-                item.Revisions.Any(r => r.Number == read.Revision && r.PublishedTick <= read.ReadTick) &&
-                read.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= read.ReadTick)) &&
-                read.ReopenRequestIds.All(id => item.ReopenRequests.Any(r => r.Id == id && r.Tick <= read.ReadTick)) &&
-                read.ResponseIds.All(id => item.Responses.Any(r => TownNonLandRules.ResponseToken(r) == id && r.Tick <= read.ReadTick)) &&
-                read.FindingIds.All(id => item.Findings.Any(f => f.Id == id && f.Tick <= read.ReadTick)), "A file read cannot contain unknown or future facts.");
-            if (read.SourceAgentId is { } source)
-            {
-                var prior = item.Reads.Take(index).Where(r => r.Revision == read.Revision && r.ReadTick <= read.ReadTick).ToArray();
-                Check(source != read.AgentId && prior.Any(r => r.AgentId == source) &&
-                    read.EvidenceIds.All(id => prior.Any(r => (r.AgentId == source || r.AgentId == read.AgentId) && r.EvidenceIds.Contains(id))) &&
-                    read.ReopenRequestIds.All(id => prior.Any(r => (r.AgentId == source || r.AgentId == read.AgentId) && r.ReopenRequestIds.Contains(id))) &&
-                    read.ResponseIds.All(id => prior.Any(r => (r.AgentId == source || r.AgentId == read.AgentId) && r.ResponseIds.Contains(id))) &&
-                    read.FindingIds.All(id => prior.Any(r => (r.AgentId == source || r.AgentId == read.AgentId) && r.FindingIds.Contains(id))),
-                    "A relay cannot convey file material neither recipient nor source had read.");
-            }
-        }
-        Check(OrderedTimes(item.Reads.Select(r => r.ReadTick)), "File reads must preserve their chronology.");
+        foreach (var read in item.Reads)
+            Check(people.ContainsKey(read.AgentId) && read.ReadTick <= tick, "A file read cannot contain unknown or future facts.");
         foreach (var consent in item.JudgeConsents)
-            Check(Id(consent.AgentId) && people.ContainsKey(consent.AgentId) && consent.Tick >= item.FiledTick && consent.Tick <= tick &&
-                (consent.WithdrawnTick is null || consent.WithdrawnTick >= consent.Tick && consent.WithdrawnTick <= tick), "A case judge needs their own recorded willingness.");
-        Unique(item.JudgeConsents.Where(c => c.WithdrawnTick is null).Select(c => c.AgentId));
+            Check(people.ContainsKey(consent.AgentId) && consent.Tick <= tick && (consent.WithdrawnTick is null || consent.WithdrawnTick <= tick), "A case judge needs their own recorded willingness.");
         foreach (var contest in item.ContestHistory.Concat(item.Contest is { } live ? [live] : []))
             ValidateContest(contest, item, people, tick, day, ReferenceEquals(contest, item.Contest));
         if (item.Judge is { } judge)
@@ -162,12 +99,10 @@ public static class TownNonLandValidation
         }
         foreach (var term in item.JudgeHistory)
         {
-            Check(term.EndedTick >= term.Judge.AssignedTick && term.EndedTick <= tick && Text(term.Reason), "An ended assignment must retain its actual end and reason.");
+            Check(term.EndedTick <= tick, "An ended assignment must retain its actual end and reason.");
             ValidateJudge(term.Judge, item, town.Government, people, term.Judge.AssignedTick);
         }
         foreach (var finding in item.Findings) ValidateFinding(town, item, finding, people, households, society);
-        Check(item.Status == "settled" ? item.Findings.Count > 0 && item.SettledTick == item.Findings[^1].Tick : item.SettledTick is null,
-            "A settled case must retain its finding; reopening keeps prior findings without a false settlement time.");
         foreach (var request in item.ReopenRequests)
         {
             Check(Id(request.AgentId) && people.ContainsKey(request.AgentId) && request.Tick >= item.FiledTick && request.Tick <= tick &&
