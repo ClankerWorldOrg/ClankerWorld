@@ -114,30 +114,6 @@
     "Count": 1
   },
   {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
-    "Rule": "async-fake",
-    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
-    "Rule": "delay",
-    "Expression": "Task.Delay(10,deadline.Token)",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
-    "Rule": "delay",
-    "Expression": "Task.Delay(200,deadline.Token)",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
-    "Rule": "timeout-cancellation",
-    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(10))",
-    "Count": 1
-  },
-  {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
     "Rule": "async-fake",
     "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
