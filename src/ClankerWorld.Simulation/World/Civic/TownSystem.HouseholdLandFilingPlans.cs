@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
     }
 
     internal static HouseholdLandFilingActionPlan BindHouseholdLandFiling(HouseholdLandFilingActionPlan plan, IReadOnlyList<CognitionLandTile>? tiles) =>
-        plan.SelectedTiles is not null || tiles is null ? plan : plan with { SelectedTiles = tiles.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() };
+        plan.SelectedTiles is not null ? plan : plan with { SelectedTiles = tiles?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() ?? [] };
 
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null)
     {
@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House or expansion plot has changed");
         var tiles = plan.SelectedTiles;
         if (tiles is null) return new();
-        var failure = HouseholdLandFilingFailure(world, TownRecordIds.LandRequest(town.Id, town.Council.Notices.Count + 1),
+        var failure = HouseholdLandFilingFailure(world, TownRecordIds.LandRequest(town.Id, TownCouncilRules.NextNoticeSequence(town.Council)),
             plan.Actor, town.Id, tiles, null);
         return failure is null ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, failure);
     }
