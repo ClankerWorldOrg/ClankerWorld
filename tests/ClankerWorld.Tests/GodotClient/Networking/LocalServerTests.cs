@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
+using ClankerWorld.GodotClient.Diagnostics;
 using ClankerWorld.GodotClient.Networking;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
@@ -37,7 +38,8 @@ public sealed partial class LocalServerTests
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
         using var http = new HttpClient();
-        var game = new LocalServer(layout, http, FreePort(), FreePort(),
+        var (port, approval) = FreePorts();
+        var game = new LocalServer(layout, http, port, approval,
             detailedLogs: GameStarter.UsesDetailedLogs(arguments));
         try
         {
@@ -181,7 +183,7 @@ public sealed partial class LocalServerTests
     public async Task GameStartsPairsWithAndStopsItsOwnServer()
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-{Guid.NewGuid():N}");
-        var (port, approvalPort) = (FreePort(), FreePort());
+        var (port, approvalPort) = FreePorts();
         var serverAssembly = typeof(Program).Assembly;
         var (version, revision) = BuildOf(serverAssembly);
         var layout = new LocalServerLayout(
@@ -259,7 +261,8 @@ public sealed partial class LocalServerTests
             File.WriteAllText(layout.SecretPath, "synthetic-previous-launch-value");
             var previousSecretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var http = new HttpClient();
-            var game = new LocalServer(layout, http, FreePort(), FreePort());
+            var (port, approval) = FreePorts();
+            var game = new LocalServer(layout, http, port, approval);
             var start = await game.StartAsync("0", "0", CancellationToken.None);
             Assert.Equal(LocalServerStartOutcome.CouldNotStart, start.Outcome);
             Assert.Contains("try again", start.PlayerMessage, StringComparison.OrdinalIgnoreCase);
@@ -285,7 +288,7 @@ public sealed partial class LocalServerTests
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
         using var http = new HttpClient();
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
         try
         {
@@ -321,11 +324,17 @@ public sealed partial class LocalServerTests
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
         using var http = new HttpClient();
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
         try
         {
-            Assert.Equal(LocalServerStartOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            var initial = await game.StartAsync(version, revision, CancellationToken.None);
+            Assert.True(initial.Outcome == LocalServerStartOutcome.Started,
+                initial.Outcome == LocalServerStartOutcome.Started ? null :
+                $"Initial launch: {initial.Outcome} ({initial.Detail}); public={port}; approval={approval}\n" +
+                (File.Exists(layout.LogPath)
+                    ? ProblemReport.Redact(await ReadSharedAsync(layout.LogPath), game.SecretsToHide())
+                    : "No child log was created."));
             var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
             using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true, deferTimeout: deferTimeout);
             using var delayedHttp = new HttpClient(handler);
@@ -419,7 +428,8 @@ public sealed partial class LocalServerTests
             [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
         using var handler = new ShutdownRefusalHandler();
         using var http = new HttpClient(handler);
-        var game = new LocalServer(layout, http, FreePort(), FreePort());
+        var (port, approval) = FreePorts();
+        var game = new LocalServer(layout, http, port, approval);
         try
         {
             Assert.True((await game.StartAsync(version, revision, CancellationToken.None)).IsReady);
@@ -453,7 +463,7 @@ public sealed partial class LocalServerTests
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
         using var http = new HttpClient();
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
         string? original = null;
         try
@@ -556,6 +566,15 @@ public sealed partial class LocalServerTests
         var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         var separator = informational.IndexOf('+', StringComparison.Ordinal);
         return separator < 0 ? (informational, "unknown") : (informational[..separator], informational[(separator + 1)..]);
+    }
+
+    private static (int Public, int Approval) FreePorts()
+    {
+        // Keep the first port bound until the second is chosen. Closing both
+        // independently lets the OS return the same ephemeral port twice.
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        return (((IPEndPoint)listener.LocalEndpoint).Port, FreePort());
     }
 
     private static int FreePort()

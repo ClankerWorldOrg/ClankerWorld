@@ -22,7 +22,7 @@ public sealed partial class LocalServerTests
         var (version, revision) = BuildOf(assembly);
         var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
-        var (port, approval) = (FreePort(), FreePort());
+        var (port, approval) = FreePorts();
         File.WriteAllLines(Path.Combine(directory.FullName, "ports"),
             [port.ToString(CultureInfo.InvariantCulture), approval.ToString(CultureInfo.InvariantCulture)]);
         var start = new ProcessStartInfo(layout.FileName)
