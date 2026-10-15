@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
         public bool OnBorrowedMarketStall(InventoryLot lot) => runtime.OnBorrowedMarketStall(lot);
         public int PickupCarryCapacity(string actor, InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
-        public bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) => runtime.CanWalkToFieldOrderSite(actor, from, destination, range);
+        public bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) => runtime.CanReachLeg(actor, from, destination, ReachPurpose.FieldWork, range, 0, SwimmingPolicy.WhenCapable);
         public void MoveToward(string actor, AgentState state, GridPoint destination, string reason, int interactionRange = 0) => runtime.MoveToward(actor, state, destination, reason, interactionRange);
         public void PickUpEquipment(string actor, PlannedEquipmentPickup pickup) => runtime.ApplyPlannedEquipmentPickup(actor, pickup);
         public bool HasCarriedOwnItem(string actor, string kind) => runtime.HasCarriedOwnItem(actor, kind);
