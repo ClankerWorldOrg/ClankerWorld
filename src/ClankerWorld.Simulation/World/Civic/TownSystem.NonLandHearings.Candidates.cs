@@ -9,8 +9,10 @@ internal sealed partial class TownSystem
     internal void AddChildNonLandCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor)
     {
         if (!world.IsChild(actor) || WorldRuntime.CivicSharedRules.NeedsUrgentFood(world.Agents[actor]) || world.NeedsUrgentWarmth(world.Agents[actor])) return;
+        var first = candidates.Count;
         foreach (var town in world.Towns.Where(town => town.FoundingState == "founded" && town.Council is not null))
             AddTownNonLandCandidates(world, candidates, actor, town);
+        AttachCivicVisitPlans(world, candidates, actor, first);
     }
 
     internal void AddTownNonLandCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)

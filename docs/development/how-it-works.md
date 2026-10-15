@@ -408,12 +408,16 @@ transitions and marriage cleanup remain their native commit path.
 Housing admission choices retain their request, House and adult electorate.
 Other members' answers can accumulate without changing that selection; a changed
 House, electorate or request receives the same check at all three boundaries.
+The House's definition and original placement tick stay bound if its ID is
+reused. Expanding that same House still uses the current capacity checks.
 Learning choices retain the student, teacher, skill, request and communal lesson
 site. The same check governs offer, admission and apply; native continuation may
-advance the same agreement while a model reply waits.
+advance the same agreement while a model reply waits. A pending withdrawal can
+still stop that agreement and preserves its latest progress.
 Household leave/founding choices retain their household, moving care group and
 exact loose-food allowance. Native membership, custody and paused-work effects
 use the retained selection; automatic displacement plans its own native step.
+Allowance selection and rechecks respect the native transfer's stock holds.
 Paused household work retains its job, original worker/time, material reservation
 IDs, workstation and selected knife. The same check runs at all three boundaries;
 blocked travel waits and expansion checks on arrival keep the native behavior.
@@ -426,6 +430,8 @@ notice writer and deadline reconciliation keep the original timer behavior.
 Tool-request consent choices retain their Smith, recipe and exact request.
 Shared checks run at offer, admission and apply, while fresh accepted personal
 model consent remains required for placement, acceptance, refusal and withdrawal.
+Pending withdrawal permits progress within that same request and preserves the
+current job, offer and payment state when it acts.
 Tool-request visits retain the chosen Smith, recipe and route. The shared check
 uses that exact selection at offer, admission and application; the native
 movement writer keeps its original interaction range and arrival behavior.
@@ -433,11 +439,14 @@ Tool commission continuation retains the request, worker, project, Smith and
 recipe. Shared checks bind that agreement before the existing project writer
 continues its native production step.
 Finished-tool collection retains its request and Smith; an on-site quote also
-retains the exact finished output, payment and quantities. The same selection
-is checked before the native shop writer opens its exchange.
+retains the exact finished output, payment and quantities. Shared shop checks
+recheck those lots' current availability and stock promises before the native
+writer opens the exchange, allowing ordinary processing without choosing other stock.
 Civic notice-place visits retain the Town, public destination and route. Their
-shared check covers residents and eligible visitors before the native civic
-action or its ordinary walking continuation; arrival still asks for a fresh act.
+shared check covers residents and eligible visitors, including children who
+actually know a non-land report or case, before the native civic action or its
+ordinary walking continuation; arrival still asks for a fresh act. A child's
+visit grants no adult civic rights, and urgent food or warmth still comes first.
 Council candidacy responses retain the chosen Town, nominee or remainder-term
 deadline and the actor's existing agreement. A shared check preserves personal
 consent while other residents' registrations can accumulate in the same tick.
@@ -475,12 +484,17 @@ refuses a changed round before the native mayoral vote writer runs.
 Town title-claim proposals retain their offered nearby plot options and bind
 the admitted exact tiles once. The shared native claim validator checks that
 selection before the existing Council and title writers use it.
+Replies without a plot are refused before proposal submission.
 Household land responses retain the exact request, plot and terms. Their
 shared check allows other household consents to accumulate while checking
 the actor's personal eligibility before the native consent writer runs.
+Opening the request's Council ballot does not change its personal response terms.
 Household land filing retains the household and binds the admitted exact
 plot once; expansion filing retains its House and selected extra tiles.
 Plan checks and native submission share the existing plot refusal validator.
+Replies without a household plot bind an empty selection and are refused before submission.
+Expansion filing keeps its selected tiles and waits while a feasible alternative
+shape overlaps the household's pending request, using native availability rules.
 Permission-transfer proposals retain the source terms and eligible beneficiary
 plots, then bind the admitted target, exact plot and goods price once.
 The shared native transfer validator checks those terms before publication.
@@ -504,12 +518,15 @@ revision and binds the admitted plot, requested outcome and statement once.
 Its shared check uses the native plot, filing and proposal-retry validators
 before the retained terms reach the original case or Council writer.
 Hearing inspection retains the current case file and noticed revision.
-Statements and personal responses retain their submitted text and exact party;
+Statements and personal responses retain their submitted text and party identity;
+responses still check the actor's current authority when another adult leaves.
 observations retain the visible plot and physical description. Relays retain
 the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+A withdrawn candidate or departed voter does not invalidate other selections;
+the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
 Ruling plans retain the noticed revision, judge, affected permissions and
 applications, cited material and bound outcome/reasons. Property rulings
@@ -740,7 +757,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 215 references across 59 files. Named delivery, hold and cargo operations
+is 188 references across 53 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
