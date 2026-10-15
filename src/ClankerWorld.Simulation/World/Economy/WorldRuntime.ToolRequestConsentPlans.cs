@@ -45,38 +45,6 @@ public sealed partial class WorldRuntime
         return allowed ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that tool-request response is no longer available");
     }
 
-    private void AddToolMakingRequestCandidates(List<CognitionCandidate> candidates, string actor)
-    {
-        var options = new List<CognitionCandidate>();
-        AddToolMakingRequestCandidateOptions(options, actor);
-        foreach (var candidate in options)
-        {
-            if (ToolRequestCollectionChoice.Decode(candidate.Id) is { } collect)
-            {
-                if ((candidate.ActionPlan as ToolRequestCollectionActionPlan ?? PlanToolRequestCollection(actor, collect)) is { } collection &&
-                    CheckActionPlan(collection).Allowed)
-                    candidates.Add(candidate with { ActionPlan = collection });
-                continue;
-            }
-            if (ToolRequestWorkChoice.Decode(candidate.Id) is { } work)
-            {
-                if ((candidate.ActionPlan as ToolRequestWorkActionPlan ?? PlanToolRequestWork(actor, work)) is { } continuation &&
-                    CheckActionPlan(continuation).Allowed)
-                    candidates.Add(candidate with { ActionPlan = continuation });
-                continue;
-            }
-            if (ToolRequestVisitChoice.Decode(candidate.Id) is { } visit)
-            {
-                if (PlanToolRequestVisit(actor, visit) is { } journey && CheckActionPlan(journey).Allowed)
-                    candidates.Add(candidate with { ActionPlan = journey });
-                continue;
-            }
-            if (ToolRequestConsentChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (PlanToolRequestConsent(actor, choice) is { } plan && CheckActionPlan(plan).Allowed)
-                candidates.Add(candidate with { ActionPlan = plan });
-        }
-    }
-
     private void ApplyToolRequestConsentPlan(ToolRequestConsentActionPlan plan)
     {
         TryRegisteredAction(ActionPhase.FreshAdmission, new(plan.Actor, agents[plan.Actor], plan.CandidateId, false, plan));
