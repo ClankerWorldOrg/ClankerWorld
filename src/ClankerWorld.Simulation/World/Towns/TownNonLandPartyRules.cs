@@ -13,7 +13,7 @@ public static class TownNonLandPartyRules
     {
         var recorded = filings.ToArray();
         bool Adult(string id) => society.Agents.Any(person => person.Id == id && person.Status == SocietyAgentStatus.Active &&
-            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+            LifeStageRules.IsAdult(person.AgeBand));
         var people = recorded.Where(filing => filing.Kind == "affected" && filing.AgentId != allegation.SubjectId)
             .Select(filing => (Id: filing.AgentId, Role: "affected")).Prepend((Id: allegation.SubjectId, Role: "subject")).Distinct();
         var parties = people.Select(entry =>

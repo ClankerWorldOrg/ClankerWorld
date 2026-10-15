@@ -106,7 +106,7 @@ public static class TownMembershipText
         var person = society.Agents.FirstOrDefault(item => item.Id == agentId);
         if (person is not { Status: SocietyAgentStatus.Active }) return null;
         knows ??= (_, _, _) => true;
-        var adult = person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+        var adult = LifeStageRules.IsAdult(person.AgeBand);
         var home = towns.SingleOrDefault(town => town.ResidentIds.Contains(agentId, StringComparer.Ordinal));
         var council = home?.Council?.Form switch
         {
@@ -144,7 +144,7 @@ public static class TownMembershipText
         ArgumentNullException.ThrowIfNull(towns);
         ArgumentNullException.ThrowIfNull(society);
         if (!society.Agents.Any(person => person.Id == agentId && person.Status == SocietyAgentStatus.Active &&
-                person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) return null;
+                LifeStageRules.IsAdult(person.AgeBand))) return null;
         knows ??= (_, _, _) => true;
         return KnownPendingAdmission(towns, agentId, knows) is not null ? null :
             KnownOpenApproval(towns, agentId, society.WorldTick, ticksPerDay, knows)?.Deadline;

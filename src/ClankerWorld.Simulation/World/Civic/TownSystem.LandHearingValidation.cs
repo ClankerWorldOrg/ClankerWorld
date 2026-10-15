@@ -30,7 +30,7 @@ internal sealed partial class TownSystem
             if (town.LandRecords is null)
                 throw new InvalidDataException("A saved Town is missing its land-hearing history.");
             var adults = checkpoint.Agents.Where(person => town.ResidentIds.Contains(person.Id, StringComparer.Ordinal) &&
-                    person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+                    person.Status == SocietyAgentStatus.Active && LifeStageRules.IsAdult(person.AgeBand))
                 .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
             TownLandHearingValidation.Validate(map, checkpoint.WorldTick, town.Id, town.LandRecords,
                 rights.Where(right => right.TownId == town.Id).ToArray(), titles, knownAgents, knownHouseholds,

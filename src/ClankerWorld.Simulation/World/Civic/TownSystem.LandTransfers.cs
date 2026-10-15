@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class TownSystem
 {
     internal static Dictionary<string, string?> LandTransferAdultHouseholds(ITownWorld world) => world.Society.Agents
-            .Where(person => person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+            .Where(person => person.Status == SocietyAgentStatus.Active && LifeStageRules.IsAdult(person.AgeBand))
             .ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
 
     internal static IReadOnlyList<TownLandTransferParty> LandTransferParties(ITownWorld world, TownLandTransferRequest request) =>

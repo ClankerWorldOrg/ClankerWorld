@@ -56,5 +56,5 @@ public static class TownLandCasePartyRules
     }
 
     private static bool IsAdult(SocietyAgent person) => person.Status == SocietyAgentStatus.Active &&
-        person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+        LifeStageRules.IsAdult(person.AgeBand);
 }
