@@ -24,7 +24,7 @@ internal sealed partial class TownSystem
             .Select(n => (n.Receipt.SourceAgentId is { } source ? $"Heard from {world.Society.GetAgent(source).Name}: " : "Read Town notice: ") +
                 n.Town + ": " + ReadableCivicNotice(world, n.Notice.Text)).ToArray();
         var excerpt = string.Join(" | ", learned);
-        return learned.Length == 0 ? null : CivicExcerpt(excerpt, 1024);
+        return learned.Length == 0 ? null : BoundedText.Excerpt(excerpt, 1024).Value;
     }
 
 
@@ -41,16 +41,7 @@ internal sealed partial class TownSystem
             var day = WorldCalendarRules.FromTick(tick, world.CalendarConfig).DayIndex;
             return day < long.MaxValue ? "world day " + (day + 1).ToString(CultureInfo.InvariantCulture) : match.Value;
         });
-        return CivicExcerpt(text, 270);
-    }
-
-    internal static string CivicExcerpt(string text, int limit)
-    {
-        var length = Math.Min(limit, text.Length);
-        if (length > 0 && length < text.Length &&
-            char.IsHighSurrogate(text[length - 1]) && char.IsLowSurrogate(text[length]))
-            length--;
-        return text[..length];
+        return BoundedText.Excerpt(text, 270);
     }
 
     internal void AdvanceTownCouncil(ITownWorld world)
@@ -92,7 +83,7 @@ internal sealed partial class TownSystem
         if (town.Council == updated && town.Government == government && priorHearings == town.LandRecords && priorNonLand == town.NonLandHearings) return;
         SetTown(world, town with { Council = updated, Government = government });
         foreach (var notice in updated.Notices.Skip(priorNotices))
-            world.AppendEvent("town_civic_" + notice.Kind, $"{town.Id}|{notice.SubjectId}|{notice.Text}", CivicBoard(world, town));
+            world.AppendEvent(WorldEvents.CivicNotice(notice.Kind, null, town.Id, notice.SubjectId, notice.Text), CivicBoard(world, town));
     }
 
     internal static GridPoint? CivicBoard(ITownWorld world, TownRuntimeState town) => world.WorldSimulation.Buildings.Where(b => b.TownId == town.Id && b.HouseholdId is null && world.WorldContent.Buildings.Any(d => d.CanonicalId == b.DefinitionId && d.Tags.Contains(TownHallContent.HallTag, StringComparer.Ordinal)))
@@ -403,12 +394,12 @@ internal sealed partial class TownSystem
                 state.Notices.Skip(town.Council.Notices.Count).Select(n => n.Id), world.WorldTick);
             SaveTownCouncil(world, town, state, government);
             world.MaintainTownProjects();
-            world.AppendEvent("town_civic_action", $"{town.Id}|{actor}|{parts[2]}", world.Agents[actor].Position);
+            world.AppendEvent(new TownCivicActionEventPayload(actor, town.Id, parts[2]), world.Agents[actor].Position);
             SettleTownAdmissions(world);
         }
         catch (InvalidOperationException)
         {
-            world.AppendEvent("town_civic_action_rejected", $"{town.Id}|{actor}|{parts[2]}");
+            world.AppendEvent(new TownCivicActionRejectedEventPayload(actor, town.Id, parts[2]));
         }
     }
 }

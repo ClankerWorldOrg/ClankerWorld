@@ -56,23 +56,24 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
     }
 
     [Theory]
-    [InlineData(5, 4)]
-    [InlineData(4, 4)]
-    public async Task AGroupedSeedLotKeepsEveryReservationUnitNotNeededForFood(int reserved, int remaining)
+    [InlineData(5, 5, 4)]
+    [InlineData(5, 4, 4)]
+    [InlineData(6, 5, 4)]
+    public async Task AGroupedSeedLotKeepsEveryReservationUnitNotNeededForFood(int quantity, int reserved, int remaining)
     {
         var state = fixture.CreateState();
         var actor = fixture.Actor;
         // A grouped valid lot exercises partial reservation release independently of harvest lot size.
-        state = WithGroupedSeeds(state, actor, 5, reserved);
+        state = WithGroupedSeeds(state, actor, quantity, reserved);
         using var world = Restore(state, actor, new Choices(["make_room_for_food"]));
         await AdvanceUntil(world, () => Setdowns(world, actor).Length > 0, 60);
         var after = world.Society.Inventory;
         Assert.Equal(4, after.GetLot("grouped-orchard-seeds").Quantity);
         Assert.Equal(remaining, after.GetReservation("orchard-replant:grouped-orchard-seeds").Quantity);
         Assert.Equal(InventoryReservationState.Reserved, after.GetReservation("orchard-replant:grouped-orchard-seeds").State);
-        Assert.Equal(5, after.Lots.Where(lot => lot.ItemKind == "orchard_seed").Sum(lot => lot.Quantity));
+        Assert.Equal(quantity, after.Lots.Where(lot => lot.ItemKind == "orchard_seed").Sum(lot => lot.Quantity));
         var stored = Assert.Single(after.Lots, lot => lot.OwnerId == fixture.Household && lot.ItemKind == "orchard_seed");
-        Assert.Equal(1, stored.Quantity);
+        Assert.Equal(quantity - 4, stored.Quantity);
         Assert.True(stored.StorageBuildingId is not null || stored.GroundPosition is not null);
         using var loaded = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor, new Choices([]));
         loaded.Validate();
