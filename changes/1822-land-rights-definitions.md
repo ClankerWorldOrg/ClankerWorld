@@ -1,0 +1,1 @@
+- Town and household land claims, permission transfers and sale payments now own their action definitions while retaining original plots, parties, responses and physical payment plans.
