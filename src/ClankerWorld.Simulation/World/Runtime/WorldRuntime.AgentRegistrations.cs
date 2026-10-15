@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "learn:", ["learn:", "lesson_"], [], static (runtime, action) =>
     {
-        runtime.ApplyLearningCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyLearningCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
         RegisterCivicPersonalActions(),

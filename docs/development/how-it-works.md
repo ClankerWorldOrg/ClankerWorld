@@ -447,6 +447,10 @@ Other members' answers can accumulate without changing that selection; a changed
 House, electorate or request receives the same check at all three boundaries.
 The House's definition and original placement tick stay bound if its ID is
 reused. Expanding that same House still uses the current capacity checks.
+Learning choices retain the student, teacher, skill, request and communal lesson
+site. The same check governs offer, admission and apply; native continuation may
+advance the same agreement while a model reply waits. A pending withdrawal can
+still stop that agreement and preserves its latest progress.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

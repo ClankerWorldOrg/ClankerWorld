@@ -1,0 +1,2 @@
+- Lesson choices now explain when the selected teacher, request or agreed lesson changes before they can act.
+- Either participant can stop the same lesson after it progresses while their reply is pending, keeping its latest progress.
