@@ -294,6 +294,14 @@ Fresh personal admission remains necessary to wear, remove or give an ornament.
 Continuing an intention can only walk toward that exact stock; public operations
 and plans share the native one-unit commits and rollback behavior.
 
+Ordinary food choices use `FoodActionPlan` for the exact carried serving,
+household loose/pot serving, or resource and full harvest. One check preserves
+current custody, reservation/hold rights, household food policy, complete
+harvest room and the captured source or pot trip. Passenger consumption carries
+the same plan while allowing boat use. Planned and legacy order/care paths share
+the native consumption, serving collection and food-harvest commits; application
+never chooses a replacement serving or resource.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach

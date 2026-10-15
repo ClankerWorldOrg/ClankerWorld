@@ -144,13 +144,7 @@
     "societyState.GetAgent(request.WorkerId!).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs": [
-    "FindUnoccupiedRoute(actor, position, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot))",
-    "FindUnoccupiedRoute(actor, position, house.Position, 0)",
-    "FindUnoccupiedRoute(actor, position, resource.Position, ResourceInteractionRange)",
     "FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.AgentRegistrations.cs": [
-    "state.FullnessBasisPoints \u003C 7_000"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartCargoOrders.cs": [
     "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",

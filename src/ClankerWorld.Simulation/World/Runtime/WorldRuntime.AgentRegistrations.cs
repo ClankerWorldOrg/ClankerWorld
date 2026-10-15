@@ -337,23 +337,22 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "seek_food", [], ["seek_food"], static (runtime, action) =>
     {
-        if (runtime.AvailableFoodSource(action.AgentId, action.State.Position)is { } foodSource)
-            runtime.MoveToward(action.AgentId, action.State, foodSource.Position, "food", ResourceInteractionRange);
+        runtime.ApplyFoodPlan(action.Plan as FoodResourceActionPlan ?? runtime.PlanFoodResource(action.AgentId, false));
         return true;
     }),
         new(ActionPhase.Ordinary, "harvest_food", [], ["harvest_food"], static (runtime, action) =>
     {
-        runtime.HarvestFood(action.AgentId, action.State);
+        runtime.ApplyFoodPlan(action.Plan as FoodResourceActionPlan ?? runtime.PlanFoodResource(action.AgentId, true));
         return true;
     }),
         new(ActionPhase.Ordinary, "consume_food", [], ["consume_food"], static (runtime, action) =>
     {
-        runtime.ConsumeFood(action.AgentId, action.State);
+        runtime.ApplyFoodPlan(action.Plan as ConsumeFoodActionPlan ?? runtime.PlanFoodConsumption(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "collect_shared_food", [], ["collect_shared_food"], static (runtime, action) =>
     {
-        runtime.CollectSharedFood(action.AgentId, action.State);
+        runtime.ApplyFoodPlan(action.Plan as SharedFoodActionPlan ?? runtime.PlanSharedFood(action.AgentId));
         return true;
     })
     ]);
@@ -453,37 +452,38 @@ public sealed partial class WorldRuntime
     {
         var instruction = PendingInstructionFor(agentId);
         var instructionCandidate = instruction?.Task?.Action;
-        var hasFood = PreferredFood(agentId, agentId).Any();
+        var carriedFood = PreferredFood(agentId, agentId).FirstOrDefault();
+        var hasFood = carriedFood is not null;
         if (hasFood && state.FullnessBasisPoints < ComfortableFullness)
         {
-            candidates.Add(new CognitionCandidate("consume_food", "Eat one carried food item.", 0));
+            AddFoodPlanCandidate(candidates, PlanFoodConsumption(agentId, carriedFood), "Eat one carried food item.", 0);
         }
 
         if (CarriedMilk(agentId) is not null && state.FullnessBasisPoints < ComfortableFullness)
             candidates.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
         if (instructionCandidate == "consume_food" && hasFood && state.FullnessBasisPoints < ComfortableFullness && !candidates.Any(item => item.Id == "consume_food"))
         {
-            candidates.Add(new CognitionCandidate("consume_food", "Follow the owner's food instruction.", 0));
+            AddFoodPlanCandidate(candidates, PlanFoodConsumption(agentId, carriedFood), "Follow the owner's food instruction.", 0);
         }
 
         var foodPriority = NeedsUrgentFood(state) ? 2 : state.FullnessBasisPoints < RoutineFoodSeekFullness ? 5 : 90;
         // An optional reserve remains selectable without outranking ordinary activities.
-        var wantsFood = !hasFood && state.FullnessBasisPoints < 7_000;
+        var wantsFood = !hasFood && state.FullnessBasisPoints < NeedThresholds.FoodPickupFullness;
         var shouldGatherFood = wantsFood && FreeCarryCapacity(agentId) > 0;
         var foodSource = shouldGatherFood || instructionCandidate is "seek_food" or "harvest_food" ? AvailableFoodSource(agentId, state.Position) : null;
         var sharedFood = shouldGatherFood ? AvailableSharedFood(agentId) : null;
         if (sharedFood is not null && contentRegistry.ExportState().Packages.Any(package => package.Manifest.PackageId == StarterContent.PackageId && package.Lifecycle == ContentPackageLifecycle.Active))
         {
-            candidates.Add(new CognitionCandidate("collect_shared_food", "Collect one available household food serving from its store, then eat it.", foodPriority - 1, HouseholdId));
+            AddFoodPlanCandidate(candidates, PlanSharedFood(agentId, sharedFood), "Collect one available household food serving from its store, then eat it.", foodPriority - 1, HouseholdId);
         }
 
         if (shouldGatherFood && foodSource is not null && IsWithinInteractionRange(state.Position, foodSource.Position, ResourceInteractionRange))
         {
-            candidates.Add(new CognitionCandidate("harvest_food", "Gather several food servings from the nearby food source.", foodPriority, foodSource.Id));
+            AddFoodPlanCandidate(candidates, PlanFoodResource(agentId, true, foodSource), "Gather several food servings from the nearby food source.", foodPriority, foodSource.Id);
         }
         else if (shouldGatherFood && foodSource is not null)
         {
-            candidates.Add(new CognitionCandidate("seek_food", "Travel within gathering range of an available food source.", foodPriority, foodSource.Id));
+            AddFoodPlanCandidate(candidates, PlanFoodResource(agentId, false, foodSource), "Travel within gathering range of an available food source.", foodPriority, foodSource.Id);
         }
         else if (wantsFood && sharedFood is null)
         {
@@ -492,12 +492,12 @@ public sealed partial class WorldRuntime
 
         if (instructionCandidate == "seek_food" && foodSource is not null && !candidates.Any(item => item.Id == "seek_food"))
         {
-            candidates.Add(new CognitionCandidate("seek_food", "Follow the owner's travel instruction.", 0, foodSource.Id));
+            AddFoodPlanCandidate(candidates, PlanFoodResource(agentId, false, foodSource), "Follow the owner's travel instruction.", 0, foodSource.Id);
         }
 
         if (instructionCandidate == "harvest_food" && foodSource is not null && IsWithinInteractionRange(state.Position, foodSource.Position, ResourceInteractionRange) && !candidates.Any(item => item.Id == "harvest_food"))
         {
-            candidates.Add(new CognitionCandidate("harvest_food", "Follow the owner's harvest instruction.", 0, foodSource.Id));
+            AddFoodPlanCandidate(candidates, PlanFoodResource(agentId, true, foodSource), "Follow the owner's harvest instruction.", 0, foodSource.Id);
         }
     }
 }

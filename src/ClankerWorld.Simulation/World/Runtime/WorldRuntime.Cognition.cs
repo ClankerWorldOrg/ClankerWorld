@@ -975,8 +975,8 @@ public sealed partial class WorldRuntime
         if (PassengerBoat(agentId) is not null)
         {
             var aboard = new List<CognitionCandidate> { new("safe_idle", "Stay aboard while the boat travels or waits for a safe Port.", 100) };
-            if (PreferredFood(agentId, agentId).Any() && state.FullnessBasisPoints < ComfortableFullness)
-                aboard.Add(new("consume_food", "Eat one carried food item aboard the boat.", 0));
+            if (state.FullnessBasisPoints < ComfortableFullness)
+                AddFoodPlanCandidate(aboard, PlanFoodConsumption(agentId), "Eat one carried food item aboard the boat.", 0);
             if (CarriedMilk(agentId) is not null && state.FullnessBasisPoints < ComfortableFullness)
                 aboard.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
             return aboard;

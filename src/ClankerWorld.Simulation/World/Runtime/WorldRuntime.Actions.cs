@@ -200,7 +200,7 @@ public sealed partial class WorldRuntime
         .OrderBy(resource => map.FootDistance(resource.Position, position))
         .ThenBy(resource => resource.Id, StringComparer.Ordinal)
         .Where(resource => IsWithinInteractionRange(position, resource.Position, ResourceInteractionRange) ||
-            FindUnoccupiedRoute(actor, position, resource.Position, ResourceInteractionRange).Count > 0);
+            ReachLeg(actor, position, resource.Position, ReachPurpose.FoodSource, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0);
 
     private MapResource? AvailableFoodSource(string actor, GridPoint position)
     {
@@ -240,6 +240,13 @@ public sealed partial class WorldRuntime
             AppendEvent(new CarryingFullEventPayload(agentId));
             return null;
         }
+        return CompleteFoodHarvest(agentId, source, FoodHarvestKind(source), harvestYield,
+            source.TreeKind == TreeGrowthRules.Orchard ? TreeGrowthRules.OrchardSeedsPerPick : 0);
+    }
+
+    private FoodHarvestEffect? CompleteFoodHarvest(string agentId, MapResource source, string itemKind,
+        int harvestYield, int seedQuantity)
+    {
         var ecologyResource = worldSystems.Ecology.GetResource(source.Id);
         var harvest = EcologyRules.Harvest(ecologyResource, 1);
         if (!harvest.IsValid || harvest.Resource is null)
@@ -261,26 +268,26 @@ public sealed partial class WorldRuntime
         var harvestedLotId = FoodHarvestLotId(WorldTick, agentId);
         ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(
             inventory, harvestedLotId,
-            source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
+            itemKind,
             agentId,
             harvestYield,
             WorldTick));
 
         RecordNonLandConduct(agentId, "gather_food", source.Position, source.Id,
-            source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
+            itemKind,
             harvestYield, $"gather-food:{WorldTick}:{agentId}:{nextEventId}");
         AppendEvent(new FoodHarvestedEventPayload(agentId, harvestYield));
-        if (source.TreeKind == TreeGrowthRules.Orchard)
+        if (seedQuantity > 0)
         {
             var lotId = OrchardSeedLotId(WorldTick, agentId);
             ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(
                 InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
-                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
+                    seedQuantity, WorldTick), OrchardReplantingReservationId(lotId),
                 agentId, lotId, 1, "orchard_replanting", long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
             AppendEvent(new FruitHarvestedEventPayload(agentId, source.Id, harvestYield));
         }
         return new FoodHarvestEffect(harvestedLotId,
-            source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
+            itemKind,
             harvestYield, source.Id);
     }
 
@@ -317,13 +324,13 @@ public sealed partial class WorldRuntime
             lot.CarrierId is null && (returnTo is null || PickupCarryCapacity(actor, lot, returnTo.Value, returnRange) >= 1) && (lot.StorageBuildingId is null ||
              householdId == lot.OwnerId) &&
             (IsWithinInteractionRange(position, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot)) ||
-             FindUnoccupiedRoute(actor, position, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot)).Count > 0));
+             ReachLeg(actor, position, HouseholdStockPosition(lot), ReachPurpose.HouseholdFood, HouseholdStockInteractionRange(lot), 0, SwimmingPolicy.WhenCapable).Count > 0));
         if (loose is not null)
             return loose;
         return HouseForHousehold(householdId) is { } house &&
             FindFoodInPot(householdId, house.InstanceId, requiredItemKind) is { } potFood &&
             (returnTo is null || PickupCarryCapacity(actor, potFood.Food, returnTo.Value, returnRange) >= 1) &&
-            (position == house.Position || FindUnoccupiedRoute(actor, position, house.Position, 0).Count > 0)
+            (position == house.Position || ReachLeg(actor, position, house.Position, ReachPurpose.HouseholdFood, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
                 ? potFood.Food : null;
     }
 
@@ -370,6 +377,11 @@ public sealed partial class WorldRuntime
         if (FreeCarryCapacity(agentId) == 0) return;
         if (AvailableSharedFood(agentId, requiredItemKind) is not { } lot)
             return;
+        CompleteSharedFoodCollection(agentId, state, lot);
+    }
+
+    private void CompleteSharedFoodCollection(string agentId, AgentState state, InventoryLot lot)
+    {
         if (TryCollectHouseholdServing(agentId, state, lot, $"household-food:{WorldTick}:{agentId}",
                 "household_food_share", "household_food"))
             AppendEvent(new HouseholdFoodCollectedEventPayload(agentId, lot.Id));
@@ -385,6 +397,11 @@ public sealed partial class WorldRuntime
             return null;
         }
 
+        return CompleteFoodConsumption(agentId, state, lot);
+    }
+
+    private string CompleteFoodConsumption(string agentId, AgentState state, InventoryLot lot)
+    {
         society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, agentId, lot.Id, 1));
         agents[agentId] = state with
         {
