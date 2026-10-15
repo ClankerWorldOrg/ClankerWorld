@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     private GoodsReason? MedicalDoseExclusion(string actor, InventoryIndex index, InventoryLot lot)
     {
+        if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         if (lot.ItemKind != "medicine" || lot.ContainerLotId is not null || lot.GroundPosition is not null || lot.DeliveryBuildingId is not null)
             return GoodsReason.Place;
         if (!InventoryRules.CanReserve(index, lot, lot.OwnerId, 1, InventoryHoldRules.BorrowedBy(actor))) return GoodsReason.Reservation;

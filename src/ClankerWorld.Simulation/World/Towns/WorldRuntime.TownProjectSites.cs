@@ -159,6 +159,13 @@ public sealed partial class WorldRuntime
                 proposal.Project.DefinitionId == stallId && slots.Contains(proposal.Project.Site));
     }
 
+    private static bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) =>
+        plan.BoatPortId is { } port
+            ? !town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port) &&
+                !(town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port)
+            : plan.DefinitionId != MarketContent.Stall1x1().CanonicalId ||
+                MarketForStallPlan(town, plan) is { } selected && MarketNeedsMoreStalls(town, selected.Market);
+
     private bool AddTownProjectProposalCandidate(List<CognitionCandidate> candidates, string actor, TownRuntimeState town,
         ClankerWorld.Simulation.Content.BuildingDefinition definition, GridPoint site, TownProjectPayload selected)
     {

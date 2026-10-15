@@ -33,7 +33,9 @@ public sealed partial class WorldRuntime
     }
 
     private bool RetainedWritingContentsAreKnown(KnowledgeWritingActionPlan plan) =>
-        plan.Facts.Count + plan.Recipes.Count > 0 && plan.Facts.All(fact => KnowsMapFact(plan.Actor, fact.Position)) &&
+        plan.Facts.Count + plan.Recipes.Count > 0 && plan.Facts.All(fact => plan.Source is null
+            ? knowledge.Facts.Concat(knowledge.EarlierFacts).Any(known => AgentKnowledgeRules.SameLearnedFact(known, fact))
+            : KnowsMapFact(plan.Actor, fact.Position)) &&
         plan.Recipes.All(recipe => KnowsRecipe(plan.Actor, recipe.RecipeId)) &&
         (plan.Source is null || HasCompleteCopyContents(plan.Actor, plan.Source, plan.Facts.ToArray(), plan.Recipes.ToArray()));
 }
