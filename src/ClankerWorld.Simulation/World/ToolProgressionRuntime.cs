@@ -177,7 +177,7 @@ public sealed partial class WorldRuntime
             .Where(tool => ToolProgressionRules.RepairMaterials(tool.ItemKind) is { Count: > 0 } materials &&
                 CanPrepareRepairInputs(actor, tool.Id, materials, blacksmith.Position, protectedToolIds)).ToArray();
         if (tools.Length == 0 || !IsWithinInteractionRange(state.Position, blacksmith.Position, 0) &&
-            FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0).Count == 0)
+            Reach(actor, blacksmith.Position, ReachPurpose.ToolRepair, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return [];
         return tools;
     }

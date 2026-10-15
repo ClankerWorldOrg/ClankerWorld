@@ -72,7 +72,7 @@ public sealed partial class WorldRuntime
                 : CanGatherFromSource(actor, target, source, tools) &&
                   ProjectMaterialCarryUnits(actor, target, source) <= FreeCarryCapacity(actor))
             .Where(source => IsWithinInteractionRange(person.Position, source.Position, ResourceInteractionRange) ||
-                FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange).Count > 0)
+                Reach(actor, source.Position, ReachPurpose.Exploration, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0)
             .Where(source => projectReturn is not { } route || route.Destination is { } destination &&
                 CanReturnWithHarvest(actor, target, source, destination, route.Range, useHarvestBonus: false));
     }

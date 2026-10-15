@@ -1,22 +1,11 @@
-using System.Text.Json;
-
 namespace ClankerWorld.Tests;
 
 public sealed class ActionRuleBoundaryTests
 {
     [Fact]
-    public void ExistingRulesCanOnlyDisappearAsAreasAdoptSharedRules()
+    public void RuntimeUsesSharedLifeStageNeedAndReachRules()
     {
-        var root = RuntimeWriterScan.RepositoryRoot;
-        var path = Path.Combine(root, "tests/ClankerWorld.Tests/Architecture/action-rule-allowances.json");
-        var recorded = JsonSerializer.Deserialize<SortedDictionary<string, string[]>>(File.ReadAllText(path))!;
-        var actual = ActionRuleScan.Scan(root);
-        Assert.Equal(recorded.Keys.Order(StringComparer.Ordinal), actual.Keys);
-        foreach (var (file, expressions) in actual)
-            Assert.Equal(recorded[file], expressions);
-        Assert.DoesNotContain(actual.Keys, file => file.Contains("/Family/WorldRuntime.Child", StringComparison.Ordinal));
-        Assert.All(actual.Values.SelectMany(expressions => expressions),
-            expression => Assert.Contains("FindUnoccupiedRoute(", expression, StringComparison.Ordinal));
+        Assert.Empty(ActionRuleScan.Scan(RuntimeWriterScan.RepositoryRoot));
     }
 
     [Fact]
