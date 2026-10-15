@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
             : WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building).Contains(point));
 
     private bool ShelterRouteIsOpen(string actor, GridPoint origin, GridPoint destination) =>
-        origin == destination || FindUnoccupiedRoute(actor, origin, destination, 0).Count > 0;
+        origin == destination || ReachLeg(actor, origin, destination, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private PlacedBuilding? BoundShelterBuilding(string actor, OrderTask order)
     {
@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
     private bool CanInspectShelterTarget(OrderTask order, string actor, AgentState person) =>
         order.ShelterBinding is null && order.TargetPosition is { } target && map.Contains(target) &&
         !IsWithinInteractionRange(person.Position, target, ResourceInteractionRange) &&
-        FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange).Count > 0;
+        Reach(actor, target, ReachPurpose.WarmthProtection, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private MapResource? KnownOrderFirewoodSource(string actor, AgentState person,
         GridPoint? returnTo = null)
