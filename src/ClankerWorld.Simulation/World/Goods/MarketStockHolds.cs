@@ -15,7 +15,7 @@ internal static class MarketStockHolds
         {
             var expected = lot.GroundPosition is { } ground ? occupied.Where(item =>
                 item.Occupancy.SellerHouseholdId == lot.OwnerId && item.Position == new GridPoint(ground.X, ground.Y))
-                .Select(item => new InventoryHold(InventoryHoldPurpose.MarketStall, item.Occupancy.Id)).ToArray() : [];
+                .Select(item => InventoryStore.CreateInventoryHold(InventoryHoldPurpose.MarketStall, item.Occupancy.Id)).ToArray() : [];
             foreach (var hold in (lot.Holds ?? []).Where(hold => hold.Purpose == InventoryHoldPurpose.MarketStall).Except(expected))
                 current = InventoryAuthority.ReleaseStock(current, lot.Id, hold);
             foreach (var hold in expected.Except(lot.Holds ?? []))

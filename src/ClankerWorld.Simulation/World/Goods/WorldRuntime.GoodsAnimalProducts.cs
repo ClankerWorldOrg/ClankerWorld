@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
     {
         var actor = request.Actor!;
         if (lot.ContainerLotId is not null || !PersonalEquipmentRules.IsCarried(lot, actor)) return GoodsReason.Custody;
-        if (!InventoryHoldRules.For(index, lot).Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor)) ||
+        if (!InventoryHoldRules.For(index, lot).Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, actor)) ||
             !InventoryRules.CanMoveFamily(index, lot, InventoryHoldRules.SupplyTripFor(actor))) return GoodsReason.Reservation;
         return null;
     }

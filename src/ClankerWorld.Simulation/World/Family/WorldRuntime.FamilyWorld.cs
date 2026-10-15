@@ -119,7 +119,7 @@ public sealed partial class WorldRuntime
             var receipt = inventory.GetReservation(reservation);
             if (receipt.State != InventoryReservationState.Completed || receipt.Purpose != purpose)
                 throw new InvalidDataException("Only the original consumed medical dose can be closed.");
-            return inventory with { Reservations = inventory.Reservations.Select(item => item.Id == receipt.Id ? item with { Purpose = purpose + ":closed" } : item).ToArray() };
+            return InventoryStore.PrepareReservationLedger(inventory, inventory.Reservations.Select(item => item.Id == receipt.Id ? InventoryStore.PrepareReservationPurpose(item, purpose + ":closed") : item).ToArray());
         });
         public InventoryLot? SharedItem(string kind, string actor, GridPoint destination, int range) => runtime.SharedItem(kind, actor, destination, range);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);

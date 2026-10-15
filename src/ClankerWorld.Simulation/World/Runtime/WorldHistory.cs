@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation.Kernel;
 using System.Text.Json;
 
 namespace ClankerWorld.Simulation.World;
@@ -47,7 +48,7 @@ public static class WorldHistory
                 {
                     Events = social.Events,
                     EventHistoryFloor = social.Floor,
-                    Inventory = inventory with { Events = items.Events, EventHistoryFloor = items.Floor },
+                    Inventory = InventoryStore.PrepareArchivedEventWindow(inventory, items.Events, items.Floor),
                 },
                 Cognition = cognition with { Events = scheduler.Events, EventHistoryFloor = scheduler.Floor, Runtimes = runtimes },
             },

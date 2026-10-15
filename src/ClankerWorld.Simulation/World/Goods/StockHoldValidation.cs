@@ -13,8 +13,8 @@ internal static class StockHoldValidation
         foreach (var lot in inventory.Lots)
         {
             var holds = lot.Holds ?? [];
-            if (lot.DeliveryBuildingId is { } delivery && !holds.Contains(new(InventoryHoldPurpose.Delivery, delivery)) ||
-                lot.CarrierId is { } borrower && borrower != lot.OwnerId && !holds.Contains(new(InventoryHoldPurpose.Borrowed, borrower)))
+            if (lot.DeliveryBuildingId is { } delivery && !holds.Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Delivery, delivery)) ||
+                lot.CarrierId is { } borrower && borrower != lot.OwnerId && !holds.Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, borrower)))
                 throw new InvalidDataException("Physical custody is missing its stock hold.");
             foreach (var hold in holds)
                 if (hold.Purpose switch
@@ -27,7 +27,7 @@ internal static class StockHoldValidation
                 }) throw new InvalidDataException("A stock hold has no matching promise or physical custodian.");
         }
         foreach (var trip in trips)
-            if (!(inventory.GetLot(trip.LotId).Holds ?? []).Contains(new(InventoryHoldPurpose.SupplyTrip, trip.ActorId)))
+            if (!(inventory.GetLot(trip.LotId).Holds ?? []).Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, trip.ActorId)))
                 throw new InvalidDataException("An animal supply trip is missing its stock hold.");
     }
 }
