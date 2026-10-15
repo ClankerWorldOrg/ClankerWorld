@@ -7,6 +7,45 @@ namespace ClankerWorld.Tests;
 public sealed class OwnerAuthorityStateFileTests
 {
     [Fact]
+    public void ARevocationThatCannotBeSavedDoesNotTakeEffect()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-owner-authority-revoke-");
+        try
+        {
+            var path = System.IO.Path.Combine(directory.FullName, "owner-authority.json");
+            var stateFile = new OwnerAuthorityStateFile(path);
+            var store = stateFile.LoadOrCreate(new OwnerAuthorityIdentity("authority-test-file", "world-test-file"));
+            using var deviceKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var pairing = store.StartPairing(new OwnerPairingRequest(
+                Convert.ToBase64String(deviceKey.ExportSubjectPublicKeyInfo()))).Value!;
+            Assert.True(store.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode).IsSuccess);
+            var deviceId = store.ActivatePairing(new OwnerPairingActivationRequest(pairing.PairingId,
+                pairing.ActivationCanonicalProof, Sign(deviceKey, pairing.ActivationCanonicalProof))).Value!.DeviceId;
+            stateFile.Save(store);
+            var saved = File.ReadAllBytes(path);
+
+            // Put a folder where the file belongs, so the write fails.
+            File.Delete(path);
+            Directory.CreateDirectory(path);
+            var failure = Assert.ThrowsAny<Exception>(() => stateFile.RevokeDevice(store, deviceId));
+            Assert.True(failure is IOException or UnauthorizedAccessException, failure.GetType().Name);
+            Assert.Equal(OwnerDeviceState.Active, store.GetDevice(deviceId).Value!.State);
+
+            Directory.Delete(path);
+            File.WriteAllBytes(path, saved);
+            Assert.True(stateFile.RevokeDevice(store, deviceId).IsSuccess);
+            Assert.Equal(OwnerDeviceState.Revoked, store.GetDevice(deviceId).Value!.State);
+            var reloaded = new OwnerAuthorityStateFile(path)
+                .LoadOrCreate(new OwnerAuthorityIdentity("authority-test-file", "world-test-file"));
+            Assert.Equal(OwnerDeviceState.Revoked, reloaded.GetDevice(deviceId).Value!.State);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode()
     {
         var directory = System.IO.Path.Combine(

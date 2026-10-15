@@ -359,44 +359,47 @@ public sealed class OwnerAuthorityStore
         lock (gate)
         {
             ExpireOperationalStateUnsafe(UtcNow());
-            return new OwnerAuthorityState(
-                SchemaVersion: 1,
-                Authority: Identity,
-                Pairings: pairings.Values
-                    .OrderBy(pairing => pairing.PairingId, StringComparer.Ordinal)
-                    .Select(pairing => new OwnerStoredPairing(
-                        pairing.PairingId,
-                        pairing.DeviceId,
-                        Convert.ToBase64String(pairing.PublicKeySpki),
-                        pairing.PublicKeyFingerprint,
-                        Convert.ToBase64String(pairing.VisibleCodeHash),
-                        pairing.ExpiresAtUtc,
-                        pairing.ActivationCanonicalProof,
-                        pairing.State,
-                        pairing.WrongVisibleCodeAttempts))
-                    .ToArray(),
-                Devices: devices.Values
-                    .OrderBy(device => device.DeviceId, StringComparer.Ordinal)
-                    .Select(device => new OwnerStoredDevice(
-                        device.DeviceId,
-                        Convert.ToBase64String(device.PublicKeySpki),
-                        device.PublicKeyFingerprint,
-                        device.State,
-                        device.ActivatedAtUtc,
-                        device.RevokedAtUtc))
-                    .ToArray(),
-                Challenges: challenges.Values
-                    .OrderBy(challenge => challenge.ChallengeId, StringComparer.Ordinal)
-                    .Select(challenge => new OwnerStoredChallenge(
-                        challenge.ChallengeId,
-                        challenge.DeviceId,
-                        Convert.ToBase64String(challenge.NonceHash),
-                        challenge.ExpiresAtUtc,
-                        ToStoredChallengeState(challenge.State),
-                        challenge.ConsumedAtUtc))
-                    .ToArray());
+            return ExportStateUnsafe();
         }
     }
+
+    private OwnerAuthorityState ExportStateUnsafe()
+        => new OwnerAuthorityState(
+            SchemaVersion: 1,
+            Authority: Identity,
+            Pairings: pairings.Values
+                .OrderBy(pairing => pairing.PairingId, StringComparer.Ordinal)
+                .Select(pairing => new OwnerStoredPairing(
+                    pairing.PairingId,
+                    pairing.DeviceId,
+                    Convert.ToBase64String(pairing.PublicKeySpki),
+                    pairing.PublicKeyFingerprint,
+                    Convert.ToBase64String(pairing.VisibleCodeHash),
+                    pairing.ExpiresAtUtc,
+                    pairing.ActivationCanonicalProof,
+                    pairing.State,
+                    pairing.WrongVisibleCodeAttempts))
+                .ToArray(),
+            Devices: devices.Values
+                .OrderBy(device => device.DeviceId, StringComparer.Ordinal)
+                .Select(device => new OwnerStoredDevice(
+                    device.DeviceId,
+                    Convert.ToBase64String(device.PublicKeySpki),
+                    device.PublicKeyFingerprint,
+                    device.State,
+                    device.ActivatedAtUtc,
+                    device.RevokedAtUtc))
+                .ToArray(),
+            Challenges: challenges.Values
+                .OrderBy(challenge => challenge.ChallengeId, StringComparer.Ordinal)
+                .Select(challenge => new OwnerStoredChallenge(
+                    challenge.ChallengeId,
+                    challenge.DeviceId,
+                    Convert.ToBase64String(challenge.NonceHash),
+                    challenge.ExpiresAtUtc,
+                    ToStoredChallengeState(challenge.State),
+                    challenge.ConsumedAtUtc))
+                .ToArray());
 
     /// <summary>
     /// Restores state produced by <see cref="ExportState"/>. The input is
@@ -423,7 +426,10 @@ public sealed class OwnerAuthorityStore
         return store;
     }
 
-    /// <summary>Host-local recovery can displace one unapproved request, never an approved or active device.</summary>
+    /// <summary>
+    /// Host-local recovery can displace one unapproved request, never an approved or active device.
+    /// It is also the one way to pair a revoked key again, deliberately, from the server's own computer.
+    /// </summary>
     public OwnerAuthorityResult<OwnerPairingStart> StartPairingLocally(OwnerPairingRequest request)
     {
         // Validate before displacing any existing request.
@@ -432,21 +438,22 @@ public sealed class OwnerAuthorityStore
         lock (gate)
         {
             ExpireOperationalStateUnsafe(UtcNow());
-            var fingerprint = CreatePublicKeyFingerprint(publicKey);
-            if (devices.Values.Any(device => device.State == OwnerDeviceState.Active &&
-                device.PublicKeyFingerprint == fingerprint))
-                return OwnerAuthorityResult<OwnerPairingStart>.Fail(OwnerAuthorityFailure.PublicKeyAlreadyRegistered);
-            var first = StartPairing(request);
+            if (RegisteredKeyFailureUnsafe(CreatePublicKeyFingerprint(publicKey), allowRevoked: true) is { } failure)
+                return OwnerAuthorityResult<OwnerPairingStart>.Fail(failure);
+            var first = StartPairing(request, allowRevokedKey: true);
             if (first.IsSuccess || first.Failure != OwnerAuthorityFailure.PairingCapacityExceeded) return first;
             var oldest = pairings.Values.Where(item => item.State == OwnerPairingState.Pending)
                 .OrderBy(item => item.ExpiresAtUtc).ThenBy(item => item.PairingId, StringComparer.Ordinal).FirstOrDefault();
             if (oldest is null) return first;
             oldest.State = OwnerPairingState.Expired;
-            return StartPairing(request);
+            return StartPairing(request, allowRevokedKey: true);
         }
     }
 
-    public OwnerAuthorityResult<OwnerPairingStart> StartPairing(OwnerPairingRequest request)
+    public OwnerAuthorityResult<OwnerPairingStart> StartPairing(OwnerPairingRequest request) =>
+        StartPairing(request, allowRevokedKey: false);
+
+    private OwnerAuthorityResult<OwnerPairingStart> StartPairing(OwnerPairingRequest request, bool allowRevokedKey)
     {
         if (request is null || !TryImportP256PublicKey(request.PublicKeySpkiBase64, out var publicKeySpki))
         {
@@ -464,11 +471,9 @@ public sealed class OwnerAuthorityStore
                 return OwnerAuthorityResult<OwnerPairingStart>.Fail(OwnerAuthorityFailure.PairingCapacityExceeded);
             }
 
-            if (devices.Values.Any(device =>
-                device.State == OwnerDeviceState.Active &&
-                string.Equals(device.PublicKeyFingerprint, publicKeyFingerprint, StringComparison.Ordinal)))
+            if (RegisteredKeyFailureUnsafe(publicKeyFingerprint, allowRevokedKey) is { } failure)
             {
-                return OwnerAuthorityResult<OwnerPairingStart>.Fail(OwnerAuthorityFailure.PublicKeyAlreadyRegistered);
+                return OwnerAuthorityResult<OwnerPairingStart>.Fail(failure);
             }
 
             var pairingId = CreateOpaqueIdentifierUnsafe(
@@ -569,6 +574,12 @@ public sealed class OwnerAuthorityStore
                 return OwnerAuthorityResult<OwnerPairingApproval>.Fail(OwnerAuthorityFailure.PairingNotPending);
             }
 
+            // Another pairing for the same key may have activated since this one started.
+            if (RegisteredKeyFailureUnsafe(pairing.PublicKeyFingerprint, allowRevoked: true) is { } keyFailure)
+            {
+                return OwnerAuthorityResult<OwnerPairingApproval>.Fail(keyFailure);
+            }
+
             if (!CryptographicOperations.FixedTimeEquals(pairing.VisibleCodeHash, presentedCodeHash))
             {
                 pairing.WrongVisibleCodeAttempts++;
@@ -645,6 +656,12 @@ public sealed class OwnerAuthorityStore
                 return OwnerAuthorityResult<OwnerDevice>.Fail(OwnerAuthorityFailure.PairingNotApproved);
             }
 
+            // One key belongs to at most one active device.
+            if (RegisteredKeyFailureUnsafe(pairing.PublicKeyFingerprint, allowRevoked: true) is { } keyFailure)
+            {
+                return OwnerAuthorityResult<OwnerDevice>.Fail(keyFailure);
+            }
+
             var registeredDevice = new RegisteredDevice(
                 pairing.DeviceId,
                 pairing.PublicKeySpki,
@@ -687,17 +704,13 @@ public sealed class OwnerAuthorityStore
     }
 
     /// <summary>
-    /// Host-local recovery operation. A later signed owner-device-management
-    /// route can call the same state transition after authenticating its caller.
-    /// </summary>
-    public OwnerAuthorityResult<OwnerDevice> RevokeDeviceLocally(string deviceId)
-        => RevokeDevice(deviceId);
-
-    /// <summary>
     /// Revokes an owner device after a host-local or authenticated owner
-    /// management ingress has authorized the request.
+    /// management ingress has authorized the request. Any pending or approved
+    /// pairing for the same key is cancelled with it. With
+    /// <paramref name="persist"/>, the revocation is saved before it takes
+    /// effect: if saving fails, nothing changes and the exception propagates.
     /// </summary>
-    public OwnerAuthorityResult<OwnerDevice> RevokeDevice(string deviceId)
+    public OwnerAuthorityResult<OwnerDevice> RevokeDevice(string deviceId, Action<OwnerAuthorityState>? persist = null)
     {
         if (!IsReasonableIdentifier(deviceId))
         {
@@ -706,6 +719,7 @@ public sealed class OwnerAuthorityStore
 
         lock (gate)
         {
+            ExpireOperationalStateUnsafe(UtcNow());
             if (!devices.TryGetValue(deviceId, out var device))
             {
                 return OwnerAuthorityResult<OwnerDevice>.Fail(OwnerAuthorityFailure.DeviceNotFound);
@@ -713,12 +727,44 @@ public sealed class OwnerAuthorityStore
 
             if (device.State == OwnerDeviceState.Active)
             {
+                var cancelled = pairings.Values
+                    .Where(pairing => pairing.State is OwnerPairingState.Pending or OwnerPairingState.Approved &&
+                        string.Equals(pairing.PublicKeyFingerprint, device.PublicKeyFingerprint, StringComparison.Ordinal))
+                    .Select(pairing => (Pairing: pairing, pairing.State))
+                    .ToArray();
                 device.State = OwnerDeviceState.Revoked;
                 device.RevokedAtUtc = UtcNow();
+                foreach (var (pairing, _) in cancelled) pairing.State = OwnerPairingState.Expired;
+                try
+                {
+                    // Still under the gate, so no request sees the revocation before it is saved.
+                    persist?.Invoke(ExportStateUnsafe());
+                }
+                catch
+                {
+                    device.State = OwnerDeviceState.Active;
+                    device.RevokedAtUtc = null;
+                    foreach (var (pairing, state) in cancelled) pairing.State = state;
+                    throw;
+                }
             }
 
             return OwnerAuthorityResult<OwnerDevice>.Success(ToOwnerDevice(device));
         }
+    }
+
+    /// <summary>
+    /// Why a key cannot pair: it belongs to an active device, or to a revoked one
+    /// unless <paramref name="allowRevoked"/>. Null when nothing stops it.
+    /// </summary>
+    private OwnerAuthorityFailure? RegisteredKeyFailureUnsafe(string publicKeyFingerprint, bool allowRevoked)
+    {
+        var states = devices.Values
+            .Where(device => string.Equals(device.PublicKeyFingerprint, publicKeyFingerprint, StringComparison.Ordinal))
+            .Select(device => device.State)
+            .ToArray();
+        if (states.Contains(OwnerDeviceState.Active)) return OwnerAuthorityFailure.PublicKeyAlreadyRegistered;
+        return states.Length > 0 && !allowRevoked ? OwnerAuthorityFailure.DeviceRevoked : null;
     }
 
     public OwnerAuthorityResult<OwnerChallenge> IssueChallenge(OwnerChallengeIssueRequest request)

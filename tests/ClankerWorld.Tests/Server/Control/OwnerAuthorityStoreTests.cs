@@ -37,6 +37,68 @@ public sealed class OwnerAuthorityStoreTests
     }
 
     [Fact]
+    public void OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings()
+    {
+        var store = NewStore(NewClock());
+        using var key = CreateP256Key();
+        var first = StartPairing(store, key);
+        var second = StartPairing(store, key);
+        var third = StartPairing(store, key);
+        Assert.True(store.ApprovePendingPairingLocally(first.PairingId, first.PairingCode).IsSuccess);
+        Assert.True(store.ApprovePendingPairingLocally(second.PairingId, second.PairingCode).IsSuccess);
+        var device = store.ActivatePairing(new(first.PairingId, first.ActivationCanonicalProof,
+            Sign(key, first.ActivationCanonicalProof)));
+        Assert.True(device.IsSuccess);
+
+        // The same key cannot become a second active device, approved or not.
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered, store.ActivatePairing(new(second.PairingId,
+            second.ActivationCanonicalProof, Sign(key, second.ActivationCanonicalProof))).Failure);
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered,
+            store.ApprovePendingPairing(third.PairingId, third.PairingCode).Failure);
+        Assert.Single(store.GetDevices(), item => item.State == OwnerDeviceState.Active);
+
+        // Revoking the device cancels every pending or approved pairing for its key.
+        Assert.True(store.RevokeDevice(device.Value!.DeviceId).IsSuccess);
+        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(second.PairingId).Value!.State);
+        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(third.PairingId).Value!.State);
+        Assert.Equal(OwnerAuthorityFailure.PairingExpired, store.ActivatePairing(new(second.PairingId,
+            second.ActivationCanonicalProof, Sign(key, second.ActivationCanonicalProof))).Failure);
+        Assert.DoesNotContain(store.GetDevices(), item => item.State == OwnerDeviceState.Active);
+    }
+
+    [Fact]
+    public void ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var key = CreateP256Key();
+        var spki = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        var original = StartPairing(store, key);
+        Assert.True(store.ApprovePendingPairingLocally(original.PairingId, original.PairingCode).IsSuccess);
+        var device = store.ActivatePairing(new(original.PairingId, original.ActivationCanonicalProof,
+            Sign(key, original.ActivationCanonicalProof))).Value!;
+        Assert.True(store.RevokeDevice(device.DeviceId).IsSuccess);
+
+        Assert.Equal(OwnerAuthorityFailure.DeviceRevoked, store.StartPairing(new(spki)).Failure);
+
+        // The approval listener on the server's own computer can deliberately re-admit it.
+        var readmitted = store.StartPairingLocally(new(spki));
+        Assert.True(readmitted.IsSuccess);
+        Assert.True(store.ApprovePendingPairingLocally(readmitted.Value!.PairingId, readmitted.Value.PairingCode).IsSuccess);
+        var replacement = store.ActivatePairing(new(readmitted.Value.PairingId, readmitted.Value.ActivationCanonicalProof,
+            Sign(key, readmitted.Value.ActivationCanonicalProof)));
+        Assert.True(replacement.IsSuccess);
+        Assert.NotEqual(device.DeviceId, replacement.Value!.DeviceId);
+        Assert.Equal(OwnerDeviceState.Revoked, store.GetDevice(device.DeviceId).Value!.State);
+
+        // The revoked record and its replacement survive a restart together.
+        var restored = OwnerAuthorityStore.Restore(JsonSerializer.Deserialize<OwnerAuthorityState>(
+            JsonSerializer.Serialize(store.ExportState()))!, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.Equal(OwnerDeviceState.Active, restored.GetDevice(replacement.Value.DeviceId).Value!.State);
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered, restored.StartPairingLocally(new(spki)).Failure);
+    }
+
+    [Fact]
     public void PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore()
     {
         var clock = NewClock();
@@ -165,7 +227,7 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(OwnerAuthorityFailure.ChallengeConsumed, replay.Failure);
 
         var outstandingChallenge = IssueChallenge(store, deviceKey, pairing.DeviceId, "challenge-request-2");
-        Assert.True(store.RevokeDeviceLocally(pairing.DeviceId).IsSuccess);
+        Assert.True(store.RevokeDevice(pairing.DeviceId).IsSuccess);
         var afterRevocation = store.ConsumeChallenge(
             CreateConsumptionRequest(
                 store.Identity,
