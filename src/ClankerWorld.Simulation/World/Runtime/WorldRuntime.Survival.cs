@@ -449,7 +449,7 @@ public sealed partial class WorldRuntime
                 worldSimulation.Buildings.Any(building => building.InstanceId == job.BuildingInstanceId &&
                     building.HouseholdId == householdId && adults.Any(actor =>
                         agents[actor].Position == building.Position ||
-                        FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0).Count > 0)))
+                        Reach(actor, building.Position, ReachPurpose.PrivateEquipment, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)))
             .SelectMany(job => worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == job.RecipeId)?.Outputs ?? [])
             .Where(output => ToolProgressionRules.Find(output.ResourceId)?.Family == family)
             .Sum(output => (long)output.Amount);
@@ -466,7 +466,7 @@ public sealed partial class WorldRuntime
         var position = HouseholdStockPosition(lot);
         var range = HouseholdStockInteractionRange(lot);
         return IsWithinInteractionRange(agents[actor].Position, position, range) ||
-            FindUnoccupiedRoute(actor, agents[actor].Position, position, range).Count > 0;
+            Reach(actor, position, ReachPurpose.PrivateEquipment, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
     }
 
     private string FoodSource(InventoryLot lot)

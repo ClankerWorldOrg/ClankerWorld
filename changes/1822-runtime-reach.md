@@ -1,0 +1,1 @@
+- Exploration supply, household tool coverage and tool repair use actor-position reach. With the final four direct route calls migrated, the source guard requires no age, need or route exceptions and the old allowance file is removed.

@@ -467,11 +467,10 @@ Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The animal world port exposes no unused direct route search; animal action
 plans use their existing purpose-specific reach calls.
-The source guard in `ActionRuleBoundaryTests` records
-remaining direct route calls; copied age-band and unnamed need
-predicates have no allowance outside the shared life-stage rules, and child
-code has no allowance. Lower its expression allowances as later action
-areas move to these services. Child stock selection and exact-lot rechecks use
+Exploration supply, household tool coverage and tool repair also use actor-position
+reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
+predicate, unnamed need comparison or direct route call outside the shared rules.
+The old source allowance file is removed. Child stock selection and exact-lot rechecks use
 the shared goods query before applying the original child load and trip limits.
 
 `GroundOccupancy` is a read view over the current map, content, placed buildings,
