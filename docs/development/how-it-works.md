@@ -481,6 +481,8 @@ the actor's personal eligibility before the native consent writer runs.
 Household land filing retains the household and binds the admitted exact
 plot once; expansion filing retains its House and selected extra tiles.
 Plan checks and native submission share the existing plot refusal validator.
+Expansion filing keeps its selected tiles and waits while a feasible alternative
+shape overlaps the household's pending request, using native availability rules.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
