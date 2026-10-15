@@ -20,6 +20,8 @@ internal sealed partial class TownSystem
             throw new InvalidDataException("A founder-setup world must keep its original first Town and unique Town identities.");
         foreach (var town in towns)
         {
+            ValidateLocalAdmissions(town);
+            ValidateLocalProjects(town.Projects);
             if (town.Council is { } council) ValidateLocalCouncil(town.Id, council);
             if (town.Government is { } government) TownGovernmentStateValidation.ValidateLocal(town.Id, government, allowIntermediateVotes: true);
             if (string.IsNullOrWhiteSpace(town.Id) || town.Id != town.Id.Trim() || town.Id.Length > DerivedId.MaximumLength || town.Id.Any(char.IsControl) ||
@@ -92,9 +94,12 @@ internal sealed partial class TownSystem
                 !TownLandRightsRules.ValidText(right.GrantSource, 64) || !IsLocallyValidPlot(right.Tiles, right.GrantedTick, right.AgreedEndTick))
                 throw new InvalidDataException("A saved household land-use right is invalid or not covered by Town title.");
         foreach (var request in requests)
+        {
+            ValidateLocalLandRequest(request);
             if (!TownLandRightsRules.ValidId(request.Id) || !TownLandRightsRules.ValidId(request.TownId) || !TownHearingProcedure.Id(request.HouseholdId) ||
                 !TownHearingProcedure.Id(request.RequestedByAgentId) || request.Tiles is not { Count: <= ClankerWorld.Simulation.Cognition.CognitionDecisionResponse.MaximumCivicLandTiles } ||
                 !IsLocallyValidPlot(request.Tiles, request.RequestedTick, request.AgreedEndTick))
                 throw new InvalidDataException("A saved household land-use request is invalid or not covered by Town title.");
+        }
     }
 }
