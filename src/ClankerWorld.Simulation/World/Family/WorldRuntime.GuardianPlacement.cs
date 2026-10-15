@@ -24,151 +24,41 @@ public sealed partial class WorldRuntime
     // Only the guardian-placement continuation consults this budget. Ordinary
     // movement retains its existing scheduling; even a cooldown wait spends
     // the pending dependent's movement opportunity for this tick.
-    private readonly HashSet<string> guardianPlacementActions = new(StringComparer.Ordinal);
+    private readonly FamilyTurnState familyTurn = new();
+    private FamilyTurnState guardianPlacementActions => familyTurn;
 
-    private void BeginGuardianPlacement(string child, string caregiver, string careRelationshipId)
-    {
-        var person = society.Checkpoint.GetAgent(child);
-        var adult = society.Checkpoint.GetAgent(caregiver);
-        if (person.HouseholdId == adult.HouseholdId && TownForResident(child) == TownForResident(caregiver))
-            return;
-        var care = society.Checkpoint.GetRelationship(careRelationshipId);
-        SetGuardianPlacement(child, new(caregiver, care.Id, care.Revision, WorldTick, "collecting"));
-        RefreshGuardianPlacement(child);
-        AppendEvent("guardian_placement_pending", child);
-    }
+    private void BeginGuardianPlacement(string child, string caregiver, string careRelationshipId) =>
+        FamilySystem.BeginGuardianPlacement(FamilyGuardianWorld, child, caregiver, careRelationshipId);
 
-    private void SetGuardianPlacement(string child, GuardianPlacementState? placement)
-    {
-        if (!agents.TryGetValue(child, out var physical) || physical.GuardianPlacement == placement) return;
-        agentStore.RecordGuardianPlacement(child, physical, placement);
-        checkpointSchemaVersion = StateSchemaVersion;
-    }
+    private void SetGuardianPlacement(string child, GuardianPlacementState? placement) =>
+        FamilySystem.SetGuardianPlacement(FamilyGuardianWorld, child, placement);
 
     private bool IsCurrentGuardianPlacement(string child, GuardianPlacementState placement) =>
-        agents.ContainsKey(child) && agents.ContainsKey(placement.CaregiverId) &&
-        society.Checkpoint.Agents.Any(person => person.Id == child &&
-            person.Status == SocietyAgentStatus.Active &&
-            LifeStageRules.IsDependent(person.AgeBand) &&
-            person.PrimaryCaregiverId == placement.CaregiverId) &&
-        society.Checkpoint.Agents.Any(person => person.Id == placement.CaregiverId &&
-            person.Status == SocietyAgentStatus.Active && LifeStageRules.IsAdult(person.AgeBand)) &&
-        society.Checkpoint.Relationships.Any(edge => edge.Id == placement.CareRelationshipId &&
-            edge.Revision == placement.CareRevision && edge.Type == SocietyRelationshipType.Caregiver &&
-            edge.State == SocietyRelationshipState.Accepted && edge.ProposerId == placement.CaregiverId && edge.TargetId == child);
+        FamilySystem.IsCurrentGuardianPlacement(FamilyGuardianWorld, child, placement);
 
-    private void ReconcileGuardianPlacements()
-    {
-        foreach (var child in agents.Values.Where(person => person.GuardianPlacement is not null)
-                     .Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray())
-            RefreshGuardianPlacement(child);
-    }
+    private void ReconcileGuardianPlacements() =>
+        FamilySystem.ReconcileGuardianPlacements(FamilyGuardianWorld);
 
-    private void RefreshGuardianPlacement(string child)
-    {
-        if (!agents.TryGetValue(child, out var physical) || physical.GuardianPlacement is not { } placement) return;
-        if (!IsCurrentGuardianPlacement(child, placement))
-        {
-            SetGuardianPlacement(child, null);
-            AppendEvent("guardian_placement_cancelled", child);
-            return;
-        }
-        var household = society.Checkpoint.GetAgent(placement.CaregiverId).HouseholdId;
-        var town = TownForResident(placement.CaregiverId);
-        var house = household is null || town is null ? null : HouseForHousehold(household);
-        var changedHome = placement.DestinationHouseholdId != household || placement.DestinationTownId != town ||
-            placement.HouseId != house?.InstanceId || placement.HouseDefinitionId != house?.DefinitionId ||
-            placement.HousePlacedTick != house?.PlacedTick || placement.HousePosition != house?.Position;
-        var refreshed = placement with
-        {
-            DestinationHouseholdId = household,
-            DestinationTownId = town,
-            HouseId = house?.InstanceId,
-            HouseDefinitionId = house?.DefinitionId,
-            HousePlacedTick = house?.PlacedTick,
-            HousePosition = house?.Position,
-            Stage = changedHome || house is null ? "collecting" : placement.Stage,
-        };
-        var homeBlocker = GuardianPlacementHomeBlocker(child, refreshed);
-        var activityBlocker = GuardianPlacementActivityBlocker(child, refreshed);
-        refreshed = refreshed with
-        {
-            Blocker = homeBlocker ?? activityBlocker ??
-                (changedHome || IsGuardianHomeBlocker(placement.Blocker) ? null : placement.Blocker),
-        };
-        SetGuardianPlacement(child, refreshed);
-    }
+    private void RefreshGuardianPlacement(string child) =>
+        FamilySystem.RefreshGuardianPlacement(FamilyGuardianWorld, child);
 
-    private static bool IsGuardianHomeBlocker(string? blocker) => blocker is not null &&
-        (blocker.StartsWith("The guardian needs", StringComparison.Ordinal) ||
-         blocker.StartsWith("The guardian's House", StringComparison.Ordinal) ||
-         blocker.StartsWith("The guardian's home", StringComparison.Ordinal) ||
-         blocker.StartsWith("The guardian is meeting", StringComparison.Ordinal) ||
-         blocker.StartsWith("The guardian is finishing", StringComparison.Ordinal) ||
-         blocker.StartsWith("The dependent is meeting", StringComparison.Ordinal));
+    private static bool IsGuardianHomeBlocker(string? blocker) =>
+        FamilySystem.IsGuardianHomeBlocker(blocker);
 
-    private string? GuardianPlacementActivityBlocker(string child, GuardianPlacementState placement)
-    {
-        var adult = agents[placement.CaregiverId];
-        if (NeedsUrgentFood(adult) || NeedsUrgentWarmth(adult))
-            return "The guardian is meeting urgent food or warmth needs.";
-        if (PendingInstructionFor(placement.CaregiverId) is not null || IsConversationBusy(placement.CaregiverId))
-            return "The guardian is finishing another activity.";
-        var dependent = agents[child];
-        if (placement.Stage == "escorting" && (NeedsUrgentFood(dependent) || NeedsUrgentWarmth(dependent) ||
-            PendingInstructionFor(child) is not null || IsConversationBusy(child)))
-            return "The dependent is meeting needs or finishing another activity.";
-        return null;
-    }
+    private string? GuardianPlacementActivityBlocker(string child, GuardianPlacementState placement) =>
+        FamilySystem.GuardianPlacementActivityBlocker(FamilyGuardianWorld, child, placement);
 
-    private string? GuardianPlacementHomeBlocker(string child, GuardianPlacementState placement)
-    {
-        if (placement.DestinationHouseholdId is null) return "The guardian needs a household before the child can move in.";
-        if (placement.DestinationTownId is null) return "The guardian needs a recorded Town membership before the child can move in.";
-        if (placement.HouseId is null || placement.HousePosition is null)
-            return "The guardian needs a completed House before the child can move in.";
-        if (society.Checkpoint.GetAgent(placement.CaregiverId).HouseholdId != placement.DestinationHouseholdId ||
-            TownForResident(placement.CaregiverId) != placement.DestinationTownId ||
-            !worldSimulation.Buildings.Any(house => house.InstanceId == placement.HouseId &&
-                house.DefinitionId == placement.HouseDefinitionId && house.HouseholdId == placement.DestinationHouseholdId &&
-                house.PlacedTick == placement.HousePlacedTick && house.Position == placement.HousePosition))
-            return "The guardian's home changed; the journey needs a current destination.";
-        return CanFitGuardianHousehold(placement.DestinationHouseholdId, placement.CaregiverId, child)
-            ? null : "The guardian's House needs a free resident place.";
-    }
+    private string? GuardianPlacementHomeBlocker(string child, GuardianPlacementState placement) =>
+        FamilySystem.GuardianPlacementHomeBlocker(FamilyGuardianWorld, child, placement);
 
     private bool HasGuardianPlacementTask(string actor) =>
-        agents.TryGetValue(actor, out var person) && person.GuardianPlacement is not null ||
-        agents.Values.Any(person => person.GuardianPlacement?.CaregiverId == actor);
+        FamilySystem.HasGuardianPlacementTask(FamilyGuardianWorld, actor);
 
-    private string? GuardianPlacementChildFor(string caregiver)
-    {
-        var placements = agents.Values
-            .Where(person => person.GuardianPlacement is { } placement && placement.CaregiverId == caregiver &&
-                IsCurrentGuardianPlacement(person.AgentId, placement) && GuardianPlacementHomeBlocker(person.AgentId, placement) is null)
-            .OrderBy(person => person.GuardianPlacement!.StartedTick).ThenBy(person => person.AgentId, StringComparer.Ordinal).ToArray();
-        var origin = agents[caregiver].Position;
-        // A blocked collection must not starve another accepted child of a move.
-        // Keep an escort together, and retry the oldest blocked collection when
-        // no reachable collection remains so its normal blocker stays visible.
-        return (placements.FirstOrDefault(person => person.GuardianPlacement!.Stage == "escorting") ??
-            placements.FirstOrDefault(person => IsWithinInteractionRange(origin, person.Position, ResourceInteractionRange) ||
-            Reach(caregiver, person.Position, ReachPurpose.GuardianTravel, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) ??
-            placements.FirstOrDefault())?.AgentId;
-    }
+    private string? GuardianPlacementChildFor(string caregiver) =>
+        FamilySystem.GuardianPlacementChildFor(FamilyGuardianWorld, caregiver);
 
-    private CognitionCandidate? GuardianPlacementCandidate(string actor)
-    {
-        if (!agents.TryGetValue(actor, out var person)) return null;
-        GuardianTravelChoice? choice = person.GuardianPlacement is { Stage: "escorting" } follow
-            ? new(GuardianTravelKind.Follow, follow.CaregiverId)
-            : IsAdult(actor) && GuardianPlacementChildFor(actor) is { } child ? new(GuardianTravelKind.Relocate, child) : null;
-        if (choice is null || GuardianTravelDefinition.Offer(this, actor, choice) is not { } plan) return null;
-        return new CognitionCandidate(plan.CandidateId, choice.Kind == GuardianTravelKind.Follow
-            ? "Follow your accepted guardian to their House."
-            : $"Collect {society.Checkpoint.GetAgent(plan.ChildId).Name} and accompany them to your House.", 8, plan.Placement.HouseId)
-        { ActionPlan = plan };
-    }
+    private CognitionCandidate? GuardianPlacementCandidate(string actor) =>
+        FamilySystem.GuardianPlacementCandidate(FamilyGuardianWorld, actor);
 
     private bool TryApplyGuardianPlacementCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
@@ -183,138 +73,29 @@ public sealed partial class WorldRuntime
         return true;
     }
 
-    private bool ContinueGuardianPlacement(string actor)
-    {
-        if (guardianPlacementActions.Contains(actor) || PendingInstructionFor(actor) is not null ||
-            !HasGuardianPlacementTask(actor) || IsConversationBusy(actor)) return false;
-        var person = agents[actor];
-        if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
-        {
-            // Infants still depend on actual nearby care; never grant them an adult food action.
-            if (!LifeStageRules.IsInfant(society.Checkpoint.GetAgent(actor).AgeBand) &&
-                UrgentSurvivalCandidateFor(actor, person) is { } urgent)
-                ApplyCandidate(actor, person, urgent.Id, reportIdle: false);
-            return true;
-        }
-        if (GuardianPlacementCandidate(actor) is not { } candidate) return false;
-        guardianPlacementActions.Add(actor);
-        TryApplyGuardianPlacementCandidate(actor, candidate.Id, candidate.ActionPlan);
-        return true;
-    }
+    private bool ContinueGuardianPlacement(string actor) =>
+        FamilySystem.ContinueGuardianPlacement(FamilyGuardianWorld, actor);
 
-    private void EscortGuardianChild(string caregiver, string child)
-    {
-        if (!agents.TryGetValue(child, out var dependent) || dependent.GuardianPlacement is not { } placement ||
-            placement.CaregiverId != caregiver || !IsCurrentGuardianPlacement(child, placement) ||
-            GuardianPlacementHomeBlocker(child, placement) is not null) return;
-        var adult = agents[caregiver];
-        if (placement.Stage == "collecting")
-        {
-            if (!IsWithinInteractionRange(adult.Position, dependent.Position, ResourceInteractionRange))
-            {
-                MoveForGuardianPlacement(caregiver, child, dependent.Position, "collect_guardian_child", ResourceInteractionRange);
-                return;
-            }
-            placement = placement with { Stage = "escorting", Blocker = null };
-            SetGuardianPlacement(child, placement);
-        }
-        if (PendingInstructionFor(child) is not null || IsConversationBusy(child) ||
-            NeedsUrgentFood(dependent) || NeedsUrgentWarmth(dependent))
-        {
-            SetGuardianPlacement(child, placement with { Blocker = "The dependent is meeting needs or finishing another activity." });
-            if (NeedsUrgentFood(dependent) || NeedsUrgentWarmth(dependent))
-            {
-                PauseGuardianPlacementWork(caregiver);
-                if (dependent.FullnessBasisPoints < NeedThresholds.FoodPickupFullness &&
-                    CaregiverFoodCarryRequirement(caregiver, agents[caregiver]) > FreeCarryCapacity(caregiver))
-                    MakeRoomForFood(caregiver, agents[caregiver]);
-                else
-                    CareForChild(caregiver, child);
-            }
-            return;
-        }
-        if (!IsWithinInteractionRange(adult.Position, dependent.Position, 2))
-        {
-            SetGuardianPlacement(child, placement with { Blocker = "The guardian is waiting for the child to catch up." });
-            return;
-        }
-        MoveForGuardianPlacement(caregiver, child, placement.HousePosition!.Value, "escort_guardian_child");
-    }
+    private void EscortGuardianChild(string caregiver, string child) =>
+        FamilySystem.EscortGuardianChild(FamilyGuardianWorld, caregiver, child);
 
-    private void MoveForGuardianPlacement(string actor, string child, GridPoint destination, string reason, int range = 0)
-    {
-        PauseGuardianPlacementWork(actor);
-        var before = agents[actor];
-        MoveToward(actor, before, destination, reason, range);
-        if (agents[child].GuardianPlacement is { } placement)
-            SetGuardianPlacement(child, placement with
-            {
-                Blocker = agents[actor].MoveWaitTicks > before.MoveWaitTicks
-                    ? "The journey is waiting for a clear walking route." : null,
-            });
-    }
+    private void MoveForGuardianPlacement(string actor, string child, GridPoint destination, string reason, int range = 0) =>
+        FamilySystem.MoveForGuardianPlacement(FamilyGuardianWorld, actor, child, destination, reason, range);
 
-    private void PauseGuardianPlacementWork(string actor)
-    {
-        // Release native field claims before leaving for the accepted care task.
-        if (FarmWorkFor(actor) is { } field) CancelFarmWork(field);
-        if (agents[actor].Equipment?.Repair is not null) CancelEquipmentRepair(actor);
-        if (agents[actor].Project is { Stage: not ("completed" or "cancelled") } project)
-            SetProject(actor, project with { Stage = "paused", Blocker = "Accompanying an accepted dependent." });
-    }
+    private void PauseGuardianPlacementWork(string actor) =>
+        FamilySystem.PauseGuardianPlacementWork(FamilyGuardianWorld, actor);
 
-    private void FollowPlacementGuardian(string child, GuardianTravelActionPlan? originalPlan = null)
-    {
-        if (!agents.TryGetValue(child, out var dependent) || dependent.GuardianPlacement is not { Stage: "escorting" } placement) return;
-        var plan = originalPlan ?? PlanGuardianTravel(child, new(GuardianTravelKind.Follow, placement.CaregiverId));
-        if (plan is null || !CheckActionPlan(plan).Allowed) return;
-        var adult = agents[placement.CaregiverId];
-        if (NeedsUrgentFood(adult) || NeedsUrgentWarmth(adult)) return;
-        var home = placement.HousePosition!.Value;
-        // Normal following stops beside the guardian; the final leg must enter
-        // the actual House before household or Town membership changes.
-        var destination = adult.Position == home ? home : adult.Position;
-        MoveForGuardianPlacement(child, child, destination, "follow_guardian", adult.Position == home ? 0 : ResourceInteractionRange);
-        CompleteGuardianPlacement(child);
-    }
+    private void FollowPlacementGuardian(string child, GuardianTravelActionPlan? originalPlan = null) =>
+        FamilySystem.FollowPlacementGuardian(FamilyGuardianWorld, child, originalPlan);
 
-    private void AdvanceGuardianPlacementFollowers(IEnumerable<string> orderActors)
-    {
-        guardianPlacementActions.UnionWith(orderActors);
-        foreach (var child in agents.Values.Where(person => person.GuardianPlacement is { Stage: "escorting" })
-                     .Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray())
-        {
-            if (withheldActions?.Contains(child) != true && !guardianPlacementActions.Contains(child)) FollowPlacementGuardian(child);
-            CompleteGuardianPlacement(child);
-        }
-    }
+    private void AdvanceGuardianPlacementFollowers(IEnumerable<string> orderActors) =>
+        FamilySystem.AdvanceGuardianPlacementFollowers(FamilyGuardianWorld, orderActors);
 
-    private void CompleteGuardianPlacement(string child)
-    {
-        if (!agents.TryGetValue(child, out var dependent) || dependent.GuardianPlacement is not { Stage: "escorting" } placement ||
-            !IsCurrentGuardianPlacement(child, placement) || GuardianPlacementHomeBlocker(child, placement) is not null ||
-            dependent.Position != placement.HousePosition ||
-            !IsWithinInteractionRange(dependent.Position, agents[placement.CaregiverId].Position, ResourceInteractionRange)) return;
-        var formerHousehold = society.Checkpoint.GetAgent(child).HouseholdId;
-        var result = society.Apply(checkpoint => SocietyRules.PlaceDependentWithGuardian(checkpoint,
-            placement.CaregiverId, child, placement.CareRelationshipId, placement.CareRevision, placement.DestinationHouseholdId!));
-        if (result.CreatedId != child) return;
-        if (formerHousehold is not null && formerHousehold != placement.DestinationHouseholdId)
-            RestoreHouseholdDeliveries(child, formerHousehold, "guardian-placement");
-        if (!MoveDependentToGuardianTown(child, placement.CaregiverId))
-            throw new InvalidOperationException("A validated guardian placement could not settle the child's Town.");
-        SetGuardianPlacement(child, null);
-        SetHousing(child, (agents[child].Housing ?? new()) with { Blocker = HousingBlocker(child) });
-        AppendEvent("guardian_placement_completed", $"{child}:{placement.CaregiverId}");
-    }
+    private void CompleteGuardianPlacement(string child) =>
+        FamilySystem.CompleteGuardianPlacement(FamilyGuardianWorld, child);
 
     private bool CanEnterGuardianPlacementHouse(string child, PlacedBuilding house) =>
-        agents.TryGetValue(child, out var person) && person.GuardianPlacement is { Stage: "escorting" } placement &&
-        IsCurrentGuardianPlacement(child, placement) && GuardianPlacementHomeBlocker(child, placement) is null &&
-        house.InstanceId == placement.HouseId && house.DefinitionId == placement.HouseDefinitionId &&
-        house.HouseholdId == placement.DestinationHouseholdId && house.PlacedTick == placement.HousePlacedTick &&
-        house.Position == placement.HousePosition &&
-        IsWithinInteractionRange(agents[placement.CaregiverId].Position, house.Position, ResourceInteractionRange);
+        FamilySystem.CanEnterGuardianPlacementHouse(FamilyGuardianWorld, child, house);
 
     private string? GuardianPlacementModelNote(string actor)
     {

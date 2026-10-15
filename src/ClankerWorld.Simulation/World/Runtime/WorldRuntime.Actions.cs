@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         int interactionRange = 0,
         int horseMovementBudget = 100)
     {
-        guardianPlacementActions.Add(agentId);
+        guardianPlacementActions.RecordAction(agentId);
         if (IsWithinInteractionRange(state.Position, destination, interactionRange))
         {
             AppendEvent("destination_reached", $"{agentId}:{reason}");

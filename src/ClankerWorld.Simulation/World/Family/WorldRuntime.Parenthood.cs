@@ -23,100 +23,48 @@ public sealed partial class WorldRuntime
         item.WorldTick > WorldTick - IllnessCareCooldownTicks);
 
     // Only adults can have children; elders cannot (the owner's answer of October 2).
-    private bool CanHaveChildren(string actor) => agents.ContainsKey(actor) &&
-        LifeStageRules.CanHaveChildren(society.Checkpoint.GetAgent(actor).AgeBand);
+    private bool CanHaveChildren(string actor) =>
+        FamilySystem.CanHaveChildren(FamilyParenthoodWorld, actor);
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
-    private bool Partners(string actor, string other) => CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
-        society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
-        society.Checkpoint.GetAgent(other).HouseholdId is not null &&
-        Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted &&
-            (item.ProposerId == other || item.TargetId == other));
+    private bool Partners(string actor, string other) =>
+        FamilySystem.Partners(FamilyParenthoodWorld, actor, other);
 
-    private bool HasParenthoodDecision(string actor) => ReadyForLesson(actor) &&
-        (agents.Values.Any(person => person.Parenthood is { Stage: "requested" } plan && plan.PartnerId == actor) ||
-         ChildrenNeedingCare(actor).Any());
+    private bool HasParenthoodDecision(string actor) =>
+        FamilySystem.HasParenthoodDecision(FamilyParenthoodWorld, actor);
 
-    private IEnumerable<AgentState> ChildrenNeedingCare(string actor) => agents.Values.Where(person =>
-        LifeStageRules.IsDependent(society.Checkpoint.GetAgent(person.AgentId).AgeBand) &&
-        (person.FullnessBasisPoints < NeedThresholds.FoodPickupFullness || person.Survival is { WarmthBasisPoints: < NeedThresholds.ComfortableWarmth } ||
-         person.Survival is { IllnessBasisPoints: >= NeedThresholds.MedicalCareIllness } && !RecentlyCaredForIllness(person.AgentId)) &&
-        (society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver &&
-             item.State == SocietyRelationshipState.Accepted && item.EffectiveTick <= WorldTick &&
-             item.ProposerId == actor && item.TargetId == person.AgentId) ||
-         NeedsCaregiver(person.AgentId) && agents.TryGetValue(actor, out var caregiver) &&
-             IsWithinInteractionRange(caregiver.Position, person.Position, ResourceInteractionRange)));
+    private IEnumerable<AgentState> ChildrenNeedingCare(string actor) =>
+        FamilySystem.ChildrenNeedingCare(FamilyParenthoodWorld, actor);
 
     private bool FamilyResourcesReady(string actor) =>
-        FamilyFoodReady(actor) && AccessibleShelters(actor, includeStormRefuge: false).Any();
+        FamilySystem.FamilyResourcesReady(FamilyParenthoodWorld, actor);
 
     private bool FamilyFoodReady(string actor) =>
-        society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
-        ParenthoodFoodReadiness(society.Checkpoint, actor, towns).IsReady &&
-        BirthFood(actor) is not null;
+        FamilySystem.FamilyFoodReady(FamilyParenthoodWorld, actor);
 
     /// <summary>Derives the birth food gate from one captured checkpoint, also used by owner and parent guidance.</summary>
     public static ParenthoodFood ParenthoodFoodReadiness(SocietyCheckpoint checkpoint, string caregiverId,
-        IReadOnlyList<TownRuntimeState> townStates)
-    {
-        if (checkpoint.GetAgent(caregiverId).HouseholdId is not { } householdId) return new(0, 4);
-        var required = checkpoint.Agents.Count(person => person.HouseholdId == householdId &&
-            person.Status == SocietyAgentStatus.Active) * 2 + 4;
-        return new(BirthFoodSources(checkpoint, caregiverId, townStates).Sum(match => match.Quantity), required);
-    }
+        IReadOnlyList<TownRuntimeState> townStates) =>
+        FamilySystem.ParenthoodFoodReadiness(checkpoint, caregiverId, townStates);
 
     public static string ParenthoodFoodNote(SocietyCheckpoint checkpoint, string caregiverId,
-        IReadOnlyList<TownRuntimeState> townStates, bool showAmounts = true)
-    {
-        var food = ParenthoodFoodReadiness(checkpoint, caregiverId, townStates);
-        if (!showAmounts)
-            return food.IsReady ? "The caregiver's household has enough ready-to-eat food."
-                : "The caregiver's household needs more ready-to-eat food; grain and flour need cooking.";
-        var amount = FormattableString.Invariant($"Household food: {food.AvailablePortions}/{food.RequiredPortions} ready-to-eat portions");
-        return food.IsReady ? amount + "."
-            : amount + FormattableString.Invariant($"; need {food.RequiredPortions - food.AvailablePortions} more. Grain and flour need cooking.");
-    }
+        IReadOnlyList<TownRuntimeState> townStates, bool showAmounts = true) =>
+        FamilySystem.ParenthoodFoodNote(checkpoint, caregiverId, townStates, showAmounts);
 
     // Birth reserves and consumes its food in place, which the inventory
     // allows for food in a usable storage pot as well as loose food.
-    private static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor)
-    {
-        var household = checkpoint.GetAgent(actor).HouseholdId ?? actor;
-        var kinds = InventoryIndex.For(checkpoint.Inventory).OwnedBy(household)
-            .Where(lot => IsEdibleFood(lot.ItemKind)).Select(lot => lot.ItemKind).Distinct(StringComparer.Ordinal).ToArray();
-        return kinds.Length == 0 ? null : new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(household), new GoodsKinds(kinds));
-    }
+    private static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor) =>
+        FamilySystem.BirthFoodRequest(checkpoint, actor);
 
     private static IReadOnlyList<GoodsMatch> BirthFoodSources(SocietyCheckpoint checkpoint, string actor,
-        IReadOnlyList<TownRuntimeState> townStates) => BirthFoodRequest(checkpoint, actor) is { } request
-            ? GoodsInventoryQuery.FindConsumableGoods(checkpoint.Inventory, request, (index, lot) =>
-                lot.CarrierId is { } carrier && carrier != actor ? GoodsReason.Custody :
-                InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall) ? GoodsReason.MarketStall : null).Matches : [];
+        IReadOnlyList<TownRuntimeState> townStates) =>
+        FamilySystem.BirthFoodSources(checkpoint, actor, townStates);
 
-    private List<SocietyBirthFoodContribution>? BirthFood(string actor)
-    {
-        var remaining = 4;
-        var contributions = new List<SocietyBirthFoodContribution>();
-        if (BirthFoodRequest(society.Checkpoint, actor) is not { } request) return null;
-        foreach (var offered in BirthFoodSources(society.Checkpoint, actor, towns))
-        {
-            if (RecheckGoods(request, offered.Lot.Id) is not { } current) return null;
-            var quantity = Math.Min(remaining, current.Quantity);
-            contributions.Add(new(current.Lot.Id, quantity));
-            remaining -= quantity;
-            if (remaining == 0) return contributions;
-        }
-        return null;
-    }
+    private List<SocietyBirthFoodContribution>? BirthFood(string actor) =>
+        FamilySystem.BirthFood(FamilyParenthoodWorld, actor);
 
-    private int CaregiverFoodCarryRequirement(string actor, AgentState parent)
-    {
-        if (!IsAdult(actor) || !ReadyForBriefInteraction(actor) || NeedsUrgentFood(parent) ||
-            PreferredFood(actor, actor).Any() ||
-            !ChildrenNeedingCare(actor).Any(child => child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && CanReach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable)))
-            return 0;
-        return MinimumFoodPickupCarryUnits(actor, parent.Position, forDependent: true);
-    }
+    private int CaregiverFoodCarryRequirement(string actor, AgentState parent) =>
+        FamilySystem.CaregiverFoodCarryRequirement(FamilyParenthoodWorld, actor, parent);
 
     private void AddParenthoodCandidateOptions(List<CognitionCandidate> candidates, string actor)
     {
@@ -202,41 +150,12 @@ public sealed partial class WorldRuntime
         if (plan is not null) ApplyParenthoodActionPlan(plan);
     }
 
-    private void CompleteParenthoodAction(ParenthoodActionPlan plan)
-    {
-        switch (plan.Choice.Kind)
-        {
-            case ParenthoodChoiceKind.Propose:
-                SetParenthood(plan.OwnerId, new(plan.PartnerId, "requested", WorldTick, WorldTick,
-                    PrimaryCaregiverId: plan.CaregiverId, IntendedHouseholdId: plan.IntendedHouseholdId));
-                checkpointSchemaVersion = StateSchemaVersion;
-                break;
-            case ParenthoodChoiceKind.Accept:
-                SetParenthood(plan.OwnerId, plan.Original! with
-                { Stage = "preparing", PrimaryCaregiverId = plan.CaregiverId, IntendedHouseholdId = plan.IntendedHouseholdId });
-                break;
-            case ParenthoodChoiceKind.Postpone:
-                SetParenthood(plan.OwnerId, plan.Original! with { Stage = "postponed" });
-                break;
-            default:
-                SetParenthood(plan.OwnerId, plan.Original! with { Stage = "cancelled" });
-                break;
-        }
-    }
+    private void CompleteParenthoodAction(ParenthoodActionPlan plan) =>
+        FamilySystem.CompleteParenthoodAction(FamilyParenthoodWorld, plan);
 
     private (string Selector, string CaregiverId, string HouseholdId)[] ParenthoodCaregiverOptions(
-        string initiatorId, string acceptingParentId)
-    {
-        var options = new List<(string Selector, string CaregiverId, string HouseholdId)>();
-        foreach (var option in new[] { (Selector: "initiator", CaregiverId: initiatorId),
-                     (Selector: "acceptor", CaregiverId: acceptingParentId) })
-        {
-            var householdId = HouseholdFor(option.CaregiverId);
-            if (householdId is null || options.Any(existing => existing.Selector == option.Selector)) continue;
-            options.Add((option.Selector, option.CaregiverId, householdId));
-        }
-        return options.ToArray();
-    }
+        string initiatorId, string acceptingParentId) =>
+        FamilySystem.ParenthoodCaregiverOptions(FamilyParenthoodWorld, initiatorId, acceptingParentId);
 
     private static bool TryParseParentAcceptance(
         string candidate,
@@ -252,78 +171,8 @@ public sealed partial class WorldRuntime
         return accepted;
     }
 
-    private void MaintainParenthood()
-    {
-        foreach (var person in agents.Values.OrderBy(person => person.Parenthood?.RequestedTick ?? long.MaxValue)
-                     .ThenBy(person => person.AgentId, StringComparer.Ordinal).ToArray())
-        {
-            if (person.Parenthood is not { } plan || !ActiveParenthood(plan))
-            {
-                continue;
-            }
-            // A plan the continuity rule has sent ahead waits for food instead of expiring.
-            if (!Partners(person.AgentId, plan.PartnerId) ||
-                WorldTick - plan.LastTransitionTick > (plan.Stage == "requested" ? 120 : 2_400) &&
-                !ContinuityPlanDue(person.AgentId, plan.PartnerId))
-            {
-                SetParenthood(person.AgentId, plan with { Stage = "cancelled" });
-                continue;
-            }
-            if (plan.Stage != "preparing")
-                continue;
-            if (plan.PrimaryCaregiverId is not { } caregiverId || plan.IntendedHouseholdId is null ||
-                HouseholdFor(caregiverId) is not { } birthHouseholdId)
-            {
-                SetParenthood(person.AgentId, plan with { Stage = "cancelled" });
-                continue;
-            }
-            if (WorldTick - plan.LastTransitionTick < 600 || !FamilyFoodReady(caregiverId) ||
-                !ReadyForLesson(person.AgentId) || !ReadyForLesson(plan.PartnerId))
-            {
-                continue;
-            }
-            // Losing shelter after agreement creates a housing need, not a
-            // blocked birth. Keep the child near their caregiver in that case.
-            var birthPosition = AccessibleShelters(caregiverId, includeStormRefuge: false).FirstOrDefault()?.Position ?? agents[caregiverId].Position;
-            var site = map.Tiles.Where(tile => map.IsBuildable(tile.Position) &&
-                IsWithinInteractionRange(tile.Position, birthPosition, ResourceInteractionRange) &&
-                !agents.Values.Any(resident => resident.Position == tile.Position)).Select(tile => (GridPoint?)tile.Position).FirstOrDefault();
-            if (site is null)
-            {
-                continue;
-            }
-            var requestId = ParenthoodRequestId(person.AgentId, plan.RequestedTick);
-            var householdCaregivers = new[] { person.AgentId, plan.PartnerId }
-                .Where(parent => HouseholdFor(parent) == birthHouseholdId)
-                .Append(caregiverId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-            var birthFood = BirthFood(caregiverId)!;
-            society.Apply(checkpoint => SocietyRules.CommitBirth(checkpoint,
-                new(requestId, 1, person.AgentId, plan.PartnerId, birthHouseholdId,
-                    householdCaregivers, [person.AgentId, plan.PartnerId], birthFood[0].LotId, 4, WorldTick,
-                    PrimaryCaregiverId: caregiverId, FoodContributions: birthFood)));
-            var birth = society.Checkpoint.Births.FirstOrDefault(item => item.RequestId == requestId);
-            if (birth is null)
-            {
-                continue;
-            }
-            agentStore.RecordBirth(birth.ChildId, site.Value);
-            var housingBlocker = HousingBlocker(birth.ChildId);
-            if (housingBlocker is not null)
-            {
-                SetHousing(birth.ChildId, new(Blocker: housingBlocker));
-                AppendEvent("housing_blocked", $"{birth.ChildId}:{housingBlocker}");
-            }
-            if (TownForResident(caregiverId) is { } parentTownId)
-                AddTownResident(parentTownId, birth.ChildId, "child_joined");
-            SetParenthood(person.AgentId, plan with
-            {
-                Stage = "completed",
-                ChildId = birth.ChildId,
-                BirthHouseholdId = birth.HouseholdId,
-            });
-            AppendEvent("child_born", birth.ChildId);
-        }
-    }
+    private void MaintainParenthood() =>
+        FamilySystem.MaintainParenthood(FamilyParenthoodWorld);
 
     private void CareForChild(string actor, string childId, ActionPlan? originalPlan = null)
     {
@@ -335,35 +184,11 @@ public sealed partial class WorldRuntime
         TryCollectHouseholdServing(actor, agents[actor], society.Checkpoint.Inventory.GetLot(shared.StockId), $"care-food:{WorldTick}:{actor}",
             "caregiver_food", "care_food", destination, ResourceInteractionRange);
 
-    private void CompleteChildCare(PracticalCareActionPlan plan)
-    {
-        var actor = plan.Actor;
-        var childId = plan.Choice.DependentId;
-        var child = agents[childId];
-        if (plan.Food is ConsumeFoodActionPlan meal)
-        {
-            var serving = society.Checkpoint.Inventory.GetLot(meal.StockId);
-            society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, actor, serving.Id, 1));
-            child = AgentStore.PrepareMeal(child, Math.Min(10_000, child.FullnessBasisPoints + FoodNourishment(serving.ItemKind)), AfterMeal(child, serving));
-        }
-        child = AgentStore.PrepareSurvival(child, (child.Survival ?? new SurvivalCondition()) with
-        {
-            WarmthBasisPoints = Math.Min(10_000, (child.Survival?.WarmthBasisPoints ?? 10_000) + 1_000),
-            IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - IllnessCareReliefBasisPoints),
-        });
-        agentStore.CompleteDependentCare(childId, child);
-        AppendEvent("child_cared_for", childId);
-    }
+    private void CompleteChildCare(PracticalCareActionPlan plan) =>
+        FamilySystem.CompleteChildCare(FamilyParenthoodWorld, plan);
 
-    private void SetParenthood(string owner, ParenthoodPlan plan)
-    {
-        if (agents[owner].Parenthood?.Stage != plan.Stage)
-        {
-            plan = plan with { LastTransitionTick = WorldTick };
-            AppendEvent("parenthood_" + plan.Stage, owner);
-        }
-        agentStore.RecordParenthood(owner, agents[owner], plan);
-    }
+    private void SetParenthood(string owner, ParenthoodPlan plan) =>
+        FamilySystem.SetParenthood(FamilyParenthoodWorld, owner, plan);
 
     private static void ValidateParenthood(WorldRuntimeState state)
     {

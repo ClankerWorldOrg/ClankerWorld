@@ -9,7 +9,7 @@
     "checkpointSchemaVersion",
     "completedInstructionIds",
     "contentRegistry",
-    "continuity",
+    "familySystem",
     "conversationSystem",
     "townSystem",
     "geographyOptions",
@@ -53,15 +53,14 @@
     "pendingConversationTurns",
     "pendingModelCalls",
     "pendingIdentityMoments",
-    "pendingWillCancellationReasons",
-    "pendingWills",
     "providerFactory",
     "agentWorld",
     "tickGate",
-    "farmingWorld"
+    "farmingWorld",
+    "familyWills"
   ],
   "scratch": [
-    "guardianPlacementActions",
+    "familyTurn",
     "lastTickMilliseconds",
     "nonLandRemedySelection",
     "plannedRoutes",

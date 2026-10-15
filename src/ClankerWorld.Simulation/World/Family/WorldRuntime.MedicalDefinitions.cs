@@ -2,11 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActorCapabilityPolicy MedicalCareCapabilities =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
-
-    private static ActorCapabilityPolicy MedicalTreatmentCapabilities(bool allowBoat) =>
-        new(ActionLifeStages.Adults, AllowBoat: allowBoat, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy MedicalCareCapabilities => FamilySystem.MedicalCareCapabilities;
+    private static ActorCapabilityPolicy MedicalTreatmentCapabilities(bool allowBoat) => FamilySystem.MedicalTreatmentCapabilities(allowBoat);
 
     private static ActionDefinition<MedicalSupplyChoice, MedicalSupplyActionPlan> MedicalSupplyDefinition => MedicalActions.Supply;
     private static ActionDefinition<MedicalTreatmentChoice, MedicalTreatmentActionPlan> MedicalTreatmentDefinition => MedicalActions.Treatment;
