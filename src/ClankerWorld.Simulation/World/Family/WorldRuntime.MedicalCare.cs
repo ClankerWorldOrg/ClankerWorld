@@ -8,8 +8,8 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MedicalAllowPrefix = "medical_allow:";
-    private const string MedicalRevokePrefix = "medical_revoke:";
+    private const string MedicalAllowPrefix = MedicalConsentChoice.AllowPrefix;
+    private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
     private const string MedicalTreatPrefix = "medical_treat:";
     private const string MedicalCollectPrefix = "medical_collect:";
 
@@ -50,34 +50,23 @@ public sealed partial class WorldRuntime
         if (!decision.Admission.Accepted || decision.Admission.FellBack ||
             selected.Provider != DecisionProviderKind.LargeLanguageModel ||
             selected.AgentId != decision.AgentId) return true;
-        var allowed = selected.CandidateId.StartsWith(MedicalAllowPrefix, StringComparison.Ordinal);
-        var caregiver = selected.CandidateId[(allowed ? MedicalAllowPrefix.Length : MedicalRevokePrefix.Length)..];
-        ChangeMedicalConsent(decision.AgentId, caregiver, allowed);
+        if (MedicalConsentChoice.Decode(selected.CandidateId) is { } choice)
+            ApplyMedicalConsentPlan(decision.ActionPlan as MedicalConsentActionPlan ?? PlanMedicalConsent(decision.AgentId, choice));
         return true;
     }
 
-    private void ChangeMedicalConsent(string patient, string caregiver, bool allowed)
+    private void CompleteMedicalConsent(MedicalConsentActionPlan plan)
     {
-        if (!LivingMedicalAdult(patient) || patient == caregiver) return;
+        var patient = plan.Actor;
+        var caregiver = plan.Choice.CaregiverId;
+        var allowed = plan.Choice.Allow;
         var person = agents[patient];
-        var existing = person.MedicalConsent?.CaregiverIds ?? [];
-        if (allowed)
-        {
-            if (!LivingMedicalAdult(caregiver) || !CanObserveMedicalPatient(patient, caregiver) ||
-                existing.Contains(caregiver, StringComparer.Ordinal)) return;
-        }
-        else if (!existing.Contains(caregiver, StringComparer.Ordinal)) return;
-        var ids = existing.Where(id => id != caregiver && (!allowed || LivingMedicalAdult(id))).ToList();
-        if (allowed)
-        {
-            if (ids.Count >= MedicalCareRules.MaximumNamedCaregivers) return;
-            ids.Add(caregiver);
-        }
+        var ids = plan.ResultingCaregivers;
         if (!allowed && person.MedicalTreatment is { } interrupted && interrupted.CaregiverId == caregiver)
             CloseMedicalDose(patient, interrupted);
         agents[patient] = person with
         {
-            MedicalConsent = ids.Count == 0 ? null : new(ids.Order(StringComparer.Ordinal).ToArray()),
+            MedicalConsent = ids.Count == 0 ? null : new(ids),
             MedicalTreatment = !allowed && person.MedicalTreatment?.CaregiverId == caregiver
                 ? null : person.MedicalTreatment,
         };
@@ -216,9 +205,7 @@ public sealed partial class WorldRuntime
     private void AddMedicalCareCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (!LivingMedicalAdult(actor)) return;
-        foreach (var caregiver in agents[actor].MedicalConsent?.CaregiverIds ?? [])
-            candidates.Add(new(MedicalRevokePrefix + caregiver,
-                $"Withdraw {society.Checkpoint.GetAgent(caregiver).Name}'s permission to provide medical care.", 110));
+        AddMedicalConsentCandidates(candidates, actor, allow: false);
         var supply = MedicalSupplyAtHand(actor);
         foreach (var patient in ObservableMedicalNeeds(actor))
         {
@@ -238,15 +225,7 @@ public sealed partial class WorldRuntime
             SharedItem("medicine", actor, patientPosition, ResourceInteractionRange) is { } shared)
             candidates.Add(new(MedicalCollectPrefix + "medicine", "Visit accessible care stock and collect one real dose of medicine.",
                 8, shared.StorageBuildingId));
-        var existing = agents[actor].MedicalConsent?.CaregiverIds ?? [];
-        var remainingPermissions = MedicalCareRules.MaximumNamedCaregivers - existing.Count(LivingMedicalAdult);
-        if (remainingPermissions <= 0) return;
-        foreach (var other in agents.Keys.Order(StringComparer.Ordinal).Where(other => other != actor &&
-            LivingMedicalAdult(other) && CanObserveMedicalPatient(actor, other) && !existing.Contains(other, StringComparer.Ordinal))
-            .Take(MedicalCareRules.MaximumNamedCaregivers))
-            candidates.Add(new(MedicalAllowPrefix + other,
-                $"Allow {society.Checkpoint.GetAgent(other).Name} to provide medical care to you. Your personal choice is required.",
-                110, other, society.Checkpoint.GetAgent(other).Name));
+        AddMedicalConsentCandidates(candidates, actor, allow: true);
     }
 
     private void ApplyMedicalCandidate(string actor, AgentState person, string candidate)
