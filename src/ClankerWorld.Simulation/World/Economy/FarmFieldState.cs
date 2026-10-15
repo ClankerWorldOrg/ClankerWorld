@@ -6,7 +6,7 @@ public enum FarmFieldStage { Preparing, Prepared, Planted, Growing, Ready, Harve
 public enum FarmWorkKind { Till, Plant, Tend, Harvest }
 
 public sealed record FarmFieldWork(string WorkerId, FarmWorkKind Kind, int RemainingTicks,
-    long LastWorkedTick, string? SeedReservationId = null, string? Crop = null,
+    long LastWorkedTick, Identity? SeedReservationId = null, string? Crop = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? HoeLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SickleLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? OrderInstructionId = null);
@@ -14,7 +14,7 @@ public sealed record FarmFieldWork(string WorkerId, FarmWorkKind Kind, int Remai
 public sealed record FarmFieldState(GridPoint Position, string HouseholdId, FarmFieldStage Stage,
     string? Crop = null, long PlantedTick = 0, long ReadyTick = 0, bool Tended = false, int Cycle = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FarmFieldWork? Work = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ReplantingReservationId = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Identity? ReplantingReservationId = null,
     [property: JsonRequired] long LastWorkedTick = 0);
 
 public sealed record FarmWorkResult(bool Accepted, string Message);

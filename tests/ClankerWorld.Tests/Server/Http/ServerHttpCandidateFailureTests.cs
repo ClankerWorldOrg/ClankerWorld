@@ -54,6 +54,7 @@ public sealed partial class ServerHttpTests
                 provider.GetRequiredService<WorldJevPolicy>(),
                 provider.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
                 _ => provider.GetRequiredService<IDecisionProvider>(),
+                provider.GetRequiredService<ManualWorldSaveStore>(),
                 options => GeographyCandidateSelector.Select(options, GenerateWithUnavailableClearing)))));
         using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -93,7 +94,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal("There is no room for a first Town with these settings.", failureBody.Detail);
                 AssertAttemptSequence(expectedAttempts);
             }
-            var unavailableClientAction = new ClientProtocol.OwnerWorldCreationAction("No clearing", "controlled-no-clearing", "Small", 80, true,
+            var unavailableClientAction = new ClankerWorld.Contracts.OwnerWorldCreationAction("No clearing", "controlled-no-clearing", "Small", 80, true,
                 LatitudeCooling: false, ForestCover: forestCover, MountainRelief: "High");
             var previewFailure = await Assert.ThrowsAsync<OwnerWorldGenerationException>(() =>
                 api.PreviewWorldAsync(uri, authority, device.DeviceId, unavailableClientAction, signer, default));
@@ -107,9 +108,9 @@ public sealed partial class ServerHttpTests
                 }, signer, default));
             AssertAttemptSequence(expectedAttempts);
             Assert.Equal(HttpStatusCode.Conflict, previewFailure.StatusCode);
-            Assert.Equal(Client.GameUiText.FriendlyFailure(previewFailure), Client.GameUiText.FriendlyFailure(createFailure));
-            Assert.Contains("Choose another seed", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
-            Assert.DoesNotContain("starting clearing", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
+            Assert.Equal(ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(createFailure));
+            Assert.Contains("Choose another seed", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), StringComparison.Ordinal);
+            Assert.DoesNotContain("starting clearing", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), StringComparison.Ordinal);
             Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
             Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));
             Assert.Equal(authorityIdentity, host.Services.GetRequiredService<OwnerAuthorityStore>().Identity);
@@ -128,7 +129,7 @@ public sealed partial class ServerHttpTests
         var failure = Assert.Single(preview.FailedCandidates);
         Assert.Equal(2, failure.Attempt);
         Assert.Equal("no-clearing", failure.Reason);
-        var selected = Assert.IsType<GeographyCandidateReport>(preview.Coverage);
+        var selected = Assert.IsType<ClankerWorld.Contracts.OwnerWorldCandidateReport>(preview.Coverage);
         Assert.Equal(0, selected.Attempt);
         Assert.True(selected.MeetsTargets);
         var direct = GeographyCandidateSelector.GenerateCandidate(new GeographyOptions(action.Seed, WorldSizePreset.Small,
@@ -140,13 +141,13 @@ public sealed partial class ServerHttpTests
 
         // The real owner payload reaches the independent client DTO; older
         // previews without failure metadata remain readable with an empty list.
-        var ownerPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPreview>(response,
+        var ownerPreview = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldPreview>(response,
             WebJsonOptions)!;
         Assert.Equal(2, Assert.Single(ownerPreview.FailedCandidates).Attempt);
         Assert.Equal(preview.ManifestDigest, ownerPreview.ManifestDigest);
         var legacyPayload = JsonNode.Parse(response)!.AsObject();
         Assert.True(legacyPayload.Remove("failedCandidates"));
-        var olderPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPreview>(
+        var olderPreview = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldPreview>(
             legacyPayload.ToJsonString(), WebJsonOptions)!;
         Assert.Empty(olderPreview.FailedCandidates);
         Assert.Equal(ownerPreview.Coverage, olderPreview.Coverage);
@@ -163,12 +164,12 @@ public sealed partial class ServerHttpTests
             "/api/v1/owner/worlds/create", wrongAttempt, OwnerHttpBinding.WorldCreationPayload(wrongAttempt));
         Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
         AssertAttemptSequence(0, 1, 2);
-        var wrongClientAttempt = new ClientProtocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 80, true,
+        var wrongClientAttempt = new ClankerWorld.Contracts.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 80, true,
             LatitudeCooling: false, MountainRelief: "High", CandidateAttempt: failure.Attempt,
             ExpectedManifestDigest: preview.ManifestDigest, ExpectedMapLayersDigest: preview.MapLayersDigest);
         var identityFailure = await Assert.ThrowsAsync<HttpRequestException>(() => api.CreateWorldAsync(uri,
             authority, device.DeviceId, wrongClientAttempt, signer, default));
-        Assert.Equal("something changed on the world server. Try again", Client.GameUiText.FriendlyFailure(identityFailure));
+        Assert.Equal("something changed on the world server. Try again", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(identityFailure));
         AssertAttemptSequence(0, 1, 2);
         Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
         Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));

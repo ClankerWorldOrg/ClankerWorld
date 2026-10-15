@@ -1,0 +1,1 @@
+- After an agent has saved summaries of their experiences, turn the routine helper off, save and reload, then let that agent die owning belongings with a personal model assigned. Their final will can draw on their own summarized experiences; other agents do not learn those private summaries. ([#1872](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1872))

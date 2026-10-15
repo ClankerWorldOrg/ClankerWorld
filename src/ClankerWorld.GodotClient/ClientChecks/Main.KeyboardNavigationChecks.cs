@@ -142,7 +142,7 @@ public partial class Main
         };
         var snapshot = original with { Agents = people, PlacedBuildings = lanterns, LatestEventId = 0 };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
@@ -233,13 +233,13 @@ public partial class Main
                         SetCameraAtImmediately(new(3.5f, 3.5f));
                         knownEvents.Clear();
                         // Find actions require visible events; routine meals are intentionally filtered out.
-                        knownEvents[9001] = new OwnerWorldEvent(9001, 1, "skill_learned", $"{people[0].Id}|building|work", new(0, 0));
+                        knownEvents[9001] = new OwnerWorldEvent(9001, 1, "skill_learned", $"{people[0].Id}|building|work", new(0, 0)) { Text = "An agent learned building by doing the work." };
                         RenderEventLog();
                         var find = KeyboardControls(eventRows).OfType<Button>().Single();
                         for (var step = 0; !find.HasFocus() && step <= KeyboardControls(panel).Length; step++)
                             await KeyboardKeyAsync(Key.Tab);
                         if (!find.HasFocus()) throw new InvalidOperationException("Tab must reach the event's Find action.");
-                        knownEvents[9002] = new OwnerWorldEvent(9002, 2, "skill_learned", $"{people[1].Id}|building|work", new(3, 3));
+                        knownEvents[9002] = new OwnerWorldEvent(9002, 2, "skill_learned", $"{people[1].Id}|building|work", new(3, 3)) { Text = "An agent learned building by doing the work." };
                         RenderEventLog();
                         var restoredFind = GetViewport().GuiGetFocusOwner();
                         if (restoredFind is not Button || !restoredFind.HasMeta("keyboard_event_action") ||

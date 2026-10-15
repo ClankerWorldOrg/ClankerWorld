@@ -24,22 +24,16 @@ public sealed record CognitionLandHearingChoice(
     {
         if (Statement is not null && CognitionDecisionResponse.NormalizeIdentityText(Statement) != Statement ||
             Grounds is not null && CognitionDecisionResponse.NormalizeIdentityText(Grounds) != Grounds ||
-            HouseholdId is not null && !ValidHouseholdReference(HouseholdId) || AgreedEndTick is < 0 ||
+            HouseholdId is not null && !IdentityRules.Reference(HouseholdId, int.MaxValue, false, true) || AgreedEndTick is < 0 ||
             RequestedOutcome is not null and not ("confirm" or "renew" or "amend" or "end" or "reject" or "reclaim" or "grant") ||
             !ValidReferences(EvidenceIds) || !ValidReferences(LawIds) ||
             (PaymentItemKind is null) != (PaymentQuantity is null) ||
-            PaymentItemKind is not null && !ValidReference(PaymentItemKind, ContentPackageRules.MaximumContentIdLength) || PaymentQuantity is <= 0)
+            PaymentItemKind is not null && !IdentityRules.Reference(PaymentItemKind, ContentPackageRules.MaximumContentIdLength, false, true) || PaymentQuantity is <= 0)
             throw new ArgumentOutOfRangeException(nameof(CognitionLandHearingChoice), "The hearing submission is malformed or too large.");
     }
 
-    private static bool ValidHouseholdReference(string? value) => value is { Length: > 0 } &&
-        !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
-
-    private static bool ValidReference(string? value, int maximumLength = DerivedId.MaximumLength) => value is { } &&
-        value.Length <= maximumLength && ValidHouseholdReference(value);
-
     private static bool ValidReferences(IReadOnlyList<string>? values) => values is null ||
-        values.Count <= MaximumReferences && values.All(value => ValidReference(value)) &&
+        values.Count <= MaximumReferences && values.All(value => IdentityRules.Reference(value, 128, false, true)) &&
         values.Distinct(StringComparer.Ordinal).Count() == values.Count;
 
     internal static CognitionLandHearingChoice? Parse(JsonElement answer)
@@ -78,7 +72,7 @@ public sealed record CognitionLandHearingChoice(
     {
         if (!payload.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null) return null;
         if (value.ValueKind != JsonValueKind.String ||
-            !(household ? ValidHouseholdReference(value.GetString()) : ValidReference(value.GetString(), maximumLength)))
+            !(household ? IdentityRules.Reference(value.GetString(), int.MaxValue, false, true) : IdentityRules.Reference(value.GetString(), maximumLength, false, true)))
             throw new InvalidDataException("The provider returned an invalid hearing reference.");
         return value.GetString();
     }
@@ -96,7 +90,7 @@ public sealed record CognitionLandHearingChoice(
     {
         if (!payload.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null) return null;
         if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > MaximumReferences ||
-            value.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String || !ValidReference(item.GetString())))
+            value.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String || !IdentityRules.Reference(item.GetString(), 128, false, true)))
             throw new InvalidDataException("The provider returned invalid hearing references.");
         return value.EnumerateArray().Select(item => item.GetString()!).ToArray();
     }
