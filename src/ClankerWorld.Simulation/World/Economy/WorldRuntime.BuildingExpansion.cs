@@ -315,20 +315,13 @@ public sealed partial class WorldRuntime
                 var owner = ExpansionOwner(building);
                 if (delivery.Store)
                 {
-                    ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor, owner,
-                        delivery.LotId, delivery.Quantity, "building_expansion_material_delivered",
-                        destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
+                    RunInventoryCommand(InventorySystem.DeliverExpansionStock(InventoryEconomyWorld, actor, building, delivery, owner));
                     AppendEvent("building_expansion_material_delivered",
                         $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:stored");
                 }
                 else
                 {
-                    ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor,
-                        owner, delivery.LotId, delivery.Quantity,
-                        "building_expansion_material_delivered", destinationGroundPosition: ExpansionGroundPosition(building),
-                        holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
+                    RunInventoryCommand(InventorySystem.DeliverExpansionGroundStock(InventoryEconomyWorld, actor, building, delivery, owner));
                     AppendEvent("building_expansion_material_delivered",
                         $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:ground");
                 }
@@ -341,11 +334,7 @@ public sealed partial class WorldRuntime
                 }
                 if (pickup.Quantity > 0)
                 {
-                    ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{pickup.LotId}",
-                        pickup.OwnerId, actor, pickup.LotId, pickup.Quantity, "building_expansion_material_picked_up",
-                        destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId,
-                        holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+                    RunInventoryCommand(InventorySystem.CollectExpansionStock(InventoryEconomyWorld, actor, building, pickup));
                     AppendEvent("building_expansion_material_picked_up",
                         $"{actor}:{pickup.LotId}:{pickup.Quantity}:{building.InstanceId}");
                 }

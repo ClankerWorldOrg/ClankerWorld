@@ -107,8 +107,7 @@ public sealed partial class WorldRuntime
                 for (var index = 0; index < lotsToAdd; index++)
                 {
                     var lotId = lotsToAdd == 1 ? id : DeveloperVesselUnitId(id, index);
-                    ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(inventory, lotId, edit.Value, actor,
-                        individualVessels ? 1 : edit.Amount));
+                    RunInventoryCommand(InventorySystem.AddDeveloperStock(edit, actor, individualVessels, lotId));
                 }
                 break;
             case "remove_goods":
@@ -128,7 +127,7 @@ public sealed partial class WorldRuntime
                 {
                     var amount = Math.Min(remaining, PhysicalUnreservedQuantity(lot));
                     if (amount == 0) continue;
-                    ApplyInventoryTransition(inventory => InventoryAuthority.Discard(inventory, actor, lot.Id, amount));
+                    RunInventoryCommand(InventorySystem.DiscardDeveloperStock(actor, lot, amount));
                     remaining -= amount;
                     if (remaining == 0) break;
                 }

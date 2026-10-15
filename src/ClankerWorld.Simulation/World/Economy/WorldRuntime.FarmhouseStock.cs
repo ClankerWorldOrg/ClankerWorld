@@ -180,15 +180,7 @@ public sealed partial class WorldRuntime
     private void ApplyFarmStockHaul(string actor, string householdId, string destinationId,
         FarmStockHaulPlan plan, string operationId, string purpose)
     {
-        ApplyInventoryTransition(inventory => plan.MoveContainerFamily
-            ? InventoryAuthority.Transfer(inventory, operationId, householdId, actor,
-                plan.Carrier.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : plan.Resource.ContainerLotId == plan.Carrier.Id
-                ? InventoryAuthority.TakeFromContainer(inventory, operationId, householdId, actor,
-                    plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity,
-                    destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-                : InventoryAuthority.Transfer(inventory, operationId, householdId, actor,
-                    plan.Resource.Id, plan.TransferQuantity, purpose, destinationDeliveryBuildingId: destinationId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        RunInventoryCommand(InventorySystem.ApplyFarmStockHaul(actor, householdId, destinationId, plan, operationId, purpose));
         AppendEvent(purpose, $"{actor}:{plan.Resource.Id}:{plan.ResourceQuantity}:{destinationId}");
     }
 }

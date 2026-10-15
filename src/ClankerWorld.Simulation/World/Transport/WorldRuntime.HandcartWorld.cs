@@ -55,56 +55,30 @@ public sealed partial class WorldRuntime
         public ActionCheck CheckEquipmentPickup(string actor, PlannedEquipmentPickup pickup, string description, ReachPurpose purpose) => runtime.CheckEquipmentPickup(actor, pickup, description, purpose);
         public void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup) => runtime.ApplyPlannedEquipmentPickup(actor, pickup);
         public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
-        public void MoveCartInventory(string actor, string cart, GridPoint to, int wear) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.MoveHandcart(inventory, actor, cart, new(to.X, to.Y), wear));
-        public void TransferCartInventory(string actor, string recipient, InventoryLot cart) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{runtime.WorldTick}:{actor}", actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        public void MoveCartInventory(string actor, string cart, GridPoint to, int wear) => runtime.RunInventoryCommand(InventorySystem.MoveCartInventory(actor, cart, to, wear));
+        public void TransferCartInventory(string actor, string recipient, InventoryLot cart) => runtime.RunInventoryCommand(InventorySystem.TransferCartInventory(runtime.InventoryTransportWorld, actor, recipient, cart));
         public void CollectCartMaterial(HandcartBuildMaterialActionPlan plan)
         {
-            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{runtime.WorldTick}:{plan.Actor}",
-            plan.Pickup.OwnerId, plan.Actor, plan.Pickup.StockId, plan.Quantity, "handcart_material_collected",
-            holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+            runtime.RunInventoryCommand(InventorySystem.CollectCartMaterial(runtime.InventoryTransportWorld, plan));
         }
         public IReadOnlyList<string> RepairCartInventory(HandcartRepairActionPlan plan, InventoryLot cart)
         {
             var actor = plan.Actor;
             var reservations = new List<string>();
-            runtime.ApplyInventoryTransition(inventory =>
-        {
-            var updated = inventory;
-            foreach (var material in plan.Materials)
-            {
-                var id = WorldRuntime.CartRepairReservationId(runtime.WorldTick, actor, material.ItemKind);
-                updated = InventoryAuthority.Reserve(updated, id, actor, material.StockId, material.Quantity, "equipment_repair",
-                    runtime.WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                reservations.Add(id);
-            }
-            return InventoryAuthority.RepairSingleUnit(updated, cart.Id, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-        });
+            runtime.RunInventoryCommand(InventorySystem.RepairCartInventory(runtime.InventoryTransportWorld, plan, cart, actor, reservations));
             return reservations;
         }
         public void LoadCartInventory(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot)
         {
             var actor = plan.Actor;
             var quantity = plan.Quantity;
-            runtime.ApplyInventoryTransition(inventory =>
-            {
-                var updated = inventory;
-                var cargoId = lot.Id;
-                if (lot.OwnerId != actor)
-                {
-                    var operation = $"cart-pickup:{runtime.WorldTick}:{actor}";
-                    updated = InventoryAuthority.Transfer(updated, operation, lot.OwnerId, actor, lot.Id, quantity,
-                        "handcart_pickup", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                    cargoId = quantity == lot.Quantity ? lot.Id : DerivedId.Create($"{lot.Id}#transfer:{operation}");
-                }
-                return InventoryAuthority.LoadHandcart(updated, $"load:{runtime.WorldTick}:{actor}", actor, cart.Id, cargoId, quantity);
-            });
+            runtime.RunInventoryCommand(InventorySystem.LoadCartInventory(runtime.InventoryTransportWorld, cart, lot, actor, quantity));
         }
         public void UnloadCartInventory(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot)
         {
             var actor = plan.Actor;
             var quantity = plan.Quantity;
-            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.UnloadHandcart(inventory, $"unload:{runtime.WorldTick}:{actor}",
-                actor, cart.Id, lot.Id, quantity, plan.Choice.Kind == HandcartCargoKind.UnloadGround));
+            runtime.RunInventoryCommand(InventorySystem.UnloadCartInventory(runtime.InventoryTransportWorld, plan, cart, lot, actor, quantity));
         }
         public void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds) => runtime.RecordNonLandRepairCompletion(actor, originalTarget, repairedLotId, nativeReceiptId, position, reservationIds);
         public string CartRepairReservationId(long tick, string actor, string material) => WorldRuntime.CartRepairReservationId(tick, actor, material);

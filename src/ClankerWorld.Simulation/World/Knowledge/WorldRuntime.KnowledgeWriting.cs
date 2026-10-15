@@ -196,7 +196,7 @@ public sealed partial class WorldRuntime
                 AgentKnowledgeRules.MaterialPurpose(id, input.ItemKind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             materials.Add(new(reservationId, input.LotId, input.ItemKind, input.Quantity));
         }
-        ApplyInventoryTransition(_ => inventory);
+        RunInventoryCommand(InventorySystem.ApplyCheckedKnowledgeWriting(inventory));
         communitySystem.StartWriting(new AgentKnowledgeWritingProject(id, actor, kind, candidate, source?.Id, facts,
             WorldTick, WorldTick, 0, materials)
         { Recipes = recipes });
@@ -218,9 +218,7 @@ public sealed partial class WorldRuntime
             return;
         }
         // Resolve household/Town permission for the planned lot again at pickup time.
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            WritingMaterialTransferId(WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
-            "knowledge_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        RunInventoryCommand(InventorySystem.CollectKnowledgeMaterial(InventoryKnowledgeWorld, actor, kind, item, quantity));
         AppendEvent("agent_knowledge_material_collected", $"{actor}|{kind}|{quantity}");
     }
 
@@ -266,7 +264,7 @@ public sealed partial class WorldRuntime
         var inventory = society.Checkpoint.Inventory;
         foreach (var input in project.Materials) inventory = InventoryAuthority.ConsumeReservation(inventory, input.ReservationId);
         inventory = InventoryAuthority.AddLot(inventory, lotId, project.Kind, actor, 1, WorldTick);
-        ApplyInventoryTransition(_ => inventory);
+        RunInventoryCommand(InventorySystem.ContinueKnowledgeWriting(inventory));
         communitySystem.CompleteWriting(project.Id, new AgentKnowledgeArtifact(
             artifactId, actor, lotId, project.Kind, title, WorldTick, project.Facts)
         {
@@ -290,9 +288,7 @@ public sealed partial class WorldRuntime
     private void CancelKnowledgeWriting(AgentKnowledgeWritingProject project, string reason)
     {
         ClearKnowledgeOrderBinding(project);
-        ApplyInventoryTransition(inventory => project.Materials.Aggregate(inventory,
-            (current, input) => current.Reservations.Any(item => item.Id == input.ReservationId)
-                ? InventoryAuthority.ReleaseReservation(current, input.ReservationId, "knowledge_writing_cancelled") : current));
+        RunInventoryCommand(InventorySystem.CancelKnowledgeWriting(project));
         communitySystem.CancelWriting(project.Id);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("agent_knowledge_writing_cancelled", $"{project.ActorId}|{project.Kind}|{reason}");

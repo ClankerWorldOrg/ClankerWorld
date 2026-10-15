@@ -41,16 +41,9 @@ public sealed partial class WorldRuntime
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
         public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public string ExpansionOrderReceipt(string jobId) => WorldRuntime.ExpansionOrderReceipt(jobId);
-        public void ExtendOrderReservations(IReadOnlyList<string> reservations, long deadline) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, reservations, deadline));
-        public void HoldOrderReservations(IReadOnlyList<string> reservations) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, reservations));
-        public void ReleaseExpansionOrderInputs(BuildingExpansionJob job) => runtime.ApplyInventoryTransition(inventory =>
-        {
-            foreach (var id in job.InputReservationIds)
-                if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is
-                    { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, "owner_expansion_stopped");
-            return inventory;
-        });
+        public void ExtendOrderReservations(IReadOnlyList<string> reservations, long deadline) => runtime.RunInventoryCommand(InventorySystem.ExtendOrderReservations(reservations, deadline));
+        public void HoldOrderReservations(IReadOnlyList<string> reservations) => runtime.RunInventoryCommand(InventorySystem.HoldOrderReservations(reservations));
+        public void ReleaseExpansionOrderInputs(BuildingExpansionJob job) => runtime.RunInventoryCommand(InventorySystem.ReleaseExpansionOrderInputs(job));
         public void ResumeExpansion(string job, long deadline) => runtime.constructionSystem.Buildings.ResumeExpansion(job, deadline);
         public void PauseExpansion(string job, long tick) => runtime.constructionSystem.Buildings.PauseExpansion(job, tick);
         public void CancelExpansions(IReadOnlySet<string> jobs, string reason) => runtime.constructionSystem.Buildings.CancelPausedExpansions(jobs, reason);

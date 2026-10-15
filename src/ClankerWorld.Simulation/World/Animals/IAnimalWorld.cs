@@ -13,7 +13,7 @@ internal interface IAnimalWorld
     System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
     void RefuseChoice(ActionPlan plan, ActionRefusal refusal);
     void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
-    void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
+    void RunInventoryCommand(InventorySystem.Command command);
     InventoryLot? AttachedHandcart(string actor);
     int AvailableLotQuantity(InventoryLot lot);
     int AnimalYardFeedStock(string yardId);

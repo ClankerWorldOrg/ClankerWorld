@@ -243,7 +243,7 @@ public sealed partial class WorldRuntime
         {
             survivalState = new SurvivalState(WorldTick, []);
             // Do not retroactively rot years of legacy inventory on migration.
-            ApplyInventoryTransition(inventory => InventoryAuthority.ProcessSpoilage(inventory, WorldTick, 0));
+            RunInventoryCommand(InventorySystem.AdvanceInventoryClock(InventoryRuntimeWorld));
             AppendEvent("survival_activated", "weather_equipment_and_food");
         }
         var existingIds = worldSimulation.Buildings.Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);
@@ -261,8 +261,7 @@ public sealed partial class WorldRuntime
             ? society.Checkpoint.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal)
             : BuildingsWithTag("storage").Where(building => building.HouseholdId is not null)
                 .Select(building => building.HouseholdId!).ToHashSet(StringComparer.Ordinal);
-        ApplyInventoryTransition(inventory => InventoryAuthority.ProcessSpoilage(inventory, WorldTick, 4,
-            PerishableKinds, shelteredOwners, FoodSpoilageRates));
+        RunInventoryCommand(InventorySystem.SpoilPerishableStock(InventoryRuntimeWorld, shelteredOwners));
         foreach (var person in agents.Values.ToArray())
         {
             var old = person.Survival ?? new SurvivalCondition();
@@ -335,10 +334,7 @@ public sealed partial class WorldRuntime
         var borrowedTool = pickup.ItemKind == "tool" || ToolProgressionRules.Find(pickup.ItemKind) is not null;
         var keepOwner = pickup.OwnerId == actor ||
             borrowedTool && pickup.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
-        ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}",
-                pickup.OwnerId, actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        RunInventoryCommand(InventorySystem.ApplyPlannedEquipmentPickup(InventoryRuntimeWorld, actor, pickup, keepOwner));
         AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
     }
 
