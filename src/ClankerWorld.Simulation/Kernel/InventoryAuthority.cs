@@ -153,8 +153,8 @@ public static partial class InventoryAuthority
         var orderedLots = lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         ValidateLots(orderedLots);
         ValidateContainerGroups(orderedLots);
-        var empty = new InventoryCheckpoint(0, [], [], [], []);
-        return new InventoryCheckpoint(0, UpdateCustodyHolds(empty, orderedLots), [], [], []);
+        var empty = InventoryStore.CreateInventoryCheckpoint(0, [], [], [], []);
+        return InventoryStore.CreateInventoryCheckpoint(0, UpdateCustodyHolds(empty, orderedLots), [], [], []);
     }
 
     public static InventoryCheckpoint SplitLot(
@@ -175,9 +175,9 @@ public static partial class InventoryAuthority
         }
 
         EnsureUnreservedQuantity(checkpoint, source, splitQuantity);
-        var split = source with { Id = splitLotId, Quantity = splitQuantity, ProvenanceLotId = source.Id };
+        var split = InventoryStore.PrepareLotSplit(source, splitLotId, splitQuantity, source.Id);
         var lots = checkpoint.Lots.Select(lot => string.Equals(lot.Id, source.Id, StringComparison.Ordinal)
-                ? lot with { Quantity = lot.Quantity - splitQuantity }
+                ? InventoryStore.PrepareQuantity(lot, lot.Quantity - splitQuantity)
                 : lot)
             .Append(split)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal)
@@ -226,18 +226,7 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A produced lot must have a unique positive ID and valid condition.");
         }
 
-        var lot = new InventoryLot(
-            lotId,
-            itemKind.Trim(),
-            ownerId.Trim(),
-            quantity,
-            conditionBasisPoints,
-            freshnessBasisPoints,
-            nextTick,
-            StorageBuildingId: storageBuildingId,
-            ContainerLotId: containerLotId,
-            GroundPosition: groundPosition,
-            CarrierId: container?.CarrierId);
+        var lot = InventoryStore.CreateInventoryLot(lotId, itemKind.Trim(), ownerId.Trim(), quantity, conditionBasisPoints, freshnessBasisPoints, nextTick, StorageBuildingId: storageBuildingId, ContainerLotId: containerLotId, GroundPosition: groundPosition, CarrierId: container?.CarrierId);
         ValidateLots([lot]);
         var lots = checkpoint.Lots
             .Append(lot)
@@ -300,7 +289,7 @@ public static partial class InventoryAuthority
                 pendingEvents.Add(("lot_spoiled", lot.Id));
             }
 
-            return lot with { FreshnessBasisPoints = freshness, LastProcessedTick = targetTick };
+            return InventoryStore.PrepareSpoilage(lot, freshness, targetTick);
         }).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
 
         return Commit(checkpoint, targetTick, lots, pendingEvents: pendingEvents);
@@ -333,8 +322,7 @@ public static partial class InventoryAuthority
         if (InventoryContainerRules.IsContainer(lot.ItemKind))
             throw new InvalidOperationException("A reusable vessel cannot be consumed as a production input.");
         EnsureOwnerAndAvailableQuantity(checkpoint, lot, ownerId, quantity);
-        var reservation = new InventoryReservation(
-            reservationId, ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), lot).ToArray()));
+        var reservation = InventoryStore.CreateInventoryReservation(reservationId, ownerId, lotId, quantity, purpose, expiryTick, isExclusive, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), lot).ToArray()));
         return Commit(
             checkpoint,
             reservations: checkpoint.Reservations.Append(reservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -361,12 +349,12 @@ public static partial class InventoryAuthority
         var lots = lot.Quantity == reservation.Quantity
             ? checkpoint.Lots.Where(candidate => candidate.Id != lot.Id).ToArray()
             : checkpoint.Lots.Select(candidate => candidate.Id == lot.Id
-                    ? candidate with { Quantity = candidate.Quantity - reservation.Quantity }
+                    ? InventoryStore.PrepareQuantity(candidate, candidate.Quantity - reservation.Quantity)
                     : candidate)
                 .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
                 .ToArray();
         var reservations = checkpoint.Reservations.Select(candidate => candidate.Id == reservation.Id
-                ? candidate with { State = InventoryReservationState.Completed }
+                ? InventoryStore.PrepareReservationState(candidate, InventoryReservationState.Completed)
                 : candidate)
             .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
             .ToArray();
@@ -393,7 +381,7 @@ public static partial class InventoryAuthority
 
         var reservations = checkpoint.Reservations
             .Select(candidate => candidate.Id == reservationId
-                ? candidate with { State = InventoryReservationState.Released }
+                ? InventoryStore.PrepareReservationState(candidate, InventoryReservationState.Released)
                 : candidate)
             .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
             .ToArray();
@@ -418,7 +406,7 @@ public static partial class InventoryAuthority
         if (quantity == reservation.Quantity)
             return ReleaseReservation(checkpoint, reservationId, $"{purpose}:quantity:{quantity}");
         var reservations = checkpoint.Reservations.Select(candidate => candidate.Id == reservationId
-            ? candidate with { Quantity = candidate.Quantity - quantity }
+            ? InventoryStore.PrepareReservationQuantity(candidate, candidate.Quantity - quantity)
             : candidate).ToArray();
         return Commit(checkpoint, reservations: reservations, eventKind: "reservation_partly_released",
             detail: $"{reservationId}:{purpose}:quantity:{quantity}");
@@ -463,16 +451,9 @@ public static partial class InventoryAuthority
             var members = checkpoint.Lots.Where(lot => lot.Id == source.Id || lot.ContainerLotId == source.Id).ToArray();
             EnsureFamilyHoldAccess(checkpoint, source, holdAccess);
             EnsureNoActiveReservations(checkpoint, members.Select(lot => lot.Id));
-            var moved = members.Select(lot => lot with
-            {
-                OwnerId = recipientId,
-                CarrierId = null,
-                StorageBuildingId = destinationStorageBuildingId,
-                DeliveryBuildingId = destinationDeliveryBuildingId,
-                GroundPosition = lot.Id == source.Id
+            var moved = members.Select(lot => InventoryStore.PrepareOwnerTransfer(lot, recipientId, null, destinationStorageBuildingId, destinationDeliveryBuildingId, lot.Id == source.Id
                     ? destinationGroundPosition ?? (source.ItemKind == InventoryContainerRules.Handcart ? source.GroundPosition : null)
-                    : null,
-            })
+                    : null))
                 .ToDictionary(lot => lot.Id, StringComparer.Ordinal);
             return Commit(
                 checkpoint,
@@ -483,31 +464,14 @@ public static partial class InventoryAuthority
         }
         var lots = quantity == source.Quantity
             ? checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with
-                    {
-                        OwnerId = recipientId,
-                        CarrierId = null,
-                        StorageBuildingId = destinationStorageBuildingId,
-                        DeliveryBuildingId = destinationDeliveryBuildingId,
-                        GroundPosition = destinationGroundPosition,
-                    }
+                    ? InventoryStore.PrepareOwnerTransfer(lot, recipientId, null, destinationStorageBuildingId, destinationDeliveryBuildingId, destinationGroundPosition)
                     : lot)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal)
                 .ToArray()
             : checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with { Quantity = lot.Quantity - quantity }
+                    ? InventoryStore.PrepareQuantity(lot, lot.Quantity - quantity)
                     : lot)
-                .Append(source with
-                {
-                    Id = DerivedId.Create($"{source.Id}#transfer:{transferId}"),
-                    OwnerId = recipientId,
-                    CarrierId = null,
-                    Quantity = quantity,
-                    ProvenanceLotId = source.Id,
-                    StorageBuildingId = destinationStorageBuildingId,
-                    DeliveryBuildingId = destinationDeliveryBuildingId,
-                    GroundPosition = destinationGroundPosition,
-                })
+                .Append(InventoryStore.PrepareSplitTransfer(source, DerivedId.Create($"{source.Id}#transfer:{transferId}"), recipientId, null, quantity, source.Id, destinationStorageBuildingId, destinationDeliveryBuildingId, destinationGroundPosition))
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal)
                 .ToArray();
         return Commit(
@@ -551,7 +515,7 @@ public static partial class InventoryAuthority
         if (quantity == source.Quantity)
         {
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with { ContainerLotId = container.Id, GroundPosition = null }
+                    ? InventoryStore.PrepareContainerLocation(lot, container.Id, null)
                     : lot)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
@@ -561,16 +525,9 @@ public static partial class InventoryAuthority
             if (checkpoint.Lots.Any(lot => lot.Id == splitId))
                 throw new InvalidOperationException("The container placement ID is already in use.");
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with { Quantity = lot.Quantity - quantity }
+                    ? InventoryStore.PrepareQuantity(lot, lot.Quantity - quantity)
                     : lot)
-                .Append(source with
-                {
-                    Id = splitId,
-                    Quantity = quantity,
-                    ProvenanceLotId = source.Id,
-                    ContainerLotId = container.Id,
-                    GroundPosition = null,
-                })
+                .Append(InventoryStore.PrepareContainerSplit(source, splitId, quantity, source.Id, container.Id, null))
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
 
@@ -619,15 +576,7 @@ public static partial class InventoryAuthority
         if (quantity == source.Quantity)
         {
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with
-                    {
-                        OwnerId = recipientId,
-                        CarrierId = takenCarrier,
-                        ContainerLotId = null,
-                        StorageBuildingId = destinationStorageBuildingId,
-                        DeliveryBuildingId = destinationDeliveryBuildingId,
-                        GroundPosition = null,
-                    }
+                    ? InventoryStore.PrepareUncontainedTransfer(lot, recipientId, takenCarrier, null, destinationStorageBuildingId, destinationDeliveryBuildingId, null)
                     : lot)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
@@ -637,20 +586,9 @@ public static partial class InventoryAuthority
             if (checkpoint.Lots.Any(lot => lot.Id == splitId))
                 throw new InvalidOperationException("The container take ID is already in use.");
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
-                    ? lot with { Quantity = lot.Quantity - quantity }
+                    ? InventoryStore.PrepareQuantity(lot, lot.Quantity - quantity)
                     : lot)
-                .Append(source with
-                {
-                    Id = splitId,
-                    OwnerId = recipientId,
-                    CarrierId = takenCarrier,
-                    Quantity = quantity,
-                    ProvenanceLotId = source.Id,
-                    ContainerLotId = null,
-                    StorageBuildingId = destinationStorageBuildingId,
-                    DeliveryBuildingId = destinationDeliveryBuildingId,
-                    GroundPosition = null,
-                })
+                .Append(InventoryStore.PrepareUncontainedSplit(source, splitId, recipientId, takenCarrier, quantity, source.Id, null, destinationStorageBuildingId, destinationDeliveryBuildingId, null))
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
 
@@ -684,13 +622,7 @@ public static partial class InventoryAuthority
             var members = checkpoint.Lots.Where(lot => lot.Id == source.Id || lot.ContainerLotId == source.Id).ToArray();
             EnsureFamilyHoldAccess(checkpoint, source, holdAccess);
             EnsureNoActiveReservations(checkpoint, members.Select(lot => lot.Id));
-            var family = members.Select(lot => lot with
-            {
-                CarrierId = carrierId,
-                StorageBuildingId = storageBuildingId,
-                GroundPosition = lot.Id == source.Id ? groundPosition : null,
-                DeliveryBuildingId = null,
-            }).ToDictionary(lot => lot.Id, StringComparer.Ordinal);
+            var family = members.Select(lot => InventoryStore.PrepareRelocation(lot, carrierId, storageBuildingId, lot.Id == source.Id ? groundPosition : null, null)).ToDictionary(lot => lot.Id, StringComparer.Ordinal);
             var relocated = checkpoint.Lots.Select(lot => family.GetValueOrDefault(lot.Id) ?? lot)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
             ValidateLots(relocated);
@@ -698,19 +630,10 @@ public static partial class InventoryAuthority
                 eventKind: "inventory_relocated", detail: $"{moveId}:{ownerId}:{lotId}:{quantity}");
         }
         EnsureUnreservedQuantity(checkpoint, source, quantity);
-        var moved = source with
-        {
-            Id = quantity == source.Quantity ? source.Id : movedId,
-            Quantity = quantity,
-            ProvenanceLotId = quantity == source.Quantity ? source.ProvenanceLotId : source.Id,
-            CarrierId = carrierId,
-            StorageBuildingId = storageBuildingId,
-            GroundPosition = groundPosition,
-            DeliveryBuildingId = null,
-        };
+        var moved = InventoryStore.PrepareRelocatedSplit(source, quantity == source.Quantity ? source.Id : movedId, quantity, quantity == source.Quantity ? source.ProvenanceLotId : source.Id, carrierId, storageBuildingId, groundPosition, null);
         var lots = checkpoint.Lots.Where(lot => lot.Id != source.Id).Append(moved);
         if (quantity < source.Quantity)
-            lots = lots.Append(source with { Quantity = source.Quantity - quantity });
+            lots = lots.Append(InventoryStore.PrepareQuantity(source, source.Quantity - quantity));
         var ordered = lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         ValidateLots(ordered);
         return Commit(checkpoint, lots: ordered,
@@ -731,7 +654,7 @@ public static partial class InventoryAuthority
             item.State is not (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed))))
             throw new InvalidOperationException("Only existing active work reservations can be held.");
         var reservations = checkpoint.Reservations.Select(item => ids.Contains(item.Id)
-            ? item with { ExpiryTick = deadline } : item).ToArray();
+            ? InventoryStore.PrepareReservationDeadline(item, deadline) : item).ToArray();
         return Commit(checkpoint, reservations: reservations, eventKind: "work_reservation_deadline_changed", detail: $"{deadline}:{string.Join(',', reservationIds)}");
     }
 
@@ -745,13 +668,7 @@ public static partial class InventoryAuthority
         ArgumentException.ThrowIfNullOrWhiteSpace(carrierId);
         // A dropped vessel lands on the ground; its contents stay inside it.
         var lots = checkpoint.Lots.Select(lot => lot.CarrierId == carrierId
-            ? lot with
-            {
-                CarrierId = null,
-                GroundPosition = lot.ContainerLotId is null ? position : null,
-                StorageBuildingId = null,
-                DeliveryBuildingId = null,
-            }
+            ? InventoryStore.PrepareDroppedCargo(lot, null, lot.ContainerLotId is null ? position : null, null, null)
             : lot).ToArray();
         ValidateLots(lots);
         return Commit(checkpoint, lots: lots, eventKind: "carrier_goods_set_down", detail: carrierId);
@@ -767,14 +684,14 @@ public static partial class InventoryAuthority
             .Select(reservation => reservation.Id)
             .ToHashSet(StringComparer.Ordinal);
         var reservations = checkpoint.Reservations.Select(reservation => released.Contains(reservation.Id)
-                ? reservation with { State = InventoryReservationState.Released }
+                ? InventoryStore.PrepareReservationState(reservation, InventoryReservationState.Released)
                 : reservation)
             .OrderBy(reservation => reservation.Id, StringComparer.Ordinal)
             .ToArray();
         var expiredOffers = checkpoint.Offers.Where(offer => offer.State == DirectBarterState.Open && offer.ExpiryTick < targetTick)
             .Select(offer => offer.Id).ToHashSet(StringComparer.Ordinal);
         var offers = checkpoint.Offers.Select(offer => expiredOffers.Contains(offer.Id)
-            ? offer with { State = DirectBarterState.Cancelled } : offer).ToArray();
+            ? InventoryStore.PrepareBarterState(offer, DirectBarterState.Cancelled) : offer).ToArray();
         var events = released.OrderBy(id => id, StringComparer.Ordinal)
             .Select(id => ("reservation_released", id))
             .Concat(expiredOffers.Order(StringComparer.Ordinal).Select(id => ("barter_expired", id)))
@@ -803,12 +720,8 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("Vessels and their contents cannot be traded separately.");
         EnsureOwnerAndAvailableQuantity(checkpoint, firstLot, proposal.FirstPartyId, proposal.FirstQuantity);
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
-        var firstReservation = new InventoryReservation(
-            DerivedId.Create($"{proposal.Id}:first"), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
-            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), firstLot).ToArray()));
-        var secondReservation = new InventoryReservation(
-            DerivedId.Create($"{proposal.Id}:second"), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
-            $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), secondLot).ToArray()));
+        var firstReservation = InventoryStore.CreateInventoryReservation(DerivedId.Create($"{proposal.Id}:first"), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity, $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), firstLot).ToArray()));
+        var secondReservation = InventoryStore.CreateInventoryReservation(DerivedId.Create($"{proposal.Id}:second"), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity, $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), secondLot).ToArray()));
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||
             string.Equals(reservation.Id, secondReservation.Id, StringComparison.Ordinal)))
@@ -816,10 +729,7 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("The barter offer reservation IDs are already in use.");
         }
 
-        var offer = new DirectBarterOffer(
-            proposal.Id, proposal.Revision, proposal.FirstPartyId, proposal.SecondPartyId,
-            proposal.FirstLotId, proposal.FirstQuantity, proposal.SecondLotId, proposal.SecondQuantity,
-            proposal.ExpiryTick, DirectBarterState.Open, []);
+        var offer = InventoryStore.CreateDirectBarterOffer(proposal.Id, proposal.Revision, proposal.FirstPartyId, proposal.SecondPartyId, proposal.FirstLotId, proposal.FirstQuantity, proposal.SecondLotId, proposal.SecondQuantity, proposal.ExpiryTick, DirectBarterState.Open, []);
         return Commit(
             checkpoint,
             reservations: checkpoint.Reservations.Append(firstReservation).Append(secondReservation)
@@ -849,7 +759,7 @@ public static partial class InventoryAuthority
         }
 
         var acceptedBy = offer.AcceptedBy.Append(partyId).OrderBy(id => id, StringComparer.Ordinal).ToArray();
-        var acceptedOffer = offer with { AcceptedBy = acceptedBy };
+        var acceptedOffer = InventoryStore.PrepareBarterAcceptance(offer, acceptedBy);
         var offers = checkpoint.Offers.Select(candidate => string.Equals(candidate.Id, offer.Id, StringComparison.Ordinal)
                 ? acceptedOffer
                 : candidate)
@@ -874,11 +784,11 @@ public static partial class InventoryAuthority
         }
         var reservations = checkpoint.Reservations.Select(reservation =>
             reservation.Id == DerivedId.Create(offer.Id + ":first") || reservation.Id == DerivedId.Create(offer.Id + ":second")
-                ? reservation with { State = InventoryReservationState.Released }
+                ? InventoryStore.PrepareReservationState(reservation, InventoryReservationState.Released)
                 : reservation).ToArray();
         return Commit(checkpoint, reservations: reservations,
             offers: checkpoint.Offers.Select(item => item.Id == offer.Id
-                ? item with { State = DirectBarterState.Cancelled } : item).ToArray(),
+                ? InventoryStore.PrepareBarterState(item, DirectBarterState.Cancelled) : item).ToArray(),
             eventKind: "barter_declined", detail: offer.Id + ":" + partyId);
     }
 
@@ -903,10 +813,10 @@ public static partial class InventoryAuthority
         var afterBothTransfers = TransferExact(afterFirstTransfer, secondLot, offer.SecondQuantity, offer.FirstPartyId, offer.Id);
         var reservations = checkpoint.Reservations.Select(reservation =>
             reservation.Id == firstReservation.Id || reservation.Id == secondReservation.Id
-                ? reservation with { State = InventoryReservationState.Completed }
+                ? InventoryStore.PrepareReservationState(reservation, InventoryReservationState.Completed)
                 : reservation).OrderBy(reservation => reservation.Id, StringComparer.Ordinal).ToArray();
         var offers = checkpoint.Offers.Select(candidate => candidate.Id == offer.Id
-                ? candidate with { State = DirectBarterState.Settled }
+                ? InventoryStore.PrepareBarterState(candidate, DirectBarterState.Settled)
                 : candidate).OrderBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
         return Commit(checkpoint, lots: afterBothTransfers, reservations: reservations, offers: offers,
             eventKind: "barter_settled", detail: $"{offer.Id}:r{offer.Revision}");
@@ -924,7 +834,7 @@ public static partial class InventoryAuthority
         if (source.Quantity == quantity)
         {
             return lots.Select(lot => lot.Id == source.Id
-                    ? lot with { OwnerId = recipientId, CarrierId = null, StorageBuildingId = null, DeliveryBuildingId = null } : lot)
+                    ? InventoryStore.PrepareContainerTransfer(lot, recipientId, null, null, null) : lot)
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
 
@@ -934,17 +844,8 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("The barter transfer lot ID is already in use.");
         }
 
-        var transferred = source with
-        {
-            Id = transferId,
-            OwnerId = recipientId,
-            CarrierId = null,
-            Quantity = quantity,
-            ProvenanceLotId = source.Id,
-            StorageBuildingId = null,
-            DeliveryBuildingId = null,
-        };
-        return lots.Select(lot => lot.Id == source.Id ? lot with { Quantity = lot.Quantity - quantity } : lot)
+        var transferred = InventoryStore.PrepareExactTransferSplit(source, transferId, recipientId, null, quantity, source.Id, null, null);
+        return lots.Select(lot => lot.Id == source.Id ? InventoryStore.PrepareQuantity(lot, lot.Quantity - quantity) : lot)
             .Append(transferred).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
     }
 
@@ -1000,80 +901,13 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A broken or invalid vessel cannot hold, serve, or supply contents.");
     }
 
-    private static InventoryCheckpoint Commit(
-        InventoryCheckpoint checkpoint,
-        long? targetTick = null,
-        IReadOnlyList<InventoryLot>? lots = null,
-        IReadOnlyList<InventoryReservation>? reservations = null,
-        IReadOnlyList<DirectBarterOffer>? offers = null,
-        string? eventKind = null,
-        string? detail = null,
-        IEnumerable<(string Kind, string Detail)>? pendingEvents = null)
-    {
-        var nextTick = targetTick ?? checkpoint.WorldTick;
-        var events = checkpoint.Events.ToList();
-        if (eventKind is not null)
-        {
-            events.Add(new InventoryEvent(checked(checkpoint.EventHistoryFloor + events.Count + 1L), nextTick, eventKind, detail ?? string.Empty));
-        }
+    private static InventoryCheckpoint Commit(InventoryCheckpoint checkpoint, long? targetTick = null, IReadOnlyList<InventoryLot>? lots = null, IReadOnlyList<InventoryReservation>? reservations = null, IReadOnlyList<DirectBarterOffer>? offers = null, string? eventKind = null, string? detail = null, IEnumerable<(string Kind, string Detail)>? pendingEvents = null) => InventoryStore.CommitAuthorityTransition(checkpoint, targetTick, lots, reservations, offers, eventKind, detail, pendingEvents);
 
-        if (pendingEvents is not null)
-        {
-            foreach (var pending in pendingEvents.OrderBy(item => item.Detail, StringComparer.Ordinal))
-            {
-                events.Add(new InventoryEvent(checked(checkpoint.EventHistoryFloor + events.Count + 1L), nextTick, pending.Kind, pending.Detail));
-            }
-        }
+    private static void ValidateCheckpoint(InventoryCheckpoint checkpoint) => InventoryStore.ValidateSnapshot(checkpoint);
 
-        var next = new InventoryCheckpoint(
-            nextTick,
-            lots is null ? checkpoint.Lots : UpdateCustodyHolds(checkpoint, lots),
-            reservations ?? checkpoint.Reservations,
-            offers ?? checkpoint.Offers,
-            events, checkpoint.EventHistoryFloor);
-        ValidateCheckpoint(next);
-        return InventoryStorageHistory.RecordTransition(checkpoint, next);
-    }
+    internal static void ValidateCheckpointForCodec(InventoryCheckpoint checkpoint) => InventoryStore.ValidateSnapshotForCodec(checkpoint);
 
-    private static void ValidateCheckpoint(InventoryCheckpoint checkpoint)
-    {
-        ArgumentNullException.ThrowIfNull(checkpoint);
-        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(checkpoint));
-        }
-
-        ValidateLots(checkpoint.Lots);
-        ValidateContainerGroups(checkpoint.Lots);
-        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => reservation.Id), "reservations");
-        EnsureCanonicalIds(checkpoint.Offers.Select(offer => offer.Id), "offers");
-        var lotsById = checkpoint.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
-        foreach (var reservation in checkpoint.Reservations) ValidateHolds(reservation.HoldAccess);
-        foreach (var reservation in checkpoint.Reservations.Where(reservation =>
-                     reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed))
-        {
-            if (!lotsById.TryGetValue(reservation.LotId, out var lot) || lot.OwnerId != reservation.OwnerId ||
-                InventoryContainerRules.IsContainer(lot.ItemKind))
-                throw new InvalidDataException($"Active inventory reservation '{reservation.Id}' has no movable content lot.");
-        }
-        foreach (var offer in checkpoint.Offers.Where(offer => offer.State == DirectBarterState.Open))
-        {
-            if (!lotsById.TryGetValue(offer.FirstLotId, out var firstLot) ||
-                !lotsById.TryGetValue(offer.SecondLotId, out var secondLot))
-                throw new InvalidDataException($"Open barter offer '{offer.Id}' references a missing lot.");
-            if (IsContainerRelated(firstLot) || IsContainerRelated(secondLot))
-                throw new InvalidDataException($"Open barter offer '{offer.Id}' references a vessel or contained lot.");
-        }
-    }
-
-    internal static void ValidateCheckpointForCodec(InventoryCheckpoint checkpoint)
-    {
-        ValidateCheckpoint(checkpoint);
-        InventoryStorageHistory.Validate(checkpoint.Events);
-    }
-
-    private static bool IsContainerRelated(InventoryLot lot) =>
-        lot.ContainerLotId is not null || InventoryContainerRules.IsContainer(lot.ItemKind);
+    private static bool IsContainerRelated(InventoryLot lot) => InventoryStore.IsContainerRelated(lot);
 
     private static void EnsureContainerOwnerAndLocation(InventoryLot container, InventoryLot content, string ownerId)
     {
@@ -1087,77 +921,11 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("A vessel or its contents are reserved and cannot be moved.");
     }
 
-    private static void ValidateContainerGroups(IReadOnlyList<InventoryLot> lots)
-    {
-        var byId = lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
-        foreach (var lot in lots)
-        {
-            if (InventoryContainerRules.IsContainer(lot.ItemKind) && (lot.Quantity != 1 || lot.ContainerLotId is not null))
-                throw new InvalidDataException($"Reusable vessel lot '{lot.Id}' must be a single top-level item.");
-            if (lot.ItemKind == InventoryContainerRules.Handcart &&
-                (lot.GroundPosition is null || lot.StorageBuildingId is not null || lot.DeliveryBuildingId is not null))
-                throw new InvalidDataException($"Handcart lot '{lot.Id}' must have a physical ground position.");
-            if (lot.ItemKind == InventoryContainerRules.FreshWater && lot.ContainerLotId is null)
-                throw new InvalidDataException($"Fresh water lot '{lot.Id}' must be contained in a water jug.");
-            if (lot.ContainerLotId is not { } containerId) continue;
-            if (!byId.TryGetValue(containerId, out var container) ||
-                !InventoryContainerRules.IsContainer(container.ItemKind) || container.ContainerLotId is not null ||
-                !InventoryContainerRules.Allows(container.ItemKind, lot.ItemKind) ||
-                container.OwnerId != lot.OwnerId || container.StorageBuildingId != lot.StorageBuildingId ||
-                container.DeliveryBuildingId != lot.DeliveryBuildingId || container.CarrierId != lot.CarrierId ||
-                lot.GroundPosition is not null)
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has an invalid container relationship.");
-        }
+    private static void ValidateContainerGroups(IReadOnlyList<InventoryLot> lots) => InventoryStore.ValidateContainerGroups(lots);
 
-        foreach (var container in lots.Where(lot => InventoryContainerRules.IsContainer(lot.ItemKind)))
-        {
-            var containedQuantity = lots.Where(lot => lot.ContainerLotId == container.Id).Sum(lot => lot.Quantity);
-            if (containedQuantity > InventoryContainerRules.Capacity(container.ItemKind))
-                throw new InvalidDataException($"Container lot '{container.Id}' exceeds its capacity.");
-        }
-    }
+    private static void ValidateLots(IReadOnlyList<InventoryLot> lots) => InventoryStore.ValidateLots(lots);
 
-    private static void ValidateLots(IReadOnlyList<InventoryLot> lots)
-    {
-        EnsureCanonicalIds(lots.Select(lot => lot.Id), "lots");
-        foreach (var lot in lots)
-        {
-            ValidateHolds(lot.Holds);
-            ArgumentException.ThrowIfNullOrWhiteSpace(lot.ItemKind);
-            ArgumentException.ThrowIfNullOrWhiteSpace(lot.OwnerId);
-            if (lot.StorageBuildingId is { } storageBuildingId &&
-                (string.IsNullOrWhiteSpace(storageBuildingId) || storageBuildingId != storageBuildingId.Trim()))
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has an invalid storage building ID.");
-            if (lot.DeliveryBuildingId is { } deliveryBuildingId &&
-                (string.IsNullOrWhiteSpace(deliveryBuildingId) || deliveryBuildingId != deliveryBuildingId.Trim() ||
-                 lot.StorageBuildingId is not null))
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has an invalid delivery building ID.");
-            if (lot.ContainerLotId is { } containerLotId &&
-                (string.IsNullOrWhiteSpace(containerLotId) || containerLotId != containerLotId.Trim()))
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has an invalid container ID.");
-            if (lot.CarrierId is { } carrier && (string.IsNullOrWhiteSpace(carrier) || carrier != carrier.Trim() ||
-                lot.StorageBuildingId is not null || lot.GroundPosition is not null))
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has invalid physical custody.");
-            if (lot.Quantity <= 0 || lot.LastProcessedTick < 0 ||
-                lot.ConditionBasisPoints is < 0 or > 10_000 || lot.FreshnessBasisPoints is < 0 or > 10_000)
-            {
-                throw new ArgumentOutOfRangeException(nameof(lots));
-            }
-            if (lot.GroundPosition is { } ground &&
-                (ground.X < 0 || ground.Y < 0 || lot.StorageBuildingId is not null || lot.DeliveryBuildingId is not null))
-                throw new InvalidDataException($"Inventory lot '{lot.Id}' has an invalid ground location.");
-        }
-    }
-
-    private static void EnsureCanonicalIds(IEnumerable<string> ids, string collectionName)
-    {
-        var actual = ids.ToArray();
-        if (actual.Any(string.IsNullOrWhiteSpace) || actual.Distinct(StringComparer.Ordinal).Count() != actual.Length ||
-            !actual.SequenceEqual(actual.OrderBy(id => id, StringComparer.Ordinal)))
-        {
-            throw new InvalidDataException($"Inventory {collectionName} must have unique canonical IDs.");
-        }
-    }
+    private static void EnsureCanonicalIds(IEnumerable<string> ids, string collectionName) => InventoryStore.EnsureCanonicalIds(ids, collectionName);
 
     private static void ValidateProposal(DirectBarterProposal proposal, long worldTick)
     {
@@ -1200,10 +968,7 @@ public static class InventoryCheckpointCodec
             checkpoint.Reservations.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             checkpoint.Offers
                 .OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => item with
-                {
-                    AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
-                })
+                .Select(item => InventoryStore.PrepareBarterAcceptance(item, item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray()))
                 .ToArray(),
             checkpoint.Events.OrderBy(item => item.EventId).ToArray(), checkpoint.EventHistoryFloor);
         return Encoding.UTF8.GetBytes($"{Header}\n{JsonSerializer.Serialize(document, JsonOptions)}");
@@ -1246,18 +1011,10 @@ public static class InventoryCheckpointCodec
             throw new InvalidDataException("The inventory checkpoint JSON is incomplete.");
         }
 
-        var checkpoint = new InventoryCheckpoint(
-            document.WorldTick,
-            document.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            document.Reservations.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            document.Offers
+        var checkpoint = InventoryStore.CreateInventoryCheckpoint(document.WorldTick, document.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), document.Reservations.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), document.Offers
                 .OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => item with
-                {
-                    AcceptedBy = item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray(),
-                })
-                .ToArray(),
-            document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor);
+                .Select(item => InventoryStore.PrepareBarterAcceptance(item, item.AcceptedBy.OrderBy(id => id, StringComparer.Ordinal).ToArray()))
+                .ToArray(), document.Events.OrderBy(item => item.EventId).ToArray(), document.EventHistoryFloor);
         InventoryAuthority.ValidateCheckpointForCodec(checkpoint);
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;
@@ -1270,12 +1027,7 @@ public static class InventoryCheckpointCodec
             throw new InvalidDataException("The inventory checkpoint format is not supported.");
         }
 
-        var checkpoint = new InventoryCheckpoint(
-            ParseLong(ValueAfterPrefix(lines[1], "tick=")),
-            lines.Skip(2).Where(line => line.StartsWith("lot=", StringComparison.Ordinal)).Select(ParseLot).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            lines.Skip(2).Where(line => line.StartsWith("event=", StringComparison.Ordinal)).Select(ParseEvent).OrderBy(item => item.EventId).ToArray());
+        var checkpoint = InventoryStore.CreateInventoryCheckpoint(ParseLong(ValueAfterPrefix(lines[1], "tick=")), lines.Skip(2).Where(line => line.StartsWith("lot=", StringComparison.Ordinal)).Select(ParseLot).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(), lines.Skip(2).Where(line => line.StartsWith("reservation=", StringComparison.Ordinal)).Select(ParseReservation).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), lines.Skip(2).Where(line => line.StartsWith("offer=", StringComparison.Ordinal)).Select(ParseOffer).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), lines.Skip(2).Where(line => line.StartsWith("event=", StringComparison.Ordinal)).Select(ParseEvent).OrderBy(item => item.EventId).ToArray());
         _ = InventoryDigest.State(checkpoint);
         return checkpoint;
     }
@@ -1284,14 +1036,14 @@ public static class InventoryCheckpointCodec
     {
         var parts = ValueAfterPrefix(line, "lot=").Split('|');
         if (parts.Length != 8) throw new InvalidDataException("The saved lot is invalid.");
-        return new InventoryLot(parts[0], parts[1], parts[2], ParseInt(parts[3]), ParseInt(parts[4]), ParseInt(parts[5]), ParseLong(parts[6]), parts[7] == "-" ? null : parts[7]);
+        return InventoryStore.CreateInventoryLot(parts[0], parts[1], parts[2], ParseInt(parts[3]), ParseInt(parts[4]), ParseInt(parts[5]), ParseLong(parts[6]), parts[7] == "-" ? null : parts[7]);
     }
 
     private static InventoryReservation ParseReservation(string line)
     {
         var parts = ValueAfterPrefix(line, "reservation=").Split('|');
         if (parts.Length != 8 || !Enum.TryParse<InventoryReservationState>(parts[7], out var state)) throw new InvalidDataException("The saved reservation is invalid.");
-        return new InventoryReservation(parts[0], parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
+        return InventoryStore.CreateInventoryReservation(parts[0], parts[1], parts[2], ParseInt(parts[3]), parts[4], ParseLong(parts[5]), parts[6] == "exclusive", state);
     }
 
     private static DirectBarterOffer ParseOffer(string line)
@@ -1299,14 +1051,14 @@ public static class InventoryCheckpointCodec
         var parts = ValueAfterPrefix(line, "offer=").Split('|');
         if (parts.Length != 11 || !Enum.TryParse<DirectBarterState>(parts[9], out var state)) throw new InvalidDataException("The saved barter offer is invalid.");
         var accepted = string.IsNullOrEmpty(parts[10]) ? [] : parts[10].Split(',', StringSplitOptions.RemoveEmptyEntries).OrderBy(id => id, StringComparer.Ordinal).ToArray();
-        return new DirectBarterOffer(parts[0], ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
+        return InventoryStore.CreateDirectBarterOffer(parts[0], ParseInt(parts[1]), parts[2], parts[3], parts[4], ParseInt(parts[5]), parts[6], ParseInt(parts[7]), ParseLong(parts[8]), state, accepted);
     }
 
     private static InventoryEvent ParseEvent(string line)
     {
         var parts = ValueAfterPrefix(line, "event=").Split('|');
         if (parts.Length != 4) throw new InvalidDataException("The saved inventory event is invalid.");
-        return new InventoryEvent(ParseLong(parts[0]), ParseLong(parts[1]), parts[2], parts[3]);
+        return InventoryStore.CreateInventoryEvent(ParseLong(parts[0]), ParseLong(parts[1]), parts[2], parts[3]);
     }
 
     private static string ValueAfterPrefix(string line, string prefix) => line.StartsWith(prefix, StringComparison.Ordinal) ? line[prefix.Length..] : throw new InvalidDataException("The inventory checkpoint line is invalid.");
@@ -1318,7 +1070,7 @@ public static class InventoryDigest
 {
     public static string State(InventoryCheckpoint checkpoint)
     {
-        var canonical = Encoding.UTF8.GetString(InventoryCheckpointCodec.Encode(checkpoint with { Events = [] }));
+        var canonical = Encoding.UTF8.GetString(InventoryCheckpointCodec.Encode(InventoryStore.PrepareEventWindow(checkpoint, [])));
         return Digest(canonical);
     }
 

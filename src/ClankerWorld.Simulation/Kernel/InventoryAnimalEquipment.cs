@@ -18,7 +18,7 @@ public static partial class InventoryAuthority
             to.X < 0 || to.Y < 0 || (Math.Abs(to.X - from.X) > 1 &&
                 !(wrappingWidth > 1 && from.X < wrappingWidth && to.X < wrappingWidth && Math.Abs(to.X - from.X) == wrappingWidth - 1)) || Math.Abs(to.Y - from.Y) > 1)
             throw new InvalidOperationException("A held product must follow its animal's physical step.");
-        return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == productId ? lot with { GroundPosition = to } : lot).ToArray(),
+        return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == productId ? InventoryStore.PrepareGroundPosition(lot, to) : lot).ToArray(),
             eventKind: "animal_product_moved", detail: $"{animalId}:{productId}:{to.X},{to.Y}");
     }
 
@@ -38,7 +38,7 @@ public static partial class InventoryAuthority
             to.X < 0 || to.Y < 0 || (Math.Abs(to.X - from.X) > 1 &&
                 !(wrappingWidth > 1 && from.X < wrappingWidth && to.X < wrappingWidth && Math.Abs(to.X - from.X) == wrappingWidth - 1)) || Math.Abs(to.Y - from.Y) > 1)
             throw new InvalidOperationException("A fitted saddle must follow its animal's physical step.");
-        return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == saddleId ? lot with { GroundPosition = to } : lot).ToArray(),
+        return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == saddleId ? InventoryStore.PrepareGroundPosition(lot, to) : lot).ToArray(),
             eventKind: "animal_saddle_moved", detail: $"{animalId}:{saddleId}:{to.X},{to.Y}");
     }
 }

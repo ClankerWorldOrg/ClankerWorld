@@ -29,16 +29,9 @@ public static partial class InventoryAuthority
         var loadedId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#contained:{cart.Id}:{operationId}");
         if (loadedId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == loadedId))
             throw new InvalidOperationException("This load ID is already in use.");
-        var loaded = cargo with
-        {
-            Id = loadedId,
-            Quantity = quantity,
-            ContainerLotId = cart.Id,
-            GroundPosition = null,
-            ProvenanceLotId = loadedId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id,
-        };
+        var loaded = InventoryStore.PrepareCartCargoSplit(cargo, loadedId, quantity, cart.Id, null, loadedId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
         var lots = checkpoint.Lots.Where(lot => lot.Id != cargo.Id).ToList();
-        if (quantity < cargo.Quantity) lots.Add(cargo with { Quantity = cargo.Quantity - quantity });
+        if (quantity < cargo.Quantity) lots.Add(InventoryStore.PrepareQuantity(cargo, cargo.Quantity - quantity));
         lots.Add(loaded);
         return Commit(checkpoint, lots: lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
             eventKind: "handcart_loaded", detail: $"{cart.Id}:{cargo.Id}:{quantity}");
@@ -63,16 +56,9 @@ public static partial class InventoryAuthority
         var splitId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#unloaded:{operationId}");
         if (splitId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == splitId))
             throw new InvalidOperationException("This unload ID is already in use.");
-        var unloaded = cargo with
-        {
-            Id = splitId,
-            Quantity = quantity,
-            ContainerLotId = null,
-            GroundPosition = ontoGround ? cart.GroundPosition : null,
-            ProvenanceLotId = splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id,
-        };
+        var unloaded = InventoryStore.PrepareCartCargoSplit(cargo, splitId, quantity, null, ontoGround ? cart.GroundPosition : null, splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
         var lots = checkpoint.Lots.Where(lot => lot.Id != cargo.Id).ToList();
-        if (quantity < cargo.Quantity) lots.Add(cargo with { Quantity = cargo.Quantity - quantity });
+        if (quantity < cargo.Quantity) lots.Add(InventoryStore.PrepareQuantity(cargo, cargo.Quantity - quantity));
         lots.Add(unloaded);
         return Commit(checkpoint, lots: lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
             eventKind: "handcart_unloaded", detail: $"{cart.Id}:{cargo.Id}:{quantity}");
@@ -91,7 +77,7 @@ public static partial class InventoryAuthority
         EnsureNoActiveReservations(checkpoint, checkpoint.Lots
             .Where(lot => lot.Id == cart.Id || lot.ContainerLotId == cart.Id).Select(lot => lot.Id));
         var moved = Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == cartId
-                ? lot with { GroundPosition = next } : lot).ToArray(),
+                ? InventoryStore.PrepareGroundPosition(lot, next) : lot).ToArray(),
             eventKind: "handcart_moved", detail: $"{cartId}:{next.X},{next.Y}");
         return WearSingleUnit(moved, cartId, wearLossBasisPoints, holdAccess);
     }

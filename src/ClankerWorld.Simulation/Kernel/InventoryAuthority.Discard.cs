@@ -14,7 +14,7 @@ public static partial class InventoryAuthority
             throw new InvalidOperationException("Empty a vessel before discarding it or its contents.");
         var lots = lot.Quantity == quantity
             ? checkpoint.Lots.Where(item => item.Id != lotId).ToArray()
-            : checkpoint.Lots.Select(item => item.Id == lotId ? item with { Quantity = item.Quantity - quantity } : item).ToArray();
+            : checkpoint.Lots.Select(item => item.Id == lotId ? InventoryStore.PrepareQuantity(item, item.Quantity - quantity) : item).ToArray();
         return Commit(checkpoint, lots: lots, eventKind: "goods_discarded", detail: $"{lotId}:{quantity}");
     }
 }

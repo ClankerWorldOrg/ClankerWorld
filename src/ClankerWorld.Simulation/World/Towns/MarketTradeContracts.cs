@@ -37,10 +37,7 @@ public static class MarketTradeValidation
         var holds = InventoryHoldRules.For(index, lot).OrderBy(hold => hold.Purpose)
             .ThenBy(hold => hold.HolderId, StringComparer.Ordinal).ToArray();
         return inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
-            new InventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")),
-                first ? offer.FirstPartyId : offer.SecondPartyId, lotId,
-                first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick,
-                true, InventoryReservationState.Reserved, holds.Length == 0 ? null : new InventoryHoldSet(holds));
+            InventoryStore.CreateInventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")), first ? offer.FirstPartyId : offer.SecondPartyId, lotId, first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick, true, InventoryReservationState.Reserved, holds.Length == 0 ? null : new InventoryHoldSet(holds));
     }
 
     public static void Validate(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,

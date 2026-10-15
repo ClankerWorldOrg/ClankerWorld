@@ -201,6 +201,16 @@ life-moment and thought checks in tests. Save validation reuses those checks
 and keeps time/epoch links. Identity reply validation handles declared contract
 failures; unexpected validation failures surface instead of an empty catch-all.
 
+`Kernel/InventoryStore` is the only source writer of inventory lots,
+reservations, barter offers/proposals, holds, storage deltas, events and
+checkpoints. Named preparations preserve captured immutable records and remain
+detached until their existing publication point. InventoryAuthority retains its
+public command API and delegates publication and record/link validation to the
+store. Custody holds, canonical ordering, history receipts and codec copies keep
+the same evaluation and commit order. A semantic guard covers both record
+construction and updates. Replacing remaining generic runtime inventory ports
+with named commands is the next #1826 layer.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
