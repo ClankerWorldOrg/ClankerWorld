@@ -158,6 +158,16 @@ scratch guardian-action marks and resets each tick. Saved continuity alone
 transfers with prepared state. Will reply validation handles declared contract
 failures without hiding other failures in an empty catch-all.
 
+`Markets/MarketSystem.cs` owns shop ledgers, quotes and demand, personal barter,
+public-stall borrowing, stock, exchanges, construction/removal and history
+retention. The saved town system contains this system, so its ledger transfers
+with prepared saved state. Named town operations publish market records while
+retaining the existing town transition. Narrow per-call ports provide current
+queries and named inventory operations for custody, holds, accepted payments,
+receipts and retirement. Local market checks run before test writes publish;
+source guards limit record writers to the market system and its town projection.
+Existing action definitions and retained plans keep their ordering and checks.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

@@ -4,6 +4,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem(CivicState state)
 {
+    internal MarketSystem Markets { get; } = new();
+
     internal CivicState State { get; private set; } = state;
 
     // Restore has always ordered these records before the next tick. Keep an
@@ -46,6 +48,21 @@ internal sealed partial class TownSystem(CivicState state)
     internal void RestoreTownLandTitles(IEnumerable<TownLandTitleRecord> value) => State = State with { TownLandTitles = Array.AsReadOnly(value.ToArray()) };
     internal void RestoreHouseholdLandUseRights(IEnumerable<HouseholdLandUseRight> value) => State = State with { HouseholdLandUseRights = Array.AsReadOnly(value.ToArray()) };
     internal void RestoreHouseholdLandUseRequests(IEnumerable<HouseholdLandUseRequest> value) => State = State with { HouseholdLandUseRequests = Array.AsReadOnly(value.ToArray()) };
+
+    internal void ReplaceMarketState(ICivicWorld world, string townId, TownMarketState market)
+    {
+        var town = State.Towns.Single(item => item.Id == townId);
+        SetTown(world, town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
+    }
+
+    internal void RecordConstructedMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
+    internal void RecordRemovedMarketBuildings(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
+    private void RecordMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets)
+    {
+        if (SystemInvariantChecks.Enabled)
+            foreach (var market in markets) MarketSystem.ValidateLocalMarket(market);
+        SetTown(world, town with { Markets = markets });
+    }
 
     internal void SetTownState(TownRuntimeState town)
     {

@@ -139,6 +139,14 @@ transfer from a prepared runtime. Guardian action marks are per-tick scratch
 state. Family ordering, provider decisions, birth food and consumed medical-dose
 receipts keep their existing save and replay behavior.
 
+Shop trades are saved by MarketSystem, contained in the saved town system.
+Town market records still use their existing fields and named town operations.
+Preparation restores the shop ledger before the next tick, and commit transfers
+it with the town system. Canonical ordering, stock holds, inventory receipts,
+recent-history boundaries and event order are unchanged. Local market record
+checks are shared by test writes and save validation; cross-system validation
+still checks buildings, people, authority, stock and time.
+
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
 Cognition diagnostics retain their world ticks through export and restore.
