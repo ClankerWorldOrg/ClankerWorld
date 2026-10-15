@@ -380,11 +380,16 @@ public partial class Main
         PositionSelectedTilePanel();
     }
 
-    /// <summary>Keeps the tile card, which fits its facts, anchored inside the bottom of the view.</summary>
-    private void PositionSelectedTilePanel() =>
-        selectedTilePanel.Position = new Vector2(14,
-            Math.Max(14, UiSize.Y - Math.Max(selectedTilePanel.Size.Y,
-                selectedTilePanel.CustomMinimumSize.Y) - 14));
+    /// <summary>Keep Close visible and let the facts scroll within the available view.</summary>
+    private void PositionSelectedTilePanel()
+    {
+        if (!selectedTilePanel.Visible || UiSize.Y <= 0) return;
+        var fixedHeight = selectedTilePanel.GetCombinedMinimumSize().Y - tileDetailsScroll.GetCombinedMinimumSize().Y;
+        tileDetailsScroll.CustomMinimumSize = new Vector2(0,
+            Math.Max(1, Math.Min(tileDetailsContent.GetCombinedMinimumSize().Y, UiSize.Y - 28 - fixedHeight)));
+        selectedTilePanel.Size = selectedTilePanel.GetCombinedMinimumSize();
+        selectedTilePanel.Position = new Vector2(14, Math.Max(14, UiSize.Y - selectedTilePanel.Size.Y - 14));
+    }
 
     private void UpdateTileHover(Vector2 canvasPosition, bool keyboard = false)
     {

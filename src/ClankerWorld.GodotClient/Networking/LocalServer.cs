@@ -21,6 +21,7 @@ public sealed record LocalServerLayout(
     string DataDirectory)
 {
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
+    public string StartupLockPath => Path.Combine(DataDirectory, "server", "startup.lock");
     public string LogPath => Path.Combine(DataDirectory, "logs", "server.log");
     /// <summary>The log of the launch before this one, kept so a crash can still be reported.</summary>
     public string PreviousLogPath => Path.Combine(DataDirectory, "logs", "server.previous.log");
@@ -29,17 +30,16 @@ public sealed record LocalServerLayout(
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
 
     /// <summary>
-    /// Finds the world server that the package.json beside the game names. A
+    /// Finds the world server named by the game's package root. A
     /// development build or a server-only setup has none, and keeps
     /// connecting to whatever server the player chose.
     /// </summary>
     public static LocalServerLayout? FindBundled(string gameExecutablePath, string localApplicationData)
     {
-        var gameDirectory = Path.GetDirectoryName(Path.GetFullPath(gameExecutablePath));
-        if (gameDirectory is null || string.IsNullOrWhiteSpace(localApplicationData) ||
-            PackageEntryPoints.ReadInstalled(gameDirectory) is not { } entryPoints)
+        if (string.IsNullOrWhiteSpace(localApplicationData) ||
+            PackageEntryPoints.FindInstalledForGame(gameExecutablePath) is not { } package)
             return null;
-        var serverExecutable = Path.Combine(gameDirectory, entryPoints.Server);
+        var serverExecutable = Path.Combine(package.Directory, package.EntryPoints.Server);
         return File.Exists(serverExecutable)
             ? new LocalServerLayout(serverExecutable, [], Path.GetDirectoryName(serverExecutable)!,
                 Path.Combine(localApplicationData, "ClankerWorld"))
@@ -163,6 +163,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly int port;
     private readonly int approvalPort;
     private readonly TimeSpan readyTimeout;
+    private readonly TimeProvider timeProvider;
     private readonly bool detailedLogs;
     private Process? process;
     private StreamWriter? log;
@@ -170,13 +171,14 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null)
     {
         this.layout = layout;
         this.http = http;
         this.port = port;
         this.approvalPort = approvalPort;
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         this.detailedLogs = detailedLogs;
     }
 
@@ -189,6 +191,7 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    internal int? StartedServerProcessId => process?.Id;
 
     public LocalServerLayout Layout => layout;
 
@@ -198,8 +201,46 @@ public sealed class LocalServer : IAsyncDisposable
     public async Task<LocalServerStart> StartAsync(string expectedVersion, string expectedRevision,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        FileStream startup;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.StartupLockPath)!);
+            var options = new FileStreamOptions
+            {
+                Mode = FileMode.OpenOrCreate,
+                Access = FileAccess.ReadWrite,
+                Share = FileShare.None,
+            };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            startup = new FileStream(layout.StartupLockPath, options);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Another game may still be starting its companion. Refuse before
+            // probing or changing its secret, log or process. Keep the lock file:
+            // deleting it would let another opener lock a different file.
+            return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
+        }
+        using (startup)
+        {
+            try { return await StartExclusiveAsync(expectedVersion, expectedRevision, cancellationToken); }
+            catch (OperationCanceledException)
+            {
+                // Finish our child's stop attempt before releasing startup ownership.
+                // A refused shutdown preserves its paused world for retry;
+                // a reused server belongs to another launch.
+                if (process is not null) await StopAsync(CancellationToken.None);
+                throw;
+            }
+        }
+    }
+
+    private async Task<LocalServerStart> StartExclusiveAsync(string expectedVersion, string expectedRevision,
+        CancellationToken cancellationToken)
+    {
         if (process is { HasExited: false }) return new LocalServerStart(LocalServerStartOutcome.Started);
-        var deadline = DateTimeOffset.UtcNow + readyTimeout;
+        var deadline = timeProvider.GetUtcNow() + readyTimeout;
         while (true)
         {
             var existing = await ProbeAsync(expectedVersion, expectedRevision, cancellationToken);
@@ -221,24 +262,38 @@ public sealed class LocalServer : IAsyncDisposable
             // A request deadline supplies no evidence of another build or an
             // invalid secret. Retry within the existing startup window before
             // reporting an unresponsive server, without starting a second host.
-            if (DateTimeOffset.UtcNow >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
-            await Task.Delay(250, cancellationToken);
+            if (timeProvider.GetUtcNow() >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
 
+        byte[]? previousSecret = null;
+        var secretWritten = false;
         try
         {
+            if (File.Exists(layout.SecretPath)) previousSecret = File.ReadAllBytes(layout.SecretPath);
             secret = WriteFreshSecret();
+            secretWritten = true;
             process = Launch();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
             System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            await StopLoggingAsync();
-            process = null;
+            if (process is { HasExited: false } running)
+            {
+                running.Kill(entireProcessTree: true);
+                await running.WaitForExitAsync(CancellationToken.None);
+            }
+            await ForgetProcessAsync();
+            if (secretWritten)
+            {
+                if (previousSecret is null) File.Delete(layout.SecretPath);
+                else WriteSecret(previousSecret);
+            }
+            secret = null;
             return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
         }
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (timeProvider.GetUtcNow() < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (process.HasExited)
@@ -258,7 +313,7 @@ public sealed class LocalServer : IAsyncDisposable
                     await StopAsync(cancellationToken);
                     return new LocalServerStart(LocalServerStartOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
             }
-            await Task.Delay(250, cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
         await StopAsync(cancellationToken);
         return new LocalServerStart(LocalServerStartOutcome.TimedOut);
@@ -309,8 +364,8 @@ public sealed class LocalServer : IAsyncDisposable
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(ApprovalOrigin, "api/v1/approval/shutdown"));
                 request.Headers.Add(SecretHeader, secret);
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                deadline.CancelAfter(TimeSpan.FromSeconds(5));
+                using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
                 using var response = await http.SendAsync(request, deadline.Token);
                 // The host explicitly refused to exit: preserve its paused world
                 // and our process handle so the player can repair and retry.
@@ -324,8 +379,8 @@ public sealed class LocalServer : IAsyncDisposable
         }
         if (process is { HasExited: false } running)
         {
-            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            wait.CancelAfter(TimeSpan.FromSeconds(30));
+            using var waitTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30), timeProvider);
+            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitTimeout.Token);
             try
             {
                 await running.WaitForExitAsync(wait.Token);
@@ -349,8 +404,8 @@ public sealed class LocalServer : IAsyncDisposable
     {
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, "api/v1/approval/launch-check"));
             request.Headers.Add(SecretHeader, value);
             using var response = await http.SendAsync(request, deadline.Token);
@@ -369,8 +424,8 @@ public sealed class LocalServer : IAsyncDisposable
     {
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var handshake = await http.GetAsync(new Uri(Origin, "api/v1/handshake"), deadline.Token);
             if (!handshake.IsSuccessStatusCode) return Probe.NotClankerWorld;
             var status = await http.GetFromJsonAsync<ServerStatus>(new Uri(Origin, "api/v1/status"), deadline.Token);
@@ -413,17 +468,28 @@ public sealed class LocalServer : IAsyncDisposable
     {
         var value = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        WriteSecret(System.Text.Encoding.UTF8.GetBytes(value));
+        return value;
+    }
+
+    private void WriteSecret(byte[] bytes)
+    {
         Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
         // The player's own data folder is private to their Windows account.
         // Elsewhere, restrict the file to this user before writing the value.
-        var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+        var temporary = layout.SecretPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
         if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-        using (var file = new FileStream(layout.SecretPath, options))
-        using (var writer = new StreamWriter(file))
+        try
         {
-            writer.Write(value);
+            using (var file = new FileStream(temporary, options))
+            {
+                file.Write(bytes);
+                file.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, layout.SecretPath, overwrite: true);
         }
-        return value;
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
     private Process Launch()
@@ -448,6 +514,7 @@ public sealed class LocalServer : IAsyncDisposable
         started.OutputDataReceived += (_, line) => WriteLog(line.Data);
         started.ErrorDataReceived += (_, line) => WriteLog(line.Data);
         if (!started.Start()) throw new InvalidOperationException("The host process did not start.");
+        process = started;
         started.BeginOutputReadLine();
         started.BeginErrorReadLine();
         return started;

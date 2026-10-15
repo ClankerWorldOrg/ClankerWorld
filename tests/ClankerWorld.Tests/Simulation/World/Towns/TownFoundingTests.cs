@@ -174,8 +174,8 @@ public sealed partial class TownMembershipTests
         var deadline = TimeSpan.FromSeconds(10);
         for (var tick = 0; tick < 12 && (model.Pending is null || world.Towns.Count == 1); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline)).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(deadline)).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.NotNull(model.Pending);
         var town = Assert.Single(world.Towns, item => item.Id != First);
@@ -184,8 +184,8 @@ public sealed partial class TownMembershipTests
         var completed = false;
         for (var tick = 0; tick < 10 && !completed; tick++)
         {
-            await Task.Delay(10);
-            var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
+            await ModelWorkHarness.For(world).SettleAsync();
+            var step = await world.TickModelWorkAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
             completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == actor);
@@ -200,7 +200,7 @@ public sealed partial class TownMembershipTests
 
     private sealed class DeferredTownFoundingModel(string actor) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> completion = new(TaskCreationOptions.None);
         public ScriptedModel OtherChoices { get; } = new();
         public CognitionDecisionRequest? Pending { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;

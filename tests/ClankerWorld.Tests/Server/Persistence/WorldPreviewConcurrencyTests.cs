@@ -33,7 +33,8 @@ public sealed class WorldPreviewConcurrencyTests
             var metadata = JsonSerializer.SerializeToUtf8Bytes(catalog.Capture());
             var selectorCalls = 0;
             var coordinator = new WorldSelectionCoordinator(catalog, world, file, providers, autosave, new WorldJevPolicy(),
-                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(), options =>
+                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(),
+                new ManualWorldSaveStore(path, mutationGate: providers.WorldMutationGate), options =>
                 {
                     selectorCalls++;
                     Assert.False(Monitor.IsEntered(providers.WorldMutationGate));
@@ -84,7 +85,8 @@ public sealed class WorldPreviewConcurrencyTests
             var active = 0;
             var maximumActive = 0;
             var coordinator = new WorldSelectionCoordinator(catalog, world, file, providers, autosave, new WorldJevPolicy(),
-                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(), options =>
+                NullLogger<WorldSelectionCoordinator>.Instance, _ => new DeterministicDecisionProvider(),
+                new ManualWorldSaveStore(path, mutationGate: providers.WorldMutationGate), options =>
                 {
                     var current = Interlocked.Increment(ref active);
                     lock (entered) maximumActive = Math.Max(current, maximumActive);
@@ -108,7 +110,7 @@ public sealed class WorldPreviewConcurrencyTests
                 return coordinator.Preview(options);
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             Assert.True(secondStarted.Wait(TimeSpan.FromSeconds(30)));
-            tick = Task.Factory.StartNew(() => service.TryAdvanceOnceAsync().AsTask(), CancellationToken.None,
+            tick = Task.Factory.StartNew(() => service.AdvanceWithModelWorkAsync(world).AsTask(), CancellationToken.None,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             Assert.True(await tick.WaitAsync(TimeSpan.FromSeconds(20)), "The configured host did not advance.");
             Assert.False(first.IsCompleted);

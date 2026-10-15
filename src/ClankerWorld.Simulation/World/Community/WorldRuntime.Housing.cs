@@ -187,7 +187,7 @@ public sealed partial class WorldRuntime
             {
                 Request = new(plan.HouseholdId, WorldTick, WorldTick + HousingRequestTicks, plan.AdultMembers, [], []),
             });
-            AppendEvent("housing_request_made", $"{plan.Actor}:{plan.HouseholdId}");
+            AppendEvent(new HousingRequestMadeEventPayload(plan.Actor, plan.HouseholdId));
             return;
         }
         var housing = agents[plan.ApplicantId].Housing!;
@@ -198,7 +198,7 @@ public sealed partial class WorldRuntime
                 ? request with { Approvals = request.Approvals.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() }
                 : request with { Rejections = request.Rejections.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() },
         });
-        AppendEvent("housing_answer_recorded", $"{plan.Actor}:{plan.ApplicantId}");
+        AppendEvent(new HousingAnswerRecordedEventPayload(plan.Actor, plan.ApplicantId));
         ResolveHousingRequest(plan.ApplicantId);
     }
 
@@ -214,7 +214,7 @@ public sealed partial class WorldRuntime
                 continue;
             SetHousing(actor, (housing ?? new()) with { Blocker = blocker, Refusals = refusals });
             if (blocker is not null && blocker != HousingBlockers.AwaitingAnswer && housing?.Blocker != blocker)
-                AppendEvent("housing_blocked", $"{actor}:{blocker}");
+                AppendEvent(new HousingBlockedEventPayload(actor, blocker));
         }
     }
 
@@ -276,7 +276,7 @@ public sealed partial class WorldRuntime
             }
             foreach (var id in MovingCareGroup(actor))
                 SetHousing(id, (agents[id].Housing ?? new()) with { Request = null, Refusals = null, Blocker = null });
-            AppendEvent("household_joined", $"{actor}:{request.HouseholdId}");
+            AppendEvent(new HouseholdJoinedEventPayload(actor, request.HouseholdId));
         }
     }
 
@@ -294,7 +294,7 @@ public sealed partial class WorldRuntime
         });
         // The blocker is recomputed now, so the owner never sees a stale "waiting" line.
         SetHousing(actor, (agents[actor].Housing ?? new()) with { Blocker = HousingBlocker(actor) });
-        AppendEvent(eventKind, $"{actor}:{request.HouseholdId}");
+        AppendEvent(WorldEvents.Housing(eventKind, actor, request.HouseholdId));
     }
 
     private void SetHousing(string actor, HousingState housing)
