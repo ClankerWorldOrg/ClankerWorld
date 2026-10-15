@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 
@@ -10,7 +11,7 @@ internal static class FamilyTreeFixture
         params (string From, string To)[] pairs)
     {
         var society = state.Society.Society;
-        var added = pairs.Select(pair => new SocietyRelationship($"family-tree:{type}:{pair.From}:{pair.To}", 1, type,
+        var added = pairs.Select(pair => new SocietyRelationship(DerivedId.Create($"family-tree:{type}:{pair.From}:{pair.To}"), 1, type,
             pair.From, pair.To, SocietyRelationshipState.Accepted, SocietyConsentState.ProtectedLifecycle,
             society.WorldTick, society.WorldTick, "family"));
         return state with
@@ -31,7 +32,7 @@ internal static class FamilyTreeFixture
         var society = state.Society.Society;
         var ancestor = society.Agents[0] with
         {
-            Id = $"{society.WorldId}:agent:ancestor-{key}",
+            Id = DerivedId.Create($"{society.WorldId}:agent:ancestor-{key}"),
             Name = $"Ancestor-{key}",
             Status = SocietyAgentStatus.Dead,
             HouseholdId = null,

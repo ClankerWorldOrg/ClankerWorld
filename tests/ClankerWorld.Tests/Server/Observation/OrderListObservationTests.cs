@@ -1,7 +1,8 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using OwnerWorldInstruction = ClankerWorld.GodotClient.Protocol.OwnerWorldInstruction;
+using OwnerWorldInstruction = ClankerWorld.Contracts.OwnerWorldInstruction;
 
 namespace ClankerWorld.Tests;
 
@@ -46,7 +47,7 @@ public sealed class OrderListObservationTests
         var orders = received.Where(item => item.Kind == "order").ToArray();
         // More orders than the card's four-message history holds all reach the game.
         Assert.Equal(
-            new[] { replaced, current }.Concat(queued).Append(typo).Select(item => item.InstructionId).ToArray(),
+            new[] { replaced, current }.Concat(queued).Append(typo).Select(item => item.InstructionId.Value).ToArray(),
             orders.Select(item => item.InstructionId).ToArray());
         Assert.Contains(received, item => item.InstructionId == suggestion.InstructionId && item.Kind == "suggestion");
 
