@@ -1,1 +1,2 @@
 - Construction choices retain their design, site, building identity and available material lots through shared checks and native payment.
+- When selected materials become unavailable, the original builder can choose again using current stock without allowing duplicate household projects.
