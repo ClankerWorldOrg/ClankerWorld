@@ -409,7 +409,11 @@ the server acknowledged or of the game's own child, deletes the secret file, so
 only a server still running keeps one for the next launch. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
-two-second request deadlines; an explicit build mismatch, invalid response or
+two-second request deadlines. After a discovery timeout, an exclusive bind to
+the loopback port checks whether it is free: Windows may still be retrying a
+connection to an empty port when the request deadline expires. A free port lets
+the game launch its server; a failed bind keeps the existing listener protected.
+An explicit build mismatch, invalid response or
 secret refusal ends the attempt immediately. An unresponsive existing server is
 reported as timed out, without starting a second process or replacing its secret.
 Caller cancellation also leaves that server and secret intact. The server's output goes to
