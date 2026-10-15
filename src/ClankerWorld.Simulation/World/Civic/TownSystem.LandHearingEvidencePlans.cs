@@ -67,7 +67,7 @@ internal sealed partial class TownSystem
             case LandHearingEvidenceKind.Answer:
             case LandHearingEvidenceKind.Waive:
                 return item.Status == "pending" && plan.Party is { } selected && CivicAgentToken(selected.Id) == plan.Choice.PartyOrRecipientToken &&
-                    parties.Any(party => TownLandHearingRules.RecordVersion(party) == TownLandHearingRules.RecordVersion(selected) &&
+                    parties.Any(party => party.Id == selected.Id &&
                         (party.Kind == "household" ? party.AdultIds.Contains(plan.Actor, StringComparer.Ordinal) : party.RepresentativeId == plan.Actor)) &&
                     revision.Parties.Any(party => party.Id == selected.Id) ? new()
                     : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected household or Town response party has changed");

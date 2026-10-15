@@ -140,7 +140,7 @@ public sealed partial class WorldRuntime
             ContinueLesson(plan.Actor, plan.WaitingForModel, plan);
             return;
         }
-        SetLesson(plan.StudentId, plan.Original! with
+        SetLesson(plan.StudentId, agents[plan.StudentId].Lesson! with
         {
             Stage = plan.Choice.Kind switch
             { LearningChoiceKind.Accept => "accepted", LearningChoiceKind.Cancel => "cancelled", _ => "declined" }
