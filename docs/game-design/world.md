@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # The world, time and survival
@@ -69,8 +69,10 @@ everything that is available in the current build. See [what works today](../wha
   starts it, and it listens only on the loopback address, which means only
   programs on that same computer can connect to it. It is not embedded inside
   the game process.
-- **The first local package is an unsigned portable zip.** An installer and code
-  signing (a publisher signature on the files) come later.
+- **The first local package is an unsigned portable zip.** Nightly builds also
+  include the unsigned per-user launcher setup and its SHA-256 beside the
+  portable zip (the owner's choice in chat, October 15). Code signing (a
+  publisher signature on the files) comes later.
 - **Agreed on October 10
   ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)):** the
   first alpha, `v0.1.0-alpha.1`, is the portable zip together with the

@@ -2,7 +2,7 @@
 title: Releasing
 type: release-policy
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Releasing
@@ -195,8 +195,14 @@ needs no release gate:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
-  the same two assets as an alpha, so the launcher installs and checks it the
-  same way. New nightly installs are offered in Developer mode. Installed
+  the portable game zip and its `.sha256`, so the launcher installs and checks
+  it the same way as an alpha. Every nightly also includes
+  `ClankerWorld-Setup-<version>-windows-x64.exe` and its `.sha256` beside the
+  portable zip. The [per-user setup](build-and-test.md#windows-installer)
+  bundles the launcher and game from the same commit, using the same package
+  scripts as CI. Linux builds both packages; Windows builds the setup before
+  the publish job attaches all four files. Only that job can write releases.
+  New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.
 - It runs only when main has a commit the newest nightly doesn't have and
