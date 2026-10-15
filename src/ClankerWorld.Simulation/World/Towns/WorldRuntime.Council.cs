@@ -54,6 +54,16 @@ public sealed partial class WorldRuntime
             originalPlan = TownSystem.BindHouseholdLandFiling(filing, landTiles);
         if (originalPlan is TownLandClaimActionPlan claim)
             originalPlan = TownSystem.BindTownLandClaim(claim, landTiles);
+        if (originalPlan is LandHearingPropertyActionPlan hearingProperty)
+            originalPlan = TownSystem.BindLandHearingProperty(hearingProperty, hearingChoice, proposalText);
+        if (originalPlan is LandHearingReopeningActionPlan hearingReopening)
+            originalPlan = TownSystem.BindLandHearingReopening(hearingReopening, hearingChoice);
+        if (originalPlan is LandHearingRulingActionPlan hearingRuling)
+            originalPlan = TownSystem.BindLandHearingRuling(hearingRuling, hearingChoice, proposalText);
+        if (originalPlan is LandHearingEvidenceActionPlan hearingEvidence)
+            originalPlan = TownSystem.BindLandHearingEvidence(hearingEvidence, hearingChoice, proposalText);
+        if (originalPlan is LandHearingFilingActionPlan hearingFiling)
+            originalPlan = TownSystem.BindLandHearingFiling(hearingFiling, landTiles, hearingChoice, proposalText);
         if (originalPlan is not null)
             TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
     }
