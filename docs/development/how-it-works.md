@@ -266,6 +266,15 @@ permission and reach while leaving room calculations to the equipment swap:
 an upgrade may make space even when ordinary collection has no free room.
 The commit keeps the existing one-unit split or transfer and displaced item.
 
+Personal equipment repair carries `EquipmentRepairActionPlan` with the worn
+item, private work site, exact carried material lots and ordered shared pickups.
+The shared input-trip planner chooses an order once; its check revalidates that order
+with cumulative loads and the return trip at offer, admission and application.
+It also checks room for every missing input. `EquipmentRepair` goods selection retains
+broken items while excluding existing reservations and promises. Starting work
+reserves the captured materials through the same commit used by repair orders;
+continuation still uses the saved work record and reservation IDs.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -988,11 +997,12 @@ this order's eligible personal-lot set.
 
 Repair orders save a separate `TargetEquipmentKind` for basic clothing, padded
 coats, rain cloaks, baskets or sacks. The parser refuses unsupported equipment and
-explicit sites. Orders filter the normal worn-item rules by this exact kind,
-collect real materials through `CollectEquipment`, then use `RepairEquipment`
-and `ContinueEquipmentRepair`. Ordinary repair chooses the first feasible worn item, preferring the equipped
+explicit sites. Orders filter the normal worn-item rules by this exact kind
+and use `RepairEquipment` for planned pickup and repair start, then
+`ContinueEquipmentRepair` for saved work. Ordinary repair chooses the first feasible worn item, preferring the equipped
 carry aid when its materials, carrying space and private work site are usable.
-Candidate selection and execution use the same feasibility checks.
+Ordinary repair carries its selected item and material lots through one plan check;
+orders and civic repairs use the same planned pickup order, repair-start commit and saved continuation.
 A repair work record links to the active instruction; only the returned completed
 repair advances its item count, with a bounded receipt derived from the actor,
 start time and lot identity. New orders release any previous repair's unspent

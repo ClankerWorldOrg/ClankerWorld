@@ -322,7 +322,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "repair_equipment", [], ["repair_equipment"], static (runtime, action) =>
     {
-        runtime.RepairEquipment(action.AgentId, action.State);
+        runtime.ApplyEquipmentRepairPlan(action.Plan as EquipmentRepairActionPlan ?? runtime.PlanEquipmentRepair(action.AgentId));
         return true;
     }),
         new(ActionPhase.Ordinary, "tend_fire", [], ["tend_fire"], static (runtime, action) =>
