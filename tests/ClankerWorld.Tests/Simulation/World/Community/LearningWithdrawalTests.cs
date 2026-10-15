@@ -24,7 +24,7 @@ public sealed partial class LearningTests
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             var frame = WorldRuntimeCodec.Encode(world.ExportState());
-            var plan = await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            var plan = await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.Equal((learner, teacher, SkillKind.Building), (plan.StudentId, plan.TeacherId, plan.Skill));
             for (var tick = 0; tick < 2; tick++)

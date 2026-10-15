@@ -210,7 +210,7 @@ public partial class Main
                 var sites = new VBoxContainer();
                 sites.AddThemeConstantOverride("separation", 2);
                 foreach (var site in item.Sites) sites.AddChild(MemorySite(site.Terrain, site.X, site.Y, site.ResourceKinds));
-                foreach (var recipe in item.RecipeNames) sites.AddChild(new Label { Text = "Recipe: " + recipe });
+                foreach (var recipe in item.RecipeNames) sites.AddChild(new FittedLabel { Text = "Recipe: " + recipe });
                 var creation = item.Kind == "field_map" ? "drawn" : "written";
                 return MemoryEntry(MemoryKind.Map, PixelGlyph.Scroll, item.Title,
                     MetaLine(MetaText($"{DisplayWorldClock(item.CreatedTick)} · {GameUiText.ItemName(item.Kind)} {creation} by {item.CreatorName}")), sites);
@@ -235,7 +235,7 @@ public partial class Main
         var shown = memoryCardEntries.Where(entry => filter == AllMemoriesTab || (int)entry.Kind == filter)
             .OrderByDescending(entry => entry.WorldTick).ThenBy(entry => entry.Kind).ToArray();
         if (shown.Length == 0)
-            memoryCards.AddChild(new Label
+            memoryCards.AddChild(new FittedLabel
             {
                 Text = memoryCardEntries.Count == 0
                     ? "No saved memories, beliefs, or map records for this agent yet."
