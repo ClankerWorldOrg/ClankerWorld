@@ -15,6 +15,8 @@ public sealed class ActionRuleBoundaryTests
         foreach (var (file, expressions) in actual)
             Assert.Equal(recorded[file], expressions);
         Assert.DoesNotContain(actual.Keys, file => file.Contains("/Family/WorldRuntime.Child", StringComparison.Ordinal));
+        Assert.DoesNotContain(actual.Values.SelectMany(expressions => expressions),
+            expression => expression.Contains("AgeBand", StringComparison.Ordinal));
     }
 
     [Fact]

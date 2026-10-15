@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
             var age = checkpoint.AgeAt(person, WorldTick);
             if (checkpoint.Config.DayLifecycle is { } days && age >= days.MaximumDay / 2)
                 kinds.Add(AgentIdentityMomentKind.Midlife);
-            if (person.AgeBand == SocietyAgeBand.Elder)
+            if (LifeStageRules.IsElder(person.AgeBand))
                 kinds.Add(AgentIdentityMomentKind.Elder);
             if (checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
                 edge.ProposerId == person.Id))
@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
         // store still reserves each potentially paid request before HTTP.
         var capacity = Math.Max(0, maxCognitionDispatchPerCycle - (activeIdentityIds?.Count ?? pendingIdentityMoments.Count));
         foreach (var person in society.Checkpoint.Agents
-            .Where(item => item.Status == SocietyAgentStatus.Active && item.AgeBand != SocietyAgeBand.Infant)
+            .Where(item => item.Status == SocietyAgentStatus.Active && !LifeStageRules.IsInfant(item.AgeBand))
             .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (capacity == 0) break;
