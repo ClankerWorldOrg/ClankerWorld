@@ -464,6 +464,11 @@ Society transition grants responsibility to the selected adult.
 Relocation volunteers retain the House, selected adults, replaced notices and
 inherited deadline. The shared check refuses a changed selection; the native
 notice writer and deadline reconciliation keep the original timer behavior.
+Tool-request consent choices retain their Smith, recipe and exact request.
+Shared checks run at offer, admission and apply, while fresh accepted personal
+model consent remains required for placement, acceptance, refusal and withdrawal.
+Pending withdrawal permits progress within that same request and preserves the
+current job, offer and payment state when it acts.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
