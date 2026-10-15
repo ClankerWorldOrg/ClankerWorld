@@ -126,7 +126,7 @@ public sealed partial class WorldRuntime
             return false;
         if (input.OwnerId != actor) return FreeCarryCapacity(actor) > 0;
         var position = agents[actor].Position;
-        return position == blacksmith.Position || FindUnoccupiedRoute(actor, position, blacksmith.Position, 0).Count > 0;
+        return position == blacksmith.Position || Reach(actor, blacksmith.Position, ReachPurpose.SmithDelivery, 0, 0, SwimmingPolicy.WhenCapable).Count > 0;
     }
 
     private (string ItemKind, MapResource Source)? BlacksmithInputToGather(string householdId, string blacksmithId,

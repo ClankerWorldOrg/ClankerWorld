@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
         var key = (HouseholdStockPosition(lot), lot.GroundPosition is not null ? ResourceInteractionRange : 1);
         if (routes is not null && routes.TryGetValue(key, out var reachable)) return reachable ? null : GoodsReason.Route;
         reachable = IsWithinInteractionRange(position, key.Item1, key.Item2) ||
-            FindUnoccupiedRoute(actor, position, key.Item1, key.Item2).Count > 0;
+            Reach(actor, key.Item1, ReachPurpose.GoodsRecovery, key.Item2, 0, SwimmingPolicy.WhenCapable).Count > 0;
         routes?.Add(key, reachable);
         return reachable ? null : GoodsReason.Route;
     }

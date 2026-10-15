@@ -8,22 +8,6 @@
   "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs": [
     "runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": [
-    "FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange)",
-    "FindUnoccupiedRoute(actor, state.Position, destination.Position, 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": [
-    "FindUnoccupiedRoute(actor, position, blacksmith.Position, 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsCollection.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, key.Item1, key.Item2)"
-  ],
-  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsDelivery.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, destination, 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Goods/WorldRuntime.GoodsRecovery.cs": [
-    "FindUnoccupiedRoute(actor, position, key.Item1, key.Item2)"
-  ],
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
     "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],
