@@ -34,7 +34,12 @@ public sealed partial class WorldRuntime
             return IdleForToolRequest(plan.Actor) && IsWithinInteractionRange(agents[plan.Actor].Position, plan.Shop.Position, ResourceInteractionRange) &&
                 MayRequestToolAt(plan.Actor, plan.Shop, plan.Recipe)
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that tool request is no longer available at the selected Blacksmith");
-        if (plan.Original is not { } request || toolMakingRequests.FirstOrDefault(item => item.Id == request.Id) != request)
+        if (plan.Original is not { } original || toolMakingRequests.FirstOrDefault(item => item.Id == original.Id) is not { } request ||
+            (plan.Choice.Kind == ToolRequestConsentKind.Withdraw
+                ? request.RequesterId != original.RequesterId || request.SellerHouseholdId != original.SellerHouseholdId ||
+                    request.BuildingInstanceId != original.BuildingInstanceId || request.RecipeId != original.RecipeId ||
+                    request.ItemKind != original.ItemKind || request.RequestedTick != original.RequestedTick
+                : request != original))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected tool request has changed");
         var allowed = plan.Choice.Kind switch
         {

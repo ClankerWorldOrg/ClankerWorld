@@ -26,7 +26,6 @@ public sealed partial class WorldRuntime
     private static TownCouncilState PostNonLandNotice(TownCouncilState council, TownNonLandCase item) => TownSystem.PostNonLandNotice(council, item);
     private void NonLandEvent(string kind, TownRuntimeState town, string subject, string actor) => TownSystem.NonLandEvent(civicWorld, kind, town, subject, actor);
     private static string NonLandText(string? text) => TownSystem.NonLandText(text);
-    private static string NonLandExcerpt(string text, int limit) => TownSystem.NonLandExcerpt(text, limit);
     private string NonLandKnownAllegationText(TownRuntimeState town, TownViolationAllegation allegation) => TownSystem.NonLandKnownAllegationText(civicWorld, town, allegation);
     private string NonLandEvidenceChoices(TownRuntimeState town, TownNonLandCase item, string actor) => TownSystem.NonLandEvidenceChoices(civicWorld, town, item, actor);
 }
