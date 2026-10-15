@@ -62,7 +62,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
                             Assert.False(decision.Admission.FellBack, decision.Admission.Outcome);
                             Assert.Equal(candidate.Id, decision.Admission.Intention!.CandidateId);
                             var refusal = after.Events.Where(entry => entry.EventId > original.Events[^1].EventId &&
-                                entry.Detail.Contains(observation.AgentId, StringComparison.Ordinal))
+                                entry.Payload.ActorId == observation.AgentId)
                                 .Any(entry => entry.Kind.EndsWith("_rejected", StringComparison.Ordinal) ||
                                     entry.Kind.EndsWith("_refused", StringComparison.Ordinal) ||
                                     entry.Kind.EndsWith("_blocked", StringComparison.Ordinal) ||
