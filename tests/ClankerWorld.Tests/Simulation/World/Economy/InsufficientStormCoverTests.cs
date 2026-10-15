@@ -5,7 +5,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class InsufficientStormCoverTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
     private static readonly GridPoint Cover = new(125, 61);
     private static readonly Lazy<Task<byte[]>> LitHouse = new(LightHouse);
 

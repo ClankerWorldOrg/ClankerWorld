@@ -1,0 +1,1 @@
+- Tile cards show the named owner of goods on the ground, including personally owned goods and later name changes.
