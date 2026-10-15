@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
     }
 
     internal static HouseholdLandFilingActionPlan BindHouseholdLandFiling(HouseholdLandFilingActionPlan plan, IReadOnlyList<CognitionLandTile>? tiles) =>
-        plan.SelectedTiles is not null || tiles is null ? plan : plan with { SelectedTiles = tiles.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() };
+        plan.SelectedTiles is not null ? plan : plan with { SelectedTiles = tiles?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() ?? [] };
 
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null)
     {
@@ -40,15 +40,12 @@ internal sealed partial class TownSystem
 
     private bool SelectedExpansionPlotAvailable(ITownWorld world, HouseholdLandFilingActionPlan plan, PlacedBuilding building)
     {
-        if (!world.MayExpandBuilding(plan.Actor, building, out _) || plan.SelectedTiles is not { Count: > 0 } selected ||
-            householdLandUseRequests.Any(request => request.Status == "pending" && request.HouseholdId == plan.Household &&
-                TownLandRightsRules.UnresolvedRequestTiles(request).Any(selected.Contains)) ||
+        if (plan.SelectedTiles is not { Count: > 0 } selected || ExpansionLandRequestTiles(world, plan.Actor, building) is null ||
             selected.Any(world.PendingTownProjectSiteTiles().Contains)) return false;
         var definition = world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         var matching = false;
         foreach (var shape in world.ExpansionShapes(building))
         {
-            if (world.CanFitExpansion(building, shape.Position, shape.Footprint, out _)) return false;
             if (!world.CanFitExpansion(building, shape.Position, shape.Footprint, out _, requireLandRights: false)) continue;
             var extra = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
                 BuildingStorageRules.WithSize(definition, shape.Footprint.Width, shape.Footprint.Height), shape.Position)

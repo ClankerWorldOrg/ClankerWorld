@@ -1,1 +1,2 @@
 - Shop responses retain the original shop binding, exact offer terms and personal household authority through shared checks.
+- Hungry buyers keep their personally selected shop-offer response when it interrupts an unrelated owner order.
