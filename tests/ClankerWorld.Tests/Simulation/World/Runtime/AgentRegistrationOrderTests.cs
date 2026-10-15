@@ -69,6 +69,8 @@ public sealed class AgentRegistrationOrderTests
     {
         string[] expected =
         [
+            "FreshAdmission|TownProjectProposal||",
+            "FreshAdmission|TownProjectDonation||",
             "FreshAdmission|NonLandFiling||",
             "FreshAdmission|NonLandEvidence||",
             "FreshAdmission|NonLandJudge||",
@@ -136,6 +138,9 @@ public sealed class AgentRegistrationOrderTests
             "Ordinary|learn:|learn:,lesson_|",
             "Ordinary|civic||civic||",
             "Ordinary|IsTownProjectDonationCandidate||",
+            "Ordinary|TownProjectLoad||",
+            "Ordinary|TownProjectWork||",
+            "Ordinary|TownProjectRecovery||",
             "Ordinary|ApplyTownProjectCandidate||",
             "Ordinary|IsMarketCandidate||",
             "Ordinary|food_policy_|food_policy_|",

@@ -15,11 +15,10 @@ public sealed partial class WorldRuntime
                 0, 0, SwimmingPolicy.WhenCapable, recover ? ReachObstacles.OccupiedTiles : ReachObstacles.Terrain));
     }
 
-    private ActionCheck CheckTownProjectRecovery(TownProjectRecoveryActionPlan plan)
+    private ActionCheck CheckTownProjectRecovery(TownProjectRecoveryActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: !plan.Choice.Recover && plan.Choice.WarehouseId is null,
-                AllowUrgentWarmth: !plan.Choice.Recover && plan.Choice.WarehouseId is null, AllowActiveOrder: true));
+            policy ?? TownProjectRecoveryCapabilities(plan));
         if (!capability.Allowed) return capability;
         if (plan.Choice.Recover && !ReadyForTownProject(plan.Actor) || !plan.Choice.Recover &&
             !ReadyForTownProject(plan.Actor) && !NeedsUrgentFood(agents[plan.Actor]) && !NeedsUrgentWarmth(agents[plan.Actor]))
@@ -49,9 +48,8 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected released load is out of reach");
     }
 
-    private void ApplyTownProjectRecovery(TownProjectRecoveryActionPlan plan)
+    private void ApplyCheckedTownProjectRecovery(TownProjectRecoveryActionPlan plan)
     {
-        if (CheckTownProjectRecovery(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var town = towns.Single(item => item.Id == plan.TownId);
         var project = town.Projects.Single(item => item.Id == plan.Choice.ProjectId);
         var warehouse = plan.Choice.WarehouseId is null ? null : WarehousesForTown(plan.TownId).Single(item => item.InstanceId == plan.Choice.WarehouseId);

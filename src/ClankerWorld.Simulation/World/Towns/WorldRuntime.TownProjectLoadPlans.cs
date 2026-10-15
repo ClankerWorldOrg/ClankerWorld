@@ -24,10 +24,10 @@ public sealed partial class WorldRuntime
                 ReachPurpose.TownProjectLoad, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckTownProjectLoad(TownProjectLoadActionPlan plan)
+    private ActionCheck CheckTownProjectLoad(TownProjectLoadActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? TownProjectPhysicalCapabilities);
         if (!capability.Allowed) return capability;
         if (!ReadyForTownProject(plan.Actor) || TownForResident(plan.Actor) != plan.TownId ||
             towns.SingleOrDefault(town => town.Id == plan.TownId) is not { Council: not null } town ||
@@ -64,9 +64,8 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected project load is out of reach");
     }
 
-    private void ApplyTownProjectLoad(TownProjectLoadActionPlan plan)
+    private void ApplyCheckedTownProjectLoad(TownProjectLoadActionPlan plan)
     {
-        if (CheckTownProjectLoad(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var town = towns.Single(item => item.Id == plan.TownId);
         var project = town.Projects.Single(item => item.Id == plan.Choice.ProjectId);
         var lot = plan.Choice.Kind == TownProjectLoadKind.Deliver
