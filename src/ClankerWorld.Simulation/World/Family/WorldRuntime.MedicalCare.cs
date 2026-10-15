@@ -11,7 +11,6 @@ public sealed partial class WorldRuntime
     private const string MedicalAllowPrefix = MedicalConsentChoice.AllowPrefix;
     private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
     private const string MedicalTreatPrefix = MedicalTreatmentChoice.Prefix;
-    private const string MedicalCollectPrefix = "medical_collect:";
 
     private bool LivingMedicalAdult(string actor) => IsAdult(actor) &&
         society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active;
@@ -203,44 +202,29 @@ public sealed partial class WorldRuntime
                 candidates.Add(new(plan.CandidateId, "Apply one dose of medicine to support gradual illness recovery.", 7,
                     patient, society.Checkpoint.GetAgent(patient).Name)
                 { ActionPlan = plan });
-        var trip = AuthorizedMedicalSupplyTrip(actor);
-        var destination = trip?.LastSeenPosition;
-        if (destination is null && ObservableMedicalNeeds(actor).FirstOrDefault() is { } observedPatient)
-            destination = agents[observedPatient].Position;
-        if (trip is not null && HasCarriedOwnItem(actor, "medicine") && !CanObserveMedicalPatient(actor, trip.PatientId))
-            candidates.Add(new(MedicalCollectPrefix + "medicine",
-                "Return with the medicine to where you last saw the consenting patient.", 8, trip.PatientId));
-        else if (!HasCarriedOwnItem(actor, "medicine") && destination is { } patientPosition && FreeCarryCapacity(actor) > 0 &&
-            SharedItem("medicine", actor, patientPosition, ResourceInteractionRange) is { } shared)
-            candidates.Add(new(MedicalCollectPrefix + "medicine", "Visit accessible care stock and collect one real dose of medicine.",
-                8, shared.StorageBuildingId));
+        AddMedicalSupplyCandidate(candidates, actor);
         AddMedicalConsentCandidates(candidates, actor, allow: true);
     }
 
     private void ApplyMedicalCandidate(string actor, AgentState person, string candidate, ActionPlan? originalPlan = null)
     {
         if (originalPlan is MedicalTreatmentActionPlan treatment) { ApplyMedicalTreatmentPlan(treatment); return; }
+        if (originalPlan is MedicalSupplyActionPlan supply) { ApplyMedicalSupplyPlan(supply); return; }
         if (!LivingMedicalAdult(actor)) return;
-        if (candidate == MedicalCollectPrefix + "medicine")
+        if (MedicalSupplyChoice.Decode(candidate) is not null)
         {
-            var trip = AuthorizedMedicalSupplyTrip(actor);
-            if (trip is null)
-            {
-                var patient = ObservableMedicalNeeds(actor).FirstOrDefault();
-                if (patient is null) return;
-                trip = new(patient, agents[patient].Position, WorldTick);
-                agents[actor] = person with { MedicalSupplyTrip = trip };
-            }
-            if (HasCarriedOwnItem(actor, "medicine"))
-            {
-                MoveToward(actor, agents[actor], trip.LastSeenPosition, "medical_patient", ResourceInteractionRange);
-                return;
-            }
-            CollectEquipment(actor, agents[actor], "medicine", trip.LastSeenPosition, ResourceInteractionRange);
+            if (PlanMedicalSupply(actor) is { } collection) ApplyMedicalSupplyPlan(collection);
             return;
         }
         if (MedicalTreatmentChoice.Decode(candidate) is { } choice && PlanMedicalTreatment(actor, choice) is { } plan)
             ApplyMedicalTreatmentPlan(plan);
+    }
+
+    private void BeginMedicalSupplyTrip(MedicalSupplyActionPlan plan)
+    {
+        if (plan.OriginalTrip is null)
+            agents[plan.Actor] = agents[plan.Actor] with
+            { MedicalSupplyTrip = new(plan.PatientId, plan.LastSeenPosition, WorldTick) };
     }
 
     public string? MedicalCareNote(string actor)

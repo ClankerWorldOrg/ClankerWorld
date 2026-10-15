@@ -340,7 +340,6 @@
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Family.cs|id|\u0022partner_refuse:\u0022 \u002B relationship.Id": 1,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.GuardianPlacement.cs|id|\u0022guardian_follow:\u0022 \u002B follow.CaregiverId": 1,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.GuardianPlacement.cs|id|\u0022guardian_relocate:\u0022 \u002B child": 1,
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs|id|MedicalCollectPrefix \u002B \u0022medicine\u0022": 2,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Parenthood.cs|id|\u0022care:\u0022 \u002B child.AgentId": 1,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Parenthood.cs|id|\u0022parent_cancel:\u0022 \u002B person.AgentId": 1,
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Parenthood.cs|id|\u0022parent_decline:\u0022 \u002B person.AgentId": 1,
