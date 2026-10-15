@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # The world, time and survival
@@ -108,9 +108,39 @@ everything that is available in the current build. See [what works today](../wha
   model replies never go in, and anything in a log that looks like a key is
   blanked. The player sends the zip themselves; nothing is uploaded. The game
   offers it, and the launcher will reuse it.
-- **Deploying a world server to another machine starts with a written
-  checklist.** A staged deployment command waits until the local package
-  works.
+- **Agreed on October 15, by the owner in chat: the launcher is where a
+  player starts, hosts and joins a world.** Once the per-user installer below
+  is published, it is the player's first step. It installs the launcher with
+  a Start-menu entry and, if chosen, a desktop shortcut, and that shortcut
+  opens the launcher. From there:
+  - **Playing on one PC.** The launcher starts the game, and the game starts
+    its own world server. Quitting the game saves the world and stops that
+    server; starting the game starts it again. The player never sees a server
+    address, a comparison code or a pairing step.
+  - **Hosting a world for other devices.** On the computer that will run the
+    world, the player installs the same launcher and chooses **Host a world
+    for other devices**. The launcher runs the world server without the game
+    and shows a small host window with the address other devices use, the
+    devices asking to join with **Approve** and **Decline**, and **Stop**. A
+    hosted server keeps running when a game on that computer closes, because
+    other players may still be in the world. It stops only through **Stop**,
+    or when the launcher closes, with a warning first if a device is
+    connected. A game started on the hosting computer joins that running
+    server instead of starting a second one.
+  - **Joining from another computer.** The host is set up first. Then, on the
+    playing computer, the launcher's **Join a world on another computer** asks
+    for the host's address and shows a comparison code. When the host window
+    shows the same code, the host approves the device, and from then on the
+    launcher connects by itself. Pairing happens in the launcher, so the game
+    has no pairing screen of its own.
+  - **An always-on Linux machine, such as a VPS.** There is a server-only
+    download, one command that installs it as a service and one command that
+    approves a device, with a step-by-step guide for players who are
+    comfortable with a terminal. The written checklist for updating the
+    development VPS stays a developer page.
+  - **Private networks only.** A hosted world server is meant for a home
+    network or a private connection such as a VPN. It is not built to face the
+    open internet.
 - **Agreed on October 1
   ([#638](https://github.com/compoodment/ClankerWorld/issues/638)):** a new
   world starts only when every founder has a personal model and a working key.
