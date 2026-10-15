@@ -310,7 +310,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022load:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022unload:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|CollectCartMaterialPrefix \u002B input.ResourceId": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|length|worn.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseGuests.cs|id|InviteHouseGuestPrefix \u002B guest.AgentId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseGuests.cs|id|RevokeHouseGuestPrefix \u002B invitation.GuestId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs|id|$\u0022spare-cargo:{WorldTick}:{actor}:{lot.Id}\u0022": 2,
