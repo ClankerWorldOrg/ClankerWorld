@@ -24,7 +24,7 @@ public partial class Main
         const string worldId = "refused-request-world";
         const string agentId = "refused-request-agent";
         var position = new OwnerWorldPosition(1, 1);
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
             "owner-control.request.v1", "paused-authoring.request.v1"], []), new(
             new(worldId, 0, "refused-request-map", [], [], [], null, 0)
             {

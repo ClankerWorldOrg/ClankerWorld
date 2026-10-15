@@ -11,36 +11,7 @@ public sealed record PairingApprovalHttpRequest(string PairingCode);
 
 public sealed record DeviceRevokeHttpRequest(string? Reason);
 
-public sealed record OwnerControlReceipt(
-    string Operation,
-    bool Changed,
-    bool IsPaused,
-    long RunEpoch,
-    long Revision,
-    long LatestEventId)
-{
-    public static OwnerControlReceipt From(string operation, bool changed, WorldSnapshotView snapshot)
-    {
-        var authoring = snapshot.Authoring;
-        return new OwnerControlReceipt(
-            operation,
-            changed,
-            authoring?.IsPaused ?? snapshot.Cognition?.IsPaused ?? false,
-            authoring?.RunEpoch ?? 0,
-            authoring?.Revision ?? snapshot.WorldTick,
-            snapshot.LatestEventId);
-    }
 
-    // Control acknowledgements must not depend on the optional world-view
-    // projection. A projection defect must never turn an accepted pause into
-    // an HTTP 500 that leaves the client unsure whether the world stopped.
-    public static OwnerControlReceipt From(string operation, bool changed, WorldRuntimeState state)
-    {
-        var revision = state.EventHistoryFloor + state.Events.Count;
-        return new OwnerControlReceipt(operation, changed, state.Society.Society.IsPaused,
-            state.Society.Society.RunEpoch, revision, revision);
-    }
-}
 
 public sealed record OwnerControlFailure(string Code, string Detail);
 

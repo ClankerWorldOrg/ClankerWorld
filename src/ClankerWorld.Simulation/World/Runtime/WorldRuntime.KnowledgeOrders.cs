@@ -56,7 +56,7 @@ public sealed partial class WorldRuntime
         var kind = instruction.Task!.TargetKnowledgeKind!;
         if (KnowledgeOrderCandidateFor(instruction) is null)
         {
-            SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, KnowledgeOrderBlockedReason(instruction));
             return;
         }
         if (KnowledgeWritingFor(actor) is null)
@@ -69,7 +69,11 @@ public sealed partial class WorldRuntime
                 var current = instructionsByIdempotency[instruction.IdempotencyKey];
                 instructionsByIdempotency[instruction.IdempotencyKey] = current with
                 {
-                    Task = current.Task! with { KnowledgeCopySourceArtifactId = source.Id },
+                    Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    CopyKnowledgeOrderDefinition task => task with { KnowledgeCopySourceArtifactId = source.Id },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
                 };
                 candidate = KnowledgeCopyPrefix + source.Id;
             }
@@ -77,7 +81,7 @@ public sealed partial class WorldRuntime
             if (KnowledgeWritingFor(actor) is null)
             {
                 if (agents[actor].Position == person.Position && society.Checkpoint.Inventory == inventory)
-                    SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(instruction));
+                    SetOrderStatus(instruction, OrderStatus.Blocked, KnowledgeOrderBlockedReason(instruction));
                 return;
             }
         }
@@ -89,18 +93,19 @@ public sealed partial class WorldRuntime
             var current = instructionsByIdempotency[instruction.IdempotencyKey];
             instructionsByIdempotency[instruction.IdempotencyKey] = current with
             {
-                Task = current.Task! with
-                {
-                    KnowledgeWritingProjectId = project.Id,
-                    KnowledgeCopySourceArtifactId = project.SourceArtifactId
-                },
+                Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    WriteKnowledgeOrderDefinition task => task with { KnowledgeWritingProjectId = project.Id },
+    CopyKnowledgeOrderDefinition task => task with { KnowledgeWritingProjectId = project.Id, KnowledgeCopySourceArtifactId = project.SourceArtifactId },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
             };
         }
         ContinueKnowledgeWriting(project);
         var updated = instructionsByIdempotency[instruction.IdempotencyKey];
         if (KnowledgeWritingFor(actor) is null && IsActiveOrder(updated.Task!.Status) &&
             updated.Task.CompletedUnits == instruction.Task!.CompletedUnits)
-            SetOrderStatus(updated, "blocked", KnowledgeOrderBlockedReason(updated));
+            SetOrderStatus(updated, OrderStatus.Blocked, KnowledgeOrderBlockedReason(updated));
     }
 
     private bool IsCurrentKnowledgeOrderProject(AgentKnowledgeWritingProject project) =>
@@ -114,7 +119,12 @@ public sealed partial class WorldRuntime
         if (instruction?.Task is not { } order || !IsKnowledgeOrder(order.Action) || order.KnowledgeWritingProjectId != project.Id) return;
         instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
         {
-            Task = order with { KnowledgeWritingProjectId = null },
+            Task = order.UpdateDefinition(definition => definition switch
+{
+    WriteKnowledgeOrderDefinition task => task with { KnowledgeWritingProjectId = null },
+    CopyKnowledgeOrderDefinition task => task with { KnowledgeWritingProjectId = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
         };
     }
 
@@ -128,10 +138,14 @@ public sealed partial class WorldRuntime
             var current = instructionsByIdempotency[instruction.IdempotencyKey];
             instructionsByIdempotency[instruction.IdempotencyKey] = current with
             {
-                Task = current.Task! with { KnowledgeCopySourceArtifactId = null },
+                Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    CopyKnowledgeOrderDefinition task => task with { KnowledgeCopySourceArtifactId = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
             };
         }
-        CreditOrderEffect(instruction, AgentKnowledgeRules.WritingReceiptId(artifactId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(AgentKnowledgeRules.WritingReceiptId(artifactId)), 1);
     }
 
     private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction)
@@ -154,8 +168,7 @@ public sealed partial class WorldRuntime
                 instruction.TargetAgentId != project.ActorId || instruction.Task!.TargetKnowledgeKind != project.Kind ||
                 instruction.Task.KnowledgeWritingProjectId != project.Id || !MatchesKnowledgeSource(instruction.Task, project.SourceArtifactId, bound: true) ||
                 !IsActiveOrder(instruction.Task.Status) || instruction.Task.Status == "queued" ||
-                saved.Where(item => item.TargetAgentId == project.ActorId && item.Task is { } order && IsActiveOrder(order.Status))
-                    .OrderBy(item => item.SubmissionSequence).FirstOrDefault()?.InstructionId != instruction.InstructionId)
+                FirstActiveOrderFor(saved, project.ActorId)?.InstructionId != instruction.InstructionId)
                 throw new InvalidDataException("Ordered writing has no matching current owner task.");
         }
         foreach (var artifact in knowledge.Artifacts.Where(item => item.OrderInstructionId is not null))

@@ -8,7 +8,7 @@ public static class TownNonLandGovernmentFilingRules
 
     public static bool IsValid(TownViolationFilingRequest? request, long tick) =>
         request is not null && TownNonLandRules.ValidAllegation(request.Allegation) &&
-        request.Allegation.ConductTick <= tick && TownHearingProcedure.Text(request.Statement) &&
+        request.Allegation.ConductTick <= tick && BoundedText.IsValid(request.Statement, 1024, requireTrimmed: true) &&
         request.Allegation.SourceEvidenceIds.Distinct(StringComparer.Ordinal).Count() == request.Allegation.SourceEvidenceIds.Count;
 
     public static string Describe(TownViolationFilingRequest request) =>

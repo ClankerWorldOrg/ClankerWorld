@@ -63,7 +63,7 @@ internal sealed partial class TownSystem
         foreach (var item in state.Cases.Where(item => item.Status == "pending").ToArray())
         {
             var before = NonLandRevision(item).Number;
-            state = TownNonLandRules.ReviseParties(state, item.Id, NonLandParties(world, town, item), world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1));
+            state = TownNonLandRules.ReviseParties(state, item.Id, NonLandParties(world, town, item), world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council));
             var revised = state.Cases.Single(current => current.Id == item.Id);
             if (NonLandRevision(revised).Number != before) council = PostNonLandNotice(council, revised);
         }
@@ -80,25 +80,18 @@ internal sealed partial class TownSystem
     internal static TownCouncilState PostNonLandNotice(TownCouncilState council, TownNonLandCase item) =>
         TownCouncilRules.PostNotice(council, "law_case", NonLandCaseToken(item),
             "A reported act is alleged to breach a Town law. The named people may answer with caregiver support where needed. No guilt, payment or work is presumed.", NonLandRevision(item).PublishedTick);
-    internal static void NonLandEvent(ITownWorld world, string kind, TownRuntimeState town, string subject, string actor) => world.AppendEvent("law_case_" + kind, $"{town.Id}|{subject}|{actor}", CivicBoard(world, town));
+    internal static void NonLandEvent(ITownWorld world, string kind, TownRuntimeState town, string subject, string actor) => world.AppendEvent(WorldEvents.LawCase(kind, actor, town.Id, subject), CivicBoard(world, town));
     internal static string NonLandText(string? text) => CognitionDecisionResponse.NormalizeIdentityText(text) ??
         throw new InvalidOperationException("A legal submission needs a clear personal statement.");
-    internal static string NonLandExcerpt(string text, int limit)
-    {
-        var length = Math.Min(limit, text.Length);
-        if (length > 0 && length < text.Length && char.IsHighSurrogate(text[length - 1]) && char.IsLowSurrogate(text[length]))
-            length--;
-        return text[..length];
-    }
 
     internal static string NonLandKnownAllegationText(ITownWorld world, TownRuntimeState town, TownViolationAllegation allegation)
     {
         var version = town.Government!.Laws.Single(law => law.Id == allegation.LawId).Versions.Single(version => version.Version == allegation.LawVersion);
-        return NonLandExcerpt(world.Society.GetAgent(allegation.SubjectId).Name, 80) + " allegedly " +
+        return BoundedText.Excerpt(world.Society.GetAgent(allegation.SubjectId).Name, 80) + " allegedly " +
             allegation.ConductKind.Replace('_', ' ') + " at (" + allegation.Position.X + "," + allegation.Position.Y + ") at world tick " +
-            allegation.ConductTick.ToString(CultureInfo.InvariantCulture) + ". Known source: " + NonLandExcerpt(allegation.Statement, 256) +
+            allegation.ConductTick.ToString(CultureInfo.InvariantCulture) + ". Known source: " + BoundedText.Excerpt(allegation.Statement, 256) +
             ". Applicable law version " + allegation.LawVersion.ToString(CultureInfo.InvariantCulture) + ": " +
-            NonLandExcerpt(TownLawRules.Text(version.Subject, version.Rule), 512);
+BoundedText.Excerpt(TownLawRules.Text(version.Subject, version.Rule), 512);
     }
 
     internal static string NonLandEvidenceChoices(ITownWorld world, TownRuntimeState town, TownNonLandCase item, string actor)
@@ -109,11 +102,11 @@ internal sealed partial class TownSystem
         var findings = reads.SelectMany(read => read.FindingIds).ToHashSet(StringComparer.Ordinal);
         return (reads.Length == 0 ? "" : " Inspected allegation: " + NonLandKnownAllegationText(world, town, item.Allegation) + ".") +
             " Inspected evidence: " + string.Join("; ", item.Evidence.Where(evidence => known.Contains(evidence.Id)).TakeLast(8)
-            .Select(evidence => CivicAgentToken(evidence.Id) + " (" + evidence.Kind + ", " + evidence.Acquisition + "): " + NonLandExcerpt(evidence.Text, 256))) +
+            .Select(evidence => CivicAgentToken(evidence.Id) + " (" + evidence.Kind + ", " + evidence.Acquisition + "): " + BoundedText.Excerpt(evidence.Text, 256))) +
             ". Inspected responses: " + string.Join("; ", item.Responses.Where(response => responses.Contains(TownNonLandRules.ResponseToken(response))).TakeLast(8)
-                .Select(response => NonLandExcerpt(world.Society.GetAgent(response.AgentId).Name, 80) + " " + response.Kind + ": " + NonLandExcerpt(response.Text, 256))) +
+                .Select(response => BoundedText.Excerpt(world.Society.GetAgent(response.AgentId).Name, 80) + " " + response.Kind + ": " + BoundedText.Excerpt(response.Text, 256))) +
             ". Inspected prior findings: " + string.Join("; ", item.Findings.Where(finding => findings.Contains(finding.Id)).TakeLast(4)
-                .Select(finding => finding.Id + " " + finding.Result + "/" + finding.Consequence + ": " + NonLandExcerpt(finding.Reasons, 256) +
-                    "; uncertainty: " + NonLandExcerpt(finding.Uncertainty, 160))) + ".";
+                .Select(finding => finding.Id + " " + finding.Result + "/" + finding.Consequence + ": " + BoundedText.Excerpt(finding.Reasons, 256) +
+                    "; uncertainty: " + BoundedText.Excerpt(finding.Uncertainty, 160))) + ".";
     }
 }

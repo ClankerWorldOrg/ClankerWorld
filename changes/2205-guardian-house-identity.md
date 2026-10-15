@@ -1,0 +1,1 @@
+- Guardian acceptance refuses a rebuilt House even when it reuses the original ID, without taking primary care or changing the world.
