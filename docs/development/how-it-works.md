@@ -458,6 +458,8 @@ service from the actor's current position; prospective pickup returns explicitly
 keep their selected origin, foot-only policy or additional carried unit.
 Project and blacksmith supply and the shared goods query's collection, delivery
 and recovery checks use actor-position reach with their original route caches.
+Town remedy estimation names its prospective origin for each sequential leg
+through the same reach service, with explicit purpose, load and swimming policy.
 Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The animal world port exposes no unused direct route search; animal action
