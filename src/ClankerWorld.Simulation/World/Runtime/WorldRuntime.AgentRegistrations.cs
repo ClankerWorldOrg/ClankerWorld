@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "parent_", ["parent_", "care:"], [], static (runtime, action) =>
     {
-        runtime.ApplyParenthoodCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyParenthoodCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "partner_", ["partner_"], [], static (runtime, action) =>

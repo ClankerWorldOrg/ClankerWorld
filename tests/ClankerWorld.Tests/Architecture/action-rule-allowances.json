@@ -89,18 +89,6 @@
     "recipient.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
     "recipient.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
   ],
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Parenthood.cs": [
-    "FindUnoccupiedRoute(actor, parent.Position, child.Position, ResourceInteractionRange)",
-    "WarmthBasisPoints: \u003C 6_000",
-    "child.FullnessBasisPoints \u003C 7_000",
-    "child.FullnessBasisPoints \u003C 7_000",
-    "child.FullnessBasisPoints \u003C 7_000",
-    "child.FullnessBasisPoints \u003C 7_000",
-    "person.FullnessBasisPoints \u003C 7_000",
-    "society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Adult",
-    "society.Checkpoint.GetAgent(item.TargetId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child",
-    "society.Checkpoint.GetAgent(person.AgentId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
-  ],
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.FieldValidation.cs": [
     "worker.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
   ],

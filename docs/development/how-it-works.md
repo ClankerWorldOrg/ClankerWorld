@@ -430,6 +430,9 @@ guardian search and intended household/family. The same check runs at offer,
 admission and apply; owner guardian orders carry that plan too.
 Guardian acceptance also retains the selected House definition and placement
 tick, so rebuilding with the same ID requires a fresh choice.
+Practical care retains the dependent, caregiving receipt, position and selected
+serving or food preparation source. Waiting routines use that same plan; native
+feeding, warmth and illness relief remain in their existing writers.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

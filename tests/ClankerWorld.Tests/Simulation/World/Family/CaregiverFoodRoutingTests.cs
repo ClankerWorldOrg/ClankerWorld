@@ -5,7 +5,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
-public sealed class CaregiverFoodRoutingTests
+public sealed partial class CaregiverFoodRoutingTests
 {
     [Theory]
     [InlineData("berries", 2_000)]
@@ -13,41 +13,17 @@ public sealed class CaregiverFoodRoutingTests
     [InlineData("cultivated_greens", 4_000)]
     public async Task FeedingAnInfantKeepsTheNamedFoodsNourishmentAcrossReload(string kind, int nourishment)
     {
-        var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("named-infant-food");
-        var society = ChosenBirthNameTestFixture.NameParent(state.Society.Society, actor);
-        var partner = society.Agents.First(person => person.HouseholdId == household && person.Id != actor).Id;
-        society = SocietyRules.ProposeRelationship(society, new("named-care-parents", 1,
-            SocietyRelationshipType.Partnership, actor, partner, society.WorldTick)).Checkpoint;
-        society = SocietyRules.AcceptRelationship(society, "named-care-parents", 1, partner).Checkpoint;
-        var birthFood = society.Inventory.Lots.First(lot => lot.OwnerId == household && lot.ItemKind == "food" && lot.Quantity >= 4);
-        var birth = SocietyRules.CommitBirth(society, new($"family:{actor}:{society.WorldTick}", 1,
-            actor, partner, household, [actor, partner], [actor, partner], birthFood.Id, 4, society.WorldTick,
-            ChildName: ChosenBirthNameTestFixture.ChildName(society, actor, "Ari"), PrimaryCaregiverId: actor));
-        var childId = Assert.IsType<string>(birth.CreatedId);
-        society = birth.Checkpoint;
-        var childPosition = state.Map.FootNeighbors(point).First(tile => state.Map.IsBuildable(tile) &&
-            !state.Agents.Any(person => person.Position == tile));
-        society = society with { Inventory = InventoryAuthority.AddLot(society.Inventory, "named-child-serving", kind, actor, 1) };
-        state = state with
-        {
-            Society = state.Society with { Society = society },
-            Survival = new SurvivalState(0, []),
-            Agents = state.Agents.Select(person => person with
-            {
-                FullnessBasisPoints = 9_000,
-                Survival = new SurvivalCondition(10_000),
-            }).Append(new AgentState(childId, childPosition, 1_000, 0, "curious", "grow",
-                Survival: new SurvivalCondition(10_000))).OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray(),
-            Towns = state.Towns!.Select(town => town.ResidentIds.Contains(actor) ? town with
-            {
-                ResidentIds = town.ResidentIds.Append(childId).Order(StringComparer.Ordinal).ToArray(),
-            } : town).ToArray(),
-        };
-        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        var (state, actor, childId) = PreparedChildCareState(kind);
         var bytes = WorldRuntimeCodec.Encode(state);
-        using var caring = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new CareProvider(actor));
+        var provider = new CareProvider(actor);
+        using var caring = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         using var waiting = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new CareProvider("no-caregiver"));
-        Assert.True((await caring.AdvanceOneTickAsync()).Advanced);
+        var step = await caring.AdvanceOneTickAsync();
+        Assert.True(step.Advanced);
+        var plan = Assert.IsType<PracticalCareActionPlan>(provider.Plan);
+        Assert.Same(plan, step.Decisions.Single(decision => decision.AgentId == actor).ActionPlan);
+        Assert.Equal(childId, plan.Choice.DependentId);
+        Assert.Equal("named-child-serving", Assert.IsType<ConsumeFoodActionPlan>(plan.Food).StockId);
         Assert.True((await waiting.AdvanceOneTickAsync()).Advanced);
         var child = caring.Agents.Single(person => person.AgentId == childId);
         Assert.Equal(nourishment, child.FullnessBasisPoints - waiting.Agents.Single(person => person.AgentId == childId).FullnessBasisPoints);
@@ -161,16 +137,57 @@ public sealed class CaregiverFoodRoutingTests
         finally { world.Dispose(); }
     }
 
+    private static (WorldRuntimeState State, string Actor, string Child) PreparedChildCareState(string kind)
+    {
+        var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("named-infant-food");
+        var society = ChosenBirthNameTestFixture.NameParent(state.Society.Society, actor);
+        var partner = society.Agents.First(person => person.HouseholdId == household && person.Id != actor).Id;
+        society = SocietyRules.ProposeRelationship(society, new("named-care-parents", 1,
+            SocietyRelationshipType.Partnership, actor, partner, society.WorldTick)).Checkpoint;
+        society = SocietyRules.AcceptRelationship(society, "named-care-parents", 1, partner).Checkpoint;
+        var birthFood = society.Inventory.Lots.First(lot => lot.OwnerId == household && lot.ItemKind == "food" && lot.Quantity >= 4);
+        var birth = SocietyRules.CommitBirth(society, new($"family:{actor}:{society.WorldTick}", 1,
+            actor, partner, household, [actor, partner], [actor, partner], birthFood.Id, 4, society.WorldTick,
+            ChildName: ChosenBirthNameTestFixture.ChildName(society, actor, "Ari"), PrimaryCaregiverId: actor));
+        var childId = Assert.IsType<string>(birth.CreatedId);
+        society = birth.Checkpoint;
+        var childPosition = state.Map.FootNeighbors(point).First(tile => state.Map.IsBuildable(tile) &&
+            !state.Agents.Any(person => person.Position == tile));
+        society = society with { Inventory = InventoryAuthority.AddLot(society.Inventory, "named-child-serving", kind, actor, 1) };
+        state = state with
+        {
+            Society = state.Society with { Society = society },
+            Survival = new SurvivalState(0, []),
+            Agents = state.Agents.Select(person => person with
+            {
+                FullnessBasisPoints = 9_000,
+                Survival = new SurvivalCondition(10_000),
+            }).Append(new AgentState(childId, childPosition, 1_000, 0, "curious", "grow",
+                Survival: new SurvivalCondition(10_000))).OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray(),
+            Towns = state.Towns!.Select(town => town.ResidentIds.Contains(actor) ? town with
+            {
+                ResidentIds = town.ResidentIds.Append(childId).Order(StringComparer.Ordinal).ToArray(),
+            } : town).ToArray(),
+        };
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        return (state, actor, childId);
+    }
+
     private sealed class CareProvider(string actor) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public int CareChoices { get; private set; }
+        public PracticalCareActionPlan? Plan { get; private set; }
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var selected = request.Observation.AgentId == actor
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("care:", StringComparison.Ordinal)) : null;
-            if (selected is not null) CareChoices++;
+            if (selected is not null)
+            {
+                CareChoices++;
+                Plan = Assert.IsType<PracticalCareActionPlan>(selected.ActionPlan);
+            }
             selected ??= request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with
             {
