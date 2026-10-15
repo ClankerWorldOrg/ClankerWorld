@@ -509,6 +509,8 @@ Shop buyer choices retain the selected shop, owner and either an exact goods
 and payment quote or a Restaurant meal/ingredient trip. One check validates that
 same selection; a trip discovers private stock only on arrival, before a fresh
 quote choice reaches the original native offer writer.
+Urgent hunger can interrupt an owner order while preserving an admitted
+personal shop-food choice and its exact quote.
 Direct barter retains the chosen counterpart and one-unit goods, or the
 original offer and personal response state. Shared checks revalidate that same
 selection before the native offer, cancellation or acceptance writer; arrival

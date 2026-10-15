@@ -282,7 +282,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private bool IsShopFoodCandidate(string actor, string candidateId)
+    private bool IsShopFoodCandidate(string actor, string candidateId, ShopBuyActionPlan? selectedPlan = null)
     {
         // Only the buyer's ready food can interrupt an order. Raw ingredients,
         // equipment and a seller's response still follow ordinary work rules.
@@ -292,8 +292,10 @@ public sealed partial class WorldRuntime
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
         if (building is null) return false;
-        if (ShopOpportunity(actor, building) is { } quote)
-            return IsEdibleFood(quote.Goods.ItemKind) && WantsTradeFoodKind(actor, quote.Goods.ItemKind);
+        var kind = selectedPlan?.Quote?.Goods.ItemKind ??
+            (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
+        if (kind is not null)
+            return IsEdibleFood(kind) && WantsTradeFoodKind(actor, kind);
         return RestaurantMealShopTrip(actor, building);
     }
 
