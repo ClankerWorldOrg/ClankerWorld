@@ -125,16 +125,8 @@ public sealed partial class ShopTradeTests
         {
             // Compare the same admitted replies, rather than thread-pool timing.
             // The playable host intentionally runs personal calls between ticks.
-            foreach (var fieldName in new[] { "pendingModelCalls", "pendingIdentityMoments" })
-            {
-                var field = typeof(WorldRuntime).GetField(fieldName,
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-                var tasks = pending.Values.Cast<object>().Select(item =>
-                    Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item)!)).ToArray();
-                await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
-            }
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            await ModelWorkHarness.WaitForExistingAsync(world);
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
         }
         public void Dispose()

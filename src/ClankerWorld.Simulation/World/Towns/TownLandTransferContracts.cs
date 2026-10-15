@@ -15,7 +15,7 @@ public sealed record TownLandSalePaymentLot(string SourceLotId, int Quantity, lo
 public sealed record TownLandSalePayment(string BuyerAgentId, string SellerAgentId, GridPoint Position,
     IReadOnlyList<TownLandSalePaymentLot> Lots);
 
-public sealed record TownLandTransferReceipt(string AdjustmentId, long Tick, IReadOnlyList<TownLandTransferParty> Parties)
+public sealed record TownLandTransferReceipt(Identity AdjustmentId, long Tick, IReadOnlyList<TownLandTransferParty> Parties)
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TownLandSalePayment? Payment { get; init; }

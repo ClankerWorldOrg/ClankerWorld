@@ -51,7 +51,7 @@ public sealed class WorldStateFile
             }
 
             var state = WorldRuntimeCodec.Decode(File.ReadAllBytes(Path));
-            VerifyHistory(state.HistoryArchiveHead, state.BoatTransport.RetiredRequestRanges);
+            VerifyHistory(state.HistoryArchiveHead, state.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(state));
             if (!allowDifferentSavedSeed && !string.Equals(state.WorldSeed, worldSeed, StringComparison.Ordinal))
             {
                 throw new InvalidDataException("The world save belongs to a different configured seed.");
@@ -238,15 +238,16 @@ public sealed class WorldStateFile
     public void VerifyRequiredHistory(WorldRuntimeState checkpoint)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
-        VerifyRequiredHistory(checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges);
+        VerifyRequiredHistory(checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint));
     }
 
-    internal void VerifyRequiredHistory(string? historyArchiveHead, IReadOnlyList<RetiredBoatRequestRange> retiredRequests)
+    internal void VerifyRequiredHistory(string? historyArchiveHead, IReadOnlyList<RetiredBoatRequestRange> retiredRequests,
+        IReadOnlyDictionary<string, long>? recordCounts = null)
     {
         // No archive means no disk work. Preserve the no-history path so
         // selection can prepare its transaction before checkpoint publication.
-        if (historyArchiveHead is null && retiredRequests.Count == 0) return;
-        lock (gate) VerifyHistory(historyArchiveHead, retiredRequests);
+        if (historyArchiveHead is null && retiredRequests.Count == 0 && (recordCounts?.Count ?? 0) == 0) return;
+        lock (gate) VerifyHistory(historyArchiveHead, retiredRequests, recordCounts);
     }
 
     /// <summary>Call while holding the installation world mutation gate.</summary>
@@ -268,7 +269,7 @@ public sealed class WorldStateFile
             foreach (var root in roots)
             {
                 var checkpoint = WorldRuntimeCodec.Decode(File.ReadAllBytes(root));
-                VerifyHistory(checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges);
+                VerifyHistory(checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint));
                 var head = checkpoint.HistoryArchiveHead;
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 while (head is not null)
@@ -291,10 +292,12 @@ public sealed class WorldStateFile
         }
     }
 
-    private void VerifyHistory(string? head, IReadOnlyList<RetiredBoatRequestRange> retiredRequests)
+    private void VerifyHistory(string? head, IReadOnlyList<RetiredBoatRequestRange> retiredRequests,
+        IReadOnlyDictionary<string, long>? recordCounts = null)
     {
         var visited = new HashSet<string>(StringComparer.Ordinal);
         var sequences = new SortedSet<long>();
+        var remaining = recordCounts?.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
         while (head is not null)
         {
             if (!visited.Add(head))
@@ -308,6 +311,18 @@ public sealed class WorldStateFile
             }
             var segment = JsonSerializer.Deserialize<WorldHistorySegment>(bytes)
                 ?? throw new InvalidDataException("The world history archive is empty.");
+            if (segment.Streams is null ||
+                segment.Streams.Any(batch => batch is null || string.IsNullOrWhiteSpace(batch.Name)))
+                throw new InvalidDataException("The world history archive contains invalid streams.");
+            foreach (var batch in segment.Streams.Where(batch => WorldHistory.IsRecordStream(batch.Name)))
+            {
+                if (batch.Events.ValueKind != JsonValueKind.Array || batch.Events.GetArrayLength() == 0 ||
+                    batch.PreviousFloor < 0 || batch.ThroughEventId <= batch.PreviousFloor ||
+                    batch.ThroughEventId - batch.PreviousFloor != batch.Events.GetArrayLength() ||
+                    remaining is not null && (!remaining.TryGetValue(batch.Name, out var through) || through != batch.ThroughEventId))
+                    throw new InvalidDataException("Retired records do not match their reachable history archive.");
+                if (remaining is not null) remaining[batch.Name] = batch.PreviousFloor;
+            }
             foreach (var request in segment.ClosedBoatRequests ?? [])
             {
                 if (request is null || request.Sequence < 1 ||
@@ -319,6 +334,8 @@ public sealed class WorldStateFile
             }
             head = segment.Parent;
         }
+        if (remaining is not null && remaining.Values.Any(count => count != 0))
+            throw new InvalidDataException("Retired records are missing from the reachable history archive.");
         // Compare ranges without expanding a potentially damaged high-water
         // mark. Only records reachable from this checkpoint count as authority.
         using var archived = sequences.GetEnumerator();
