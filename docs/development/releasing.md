@@ -196,9 +196,12 @@ does not claim that the release checklist's remaining checks were performed.
 ## Nightly builds
 
 The [Nightly workflow](../../.github/workflows/nightly.yml) publishes a build of
-main every night as a GitHub pre-release, so Developer mode can try main
-without a release (the owner's choice, October 10). It is not a release and
-needs no release gate:
+main every evening as a GitHub pre-release, so Developer mode can try main
+without a release (the owner's choice, October 10). It starts at 21:17 UTC,
+which is 23:17 in Amsterdam in summer and 22:17 in winter, so the build is
+ready by the owner's usual evening playtest (the owner's choice, October 15).
+GitHub can start a scheduled run late, and **Run workflow** on main starts one
+at any time. It is not a release and needs no release gate:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries

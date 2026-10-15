@@ -7,7 +7,9 @@ name: Nightly
 # seven newest nightly releases. See docs/development/releasing.md#nightly-builds.
 on:
   schedule:
-    - cron: "17 3 * * *"
+    # 21:17 UTC: 23:17 in Amsterdam in summer and 22:17 in winter, so the build
+    # is ready by the owner's usual evening playtest (owner's choice, October 15).
+    - cron: "17 21 * * *"
   workflow_dispatch:
 
 permissions:
