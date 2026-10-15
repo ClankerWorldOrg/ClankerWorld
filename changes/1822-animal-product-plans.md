@@ -1,0 +1,1 @@
+- Animal milk, product and hide choices retain their selected stock and animal through offer, acceptance and execution, and refuse a stale selection with a reason.

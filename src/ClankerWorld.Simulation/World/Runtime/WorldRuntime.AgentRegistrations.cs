@@ -459,8 +459,7 @@ public sealed partial class WorldRuntime
             AddFoodPlanCandidate(candidates, PlanFoodConsumption(agentId, carriedFood), "Eat one carried food item.", 0);
         }
 
-        if (CarriedMilk(agentId) is not null && state.FullnessBasisPoints < ComfortableFullness)
-            candidates.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
+        if (state.FullnessBasisPoints < ComfortableFullness) AddMilkCandidate(candidates, agentId);
         if (instructionCandidate == "consume_food" && hasFood && state.FullnessBasisPoints < ComfortableFullness && !candidates.Any(item => item.Id == "consume_food"))
         {
             AddFoodPlanCandidate(candidates, PlanFoodConsumption(agentId, carriedFood), "Follow the owner's food instruction.", 0);

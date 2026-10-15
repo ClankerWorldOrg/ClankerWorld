@@ -10,7 +10,8 @@ public sealed partial class WorldRuntime
     private IEnumerable<AnimalSystem.AnimalChoice> AnimalChoices(string actor) => animalSystem.AnimalChoices(animalWorldAdapter, actor);
     private bool MayLeadAnimal(string actor, AnimalState animal) => animalSystem.MayLeadAnimal(animalWorldAdapter, actor, animal);
     private void AddAnimalCandidates(List<CognitionCandidate> candidates, string actor) => animalSystem.AddAnimalCandidates(animalWorldAdapter, candidates, actor);
-    private bool ApplyAnimalCandidate(string actor, string candidateId) => animalSystem.ApplyAnimalCandidate(animalWorldAdapter, actor, candidateId);
+    private bool ApplyAnimalCandidate(string actor, string candidateId, ActionPlan? plan = null) => animalSystem.ApplyAnimalCandidate(animalWorldAdapter, actor, candidateId, plan);
+    private void AddMilkCandidate(List<CognitionCandidate> candidates, string actor) => animalSystem.AddMilkCandidate(animalWorldAdapter, candidates, actor);
     private IEnumerable<InventoryLot> AnimalSuppliesAtHand(string actor, AnimalState animal) => AnimalSystem.AnimalSuppliesAtHand(animalWorldAdapter, actor, animal);
     private List<(InventoryLot Lot, int Quantity)>? AnimalCareInputs(string actor, AnimalState animal, int feed, int water) => AnimalSystem.AnimalCareInputs(animalWorldAdapter, actor, animal, feed, water);
     private bool AnimalFeedMayBeSpent(string actor, AnimalState animal, InventoryLot lot, int quantity) => AnimalSystem.AnimalFeedMayBeSpent(animalWorldAdapter, actor, animal, lot, quantity);
