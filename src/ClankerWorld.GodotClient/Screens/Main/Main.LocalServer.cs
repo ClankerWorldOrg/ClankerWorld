@@ -12,6 +12,7 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
+    private const string LocalServerStartingMessage = "Starting your world server…";
     private readonly LocalServer? localServer;
     private bool localServerStarting;
     private readonly ConfirmationDialog localServerFailure = new();
@@ -86,9 +87,17 @@ public partial class Main
         }
         finally
         {
-            localServerStarting = false;
-            RefreshMainMenuAvailability();
+            CompleteLocalServerStartup();
         }
+    }
+
+    private void CompleteLocalServerStartup()
+    {
+        var status = mainMenuStatus.Text;
+        localServerStarting = false;
+        RefreshMainMenuAvailability();
+        if (!string.Equals(status, LocalServerStartingMessage, StringComparison.Ordinal))
+            SetMainMenuStatus(status);
     }
 
     /// <summary>False leaves the ordinary comparison-code flow on screen.</summary>

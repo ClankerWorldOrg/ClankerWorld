@@ -180,7 +180,7 @@ public partial class Main
         mainMenuNewButton.Disabled = !paired;
         mainMenuLoadButton.Disabled = !paired;
         mainMenuConnectButton.Visible = !paired && !localServerStarting;
-        SetMainMenuStatus(localServerStarting ? "Starting your world server…"
+        SetMainMenuStatus(localServerStarting ? LocalServerStartingMessage
             : paired ? null : "Connect this device to your world to play.");
     }
 
