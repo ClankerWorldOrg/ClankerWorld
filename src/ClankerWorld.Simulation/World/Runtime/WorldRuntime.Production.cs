@@ -216,7 +216,7 @@ public sealed partial class WorldRuntime
 
     // Workstation output has no destination vessel; fresh water cannot be a loose lot.
     private static bool HasUnsupportedWaterOutput(RecipeDefinition recipe) =>
-        recipe.Outputs.Any(output => output.ResourceId == InventoryContainerRules.FreshWater);
+        ProductionSystem.HasUnsupportedWaterOutput(recipe);
 
     private bool HasAvailableQuantities(IReadOnlyList<ContentQuantity> quantities, string? ownerId = null)
     {
@@ -443,75 +443,13 @@ public sealed partial class WorldRuntime
         return current;
     }
 
-    private void ProcessProduction(long targetTick)
+    private void ProcessProduction(long targetTick) => productionSystem.ProcessProduction(ProductionWorld, targetTick);
+
+    private bool CompleteProductionJob(WorldProductionJob job, RecipeDefinition recipe, long targetTick) =>
+        ProductionSystem.CompleteProductionJob(ProductionWorld, job, recipe, targetTick);
+
+    private void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knifePlan, long targetTick)
     {
-        var due = worldSimulation.ProductionJobs
-            .Where(job => job.State == WorldProductionJobState.Running && job.CompletionTick <= targetTick)
-            .OrderBy(job => job.CompletionTick)
-            .ThenBy(job => job.JobId, StringComparer.Ordinal)
-            .ToArray();
-        foreach (var job in due)
-        {
-            var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == job.RecipeId);
-            if (recipe is null)
-            {
-                throw new InvalidDataException($"Production job '{job.JobId}' references a recipe that is no longer active.");
-            }
-
-            var completed = CompleteProductionJob(job, recipe, targetTick);
-
-            worldSimulation = new WorldContentSimulationState(
-                worldSimulation.Buildings,
-                worldSimulation.ProductionJobs
-                    .Select(candidate => candidate.JobId == job.JobId
-                        ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled }
-                        : candidate)
-                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal)
-                    .ToArray(),
-                worldSimulation.NextProductionJobSequence,
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
-            if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
-                AppendEvent("house_tool_made", $"{job.WorkerId}|{recipe.Outputs.Single().ResourceId}",
-                    worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
-            else
-                AppendEvent(completed ? "recipe_completed" : "recipe_cancelled", $"{job.JobId}:{recipe.CanonicalId}");
-            if (completed)
-            {
-                LearnProducedRecipe(job, recipe, targetTick);
-                CreditProductionOrderJob(job, recipe);
-            }
-        }
-    }
-
-    private bool CompleteProductionJob(
-        WorldProductionJob job,
-        RecipeDefinition recipe,
-        long targetTick)
-    {
-        var inventoryState = society.Checkpoint.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
-        var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
-            job.WorkerId, ToolFamily.Knife, job.ToolLotId);
-        var inputUnusable = inputs.Any(reservation =>
-            reservation.State is not (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) ||
-            reservation.ExpiryTick < targetTick || inventoryState.Lots.FirstOrDefault(lot => lot.Id == reservation.LotId) is not { FreshnessBasisPoints: > 0, ConditionBasisPoints: > 0 });
-        var unsupportedOutput = HasUnsupportedWaterOutput(recipe);
-        if (unsupportedOutput || inputUnusable || job.ToolLotId is not null && knifePlan is null)
-        {
-            ApplyInventoryTransition(inventory =>
-            {
-                foreach (var reservation in inputs.Where(reservation => reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed))
-                {
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, reservation.Id,
-                        unsupportedOutput ? "production_output_unsupported" : "production_input_unusable");
-                }
-                return inventory;
-            });
-            AppendEvent(unsupportedOutput ? "production_output_unsupported" :
-                inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.JobId);
-            return false;
-        }
         var productionBuilding = worldSimulation.Buildings
             .FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId);
         var productionOwner = job.OwnerId ?? throw new InvalidDataException("A production job has no recorded owner.");
@@ -547,8 +485,5 @@ public sealed partial class WorldRuntime
             return knifePlan is null ? current : ApplyToolWorkToInventory(current, job.WorkerId,
                 targetTick, [knifePlan]);
         });
-        CreditCompletedWork(job.WorkerId, "crafting", SkillForRecipe(recipe));
-        return true;
     }
-
 }

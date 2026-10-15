@@ -154,11 +154,11 @@ public sealed partial class WorldRuntime
                 lot.Quantity, "noticed Town property ruling", destinationStorageBuildingId: lot.StorageBuildingId,
                 destinationGroundPosition: lot.GroundPosition, holdAccess: InventoryHoldRules.Family(InventoryIndex.For(inventory), lot));
         ApplyInventoryTransition(_ => inventory);
-        worldSimulation = worldSimulation with
+        constructionState = WorldConstructionState.From(worldSimulation with
         {
             Buildings = worldSimulation.Buildings.Select(building => building.InstanceId == prior.Building.InstanceId ? resultBuilding : building).ToArray(),
             GuestInvitations = RemoveHouseInvitations(prior.Building.InstanceId)
-        };
+        });
         var lotIds = prior.SharedLots.Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         var transfer = new TownPropertyTransfer(ruling.Id, ruling.Revision, WorldTick, prior.Building, resultBuilding, prior.SharedLots,
             inventory.Lots.Where(lot => lotIds.Contains(lot.Id)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray());

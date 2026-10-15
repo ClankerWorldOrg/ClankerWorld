@@ -108,6 +108,17 @@ captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
 
+`Production/ProductionSystem.cs` owns production jobs, their sequence, tool
+requests and retained recipe plans. Named operations start, pause, resume,
+finish and cancel work, including household departures and owner-order steps.
+Request retirement removes its job links in the same transition. The old
+checkpoint still combines these records with construction data; its production
+view is read-only. Tick preparation copies live recipe plans, and commit
+transfers the production system with the saved state. Local production
+invariants run before mutations publish in tests. Production completion uses
+`IProductionWorld` per call for current content, society, buildings and named
+inventory, learning, order-credit and event operations.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

@@ -4,17 +4,13 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private readonly Dictionary<string, (long StartedTick, string? InstructionId, RecipeProjectActionPlan Plan)> recipeProjectPlans = new(StringComparer.Ordinal);
-
     private void CopyRecipeProjectPlansFrom(WorldRuntime source)
     {
         if (ReferenceEquals(this, source)) return;
-        recipeProjectPlans.Clear();
-        foreach (var (actor, retained) in source.recipeProjectPlans)
-            if (agents.TryGetValue(actor, out var person) && person.Project is { Stage: not ("completed" or "cancelled") } project &&
-                project.StartedTick == retained.StartedTick && project.CandidateId == retained.Plan.CandidateId &&
-                retained.InstructionId == RecipeProjectInstructionId(actor, retained.Plan.Recipe.CanonicalId))
-                recipeProjectPlans.Add(actor, retained);
+        productionSystem.CopyRecipePlansFrom(source.productionSystem, (actor, started, instruction, plan) =>
+            agents.TryGetValue(actor, out var person) && person.Project is { Stage: not ("completed" or "cancelled") } project &&
+            project.StartedTick == started && project.CandidateId == plan.CandidateId &&
+            instruction == RecipeProjectInstructionId(actor, plan.Recipe.CanonicalId));
     }
 
     private RecipeProjectActionPlan PlanRecipeProject(string actor, RecipeDefinition recipe, PlacedBuilding workstation)
@@ -91,9 +87,8 @@ public sealed partial class WorldRuntime
     }
 
     private RecipeProjectActionPlan? RetainedRecipeProject(string actor, AgentProject project) =>
-        recipeProjectPlans.TryGetValue(actor, out var retained) && retained.StartedTick == project.StartedTick && retained.Plan.CandidateId == project.CandidateId &&
-        retained.InstructionId == RecipeProjectInstructionId(actor, retained.Plan.Recipe.CanonicalId)
-            ? retained.Plan : null;
+        productionSystem.RecipePlan(actor, project, TownConstructionCandidateIds.TryParse(project.CandidateId, out var choice)
+            ? RecipeProjectInstructionId(actor, choice.DefinitionId) : null);
 
     private string? RecipeProjectInstructionId(string actor, string recipeId) =>
         PendingInstructionFor(actor) is { Task.Action: "produce_item" } instruction && instruction.Task.TargetRecipeId == recipeId

@@ -210,12 +210,12 @@ public sealed partial class WorldRuntime
 
     private void SetBuildingEntrance(string instanceId, GridPoint entrance)
     {
-        worldSimulation = worldSimulation with
+        constructionState = WorldConstructionState.From(worldSimulation with
         {
             Buildings = worldSimulation.Buildings
                 .Select(item => item.InstanceId == instanceId ? item with { Entrance = entrance } : item)
                 .ToArray(),
-        };
+        });
     }
 
 

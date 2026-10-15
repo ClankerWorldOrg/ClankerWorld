@@ -438,11 +438,11 @@ public sealed partial class WorldRuntime
             building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, reservations,
             DefinitionId: building.DefinitionId)
         { OrderInstructionId = orderInstruction?.InstructionId };
-        worldSimulation = worldSimulation with
+        constructionState = WorldConstructionState.From(worldSimulation with
         {
             BuildingExpansions = (worldSimulation.BuildingExpansions ?? []).Append(job).OrderBy(item => item.JobId, StringComparer.Ordinal).ToArray(),
             NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
-        };
+        });
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
         AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
         return new ProductionStartResult(true, jobId, buildingId, null);
@@ -479,16 +479,16 @@ public sealed partial class WorldRuntime
             if (failure is null)
             {
                 var expanded = building! with { Position = job.TargetPosition, Footprint = job.TargetFootprint };
-                worldSimulation = worldSimulation with { Buildings = worldSimulation.Buildings.Select(item => item.InstanceId == expanded.InstanceId ? expanded : item).ToArray() };
+                constructionState = WorldConstructionState.From(worldSimulation with { Buildings = worldSimulation.Buildings.Select(item => item.InstanceId == expanded.InstanceId ? expanded : item).ToArray() });
                 if (towns.SingleOrDefault(item => item.Id == expanded.TownId) is { } town)
                     SetTown(town with { BorderTiles = TownBorderRules.Expand(map, town, ExpansionTiles(job)) });
                 CreditCompletedWork(job.WorkerId, "building");
             }
-            worldSimulation = worldSimulation with
+            constructionState = WorldConstructionState.From(worldSimulation with
             {
                 BuildingExpansions = (worldSimulation.BuildingExpansions ?? []).Select(item => item.JobId == job.JobId
                     ? item with { State = failure is null ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled, Failure = failure } : item).ToArray(),
-            };
+            });
             if (failure is null) CreditExpansionOrderJob(job);
             AppendEvent(failure is null ? "building_expanded" : "building_expansion_cancelled",
                 $"{job.BuildingInstanceId}:{job.JobId}" + (failure is null ? "" : $":{failure}"));

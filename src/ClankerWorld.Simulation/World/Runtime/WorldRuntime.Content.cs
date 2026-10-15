@@ -298,7 +298,7 @@ public sealed partial class WorldRuntime
                 WorldTick,
                 assignedTownId,
                 householdId);
-            worldSimulation = new WorldContentSimulationState(
+            constructionState = WorldConstructionState.From(new WorldContentSimulationState(
                 worldSimulation.Buildings
                     .Append(placed)
                     .OrderBy(item => item.InstanceId, StringComparer.Ordinal)
@@ -306,7 +306,7 @@ public sealed partial class WorldRuntime
                 worldSimulation.ProductionJobs,
                 worldSimulation.NextProductionJobSequence,
                 worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
+                worldSimulation.ConstructionReceipts));
             if (assignedTownId is not null)
                 AssignBuildingToTown(placed, definition);
             AppendEvent(eventKind, $"{placed.InstanceId}:{placed.DefinitionId}:{position.X},{position.Y}" +
@@ -457,12 +457,7 @@ public sealed partial class WorldRuntime
                 WorldProductionJobState.Running,
                 reservationIds.ToArray(), knife?.ToolLotId, ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
             { OwnerId = productionOwner, OrderInstructionId = orderInstructionId };
-            worldSimulation = new WorldContentSimulationState(
-                worldSimulation.Buildings,
-                worldSimulation.ProductionJobs.Append(job).OrderBy(item => item.JobId, StringComparer.Ordinal).ToArray(),
-                checked(worldSimulation.NextProductionJobSequence + 1),
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
+            productionSystem.StartJob(job);
             BindToolMakingJob(job);
             if (knife is not null)
                 checkpointSchemaVersion = StateSchemaVersion;
@@ -515,7 +510,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
             var record = contentRegistry.Rollback(packageId, WorldTick, reason);
             worldContent = remainingContent;
-            worldSimulation = remainingSimulation;
+            constructionState = WorldConstructionState.From(remainingSimulation);
             if (survivalState is not null)
             {
                 survivalState = survivalState with
