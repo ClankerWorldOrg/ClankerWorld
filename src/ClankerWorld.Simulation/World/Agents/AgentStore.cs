@@ -58,6 +58,10 @@ internal sealed partial class AgentStore
 
     internal static void ValidateLocalAgent(AgentState person, string id)
     {
+        if (person.Project is { } project) ProductionSystem.ValidateLocalAgentProject(project);
+        if (person.Equipment is { } equipment) ValidateLocalEquipment(equipment);
+        if (person.Survival is { } survival) ValidateLocalSurvival(survival);
+        if (person.ChildModelSelection is { } selection) CognitionSystem.ValidateChildModelSelection(selection);
         CommunitySystem.ValidateLocalAgentCommunity(person);
         FamilySystem.ValidateLocalAgentFamily(person);
         CognitionSystem.ValidateLocalAgentCognition(person);
