@@ -1,0 +1,1 @@
+- Food exploration, household delivery and illness exposure/recovery use named shared need thresholds with unchanged values. The source guard covers local fullness and warmth comparisons as well as need properties.

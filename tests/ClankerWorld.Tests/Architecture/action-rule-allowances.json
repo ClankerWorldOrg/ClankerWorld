@@ -25,8 +25,7 @@
     "FindUnoccupiedRoute(actor, position, key.Item1, key.Item2)"
   ],
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)",
-    "person.FullnessBasisPoints \u003C 7_000"
+    "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs": [
     "FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange)"
@@ -47,8 +46,7 @@
     "FindUnoccupiedRoute(actor, person.Position, house.Position, 1)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeliveryOrders.cs": [
-    "FindUnoccupiedRoute(actor, from, destination, range)",
-    "person.FullnessBasisPoints \u003C 6_000"
+    "FindUnoccupiedRoute(actor, from, destination, range)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs": [
     "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
@@ -73,9 +71,7 @@
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
-    "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)",
-    "person.FullnessBasisPoints \u003C 500",
-    "person.FullnessBasisPoints \u003E 3_500"
+    "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Swimming.cs": [
     "FindUnoccupiedRoute(actor, origin, destination, destinationRange, additionalCarriedUnits: 1)",

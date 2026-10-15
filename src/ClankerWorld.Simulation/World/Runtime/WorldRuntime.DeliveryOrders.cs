@@ -40,7 +40,7 @@ public sealed partial class WorldRuntime
         if (HouseholdFor(actor) is not { } householdId) return null;
         if (order.DeliveryPurpose == "household_food")
         {
-            if (person.FullnessBasisPoints < 6_000 || HouseForHousehold(householdId) is not { } foodHouse ||
+            if (person.FullnessBasisPoints < NeedThresholds.HouseholdFoodDeliveryFullness || HouseForHousehold(householdId) is not { } foodHouse ||
                 !DeliveryDestinationMatches(order, foodHouse) || PersonalSpareFood(actor, order.TargetItemKind, order.DeliveryLotId) is not { } food)
                 return null;
             var quantity = Math.Min(maximumQuantity, Math.Min(DestinationRoom(foodHouse.InstanceId),
