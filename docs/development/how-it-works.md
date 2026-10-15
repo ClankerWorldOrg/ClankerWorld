@@ -499,6 +499,8 @@ that selection after the shared check confirms it remains available. Founding
 records adopted buildings at the actual founding time.
 Public notice reading retains the Town board and recipient and reads its
 current contents, including notices published during native council processing.
+Saving may archive older notices while a read is pending without invalidating
+the selected board.
 Relay retains the exact learned notices and recipient. The shared check confirms
 the selected history remains available; receipt ordering and sources stay the same.
 
