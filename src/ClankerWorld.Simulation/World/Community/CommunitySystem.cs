@@ -42,6 +42,7 @@ internal sealed partial class CommunitySystem(WorldKnowledgeState state)
 
     internal static void ValidateLocalKnowledge(WorldKnowledgeState knowledge)
     {
+        ValidateLocalRecipes(knowledge);
         if (knowledge.Facts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Facts.Count ||
             knowledge.Facts.Select(item => (item.OwnerId, item.Position)).Distinct().Count() != knowledge.Facts.Count ||
             knowledge.Facts.GroupBy(item => item.OwnerId).Any(group => group.Count() > AgentKnowledgeRules.MaximumFactsPerAgent) ||
@@ -52,5 +53,22 @@ internal sealed partial class CommunitySystem(WorldKnowledgeState state)
             knowledge.WritingProjects.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.WritingProjects.Count ||
             knowledge.WritingProjects.Select(item => item.ActorId).Distinct(StringComparer.Ordinal).Count() != knowledge.WritingProjects.Count)
             throw new InvalidDataException("Community knowledge has invalid local identities or bounds.");
+    }
+
+    internal static void ValidateLocalRecipes(WorldKnowledgeState knowledge)
+    {
+        if (knowledge.Recipes.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Recipes.Count ||
+            knowledge.Recipes.Select(item => (item.OwnerId, item.RecipeId)).Distinct().Count() != knowledge.Recipes.Count ||
+            knowledge.Recipes.GroupBy(item => item.OwnerId).Any(group => group.Count() > AgentKnowledgeRules.MaximumRecipesPerAgent))
+            throw new InvalidDataException("Community recipe knowledge has invalid local identities or bounds.");
+    }
+
+    internal static void ValidateLocalAgentCommunity(AgentState person)
+    {
+        if (person.Lesson is { } lesson) ValidateLocalLesson(lesson);
+        if (person.Housing is { } housing) ValidateLocalHousing(housing);
+        if (person.Skills is { } skills) ValidateLocalSkills(person.AgentId, skills);
+        if (person.SocialStanding is { } standing) ValidateLocalStanding(person.AgentId, standing);
+        ValidateProficiency(person);
     }
 }

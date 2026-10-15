@@ -2,9 +2,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActorCapabilityPolicy PersonalGoodsCapabilities(PersonalGoodsMode mode) =>
-        new(ActionLifeStages.Adults, AllowBoat: mode != PersonalGoodsMode.Choice,
-            AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy PersonalGoodsCapabilities(PersonalGoodsMode mode) => CommunitySystem.PersonalGoodsCapabilities(mode);
     private static ActorCapabilityPolicy HouseGuestCapabilities(bool offeredChoice) =>
         new(ActionLifeStages.Adults, AllowBoat: !offeredChoice,
             AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);

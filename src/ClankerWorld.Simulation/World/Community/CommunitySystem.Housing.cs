@@ -128,9 +128,33 @@ internal sealed partial class CommunitySystem
     {
         var empty = housing.Request is null && housing.Refusals is not { Count: > 0 } && housing.Blocker is null &&
             housing.Relocation is null;
+        if (!empty && SystemInvariantChecks.Enabled) ValidateLocalHousing(housing);
         world.PhysicalAgents.RecordHousing(actor, world.PhysicalAgents.Living[actor], empty ? null : housing with { Refusals = housing.Refusals is { Count: > 0 } ? housing.Refusals : null });
         if (!empty)
             world.MarkCurrentSchema();
     }
 
+
+    internal static void ValidateLocalHousing(HousingState housing)
+    {
+        if (housing.Request is null && housing.Refusals is not { Count: > 0 } && housing.Blocker is null && housing.Relocation is null ||
+            housing.Blocker is not null && !HousingBlockers.All.Contains(housing.Blocker, StringComparer.Ordinal) ||
+            housing.Blocker == HousingBlockers.AwaitingAnswer && housing.Request is null ||
+            housing.Refusals is { } refusals && (refusals.Any(item => item is null || string.IsNullOrWhiteSpace(item.HouseholdId) || item.Tick < 0) ||
+                refusals.Select(item => item.HouseholdId).Distinct(StringComparer.Ordinal).Count() != refusals.Count))
+            throw new InvalidDataException("Community housing has invalid local state.");
+        if (housing.Request is { } request)
+        {
+            var answers = request.Approvals is null || request.Rejections is null ? null : request.Approvals.Concat(request.Rejections).ToArray();
+            if (string.IsNullOrWhiteSpace(request.HouseholdId) || request.RequestedTick < 0 ||
+                request.ExpiryTick - request.RequestedTick != HousingRequestTicks || request.Members is null || answers is null ||
+                request.Members.Count == 0 || request.Members.Distinct(StringComparer.Ordinal).Count() != request.Members.Count ||
+                request.Members.Any(string.IsNullOrWhiteSpace) || answers.Distinct(StringComparer.Ordinal).Count() != answers.Length ||
+                answers.Any(id => !request.Members.Contains(id, StringComparer.Ordinal)))
+                throw new InvalidDataException("Community housing request has invalid local state.");
+        }
+        if (housing.Relocation is { } notice && (string.IsNullOrWhiteSpace(notice.HouseholdId) || notice.NoticeTick < 0 ||
+            notice.DeadlineTick <= notice.NoticeTick || !HouseRelocationRules.Reasons.Contains(notice.Reason, StringComparer.Ordinal)))
+            throw new InvalidDataException("Community relocation notice has invalid local state.");
+    }
 }

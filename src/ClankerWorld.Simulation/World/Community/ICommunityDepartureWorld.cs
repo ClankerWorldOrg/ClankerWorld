@@ -9,6 +9,16 @@ internal interface ICommunityDepartureWorld
     SocietyCheckpoint Society { get; }
     long WorldTick { get; }
     GridPoint SharedStoragePosition { get; }
+    GoodsKinds EdibleFoodGoods { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    string HouseholdFor(string actor);
+    bool MayFoundHousehold(string actor);
+    IEnumerable<SocietyHousehold> AskableHouseholds(string actor);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    string SoloHouseholdId(string actor, long tick);
+    string? HousingBlocker(string actor);
+    void CreateHousehold(string household, string name, IReadOnlyList<string> members);
+    bool AcceptReplacementCare(string actor, string child);
     bool IsAdult(string actor);
     bool HasDependentInPrimaryCare(string actor);
     bool HoldsRelocationNotice(string actor);

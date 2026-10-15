@@ -4,6 +4,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class AgentStoreTests
 {
+    private static readonly string[] RestoredInsertionOrder = ["second", "first"];
+
     [Fact]
     public void PreparingCareDoesNotPublishItBeforeTheOriginalCommitPoint()
     {
@@ -31,7 +33,7 @@ public sealed class AgentStoreTests
 
         restored.RecordPosition("first", before, new(3, 1));
 
-        Assert.Equal(new[] { "second", "first" }, restored.Living.Keys);
+        Assert.Equal(RestoredInsertionOrder, restored.Living.Keys);
         Assert.Equal(new GridPoint(1, 1), store.Living["first"].Position);
         Assert.Equal(new GridPoint(3, 1), restored.Living["first"].Position);
     }

@@ -58,6 +58,7 @@ internal sealed partial class AgentStore
 
     internal static void ValidateLocalAgent(AgentState person, string id)
     {
+        CommunitySystem.ValidateLocalAgentCommunity(person);
         if (person.AgentId != id || string.IsNullOrWhiteSpace(id) ||
             person.FullnessBasisPoints is < 0 or > 10_000 || person.MoveWaitTicks < 0 || person.TravelCooldownTicks < 0)
             throw new InvalidDataException("Physical agent state has invalid local values.");

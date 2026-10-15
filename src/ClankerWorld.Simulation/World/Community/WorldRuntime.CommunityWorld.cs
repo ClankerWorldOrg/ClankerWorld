@@ -10,10 +10,58 @@ public sealed partial class WorldRuntime
     private ICommunityLearningWorld CommunityLearningWorld => new CommunityWorldAdapter(this);
     private ICommunitySkillWorld CommunitySkillWorld => new CommunityWorldAdapter(this);
     private ICommunityHousingWorld CommunityHousingWorld => new CommunityWorldAdapter(this);
+    private ICommunityWorkWorld CommunityWorkWorld => new CommunityWorldAdapter(this);
+    private ICommunityGoodsWorld CommunityGoodsWorld => new CommunityWorldAdapter(this);
+    private ICommunityRelocationWorld CommunityRelocationWorld => new CommunityWorldAdapter(this);
     private ICommunityDepartureWorld CommunityDepartureWorld => new CommunityWorldAdapter(this);
 
-    private sealed class CommunityWorldAdapter(WorldRuntime runtime) : ICommunityLearningWorld, ICommunitySkillWorld, ICommunityHousingWorld, ICommunityDepartureWorld
+    private sealed class CommunityWorldAdapter(WorldRuntime runtime) : ICommunityLearningWorld, ICommunitySkillWorld, ICommunityHousingWorld, ICommunityDepartureWorld, ICommunityRelocationWorld, ICommunityGoodsWorld, ICommunityWorkWorld
     {
+        public ICommunityHousingWorld HousingWorld => this;
+        public long RelocationNoticeTicks => runtime.RelocationNoticeTicks;
+        public HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household) => runtime.HouseResidentCapacity(household);
+        public void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => runtime.EndHousingRequest(actor, request, eventKind, remember);
+        public GoodsKinds EdibleFoodGoods => WorldRuntime.EdibleFoodGoods;
+        public bool MayFoundHousehold(string actor) => runtime.MayFoundHousehold(actor);
+        public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
+        public string SoloHouseholdId(string actor, long tick) => WorldRuntime.SoloHouseholdId(actor, tick);
+        public void CreateHousehold(string household, string name, IReadOnlyList<string> members) => runtime.society.Apply(checkpoint => SocietyRules.CreateHousehold(checkpoint, household, name, members));
+        public bool AcceptReplacementCare(string actor, string child) => runtime.society.Apply(checkpoint => SocietyRules.AcceptReplacementCare(checkpoint, actor, child)).CreatedId is not null;
+        public GoodsRequest? PersonalRecoveryRequest(string actor, GoodsUse use, string? kind = null) => runtime.PersonalRecoveryRequest(actor, use, kind);
+        public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
+        public IEnumerable<InventoryLot> PersonalStorageLots(string actor, string house) => runtime.PersonalStorageLots(actor, house);
+        public IEnumerable<InventoryLot> ReturnableBorrowedGoods(string actor) => runtime.ReturnableBorrowedGoods(actor);
+        public IEnumerable<InventoryLot> BorrowedGoods(string actor) => runtime.BorrowedGoods(actor);
+        public int DestinationRoom(string house) => runtime.DestinationRoom(house);
+        public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);
+        public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
+        public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
+        public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
+        public void InterruptOrdinaryFieldWorkForCustody(string actor, string lot) => runtime.InterruptOrdinaryFieldWorkForCustody(actor, lot);
+        public string PersonalMoveId(string actor, long tick, string lot) => WorldRuntime.PersonalMoveId(actor, tick, lot);
+        public void MovePersonalGoods(PersonalGoodsActionPlan plan, string moveId) => runtime.ApplyInventoryTransition(inventory =>
+            plan.Choice.Kind == PersonalGoodsKind.Collect
+                ? InventoryAuthority.Relocate(inventory, moveId, plan.Choice.LotId, plan.OwnerId, plan.Quantity, plan.Actor,
+                    holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor))
+                : InventoryAuthority.Relocate(inventory, moveId, plan.Choice.LotId, plan.OwnerId, plan.Quantity,
+                    storageBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+        public IReadOnlyList<PlacedBuilding> Buildings => runtime.worldSimulation.Buildings;
+        public IReadOnlyList<WorldProductionJob> ProductionJobs => runtime.worldSimulation.ProductionJobs;
+        public IReadOnlyList<BuildingExpansionJob>? Expansions => runtime.worldSimulation.BuildingExpansions;
+        public bool IsActiveProductionOrderJob(string job) => runtime.IsActiveProductionOrderJob(job);
+        public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job) => runtime.CanFitExpansion(building, position, footprint, out _, job);
+        public void SetReservationDeadline(IReadOnlyList<string> ids, long deadline) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, ids, deadline));
+        public void ResumeProduction(string job, long deadline, string? knife, string actor) => runtime.productionSystem.ResumeJob(job, deadline, knife, actor);
+        public void ResumeExpansion(string job, long deadline, string actor) => runtime.constructionSystem.Buildings.ResumeExpansion(job, deadline, actor);
+        public void ReleaseUnavailablePausedInputs(IReadOnlyList<string> ids) => runtime.ApplyInventoryTransition(inventory =>
+        {
+            foreach (var id in ids)
+                if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
+                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, "paused_work_materials_unavailable");
+            return inventory;
+        });
+        public void CancelProduction(IReadOnlySet<string> ids) => runtime.productionSystem.CancelJobs(ids);
+        public void CancelPausedExpansions(IReadOnlySet<string> ids, string reason) => runtime.constructionSystem.Buildings.CancelPausedExpansions(ids, reason);
         public AgentStore PhysicalAgents => runtime.agentStore;
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public DeclarativeWorldContentState Content => runtime.worldContent;
@@ -41,6 +89,7 @@ public sealed partial class WorldRuntime
         public bool DepartHousehold(string actor, string cause) => runtime.DepartHousehold(actor, cause);
         public IReadOnlyList<string> MovingCareGroup(string actor) => runtime.MovingCareGroup(actor);
         public void JoinHouseholdCareGroup(string actor, string household) => runtime.society.Apply(checkpoint => SocietyRules.JoinHouseholdCareGroup(checkpoint, actor, household));
+        public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public bool HasSkill(string actor, SkillKind skill) => runtime.HasSkill(actor, skill);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);

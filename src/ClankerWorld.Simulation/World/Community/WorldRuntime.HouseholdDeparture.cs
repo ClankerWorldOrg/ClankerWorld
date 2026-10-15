@@ -85,48 +85,18 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
-    {
-        var household = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (household is null) yield break;
-        foreach (var job in worldSimulation.ProductionJobs.Where(job => job.State == WorldProductionJobState.Paused &&
-                     !IsActiveProductionOrderJob(job.JobId) &&
-                     worldSimulation.Buildings.Any(building => building.InstanceId == job.BuildingInstanceId && building.HouseholdId == household)))
-            yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
-        foreach (var job in (worldSimulation.BuildingExpansions ?? []).Where(job => job.State == WorldProductionJobState.Paused &&
-                     job.OrderInstructionId is null && job.OwnerId == household))
-            yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
-    }
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor) =>
+        CommunitySystem.PausedHouseholdWork(CommunityWorkWorld, actor);
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds)
-    {
-        var building = worldSimulation.Buildings.Single(item => item.InstanceId == buildingId);
-        var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
-        return reservationIds.All(id =>
-        {
-            var reservation = society.Checkpoint.Inventory.GetReservation(id);
-            var lot = society.Checkpoint.Inventory.GetLot(reservation.LotId);
-            return reservation.State == InventoryReservationState.Reserved && lot.Quantity >= reservation.Quantity &&
-                lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0 &&
-                (lot.OwnerId == building.HouseholdId || lot.OwnerId == actor) &&
-                (lot.StorageBuildingId == buildingId || lot.GroundPosition == site ||
-                 PersonalEquipmentRules.IsPhysicallyCarried(society.Checkpoint.Inventory, lot, actor));
-        });
-    }
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds) =>
+        CommunitySystem.CanResumeHeldInputs(CommunityWorkWorld, actor, buildingId, reservationIds);
 
     /// <summary>
     /// A knife-assisted recipe resumes only with a knife the resuming member
     /// carries: the departed worker's own knife, or this member's best one.
     /// </summary>
-    private bool TryResumeKnife(string actor, string jobId, out string? knifeId)
-    {
-        knifeId = worldSimulation.ProductionJobs.SingleOrDefault(item => item.JobId == jobId)?.ToolLotId;
-        if (knifeId is null) return true;
-        var inventory = society.Checkpoint.Inventory;
-        if (ToolProgressionRules.PlanWorkForLot(inventory, actor, ToolFamily.Knife, knifeId) is not null) return true;
-        knifeId = ToolProgressionRules.BestUsableTool(inventory, actor, ToolFamily.Knife)?.Id;
-        return knifeId is not null;
-    }
+    private bool TryResumeKnife(string actor, string jobId, out string? knifeId) =>
+        CommunitySystem.TryResumeKnife(CommunityWorkWorld, actor, jobId, out knifeId);
 
     private void ResumePausedHouseholdWork(string actor, string jobId, HouseholdResumeActionPlan? originalPlan = null)
     {
@@ -134,54 +104,11 @@ public sealed partial class WorldRuntime
         if (plan is not null) ApplyHouseholdResumePlan(plan);
     }
 
-    private void CompleteHouseholdResume(HouseholdResumeActionPlan plan)
-    {
-        var actor = plan.Actor;
-        var building = plan.Building;
-        if (agents[actor].Position != building.Position)
-        {
-            MoveToward(actor, agents[actor], building.Position, "resume_household_work");
-            return;
-        }
-        var expansion = (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(item => item.JobId == plan.Choice.JobId);
-        if (expansion is not null && !CanFitExpansion(building, expansion.TargetPosition, expansion.TargetFootprint, out _, expansion.JobId)) return;
-        var deadline = checked(WorldTick + Math.Max(1, plan.CompletionTick - plan.PausedAtTick));
-        ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, plan.ReservationIds, deadline));
-        productionSystem.ResumeJob(plan.Choice.JobId, deadline, plan.KnifeId, actor);
-        constructionSystem.Buildings.ResumeExpansion(plan.Choice.JobId, deadline, actor);
-        AppendEvent("household_work_resumed", $"{actor}|{plan.Choice.JobId}|{building.HouseholdId}");
-    }
+    private void CompleteHouseholdResume(HouseholdResumeActionPlan plan) =>
+        CommunitySystem.CompleteHouseholdResume(CommunityWorkWorld, plan);
 
-    private void ReconcilePausedHouseholdWork()
-    {
-        bool Available(IReadOnlyList<string> ids) => ids.All(id =>
-        {
-            var reservation = society.Checkpoint.Inventory.Reservations.SingleOrDefault(item => item.Id == id);
-            var lot = reservation is null ? null : society.Checkpoint.Inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);
-            return reservation is { State: InventoryReservationState.Reserved } && lot is { ConditionBasisPoints: > 0, FreshnessBasisPoints: > 0 } &&
-                reservation.OwnerId == lot.OwnerId && lot.Quantity >= reservation.Quantity;
-        });
-        var cancelledProduction = worldSimulation.ProductionJobs.Where(job => job.State == WorldProductionJobState.Paused &&
-            !Available(job.InputReservationIds)).ToArray();
-        var cancelledExpansions = (worldSimulation.BuildingExpansions ?? []).Where(job => job.State == WorldProductionJobState.Paused &&
-            (!Available(job.InputReservationIds) || job.InputReservationIds.Any(id =>
-                society.Checkpoint.Inventory.Reservations.SingleOrDefault(item => item.Id == id) is { } reservation &&
-                reservation.OwnerId != job.OwnerId && reservation.OwnerId != job.WorkerId))).ToArray();
-        foreach (var ids in cancelledProduction.Select(job => job.InputReservationIds).Concat(cancelledExpansions.Select(job => job.InputReservationIds)))
-            ApplyInventoryTransition(inventory =>
-            {
-                foreach (var id in ids)
-                    if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, "paused_work_materials_unavailable");
-                return inventory;
-            });
-        var productionIds = cancelledProduction.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
-        var expansionIds = cancelledExpansions.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
-        productionSystem.CancelJobs(productionIds);
-        constructionSystem.Buildings.CancelPausedExpansions(expansionIds, "Paused expansion materials are no longer available.");
-        foreach (var job in cancelledProduction) AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
-        foreach (var job in cancelledExpansions) AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:Paused expansion materials are no longer available.");
-    }
+    private void ReconcilePausedHouseholdWork() =>
+        CommunitySystem.ReconcilePausedHouseholdWork(CommunityWorkWorld);
 
     /// <summary>Maps, field records and books are the belongings the built-in chooser stores at home and leaves there.</summary>
     private static bool KeptAtHomeByRoutine(string itemKind) => AgentKnowledgeRules.IsArtifactKind(itemKind);
@@ -311,23 +238,11 @@ public sealed partial class WorldRuntime
                     !heldByOthers.Contains(tile)));
     }
 
-    private void CompleteDepartureAction(DepartureActionPlan plan)
-    {
-        if (plan.HouseholdId is not null && !DepartHousehold(plan.Actor, plan.Cause, plan)) return;
-        if (plan.Choice.Kind != DepartureChoiceKind.Found) return;
-        var householdId = SoloHouseholdId(plan.Actor, WorldTick);
-        society.Apply(checkpoint => SocietyRules.CreateHousehold(checkpoint, householdId,
-            society.Checkpoint.GetAgent(plan.Actor).Name + "'s household", plan.CareGroup));
-        foreach (var id in plan.CareGroup)
-            agentStore.FinishHouseholdDeparture(id, agents[id], new(Blocker: HousingBlocker(id)), null);
-        AppendEvent("household_founded", $"{plan.Actor}|{householdId}");
-    }
+    private void CompleteDepartureAction(DepartureActionPlan plan) =>
+        CommunitySystem.CompleteDepartureAction(CommunityDepartureWorld, plan);
 
-    private void CompleteReplacementCare(ReplacementCareActionPlan plan)
-    {
-        var result = society.Apply(checkpoint => SocietyRules.AcceptReplacementCare(checkpoint, plan.Actor, plan.Choice.ChildId));
-        if (result.CreatedId is not null) AppendEvent("replacement_care_accepted", $"{plan.Actor}|{plan.Choice.ChildId}");
-    }
+    private void CompleteReplacementCare(ReplacementCareActionPlan plan) =>
+        CommunitySystem.CompleteReplacementCare(CommunityDepartureWorld, plan);
 
     private void ApplyDepartureCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {

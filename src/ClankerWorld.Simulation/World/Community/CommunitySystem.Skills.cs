@@ -46,11 +46,9 @@ internal sealed partial class CommunitySystem
         HashSet<string> known)
     {
         if (person.Skills is not { } skills) return;
-        if (schema < SkillsSchemaVersion || skills.Count > Enum.GetValues<SkillKind>().Length ||
-            skills.Any(item => item is null) ||
-            skills.Select(item => item.Kind).Distinct().Count() != skills.Count ||
-            skills.Any(item => !Enum.IsDefined(item.Kind) || item.LearnedTick < 0 || item.LearnedTick > latestTick ||
-                item.TeacherId is { } teacher && (teacher == person.AgentId || !known.Contains(teacher))))
+        ValidateLocalSkills(person.AgentId, skills);
+        if (schema < SkillsSchemaVersion || skills.Any(item => item.LearnedTick > latestTick ||
+            item.TeacherId is { } teacher && !known.Contains(teacher)))
             throw new InvalidDataException("The saved skills are invalid.");
     }
     internal static int ProjectPracticeBonus(DeclarativeWorldContentState content, AgentState person, AgentProject project)
@@ -93,5 +91,13 @@ internal sealed partial class CommunitySystem
         if (person.Proficiency is { } practice &&
             (practice.Building is < 0 or > 30 || practice.Farming is < 0 or > 30 || practice.Crafting is < 0 or > 30))
             throw new InvalidDataException("Work proficiency exceeds its experience bounds.");
+    }
+
+    internal static void ValidateLocalSkills(string actor, IReadOnlyList<LearnedSkill> skills)
+    {
+        if (skills.Count > Enum.GetValues<SkillKind>().Length || skills.Any(item => item is null) ||
+            skills.Select(item => item.Kind).Distinct().Count() != skills.Count ||
+            skills.Any(item => !Enum.IsDefined(item.Kind) || item.LearnedTick < 0 || item.TeacherId == actor))
+            throw new InvalidDataException("Community skills have invalid local state.");
     }
 }

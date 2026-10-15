@@ -281,13 +281,9 @@ public sealed partial class WorldRuntime
                 continue;
             if (schemaVersion < HousingSchemaVersion)
                 throw new InvalidDataException($"Housing requests require world schema {HousingSchemaVersion}.");
-            if (housing.Request is null && housing.Refusals is not { Count: > 0 } && housing.Blocker is null &&
-                housing.Relocation is null ||
-                housing.Blocker is not null && !HousingBlockers.All.Contains(housing.Blocker, StringComparer.Ordinal) ||
-                housing.Refusals is { } refusals && (refusals.Any(refusal => refusal is null ||
-                    !households.Contains(refusal.HouseholdId) || refusal.Tick < 0 || refusal.Tick > society.WorldTick) ||
-                    refusals.Select(refusal => refusal.HouseholdId).Distinct(StringComparer.Ordinal).Count() != refusals.Count))
-                throw new InvalidDataException("The saved housing state is invalid.");
+            CommunitySystem.ValidateLocalHousing(housing);
+            if (housing.Refusals?.Any(refusal => !households.Contains(refusal.HouseholdId) || refusal.Tick > society.WorldTick) == true)
+                throw new InvalidDataException("The saved housing refusal refers to an unknown household or future tick.");
             if (housing.Relocation is { } notice)
                 ValidateRelocation(person, notice, people, society, schemaVersion);
             var hasAdultAdmissionState = housing.Request is not null || housing.Refusals is { Count: > 0 };
@@ -299,17 +295,11 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("Saved household admission state is only valid for an adult applicant.");
             if (housing.Request is not { } request)
                 continue;
-            var answers = request.Approvals is null || request.Rejections is null ? null : request.Approvals.Concat(request.Rejections).ToArray();
-            // A member asks only while holding a move-out notice from their current House.
+            // Membership and identity links remain save checks.
             if (!people.TryGetValue(person.AgentId, out var applicant) || applicant.HouseholdId == request.HouseholdId ||
                 applicant.HouseholdId is not null && housing.Relocation?.HouseholdId != applicant.HouseholdId ||
-                !households.Contains(request.HouseholdId) || request.RequestedTick < 0 || request.RequestedTick > society.WorldTick ||
-                request.ExpiryTick - request.RequestedTick != HousingRequestTicks ||
-                request.Members is null || answers is null || request.Members.Count == 0 ||
-                request.Members.Distinct(StringComparer.Ordinal).Count() != request.Members.Count ||
-                request.Members.Any(id => string.IsNullOrWhiteSpace(id) || !people.ContainsKey(id) || id == person.AgentId) ||
-                answers.Distinct(StringComparer.Ordinal).Count() != answers.Length ||
-                answers.Any(id => !request.Members.Contains(id, StringComparer.Ordinal)))
+                !households.Contains(request.HouseholdId) || request.RequestedTick > society.WorldTick ||
+                request.Members.Any(id => !people.ContainsKey(id) || id == person.AgentId))
                 throw new InvalidDataException("The saved housing request is invalid.");
         }
     }
