@@ -109,15 +109,11 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private bool CanReachDependent(string actor, AgentState parent, AgentState child) =>
-        IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange) ||
-        Reach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private int CaregiverFoodCarryRequirement(string actor, AgentState parent)
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor) || NeedsUrgentFood(parent) ||
             PreferredFood(actor, actor).Any() ||
-            !ChildrenNeedingCare(actor).Any(child => child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && CanReachDependent(actor, parent, child)))
+            !ChildrenNeedingCare(actor).Any(child => child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && CanReach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable)))
             return 0;
         return MinimumFoodPickupCarryUnits(actor, parent.Position, forDependent: true);
     }
@@ -134,7 +130,7 @@ public sealed partial class WorldRuntime
             var parent = agents[actor];
             if (child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && !PreferredFood(actor, actor).Any())
             {
-                if (NeedsUrgentFood(parent) || !CanReachDependent(actor, parent, child))
+                if (NeedsUrgentFood(parent) || !CanReach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
                     continue;
                 var required = MinimumFoodPickupCarryUnits(actor, parent.Position, forDependent: true);
                 if (required == 0)
