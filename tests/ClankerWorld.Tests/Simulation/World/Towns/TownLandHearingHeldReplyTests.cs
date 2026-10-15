@@ -122,12 +122,12 @@ public sealed class TownLandHearingHeldReplyTests
         finally { provider.Release(); }
     }
 
-    private static async Task WaitForModelCompletionAsync(WorldRuntime world)
+    internal static async Task WaitForModelCompletionAsync(WorldRuntime world, string actor = Actor)
     {
         using var timeout = new CancellationTokenSource(Deadline);
         // The provider's return signal precedes completion of the runtime's wrapping task.
         // Poll that completion without advancing simulation time or expiring the hearing.
-        while (!world.ModelDecisionsFinished(Actor)) await Task.Delay(1, timeout.Token);
+        while (!world.ModelDecisionsFinished(actor)) await Task.Delay(1, timeout.Token);
     }
 
     private static WorldRuntime NewWorld(HeldReplyProvider provider)
