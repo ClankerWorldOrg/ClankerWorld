@@ -762,9 +762,9 @@ public sealed class OwnerAuthorityStore
         var states = devices.Values
             .Where(device => string.Equals(device.PublicKeyFingerprint, publicKeyFingerprint, StringComparison.Ordinal))
             .Select(device => device.State)
-            .ToArray();
+            .ToHashSet();
         if (states.Contains(OwnerDeviceState.Active)) return OwnerAuthorityFailure.PublicKeyAlreadyRegistered;
-        return states.Length > 0 && !allowRevoked ? OwnerAuthorityFailure.DeviceRevoked : null;
+        return states.Contains(OwnerDeviceState.Revoked) && !allowRevoked ? OwnerAuthorityFailure.DeviceRevoked : null;
     }
 
     public OwnerAuthorityResult<OwnerChallenge> IssueChallenge(OwnerChallengeIssueRequest request)
