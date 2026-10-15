@@ -39,7 +39,17 @@ internal sealed partial class TownSystem
                 current.Target == selected.Target && current.SubmittedTick == selected.SubmittedTick &&
                 current.AuthorId == selected.AuthorId && current.AuthorId == plan.Actor
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected protected proposal or author has changed");
-        if (current with { Votes = selected.Votes, Voters = selected.Voters, OpeningVoters = selected.OpeningVoters } != selected ||
+        // Personal acceptance progresses this request without changing the terms residents vote on.
+        var extension = current.NonLandExtension;
+        if (extension is { ConsentTick: not null } && selected.NonLandExtension is { ConsentTick: null })
+            extension = extension with { ConsentTick = null };
+        if (current with
+        {
+            Votes = selected.Votes,
+            Voters = selected.Voters,
+            OpeningVoters = selected.OpeningVoters,
+            NonLandExtension = extension
+        } != selected ||
             !current.Voters.SequenceEqual(selected.Voters) || !current.OpeningVoters.SequenceEqual(selected.OpeningVoters))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected protected proposal or voting window has changed");
         var allowed = current.Status == "voting" && world.WorldTick < current.DeadlineTick &&

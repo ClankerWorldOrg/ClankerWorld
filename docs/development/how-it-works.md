@@ -464,8 +464,9 @@ Supported estate defaults retain their law version and share; boat-access
 proposals retain their resolved visitor. Their shared checks run before the
 native Council proposal writer, with visitor caps applied after eligibility.
 Protected government proposals retain their original arrangement or exact
-change, voting window and electorate. Shared checks allow other votes to
-accumulate before the native proposal, withdrawal or final vote writer runs.
+change, voting window and electorate. Shared checks allow other votes and
+personal acceptance of the same added duties to accumulate before the native
+proposal, withdrawal or final vote writer runs.
 Withdrawal follows the same request as its vote opens, preserving the current
 voting progress in the native writer.
 
