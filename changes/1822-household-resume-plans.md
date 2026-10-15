@@ -1,0 +1,1 @@
+- Resuming household work now explains when the selected job, committed inputs or knife changes before it can act.
