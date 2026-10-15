@@ -243,7 +243,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs|id|\u0022town:site:\u0022 \u002B DerivedId.Hash(world.WorldSeed \u002B \u0022|\u0022 \u002B site.X.ToString(CultureInfo.InvariantCulture) \u002B \u0022,\u0022 \u002B site.Y.ToString(CultureInfo.InvariantCulture))": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs|length|buildingOwners.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Community/HouseRelocationRules.cs|length|unit.Key.Length \u003E 0": 1,
-  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_accept_care:\u0022 \u002B child.Id": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_collect:\u0022 \u002B lot.Id": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_return:\u0022 \u002B lot.Id": 2,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_store_personal:\u0022 \u002B lot.Id": 1,

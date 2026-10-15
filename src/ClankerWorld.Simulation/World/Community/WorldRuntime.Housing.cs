@@ -168,6 +168,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyHousingCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is ReplacementCareActionPlan replacement) { ApplyReplacementCarePlan(replacement); return; }
         if (originalPlan is HouseholdResumeActionPlan resume) { ApplyHouseholdResumePlan(resume); return; }
         if (originalPlan is DepartureActionPlan departure) { ApplyDepartureActionPlan(departure); return; }
         if (originalPlan is HousingActionPlan housing) { ApplyHousingActionPlan(housing); return; }

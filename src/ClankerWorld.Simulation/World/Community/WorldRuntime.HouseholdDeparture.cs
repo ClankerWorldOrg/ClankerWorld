@@ -355,12 +355,13 @@ public sealed partial class WorldRuntime
                     KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110));
         }
         foreach (var child in society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
-                     person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
+                     LifeStageRules.IsDependent(person.AgeBand) &&
                      person.HouseholdId is not null && person.HouseholdId == society.Checkpoint.GetAgent(actor).HouseholdId &&
                      person.PrimaryCaregiverId != actor &&
                      // A child with no living caregiver is placed through the guardian search instead.
                      SocietyRules.HasActivePrimaryCaregiver(society.Checkpoint, person.Id)))
-            candidates.Add(new("household_accept_care:" + child.Id, $"Explicitly accept primary care of {child.Name}, so their current caregiver may leave without taking them.", 112));
+            if (PlanReplacementCare(actor, new(child.Id)) is { } replacement && CheckReplacementCarePlan(replacement).Allowed)
+                candidates.Add(new CognitionCandidate(replacement.CandidateId, $"Explicitly accept primary care of {child.Name}, so their current caregiver may leave without taking them.", 112) { ActionPlan = replacement });
     }
 
     /// <summary>
@@ -424,6 +425,12 @@ public sealed partial class WorldRuntime
         AppendEvent(new HouseholdFoundedEventPayload(plan.Actor, householdId));
     }
 
+    private void CompleteReplacementCare(ReplacementCareActionPlan plan)
+    {
+        var result = society.Apply(checkpoint => SocietyRules.AcceptReplacementCare(checkpoint, plan.Actor, plan.Choice.ChildId));
+        if (result.CreatedId is not null) AppendEvent(new ReplacementCareAcceptedEventPayload(plan.Actor, plan.Choice.ChildId));
+    }
+
     private void ApplyDepartureCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
         if (candidate.StartsWith("household_resume_work:", StringComparison.Ordinal))
@@ -437,11 +444,10 @@ public sealed partial class WorldRuntime
             if (plan is not null) ApplyDepartureActionPlan(plan);
             return;
         }
-        if (candidate.StartsWith("household_accept_care:", StringComparison.Ordinal))
+        if (ReplacementCareChoice.Decode(candidate) is { } careChoice)
         {
-            var child = candidate["household_accept_care:".Length..];
-            var result = society.Apply(checkpoint => SocietyRules.AcceptReplacementCare(checkpoint, actor, child));
-            if (result.CreatedId is not null) AppendEvent(new ReplacementCareAcceptedEventPayload(actor, child));
+            var plan = originalPlan as ReplacementCareActionPlan ?? PlanReplacementCare(actor, careChoice);
+            if (plan is not null) ApplyReplacementCarePlan(plan);
             return;
         }
         if (candidate.StartsWith("household_store_personal:", StringComparison.Ordinal))
