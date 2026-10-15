@@ -89,8 +89,9 @@ one and what the label workflows do on their own. Never create a label by hand.
 Add by hand: every label on an issue created without a form; on other new
 issues, its areas, a priority if it is not P2, its release label while release
 labels are in use and any status that applies; `status:needs-pr` only when
-nothing is left to decide; the other statuses when they become true; and `status:parked` when closing agreed work for later. The
-workflows set a pull request's priority, type, areas and `status:needs-review`,
+nothing is left to decide; the other statuses when they become true; and
+`status:parked` when closing agreed work for later. The workflows set a pull
+request's priority, type, areas, release label and `status:needs-review`,
 and move `status:has-pr`, `status:needs-pr` and `status:in-progress` on the
 issues it closes; claim and decision labels, and adding `status:blocked`, stay
 manual. A workflow removes `status:blocked`, and gives an issue nobody holds
@@ -173,6 +174,9 @@ being prepared and the one after it:
 - **Fixers take current-release issues first,** highest priority first, then
   issues with no release label. They never start a next-release issue before
   the current release is published, even when nothing else is ready.
+- **A pull request takes the release of the issues it closes,** and the label
+  workflow sets it. One that closes nothing keeps any release label set on it
+  by hand.
 - **A release label never holds back finished work.** A pull request for a
   next-release issue is still reviewed and merged.
 - **Waiting for a later release is not `status:blocked`.** The next release's
