@@ -358,7 +358,8 @@ them.
   deletes more source lines than it adds.** If it can't, for example because
   it adds a new shared structure that a later step will use to remove the old
   code, its description says why and names the pull request or issue that
-  does the removal.
+  does the removal. Refactors opened before October 16, 2026, including the
+  #1822 and #1826 chain, are exempt from this requirement.
 - **Fill in the [pull request template](.github/pull_request_template.md)** for
   someone who has not read the conversation, with a short title about the
   effect, such as `Show fullness instead of hunger on the agent panel`.
