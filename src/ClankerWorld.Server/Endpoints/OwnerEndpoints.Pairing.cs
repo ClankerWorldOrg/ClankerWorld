@@ -147,8 +147,7 @@ internal static partial class OwnerEndpoints
                 return Results.NotFound();
             }
 
-            var result = authority.RevokeDeviceLocally(deviceId);
-            stateFile.Save(authority);
+            var result = stateFile.RevokeDevice(authority, deviceId);
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);

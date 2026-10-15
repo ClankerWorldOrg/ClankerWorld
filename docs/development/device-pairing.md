@@ -288,7 +288,16 @@ Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
 The retained authoring-batch protocol is disabled on the native server, as described
 above. There are no viewer, operator, or multiplayer roles yet. A revoked
-device immediately loses access. Authority state retains non-secret public-key
+device immediately loses access. The revocation is written to the authority
+file before it takes effect, so a failed write leaves the device active and
+reports an error instead of losing the revocation at the next restart.
+Revoking also cancels any pending or approved pairing for the same key.
+
+One key belongs to at most one active device: approving or activating a second
+pairing for a key that is already active is refused. A revoked key cannot start
+a pairing or have one approved on the public routes. The approval listener on
+the server's own computer can still deliberately start and approve its pairing,
+which gives it a new device ID beside the revoked record. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.
 
