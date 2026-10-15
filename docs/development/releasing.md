@@ -78,13 +78,17 @@ may stop loading, but it is refused with a reason and kept.
 
 ## Release scope and merge day
 
-The owner decides when a release is being prepared and what it needs. A
-release label in [`.github/labels.json`](../../.github/labels.json) marks its
-issues ([Release scope](../../CONTRIBUTING.md#release-scope)); `release:alpha-1`
-marks those for `v0.1.0-alpha.1`, the first playtest release.
+The owner decides when a release is being prepared and what it needs. When
+more is open than one release can take, release labels in
+[`.github/labels.json`](../../.github/labels.json) split the open issues
+([Release scope](../../CONTRIBUTING.md#release-scope)): `release:alpha-1`
+marks those for `v0.1.0-alpha.1`, the first playtest release, and
+`release:alpha-2` those that wait for `v0.1.0-alpha.2`.
 
-1. Fixers take labelled issues first. Only new P0 or P1 bugs and work the
-   owner adds join the release; everything else waits for the next one.
+1. Fixers take current-release issues first, then issues with no release
+   label, and never start a next-release issue before the current release is
+   published. Only new P0 or P1 bugs and work the owner adds join the current
+   release; every other new issue gets the next release's label.
 2. A merge day is a day the owner spends getting the repository as clean as
    possible before a playtest, and they say so in chat. Fixers finish the
    open issues and reviewers merge what is ready, until nothing is left open.
@@ -92,8 +96,11 @@ marks those for `v0.1.0-alpha.1`, the first playtest release.
    the code, goes in last.
 3. The session the owner asks to prepare the release follows the
    [release gate](#release-gate) below.
-4. After publishing, move the label to `retired` in `labels.json`, and add the
-   next release's label when the owner names it.
+4. After publishing, move the release's label to `retired` in `labels.json`.
+   The next release's label becomes the current one: update the label names in
+   CONTRIBUTING's [Release scope](../../CONTRIBUTING.md#release-scope), the
+   fix-issue and find-bugs skills and this page. Add a new next label only when
+   the owner names that release.
 
 ## Release gate
 
