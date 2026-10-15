@@ -203,6 +203,28 @@ public sealed class GoodsQueryTests
         Assert.Equal(answer.CoveredTotal, reloaded.CoveredTotal);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MedicalDoseRefusesAHouseholdActorWithoutChangingState(bool stored)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("medical-dose-household-actor", _ => new Idle());
+        var state = generated.ExportState();
+        const string household = "household:first";
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            "query-medical-dose", "medicine", household, 1,
+            storageBuildingId: stored ? "first-town-house-a" : null);
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        using var world = WorldRuntime.Restore(state, _ => new Idle());
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        var request = new GoodsRequest(GoodsUse.MedicalDose, household, GoodsOwners.One(household), GoodsKinds.One("medicine"), Explain: true);
+        var answer = world.FindGoods(request);
+        Assert.Empty(answer.Matches);
+        Assert.Contains(("query-medical-dose", GoodsReason.Custody), answer.Excluded);
+        Assert.Null(world.RecheckGoods(request, "query-medical-dose"));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+    }
+
     private static (string Id, int Quantity)[] PlainScan(InventoryCheckpoint inventory, GoodsUse use, string? building) =>
         inventory.Lots.Where(lot => building is null || lot.StorageBuildingId == building)
             .Where(lot => lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0 &&

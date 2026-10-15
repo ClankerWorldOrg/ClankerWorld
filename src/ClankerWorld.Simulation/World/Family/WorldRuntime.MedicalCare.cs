@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
 {
     private const string MedicalAllowPrefix = MedicalConsentChoice.AllowPrefix;
     private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
-    private const string MedicalTreatPrefix = "medical_treat:";
+    private const string MedicalTreatPrefix = MedicalTreatmentChoice.Prefix;
     private const string MedicalCollectPrefix = "medical_collect:";
 
     private bool LivingMedicalAdult(string actor) => IsAdult(actor) &&
@@ -74,18 +74,7 @@ public sealed partial class WorldRuntime
         AppendEvent(allowed ? new MedicalCareAllowedEventPayload(patient, caregiver) : new MedicalCareRevokedEventPayload(patient, caregiver));
     }
 
-    private InventoryLot? MedicalSupplyAtHand(string caregiver) => society.Checkpoint.Inventory.Lots
-        .Where(lot => lot.ItemKind == "medicine" && lot.ContainerLotId is null && lot.GroundPosition is null &&
-            lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
-            // Borrowed or in-transit goods are only carried, not owned, so they are never a caregiver's dose.
-            (lot.OwnerId == caregiver && PersonalEquipmentRules.IsCarried(lot, caregiver) ||
-             lot.OwnerId == HouseholdFor(caregiver) && lot.StorageBuildingId is { } buildingId &&
-             worldSimulation.Buildings.Any(building => building.InstanceId == buildingId &&
-                 building.HouseholdId == lot.OwnerId) &&
-             IsWithinInteractionRange(agents[caregiver].Position, HouseholdStockPosition(lot),
-                 HouseholdStockInteractionRange(lot))))
-        .OrderBy(lot => lot.OwnerId == caregiver ? 0 : 1)
-        .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
+    private InventoryLot? MedicalSupplyAtHand(string caregiver) => MedicalDoseStock(caregiver).FirstOrDefault()?.Lot;
 
     public MedicalCareResult TreatPatient(string caregiver, string patient, string kind)
     {
@@ -97,15 +86,18 @@ public sealed partial class WorldRuntime
     private MedicalCareResult TreatPatientCore(string caregiver, string patient, string kind)
     {
         if (kind != "medicine") return new(false, "Injury treatment is not available yet; medicine supports illness recovery.");
-        if (!LivingMedicalAdult(caregiver) || !CanObserveMedicalPatient(caregiver, patient) ||
-            society.Checkpoint.GetAgent(patient).Status != SocietyAgentStatus.Active ||
-            !HasMedicalPermission(caregiver, patient))
-            return new(false, "Provide care to yourself or an accepted patient beside you.");
+        var target = CheckMedicalTreatmentTarget(caregiver, patient, 1);
+        if (target.Refusal is { } refusal) return new(false, refusal.Explanation);
+        var plan = PlanMedicalTreatment(caregiver, new(patient, kind), 1, allowBoat: true);
+        if (plan is null) return new(false, MedicalSupplyFailure);
+        var check = CheckMedicalTreatmentPlan(plan);
+        if (check.Refusal is { } unavailable) return new(false, unavailable.Explanation);
+        return CompleteMedicalTreatment(caregiver, patient, kind, society.Checkpoint.Inventory.GetLot(plan.StockId));
+    }
+
+    private MedicalCareResult CompleteMedicalTreatment(string caregiver, string patient, string kind, InventoryLot supply)
+    {
         var person = agents[patient];
-        if (person.MedicalTreatment is not null) return new(false, "A consumed dose is already being applied gradually.");
-        if ((person.Survival?.IllnessBasisPoints ?? 0) == 0) return new(false, "This patient does not need medicine.");
-        if (MedicalSupplyAtHand(caregiver) is not { } supply)
-            return new(false, "Bring usable, unreserved medicine; another household's stock requires an agreed purchase.");
         var id = MedicalDoseId(WorldTick, nextEventId, caregiver, patient);
         ApplyInventoryTransition(inventory => InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
@@ -176,7 +168,7 @@ public sealed partial class WorldRuntime
     private IEnumerable<string> ObservableMedicalNeeds(string caregiver) => agents.Values
         .Where(person => CanObserveMedicalPatient(caregiver, person.AgentId) &&
             HasMedicalPermission(caregiver, person.AgentId) && person.MedicalTreatment is null &&
-            (person.Survival?.IllnessBasisPoints ?? 0) >= 2_500)
+            (person.Survival?.IllnessBasisPoints ?? 0) >= NeedThresholds.MedicalCareIllness)
         .OrderBy(person => person.AgentId == caregiver ? 0 : 1)
         .ThenBy(person => person.AgentId, StringComparer.Ordinal).Select(person => person.AgentId);
 
@@ -206,14 +198,11 @@ public sealed partial class WorldRuntime
     {
         if (!LivingMedicalAdult(actor)) return;
         AddMedicalConsentCandidates(candidates, actor, allow: false);
-        var supply = MedicalSupplyAtHand(actor);
         foreach (var patient in ObservableMedicalNeeds(actor))
-        {
-            if (supply is not null)
-                candidates.Add(new(MedicalTreatPrefix + patient + ":medicine",
-                    "Apply one dose of medicine to support gradual illness recovery.", 7, patient,
-                    society.Checkpoint.GetAgent(patient).Name));
-        }
+            if (PlanMedicalTreatment(actor, new(patient)) is { } plan && CheckMedicalTreatmentPlan(plan).Allowed)
+                candidates.Add(new(plan.CandidateId, "Apply one dose of medicine to support gradual illness recovery.", 7,
+                    patient, society.Checkpoint.GetAgent(patient).Name)
+                { ActionPlan = plan });
         var trip = AuthorizedMedicalSupplyTrip(actor);
         var destination = trip?.LastSeenPosition;
         if (destination is null && ObservableMedicalNeeds(actor).FirstOrDefault() is { } observedPatient)
@@ -228,8 +217,9 @@ public sealed partial class WorldRuntime
         AddMedicalConsentCandidates(candidates, actor, allow: true);
     }
 
-    private void ApplyMedicalCandidate(string actor, AgentState person, string candidate)
+    private void ApplyMedicalCandidate(string actor, AgentState person, string candidate, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is MedicalTreatmentActionPlan treatment) { ApplyMedicalTreatmentPlan(treatment); return; }
         if (!LivingMedicalAdult(actor)) return;
         if (candidate == MedicalCollectPrefix + "medicine")
         {
@@ -249,10 +239,8 @@ public sealed partial class WorldRuntime
             CollectEquipment(actor, agents[actor], "medicine", trip.LastSeenPosition, ResourceInteractionRange);
             return;
         }
-        if (!candidate.StartsWith(MedicalTreatPrefix, StringComparison.Ordinal)) return;
-        var separator = candidate.LastIndexOf(':');
-        if (separator <= MedicalTreatPrefix.Length) return;
-        _ = TreatPatientCore(actor, candidate[MedicalTreatPrefix.Length..separator], candidate[(separator + 1)..]);
+        if (MedicalTreatmentChoice.Decode(candidate) is { } choice && PlanMedicalTreatment(actor, choice) is { } plan)
+            ApplyMedicalTreatmentPlan(plan);
     }
 
     public string? MedicalCareNote(string actor)
