@@ -178,11 +178,9 @@ public sealed partial class WorldRuntime
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
             if (offer is null || !offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
                 offer.Id != ShopTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
-                trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
-                !BoundedShopText(trade.BuildingInstanceId, 256) ||
+                trade.ProposedTick > worldTick ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||
                 !societyState.Agents.Any(person => person.Id == trade.BuyerId) ||
-                !ShopItemKind(trade.GoodsKind) || !ShopItemKind(trade.PaymentKind) ||
                 trade.Position.X < 0 || trade.Position.X >= map.Width || trade.Position.Y < 0 || trade.Position.Y >= map.Height ||
                 inventory.Lots.Any(lot => lot.Id == offer.FirstLotId && lot.ItemKind != trade.GoodsKind) ||
                 inventory.Lots.Any(lot => lot.Id == offer.SecondLotId && lot.ItemKind != trade.PaymentKind) ||
@@ -206,9 +204,7 @@ public sealed partial class WorldRuntime
     }
 
     // Content quantities and inventory resource kinds have no separate trade-record length limit.
-    private static bool ShopItemKind(string? text) => text is { Length: > 0 } &&
-        text == text.Trim() && !text.Any(char.IsControl);
+    private static bool ShopItemKind(string? text) => MarketSystem.ResourceKind(text);
 
-    internal static bool BoundedShopText(string? text, int limit) => text is { Length: > 0 } &&
-        text.Length <= limit && text == text.Trim() && !text.Any(char.IsControl);
+    internal static bool BoundedShopText(string? text, int limit) => MarketSystem.Bounded(text, limit);
 }
