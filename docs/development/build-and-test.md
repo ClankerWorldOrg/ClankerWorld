@@ -232,7 +232,11 @@ Each batch the merge queue tests on top of main runs everything. The queue then
 moves main to the very commit it tested. The push to main reuses the latest
 queue run's completed, successful required checks on that exact commit, even
 while the workflow finishes its nonblocking work, and runs nothing more.
-Main's green runs on this page are the queue's. Without those required results,
+Main's green runs on this page are successful queue runs whose exact commits
+are ancestors of main (or main itself). The timing downloader pins main once
+and pages past unmerged successes, including retries after a queue removal,
+until it has the requested number of runs or exhausts the history. Missing
+artifacts are left out, so fewer samples or the fixed split may be used. Without those required results,
 or if they cannot be read, the push runs everything. When a pull request in the queue
 fails, the queue rebuilds the ones behind it, and each rebuilt run cancels its
 pull request's older queue runs. A newer push to a pull request cancels its
