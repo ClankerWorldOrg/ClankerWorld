@@ -509,6 +509,8 @@ Knowledge writing and copying retain the selected contents, source and exact
 material pickup or carried input lots. One check validates that same selection
 before native reservation; continuation retains the original project and claims
 while work progresses. Copy timestamps refresh on the retained content only.
+Original writing requires its selected fact versions to remain recorded, including
+valid earlier accounts; an unavailable version requires a fresh choice.
 Shared-food policy proposals and votes retain the original steward, policy
 and ballot scope. One check validates the same personal authority and response;
 other votes accumulate while native expiry and living-majority resolution run.
