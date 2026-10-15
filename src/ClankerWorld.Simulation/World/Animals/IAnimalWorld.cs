@@ -20,6 +20,7 @@ internal interface IAnimalWorld
     void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     GoodsAnswer FindGoods(GoodsRequest request);
+    IReadOnlyList<GoodsMatch> DismountCargo(string actor);
     List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);
     int FreeCarryCapacity(string actor);
     GridPoint[] FreshWaterShorePositions();

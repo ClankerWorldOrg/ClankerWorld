@@ -28,33 +28,31 @@ internal sealed partial class AnimalSystem
 
     internal void EndAnimalRide(IAnimalWorld world, AnimalState animal, string reason)
     {
-        if (animal.RiderId is not { } rider) return;
-        SetAnimal(animal with { RiderId = null });
-        if (world.Agents.TryGetValue(rider, out var person))
+        if (animal.RiderId is { } rider && world.Agents.ContainsKey(rider))
+            CompleteAnimalDismount(world, PlanAnimalDismount(world, rider, animal), reason);
+        else if (animal.RiderId is { } missing)
         {
-            // Put down the excess at the rider's actual position. Held job inputs stay held;
-            // losing a mount never cancels a reservation or changes property ownership.
-            foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId is null &&
-                         PersonalEquipmentRules.IsCarried(lot, rider) && lot.DeliveryBuildingId is null &&
-                         !PersonalEquipmentRules.IsSelected(person.Equipment, lot.Id)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray())
-            {
-                var inventory = world.Society.Inventory;
-                var excess = PersonalEquipmentRules.CarriedQuantity(inventory, rider, person.Equipment) -
-                    PersonalEquipmentRules.Capacity(inventory, rider, person.Equipment);
-                if (excess <= 0) break;
-                if (InventoryContainerRules.IsContainer(lot.ItemKind) && HasActiveContainerReservation(inventory, lot.Id)) continue;
-                var quantity = InventoryContainerRules.IsContainer(lot.ItemKind) ? 1 : Math.Min(excess, world.PhysicalUnreservedQuantity(lot));
-                if (quantity <= 0) continue;
-                if (InventoryHoldRules.Family(InventoryIndex.For(inventory), lot)
-                    .Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, rider)))
-                    FinishAnimalSupplyTrip(world, rider);
-                world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
-                    AnimalCargoDismountId(rider, world.WorldTick, world.NextEventId, lot.Id),
-                    lot.Id, lot.OwnerId, quantity, groundPosition: new(person.Position.X, person.Position.Y),
-                    holdAccess: InventoryHoldRules.SupplyTripFor(rider)));
-            }
+            SetAnimal(animal with { RiderId = null });
+            world.AppendEvent(new HorseDismountedEventPayload(missing, animal.Id, reason), animal.Position);
         }
-        world.AppendEvent(new HorseDismountedEventPayload(rider, animal.Id, reason), animal.Position);
+    }
+
+    private void CompleteAnimalDismount(IAnimalWorld world, PlannedAnimalDismount plan, string reason)
+    {
+        var animal = Animal(plan.AnimalId)!;
+        SetAnimal(animal with { RiderId = null });
+        foreach (var cargo in plan.Cargo)
+        {
+            var inventory = world.Society.Inventory;
+            if (InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(cargo.StockId))
+                .Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, plan.Actor)))
+                FinishAnimalSupplyTrip(world, plan.Actor);
+            world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
+                AnimalCargoDismountId(plan.Actor, world.WorldTick, world.NextEventId, cargo.StockId),
+                cargo.StockId, cargo.OwnerId, cargo.Quantity, groundPosition: new(plan.Position.X, plan.Position.Y),
+                holdAccess: InventoryHoldRules.SupplyTripFor(plan.Actor)));
+        }
+        world.AppendEvent(new HorseDismountedEventPayload(plan.Actor, animal.Id, reason), plan.Position);
     }
 
     internal void MoveAnimal(IAnimalWorld world, AnimalState animal, GridPoint next)

@@ -20,5 +20,4 @@ public sealed partial class WorldRuntime
     private InventoryLot? CarriedMilk(string actor) => AnimalSystem.CarriedMilk(animalWorldAdapter, actor);
     private InventoryLot? WildAnimalHide(AnimalState animal) => AnimalSystem.WildAnimalHide(animalWorldAdapter, animal);
     private void CollectAnimalProduct(string actor, AnimalState animal) => animalSystem.CollectAnimalProduct(animalWorldAdapter, actor, animal);
-    private void LeadAnimalHome(string actor, AnimalState animal) => animalSystem.LeadAnimalHome(animalWorldAdapter, actor, animal);
 }

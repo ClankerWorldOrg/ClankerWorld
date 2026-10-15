@@ -22,6 +22,7 @@ public sealed partial class WorldRuntime
         public void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
+        public IReadOnlyList<GoodsMatch> DismountCargo(string actor) => runtime.DismountCargo(actor);
         public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public GridPoint[] FreshWaterShorePositions() => runtime.FreshWaterShorePositions();

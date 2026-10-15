@@ -376,6 +376,13 @@ already completed work releases its original trip without spending cargo;
 delivery checks the named trip hold, fixed quantity, room and route. The trip
 query authorizes its matching hold; after native release, that query refuses
 the remaining load without moving or consuming it.
+Animal mounting and leading also retain their target and selected yard place.
+Dismount choices and work/product preparation share a captured cargo plan:
+base capacity, current load and exact loose units or complete vessel families.
+Checks refuse changed cargo rather than dropping a different load. Native
+ride-loss cleanup uses the same planning and commit operations. Dropping a
+trip-held load cancels that trip before splitting its stock; dropping unrelated
+cargo keeps the trip and its promise.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
