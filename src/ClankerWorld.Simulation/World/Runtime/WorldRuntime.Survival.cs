@@ -435,12 +435,12 @@ public sealed partial class WorldRuntime
         var uncovered = adults.Where(actor => !tools.Any(lot =>
             lot.OwnerId == householdId && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
             lot.OwnerId == actor && (ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
-                lot.CarrierId is null && CanReachHouseToolStock(actor, householdId, lot)))).ToArray();
+                lot.CarrierId is null && HouseToolStockIsAccessible(actor, householdId, lot)))).ToArray();
         if (uncovered.Length == 0) return false;
         // Free shared stock can wait for an adult's route to reopen; do not keep making
         // replacements merely because that adult is temporarily away from the household.
         var available = tools.Where(lot => lot.OwnerId == householdId && lot.CarrierId is null &&
-                adults.Any(actor => CanReachHouseToolStock(actor, householdId, lot)))
+                adults.Any(actor => HouseToolStockIsAccessible(actor, householdId, lot)))
             .Sum(lot => (long)AvailableLotQuantity(lot));
         if (available >= uncovered.Length) return false;
         var committed = worldSimulation.ProductionJobs.Where(job => job.OwnerId == householdId &&
@@ -456,7 +456,7 @@ public sealed partial class WorldRuntime
         return available + committed < uncovered.Length;
     }
 
-    private bool CanReachHouseToolStock(string actor, string householdId, InventoryLot lot)
+    private bool HouseToolStockIsAccessible(string actor, string householdId, InventoryLot lot)
     {
         if (OnBorrowedMarketStall(lot))
             return false;
@@ -465,8 +465,7 @@ public sealed partial class WorldRuntime
             return false;
         var position = HouseholdStockPosition(lot);
         var range = HouseholdStockInteractionRange(lot);
-        return IsWithinInteractionRange(agents[actor].Position, position, range) ||
-            Reach(actor, position, ReachPurpose.PrivateEquipment, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
+        return CanReach(actor, position, ReachPurpose.PrivateEquipment, range, 0, SwimmingPolicy.WhenCapable);
     }
 
     private string FoodSource(InventoryLot lot)

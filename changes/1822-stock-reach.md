@@ -1,0 +1,1 @@
+- Store-stock trips and household-tool access use shared boolean reach queries, preserving their selected sources, return origins, household ownership and borrowed-stall filters. Their domain checks no longer copy range/route predicates.
