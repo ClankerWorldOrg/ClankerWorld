@@ -62,7 +62,7 @@ public sealed partial class WorldRuntime
     private const int FreshMealIllnessReliefBasisPoints = 100;
 
     private const int ComfortableFullness = NeedThresholds.ComfortableFullness;
-    private const int ComfortableWarmth = 6_000;
+    private const int ComfortableWarmth = NeedThresholds.ComfortableWarmth;
     private const int UrgentFullness = NeedThresholds.UrgentFullness;
     private const int UrgentWarmth = ClankerWorld.Contracts.NeedStates.ColdThreshold;
     // Provisional routine and outing reserves, not owner-approved balance.
@@ -206,7 +206,7 @@ public sealed partial class WorldRuntime
                 if (!map.IsPassable(candidate) || occupied.Contains(candidate) || !NaturalStormCover(candidate))
                     continue;
                 var distance = map.FootDistance(origin, candidate);
-                if (distance >= bestDistance || FindUnoccupiedRoute(actor, origin, candidate, 0).Count == 0) continue;
+                if (distance >= bestDistance || ReachLeg(actor, origin, candidate, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable).Count == 0) continue;
                 best = candidate;
                 bestDistance = distance;
             }
@@ -229,7 +229,7 @@ public sealed partial class WorldRuntime
             if (IsFireLit(building)) return false;
             var range = building.HouseholdId is null ? ResourceInteractionRange : 0;
             return IsWithinInteractionRange(person.Position, building.Position, range) ||
-                FindUnoccupiedRoute(actor, person.Position, building.Position, range).Count > 0;
+                Reach(actor, building.Position, ReachPurpose.FireFuel, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
         });
 
     private void AdvanceSurvival()
@@ -290,25 +290,17 @@ public sealed partial class WorldRuntime
         AddEquipmentCandidates(candidates, actor, person);
         AddOrnamentCandidates(candidates, actor);
         var losingWarmth = WarmthChange(person) < 0;
-        if (IsAdult(actor) && losingWarmth && condition.WarmthBasisPoints < ComfortableWarmth &&
-            ReachableUnlitHearth(actor, person) is { } hearth &&
-            (HasCarriedOwnItem(actor, "wood") || FreeCarryCapacity(actor) > 0 && SharedItem("wood", actor,
-                hearth.Position, hearth.HouseholdId is null ? ResourceInteractionRange : 0) is not null ||
-                MaterialSource("wood", actor, hearth.Position, hearth.HouseholdId is null ? ResourceInteractionRange : 0) is { } firewood &&
-                FreeCarryCapacity(actor) >= ProjectMaterialCarryUnits(actor, "wood", firewood)))
-        {
-            candidates.Add(new CognitionCandidate("tend_fire", "Carry wood to an unlit hearth and keep it burning for warmth.", NeedsUrgentWarmth(person) ? 1 : 2));
-        }
-        var stormCover = WeatherAt(person.Position) == WeatherKind.Storm && !NaturalStormCover(person.Position) &&
-            NearbyNaturalStormCover(actor, person.Position) is not null;
+        if (losingWarmth && condition.WarmthBasisPoints < ComfortableWarmth &&
+            PlanFire(actor) is { } fire && CheckFirePlan(fire).Allowed)
+            candidates.Add(new CognitionCandidate("tend_fire", "Carry wood to an unlit hearth and keep it burning for warmth.", NeedsUrgentWarmth(person) ? 1 : 2)
+            { ActionPlan = fire });
         var recoveringInCover = NearShelter(actor, person.Position) ||
             WeatherAt(person.Position) == WeatherKind.Storm && NaturalStormCover(person.Position) ||
             WarmthChange(person) > 20;
-        if (condition.WarmthBasisPoints < ComfortableWarmth &&
-            (recoveringInCover || losingWarmth && (ReachableWarmthDestinations(actor, person).Any() || stormCover)))
-        {
-            candidates.Add(new CognitionCandidate("seek_warmth", "Seek protection or remain in cover while recovering warmth.", NeedsUrgentWarmth(person) ? 2 : 3));
-        }
+        if (condition.WarmthBasisPoints < ComfortableWarmth && (recoveringInCover || losingWarmth) &&
+            PlanWarmth(actor) is { } warmth && CheckWarmthPlan(warmth).Allowed)
+            candidates.Add(new CognitionCandidate("seek_warmth", "Seek protection or remain in cover while recovering warmth.", NeedsUrgentWarmth(person) ? 2 : 3)
+            { ActionPlan = warmth });
     }
 
     private void CollectEquipment(string actor, AgentState person, string kind,
@@ -361,12 +353,6 @@ public sealed partial class WorldRuntime
 
     private sealed record FireFuelEffect(string BuildingId, Identity FuelReservationId);
 
-    private void TendFire(string actor, AgentState person)
-    {
-        var building = ReachableUnlitHearth(actor, person);
-        if (building is not null) _ = TendFireAt(actor, person, building);
-    }
-
     private FireFuelEffect? TendFireAt(string actor, AgentState person, PlacedBuilding building)
     {
         if (survivalState is null || IsFireLit(building) ||
@@ -387,14 +373,18 @@ public sealed partial class WorldRuntime
             MoveToward(actor, person, building.Position, "fuel_fire", interactionRange);
             return null;
         }
-        var fuel = society.Checkpoint.Inventory.Lots.First(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
-            lot.DeliveryBuildingId is null && lot.ContainerLotId is null && lot.ItemKind == "wood" && AvailableLotQuantity(lot) > 0);
+        if (CarriedFirewood(actor) is not { } fuel) return null;
+        return CompleteFireFuel(actor, building, fuel.Lot.Id);
+    }
+
+    private FireFuelEffect CompleteFireFuel(string actor, PlacedBuilding building, string fuelId)
+    {
         var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
-        var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuel.Id, 1, "heating_fuel"));
-        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id) &&
-            item.OwnerId == actor && item.LotId == fuel.Id && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
+        var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuelId, 1, "heating_fuel"));
+        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id.Value) &&
+            item.OwnerId == actor && item.LotId == fuelId && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
             item.State == InventoryReservationState.Completed && item.ExpiryTick == WorldTick);
-        survivalState = survivalState with { Fires = survivalState.Fires.Append(new BuildingFireState(building.InstanceId, WorldTick + 120)).ToArray() };
+        survivalState = survivalState! with { Fires = survivalState.Fires.Append(new BuildingFireState(building.InstanceId, WorldTick + 120)).ToArray() };
         AppendEvent(new FireFuelledEventPayload(null, building.InstanceId));
         return new FireFuelEffect(building.InstanceId, payment.Id);
     }
@@ -406,39 +396,12 @@ public sealed partial class WorldRuntime
                     ? IsWithinInteractionRange(person.Position, building.Position, WarmthDestinationRange(actor, person.Position, building))
                     : ShelterBuildingCovers(actor, building, person.Position)) &&
                 WarmthDestinationPoint(actor, person, building) is { } target &&
-                FindUnoccupiedRoute(actor, person.Position, target, WarmthDestinationRange(actor, person.Position, building)).Count > 0)
+                Reach(actor, target, ReachPurpose.WarmthProtection, WarmthDestinationRange(actor, person.Position, building), 0, SwimmingPolicy.WhenCapable).Count > 0)
             .OrderBy(building => CanUseLitHearth(actor, building) ? 0 : 1)
             .ThenBy(building => map.FootDistance(person.Position, building.Position));
 
     private bool CanUseLitHearth(string actor, PlacedBuilding building) => IsFireLit(building) &&
         AccessibleHeatingBuildings(actor).Any(hearth => hearth.InstanceId == building.InstanceId);
-
-    private void SeekWarmth(string actor, AgentState person)
-    {
-        // Keep protection that already stops cooling, even if the original travel target disappeared.
-        if (WarmthChange(person) >= 0)
-            return;
-        var destination = ReachableWarmthDestinations(actor, person).FirstOrDefault();
-        // Keep building cover unless another destination can supply usable heat.
-        if (NearShelter(actor, person.Position) && (destination is null || !CanUseLitHearth(actor, destination)))
-            return;
-        // Buildings provide more protection than natural cover, even without a lit hearth.
-        if (WeatherAt(person.Position) == WeatherKind.Storm && NaturalStormCover(person.Position) &&
-            destination is null)
-            return;
-        var cover = destination is null && WeatherAt(person.Position) == WeatherKind.Storm && !NaturalStormCover(person.Position)
-            ? NearbyNaturalStormCover(actor, person.Position) : null;
-        if (cover is { } coverPoint)
-        {
-            if (person.Position != coverPoint)
-                MoveToward(actor, person, coverPoint, "storm_cover");
-        }
-        else if (destination is not null && WarmthDestinationPoint(actor, person, destination) is { } target &&
-                 !IsWithinInteractionRange(person.Position, target, WarmthDestinationRange(actor, person.Position, destination)))
-        {
-            MoveToward(actor, person, target, "warmth", WarmthDestinationRange(actor, person.Position, destination));
-        }
-    }
 
     private bool NeedsRecipeOutput(RecipeDefinition recipe, string? ownerId = null, string? requestWorker = null) =>
         !HasUnsupportedWaterOutput(recipe) && (HouseToolsContent.IsCrudeToolRecipe(recipe) ? NeedsHouseTool(recipe, ownerId) :
