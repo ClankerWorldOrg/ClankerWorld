@@ -1,0 +1,1 @@
+- Cart loading and unloading retain exact stock, cart families and quantities, with shared access and capacity checks before committing.
