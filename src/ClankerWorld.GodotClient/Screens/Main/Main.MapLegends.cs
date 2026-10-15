@@ -129,7 +129,7 @@ public partial class Main
         });
         var text = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
         text.AddThemeConstantOverride("separation", 0);
-        text.AddChild(new Label { Text = title });
+        text.AddChild(new FittedLabel { Text = title });
         text.AddChild(new Label { Text = detail, ThemeTypeVariation = "DimLabel" });
         row.AddChild(text);
         toggle.Text = string.Empty;
