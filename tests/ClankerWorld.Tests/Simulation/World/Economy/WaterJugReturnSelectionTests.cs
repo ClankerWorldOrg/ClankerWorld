@@ -28,7 +28,7 @@ public sealed class WaterJugReturnSelectionTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
         var permitted = true;
         var prepared = false;
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => permitted, (proposed, events) =>
+        Assert.False((await world.TickModelWorkAsync(() => permitted, (proposed, events) =>
         {
             prepared = true;
             Assert.Contains(events, item => item.Kind == (walk ? "agent_moved" : "water_jug_returned") &&

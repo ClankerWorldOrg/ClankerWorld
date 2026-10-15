@@ -6,6 +6,19 @@ namespace ClankerWorld.Simulation.World;
 // callbacks add native permissions and routes; none are retained or cached.
 internal static class GoodsInventoryQuery
 {
+    /// <summary>Retains meal-source evidence for usable food, including stock held by a live promise.</summary>
+    internal static IEnumerable<WorldProductionJob> FindFoodProductionSources(InventoryCheckpoint inventory,
+        IReadOnlyList<WorldProductionJob> jobs)
+    {
+        var index = InventoryIndex.For(inventory);
+        foreach (var lot in index.Lots.Where(lot => lot.FreshnessBasisPoints > 0 && lot.ConditionBasisPoints > 0 &&
+                     FoodRules.IsEdible(lot.ItemKind) && !FoodRules.PreparedKinds.Contains(lot.ItemKind, StringComparer.Ordinal)))
+        {
+            var origin = index.ProvenanceOrigin(lot);
+            if (WorldProductionJob.OutputSource(jobs, origin.Id) is { } source) yield return source;
+        }
+    }
+
     internal static GoodsAnswer FindGoods(InventoryCheckpoint inventory, GoodsRequest request,
         Func<InventoryIndex, InventoryLot, GoodsReason?> context,
         Func<InventoryIndex, InventoryLot, GoodsMatch> match)
@@ -113,7 +126,10 @@ internal static class GoodsInventoryQuery
                 (request.Use == GoodsUse.DepartureAllowance ? lot.CarrierId is not null || lot.ContainerLotId is not null :
                     request.AtBuilding != lot.StorageBuildingId || lot.ContainerLotId is not null || InventoryContainerRules.IsContainer(lot.ItemKind) ||
                     lot.DeliveryBuildingId is not null || lot.GroundPosition is not null) ? GoodsReason.Place :
-                InventoryRules.AvailableQuantity(index, lot) <= 0 ? GoodsReason.Reservation : null;
+                InventoryRules.AvailableQuantity(index, lot) <= 0 ||
+                request.Use == GoodsUse.DepartureAllowance &&
+                    !InventoryHoldRules.Allows(index, lot, InventoryHoldRules.DeliveryFor(request.Actor!, lot.StorageBuildingId))
+                    ? GoodsReason.Reservation : null;
         if (!request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) ||
             IsRecovery(request.Use) && lot.OwnerId != request.Actor) return GoodsReason.Owner;
         if (!request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal)) return GoodsReason.Kind;
@@ -128,6 +144,9 @@ internal static class GoodsInventoryQuery
         }
         if (lot.Quantity == 0) return GoodsReason.Empty;
         if (Quantity(index, lot, request.Use) <= 0) return GoodsReason.Reservation;
+        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo or GoodsUse.AnimalSupplyTrip or GoodsUse.DismountCargo) &&
+            InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.SupplyTrip))
+            return GoodsReason.Reservation;
         if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel)
         {
             if (!InventoryContainerRules.IsContainer(lot.ItemKind) || lot.ContainerLotId is not null) return GoodsReason.Vessel;
