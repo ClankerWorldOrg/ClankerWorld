@@ -40,14 +40,14 @@ internal sealed partial class TownSystem(CivicState state)
 
     internal void RestoreFoodStewardship(FoodStewardship? value)
     {
-        if (!ReferenceEquals(State.FoodStewardship, value)) State = State with { FoodStewardship = value };
+        if (!ReferenceEquals(State.FoodStewardship, value)) Commit(State with { FoodStewardship = value });
     }
 
-    internal void RestoreTowns(IEnumerable<TownRuntimeState> value) => State = State with { Towns = Array.AsReadOnly(value.ToArray()) };
-    internal void RestoreFounderSetup(FounderSetupState? value) => State = State with { FounderSetup = value };
-    internal void RestoreTownLandTitles(IEnumerable<TownLandTitleRecord> value) => State = State with { TownLandTitles = Array.AsReadOnly(value.ToArray()) };
-    internal void RestoreHouseholdLandUseRights(IEnumerable<HouseholdLandUseRight> value) => State = State with { HouseholdLandUseRights = Array.AsReadOnly(value.ToArray()) };
-    internal void RestoreHouseholdLandUseRequests(IEnumerable<HouseholdLandUseRequest> value) => State = State with { HouseholdLandUseRequests = Array.AsReadOnly(value.ToArray()) };
+    internal void RestoreTowns(IEnumerable<TownRuntimeState> value) => Commit(State with { Towns = Array.AsReadOnly(value.ToArray()) });
+    internal void RestoreFounderSetup(FounderSetupState? value) => Commit(State with { FounderSetup = value });
+    internal void RestoreTownLandTitles(IEnumerable<TownLandTitleRecord> value) => Commit(State with { TownLandTitles = Array.AsReadOnly(value.ToArray()) });
+    internal void RestoreHouseholdLandUseRights(IEnumerable<HouseholdLandUseRight> value) => Commit(State with { HouseholdLandUseRights = Array.AsReadOnly(value.ToArray()) });
+    internal void RestoreHouseholdLandUseRequests(IEnumerable<HouseholdLandUseRequest> value) => Commit(State with { HouseholdLandUseRequests = Array.AsReadOnly(value.ToArray()) });
 
     internal void ReplaceMarketState(ICivicWorld world, string townId, TownMarketState market)
     {
@@ -73,7 +73,7 @@ internal sealed partial class TownSystem(CivicState state)
         else if (!ReferenceEquals(updated[index], town))
         {
             updated[index] = town;
-            State = State with { Towns = Array.AsReadOnly(updated) };
+            Commit(State with { Towns = Array.AsReadOnly(updated) });
         }
     }
 
