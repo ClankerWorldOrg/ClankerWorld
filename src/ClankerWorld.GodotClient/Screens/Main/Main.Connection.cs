@@ -95,7 +95,11 @@ public partial class Main
                 ? await localServer!.StartPairingAsync(deviceKey, CancellationToken.None)
                 : await ownerApi.StartPairingAsync(origin, deviceKey, CancellationToken.None);
             pendingPairingOrigin = origin;
-            if (ownServer && await ApproveLocalPairingAsync(pendingPairing)) return;
+            if (ownServer && await ApproveLocalPairingAsync(pendingPairing))
+            {
+                await ActivatePendingPairingAsync();
+                return;
+            }
             pairingPanel.Show();
             pairingInstructionLabel.Text = "Give the person who runs the world server the pairing ID and comparison code below. They approve this device on the server's own computer. The code is not a password.";
             pairingCodeLabel.Text = pendingPairing.PairingCode;

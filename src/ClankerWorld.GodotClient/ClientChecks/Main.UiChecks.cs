@@ -952,6 +952,13 @@ public partial class Main
             throw new InvalidOperationException("The Main Menu must show the logo instead of a text title or slogan.");
         if (!mainMenuStatus.Visible || mainMenuStatus.Text != "Connect this device to your world to play.")
             throw new InvalidOperationException("An unpaired Main Menu must say how to start playing.");
+        localServerStarting = true;
+        RefreshMainMenuAvailability();
+        if (mainMenuStatus.Text != "Starting your world server…" || !mainMenuStatus.Visible ||
+            mainMenuConnectButton.Visible || !mainMenuContinueButton.Disabled ||
+            !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled)
+            throw new InvalidOperationException("Local startup must explain the wait and keep world choices disabled.");
+        localServerStarting = false;
         SetMainMenuStatus(null);
         if (mainMenuStatus.Visible)
             throw new InvalidOperationException("The Main Menu status line must disappear when nothing needs attention.");

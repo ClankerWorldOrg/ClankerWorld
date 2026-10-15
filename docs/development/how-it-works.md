@@ -4494,7 +4494,9 @@ milestones explicitly; unknown diagnostics do not become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
-player/model text. Memory/belief/map telemetry uses safe IDs, counts and outcome
+player/model text. A reply is checked against its offered choices only after
+its `model_call` line, so that line names the choice only when it is an offered
+one and `<not-offered>` otherwise. Memory/belief/map telemetry uses safe IDs, counts and outcome
 metadata, never private prose or map contents. Logs are derived telemetry, never
 simulation authority or required save state. Observability tests must prove both
 useful signal and absence of representative secrets.
