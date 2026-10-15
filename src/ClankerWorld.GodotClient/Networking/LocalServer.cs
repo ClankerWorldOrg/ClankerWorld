@@ -168,6 +168,9 @@ public sealed class LocalServer : IAsyncDisposable
     private Process? process;
     private StreamWriter? log;
     private string? secret;
+    // True once the listener answered the launch check for this secret. Only
+    // then does the game send the secret on approval requests.
+    private bool proven;
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
@@ -227,8 +230,8 @@ public sealed class LocalServer : IAsyncDisposable
             try { return await StartExclusiveAsync(expectedVersion, expectedRevision, cancellationToken); }
             catch (OperationCanceledException)
             {
-                // Finish our child's stop attempt before releasing startup ownership.
-                // A refused shutdown preserves its paused world for retry;
+                // Finish stopping our child before releasing startup ownership.
+                // It never answered the launch check, so it is stopped directly;
                 // a reused server belongs to another launch.
                 if (process is not null) await StopAsync(CancellationToken.None);
                 throw;
@@ -250,7 +253,7 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
-                    secret = running;
+                    (secret, proven) = (running, true);
                     return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
                 if (proof == LaunchCheck.Refused)
@@ -306,7 +309,10 @@ public sealed class LocalServer : IAsyncDisposable
             {
                 case Probe.SameBuild:
                     if (await CheckLaunchSecretAsync(secret!, cancellationToken) == LaunchCheck.Confirmed)
+                    {
+                        proven = true;
                         return new LocalServerStart(LocalServerStartOutcome.Started);
+                    }
                     break;
                 case Probe.OtherBuild or Probe.NotClankerWorld:
                     // Something else claimed the port first; leave it, stop ours.
@@ -330,7 +336,7 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public Task<OwnerPairingStart> StartPairingAsync(IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
     {
-        if (secret is null) throw new InvalidOperationException("The world server on this PC has not started yet.");
+        if (secret is null || !proven) throw new InvalidOperationException("The world server on this PC has not started yet.");
         return new OwnerPairingClient(http).StartPairingAsync(ApprovalOrigin, OwnerPairingEndpoints.ApprovalPairings,
             deviceKey, new KeyValuePair<string, string>(SecretHeader, secret), cancellationToken);
     }
@@ -341,7 +347,7 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken)
     {
-        if (secret is null) return false;
+        if (secret is null || !proven) return false;
         using var request = new HttpRequestMessage(HttpMethod.Post,
             new Uri(ApprovalOrigin, $"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve"))
         {
@@ -358,7 +364,8 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> StopAsync(CancellationToken cancellationToken)
     {
-        if (secret is not null)
+        var acknowledged = false;
+        if (secret is not null && proven)
         {
             try
             {
@@ -370,6 +377,7 @@ public sealed class LocalServer : IAsyncDisposable
                 // The host explicitly refused to exit: preserve its paused world
                 // and our process handle so the player can repair and retry.
                 if (!response.IsSuccessStatusCode) return false;
+                acknowledged = true;
             }
             catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
             {
@@ -379,6 +387,9 @@ public sealed class LocalServer : IAsyncDisposable
         }
         if (process is { HasExited: false } running)
         {
+            // Our child never answered the launch check, so whatever holds the
+            // approval port was not asked over HTTP: stop the child directly.
+            if (!proven) running.Kill(entireProcessTree: true);
             using var waitTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30), timeProvider);
             using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitTimeout.Token);
             try
@@ -392,29 +403,59 @@ public sealed class LocalServer : IAsyncDisposable
                 running.Kill(entireProcessTree: true);
             }
         }
+        // A host that acknowledged the request, or our own child that has now
+        // exited, no longer needs this launch's secret. A host that may still be
+        // running keeps it, so a later launch can still prove and reuse it.
+        if (acknowledged || process is not null) ForgetSecret();
         await ForgetProcessAsync();
         return true;
+    }
+
+    private void ForgetSecret()
+    {
+        if (secret is null) return;
+        try
+        {
+            if (TryReadSecret(out var saved) && saved == secret) File.Delete(layout.SecretPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The next launch writes a fresh secret before starting a host.
+        }
+        (secret, proven) = (null, false);
     }
 
     public async ValueTask DisposeAsync() { await StopAsync(CancellationToken.None); }
 
     private enum LaunchCheck { Confirmed, Refused, Unresponsive }
 
+    /// <summary>
+    /// Asks the listener to prove it holds <paramref name="value"/> by answering
+    /// a fresh challenge. The secret itself is not sent, so a listener that
+    /// cannot answer learns nothing from the check.
+    /// </summary>
     private async Task<LaunchCheck> CheckLaunchSecretAsync(string value, CancellationToken cancellationToken)
     {
+        var challenge = LocalServerLaunchCheck.NewChallenge();
         try
         {
             using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, "api/v1/approval/launch-check"));
-            request.Headers.Add(SecretHeader, value);
+            request.Headers.Add(LocalServerLaunchCheck.ChallengeHeader, challenge);
             using var response = await http.SendAsync(request, deadline.Token);
-            return response.IsSuccessStatusCode ? LaunchCheck.Confirmed : LaunchCheck.Refused;
+            if (!response.IsSuccessStatusCode) return LaunchCheck.Refused;
+            var answer = await response.Content.ReadFromJsonAsync<LocalServerLaunchCheckAnswer>(deadline.Token);
+            return LocalServerLaunchCheck.Matches(value, challenge, answer?.Answer) ? LaunchCheck.Confirmed : LaunchCheck.Refused;
         }
         catch (Exception exception) when (!cancellationToken.IsCancellationRequested &&
             exception is HttpRequestException or OperationCanceledException)
         {
             return LaunchCheck.Unresponsive;
+        }
+        catch (Exception exception) when (exception is System.Text.Json.JsonException or NotSupportedException)
+        {
+            return LaunchCheck.Refused;
         }
     }
 
