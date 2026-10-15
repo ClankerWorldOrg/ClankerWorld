@@ -155,7 +155,7 @@ public static class TownLawRules
             throw new InvalidOperationException("The law changed after this amendment was chosen.");
         if (current.Subject == subject && current.Rule == rule)
             throw new InvalidOperationException("An amendment must change the law's wording.");
-        var label = Bounded($"Amend law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} to read: {Text(subject, rule)}");
+        var label = BoundedText.Excerpt($"Amend law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} to read: {Text(subject, rule)}", TownLawRules.MaximumTextLength, "…");
         var key = DerivedId.Create($"law_amend:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}:{Normalize(Text(subject, rule))}");
         return Submit(council, government, townId, actor, label, key, adults, tick, day,
             proposalId => new TownLawDraft(proposalId, "amend", law.Id, current.Version, subject, rule, current.Scope, current.SiteTiles));
@@ -171,7 +171,7 @@ public static class TownLawRules
         var current = Current(law);
         if (expectedVersion is { } expected && current.Version != expected)
             throw new InvalidOperationException("The law changed after this repeal was chosen.");
-        var label = Bounded($"Repeal law {Number(law.Id).ToString(CultureInfo.InvariantCulture)}: {Text(current.Subject, current.Rule)}");
+        var label = BoundedText.Excerpt($"Repeal law {Number(law.Id).ToString(CultureInfo.InvariantCulture)}: {Text(current.Subject, current.Rule)}", TownLawRules.MaximumTextLength, "…");
         var key = DerivedId.Create($"law_repeal:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}");
         return Submit(council, government, townId, actor, label, key, adults, tick, day,
             proposalId => new TownLawDraft(proposalId, "repeal", law.Id, current.Version, current.Subject, current.Rule,
@@ -301,8 +301,8 @@ public static class TownLawRules
     internal static string ProposalText(TownLawDraft draft) => draft.Action switch
     {
         "adopt" => Text(draft.Subject, draft.Rule),
-        "amend" => Bounded($"Amend law {Number(draft.LawId!).ToString(CultureInfo.InvariantCulture)} to read: {Text(draft.Subject, draft.Rule)}"),
-        _ => Bounded($"Repeal law {Number(draft.LawId!).ToString(CultureInfo.InvariantCulture)}: {Text(draft.Subject, draft.Rule)}"),
+        "amend" => BoundedText.Excerpt($"Amend law {Number(draft.LawId!).ToString(CultureInfo.InvariantCulture)} to read: {Text(draft.Subject, draft.Rule)}", TownLawRules.MaximumTextLength, "…"),
+        _ => BoundedText.Excerpt($"Repeal law {Number(draft.LawId!).ToString(CultureInfo.InvariantCulture)}: {Text(draft.Subject, draft.Rule)}", TownLawRules.MaximumTextLength, "…"),
     };
     internal static string RequestKey(TownLawDraft draft) => draft.Action switch
     {
@@ -324,13 +324,4 @@ public static class TownLawRules
 
     private static string SiteKey(GridPoint[] tiles) => tiles.Length == 0 ? "-" :
         string.Join(';', tiles.Select(t => t.X.ToString(CultureInfo.InvariantCulture) + "," + t.Y.ToString(CultureInfo.InvariantCulture)));
-
-    private static string Bounded(string text)
-    {
-        if (text.Length <= MaximumTextLength) return text;
-        var length = MaximumTextLength - 1;
-        if (char.IsHighSurrogate(text[length - 1]) && char.IsLowSurrogate(text[length]))
-            length--;
-        return text[..length] + "…";
-    }
 }

@@ -53,7 +53,8 @@ public partial class Main
             {
                 long id = 1_000 + index;
                 var worldEvent = new OwnerWorldEvent(id, index, wrapped ? "model_call_warning" : "tree_planted",
-                    wrapped ? "used:812:limit:1000" : "founder-scout:planted-tree-1-1:broadleaf", index == 0 ? new OwnerWorldPosition(0, 0) : null);
+                    wrapped ? "used:812:limit:1000" : "founder-scout:planted-tree-1-1:broadleaf", index == 0 ? new OwnerWorldPosition(0, 0) : null)
+                { Text = wrapped ? "Model calls: 812 of 1,000 used across all worlds. Your worlds pause at the limit; raise it in Settings → Game." : "Someone planted a tree." };
                 knownEvents[id] = worldEvent;
                 return (EventId: id, Located: worldEvent.Position is not null,
                     Clock: (index == 0 ? "2 Spring, Year 1" : "1 Spring, Year 1") + " · 12:00",
@@ -142,15 +143,15 @@ public partial class Main
                 throw new InvalidOperationException("The ordinary short Event Log control must remain one line.");
             CheckShortHistory("with one ordinary row");
             knownEvents.Clear();
-            knownEvents[2_000] = new(2_000, 0, "model_attempt_status", "founder-scout:waiting");
-            knownEvents[2_001] = new(2_001, 1, "model_attempt_status", "founder-scout:ready");
+            knownEvents[2_000] = new(2_000, 0, "model_attempt_status", "founder-scout:waiting") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "waiting") };
+            knownEvents[2_001] = new(2_001, 1, "model_attempt_status", "founder-scout:ready") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "ready") };
             renderedEventLog = null;
             RenderEventLog();
             await Settle();
             if (EventRows().Length != 0) throw new InvalidOperationException("A slow successful model reply must add no Event Log row.");
-            knownEvents[2_002] = new(2_002, 2, "model_attempt_status", "founder-scout:timed_out");
-            knownEvents[2_003] = new(2_003, 3, "model_attempt_status", "founder-scout:waiting");
-            knownEvents[2_004] = new(2_004, 4, "model_attempt_status", "founder-scout:timed_out");
+            knownEvents[2_002] = new(2_002, 2, "model_attempt_status", "founder-scout:timed_out") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "timed_out"), Text = "Scout could not get a model reply: the model reply timed out." };
+            knownEvents[2_003] = new(2_003, 3, "model_attempt_status", "founder-scout:waiting") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "waiting") };
+            knownEvents[2_004] = new(2_004, 4, "model_attempt_status", "founder-scout:timed_out") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "timed_out"), Text = "Scout could not get a model reply: the model reply timed out." };
             RenderEventLog();
             await Settle();
             var failureRow = EventRows().Single();
