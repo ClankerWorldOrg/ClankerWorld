@@ -469,6 +469,9 @@ Shared checks run at offer, admission and apply, while fresh accepted personal
 model consent remains required for placement, acceptance, refusal and withdrawal.
 Pending withdrawal permits progress within that same request and preserves the
 current job, offer and payment state when it acts.
+Tool-request visits retain the chosen Smith, recipe and route. The shared check
+uses that exact selection at offer, admission and application; the native
+movement writer keeps its original interaction range and arrival behavior.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
