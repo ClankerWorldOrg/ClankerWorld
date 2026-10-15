@@ -19,7 +19,7 @@ public sealed partial class ServerHttpTests : IDisposable
 
     public void Dispose() => factory.Dispose();
 
-    private static readonly System.Text.Json.JsonSerializerOptions WebJsonOptions =
+    internal static readonly System.Text.Json.JsonSerializerOptions WebJsonOptions =
         new(System.Text.Json.JsonSerializerDefaults.Web);
 
     private async Task<OwnerDevice> StartAndActivateAsync(HttpClient client, ECDsa key, string publicKey)
