@@ -10,7 +10,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class BuildingExpansionTests
+public sealed partial class BuildingExpansionTests
 {
     [Fact]
     public async Task AStaleExpansionRequestCannotSilentlySelectADifferentPlot()
