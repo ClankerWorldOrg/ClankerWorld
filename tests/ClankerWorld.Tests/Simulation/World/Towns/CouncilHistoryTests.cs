@@ -72,7 +72,8 @@ public sealed class CouncilHistoryTests
             Assert.Equal(council.Notices.Select(notice => notice.Id), receipts.Select(receipt => receipt.NoticeId));
             Assert.All(receipts, receipt => Assert.Null(receipt.SourceAgentId));
             world.Validate();
-            Assert.True(file.Save(world));
+            _ = file.Save(world);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), File.ReadAllBytes(file.Path));
             using var loaded = file.LoadOrCreate(state.WorldSeed);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(loaded.ExportState()));
         }
