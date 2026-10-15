@@ -56,17 +56,11 @@ jobs:
       - name: Find the merge queue's green run of this commit
         id: queue
         if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?event=merge_group&status=success&head_sha=${GITHUB_SHA}" \
-            --jq '.workflow_runs[0].id // empty' || true)"
-          echo "run=${run}" >> "$GITHUB_OUTPUT"
-          if [ -n "$run" ]; then
-            echo "The merge queue's run ${run} already passed on this exact commit, so nothing else runs."
-          else
-            echo "The merge queue didn't pass this exact commit, so everything runs."
-          fi
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const findQueueRun = require('./.github/scripts/queue-run.js');
+            await findQueueRun({ github, context, core });
       - name: Decide what this change needs
         id: plan
         env:
