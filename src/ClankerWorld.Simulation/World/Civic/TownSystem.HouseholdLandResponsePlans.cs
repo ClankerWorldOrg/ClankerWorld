@@ -23,6 +23,7 @@ internal sealed partial class TownSystem
             world.HouseholdLandUseRequests.SingleOrDefault(request => request.Id == plan.Request.Id) is not { Status: "pending" } current ||
             current.TownId != town.Id || current with
             {
+                CouncilProposalId = plan.Request.CouncilProposalId,
                 Tiles = plan.Request.Tiles,
                 Consents = plan.Request.Consents,
                 GrantAdults = plan.Request.GrantAdults,

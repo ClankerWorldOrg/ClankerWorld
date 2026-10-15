@@ -9,6 +9,53 @@ namespace ClankerWorld.Tests;
 public sealed partial class HouseholdLandGrantTests
 {
     [Fact]
+    public async Task OpeningTheCouncilProposalKeepsTheExactPendingHouseholdResponsesAvailable()
+    {
+        var choices = new Choices();
+        using var world = Create("household-grant-conflict", choices);
+        var initial = world.ExportState();
+        var town = world.Towns[0];
+        var alpha = town.ResidentIds[0];
+        var household = world.Society.GetAgent(alpha).HouseholdId;
+        var beta = world.Society.Agents.First(person => person.HouseholdId != household).Id;
+        var plot = OpenPlot(initial);
+        Assert.True(world.RequestHouseholdLandUse("first", alpha, town.Id, plot).Applied);
+        Assert.True(world.RequestHouseholdLandUse("rival", beta, town.Id, plot).Applied);
+        choices.CaptureResponsesFor = beta;
+        await Until(world, () => choices.CapturedResponses.Count == 3);
+        var offered = choices.CapturedResponses.ToArray();
+        Assert.All(offered, plan =>
+        {
+            Assert.Equal("rival", plan.Request.Id);
+            Assert.Null(plan.Request.CouncilProposalId);
+            Assert.True(world.CheckActionPlan(plan).Allowed);
+        });
+        choices.WithdrawRequest = "first";
+        Refresh(world, [alpha]);
+        await Until(world, () => world.HouseholdLandUseRequests.Single(request => request.Id == "first").Status == "withdrawn");
+        var current = world.HouseholdLandUseRequests.Single(request => request.Id == "rival");
+        Assert.Equal("pending", current.Status);
+        Assert.NotNull(current.CouncilProposalId);
+        Assert.Empty(current.Consents);
+        Assert.Equal(plot, current.Tiles);
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.All(offered, plan => Assert.True(world.CheckActionPlan(plan).Allowed,
+            "Opening a Council ballot must not change the household's exact personal response terms."));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(before)));
+        Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
+        Assert.Equal(initial.TownLandTitles, world.TownLandTitles);
+        choices.Acceptors.Add(beta);
+        Refresh(world, [beta]);
+        await Until(world, () => world.HouseholdLandUseRequests.Single(request => request.Id == "rival").Consents.Count == 1);
+        Assert.Equal(beta, Assert.Single(world.HouseholdLandUseRequests.Single(request => request.Id == "rival").Consents).AgentId);
+        Assert.All(offered.Where(plan => plan.Choice.Kind != HouseholdLandResponseKind.Withdraw),
+            plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
+        Assert.True(world.CheckActionPlan(offered.Single(plan => plan.Choice.Kind == HouseholdLandResponseKind.Withdraw)).Allowed);
+        Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
+    }
+
+    [Fact]
     public async Task CouncilMajorityAndEveryAdultsSeparateAcceptanceSurviveRollbackAndReload()
     {
         var choices = new Choices();
@@ -340,6 +387,8 @@ public sealed partial class HouseholdLandGrantTests
         public string? Author { get; set; }
         public GridPoint[]? Plot { get; set; }
         public string? WithdrawRequest { get; set; }
+        public string? CaptureResponsesFor { get; set; }
+        public List<HouseholdLandResponseActionPlan> CapturedResponses { get; } = [];
         public HashSet<string> Voters { get; } = new(StringComparer.Ordinal);
         public HashSet<string> Acceptors { get; } = new(StringComparer.Ordinal);
         public HashSet<string> Decliners { get; } = new(StringComparer.Ordinal);
@@ -352,6 +401,9 @@ public sealed partial class HouseholdLandGrantTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
+            if (choices.CaptureResponsesFor == o.AgentId && choices.CapturedResponses.Count == 0)
+                choices.CapturedResponses.AddRange(o.Candidates.Select(candidate => candidate.ActionPlan)
+                    .OfType<HouseholdLandResponseActionPlan>().Where(plan => plan.Request.Id == "rival"));
             CognitionCandidate? Pick(string action) => o.Candidates.FirstOrDefault(c => c.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var selected = Pick("read") ??
                 o.Candidates.FirstOrDefault(c => choices.WithdrawRequest is not null && c.Id.Contains("|withdraw_land_use|" + choices.WithdrawRequest + "|", StringComparison.Ordinal)) ??
