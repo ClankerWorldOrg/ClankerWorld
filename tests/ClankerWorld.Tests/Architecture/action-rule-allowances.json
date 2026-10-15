@@ -15,16 +15,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": [
     "FindUnoccupiedRoute(actor, position, blacksmith.Position, 0)"
   ],
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Continuity.cs": [
-    "society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant"
-  ],
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs": [
-    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "provider.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "recipient.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "recipient.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
-  ],
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.FieldValidation.cs": [
     "worker.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
   ],
@@ -80,10 +70,6 @@
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.FieldOrders.cs": [
     "FindUnoccupiedRoute(actor, from, destination, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.GuardianPlacementValidation.cs": [
-    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs": [
     "item.AgeBand != SocietyAgeBand.Infant",

@@ -25,12 +25,12 @@ public sealed partial class WorldRuntime
             if (schemaVersion < GuardianPlacementSchemaVersion ||
                 !people.TryGetValue(state.AgentId, out var child) ||
                 child.Status != SocietyAgentStatus.Active ||
-                child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent) ||
+                !LifeStageRules.IsDependent(child.AgeBand) ||
                 state.GuardianSearch is not null ||
                 !GuardianPlacementId(placement.CaregiverId) ||
                 !people.TryGetValue(placement.CaregiverId, out var caregiver) ||
                 caregiver.Status != SocietyAgentStatus.Active ||
-                caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+                !LifeStageRules.IsAdult(caregiver.AgeBand) ||
                 !physicalIds.Contains(caregiver.Id) || child.PrimaryCaregiverId != caregiver.Id ||
                 !GuardianPlacementId(placement.CareRelationshipId) || placement.CareRevision <= 0 ||
                 !relationships.TryGetValue(placement.CareRelationshipId, out var care) ||
