@@ -502,6 +502,8 @@ the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+A withdrawn candidate or departed voter does not invalidate other selections;
+the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
