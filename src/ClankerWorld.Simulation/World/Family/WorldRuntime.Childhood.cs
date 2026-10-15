@@ -8,7 +8,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const int ChildSocialCooldownTicks = 120;
 
     private bool IsChild(string actor) => AgentQueries.IsChild(agentWorld, actor);
 

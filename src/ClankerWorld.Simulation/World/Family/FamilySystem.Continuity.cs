@@ -5,9 +5,9 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FamilySystem
 {
-    private static string ContinuityDetail(int eligibleCouples) =>
+    internal static string ContinuityDetail(int eligibleCouples) =>
         "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) + "|threshold|" + ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
-    private static bool ActiveParenthood(ParenthoodPlan? plan) => plan?.Stage is "requested" or "preparing";
+    internal static bool ActiveParenthood(ParenthoodPlan? plan) => plan?.Stage is "requested" or "preparing";
     internal void StartContinuityRule(IFamilyContinuityWorld world)
     {
         var couples = EligibleContinuityCouples(world).Count();

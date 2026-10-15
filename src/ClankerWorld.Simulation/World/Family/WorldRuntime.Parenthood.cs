@@ -16,7 +16,7 @@ public sealed record ParenthoodFood(int AvailablePortions, int RequiredPortions)
 public sealed partial class WorldRuntime
 {
     private const int IllnessCareCooldownTicks = 8;
-    private static bool ActiveParenthood(ParenthoodPlan? plan) => plan?.Stage is "requested" or "preparing";
+    private static bool ActiveParenthood(ParenthoodPlan? plan) => FamilySystem.ActiveParenthood(plan);
 
     private bool RecentlyCaredForIllness(string dependent) => events.Any(item =>
         (item.Kind is "child_cared_for" or "dependent_cared_for") && item.Detail == dependent &&

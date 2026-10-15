@@ -16,17 +16,15 @@ public sealed record ContinuityCouple(string FirstPartnerId, string SecondPartne
 public sealed partial class WorldRuntime
 {
     // Provisional: four eligible couples retain the old eight-adult-partner threshold (#1266).
-    private const int ContinuityEligibleCoupleThreshold = 4;
-    private const int ContinuityPostponeDays = 2;
+    private const int ContinuityEligibleCoupleThreshold = FamilySystem.ContinuityEligibleCoupleThreshold;
+    private const int ContinuityPostponeDays = FamilySystem.ContinuityPostponeDays;
 
     private FamilySystem familySystem = new(new(false, []));
     private PopulationContinuity continuity => familySystem.Continuity;
 
     private long ContinuityPostponeTicks => ContinuityPostponeDays * (long)worldSystems.Config.TicksPerDay;
 
-    private static string ContinuityDetail(int eligibleCouples) =>
-        "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) +
-        "|threshold|" + ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
+    private static string ContinuityDetail(int eligibleCouples) => FamilySystem.ContinuityDetail(eligibleCouples);
 
     /// <summary>Only accepted eligible partnerships count; unrelated single adults do not turn the rule off.</summary>
     private void StartContinuityRule() =>

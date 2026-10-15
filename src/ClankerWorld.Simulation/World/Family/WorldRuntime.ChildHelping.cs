@@ -6,8 +6,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     // Initial small-load and short-trip limits, independent of adult equipment upgrades.
-    private const int ChildHelpingLoad = 4;
-    private const int ChildHelpingRoute = 8;
 
     private PlacedBuilding? ChildHelpingHouse(string actor, AgentState state) =>
         FamilySystem.ChildHelpingHouse(FamilyChildWorld, actor, state);

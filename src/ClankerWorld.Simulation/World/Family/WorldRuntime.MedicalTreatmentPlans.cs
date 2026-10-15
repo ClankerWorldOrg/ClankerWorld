@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MedicalSupplyFailure = "Bring usable, unreserved medicine; another household's stock requires an agreed purchase.";
+    private const string MedicalSupplyFailure = FamilySystem.MedicalSupplyFailure;
 
     private ActionCheck CheckMedicalTreatmentTarget(string caregiver, string patient, int minimumIllness) =>
         FamilySystem.CheckMedicalTreatmentTarget(FamilyMedicalWorld, caregiver, patient, minimumIllness);
