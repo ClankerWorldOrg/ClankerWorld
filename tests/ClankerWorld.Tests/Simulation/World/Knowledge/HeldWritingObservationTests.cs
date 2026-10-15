@@ -58,8 +58,11 @@ public sealed partial class OrchardObservationTests
             Assert.True(decision.Admission.Accepted);
             Assert.False(decision.Admission.FellBack);
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, decision.Admission.Intention!.Provider);
+            world.Validate();
+            AssertReload(world.ExportState());
             if (refresh)
             {
+                Assert.NotNull(decision.PlanRefusal);
                 Assert.Equal(ActionRefusalReason.TargetUnavailable, decision.PlanRefusal!.Reason);
                 Assert.Empty(world.Knowledge.WritingProjects);
                 Assert.Equal(1, world.Society.Inventory.GetLot("orchard-record-paper").Quantity);
@@ -69,8 +72,6 @@ public sealed partial class OrchardObservationTests
                 Assert.Null(decision.PlanRefusal);
                 Assert.Equal(plan.Facts, Assert.Single(world.Knowledge.WritingProjects).Facts);
             }
-            world.Validate();
-            AssertReload(world.ExportState());
         }
         finally { provider.Release.TrySetResult(true); }
     }
