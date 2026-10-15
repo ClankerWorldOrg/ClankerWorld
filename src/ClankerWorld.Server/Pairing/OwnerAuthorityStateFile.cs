@@ -31,8 +31,8 @@ public sealed class OwnerAuthorityStateFile
 
     /// <summary>
     /// The server authority ID this file already holds, or a new random one for
-    /// a server that has none yet. Pairing replies name it, so it carries
-    /// nothing about the computer, and it stays the same across restarts.
+    /// a server that has none yet. New IDs carry nothing about the computer;
+    /// stored IDs stay unchanged across restarts so existing pairings remain valid.
     /// </summary>
     public string StoredOrNewServerAuthorityId()
     {
