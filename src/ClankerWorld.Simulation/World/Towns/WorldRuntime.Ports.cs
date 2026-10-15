@@ -5,24 +5,18 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private BoatTransportState boatTransport = BoatTransportState.Empty();
+    private BoatTransportState boatTransport => transportSystem.Boats;
     public IReadOnlyList<BoatState> Boats => boatTransport.Boats;
     public IReadOnlyList<BoatTripRequest> BoatRequests => boatTransport.Requests;
 
-    private PlacedBuilding? Port(string id) => worldSimulation.Buildings.FirstOrDefault(building =>
-        building.InstanceId == id && worldContent.Buildings.Any(definition =>
-            definition.CanonicalId == building.DefinitionId && PortNavigationRules.IsPort(definition)));
+    private PlacedBuilding? Port(string id) =>
+        TransportSystem.Port(BoatWorld, id);
 
-    private PortGeometry PortGeometryFor(PlacedBuilding port) => PortNavigationRules.Geometry(map,
-        worldContent.Buildings.Single(definition => definition.CanonicalId == port.DefinitionId), port.Position);
+    private PortGeometry PortGeometryFor(PlacedBuilding port) =>
+        TransportSystem.PortGeometryFor(BoatWorld, port);
 
-    private HashSet<GridPoint> PortObstacles(string? exceptProjectId = null, string? exceptPortId = null, bool protectDocks = false)
-    {
-        var ground = Ground;
-        return GroundOccupancy.Combine(ground.Resources, ground.MapObjects, ground.Fields, ground.RoadsAndBridgeEntrances,
-            protectDocks ? ground.ProtectedBuildingTiles(exceptPortId) : ground.BuildingFootprintsExcept(exceptPortId),
-            ground.ExpansionSites, ground.ProtectedProjectSites(exceptProjectId));
-    }
+    private HashSet<GridPoint> PortObstacles(string? exceptProjectId = null, string? exceptPortId = null, bool protectDocks = false) =>
+        TransportSystem.PortObstacles(BoatWorld, exceptProjectId, exceptPortId, protectDocks);
 
     private sealed record PortProjectSiteWorld(HashSet<GridPoint> Common,
         IReadOnlyDictionary<string, HashSet<GridPoint>> BuildingTiles, HashSet<GridPoint> Occupied)
@@ -96,14 +90,13 @@ public sealed partial class WorldRuntime
     }
 
     private IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null) =>
-        PortGeometryFor(port).DockingTiles.Where(dock => !boatTransport.Boats.Any(boat => boat.Id != exceptBoatId &&
-            (boat.Position == dock || boat.Journey?.ReservedDock == dock)));
+        TransportSystem.FreePortDocks(BoatWorld, port, exceptBoatId);
 
     private GridPoint? FreePortDock(PlacedBuilding port, string? exceptBoatId = null) =>
-        FreePortDocks(port, exceptBoatId).Cast<GridPoint?>().FirstOrDefault();
+        TransportSystem.FreePortDock(BoatWorld, port, exceptBoatId);
 
     private bool HasCommunalBoatPort(string townId) =>
-        worldSimulation.Buildings.Any(building => building.TownId == townId && Port(building.InstanceId) is not null);
+        TransportSystem.HasCommunalBoatPort(BoatWorld, townId);
 
     private void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
@@ -160,24 +153,8 @@ public sealed partial class WorldRuntime
     private static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) =>
         new(name, port.DefinitionId, port.Position, port.Entrance!.Value, PortContent.BoatCosts) { BoatPortId = port.InstanceId };
 
-    private void CompletePaidBoatProject(string townId, TownProject project)
-    {
-        var port = Port(project.Plan.BoatPortId!)!;
-        var dock = FreePortDock(port) ?? throw new InvalidOperationException("The completed boat has no reserved launch space.");
-        var id = TownProjectRules.BuildingId(project.Id);
-        SetBoat(new(id, townId, project.Id, dock, port.InstanceId));
-        SetTownProject(townId, project with
-        {
-            Stage = "completed",
-            CompletedBoatId = id,
-            Blocker = null,
-            LastTransitionTick = WorldTick,
-        });
-        AppendEvent("communal_boat_launched", $"{townId}:{id}:{port.InstanceId}:{project.Plan.Name}", dock);
-    }
+    private void CompletePaidBoatProject(string townId, TownProject project) =>
+        TransportSystem.CompletePaidBoatProject(BoatWorld, townId, project);
 
-    private void SetBoat(BoatState boat) => boatTransport = boatTransport with
-    {
-        Boats = boatTransport.Boats.Where(item => item.Id != boat.Id).Append(boat).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-    };
+    private void SetBoat(BoatState boat) => transportSystem.RecordBoat(boat);
 }
