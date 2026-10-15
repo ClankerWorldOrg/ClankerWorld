@@ -131,13 +131,7 @@ internal sealed partial class ProductionSystem
     internal static void ValidateLocalState(ProductionState state)
     {
         ValidateJobs(state.Jobs, state.NextSequence, state.CropBuilds);
-        if (state.Requests.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count() != state.Requests.Count)
-            throw new InvalidDataException("Production requests have duplicate identities.");
-        foreach (var request in state.Requests)
-            if (!Enum.IsDefined(request.Status) || request.RequestedTick < 0 || request.LastTransitionTick < request.RequestedTick ||
-                (request.AcceptedTick is not null) != (request.WorkerId is not null) ||
-                request.AcceptedTick is { } accepted && (accepted < request.RequestedTick || accepted > request.LastTransitionTick))
-                throw new InvalidDataException("Production request has an invalid local state.");
+        ValidateLocalRequests(state.Requests, enforceRetention: false);
     }
     internal static void ValidateJobs(IReadOnlyList<WorldProductionJob> jobs, long nextSequence, IReadOnlyList<WorldProductionJob>? cropBuilds)
     {

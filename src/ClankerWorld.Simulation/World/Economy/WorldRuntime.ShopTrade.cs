@@ -209,6 +209,6 @@ public sealed partial class WorldRuntime
     private static bool ShopItemKind(string? text) => text is { Length: > 0 } &&
         text == text.Trim() && !text.Any(char.IsControl);
 
-    private static bool BoundedShopText(string? text, int limit) => text is { Length: > 0 } &&
+    internal static bool BoundedShopText(string? text, int limit) => text is { Length: > 0 } &&
         text.Length <= limit && text == text.Trim() && !text.Any(char.IsControl);
 }
