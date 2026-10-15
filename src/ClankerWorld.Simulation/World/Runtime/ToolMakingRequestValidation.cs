@@ -10,16 +10,8 @@ public sealed partial class WorldRuntime
         WorldContentSimulationState simulation, DeclarativeWorldContentState content, SocietyCheckpoint societyState,
         IEnumerable<AgentState> people, IReadOnlyList<ShopTradeState> trades, long worldTick)
     {
-        if (requests is null || requests.Any(request => request is null) || requests.Count >
-                ToolMakingRequestRules.MaximumActiveRequests + ToolMakingRequestRules.MaximumTerminalRequests ||
-            requests.Count(request => !ToolMakingRequestRules.IsTerminal(request.Status)) > ToolMakingRequestRules.MaximumActiveRequests ||
-            requests.Count(request => ToolMakingRequestRules.IsTerminal(request.Status)) > ToolMakingRequestRules.MaximumTerminalRequests ||
-            !requests.Select(request => request.Id).SequenceEqual(requests.Select(request => request.Id)
-                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)) ||
-            requests.Where(request => !ToolMakingRequestRules.IsTerminal(request.Status)).GroupBy(request => request.RequesterId)
-                .Any(group => group.Count() > 1) || requests.Where(request => request.JobId is not null).GroupBy(request => request.JobId)
-                .Any(group => group.Count() > 1) || requests.Where(request => request.OfferId is not null).GroupBy(request => request.OfferId)
-                .Any(group => group.Count() > 1))
+        ProductionSystem.ValidateLocalRequests(requests, enforceRetention: true);
+        if (!requests.Select(request => request.Id).SequenceEqual(requests.Select(request => request.Id).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("Tool requests are missing, unbounded or duplicated.");
         var physical = people.ToDictionary(person => person.AgentId, StringComparer.Ordinal);
         foreach (var request in requests)
@@ -28,22 +20,10 @@ public sealed partial class WorldRuntime
             var recipe = content.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId);
             var building = simulation.Buildings.FirstOrDefault(building => building.InstanceId == request.BuildingInstanceId);
             var accepted = request.AcceptedTick is not null;
-            if (!Enum.IsDefined(request.Status) || !BoundedShopText(request.Id, 128) ||
-                !request.Id.StartsWith("tool-making-request:", StringComparison.Ordinal) ||
-                request.Id != ToolMakingRequestId(request.RequesterId, request.BuildingInstanceId, request.RecipeId, request.RequestedTick) ||
-                !BoundedShopText(request.BuildingInstanceId, 256) || !IsToolRequestRecipeId(request.RecipeId) ||
-                ToolProgressionRules.Find(request.ItemKind) is null || request.RequestedTick < 0 ||
-                request.LastTransitionTick < request.RequestedTick || request.LastTransitionTick > worldTick ||
-                request.AcceptedTick is { } acceptedTick && (acceptedTick < request.RequestedTick || acceptedTick > request.LastTransitionTick) ||
+            if (request.LastTransitionTick > worldTick ||
                 !societyState.Agents.Any(person => person.Id == request.RequesterId) ||
                 !societyState.Households.Any(household => household.Id == request.SellerHouseholdId) ||
-                request.Blocker is not null && !BoundedShopText(request.Blocker, 160) ||
-                accepted != (request.WorkerId is not null) || request.WorkerId is { } worker &&
-                    !societyState.Agents.Any(person => person.Id == worker) ||
-                request.Status is ToolMakingRequestStatus.Requested or ToolMakingRequestStatus.Refused &&
-                    (accepted || request.JobId is not null || request.OfferId is not null) ||
-                request.Status is ToolMakingRequestStatus.Accepted or ToolMakingRequestStatus.Ready or
-                    ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled && !accepted ||
+                request.WorkerId is { } worker && !societyState.Agents.Any(person => person.Id == worker) ||
                 !terminal && (building is null || building.HouseholdId != request.SellerHouseholdId ||
                     recipe is null || recipe.WorkstationBuildingId != building.DefinitionId || !ToolMakingRequestRules.IsToolRecipe(recipe) ||
                     !content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
@@ -109,8 +89,7 @@ public sealed partial class WorldRuntime
 
     // Canonical content local names have no length cap. Keep the full identity
     // even in withdrawn history whose no-job recipe package has been rolled back.
-    private static bool IsToolRequestRecipeId(string? id) => !string.IsNullOrWhiteSpace(id) &&
-        id == id.Trim() && !id.Any(char.IsControl);
+    private static bool IsToolRequestRecipeId(string? id) => ProductionSystem.IsToolRequestRecipeId(id);
 
     private static bool HasCompleteToolMakingInputs(WorldProductionJob job, RecipeDefinition? recipe, InventoryCheckpoint inventory)
     {
