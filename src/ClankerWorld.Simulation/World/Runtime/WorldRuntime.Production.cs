@@ -161,58 +161,10 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private bool TryFindRecipeSite(
-        RecipeDefinition recipe,
-        out string siteId,
-        out GridPoint position,
-        string? actorId = null)
-    {
-        if (recipe.WorkstationBuildingId is null)
-        {
-            siteId = string.Empty;
-            position = default;
-            return false;
-        }
+    private bool TryFindRecipeSite(RecipeDefinition recipe, out string siteId, out GridPoint position, string? actorId = null) =>
+        productionSystem.TryFindRecipeSite(RecipeWorld, recipe, out siteId, out position, actorId);
 
-        var productionOrder = actorId is null ? null : PendingInstructionFor(actorId)?.Task;
-        if (productionOrder?.Action != "produce_item" || productionOrder.TargetRecipeId != recipe.CanonicalId)
-            productionOrder = null;
-        foreach (var placed in worldSimulation.Buildings.OrderBy(item => item.InstanceId, StringComparer.Ordinal))
-        {
-            if (productionOrder is not null &&
-                (productionOrder.ProductionBuildingId is { } requiredBuilding && placed.InstanceId != requiredBuilding ||
-                 productionOrder.TargetPosition is { } requestedPosition && placed.Position != requestedPosition))
-                continue;
-            if (placed.DefinitionId != recipe.WorkstationBuildingId ||
-                placed.HouseholdId is not null && (actorId is null ||
-                    placed.HouseholdId != society.Checkpoint.GetAgent(actorId).HouseholdId))
-            {
-                continue;
-            }
-
-            var definition = worldContent.Buildings.Single(item => item.CanonicalId == placed.DefinitionId);
-            // A household building nobody holds is not anyone's to use.
-            if (placed.HouseholdId is null && definition.Tags.Any(IsHouseholdBuildingTag))
-                continue;
-            var activeJobs = worldSimulation.ProductionJobs.Count(item =>
-                item.BuildingInstanceId == placed.InstanceId && item.State is WorldProductionJobState.Running or WorldProductionJobState.Paused);
-            if (activeJobs < definition.Capacity &&
-                (actorId is null || Reach(actorId, placed.Position, ReachPurpose.RecipeProduction, 0, 0, SwimmingPolicy.WhenCapable).Count > 0))
-            {
-                siteId = placed.InstanceId;
-                position = placed.Position;
-                return true;
-            }
-        }
-
-        siteId = string.Empty;
-        position = default;
-        return false;
-    }
-
-    private static bool IsGenericFoodRecipe(RecipeDefinition recipe) =>
-        recipe.Inputs.Any(input => input.ResourceId == "food") &&
-        recipe.Outputs.Any(output => output.ResourceId == "food");
+    private static bool IsGenericFoodRecipe(RecipeDefinition recipe) => ProductionSystem.IsGenericFoodRecipe(recipe);
 
     // Workstation output has no destination vessel; fresh water cannot be a loose lot.
     private static bool HasUnsupportedWaterOutput(RecipeDefinition recipe) =>
@@ -400,27 +352,20 @@ public sealed partial class WorldRuntime
         return current;
     }
 
-    private const string MissingHouseholdIngredientsPrefix = "The household building needs ";
+    private const string MissingHouseholdIngredientsPrefix = ProductionSystem.MissingHouseholdIngredientsPrefix;
 
     private static bool IsIngredientBlocker(string? blocker) =>
         blocker == "Waiting for ingredients at this household building" ||
         blocker?.StartsWith(MissingHouseholdIngredientsPrefix, StringComparison.Ordinal) == true;
 
-    private string MissingProductionIngredients(RecipeDefinition recipe, string owner, string buildingId)
-    {
-        var missing = recipe.Inputs.First(input => !HasIngredientsAtBuilding([input], owner, buildingId));
-        var available = ProductionGoods(society.Checkpoint.Inventory,
-            ProductionGoodsRequest(owner, missing.ResourceId, buildingId)).Sum(match => (long)match.Quantity);
-        return $"{MissingHouseholdIngredientsPrefix}{missing.Amount - available} {missing.ResourceId.Replace('_', ' ')} in its on-site stock. Bring it here before starting work.";
-    }
+    private string MissingProductionIngredients(RecipeDefinition recipe, string owner, string buildingId) =>
+        ProductionSystem.MissingProductionIngredients(RecipeWorld, recipe, owner, buildingId);
 
-    private bool HasIngredientsAtBuilding(IReadOnlyList<ContentQuantity> inputs,
-        string ownerId, string buildingId) => inputs.All(input =>
-        ProductionGoods(society.Checkpoint.Inventory, ProductionGoodsRequest(ownerId, input.ResourceId, buildingId))
-            .Sum(match => (long)match.Quantity) >= input.Amount);
+    private bool HasIngredientsAtBuilding(IReadOnlyList<ContentQuantity> inputs, string ownerId, string buildingId) =>
+        ProductionSystem.HasIngredientsAtBuilding(RecipeWorld, inputs, ownerId, buildingId);
 
     private static GoodsRequest ProductionGoodsRequest(string owner, string kind, string? building = null) =>
-        new(GoodsUse.ConsumeAt, null, GoodsOwners.One(owner), GoodsKinds.One(kind), AtBuilding: building);
+        ProductionSystem.GoodsRequestForRecipe(owner, kind, building);
 
     private IEnumerable<GoodsMatch> ProductionGoods(InventoryCheckpoint inventory, GoodsRequest request,
         bool requireCarried = false) => FindGoods(inventory, request).Matches.Where(match =>

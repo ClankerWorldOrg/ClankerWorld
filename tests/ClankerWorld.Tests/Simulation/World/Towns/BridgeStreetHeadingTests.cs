@@ -257,7 +257,7 @@ public sealed class BridgeStreetHeadingTests
         SetField("map", map);
         SetField("roadTiles", roadTiles);
         SetField("bridges", bridges.Select(bridge => RiverBridgeRules.ToBridge(bridge, BridgeTriggers.Road, 0, "road:test")).ToList());
-        SetField("worldSimulation", WorldContentSimulationState.Empty with { Buildings = [building] });
+        SetField("constructionState", WorldConstructionState.From(WorldContentSimulationState.Empty with { Buildings = [building] }));
         var result = typeof(WorldRuntime).GetMethod("ExtendStreetsPastDoors", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(world, [building, occupied]);
         return Assert.IsType<(List<GridPoint> Tiles, List<RiverCrossing> Crossings)>(result);

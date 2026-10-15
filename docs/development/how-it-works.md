@@ -118,6 +118,11 @@ transfers the production system with the saved state. Local production
 invariants run before mutations publish in tests. Production completion uses
 `IProductionWorld` per call for current content, society, buildings and named
 inventory, learning, order-credit and event operations.
+Recipe planning and checking read `IRecipeWorld`; production admission uses
+`IProductionStartWorld` to reserve the selected inputs and bind the resulting
+job. Local job validation has one implementation in the system, used both
+before test mutations publish and by checkpoint validation. The remaining
+production save checks compare jobs with current recipes, buildings and time.
 
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in

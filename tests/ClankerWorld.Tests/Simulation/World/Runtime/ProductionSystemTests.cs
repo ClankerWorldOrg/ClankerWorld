@@ -4,8 +4,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class ProductionSystemTests
 {
-    private static WorldProductionJob Job(string id = "job:first") =>
-        new(id, "recipe:test", "shop:first", "worker:first", 10, 30, WorldProductionJobState.Running, []) { OwnerId = "household:first" };
+    private static WorldProductionJob Job(string id = "job-first") =>
+        new(id, "recipe:test", "shop-first", "worker:first", 10, 30, WorldProductionJobState.Running, []) { OwnerId = "household:first" };
 
     [Fact]
     public void TakingOverPausedWorkPreservesItsInputsAndRemainingTimeAcrossRestore()
@@ -38,7 +38,7 @@ public sealed class ProductionSystemTests
         system.StartJob(Job());
         var before = system.State;
 
-        var failure = Assert.Throws<InvalidDataException>(() => system.PauseJob("job:first", 9));
+        var failure = Assert.Throws<InvalidDataException>(() => system.PauseJob("job-first", 9));
 
         Assert.Contains("Production job", failure.Message, StringComparison.Ordinal);
         Assert.Same(before, system.State);
@@ -47,11 +47,11 @@ public sealed class ProductionSystemTests
     [Fact]
     public void RetiringRequestsClearsOnlyTheirJobLinksAndKeepsOldSnapshots()
     {
-        var retired = new ToolMakingRequestState("request:first", "customer:first", "household:first", "shop:first", "recipe:test", "knife", 0, 0);
+        var retired = new ToolMakingRequestState("request:first", "customer:first", "household:first", "shop-first", "recipe:test", "knife", 0, 0);
         var kept = retired with { Id = "request:second", RequesterId = "customer:second" };
         var system = new ProductionSystem(WorldContentSimulationState.Empty, [retired, kept]);
         system.StartJob(Job() with { ToolMakingRequestId = retired.Id });
-        system.StartJob(Job("job:second") with { ToolMakingRequestId = kept.Id });
+        system.StartJob(Job("job-second") with { ToolMakingRequestId = kept.Id });
         var before = system.State;
 
         system.RetireRequests(new HashSet<string>(StringComparer.Ordinal) { retired.Id });
@@ -71,7 +71,7 @@ public sealed class ProductionSystemTests
         Assert.Same(WorldContentSimulationState.Empty, system.Snapshot(construction));
         system.StartJob(Job());
         var before = system.Snapshot(construction);
-        var updated = construction with { Buildings = [new("shop:first", "building:test", new(1, 1), 0)] };
+        var updated = construction with { Buildings = [new("shop-first", "building:test", new(1, 1), 0)] };
 
         var snapshot = system.Snapshot(updated);
 

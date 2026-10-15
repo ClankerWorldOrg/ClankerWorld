@@ -64,8 +64,14 @@ internal sealed partial class ProductionSystem
     internal void ResumeJob(string id, long deadline, string? knifeId, string? worker = null) => Commit(State with
     {
         Jobs = State.Jobs.Select(job => job.JobId == id
-            ? job with { WorkerId = worker ?? job.WorkerId, State = WorldProductionJobState.Running,
-                CompletionTick = deadline, PausedAtTick = null, ToolLotId = knifeId } : job).ToArray(),
+            ? job with
+            {
+                WorkerId = worker ?? job.WorkerId,
+                State = WorldProductionJobState.Running,
+                CompletionTick = deadline,
+                PausedAtTick = null,
+                ToolLotId = knifeId
+            } : job).ToArray(),
     });
 
     internal void LeaveHousehold(string actor, IReadOnlySet<string> buildings, IReadOnlySet<string> personalJobs, long tick) => Commit(State with
@@ -122,15 +128,7 @@ internal sealed partial class ProductionSystem
 
     internal static void ValidateLocalState(ProductionState state)
     {
-        if (state.NextSequence <= 0 || state.CropBuilds is { Count: > 0 } ||
-            !state.Jobs.Select(job => job.JobId).SequenceEqual(state.Jobs.Select(job => job.JobId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
-            throw new InvalidDataException("Production state has invalid sequencing or duplicate jobs.");
-        foreach (var job in state.Jobs)
-            if (!Enum.IsDefined(job.State) || string.IsNullOrWhiteSpace(job.WorkerId) || job.StartedTick < 0 ||
-                job.CompletionTick <= job.StartedTick || job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
-                job.State == WorldProductionJobState.Paused && (job.PausedAtTick is not { } paused || paused < job.StartedTick || paused >= job.CompletionTick) ||
-                job.State is not (WorldProductionJobState.Paused or WorldProductionJobState.Cancelled) && job.PausedAtTick is not null)
-                throw new InvalidDataException("Production job has an invalid local state.");
+        ValidateJobs(state.Jobs, state.NextSequence, state.CropBuilds);
         if (state.Requests.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count() != state.Requests.Count)
             throw new InvalidDataException("Production requests have duplicate identities.");
         foreach (var request in state.Requests)
@@ -138,5 +136,28 @@ internal sealed partial class ProductionSystem
                 (request.AcceptedTick is not null) != (request.WorkerId is not null) ||
                 request.AcceptedTick is { } accepted && (accepted < request.RequestedTick || accepted > request.LastTransitionTick))
                 throw new InvalidDataException("Production request has an invalid local state.");
+    }
+    internal static void ValidateJobs(IReadOnlyList<WorldProductionJob> jobs, long nextSequence, IReadOnlyList<WorldProductionJob>? cropBuilds)
+    {
+        if (nextSequence <= 0)
+            throw new InvalidDataException("The next production job sequence must be positive.");
+        if (cropBuilds is { Count: > 0 })
+            throw new InvalidDataException("Crop work must belong to a tilled field.");
+        if (jobs.Any(job => job is null) || !jobs.Select(job => job.JobId).SequenceEqual(
+                jobs.Select(job => job.JobId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
+            throw new InvalidDataException("Production jobs have duplicate identities or are not in canonical order.");
+        foreach (var job in jobs)
+        {
+            ClankerWorld.Simulation.Content.ContentPackageRules.ValidateLocalId(job.JobId);
+            ClankerWorld.Simulation.Content.ContentPackageRules.ValidateLocalId(job.BuildingInstanceId);
+            if (!Enum.IsDefined(job.State) || string.IsNullOrWhiteSpace(job.WorkerId) || job.StartedTick < 0 ||
+                job.OwnerId is { } owner && (string.IsNullOrWhiteSpace(owner) || owner != owner.Trim()) ||
+                job.CompletionTick <= job.StartedTick || job.InputReservationIds is null ||
+                job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
+                job.ToolLotId is { } tool && (string.IsNullOrWhiteSpace(tool) || tool.Any(char.IsControl)) ||
+                job.State == WorldProductionJobState.Paused && (job.PausedAtTick is not { } paused || paused < job.StartedTick || paused >= job.CompletionTick) ||
+                job.State is not (WorldProductionJobState.Paused or WorldProductionJobState.Cancelled) && job.PausedAtTick is not null)
+                throw new InvalidDataException("Production job has an invalid local state.");
+        }
     }
 }
