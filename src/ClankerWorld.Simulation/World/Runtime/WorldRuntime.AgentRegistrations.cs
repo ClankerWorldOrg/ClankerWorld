@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
         RegisterConversationActions(),
         new(ActionPhase.BeforeAge, "TryApplyGuardianPlacementCandidate", [], [], static (runtime, action) =>
     {
-        return runtime.TryApplyGuardianPlacementCandidate(action.AgentId, action.CandidateId);
+        return runtime.TryApplyGuardianPlacementCandidate(action.AgentId, action.CandidateId, action.Plan);
     }),
         new(ActionPhase.BeforeAge, "guardian_end:", ["guardian_end:"], [], static (runtime, action) =>
     {

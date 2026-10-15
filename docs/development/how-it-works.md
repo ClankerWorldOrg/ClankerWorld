@@ -433,6 +433,9 @@ tick, so rebuilding with the same ID requires a fresh choice.
 Practical care retains the dependent, caregiving receipt, position and selected
 serving or food preparation source. Waiting routines use that same plan; native
 feeding, warmth and illness relief remain in their existing writers.
+Guardian travel retains the selected child, accepted caregiver/care revision
+and exact home. Shared checks allow collection and escort phases to progress,
+including infant following, while refusing a changed authority or destination.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

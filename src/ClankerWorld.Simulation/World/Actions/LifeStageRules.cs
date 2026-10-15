@@ -13,7 +13,7 @@ public static class LifeStageRules
 
     public static bool Permits(SocietyAgeBand age, string candidate)
     {
-        if (IsInfant(age)) return false;
+        if (IsInfant(age)) return candidate.StartsWith(GuardianTravelChoice.FollowPrefix, StringComparison.Ordinal);
         if (candidate == "make_room_for_food" && IsChild(age)) return true;
         if (IsAdult(age)) return !candidate.StartsWith("child_", StringComparison.Ordinal);
         return candidate is "safe_idle" or "consume_food" or "drink_milk" or "collect_shared_food" or
@@ -21,6 +21,7 @@ public static class LifeStageRules
             candidate.StartsWith("guardian_accept:", StringComparison.Ordinal) ||
             candidate.StartsWith("guardian_refuse:", StringComparison.Ordinal) ||
             candidate.StartsWith("guardian_end:", StringComparison.Ordinal) ||
+            candidate.StartsWith(GuardianTravelChoice.FollowPrefix, StringComparison.Ordinal) ||
             candidate.StartsWith("child_converse:", StringComparison.Ordinal) ||
             candidate.StartsWith("child_play:", StringComparison.Ordinal) ||
             candidate.StartsWith("child_learn:", StringComparison.Ordinal) ||
