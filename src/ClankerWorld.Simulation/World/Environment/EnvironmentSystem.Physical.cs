@@ -30,15 +30,7 @@ internal sealed partial class EnvironmentSystem
         for (var index = 0; index < profiles.Length; index++)
         {
             var profile = profiles[index];
-            world.AddAgent(
-                profile.Id,
-                new AgentState(
-                    profile.Id,
-                    startingPositions[index],
-                    6_500,
-                    0,
-                    profile.Personality,
-                    profile.Aspiration));
+            world.PhysicalAgents.PlaceStartingAgent(profile.Id, startingPositions[index], profile.Personality, profile.Aspiration);
         }
     }
 
@@ -46,10 +38,7 @@ internal sealed partial class EnvironmentSystem
     {
         foreach (var state in world.Agents.Values.ToArray())
         {
-            world.SetAgent(state.AgentId, state with
-            {
-                FullnessBasisPoints = Math.Max(0, state.FullnessBasisPoints - 4),
-            });
+            world.PhysicalAgents.RecordFullness(state.AgentId, state, Math.Max(0, state.FullnessBasisPoints - 4));
         }
     }
 
@@ -98,18 +87,12 @@ internal sealed partial class EnvironmentSystem
             foreach (var moment in (world.Agents[id].IdentityMoments ?? [])
                          .Where(item => item.Outcome is "waiting" or "requested").ToArray())
                 world.FinishIdentityMoment(id, moment.Kind, "interrupted");
-            world.AddDeceasedAgent(id, new DeceasedAgentState(
+            world.PhysicalAgents.RecordDeath(id, new DeceasedAgentState(
                 id, deathTick, world.Society.AgeAt(deceased, deathTick),
-                world.Agents[id] with
-                {
-                    MedicalTreatment = null,
-                    MedicalSupplyTrip = null,
-                    GuardianPlacement = null,
-                    Equipment = world.Agents[id].Equipment is { } equipment
-                        ? equipment with { OrnamentLotId = null } : null,
-                }, world.TownForResident(id))
+                AgentStore.PrepareForDeath(world.Agents[id], null, null, null, world.Agents[id].Equipment is { } equipment
+                        ? equipment with { OrnamentLotId = null } : null), world.TownForResident(id))
             { BoatIdAtDeath = world.RecordBoatDeath(id) });
-            world.RemoveAgent(id);
+            world.PhysicalAgents.RemovePhysicalPresence(id);
             world.RemoveTownResident(id);
             world.AppendEvent("agent_removed", id);
         }

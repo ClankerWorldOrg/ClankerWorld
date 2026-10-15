@@ -139,8 +139,7 @@ public sealed partial class WorldRuntime
                 });
                 SetBoatRequest(request with { Status = "underway", BoatId = boat.Id });
                 SetBoatOrderTravelStatus(request, "doing", null);
-                agents[request.PassengerId] = agents[request.PassengerId] with
-                { Position = boat.Position, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
+                agentStore.RecordMovement(request.PassengerId, agents[request.PassengerId], boat.Position, 0, 0);
                 AppendEvent("boat_departed", $"{request.PassengerId}:{boat.Id}:{origin.InstanceId}:{destination.InstanceId}", boat.Position);
                 break;
             }
@@ -178,7 +177,7 @@ public sealed partial class WorldRuntime
                 };
                 SetBoat(boat);
                 if (agents.TryGetValue(journey.PassengerId, out var passenger))
-                    agents[journey.PassengerId] = passenger with { Position = next };
+                    agentStore.RecordPosition(journey.PassengerId, passenger, next);
                 boat = MoveBoatGroundCargo(boat);
                 journey = boat.Journey!;
                 if (journey.PathIndex + 1 < journey.WaterPath.Count) continue;
@@ -186,7 +185,7 @@ public sealed partial class WorldRuntime
             var landing = AvailablePortLanding(target, journey.PassengerId);
             if (landing is null) { WaitOrRecoverBoat(boat, tick); continue; }
             if (agents.TryGetValue(journey.PassengerId, out var arriving))
-                agents[journey.PassengerId] = arriving with { Position = landing.Value, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
+                agentStore.RecordMovement(journey.PassengerId, arriving, landing.Value, 0, 0);
             MoveBoatGroundCargo(boat, landing.Value);
             SetBoat(boat with { DockedPortId = target.InstanceId, Journey = null, GroundCargoLotIds = null });
             var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);

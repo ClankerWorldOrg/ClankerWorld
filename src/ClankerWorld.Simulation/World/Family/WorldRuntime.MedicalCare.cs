@@ -63,12 +63,8 @@ public sealed partial class WorldRuntime
         var ids = plan.ResultingCaregivers;
         if (!allowed && person.MedicalTreatment is { } interrupted && interrupted.CaregiverId == caregiver)
             CloseMedicalDose(patient, interrupted);
-        agents[patient] = person with
-        {
-            MedicalConsent = ids.Count == 0 ? null : new(ids),
-            MedicalTreatment = !allowed && person.MedicalTreatment?.CaregiverId == caregiver
-                ? null : person.MedicalTreatment,
-        };
+        agentStore.RecordMedicalConsent(patient, person, ids.Count == 0 ? null : new(ids), !allowed && person.MedicalTreatment?.CaregiverId == caregiver
+                ? null : person.MedicalTreatment);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(allowed ? "medical_care_allowed" : "medical_care_revoked", $"{patient}:medical_caregiver:{caregiver}");
     }
@@ -101,13 +97,10 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
             MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
-        agents[patient] = person with
-        {
-            MedicalTreatment = new(caregiver, supply.Id, supply.OwnerId, id, kind, WorldTick, WorldTick,
-                MedicalCareRules.TreatmentTicks),
-        };
+        agentStore.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, id, kind, WorldTick, WorldTick,
+                MedicalCareRules.TreatmentTicks));
         if (agents[caregiver].MedicalSupplyTrip?.PatientId == patient)
-            agents[caregiver] = agents[caregiver] with { MedicalSupplyTrip = null };
+            agentStore.RecordMedicalSupplyTrip(caregiver, agents[caregiver], null);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("medical_treatment_started", $"{patient}:medicine:{caregiver}:{supply.Id}");
         return new(true);
@@ -142,7 +135,7 @@ public sealed partial class WorldRuntime
                 !LivingMedicalAdult(treatment.CaregiverId) || !HasMedicalPermission(treatment.CaregiverId, person.AgentId))
             {
                 CloseMedicalDose(person.AgentId, treatment);
-                agents[person.AgentId] = person with { MedicalTreatment = null };
+                agentStore.RecordMedicalTreatment(person.AgentId, person, null);
                 AppendEvent("medical_treatment_interrupted", person.AgentId);
                 continue;
             }
@@ -150,16 +143,12 @@ public sealed partial class WorldRuntime
             var survival = person.Survival ?? new();
             var remaining = treatment.RemainingTicks - 1;
             if (remaining == 0) CloseMedicalDose(person.AgentId, treatment);
-            agents[person.AgentId] = person with
+            agentStore.RecordMedicalRecovery(person.AgentId, person, survival with
             {
-                Survival = survival with
-                {
-                    IllnessBasisPoints = Math.Max(0,
+                IllnessBasisPoints = Math.Max(0,
                     survival.IllnessBasisPoints - MedicalCareRules.MedicineIllnessPerTick)
-                },
-                MedicalTreatment = remaining == 0 ? null : treatment with
-                { LastProcessedTick = WorldTick, RemainingTicks = remaining },
-            };
+            }, remaining == 0 ? null : treatment with
+            { LastProcessedTick = WorldTick, RemainingTicks = remaining });
             if (remaining == 0) AppendEvent("medical_treatment_completed", person.AgentId);
         }
     }
@@ -185,7 +174,7 @@ public sealed partial class WorldRuntime
                 observed && !ObservableMedicalNeeds(person.AgentId).Contains(trip.PatientId, StringComparer.Ordinal) ||
                 !observed && HasCarriedOwnItem(person.AgentId, "medicine") &&
                 IsWithinInteractionRange(person.Position, trip.LastSeenPosition, ResourceInteractionRange))
-                agents[person.AgentId] = person with { MedicalSupplyTrip = null };
+                agentStore.RecordMedicalSupplyTrip(person.AgentId, person, null);
         }
     }
 
@@ -223,8 +212,7 @@ public sealed partial class WorldRuntime
     private void BeginMedicalSupplyTrip(MedicalSupplyActionPlan plan)
     {
         if (plan.OriginalTrip is null)
-            agents[plan.Actor] = agents[plan.Actor] with
-            { MedicalSupplyTrip = new(plan.PatientId, plan.LastSeenPosition, WorldTick) };
+            agentStore.RecordMedicalSupplyTrip(plan.Actor, agents[plan.Actor], new(plan.PatientId, plan.LastSeenPosition, WorldTick));
     }
 
     public string? MedicalCareNote(string actor)

@@ -38,15 +38,13 @@ public sealed class ActionRefusalTests
                 prepares++;
                 // Controlled defect: actual movement creates an invalid work plan.
                 // The ordinary checkpoint codec, rather than a fake failure, rejects it.
-                var physical = (Dictionary<string, AgentState>)typeof(WorldRuntime)
-                    .GetField("agents", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                var physical = (AgentStore)typeof(WorldRuntime)
+                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
                 foreach (var culprit in baseline.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal)
                     .Take(multipleFaults ? 2 : 1))
-                    if (globalFault || physical[culprit.AgentId].Position != culprit.Position)
-                        physical[culprit.AgentId] = physical[culprit.AgentId] with
-                        {
-                            Project = new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid"),
-                        };
+                    if (globalFault || physical.Living[culprit.AgentId].Position != culprit.Position)
+                        physical.RecordProject(culprit.AgentId, physical.Living[culprit.AgentId],
+                            new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid"));
                 var write = file.PrepareSave(proposed);
                 return () => { writes++; write(); };
             }
@@ -216,11 +214,11 @@ public sealed class ActionRefusalTests
             var writes = 0;
             var result = await world.AdvanceOneTickWithCheckpointAsync(proposed =>
             {
-                var people = (Dictionary<string, AgentState>)typeof(WorldRuntime)
-                    .GetField("agents", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
-                if (people[actor.AgentId].Position != actor.Position)
-                    people[actor.AgentId] = people[actor.AgentId] with
-                    { Project = new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid") };
+                var people = (AgentStore)typeof(WorldRuntime)
+                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                if (people.Living[actor.AgentId].Position != actor.Position)
+                    people.RecordProject(actor.AgentId, people.Living[actor.AgentId],
+                        new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid"));
                 var write = file.PrepareSave(proposed);
                 return () => { writes++; write(); };
             }, failurePolicy: WorldTickFailurePolicy.RefuseSingleAction);

@@ -306,8 +306,7 @@ public sealed partial class WorldRuntime
             {
                 continue;
             }
-            agents.Add(birth.ChildId, new(birth.ChildId, site.Value, 8_000, 0, "undecided", "find a purpose",
-                Survival: new SurvivalCondition(), IdentityChoicePending: true));
+            agentStore.RecordBirth(birth.ChildId, site.Value);
             var housingBlocker = HousingBlocker(birth.ChildId);
             if (housingBlocker is not null)
             {
@@ -345,17 +344,14 @@ public sealed partial class WorldRuntime
         {
             var serving = society.Checkpoint.Inventory.GetLot(meal.StockId);
             society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, actor, serving.Id, 1));
-            child = child with { FullnessBasisPoints = Math.Min(10_000, child.FullnessBasisPoints + FoodNourishment(serving.ItemKind)), Survival = AfterMeal(child, serving) };
+            child = AgentStore.PrepareMeal(child, Math.Min(10_000, child.FullnessBasisPoints + FoodNourishment(serving.ItemKind)), AfterMeal(child, serving));
         }
-        child = child with
+        child = AgentStore.PrepareSurvival(child, (child.Survival ?? new SurvivalCondition()) with
         {
-            Survival = (child.Survival ?? new SurvivalCondition()) with
-            {
-                WarmthBasisPoints = Math.Min(10_000, (child.Survival?.WarmthBasisPoints ?? 10_000) + 1_000),
-                IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - IllnessCareReliefBasisPoints),
-            }
-        };
-        agents[childId] = child;
+            WarmthBasisPoints = Math.Min(10_000, (child.Survival?.WarmthBasisPoints ?? 10_000) + 1_000),
+            IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - IllnessCareReliefBasisPoints),
+        });
+        agentStore.CompleteDependentCare(childId, child);
         AppendEvent("child_cared_for", childId);
     }
 
@@ -366,7 +362,7 @@ public sealed partial class WorldRuntime
             plan = plan with { LastTransitionTick = WorldTick };
             AppendEvent("parenthood_" + plan.Stage, owner);
         }
-        agents[owner] = agents[owner] with { Parenthood = plan };
+        agentStore.RecordParenthood(owner, agents[owner], plan);
     }
 
     private static void ValidateParenthood(WorldRuntimeState state)

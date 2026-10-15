@@ -92,17 +92,9 @@ internal static partial class AgentKnowledgeRules
             knowledge.Artifacts.Any(item => !ValidText(item.Id, DerivedId.MaximumLength) || item.Facts is null || item.Facts.Any(fact => fact is null) || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)))
             throw new InvalidDataException("The agent knowledge collections are missing or contain null records.");
         var agents = society.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        if (knowledge.Facts.Count > checked(agents.Count * MaximumFactsPerAgent) ||
-            knowledge.Artifacts.Count > MaximumArtifactsInWorld || knowledge.WritingProjects.Count > agents.Count ||
-            knowledge.Facts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Facts.Count ||
-            knowledge.Facts.Select(item => (item.OwnerId, item.Position)).Distinct().Count() != knowledge.Facts.Count ||
-            knowledge.Artifacts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Artifacts.Count ||
-            knowledge.Artifacts.Select(item => item.LotId).Distinct(StringComparer.Ordinal).Count() != knowledge.Artifacts.Count ||
-            knowledge.WritingProjects.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.WritingProjects.Count ||
-            knowledge.WritingProjects.Select(item => item.ActorId).Distinct(StringComparer.Ordinal).Count() != knowledge.WritingProjects.Count ||
-            knowledge.Facts.GroupBy(item => item.OwnerId).Any(group => group.Count() > MaximumFactsPerAgent) ||
-            knowledge.Artifacts.GroupBy(item => item.CreatorId).Any(group => group.Count() > MaximumArtifactsPerCreator))
-            throw new InvalidDataException("Agent knowledge exceeds its bounded ledger or has duplicate identities.");
+        CommunitySystem.ValidateLocalKnowledge(knowledge);
+        if (knowledge.Facts.Count > checked(agents.Count * MaximumFactsPerAgent) || knowledge.WritingProjects.Count > agents.Count)
+            throw new InvalidDataException("Agent knowledge exceeds the current population bounds.");
         var artifacts = knowledge.Artifacts.ToDictionary(item => item.Id, StringComparer.Ordinal);
         foreach (var fact in knowledge.Facts)
             if (!ValidFact(fact, worldTick))
@@ -229,11 +221,10 @@ internal static partial class AgentKnowledgeRules
     internal static bool ReferencesFact(WorldKnowledgeState knowledge, AgentKnowledgeFact fact) =>
         FactReferencesFor(knowledge).Contains(fact);
 
-    internal static WorldKnowledgeState PruneEarlierFacts(WorldKnowledgeState knowledge)
-    {
-        var references = FactReferencesFor(knowledge);
-        return knowledge with { EarlierFacts = knowledge.EarlierFacts.Where(references.Contains).ToArray() };
-    }
+    internal static WorldKnowledgeState PruneEarlierFacts(WorldKnowledgeState knowledge) => CommunitySystem.PruneEarlierFacts(knowledge);
+
+    internal static IEnumerable<AgentKnowledgeFact> RetainedEarlierFacts(WorldKnowledgeState knowledge) =>
+        knowledge.EarlierFacts.Where(FactReferencesFor(knowledge).Contains);
 
     private sealed record FactVersion(string Id, string Owner, string Discoverer, GridPoint Position, string Terrain,
         long Learned, string Acquisition, string? Agent, string? Artifact, string Resources);

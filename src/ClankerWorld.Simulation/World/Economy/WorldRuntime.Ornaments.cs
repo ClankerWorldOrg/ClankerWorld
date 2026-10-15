@@ -174,14 +174,13 @@ public sealed partial class WorldRuntime
                     equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
                     inventory = InventoryAuthority.SplitLot(inventory, lot.Id, 1, equippedId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 }
-                agents[actor] = person with
-                { Equipment = (previous ?? new PersonalEquipment()) with { OrnamentLotId = equippedId } };
+                agentStore.RecordEquipment(actor, person, (previous ?? new PersonalEquipment()) with { OrnamentLotId = equippedId });
                 return inventory;
             });
         }
         catch
         {
-            agents[actor] = person;
+            agentStore.RestoreEquipmentAfterFailure(actor, person);
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
@@ -206,7 +205,7 @@ public sealed partial class WorldRuntime
     private OrnamentChangeResult CompleteOrnamentRemoval(string actor, string id)
     {
         var person = agents[actor];
-        agents[actor] = person with { Equipment = person.Equipment! with { OrnamentLotId = null } };
+        agentStore.RecordEquipment(actor, person, person.Equipment! with { OrnamentLotId = null });
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("ornament_removed", $"{actor}:ornament:{id}");
         return new(true, id);
@@ -242,13 +241,13 @@ public sealed partial class WorldRuntime
             {
                 var updated = InventoryAuthority.Transfer(inventory, operation, actor, recipientId, lot.Id, 1, "ornament_given", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 if (person.Equipment?.OrnamentLotId == lot.Id)
-                    agents[actor] = person with { Equipment = person.Equipment with { OrnamentLotId = null } };
+                    agentStore.RecordEquipment(actor, person, person.Equipment with { OrnamentLotId = null });
                 return updated;
             });
         }
         catch
         {
-            agents[actor] = person;
+            agentStore.RestoreEquipmentAfterFailure(actor, person);
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;

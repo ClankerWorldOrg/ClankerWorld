@@ -130,10 +130,7 @@ public sealed partial class WorldRuntime
                 equippedId = EquippedUnitId(WorldTick, actor, item.Id);
                 inventory = InventoryAuthority.SplitLot(inventory, item.Id, 1, equippedId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
             }
-            agents[actor] = agents[actor] with
-            {
-                Equipment = carryAid ? equipment with { CarryAidLotId = equippedId } : equipment with { ClothingLotId = equippedId },
-            };
+            agentStore.RecordEquipment(actor, agents[actor], carryAid ? equipment with { CarryAidLotId = equippedId } : equipment with { ClothingLotId = equippedId });
             return inventory;
         }
         try
@@ -142,7 +139,7 @@ public sealed partial class WorldRuntime
         }
         catch
         {
-            agents[actor] = agents[actor] with { Equipment = previous };
+            agentStore.RecordEquipment(actor, agents[actor], previous);
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
@@ -196,11 +193,8 @@ public sealed partial class WorldRuntime
             }
             return inventory;
         });
-        agents[actor] = agents[actor] with
-        {
-            Equipment = (person.Equipment ?? new PersonalEquipment()) with
-            { Repair = new(targetId, buildingId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
-        };
+        agentStore.RecordEquipment(actor, agents[actor], (person.Equipment ?? new PersonalEquipment()) with
+        { Repair = new(targetId, buildingId, WorldTick, 0, ids.ToArray(), orderInstructionId) });
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("equipment_repair_started", $"{actor}|{targetId}|{buildingId}");
     }
@@ -225,11 +219,11 @@ public sealed partial class WorldRuntime
         var progress = repair.WorkDone + 1;
         if (progress < SkilledWorkTicks(actor, SkillKind.Crafting, PersonalEquipmentRules.RepairWorkTicks))
         {
-            agents[actor] = person with { Equipment = person.Equipment with { Repair = repair with { WorkDone = progress } } };
+            agentStore.RecordEquipment(actor, person, person.Equipment with { Repair = repair with { WorkDone = progress } });
             return null;
         }
         ApplyInventoryTransition(inventory => InventoryAuthority.RepairSingleUnit(inventory, repair.LotId, 6_000, repair.MaterialReservationIds, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        agents[actor] = agents[actor] with { Equipment = person.Equipment with { Repair = null } };
+        agentStore.RecordEquipment(actor, agents[actor], person.Equipment with { Repair = null });
         GainSkill(actor, SkillKind.Crafting);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
@@ -248,7 +242,7 @@ public sealed partial class WorldRuntime
             return inventory;
         });
         var person = agents[actor];
-        agents[actor] = person with { Equipment = person.Equipment! with { Repair = null } };
+        agentStore.RecordEquipment(actor, person, person.Equipment! with { Repair = null });
         AppendEvent("equipment_repair_interrupted", $"{actor}|{repair.LotId}");
     }
 

@@ -231,10 +231,7 @@ public sealed partial class WorldRuntime
                 }
                 if (observerGuidance.Length > 0)
                     checkpointSchemaVersion = StateSchemaVersion;
-                agents[agent.Id] = agents[agent.Id] with
-                {
-                    LastDecisionContext = DecisionContext(physical, candidates, conversationChoiceContext),
-                };
+                agentStore.RecordDecisionContext(agent.Id, agents[agent.Id], DecisionContext(physical, candidates, conversationChoiceContext));
             }
         }
     }

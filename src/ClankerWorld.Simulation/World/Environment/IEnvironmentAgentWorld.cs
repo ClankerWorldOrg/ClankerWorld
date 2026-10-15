@@ -6,12 +6,9 @@ namespace ClankerWorld.Simulation.World;
 
 internal interface IEnvironmentAgentWorld : IEnvironmentWorld
 {
+    AgentStore PhysicalAgents { get; }
     SocietyCheckpoint Society { get; }
     IReadOnlyDictionary<string, AgentState> Agents { get; }
-    void AddAgent(string id, AgentState state);
-    void SetAgent(string id, AgentState state);
-    void RemoveAgent(string id);
-    void AddDeceasedAgent(string id, DeceasedAgentState state);
     OwnerQueuedInstruction? PendingInstructionFor(string id);
     void CancelConstructionForOrder(OwnerQueuedInstruction instruction);
     void CancelExpansionForOrder(OwnerQueuedInstruction instruction);

@@ -14,6 +14,7 @@ public sealed partial class WorldRuntime
 {
     private sealed partial class CivicWorldAdapter
     {
+        public AgentStore PhysicalAgents => runtime.agentStore;
         public bool HasCommunalBoatPort(string townId) => runtime.HasCommunalBoatPort(townId);
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
         public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
@@ -169,9 +170,6 @@ public sealed partial class WorldRuntime
         public ContentRegistryState ContentState => runtime.contentRegistry.ExportState();
         public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation) => runtime.society.Apply(operation);
         public void ResumeSociety() => runtime.society.Resume();
-        public void AddAgent(string id, AgentState person) => runtime.agents.Add(id, person);
-        public void SetAgent(string id, AgentState person) => runtime.agents[id] = person;
-        public void RemoveAgent(string id) => runtime.agents.Remove(id);
     }
     internal static class CivicSharedRules
     {

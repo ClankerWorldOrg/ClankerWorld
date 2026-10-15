@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
             var added = kinds.Where(kind => !existing.Any(moment => moment.Kind == kind))
                 .Select(kind => new AgentIdentityMoment(kind, WorldTick)).ToArray();
             if (added.Length == 0) continue;
-            agents[person.Id] = physical with { IdentityMoments = existing.Concat(added).ToArray() };
+            agentStore.RecordIdentityMoments(person.Id, physical, existing.Concat(added).ToArray());
             checkpointSchemaVersion = StateSchemaVersion;
         }
     }
@@ -166,12 +166,7 @@ public sealed partial class WorldRuntime
             if (personality == physical.Personality) personality = null;
             if (aspiration == physical.Aspiration) aspiration = null;
             var accepted = personality is not null || aspiration is not null;
-            agents[id] = physical with
-            {
-                Personality = personality ?? physical.Personality,
-                Aspiration = aspiration ?? physical.Aspiration,
-                LastDecisionContext = accepted ? null : physical.LastDecisionContext,
-            };
+            agentStore.FinishIdentityMoment(id, physical, personality ?? physical.Personality, aspiration ?? physical.Aspiration, accepted ? null : physical.LastDecisionContext);
             FinishIdentityMoment(id, pending.Kind, accepted ? "accepted" : "kept", personality, aspiration);
         }
     }
@@ -204,10 +199,7 @@ public sealed partial class WorldRuntime
     private void SetIdentityMoment(string id, AgentIdentityMoment moment)
     {
         var physical = agents[id];
-        agents[id] = physical with
-        {
-            IdentityMoments = (physical.IdentityMoments ?? []).Select(item => item.Kind == moment.Kind ? moment : item).ToArray(),
-        };
+        agentStore.RecordIdentityMoments(id, physical, (physical.IdentityMoments ?? []).Select(item => item.Kind == moment.Kind ? moment : item).ToArray());
         checkpointSchemaVersion = StateSchemaVersion;
     }
 

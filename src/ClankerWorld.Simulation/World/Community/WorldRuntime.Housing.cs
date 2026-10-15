@@ -55,7 +55,7 @@ public static class HousingBlockers
 public sealed partial class WorldRuntime
 {
     private const int HousingSchemaVersion = 32;
-    public const int HousingRequestTicks = 120;
+    public const int HousingRequestTicks = CommunitySystem.HousingRequestTicks;
     private const string HousingAskPrefix = "household_ask:";
     private const string HousingAdmitPrefix = "household_admit:";
     private const string HousingRefusePrefix = "household_refuse:";
@@ -183,135 +183,11 @@ public sealed partial class WorldRuntime
         ApplyDepartureCandidate(actor, candidate, originalPlan);
     }
 
-    private void CompleteHousingAction(HousingActionPlan plan)
-    {
-        if (plan.Choice.Kind == HousingChoiceKind.Ask)
-        {
-            SetHousing(plan.Actor, (agents[plan.Actor].Housing ?? new()) with
-            {
-                Request = new(plan.HouseholdId, WorldTick, WorldTick + HousingRequestTicks, plan.AdultMembers, [], []),
-            });
-            AppendEvent("housing_request_made", $"{plan.Actor}:{plan.HouseholdId}");
-            return;
-        }
-        var housing = agents[plan.ApplicantId].Housing!;
-        var request = housing.Request!;
-        SetHousing(plan.ApplicantId, housing with
-        {
-            Request = plan.Choice.Kind == HousingChoiceKind.Admit
-                ? request with { Approvals = request.Approvals.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() }
-                : request with { Rejections = request.Rejections.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() },
-        });
-        AppendEvent("housing_answer_recorded", $"{plan.Actor}:{plan.ApplicantId}");
-        ResolveHousingRequest(plan.ApplicantId);
-    }
-
-    private void MaintainHousing()
-    {
-        foreach (var actor in agents.Keys.Order(StringComparer.Ordinal).ToArray())
-        {
-            ResolveHousingRequest(actor);
-            var housing = agents[actor].Housing;
-            var refusals = housing?.Refusals?.Where(refusal => WorldTick - refusal.Tick < HousingRefusalCooldownTicks).ToArray();
-            var blocker = HousingBlocker(actor);
-            if (housing?.Blocker == blocker && (refusals?.Length ?? 0) == (housing?.Refusals?.Count ?? 0))
-                continue;
-            SetHousing(actor, (housing ?? new()) with { Blocker = blocker, Refusals = refusals });
-            if (blocker is not null && blocker != HousingBlockers.AwaitingAnswer && housing?.Blocker != blocker)
-                AppendEvent("housing_blocked", $"{actor}:{blocker}");
-        }
-    }
-
-    private void ResolveHousingRequest(string actor)
-    {
-        // Care, family or a completed expansion can change between answers,
-        // including earlier in this decision batch. Cancel stale notices first.
-        if (agents.TryGetValue(actor, out var applicant) && applicant.Housing is { Request: not null, Relocation: { } notice })
-            ReconcileRelocation(notice.HouseholdId);
-        if (!agents.TryGetValue(actor, out var state) || state.Housing is not { Request: { } request } housing)
-            return;
-        var living = HouseholdAdults(request.HouseholdId);
-        var members = request.Members.Union(living, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-        if (!request.Members.SequenceEqual(members, StringComparer.Ordinal))
-        {
-            // Existing answers stay recorded, while adults added or grown into
-            // the household must answer before this request can be accepted.
-            request = request with { Members = members };
-            housing = housing with { Request = request };
-            SetHousing(actor, housing);
-        }
-        var current = IsAdult(actor) ? society.Checkpoint.GetAgent(actor).HouseholdId : null;
-        // A member's request ends with their move-out notice: the move is no longer needed.
-        if (!IsAdult(actor) || current is not null && (current == request.HouseholdId || !MayRelocateFromHousehold(actor)) ||
-            HouseForHousehold(request.HouseholdId) is null || living.Length == 0)
-        {
-            EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
-        }
-        else if (WorldTick > request.ExpiryTick)
-        {
-            // Restored answers, or the loss of the last unanswered adult,
-            // cannot grant membership after the request's world-tick deadline.
-            EndHousingRequest(actor, request, "housing_request_expired", remember: true);
-        }
-        else if (request.Rejections.Any(id => living.Contains(id, StringComparer.Ordinal)))
-        {
-            EndHousingRequest(actor, request, "housing_request_refused", remember: true);
-        }
-        else if (living.All(id => request.Approvals.Contains(id, StringComparer.Ordinal)) &&
-            !CanFitCareGroup(request.HouseholdId, actor))
-        {
-            EndHousingRequest(actor, request, "housing_request_blocked_capacity", remember: true);
-        }
-        else if (living.All(id => request.Approvals.Contains(id, StringComparer.Ordinal)))
-        {
-            // A member moves out through the ordinary departure first, so the
-            // allowance, collection right and care group follow the same rules.
-            if (current is not null &&
-                !DepartHousehold(actor, HoldsRelocationNotice(actor) ? "displaced" : "voluntary"))
-            {
-                EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
-                return;
-            }
-            society.Apply(checkpoint => SocietyRules.JoinHouseholdCareGroup(checkpoint, actor, request.HouseholdId));
-            if (society.Checkpoint.GetAgent(actor).HouseholdId != request.HouseholdId)
-            {
-                EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
-                return;
-            }
-            foreach (var id in MovingCareGroup(actor))
-                SetHousing(id, (agents[id].Housing ?? new()) with { Request = null, Refusals = null, Blocker = null });
-            AppendEvent("household_joined", $"{actor}:{request.HouseholdId}");
-        }
-    }
-
-    private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember)
-    {
-        var housing = agents[actor].Housing!;
-        var refusals = (housing.Refusals ?? []).Where(refusal => refusal.HouseholdId != request.HouseholdId);
-        if (remember)
-            refusals = refusals.Append(new HousingRefusal(request.HouseholdId, WorldTick));
-        SetHousing(actor, housing with
-        {
-            Request = null,
-            Refusals = refusals.OrderBy(refusal => refusal.HouseholdId, StringComparer.Ordinal).ToArray(),
-            Blocker = null,
-        });
-        // The blocker is recomputed now, so the owner never sees a stale "waiting" line.
-        SetHousing(actor, (agents[actor].Housing ?? new()) with { Blocker = HousingBlocker(actor) });
-        AppendEvent(eventKind, $"{actor}:{request.HouseholdId}");
-    }
-
-    private void SetHousing(string actor, HousingState housing)
-    {
-        var empty = housing.Request is null && housing.Refusals is not { Count: > 0 } && housing.Blocker is null &&
-            housing.Relocation is null;
-        agents[actor] = agents[actor] with
-        {
-            Housing = empty ? null : housing with { Refusals = housing.Refusals is { Count: > 0 } ? housing.Refusals : null },
-        };
-        if (!empty)
-            checkpointSchemaVersion = StateSchemaVersion;
-    }
+    private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
+    private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
+    private void ResolveHousingRequest(string actor) => CommunitySystem.ResolveHousingRequest(CommunityHousingWorld, actor);
+    private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(CommunityHousingWorld, actor, request, eventKind, remember);
+    private void SetHousing(string actor, HousingState housing) => CommunitySystem.SetHousing(CommunityHousingWorld, actor, housing);
 
     /// <summary>
     /// The resident's current housing need, or null when their household has
