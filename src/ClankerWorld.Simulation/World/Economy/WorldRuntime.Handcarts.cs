@@ -247,7 +247,7 @@ public sealed partial class WorldRuntime
     }
 
     private void CompleteHandcartBuildMaterial(HandcartBuildMaterialActionPlan plan) =>
-        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{WorldTick}:{plan.Actor}",
+        ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, CartBuildMaterialTransferId(WorldTick, plan.Actor),
             plan.Pickup.OwnerId, plan.Actor, plan.Pickup.StockId, plan.Quantity, "handcart_material_collected",
             holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
 

@@ -306,7 +306,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs|id|$\u0022repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs|length|kinds.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022cart-gift:{WorldTick}:{actor}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022cart-material:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022load:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022unload:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseGuests.cs|id|InviteHouseGuestPrefix \u002B guest.AgentId": 1,

@@ -53,6 +53,7 @@ public sealed partial class WorldRuntime
         DerivedId.Create($"project-gratitude:{requester}:{helper}", "project-gratitude:sha256:");
     private static string TrustMemoryId(string owner, string subject) =>
         DerivedId.Create($"trust-memory:{owner}:{subject}", "trust-memory:sha256:");
+    private static string CartBuildMaterialTransferId(long tick, string actor) => DerivedId.Create($"cart-material:{tick}:{actor}");
     private static string CartRepairReservationId(long tick, string actor, string material) => DerivedId.Create($"cart-repair:{tick}:{actor}:{material}");
     private static string NativeCartRepairId(long tick, string actor, string cart) => DerivedId.Create($"repair-handcart:{tick}:{actor}:{cart}");
     private static string FoodPotTransferId(long tick, string actor) => DerivedId.Create($"food-pot:{tick}:{actor}");
