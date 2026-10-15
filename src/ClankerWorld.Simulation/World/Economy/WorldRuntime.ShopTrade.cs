@@ -1,3 +1,4 @@
+using ShopQuote = ClankerWorld.Simulation.World.MarketSystem.ShopQuote;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -7,35 +8,29 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string ShopTradePrefix = "shop-trade:";
-    private List<ShopTradeState> shopTrades = [];
+    private MarketSystem marketSystem => townSystem.Markets;
+    private IReadOnlyList<ShopTradeState> shopTrades => marketSystem.Trades;
 
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
         .OrderBy(trade => trade.OfferId, StringComparer.Ordinal).ToArray();
 
     private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
-        shopTrades.Select(trade => (Trade: trade, Offer: (inventory ?? society.Checkpoint.Inventory).Offers
-                .Single(offer => offer.Id == trade.OfferId)))
-            .Where(pair => pair.Offer.State == DirectBarterState.Open);
+        marketSystem.OpenShopTrades(MarketShopWorld, inventory);
 
-    private int ReservedShopCarrySpace(string actor, InventoryCheckpoint? inventory = null) => OpenShopTrades(inventory)
-        .Where(pair => pair.Trade.BuyerId == actor)
-        .Sum(pair => Math.Max(0, pair.Offer.FirstQuantity - pair.Offer.SecondQuantity));
+    private int ReservedShopCarrySpace(string actor, InventoryCheckpoint? inventory = null) =>
+        marketSystem.ReservedShopCarrySpace(MarketShopWorld, actor, inventory);
 
-    private int ReservedShopStorageSpace(string buildingId, InventoryCheckpoint? inventory = null) => OpenShopTrades(inventory)
-        .Where(pair => pair.Trade.BuildingInstanceId == buildingId)
-        .Sum(pair => Math.Max(0, pair.Offer.SecondQuantity - pair.Offer.FirstQuantity));
+    private int ReservedShopStorageSpace(string buildingId, InventoryCheckpoint? inventory = null) =>
+        marketSystem.ReservedShopStorageSpace(MarketShopWorld, buildingId, inventory);
 
-    private static bool IsLooseShopLot(InventoryLot lot, bool includeGround = false) => lot.ContainerLotId is null &&
-        !InventoryContainerRules.IsContainer(lot.ItemKind) && lot.DeliveryBuildingId is null && (includeGround || lot.GroundPosition is null) &&
-        lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0;
+    private static bool IsLooseShopLot(InventoryLot lot, bool includeGround = false) =>
+        MarketSystem.IsLooseShopLot(lot, includeGround);
 
-    private bool MayRespondAtShop(string actor, ShopTradeState trade) => IsAdult(actor) &&
-        HouseholdFor(actor) == trade.SellerHouseholdId &&
-        worldSimulation.Buildings.Any(building => building.InstanceId == trade.BuildingInstanceId &&
-            building.HouseholdId == trade.SellerHouseholdId && building.Position == trade.Position);
+    private bool MayRespondAtShop(string actor, ShopTradeState trade) =>
+        MarketSystem.MayRespondAtShop(MarketShopPlanningWorld, actor, trade);
 
     private bool ShopBuyerWants(string actor, InventoryLot lot) =>
-        ShopBuyerWantsWithoutRestaurant(actor, lot) || RestaurantInputDemand(actor, lot.ItemKind) > 0;
+        MarketSystem.ShopBuyerWants(MarketShopPlanningWorld, actor, lot);
 
     private int RestaurantInputDemand(string actor, string itemKind, int spentPersonalQuantity = 0)
     {
@@ -129,153 +124,38 @@ public sealed partial class WorldRuntime
     }
 
     private bool ShopPaymentUseful(PlacedBuilding building, InventoryLot payment) =>
-        IsEdibleFood(payment.ItemKind) || worldContent.Recipes.Any(recipe =>
-            recipe.WorkstationBuildingId == building.DefinitionId &&
-            recipe.Inputs.Any(input => input.ResourceId == payment.ItemKind)) ||
-        worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
-            .Tags.Contains("blacksmith", StringComparer.Ordinal) && OrnamentContent.IsOrnament(payment.ItemKind) ||
-        worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
-            .Tags.Contains("store", StringComparer.Ordinal);
+        MarketSystem.ShopPaymentUseful(MarketShopPlanningWorld, building, payment);
 
-    private sealed record ShopQuote(InventoryLot Goods, int GoodsQuantity, InventoryLot Payment, int PaymentQuantity);
 
-    private (int Goods, int Payment) ShopQuoteAmounts(PlacedBuilding building, InventoryLot goods, InventoryLot payment)
-    {
-        // Trial barter terms follow an on-site recipe when the offered payment
-        // is one of its inputs. Fresh Farmhouse produce is offered in pairs.
-        var recipe = worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == building.DefinitionId &&
-                recipe.Outputs.Any(output => output.ResourceId == goods.ItemKind) &&
-                recipe.Inputs.Any(input => input.ResourceId == payment.ItemKind))
-            .OrderBy(recipe => recipe.CanonicalId, StringComparer.Ordinal).FirstOrDefault();
-        return recipe is not null
-            ? (recipe.Outputs.Single(output => output.ResourceId == goods.ItemKind).Amount,
-                recipe.Inputs.Single(input => input.ResourceId == payment.ItemKind).Amount)
-            : (ShopRules.KindOf(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)) == "farmhouse" &&
-                IsEdibleFood(goods.ItemKind) ? 2 : 1, 1);
-    }
+    private (int Goods, int Payment) ShopQuoteAmounts(PlacedBuilding building, InventoryLot goods, InventoryLot payment) =>
+        MarketSystem.ShopQuoteAmounts(MarketShopPlanningWorld, building, goods, payment);
 
-    private bool ShopReceivingSpace(string buyer, PlacedBuilding building, int goods, int payment)
-    {
-        var inventory = society.Checkpoint.Inventory;
-        var equipment = agents[buyer].Equipment;
-        return PersonalEquipmentRules.CarriedQuantity(inventory, buyer, equipment) - payment + goods +
-                ReservedShopCarrySpace(buyer) <= PersonalEquipmentRules.Capacity(inventory, buyer, equipment) + HorseCargoCapacity(buyer) &&
-            payment <= DestinationRoom(inventory, building.InstanceId, outgoingQuantity: goods);
-    }
+    private bool ShopReceivingSpace(string buyer, PlacedBuilding building, int goods, int payment) =>
+        marketSystem.ShopReceivingSpace(MarketShopPlanningWorld, buyer, building, goods, payment);
 
     private static HashSet<string> BestUsableToolIds(InventoryCheckpoint inventory, string actor) =>
-        ToolProgressionRules.All.Select(tool => tool.Family).Distinct()
-            .Select(family => ToolProgressionRules.BestUsableTool(inventory, actor, family)?.Id)
-            .OfType<string>().ToHashSet(StringComparer.Ordinal);
+        MarketSystem.BestUsableToolIds(inventory, actor);
 
-    private IEnumerable<InventoryLot> ShopPaymentLots(string buyer, PlacedBuilding building)
-    {
-        var inventory = society.Checkpoint.Inventory;
-        var protectedToolIds = BestUsableToolIds(inventory, buyer);
-        return SpendingGoods(buyer, GoodsUse.Spend, [buyer], inventory: inventory).Select(match => match.Lot)
-            .Where(lot => PersonalEquipmentRules.IsCarried(lot, buyer) && IsLooseShopLot(lot) &&
-                !protectedToolIds.Contains(lot.Id) && !ShopBuyerWants(buyer, lot) &&
-                ShopPaymentUseful(building, lot) &&
-                !PersonalEquipmentRules.IsSelected(agents[buyer].Equipment, lot.Id) &&
-                !AgentKnowledgeRules.IsArtifactKind(lot.ItemKind));
-    }
+    private IEnumerable<InventoryLot> ShopPaymentLots(string buyer, PlacedBuilding building) =>
+        MarketSystem.ShopPaymentLots(MarketShopPlanningWorld, buyer, building);
 
-    private bool MayVisitShop(string buyer, PlacedBuilding building)
-    {
-        if (!IsAdult(buyer) || NeedsUrgentWarmth(agents[buyer]) ||
-            building.HouseholdId is not { } seller || seller == HouseholdFor(buyer) ||
-            !society.Checkpoint.Households.Any(household => household.Id == seller) ||
-            !agents.Keys.Any(actor => IsAdult(actor) && HouseholdFor(actor) == seller) ||
-            IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) ||
-            society.Checkpoint.Inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
-                (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer))) return false;
-        return true;
-    }
+    private bool MayVisitShop(string buyer, PlacedBuilding building) =>
+        MarketSystem.MayVisitShop(MarketShopPlanningWorld, buyer, building);
 
-    private bool RestaurantIngredientShopTrip(string buyer, PlacedBuilding building)
-    {
-        if (!MayVisitShop(buyer, building) || HouseholdFor(buyer) is not { } householdId) return false;
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) is not { } kind) return false;
-        // A Town shop's location and kind can motivate a visit. Its private
-        // stock and exact terms are inspected only after the buyer arrives.
-        var inputs = worldSimulation.Buildings.Where(site => site.HouseholdId == householdId &&
-                worldContent.Buildings.Any(item => item.CanonicalId == site.DefinitionId &&
-                    item.Tags.Contains("restaurant", StringComparer.Ordinal)))
-            .SelectMany(site => worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == site.DefinitionId)
-                .SelectMany(recipe => recipe.Inputs)).Select(input => input.ResourceId).Distinct(StringComparer.Ordinal);
-        return inputs.Any(itemKind => ShopRules.MaySell(kind, itemKind) && RestaurantInputDemand(buyer, itemKind) > 0) &&
-            ShopPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
-                RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            Reach(buyer, building.Position, ReachPurpose.ShopBuy, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
-    }
+    private bool RestaurantIngredientShopTrip(string buyer, PlacedBuilding building) =>
+        MarketSystem.RestaurantIngredientShopTrip(MarketShopPlanningWorld, buyer, building);
 
-    private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building)
-    {
-        if (!MayVisitShop(buyer, building)) return false;
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) != "restaurant") return false;
-        // The menu describes possible meals, never whether the private shelf
-        // holds them. Exact available goods and payment are checked on site.
-        var mealKinds = worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == building.DefinitionId)
-            .SelectMany(recipe => recipe.Outputs).Select(output => output.ResourceId).Distinct(StringComparer.Ordinal);
-        return mealKinds.Any(kind => ShopRules.MaySell("restaurant", kind) && WantsTradeFoodKind(buyer, kind)) &&
-            ShopPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
-                RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            Reach(buyer, building.Position, ReachPurpose.ShopBuy, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
-    }
+    private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building) =>
+        MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, buyer, building);
 
     private bool ShopQuoteContext(string buyer, PlacedBuilding building) =>
-        ActorCapabilities.Check(CapabilitiesFor(buyer), "shop_buy:",
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true)).Allowed &&
-        building.HouseholdId is { } seller && seller != HouseholdFor(buyer) &&
-        society.Checkpoint.Households.Any(household => household.Id == seller) &&
-        agents.Keys.Any(actor => IsAdult(actor) && HouseholdFor(actor) == seller) &&
-        IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) &&
-        !society.Checkpoint.Inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
-            (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer));
+        MarketSystem.ShopQuoteContext(MarketShopPlanningWorld, buyer, building);
 
-    private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods)
-    {
-        if (!ShopQuoteContext(buyer, building))
-            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shop exchange is no longer available");
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) is not { } kind || !ShopRules.MaySell(kind, quote.Goods.ItemKind) ||
-            !IsLooseShopLot(quote.Goods) || quote.Goods.ItemKind == quote.Payment.ItemKind ||
-            !SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
-                .Any(match => match.Lot == quote.Goods && match.Quantity >= quote.GoodsQuantity) ||
-            !ShopPaymentLots(buyer, building).Any(lot => lot == quote.Payment) ||
-            AvailableLotQuantity(quote.Payment) < quote.PaymentQuantity ||
-            ShopQuoteAmounts(building, quote.Goods, quote.Payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
-            !requestedGoods && (!ShopBuyerWants(buyer, quote.Goods) ||
-                !ShopBuyerWantsWithoutRestaurant(buyer, quote.Goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, quote.Goods.ItemKind)) ||
-            RestaurantInputDemand(buyer, quote.Payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, quote.Payment.ItemKind))
-            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods or payment are no longer available");
-        return ShopReceivingSpace(buyer, building, quote.GoodsQuantity, quote.PaymentQuantity)
-            ? new() : ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected shop exchange");
-    }
+    private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods) =>
+        marketSystem.CheckSelectedShopQuote(MarketShopPlanningWorld, buyer, building, quote, requestedGoods);
 
-    private ShopQuote? ShopOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false)
-    {
-        if (!ShopQuoteContext(buyer, building)) return null;
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) is not { } kind) return null;
-        foreach (var goods in SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
-                     .Select(match => match.Lot).Where(lot => IsLooseShopLot(lot) && ShopRules.MaySell(kind, lot.ItemKind) &&
-                     (exactGoodsLotId is null || lot.Id == exactGoodsLotId) && (requestedGoods || ShopBuyerWants(buyer, lot)))
-                     .OrderBy(lot => lot.Id, StringComparer.Ordinal))
-        {
-            // Payment comes from the buyer's own goods, never borrowed household ones.
-            foreach (var payment in ShopPaymentLots(buyer, building).Where(lot => lot.ItemKind != goods.ItemKind)
-                .OrderBy(lot => lot.Id, StringComparer.Ordinal))
-            {
-                var amounts = ShopQuoteAmounts(building, goods, payment);
-                if (CheckSelectedShopQuote(buyer, building, new(goods, amounts.Goods, payment, amounts.Payment), requestedGoods).Allowed)
-                    return new(goods, amounts.Goods, payment, amounts.Payment);
-            }
-        }
-        return null;
-    }
+    private ShopQuote? ShopOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false) =>
+        marketSystem.ShopOpportunity(MarketShopPlanningWorld, buyer, building, exactGoodsLotId, requestedGoods);
 
     private bool IsShopFoodCandidate(string actor, string candidateId)
     {
@@ -292,18 +172,11 @@ public sealed partial class WorldRuntime
         return RestaurantMealShopTrip(actor, building);
     }
 
-    private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId)
-    {
-        var trade = shopTrades.SingleOrDefault(item => item.OfferId == offerId);
-        var offer = society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == offerId);
-        return trade is null || offer is null ? null : new(actor, cancel, trade, offer);
-    }
+    private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId) =>
+        marketSystem.PlanShopResponse(MarketShopWorld, actor, cancel, offerId);
 
-    private bool ShopResponseOfferIsCurrent(ShopResponseActionPlan plan)
-    {
-        var current = society.Checkpoint.Inventory.Offers.SingleOrDefault(offer => offer.Id == plan.Offer.Id);
-        return current is { State: DirectBarterState.Open } && TownHearingProcedure.Digest(current) == TownHearingProcedure.Digest(plan.Offer);
-    }
+    private bool ShopResponseOfferIsCurrent(ShopResponseActionPlan plan) =>
+        MarketSystem.ShopResponseOfferIsCurrent(MarketShopWorld, plan);
 
     private void AddShopCandidates(List<CognitionCandidate> candidates, string actor)
     {
@@ -359,133 +232,23 @@ public sealed partial class WorldRuntime
         if (PlanShopResponse(actor, cancel, offerId) is { } response) ApplyShopResponse(response);
     }
 
-    private void ApplyRetainedShopResponse(string actor, AgentState state, ShopResponseActionPlan plan)
-    {
-        var cancel = plan.Cancel;
-        var trade = plan.Trade;
-        var offer = plan.Offer;
-        if (trade is null || offer is not { State: DirectBarterState.Open } ||
-            (actor != trade.BuyerId && !MayRespondAtShop(actor, trade))) return;
-        if (cancel)
-        {
-            CancelShopTrade(trade, offer, "One of the traders cancelled the exchange.");
-            return;
-        }
-        if (ShopTradeFailure(trade, offer) is { } failure)
-        {
-            CancelShopTrade(trade, offer, failure);
-            return;
-        }
-        if (!IsWithinInteractionRange(state.Position, trade.Position, ResourceInteractionRange))
-        {
-            MoveToward(actor, state, trade.Position, "shop_trade", ResourceInteractionRange);
-            return;
-        }
-        if (actor == trade.BuyerId || !IsWithinInteractionRange(agents[trade.BuyerId].Position,
-                trade.Position, ResourceInteractionRange)) return;
-        ApplyInventoryTransition(inventory =>
-        {
-            var payment = inventory.GetLot(offer.SecondLotId);
-            var paymentId = payment.Quantity == offer.SecondQuantity ? payment.Id : DerivedId.Create($"{payment.Id}#barter:{offer.Id}");
-            var settled = InventoryAuthority.AcceptDirectBarterOffer(inventory, offer.Id, offer.Revision, trade.SellerHouseholdId);
-            return settled with
-            {
-                Lots = settled.Lots.Select(lot => lot.Id == paymentId
-                    ? lot with { StorageBuildingId = trade.BuildingInstanceId } : lot).ToArray(),
-            };
-        });
-        ReplaceShopTrade(trade with { SellerActorId = actor });
-        AppendEvent("shop_trade_completed", actor + ":" + offer.Id);
-    }
+    private void ApplyRetainedShopResponse(string actor, AgentState state, ShopResponseActionPlan plan) =>
+        marketSystem.ApplyRetainedShopResponse(MarketShopWorld, actor, state, plan);
 
-    private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice)
-    {
-        var id = ShopTradeOfferId(WorldTick, actor, building.InstanceId);
-        // Quotes name exact actual quantities; future goods are never reserved.
-        ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
-            InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1,
-                building.HouseholdId!, actor, choice.Goods.Id, choice.GoodsQuantity,
-                choice.Payment.Id, choice.PaymentQuantity, WorldTick + 120)),
-            id, 1, actor));
-        shopTrades.Add(new(id, building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
-            choice.Goods.ItemKind, choice.Payment.ItemKind));
-        AppendEvent("shop_trade_offered", actor + ":" + id);
-        return id;
-    }
+    private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice) =>
+        marketSystem.OpenShopQuote(MarketShopWorld, actor, building, choice);
 
-    private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer)
-    {
-        if (offer.ExpiryTick < WorldTick) return "The offer ran out of time.";
-        if (!agents.TryGetValue(trade.BuyerId, out var buyerState) || !IsAdult(trade.BuyerId))
-            return "The buyer is no longer available.";
-        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == trade.BuildingInstanceId);
-        if (building is null || building.HouseholdId != trade.SellerHouseholdId || building.Position != trade.Position ||
-            !agents.Keys.Any(actor => MayRespondAtShop(actor, trade)))
-            return "The selling household no longer has access to this shop.";
-        var inventory = society.Checkpoint.Inventory;
-        var goods = inventory.Lots.SingleOrDefault(lot => lot.Id == offer.FirstLotId);
-        var payment = inventory.Lots.SingleOrDefault(lot => lot.Id == offer.SecondLotId);
-        if (goods is null || payment is null || !IsLooseShopLot(goods) || !IsLooseShopLot(payment) ||
-            goods.OwnerId != trade.SellerHouseholdId || goods.StorageBuildingId != trade.BuildingInstanceId ||
-            goods.GroundPosition is not null || !PersonalEquipmentRules.IsCarried(payment, trade.BuyerId) ||
-            goods.Quantity < offer.FirstQuantity || payment.Quantity < offer.SecondQuantity ||
-            new[] { DerivedId.Create(offer.Id + ":first"), DerivedId.Create(offer.Id + ":second") }.Any(id => !inventory.Reservations.Any(reservation =>
-                reservation.Id == id && reservation.State == InventoryReservationState.Reserved)))
-            return "The goods set aside for this exchange are no longer at the agreed place.";
-        var kind = ShopRules.KindOf(worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId));
-        if (kind is null || !ShopRules.MaySell(kind, goods.ItemKind))
-            return "This shop cannot sell the offered goods.";
-        var equipment = buyerState.Equipment;
-        var otherCarryReservations = ReservedShopCarrySpace(trade.BuyerId) -
-            Math.Max(0, offer.FirstQuantity - offer.SecondQuantity);
-        var afterCarry = PersonalEquipmentRules.CarriedQuantity(inventory, trade.BuyerId, equipment) -
-            offer.SecondQuantity + offer.FirstQuantity + otherCarryReservations;
-        var storageRoom = DestinationRoom(inventory, trade.BuildingInstanceId, outgoingQuantity: offer.FirstQuantity,
-            releasedShopReservation: Math.Max(0, offer.SecondQuantity - offer.FirstQuantity));
-        if (afterCarry > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, equipment) + HorseCargoCapacity(trade.BuyerId) ||
-            offer.SecondQuantity > storageRoom)
-            return "There is no longer enough room to receive the goods.";
-        if (!IsWithinInteractionRange(buyerState.Position, trade.Position, ResourceInteractionRange) &&
-            Reach(trade.BuyerId, trade.Position, ReachPurpose.ShopResponse, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
-            return "The buyer can no longer reach the shop.";
-        return null;
-    }
+    private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer) =>
+        marketSystem.ShopTradeFailure(MarketShopWorld, trade, offer);
 
     private void ReplaceShopTrade(ShopTradeState trade) =>
-        shopTrades[shopTrades.FindIndex(item => item.OfferId == trade.OfferId)] = trade;
+        marketSystem.RecordShopTrade(trade);
 
-    private void CancelShopTrade(ShopTradeState trade, DirectBarterOffer offer, string reason)
-    {
-        if (offer.State == DirectBarterState.Open)
-            ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory,
-                offer.Id, offer.Revision, offer.FirstPartyId));
-        ReplaceShopTrade(trade with { CancellationReason = reason });
-        AppendEvent("shop_trade_cancelled", trade.BuyerId + ":" + trade.OfferId);
-    }
+    private void CancelShopTrade(ShopTradeState trade, DirectBarterOffer offer, string reason) =>
+        marketSystem.CancelShopTrade(MarketShopWorld, trade, offer, reason);
 
-    private void MaintainShopTrades()
-    {
-        foreach (var trade in shopTrades.ToArray())
-        {
-            var offer = society.Checkpoint.Inventory.GetOffer(trade.OfferId);
-            if (offer.State == DirectBarterState.Open && ShopTradeFailure(trade, offer) is { } failure)
-                CancelShopTrade(trade, offer, failure);
-            else if (offer.State == DirectBarterState.Cancelled && trade.CancellationReason is null)
-                CancelShopTrade(trade, offer, offer.ExpiryTick < WorldTick
-                    ? "The offer ran out of time." : "The exchange was interrupted.");
-        }
-        var retired = shopTrades.Where(trade => society.Checkpoint.Inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open)
-            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
-            .Skip(32).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
-        if (retired.Count == 0) return;
-        shopTrades.RemoveAll(trade => retired.Contains(trade.OfferId));
-        ApplyInventoryTransition(inventory => inventory with
-        {
-            Offers = inventory.Offers.Where(offer => !retired.Contains(offer.Id)).ToArray(),
-            Reservations = inventory.Reservations.Where(reservation => !retired.Any(id =>
-                reservation.Id == DerivedId.Create(id + ":first") || reservation.Id == DerivedId.Create(id + ":second"))).ToArray(),
-        });
-    }
+    private void MaintainShopTrades() =>
+        marketSystem.MaintainShopTrades(MarketShopWorld);
 
     private static void ValidateShopTrades(IReadOnlyList<ShopTradeState>? trades,
         SocietyCheckpoint societyState, WorldMap map, long worldTick)
@@ -494,6 +257,7 @@ public sealed partial class WorldRuntime
         if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => trade.OfferId).SequenceEqual(
                 trades.Select(trade => trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("The checkpoint is missing canonical shop trade records.");
+        MarketSystem.ValidateLocalShopTrades(trades);
         foreach (var trade in trades)
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);

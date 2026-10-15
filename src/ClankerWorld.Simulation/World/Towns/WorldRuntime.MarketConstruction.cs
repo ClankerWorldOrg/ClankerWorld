@@ -5,63 +5,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void CompletePaidMarketConstruction(string townId, TownProject project, PlacedBuilding placed)
-    {
-        var town = towns.Single(item => item.Id == townId);
-        if (project.Plan.DefinitionId == MarketContent.Hall2x2().CanonicalId)
-        {
-            var definition = MarketContent.Stall1x1();
-            var stalls = MarketContent.StarterSlotIndexes.Select(slot => new MarketStallState(
-                MarketContent.StarterStallBuildingId(project.Id, slot), slot, project.Id, WorldTick)).ToArray();
-            var buildings = stalls.Select(stall => new PlacedBuilding(stall.BuildingId, definition.CanonicalId,
-                MarketContent.StallSite(project.Plan.Site, stall.SlotIndex), WorldTick, townId,
-                Entrance: MarketContent.StallEntrance(project.Plan.Site, stall.SlotIndex))).ToArray();
-            if (buildings.Any(building => worldSimulation.Buildings.Any(existing => existing.InstanceId == building.InstanceId)))
-                throw new InvalidDataException("A paid Market starter stall already exists.");
-            constructionSystem.Buildings.PlaceBuildings(buildings);
-            SetTown(town with
-            {
-                Markets = town.Markets.Append(new TownMarketState(MarketContent.MarketId(project.Id), project.Id,
-                    placed.InstanceId, project.Plan.Site, stalls, [], [])).OrderBy(market => market.Id, StringComparer.Ordinal).ToArray(),
-            });
-            foreach (var building in buildings) AssignBuildingToTown(building, definition);
-            AppendEvent("market_built", $"{townId}|{MarketContent.MarketId(project.Id)}|{placed.InstanceId}|{stalls.Length}", project.Plan.Site);
-        }
-        else if (project.Plan.DefinitionId == MarketContent.Stall1x1().CanonicalId)
-        {
-            var target = MarketForStallPlan(town, project.Plan)
-                ?? throw new InvalidDataException("The paid stall lost its approved Market slot.");
-            var market = target.Market with
-            {
-                Stalls = target.Market.Stalls.Append(new MarketStallState(placed.InstanceId, target.Slot, project.Id, WorldTick))
-                    .OrderBy(stall => stall.SlotIndex).ToArray(),
-            };
-            SetTown(town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
-            AppendEvent("market_stall_built", $"{townId}|{market.Id}|{placed.InstanceId}|{target.Slot}", placed.Position);
-        }
-    }
+    private void CompletePaidMarketConstruction(string townId, TownProject project, PlacedBuilding placed) =>
+        MarketSystem.CompletePaidMarketConstruction(MarketAdministrationWorld, townId, project, placed);
 
-    private void RecordMarketBuildingRemoval(string buildingId)
-    {
-        var removed = false;
-        foreach (var town in towns.ToArray())
-        {
-            var changed = town.Markets.Any(market => market.HallBuildingId == buildingId || market.Stalls.Any(stall => stall.BuildingId == buildingId));
-            if (!changed) continue;
-            removed = true;
-            SetTown(town with
-            {
-                Markets = town.Markets.Select(market => market with
-                {
-                    RemovedTick = market.HallBuildingId == buildingId ? WorldTick : market.RemovedTick,
-                    Stalls = market.Stalls.Select(stall => stall.BuildingId == buildingId ? stall with { RemovedTick = WorldTick } : stall).ToArray(),
-                }).ToArray(),
-            });
-        }
-        MaintainMarkets();
-        // A stall project of a removed Market has lost its site, and the world may be saved before the next tick.
-        if (removed) MaintainTownProjects();
-    }
+    private void RecordMarketBuildingRemoval(string buildingId) =>
+        MarketSystem.RecordMarketBuildingRemoval(MarketAdministrationWorld, buildingId);
 
     private static void ValidatePaidMarkets(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,
         WorldMap map, WorldContentSimulationState simulation, DeclarativeWorldContentState content,

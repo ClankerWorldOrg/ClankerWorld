@@ -1,3 +1,4 @@
+using ShopQuote = ClankerWorld.Simulation.World.MarketSystem.ShopQuote;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;

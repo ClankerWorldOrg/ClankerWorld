@@ -95,16 +95,8 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private static (TownMarketState Market, int Slot)? MarketForStallPlan(TownRuntimeState town, TownProjectPayload plan)
-    {
-        foreach (var market in town.Markets.Where(item => item.RemovedTick is null))
-            for (var slot = 0; slot < MarketContent.MaximumStalls; slot++)
-                if (MarketContent.StallSite(market.Site, slot) == plan.Site &&
-                    MarketContent.StallEntrance(market.Site, slot) == plan.Entrance &&
-                    !market.Stalls.Any(stall => stall.SlotIndex == slot))
-                    return (market, slot);
-        return null;
-    }
+    private static (TownMarketState Market, int Slot)? MarketForStallPlan(TownRuntimeState town, TownProjectPayload plan) =>
+        MarketSystem.MarketForStallPlan(town, plan);
 
     private void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {

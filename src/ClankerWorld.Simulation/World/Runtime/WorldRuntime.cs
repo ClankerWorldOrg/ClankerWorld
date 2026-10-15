@@ -392,7 +392,7 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.bridgeTraffic = state.BridgeTraffic!;
         runtime.conversationSystem = new(trustedPreparedState && preparedConversations is not null
             ? preparedConversations : new(state.Conversations!, state.ConversationBudgets!, state.Marriages));
-        runtime.shopTrades = state.ShopTrades!.ToList();
+        runtime.marketSystem.RestoreTrades(state.ShopTrades!);
         runtime.ApplyBridgeDecks();
         runtime.assetReservations = WorldAssetReservationLedger.Restore(state.AssetReservations);
         runtime.survivalState = state.Survival;
