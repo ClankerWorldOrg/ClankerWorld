@@ -51,6 +51,7 @@ internal sealed partial class TownSystem(CivicState state)
 
     internal void ReplaceMarketState(ICivicWorld world, string townId, TownMarketState market)
     {
+        if (SystemInvariantChecks.Enabled) MarketSystem.ValidateLocalMarket(market);
         var town = State.Towns.Single(item => item.Id == townId);
         SetTown(world, town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
     }

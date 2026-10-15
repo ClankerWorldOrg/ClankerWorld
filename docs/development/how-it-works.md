@@ -211,6 +211,11 @@ life-moment and thought checks in tests. Save validation reuses those checks
 and keeps time/epoch links. Identity reply validation handles declared contract
 failures; unexpected validation failures surface instead of an empty catch-all.
 
+MarketSystem checks local ledger IDs, stall slots, borrowing lifetimes, receipt
+sequences and internal receipt/trade references before test publication. Save
+validation reuses these checks and keeps inventory, building, society, map and
+clock links. Every ledger replacement uses the same check.
+
 `Kernel/InventoryStore` is the only source writer of inventory lots,
 reservations, barter offers/proposals, holds, storage deltas, events and
 checkpoints. Named preparations preserve captured immutable records and remain
