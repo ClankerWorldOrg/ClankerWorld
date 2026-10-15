@@ -1,0 +1,1 @@
+- Market eligibility uses the shared reach service's boolean query with its existing interaction-range shortcut and explicit purpose, load and swimming policy; the market-point-specific wrapper is removed.

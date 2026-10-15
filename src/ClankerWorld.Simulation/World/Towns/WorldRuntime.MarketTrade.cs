@@ -65,10 +65,6 @@ public sealed partial class WorldRuntime
     private string MarketPlaceMode(string actor, GridPoint destination, int range) =>
         IsWithinInteractionRange(agents[actor].Position, destination, range) ? "at-site" : "walking";
 
-    private bool CanReachMarketPoint(string actor, GridPoint destination, int range) =>
-        IsWithinInteractionRange(agents[actor].Position, destination, range) ||
-        Reach(actor, destination, ReachPurpose.MarketExchange, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private string MarketTradeMode(string actor, MarketTradeState trade) =>
         MarketPlaceMode(actor, trade.Position, ResourceInteractionRange) == "walking" ? "walking" :
         !IsWithinInteractionRange(agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)
@@ -159,7 +155,7 @@ public sealed partial class WorldRuntime
             !MarketAdult(occupancy.SellerAgentId) ||
             society.Checkpoint.GetAgent(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId ||
             !MarketTradeRules.IsInside(market, agents[occupancy.SellerAgentId].Position) ||
-            !CanReachMarketPoint(buyer, position, ResourceInteractionRange) ||
+            !CanReach(buyer, position, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable) ||
             inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer)) ||
             MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) > MarketTradeRules.StallCapacity)
@@ -265,7 +261,7 @@ public sealed partial class WorldRuntime
                                  .Where(lot => CanCollectMarketStock(actor, lot, occupancy, inventory)))
                     {
                         var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(PhysicalUnreservedQuantity(lot), FreeCarryCapacity(actor)));
-                        if (quantity > 0 && CanReachMarketPoint(actor, position, ResourceInteractionRange))
+                        if (quantity > 0 && CanReach(actor, position, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
                             yield return new(MarketChoiceId("collect", market.Id, stall.BuildingId, lot.Id,
                                 quantity.ToString(CultureInfo.InvariantCulture), MarketPlaceMode(actor, position, ResourceInteractionRange)),
                                 "collect", town, market, stall, occupancy, lot, quantity);
@@ -285,7 +281,7 @@ public sealed partial class WorldRuntime
                     {
                         yield return new(MarketChoiceId("leave", occupancy.Id), "leave", town, market, stall, occupancy);
                         if (!ready || society.Checkpoint.GetAgent(actor).HouseholdId != occupancy.SellerHouseholdId ||
-                            !CanReachMarketPoint(actor, position, ResourceInteractionRange)) continue;
+                            !CanReach(actor, position, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable)) continue;
                         var room = MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall) - MarketIncomingPayment(market, stall);
                         foreach (var lot in goods.Matches.Select(match => match.Lot).Where(lot => MarketTradeRules.IsLoose(lot) &&
                                      PersonalEquipmentRules.IsCarried(lot, actor) && !ProtectedMarketItem(actor, lot) && MarketSurplus(actor, lot, goods) > 0)
@@ -304,7 +300,7 @@ public sealed partial class WorldRuntime
                             "buy", town, market, stall, occupancy, quote.Goods, 1, Payment: quote.Payment);
                     if (!ready || occupancy is not null || HasMarketOccupancy(actor) ||
                         society.Checkpoint.GetAgent(actor).HouseholdId is null ||
-                        !CanReachMarketPoint(actor, position, ResourceInteractionRange) ||
+                        !CanReach(actor, position, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable) ||
                         MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) >= MarketTradeRules.StallCapacity)
                         continue;
                     var offeredBorrow = false;
@@ -324,7 +320,7 @@ public sealed partial class WorldRuntime
                         // One empty stall is enough to plan a load; the stall itself is borrowed on arrival.
                         if (offeredLoad) continue;
                         var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(MarketSurplus(actor, lot, goods), FreeCarryCapacity(actor)));
-                        if (quantity > 0 && CanReachMarketPoint(actor, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot)))
+                        if (quantity > 0 && CanReach(actor, HouseholdStockPosition(lot), ReachPurpose.MarketExchange, HouseholdStockInteractionRange(lot), 0, SwimmingPolicy.WhenCapable))
                             yield return new(MarketChoiceId("load", market.Id, stall.BuildingId, lot.Id,
                                 quantity.ToString(CultureInfo.InvariantCulture), MarketPlaceMode(actor, HouseholdStockPosition(lot),
                                     HouseholdStockInteractionRange(lot))), "load", town, market, stall, Lot: lot, Quantity: quantity);
