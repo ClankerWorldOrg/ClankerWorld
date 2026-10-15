@@ -39,7 +39,12 @@ public sealed partial class WorldRuntime
     private static string NonLandRemedyCandidateId(TownRuntimeState town, TownRestorativeAgreement agreement, TownRemedyTerm term) => TownSystem.NonLandRemedyCandidateId(town, agreement, term);
     private static int NonLandRemaining(TownNonLandHearingState state, TownRestorativeAgreement agreement, TownRemedyTerm term) => TownSystem.NonLandRemaining(state, agreement, term);
     private void AddNonLandRemedyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => TownSystem.AddNonLandRemedyCandidates(civicWorld, candidates, actor, town);
-    private bool ApplyNonLandRemedyAction(TownRuntimeState town, string actor, string candidateId, ActionPlan? plan = null) => townSystem.ApplyNonLandRemedyAction(civicWorld, town, actor, candidateId, plan);
+    private bool ApplyNonLandRemedyAction(TownRuntimeState town, string actor, string candidateId, ActionPlan? plan = null)
+    {
+        if (!TownSystem.TryPlanNonLandPhysical(civicWorld, town, actor, candidateId, plan, out var selected)) return false;
+        if (selected is null) return true;
+        return TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidateId, false, selected));
+    }
     private static string NonLandRelayCandidateId(TownRuntimeState town, TownConductRecord record, string listener) => TownSystem.NonLandRelayCandidateId(town, record, listener);
     private void DeliverNonLandTownGoods(string actor, TownRemedyTerm term, int remaining) => townSystem.DeliverNonLandTownGoods(civicWorld, actor, term, remaining);
     private void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds) => townSystem.RecordNonLandRepairCompletion(civicWorld, actor, originalTarget, repairedLotId, nativeReceiptId, position, reservationIds);
