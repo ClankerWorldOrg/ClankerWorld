@@ -40,6 +40,7 @@ public sealed partial class WorldRuntime
     private static string ProductionVesselUnitId(string outputLotId, int unitIndex) =>
         DerivedId.Create($"{outputLotId}:unit:{unitIndex.ToString("D2", CultureInfo.InvariantCulture)}");
     private static string ExpansionMaterialReservationId(string jobId, int ordinal) => DerivedId.Create($"{jobId}:material:{ordinal}");
+    private static string ExpansionJobId(long sequence) => DerivedId.Create($"expansion-{sequence:D8}");
     private static string TreePlantingReceipt(string treeId) => DerivedId.Create("tree:plant:" + treeId);
     private static string ParenthoodRequestId(string actor, long requestedTick) => DerivedId.Create($"family:{actor}:{requestedTick}");
     private static string NewPartnershipId(string actor, string target, long tick) => DerivedId.Create($"partnership:{actor}:{target}:{tick}");

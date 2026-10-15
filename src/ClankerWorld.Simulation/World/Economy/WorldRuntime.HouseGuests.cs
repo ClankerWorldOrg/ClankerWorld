@@ -31,13 +31,7 @@ public sealed partial class WorldRuntime
             item.HouseInstanceId == houseId && item.GuestId == guestId);
         if (existing?.Active == invited || existing is null && !invited) return new(true);
         var invitation = new HouseGuestInvitation(houseId, guestId, actor, WorldTick, invited);
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            GuestInvitations = (worldSimulation.GuestInvitations ?? []).Where(item =>
-                    item.HouseInstanceId != houseId || item.GuestId != guestId).Append(invitation)
-                .OrderBy(item => item.HouseInstanceId, StringComparer.Ordinal)
-                .ThenBy(item => item.GuestId, StringComparer.Ordinal).ToArray(),
-        });
+        constructionSystem.Buildings.RecordGuestInvitation(invitation);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(invited ? "house_guest_invited" : "house_guest_revoked", $"{houseId}:{actor}:{guestId}");
         return new(true);

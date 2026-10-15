@@ -49,7 +49,7 @@ internal sealed partial class TownSystem
         };
         var starterInventory = PrepareFirstTownStock(world.Society.Inventory);
         var firstTownWasUnplaced = towns.Count == 0;
-        world.WorldSimulation = WorldContentSimulationState.Empty with { Buildings = placed };
+        world.ReplaceFirstTownBuildings(placed);
         RestoreTowns([town]);
         townLandTitles = TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick).ToList();
         householdLandUseRights = TownLandRightsRules.InitialUseRights(world.Map, town.Id,

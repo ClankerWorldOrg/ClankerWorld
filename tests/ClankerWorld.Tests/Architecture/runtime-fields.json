@@ -38,7 +38,7 @@
     "refusedActionCount",
     "farmingSystem",
     "productionSystem",
-    "constructionState"
+    "constructionSystem"
   ],
   "live": [
     "animalWorldAdapter",
@@ -57,7 +57,6 @@
     "pendingWillCancellationReasons",
     "pendingWills",
     "providerFactory",
-    "constructionProjectPlans",
     "agentWorld",
     "tickGate",
     "farmingWorld"

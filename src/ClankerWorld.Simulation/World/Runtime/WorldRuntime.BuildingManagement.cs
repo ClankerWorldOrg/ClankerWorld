@@ -38,12 +38,7 @@ public sealed partial class WorldRuntime
                     .SingleOrDefault(project => project.CompletedBuildingId == instanceId) is { } paidProject)
                 SetTownProject(townId, paidProject with { RemovedTick = WorldTick });
 
-            constructionState = WorldConstructionState.From(worldSimulation with
-            {
-                Buildings = worldSimulation.Buildings.Where(item => item.InstanceId != instanceId).ToArray(),
-                BuildingExpansions = PreserveExpansionDefinitionIdentity(instanceId, definitionId),
-                GuestInvitations = RemoveHouseInvitations(instanceId),
-            });
+            constructionSystem.Buildings.RemoveBuilding(instanceId, definitionId);
             RecordMarketBuildingRemoval(instanceId);
             if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
             {
@@ -154,15 +149,7 @@ public sealed partial class WorldRuntime
                     RemoveTownBuildingAssignment(previousTownId, instanceId);
                 AddTownBuildingAssignment(reassignedTownId, instanceId);
             }
-            constructionState = WorldConstructionState.From(worldSimulation with
-            {
-                Buildings = worldSimulation.Buildings.Select(item => item.InstanceId == instanceId
-                    ? item with { TownId = nextTownId, HouseholdId = nextHouseholdId }
-                    : item).ToArray(),
-                GuestInvitations = nextHouseholdId != building.HouseholdId
-                    ? RemoveHouseInvitations(instanceId)
-                    : worldSimulation.GuestInvitations,
-            });
+            constructionSystem.Buildings.ReassignOwner(instanceId, nextTownId, nextHouseholdId, nextHouseholdId != building.HouseholdId);
             householdLandUseRights = reassignedRights.ToList();
             if (firstBuildingTown is { } firstTown)
                 GenerateRoadBetweenTowns(towns.Single(town => town.Id == firstTown),
@@ -212,15 +199,6 @@ public sealed partial class WorldRuntime
             return "Finish or cancel the active equipment repair before changing this building's owner or removing it.";
         return null;
     }
-
-    private BuildingExpansionJob[] PreserveExpansionDefinitionIdentity(string buildingId, string definitionId) =>
-        (worldSimulation.BuildingExpansions ?? []).Select(job =>
-            job.BuildingInstanceId == buildingId && job.DefinitionId is null
-                ? job with { DefinitionId = definitionId }
-                : job).ToArray();
-
-    private HouseGuestInvitation[] RemoveHouseInvitations(string buildingId) =>
-        (worldSimulation.GuestInvitations ?? []).Where(item => item.HouseInstanceId != buildingId).ToArray();
 
     private void RemoveTownBuildingAssignment(string townId, string buildingId)
     {
