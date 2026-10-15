@@ -7,71 +7,39 @@ public sealed partial class WorldRuntime
     private static void ValidateAnimalState(WorldRuntimeState state)
     {
         var world = state.AnimalWorld;
-        if (world is null || world.Animals is null || world.Offers is null || world.SupplyTrips is null ||
-            world.Animals.Any(animal => animal is null) || world.Offers.Any(offer => offer is null) || world.SupplyTrips.Any(trip => trip is null))
-            throw new InvalidDataException("The current checkpoint requires complete animal state.");
-        if (!world.Seeded && (world.Animals.Count != 0 || world.Offers.Count != 0 || world.SupplyTrips.Count != 0))
-            throw new InvalidDataException("An unseeded animal world cannot contain animal history or custody.");
-        static bool Name(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
-        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= DerivedId.MaximumLength && !value.Any(char.IsControl);
-        static bool InventoryReference(string? value) => !string.IsNullOrWhiteSpace(value) && !value.Any(char.IsControl);
+        AnimalSystem.ValidateLocalState(world);
         var society = state.Society.Society;
         var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        void UniqueAgents(IEnumerable<string> ids)
+        void KnownAgents(IEnumerable<string> ids)
         {
-            var values = ids.ToArray();
-            if (values.Any(value => !InventoryReference(value) || !people.Contains(value)) ||
-                values.Distinct(StringComparer.Ordinal).Count() != values.Length)
+            if (ids.Any(id => !people.Contains(id)))
                 throw new InvalidDataException("Animal agent references must name unique, known people.");
         }
-        static void Unique(IEnumerable<string> ids)
-        {
-            var values = ids.ToArray();
-            if (values.Any(value => !Identifier(value)) || values.Distinct(StringComparer.Ordinal).Count() != values.Length)
-                throw new InvalidDataException("Animal identities and permissions must be unique, short identifiers.");
-        }
-        Unique(world.Animals.Select(animal => animal.Id));
-        Unique(world.Offers.Select(offer => offer.Id));
-        UniqueAgents(world.SupplyTrips.Select(trip => trip.ActorId));
-        UniqueAgents(world.Animals.Select(animal => animal.RiderId).OfType<string>());
-        UniqueAgents(world.Animals.Select(animal => animal.LeaderId).OfType<string>());
+        KnownAgents(world.SupplyTrips.Select(trip => trip.ActorId));
+        KnownAgents(world.Animals.Select(animal => animal.RiderId).OfType<string>());
+        KnownAgents(world.Animals.Select(animal => animal.LeaderId).OfType<string>());
         var inventory = society.Inventory;
         var day = state.WorldSystems!.Config.TicksPerDay;
         var map = TravelMap(state);
         foreach (var animal in world.Animals)
         {
-            if (!Name(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
-                animal.Sex is not ("female" or "male") || animal.CarePermissions is null || animal.RidingPermissions is null)
-                throw new InvalidDataException("An animal has invalid species, sex, name or permissions.");
             var definition = AnimalRules.Definition(animal.Species);
             if (animal.BornTick > society.WorldTick || animal.BornTick < -(long)definition.AdultDays * day || !map.IsPassable(animal.Position) ||
-                animal.CareUntilTick < 0 || animal.CareUntilTick > society.WorldTick + day || animal.BreedingReadyTick < 0 ||
-                animal.WildFedUntilTick < 0 || animal.WildWaterUntilTick < 0 ||
-                animal.ProductProgressTicks < 0 || animal.ProductProgressTicks >= Math.Max(1, definition.ProductDays * day) ||
-                animal.DiedTick is { } death && (death < 0 || death > society.WorldTick || animal.Pregnancy is not null || animal.RiderId is not null ||
-                    animal.LeaderId is not null || animal.ReadyProductLotId is not null || animal.SaddleLotId is not null))
+                animal.CareUntilTick > society.WorldTick + day || animal.ProductProgressTicks >= Math.Max(1, definition.ProductDays * day) ||
+                animal.DiedTick is { } death && death > society.WorldTick)
                 throw new InvalidDataException("An animal has invalid age, care, product progress or physical state.");
-            UniqueAgents(animal.CarePermissions); UniqueAgents(animal.RidingPermissions);
-            if (animal.CarePermissions.Concat(animal.RidingPermissions).Any(id => !society.Agents.Any(person => person.Id == id)) ||
-                animal.Species != "horse" && (animal.RidingPermissions.Count != 0 || animal.RiderId is not null || animal.SaddleLotId is not null))
-                throw new InvalidDataException("Animal permissions must name known people and only horses may be ridden.");
-            if ((animal.HouseholdId is null) != (animal.YardId is null) || animal.HouseholdId is { } home &&
-                (!society.Households.Any(household => household.Id == home) || animal.DiedTick is null && !state.WorldSimulation!.Buildings.Any(building =>
-                    building.InstanceId == animal.YardId && building.HouseholdId == home && state.WorldContent!.Buildings.Any(buildingDefinition =>
-                        buildingDefinition.CanonicalId == building.DefinitionId && buildingDefinition.Tags.Contains(AnimalContent.YardTag)))) ||
-                animal.HouseholdId is null && (animal.SaddleLotId is not null || animal.ReadyProductLotId is not null ||
-                    animal.RiderId is not null || animal.LeaderId is not null || animal.CarePermissions.Count != 0 || animal.RidingPermissions.Count != 0))
+            KnownAgents(animal.CarePermissions); KnownAgents(animal.RidingPermissions);
+            if (animal.HouseholdId is { } home && (!society.Households.Any(household => household.Id == home) ||
+                animal.DiedTick is null && !state.WorldSimulation!.Buildings.Any(building => building.InstanceId == animal.YardId &&
+                    building.HouseholdId == home && state.WorldContent!.Buildings.Any(buildingDefinition => buildingDefinition.CanonicalId == building.DefinitionId &&
+                        buildingDefinition.Tags.Contains(AnimalContent.YardTag)))))
                 throw new InvalidDataException("An owned animal needs its household's actual animal yard.");
-            if (animal.Pregnancy is { } pregnancy && (!Identifier(pregnancy.FatherId) || animal.Sex != "female" ||
-                !AnimalRules.IsAdult(animal, society.WorldTick, day) || pregnancy.StartedTick < 0 || pregnancy.StartedTick > society.WorldTick ||
-                pregnancy.ProgressTicks < 0 || pregnancy.ProgressTicks >= definition.GestationDays * day ||
-                world.Animals.FirstOrDefault(father => father.Id == pregnancy.FatherId) is { } father && (father.Species != animal.Species || father.Sex != "male")))
+            if (animal.Pregnancy is { } pregnancy && (!AnimalRules.IsAdult(animal, society.WorldTick, day) ||
+                pregnancy.StartedTick > society.WorldTick || pregnancy.ProgressTicks >= definition.GestationDays * day))
                 throw new InvalidDataException("An animal pregnancy has invalid parents or progress.");
-            if (animal.TamingWork is { } tame && (animal.HouseholdId is not null || tame.WorkTicks is < 1 or >= AnimalRules.TamingWorkTicks ||
-                !state.Agents.Any(person => person.AgentId == tame.ActorId)))
+            if (animal.TamingWork is { } tame && !state.Agents.Any(person => person.AgentId == tame.ActorId))
                 throw new InvalidDataException("An animal taming task has invalid work or actor.");
-            if ((animal.RiderId is not null && animal.LeaderId is not null) || (animal.LeaderId is null) != (animal.LeadDestination is null) ||
-                animal.LeadDestination is { } destination && !map.IsPassable(destination))
+            if (animal.LeadDestination is { } destination && !map.IsPassable(destination))
                 throw new InvalidDataException("An animal cannot be ridden and led together and needs a legal lead destination.");
             foreach (var actor in new[] { animal.RiderId, animal.LeaderId }.OfType<string>())
                 if (!state.Agents.Any(person => person.AgentId == actor && person.Position == animal.Position) ||
@@ -79,17 +47,17 @@ public sealed partial class WorldRuntime
                     state.BoatTransport.Boats.Any(boat => boat.Journey?.PassengerId == actor) ||
                     world.Animals.Any(other => other.Id != animal.Id && (other.RiderId == actor || other.LeaderId == actor)))
                     throw new InvalidDataException("Animal riders and leaders must share the animal's physical position without another attachment.");
-            if (animal.RiderId is not null && (animal.SaddleLotId is null || !AnimalRules.IsAdult(animal, society.WorldTick, day)))
+            if (animal.RiderId is not null && !AnimalRules.IsAdult(animal, society.WorldTick, day))
                 throw new InvalidDataException("A ridden adult horse needs a fitted saddle.");
-            if ((animal.ReadyProductLotId is null) != (animal.ReadyProductReservationId is null) || animal.ReadyProductLotId is { } productId &&
-                (!AnimalRules.HasProduct(animal) || !inventory.Lots.Any(lot => lot.Id == productId && lot.OwnerId == animal.HouseholdId &&
+            if (animal.ReadyProductLotId is { } productId &&
+                (!inventory.Lots.Any(lot => lot.Id == productId && lot.OwnerId == animal.HouseholdId &&
                     lot.ItemKind == definition.Product && lot.Quantity == definition.ProductQuantity &&
                     lot.GroundPosition == new InventoryGroundPosition(animal.Position.X, animal.Position.Y)) ||
                  !inventory.Reservations.Any(held => held.Id == animal.ReadyProductReservationId && held.LotId == productId &&
                     held.OwnerId == animal.HouseholdId && held.Quantity == definition.ProductQuantity && held.IsExclusive &&
                     held.State == InventoryReservationState.Reserved && held.Purpose == "animal-product:" + animal.Id)))
                 throw new InvalidDataException("A ready animal product requires its real, held household lot.");
-            if ((animal.SaddleLotId is null) != (animal.SaddleReservationId is null) || animal.SaddleLotId is { } saddleId &&
+            if (animal.SaddleLotId is { } saddleId &&
                 (!inventory.Lots.Any(lot => lot.Id == saddleId && lot.ItemKind == "saddle" && lot.OwnerId == animal.HouseholdId && lot.Quantity == 1 &&
                     lot.GroundPosition == new InventoryGroundPosition(animal.Position.X, animal.Position.Y)) ||
                  !inventory.Reservations.Any(held => held.Id == animal.SaddleReservationId && held.LotId == saddleId && held.OwnerId == animal.HouseholdId &&
@@ -111,17 +79,12 @@ public sealed partial class WorldRuntime
                     throw new InvalidDataException("The animal yard has no room for its animals and reserved offspring places.");
             }
         }
-        foreach (var herd in world.Animals.Where(animal => animal.DiedTick is null && animal.HouseholdId is null).GroupBy(animal => animal.HerdId))
-            if (herd.Sum(animal => 1 + (animal.Pregnancy is null ? 0 : 1)) > AnimalRules.PopulationCap)
-                throw new InvalidDataException("A wild herd exceeds eight animals and reserved offspring places.");
-        Unique(world.Offers.Select(offer => offer.AnimalId));
         foreach (var offer in world.Offers)
             if (!world.Animals.Any(animal => animal.Id == offer.AnimalId && animal.DiedTick is null && animal.HouseholdId != offer.ReceivingHouseholdId) ||
                 !society.Agents.Any(person => person.Id == offer.SellerId) || !society.Agents.Any(person => person.Id == offer.BuyerId &&
                     person.HouseholdId == offer.ReceivingHouseholdId) || !state.WorldSimulation!.Buildings.Any(yard =>
                     yard.InstanceId == offer.ReceivingYardId && yard.HouseholdId == offer.ReceivingHouseholdId) ||
-                offer.OfferedTick < 0 || offer.OfferedTick > society.WorldTick ||
-                (offer.PaymentLotId is null) != (offer.PaymentKind is null) || offer.PaymentQuantity != (offer.PaymentLotId is null ? 0 : 1))
+                offer.OfferedTick > society.WorldTick)
                 throw new InvalidDataException("An animal trade offer has invalid parties, receiving space or exact payment.");
         foreach (var trip in world.SupplyTrips)
             if (!state.Agents.Any(person => person.AgentId == trip.ActorId) ||
@@ -129,8 +92,7 @@ public sealed partial class WorldRuntime
                 !state.WorldSimulation!.Buildings.Any(yard => yard.InstanceId == trip.YardId && (yard.HouseholdId ==
                     society.Agents.Single(person => person.Id == trip.ActorId).HouseholdId || world.Animals.Any(animal =>
                         animal.YardId == yard.InstanceId && animal.CarePermissions.Contains(trip.ActorId)))) ||
-                (trip.AnimalId is null) != (trip.Action is null) || trip.AnimalId is not null &&
-                (!world.Animals.Any(animal => animal.Id == trip.AnimalId) || trip.Action is not ("care" or "saddle")))
+                trip.AnimalId is not null && !world.Animals.Any(animal => animal.Id == trip.AnimalId))
                 throw new InvalidDataException("An animal supply trip needs its real carried goods and household yard.");
         if ((state.Instructions ?? []).Any(instruction => instruction.Task?.TargetAnimalId is { } id &&
                 !world.Animals.Any(animal => animal.Id == id)))

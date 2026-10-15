@@ -19,11 +19,11 @@ internal sealed partial class AnimalSystem
     }
     internal static string AnimalKey(string value) => DerivedId.Hash(value, hexadecimalCharacters: 24);
     internal AnimalState? Animal(string id) => State.Animals.FirstOrDefault(item => item.Id == id);
-    internal void SetAnimal(AnimalState animal) => State = State with
+    internal void SetAnimal(AnimalState animal) => Commit(State with
     {
         Animals = State.Animals.Where(item => item.Id != animal.Id).Append(animal)
             .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-    };
+    });
     internal static PlacedBuilding? AnimalYard(IAnimalWorld world, string? household) => household is null ? null : world.HouseholdBuildingWithTag(household, AnimalContent.YardTag);
     internal static PlacedBuilding? AssignedAnimalYard(IAnimalWorld world, AnimalState animal) => world.Simulation.Buildings.FirstOrDefault(yard =>
         yard.InstanceId == animal.YardId && yard.HouseholdId == animal.HouseholdId);
@@ -77,7 +77,7 @@ internal sealed partial class AnimalSystem
                     species.Id, index == 0 ? "female" : "male", -(long)species.AdultDays * AnimalDayTicks(world),
                     sites[index], "herd-" + species.Id));
         }
-        State = new(true, result.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), []);
+        Commit(new(true, result.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), []));
         world.AppendEvent("animals_arrived", $"wild:{result.Count}");
     }
 
@@ -201,13 +201,13 @@ internal sealed partial class AnimalSystem
                 SetAnimal(Animal(animal.Id)! with { LeaderId = null, LeadDestination = null });
         }
         var previousTrips = State.SupplyTrips;
-        State = State with
+        Commit(State with
         {
             Offers = State.Offers.Where((offer) => ValidAnimalOffer(world, offer)).ToArray(),
             SupplyTrips = State.SupplyTrips.Where(trip => world.IsAdult(trip.ActorId) &&
                 world.Simulation.Buildings.Any(yard => yard.InstanceId == trip.YardId && MaySupplyAnimalYard(world, trip.ActorId, yard)) &&
                 world.Society.Inventory.Lots.Any(lot => lot.Id == trip.LotId && PersonalEquipmentRules.IsCarried(lot, trip.ActorId))).ToArray()
-        };
+        });
         foreach (var trip in previousTrips.Where(trip => !State.SupplyTrips.Contains(trip)))
             FinishAnimalSupplyTrip(world, trip.ActorId);
     }

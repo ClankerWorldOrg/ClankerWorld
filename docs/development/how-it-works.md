@@ -108,6 +108,12 @@ captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
 
+AnimalSystem checks local animal identities, permissions, custody pairs,
+pregnancy, taming, product and payment shapes before test mutations publish.
+The save check reuses that contract and keeps society, inventory, map and
+calendar links. Stale offers and trips still retire at their existing cleanup
+point; a temporary external link is not treated as a malformed animal record.
+
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
 finish and cancel work, including household departures and owner-order steps.
