@@ -19,6 +19,9 @@ public static partial class TownCouncilValidation
         if (state.Members is null || state.Candidates is null || state.Proposals is null ||
             state.ElectionHistory is null || state.Notices is null || state.Knowledge is null ||
             state.Form is not ("all_adult" or "representative" or "leader") || state.Fallback is not ("initial" or "none" or "demographic" or "candidates" or "arrangement") ||
+            state.ArchivedElectionCount < 0 || state.ArchivedNoticeCount < 0 ||
+            state.ArchivedNoticeCount > long.MaxValue - state.Notices.Count ||
+            state.ArchivedElectionCount > state.Sequence ||
             state.Revision < 0 || state.Sequence < 0 || state.RetryTick < 0 || state.RetryCircumstances is null ||
             state.RetryCircumstances.Length > 64 || !Unique(state.Members) || state.Members.Any(id => !adults.Contains(id)) ||
             state.Form == "all_adult" && !adults.SetEquals(state.Members) ||
@@ -103,15 +106,22 @@ public static partial class TownCouncilValidation
                         (c.FullTerm || election.Kind == "replacement" && c.RemainderTermEndTick == election.TermEndTick)))))
                 throw new InvalidDataException("A Town's saved election, consent, ballots or recorded draw is invalid.");
         }
+        long previousNotice = 0;
         for (var index = 0; index < state.Notices.Count; index++)
         {
             var notice = state.Notices[index];
-            if (notice.Id != "notice:" + (index + 1).ToString(CultureInfo.InvariantCulture) || string.IsNullOrWhiteSpace(notice.SubjectId) ||
+            if (!notice.Id.StartsWith("notice:", StringComparison.Ordinal) ||
+                !long.TryParse(notice.Id.AsSpan(7), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+                number <= previousNotice || number > state.ArchivedNoticeCount + state.Notices.Count ||
+                notice.Id != "notice:" + number.ToString(CultureInfo.InvariantCulture) || string.IsNullOrWhiteSpace(notice.SubjectId) ||
                 notice.Kind is not ("council" or "candidate" or "nomination" or "election" or "runoff" or "result" or "proposal" or "cancelled" or
                     "law" or "government" or "mayor" or "land_use" or "land_hearing" or "land_transfer" or "law_case" or "remedy" or "nonviolent_hearing") ||
                 string.IsNullOrWhiteSpace(notice.Text) || notice.Text.Length > 32768 || notice.PostedTick < 0 || notice.PostedTick > tick)
                 throw new InvalidDataException("A saved Town civic notice is invalid.");
+            previousNotice = number;
         }
+        if (previousNotice != state.ArchivedNoticeCount + state.Notices.Count)
+            throw new InvalidDataException("The saved civic notice sequence is incomplete.");
         ValidateKnowledge(state, known, tick);
     }
 

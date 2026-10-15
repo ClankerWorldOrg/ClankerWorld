@@ -107,7 +107,7 @@ internal sealed partial class AnimalSystem
         else
         {
             SetAnimal(animal with { RiderId = plan.Actor });
-            world.AppendEvent("horse_mounted", plan.Actor + ":" + animal.Id, plan.Position);
+            world.AppendEvent(new HorseMountedEventPayload(plan.Actor, animal.Id), plan.Position);
         }
     }
 }
