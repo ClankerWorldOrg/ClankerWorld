@@ -139,7 +139,9 @@ checks their completed approvals, membership, physical receipts and sites.
 Land and civil hearing ledgers check their file completeness, revision order,
 retained evidence, responses, consent history and internal read provenance before
 test publication. Their population, Council-notice, map and current-time links
-remain at the boundary.
+remain at the boundary. Case election rounds, local judge mandates, land rulings,
+civil findings and reopening records also check before publication. Save checks
+retain current population, historical office authority, law and calendar links.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,

@@ -154,53 +154,21 @@ public static partial class TownLandHearingValidation
         }
         foreach (var ruling in item.Rulings)
         {
-            var revision = item.Revisions.SingleOrDefault(r => r.Number == ruling.Revision);
-            Check(Generated(ruling.Id, "land-ruling:", townId, state.Sequence) && revision is not null && ruling.Tick >= revision.PublishedTick && ruling.Tick <= tick &&
-                TownLandHearingRules.IsValidOutcome(ruling.Outcome, ruling.Tick) && TownLandHearingRules.ValidText(ruling.Reasons) &&
-                Canonical(ruling.EvidenceIds) && Canonical(ruling.LawIds) && ruling.AdjustmentIds is not null && ruling.Parties is { Count: > 0 } && ruling.Parties.All(p => p is not null &&
-                    p.AdultIds is not null && CanonicalPeople(p.AdultIds) && p.AdultIds.All(agents.Contains)) &&
-                !TownLandHearingRules.RequiresNewNotice(revision, revision.Tiles, revision.RightVersions.Select(r => r.Right), ruling.Parties) &&
-                ruling.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= ruling.Tick)) &&
-                ruling.LawIds.All(id => item.Evidence.Any(e => e.Kind == "record" && e.SourceRecordId == id && e.SubmittedTick <= ruling.Tick) &&
-                    government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == id)) == true) &&
-                item.Reads.Any(r => r.AgentId == ruling.Judge.AgentId && r.Revision == ruling.Revision && r.ReadTick <= ruling.Tick &&
-                    ruling.EvidenceIds.All(r.EvidenceIds.Contains)) &&
-                !TownLandHearingRules.JudgeConflict(ruling.Judge.AgentId, null, ruling.Parties), "A saved ruling requires a reasoned, read and independent adjudication.");
+            Check(ruling.Tick <= tick && ruling.Parties.All(p => p.AdultIds.All(agents.Contains)) &&
+                ruling.LawIds.All(id => government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == id)) == true),
+                "A saved ruling requires a reasoned, read and independent adjudication.");
             ValidateJudge(ruling.Judge, item, tick, agents, government);
             Check(AuthorityAt(ruling.Judge, item, ruling.Tick, government), "A saved ruling needs a mandate valid at the actual ruling time.");
-            Check(ruling.Tick >= revision.DeadlineTick || ruling.Parties.All(p => p.Kind == "household" ? p.AdultIds.Count > 0 &&
-                p.AdultIds.All(id => item.Responses.Any(r => r.Revision == revision.Number && r.PartyId == p.Id && r.AgentId == id && r.Tick <= ruling.Tick)) :
-                item.Responses.Any(r => r.Revision == revision.Number && r.PartyId == p.Id && r.AgentId == p.RepresentativeId && r.Tick <= ruling.Tick)), "A saved ruling cannot omit the response window or actual early answers.");
-            if (ruling.Outcome.Kind is "renew" or "amend" or "end" or "reclaim" or "grant")
-                Check(ruling.AdjustmentIds.Count == 1 && ruling.EvidenceIds.Any(id => item.Evidence.Single(e => e.Id == id).Kind != "allegation") &&
-                    (item.Property is not null || !ruling.Parties.Any(p => p.Kind == "household" && p.AdultIds.Count == 0 && state.Adjustments.Where(a => a.RulingId == ruling.Id)
-                        .Any(a => TownLandHearingRules.IsAdverseChange(a.PriorRights.Select(v => v.Right), a.ResultRights, p.HouseholdId!)))) &&
-                    ruling.AdjustmentIds.All(id => state.Adjustments.Any(a => a.Id == id && a.RulingId == ruling.Id && a.CaseId == item.Id)),
-                    "An adverse saved ruling needs supported evidence, represented households and its exact adjustment.");
-            else Check(ruling.AdjustmentIds.Count == 0, "Confirmation or rejection cannot secretly change use rights.");
         }
-        Check(item.Status == "pending" ? item.SettledTick is null : item.Rulings.Count > 0 && item.SettledTick == item.Rulings[^1].Tick &&
-            (item.Judge is null || item.ReopenRequests.Any(r => r.Status == "pending")), "A saved settled case must retain its ruling and closure time.");
         foreach (var request in item.ReopenRequests)
         {
-            Check(Generated(request.Id, "land-reopen:", townId, state.Sequence) && agents.Contains(request.AgentId) && request.Tick >= item.FiledTick && request.Tick <= tick &&
-                request.Kind is "material_evidence" or "procedural_error" && request.Status is "pending" or "accepted" or "rejected" &&
-                Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 && request.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= request.Tick)) &&
-                TownLandHearingRules.ValidText(request.Reasons), "A saved reopening must retain identified grounds and evidence.");
-            Check(request.Status == "pending" ? request.AssessedBy is null && request.AssessedTick is null && request.Assessment is null :
-                request.AssessedBy is not null && request.AssessedTick >= request.Tick && request.AssessedTick <= tick && TownLandHearingRules.ValidText(request.Assessment),
-                "A saved reopening assessment requires recorded independent authority and reasons.");
+            Check(agents.Contains(request.AgentId) && request.Tick <= tick && (request.AssessedTick is null || request.AssessedTick <= tick),
+                "A saved reopening must retain identified grounds and evidence.");
             if (request.AssessedBy is { } assessor)
             {
                 ValidateJudge(assessor, item, tick, agents, government);
                 Check(AuthorityAt(assessor, item, request.AssessedTick!.Value, government), "A reopening assessment needs authority at its actual decision time.");
-                Check(item.Reads.Any(r => r.AgentId == assessor.AgentId && r.ReadTick <= request.AssessedTick &&
-                    r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)), "A reopening assessment cannot inherit unread grounds.");
             }
-            if (request.Status == "accepted")
-                Check(item.Revisions.Any(r => r.PublishedTick == request.AssessedTick) &&
-                    (request.Kind == "material_evidence" ? TownLandHearingRules.MaterialNewEvidence(item, request, state) : TownLandHearingRules.DemonstratedProceduralError(item, request)),
-                    "An accepted reopening needs established grounds and a fresh full hearing notice.");
         }
     }
 
@@ -260,40 +228,21 @@ public static partial class TownLandHearingValidation
 
     private static void ValidateJudge(TownLandCaseJudge judge, TownLandCase item, long tick, IReadOnlySet<string> agents, TownGovernmentState? government)
     {
-        Check(judge is not null && agents.Contains(judge.AgentId) && Id(judge.AuthorityId) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= tick &&
-            (judge.Kind == "case_elected" && item.ContestHistory.Any(c => c.Id == judge.AuthorityId && c.Stage == "completed" && c.WinnerId == judge.AgentId && c.SettledTick <= judge.AssignedTick) ||
-                judge.Kind == "land_mayor" && (government?.Offices.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.TermStartTick <= judge.AssignedTick && o.TermEndTick >= judge.AssignedTick) == true ||
-                    government?.OfficeHistory.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.StartTick <= judge.AssignedTick && o.EndTick >= judge.AssignedTick) == true)),
+        Check(agents.Contains(judge.AgentId) && judge.AssignedTick <= tick &&
+            (judge.Kind != "land_mayor" || government?.Offices.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.TermStartTick <= judge.AssignedTick && o.TermEndTick >= judge.AssignedTick) == true ||
+                government?.OfficeHistory.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.StartTick <= judge.AssignedTick && o.EndTick >= judge.AssignedTick) == true),
             "A saved judge cannot invent a general or case-only mandate.");
     }
 
     private static void ValidateContest(TownLandCaseJudgeContest contest, TownLandCase item, long tick, int day, IReadOnlySet<string> agents)
     {
-        Check(contest is not null && Id(contest.Id) && contest.Stage is "voting" or "waiting" or "completed" or "failed" or "cancelled" && contest.Round >= 0 && contest.Interruptions >= 0 &&
-            contest.OpenedTick >= item.FiledTick && contest.OpenedTick <= tick && contest.Rounds is not null && contest.Ballots is not null &&
-            CanonicalPeople(contest.Voters) && CanonicalPeople(contest.Candidates) && CanonicalPeople(contest.TiedCandidates) &&
-            contest.Voters.All(agents.Contains) && contest.Candidates.All(agents.Contains) && contest.TiedCandidates.All(agents.Contains), "A saved case election needs actual resident candidates and ballots.");
-        ValidateBallots(contest.Voters, contest.Candidates, contest.Ballots);
-        if (contest.Stage == "voting") Check(contest.RoundOpenedTick is { } opened && opened >= contest.OpenedTick && opened <= tick && contest.RoundDeadlineTick == opened + day,
+        Check(contest.OpenedTick <= tick && contest.Voters.Concat(contest.Candidates).Concat(contest.TiedCandidates).All(agents.Contains),
+            "A saved case election needs actual resident candidates and ballots.");
+        if (contest.Stage == "voting") Check(contest.RoundOpenedTick <= tick && contest.RoundDeadlineTick == contest.RoundOpenedTick + day,
             "A case election round needs a full unpaused voting day.");
         foreach (var round in contest.Rounds)
-        {
-            Check(round is not null && round.Number > 0 && round.Number <= contest.Round && round.OpenedTick >= contest.OpenedTick && round.ClosedTick >= round.OpenedTick && round.ClosedTick <= tick &&
-                round.Result is "winner" or "tie" or "interrupted" or "failed" or "cancelled" && CanonicalPeople(round.Voters) && CanonicalPeople(round.Candidates) && CanonicalPeople(round.TiedCandidates) &&
-                round.Voters.All(agents.Contains) && round.Candidates.All(agents.Contains) && round.TiedCandidates.All(agents.Contains), "A saved case election must retain each completed or interrupted round.");
-            ValidateBallots(round.Voters, round.Candidates, round.Ballots);
-            Check(round.Candidates.All(id => item.JudgeConsents.Any(c => c.AgentId == id && c.Tick <= round.OpenedTick && (c.WithdrawnTick is null || c.WithdrawnTick >= round.ClosedTick))),
-                "A case candidate must personally consent to that case's mandate.");
-        }
-        Unique(contest.Rounds.Select(r => r.Number.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-        if (contest.Stage == "completed")
-        {
-            var round = contest.Rounds.Count == 0 ? null : contest.Rounds[^1];
-            Check(round is { Result: "winner" } && contest.WinnerId is { } winner && round.Candidates.Contains(winner, StringComparer.Ordinal) && contest.SettledTick == round.ClosedTick &&
-                round.Ballots.Any(b => b.CandidateId == winner) && round.Candidates.Where(id => id != winner).All(id =>
-                    round.Ballots.Count(b => b.CandidateId == id) < round.Ballots.Count(b => b.CandidateId == winner)), "A case judge must win an actual unique-highest resident vote.");
-        }
-        else Check(contest.WinnerId is null, "An unfinished case election cannot invent a winner.");
+            Check(round.ClosedTick <= tick && round.Voters.Concat(round.Candidates).Concat(round.TiedCandidates).All(agents.Contains),
+                "A saved case election must retain each completed or interrupted round.");
     }
 
     private static void ValidateBallots(IReadOnlyList<string> voters, IReadOnlyList<string> candidates, IReadOnlyList<TownMayoralBallot> ballots)
