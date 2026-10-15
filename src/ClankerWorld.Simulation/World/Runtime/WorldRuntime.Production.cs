@@ -16,7 +16,7 @@ public sealed partial class WorldRuntime
     // The occupied tiles and foot costs a layout reads. Building them gathers everything in the world and
     // walks the map from the actor, so a caller laying out several buildings of one kind builds them once.
     // A household building avoids only other households' land; any other building avoids all of it.
-    private sealed record TownLayoutBasis(string Actor, GridPoint? SelectedSite, bool HouseholdBuilding, string? TownProjectId,
+    internal sealed record TownLayoutBasis(string Actor, GridPoint? SelectedSite, bool HouseholdBuilding, string? TownProjectId,
         HashSet<GridPoint> Occupied, Dictionary<GridPoint, int> FootCosts);
 
     private static bool IsHouseholdLayout(BuildingDefinition? building) =>

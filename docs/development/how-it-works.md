@@ -178,6 +178,17 @@ same original points. Local identity, attachment and progress checks run before
 test mutations publish and are reused by save validation. Existing geometry
 fixtures target the system through their existing reflection sites.
 
+`Orders/OrderSystem.cs` owns owner instruction submission, cancellation, task
+selection, execution, progress, interruption and native-work bindings. Its
+`OrderStore` is the only writer of instruction, task, binding and receipt records
+and completion markers. Purpose-named operations preserve captured input records
+and detached preparations until their original commits. Separate per-call ports
+cover selection, survival, lifecycle, delivery and each task family; inventory,
+production, building, boat and physical-agent changes use named owner commands.
+Public ingress keeps its existing validation and gate ordering. Saved order
+state transfers as one system; store-local checks run before test writes publish
+and at save ingress, while save validation retains cross-system links.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

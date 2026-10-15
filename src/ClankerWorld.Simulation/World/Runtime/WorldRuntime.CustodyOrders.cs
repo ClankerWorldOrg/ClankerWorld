@@ -8,106 +8,27 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void InterruptOrdinaryFieldWorkForCustody(string actor, string lotId)
-    {
-        if (FarmWorkFor(actor) is { Work: { OrderInstructionId: null } work } field &&
-            (work.HoeLotId == lotId || work.SickleLotId == lotId))
-            CancelFarmWork(field);
-    }
+    private void InterruptOrdinaryFieldWorkForCustody(string actor, string lotId) =>
+        OrderSystem.InterruptOrdinaryFieldWorkForCustody(CustodyOrdersWorld, actor, lotId);
 
-    private PlacedBuilding? CustodyOrderHouse(OwnerQueuedInstruction instruction, string? ownerId)
-    {
-        var order = instruction.Task!;
-        if (ownerId is null || HouseForHousehold(ownerId) is not { } house ||
-            order.TargetPosition is { } requested && house.Position != requested) return null;
-        if (order.TargetStorageBuildingId is not null &&
-            (house.InstanceId != order.TargetStorageBuildingId || house.HouseholdId != order.TargetStorageOwnerId ||
-             house.Position != order.TargetStoragePosition)) return null;
-        return house;
-    }
+    private PlacedBuilding? CustodyOrderHouse(OwnerQueuedInstruction instruction, string? ownerId) =>
+        OrderSystem.CustodyOrderHouse(CustodyOrdersWorld, instruction, ownerId);
 
     private OwnerQueuedInstruction BindCustodyOrder(OwnerQueuedInstruction instruction, PlacedBuilding house,
-        string? lotId = null)
-    {
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        var order = current.Task!;
-        if (order.TargetStorageBuildingId is null)
-            order = order with
-            {
-                TargetStorageBuildingId = house.InstanceId,
-                TargetStorageOwnerId = house.HouseholdId,
-                TargetStoragePosition = house.Position,
-            };
-        if (lotId is not null) order = order with { TargetLotId = lotId };
-        current = current with { Task = order };
-        instructionsByIdempotency[current.IdempotencyKey] = current;
-        checkpointSchemaVersion = StateSchemaVersion;
-        return current;
-    }
+        string? lotId = null) =>
+        OrderSystem.BindCustodyOrder(CustodyOrdersWorld, instruction, house, lotId);
 
     private IEnumerable<InventoryLot> ReturnOrderGoods(OwnerQueuedInstruction instruction) =>
-        ReturnableBorrowedGoods(instruction.TargetAgentId).Where(lot =>
-            lot.ItemKind == instruction.Task!.TargetItemKind &&
-            (instruction.Task.TargetLotId is null || lot.Id == instruction.Task.TargetLotId) &&
-            (instruction.Task.TargetStorageOwnerId is null || lot.OwnerId == instruction.Task.TargetStorageOwnerId));
+        OrderSystem.ReturnOrderGoods(CustodyOrdersWorld, instruction);
 
-    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        if (!ReadyForBriefInteraction(actor)) return null;
-        foreach (var lot in ReturnOrderGoods(instruction).OrderBy(lot => lot.Id, StringComparer.Ordinal))
-        {
-            if (CustodyOrderHouse(instruction, lot.OwnerId) is not { } house || DestinationRoom(house.InstanceId) <= 0 ||
-                !VesselFits(lot, DestinationRoom(house.InstanceId)) ||
-                !IsWithinInteractionRange(person.Position, house.Position, 1) &&
-                Reach(actor, house.Position, ReachPurpose.HouseholdPickup, 1, 0, SwimmingPolicy.WhenCapable).Count == 0) continue;
-            return new("return_borrowed", "Carry borrowed goods back to their owning household's House without changing ownership.", 0, lot.Id);
-        }
-        return null;
-    }
+    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ReturnOrderCandidateFor(CustodyOrdersWorld, instruction, person);
 
-    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var candidate = ReturnOrderCandidateFor(instruction, person);
-        if (candidate?.DestinationId is not { } lotId)
-        {
-            SetOrderStatus(instruction, "blocked", ReturnOrderBlockedReason(instruction, person));
-            return;
-        }
-        var lot = ReturnOrderGoods(instruction).Single(item => item.Id == lotId);
-        var house = CustodyOrderHouse(instruction, lot.OwnerId)!;
-        instruction = BindCustodyOrder(instruction, house, lotId);
-        var order = instruction.Task!;
-        var remaining = order.QuantityIsExplicit && !order.RepeatUntilCancelled
-            ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
-        if (ReturnBorrowedGoods(instruction.TargetAgentId, lotId, remaining,
-                order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is not { } effect) return;
-        var receipt = BorrowedReturnReceipt(effect.MoveId);
-        CreditOrderEffect(instruction, receipt, order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
-        // Another load may use another lot, but it must keep the original owner and House.
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[instruction.IdempotencyKey] = current with { Task = current.Task! with { TargetLotId = null } };
-    }
+    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteReturnOrderStep(CustodyOrdersWorld, instruction, person);
 
-    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        var order = instruction.Task!;
-        if (!MayFollowOwnerOrder(actor, order)) return "This agent is too young to return borrowed goods.";
-        if (order.TargetStorageOwnerId is { } owner && CustodyOrderHouse(instruction, owner) is null)
-            return "The selected return House moved, changed owner or is no longer available; the order keeps its original destination.";
-        var lots = ReturnOrderGoods(instruction).ToArray();
-        if (lots.Length == 0)
-            return "No matching borrowed goods are available; the selected goods must still be carried, unreserved and free of delivery promises.";
-        var destinations = lots.Select(lot => (Lot: lot, House: CustodyOrderHouse(instruction, lot.OwnerId)))
-            .Where(item => item.House is not null).ToArray();
-        if (destinations.Length == 0) return "The goods' owning household has no House at the requested destination.";
-        if (destinations.All(item => DestinationRoom(item.House!.InstanceId) <= 0 ||
-                !VesselFits(item.Lot, DestinationRoom(item.House!.InstanceId))))
-            return "The owning House needs room for the returned goods, including each whole vessel and all its contents.";
-        if (!ReadyForBriefInteraction(actor)) return "The agent needs warmth before returning borrowed goods.";
-        return "No open walking route reaches the owning household's House right now.";
-    }
+    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ReturnOrderBlockedReason(CustodyOrdersWorld, instruction, person);
 
     private static void ValidateCustodyOrderBindings(SocietyCheckpoint society,
         IEnumerable<OwnerQueuedInstruction> instructions)

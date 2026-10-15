@@ -11,149 +11,31 @@ public sealed partial class WorldRuntime
 
     private const string TalkOrderTask = "attempt to talk with the named person; agreement and resumption remain each participant's choice";
 
-    private OrderTask? ParseTalkOrder(string text, string actor)
-    {
-        if (LifeStageRules.IsInfant(society.Checkpoint.GetAgent(actor).AgeBand)) return null;
-        if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
-        foreach (var prefix in new[] { "talk to ", "talk with ", "speak to ", "speak with " })
-        {
-            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
-            var name = text[prefix.Length..].Trim();
-            var people = society.Checkpoint.Agents.Where(person => person.Id != actor).ToArray();
-            var targets = people.Where(person => person.Id == name).ToArray();
-            if (targets.Length == 0 && AgentNameRules.CanonicalKey(name) is { } key)
-                targets = people.Where(person => string.Equals(AgentNameRules.CanonicalKey(person.Name), key, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(AgentNameRules.FirstNameKey(person.Name), key, StringComparison.OrdinalIgnoreCase)).ToArray();
-            if (targets.Length != 1) return null;
-            return new("talk_to", "queued", 1, 0, "conversations", false, TargetAgentId: targets[0].Id);
-        }
-        return null;
-    }
+    private OrderTask? ParseTalkOrder(string text, string actor) =>
+        OrderSystem.ParseTalkOrder(TalkOrdersWorld, text, actor);
 
     private static bool IsLinkedTalkOrder(OwnerQueuedInstruction instruction) => instruction.Task is { TalkConversationId: not null } order && IsConversationOrder(order.Action);
 
-    private bool TalkOrderHasConversation(OwnerQueuedInstruction instruction) => instruction.Task is { } order && IsConversationOrder(order.Action) &&
-        (IsLinkedTalkOrder(instruction) || ConversationFor(instruction.TargetAgentId) is not null);
+    private bool TalkOrderHasConversation(OwnerQueuedInstruction instruction) =>
+        OrderSystem.TalkOrderHasConversation(TalkOrdersWorld, instruction);
 
     private CognitionCandidate? TalkOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
-        IsLinkedTalkOrder(instruction) || TalkOrderBlocker(instruction, person) is null
-            ? new(instruction.Task!.Action, IsLinkedTalkOrder(instruction) ? "Wait for the actual conversation's outcome, preserving each person's choices." :
-                "Reach the named person and attempt one face-to-face invitation.", 0, instruction.Task!.TargetAgentId ?? CurrentMarriageOrderPartner(instruction.TargetAgentId))
-            : null;
+        OrderSystem.TalkOrderCandidateFor(TalkOrdersWorld, instruction, person);
 
-    private string? TalkOrderBlocker(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        if (instruction.Task!.Action == "propose_marriage" && MarriageOrderBlocker(instruction) is { } marriageBlocker)
-            return marriageBlocker;
-        var target = instruction.Task.TargetAgentId ?? CurrentMarriageOrderPartner(actor)!;
-        if (!agents.TryGetValue(target, out var other) || society.Checkpoint.GetAgent(target).Status != SocietyAgentStatus.Active)
-            return "The named person is no longer available.";
-        if (LifeStageRules.IsInfant(society.Checkpoint.GetAgent(target).AgeBand))
-            return "The named person is too young for this conversation.";
-        if (PassengerBoat(actor) is not null || PassengerBoat(target) is not null)
-            return "Waiting for both people to be ashore for a face-to-face conversation.";
-        if (ConversationFor(actor) is not null || ConversationFor(target) is not null)
-            return "Waiting for another conversation to finish.";
-        if (NeedsUrgentFood(other) || NeedsUrgentWarmth(other)) return "The named person's urgent food or warmth needs come first.";
-        if (!HasExplicitConversationProvider(actor) || !HasExplicitConversationProvider(target))
-            return "Both people need their own available conversation model.";
-        if (!HasConversationAllowance(actor) || !HasConversationAllowance(target))
-            return "Waiting until both people are under their daily conversation limit.";
-        if (conversations.Count >= AgentConversationRules.MaximumSavedConversations &&
-            !conversations.Any(conversation => conversation.Status == AgentConversationStatus.Closed && !ActiveTalkOrderUses(conversation.Id)))
-            return "Waiting for space in the conversation history.";
-        return IsWithinInteractionRange(person.Position, other.Position, ResourceInteractionRange) ||
-            Reach(actor, other.Position, ReachPurpose.Movement, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
-                ? null : "Waiting for an open route to the named person.";
-    }
+    private string? TalkOrderBlocker(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.TalkOrderBlocker(TalkOrdersWorld, instruction, person);
 
-    private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        if (IsLinkedTalkOrder(instruction))
-        {
-            CompleteClosedTalkOrders();
-            if (UnacceptedMarriageOrderBlocker(instruction) is { } eligibilityBlocker)
-                SetOrderStatus(instruction, "blocked", eligibilityBlocker);
-            else if (ConversationForOrder(instruction)?.Status == AgentConversationStatus.Suspended)
-                SetOrderStatus(instruction, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
-            else if (instruction.Task!.Action == "propose_marriage" && marriages.Any(item => item.Consent.Id == instruction.Task.TalkConversationId && item.CompletedTick is null) &&
-                ConversationForOrder(instruction)?.Outcome == "participant_unavailable")
-                SetOrderStatus(instruction, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
-            return;
-        }
-        if (TalkOrderBlocker(instruction, person) is { } blocker)
-        {
-            SetOrderStatus(instruction, "blocked", blocker);
-            return;
-        }
-        var actor = instruction.TargetAgentId;
-        if (instruction.Task!.TargetAgentId is null)
-        {
-            var bound = instructionsByIdempotency[instruction.IdempotencyKey];
-            instruction = bound with { Task = bound.Task! with { TargetAgentId = CurrentMarriageOrderPartner(actor) } };
-            instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
-        }
-        var target = instruction.Task!.TargetAgentId!;
-        if (!IsWithinInteractionRange(person.Position, agents[target].Position, ResourceInteractionRange))
-        {
-            MoveToward(actor, person, agents[target].Position, "owner_order_talk", ResourceInteractionRange);
-            return;
-        }
-        if (!ProposeConversation(actor, target))
-        {
-            SetOrderStatus(instruction, "blocked", "Waiting for a face-to-face invitation to become possible.");
-            return;
-        }
-        var conversation = ConversationFor(actor)!;
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Task = current.Task! with { TalkConversationId = conversation.Id, Status = "doing", BlockedReason = null } };
-    }
+    private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteTalkOrderStep(TalkOrdersWorld, instruction, person);
 
-    private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision)
-    {
-        var actor = instruction.TargetAgentId;
-        var candidate = decision.Admission.Intention!.CandidateId;
-        var person = agents[actor];
-        if ((NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) && IsSurvivalCandidate(actor, candidate))
-        {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
-            if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
-                IsMarketFoodCandidate(actor, candidate))
-                ApplyMarketCandidate(actor, person, candidate);
-            else
-                ApplyCandidate(actor, person, candidate, reportIdle: true);
-            return;
-        }
-        var conversation = IsLinkedTalkOrder(instruction) ? ConversationForOrder(instruction) : ConversationFor(actor);
-        if (conversation is null) return;
-        // An order requires the attempt, never affirmative wrap-up or resumption consent.
-        if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
-            ConversationCandidates(actor).Any(item => item.Id == candidate))
-            ApplyConversationCandidate(actor, candidate);
-        CompleteClosedTalkOrders();
-        RefreshMarriageOrderEligibilityStatus(instruction);
-    }
+    private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision) =>
+        OrderSystem.ApplyTalkOrderConversationDecision(TalkOrdersWorld, instruction, decision);
 
-    private bool ActiveTalkOrderUses(string conversationId) => instructionsByIdempotency.Values.Any(instruction =>
-        instruction.Task is { } order && IsConversationOrder(order.Action) && IsActiveOrder(order.Status) && order.TalkConversationId == conversationId);
+    private bool ActiveTalkOrderUses(string conversationId) =>
+        OrderSystem.ActiveTalkOrderUses(TalkOrdersWorld, conversationId);
 
-    private void CompleteClosedTalkOrders()
-    {
-        foreach (var instruction in instructionsByIdempotency.Values.Where(item => IsLinkedTalkOrder(item) && IsActiveOrder(item.Task!.Status)).ToArray())
-        {
-            // Speech and surname turns can continue without a new planning choice; keep eligibility status current.
-            RefreshMarriageOrderEligibilityStatus(instruction);
-            var conversation = conversations.FirstOrDefault(item => item.Id == instruction.Task!.TalkConversationId);
-            if (conversation?.Status != AgentConversationStatus.Closed) continue;
-            var outcome = instruction.Task!.Action == "propose_marriage" ? MarriageOrderOutcome(conversation, marriages) : conversation.Outcome;
-            if (outcome is null) continue; // Accepted marriage still has its own unfinished surname session.
-            var current = instruction with { Task = instruction.Task! with { TalkOutcome = outcome } };
-            instructionsByIdempotency[current.IdempotencyKey] = current;
-            CreditOrderEffect(current, TalkOrderEffectId(current), 1);
-        }
-    }
+    private void CompleteClosedTalkOrders() =>
+        OrderSystem.CompleteClosedTalkOrders(TalkOrdersWorld);
 
     private static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
         (instruction.Task!.Action == "propose_marriage" ? "marriage-order:" : "talk-order:") +

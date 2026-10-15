@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record PersonalCollectionEffect(string MoveId, string ItemKind, int Quantity);
+    internal sealed record PersonalCollectionEffect(string MoveId, string ItemKind, int Quantity);
 
     private PersonalCollectionEffect? CollectPersonalGoods(string actor, string lotId, int maximumQuantity = int.MaxValue)
     {

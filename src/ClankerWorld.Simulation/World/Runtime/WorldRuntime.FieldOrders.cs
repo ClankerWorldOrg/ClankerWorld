@@ -18,111 +18,20 @@ public sealed partial class WorldRuntime
         _ => throw new ArgumentOutOfRangeException(nameof(action)),
     };
 
-    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        var household = HouseholdFor(actor);
-        if (!IsAdult(actor) || FarmhouseForHousehold(household) is not { } farmhouse) return null;
-        var order = instruction.Task!;
-        var kind = FieldOrderKind(order.Action);
-        if (kind is FarmWorkKind.Till or FarmWorkKind.Tend &&
-            ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null) return null;
-        if (kind == FarmWorkKind.Till)
-        {
-            var queryFertility = fertility;
-            var heldByOthers = HouseholdLandHeldByOthers(household);
-            return NearbyFarmTiles(farmhouse.Position).Where(point => !heldByOthers.Contains(point) &&
-                    farmingSystem.FarmableFreeTile(farmingWorld, point, queryFertility))
-                .Where(point => order.TargetPosition is null || point == order.TargetPosition)
-                .OrderBy(point => map.FootDistance(person.Position, point))
-                .ThenByDescending(point => queryFertility.At(point))
-                .ThenBy(point => point.Y).ThenBy(point => point.X)
-                .Cast<GridPoint?>().FirstOrDefault(point => CanReachLeg(actor, person.Position, point!.Value, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable));
-        }
-        return fields.Where(field => field.HouseholdId == household && field.Work is null &&
-                (order.TargetPosition is null || field.Position == order.TargetPosition) &&
-                (kind == FarmWorkKind.Plant ? field.Stage is FarmFieldStage.Prepared or FarmFieldStage.Harvested :
-                    (order.TargetCropKind is null || field.Crop == order.TargetCropKind) &&
-                    (kind == FarmWorkKind.Tend ? field.Stage == FarmFieldStage.Growing && !field.Tended : field.Stage == FarmFieldStage.Ready)))
-            .OrderBy(field => map.FootDistance(person.Position, field.Position))
-            .ThenBy(field => field.Position.Y).ThenBy(field => field.Position.X)
-            .Where(field => CanReachLeg(actor, person.Position, field.Position, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable) &&
-                (kind != FarmWorkKind.Plant || !HasOtherAgentClaimedPlanting(field, actor) &&
-                    PlantingStock(actor, field, order.TargetCropKind!, requirePickupRoute: true) is not null))
-            .Select(field => (GridPoint?)field.Position).FirstOrDefault();
-    }
+    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.FieldOrderSite(FieldOrdersWorld, instruction, person);
 
-    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work })
-            return new("work_field", work.OrderInstructionId == instruction.InstructionId
-                ? "Finish the requested field work with its real tools and planting stock."
-                : "End the previous field work and release unused planting stock before starting this task.", 0);
-        return FieldOrderSite(instruction, person) is null ? null :
-            new("work_field", "Walk to a suitable household field and complete the requested work.", 0);
-    }
+    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.FieldOrderCandidateFor(FieldOrdersWorld, instruction, person);
 
-    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, AgentState person)
-    {
-        var actor = instruction.TargetAgentId;
-        if (FarmWorkFor(actor) is { Work: { } work } current)
-        {
-            if (work.OrderInstructionId == instruction.InstructionId)
-            {
-                ContinueFarmWork(actor, out var completed);
-                if (completed is not null)
-                {
-                    var receipt = FieldWorkOrderReceipt(actor, WorldTick, completed.Position, work.Kind, completed.Cycle);
-                    CreditOrderEffect(instruction, receipt, 1);
-                }
-                return;
-            }
-            CancelFarmWork(current);
-        }
-        if (FieldOrderSite(instruction, person) is not { } site)
-        {
-            SetOrderStatus(instruction, "blocked", FieldOrderBlockedReason(instruction));
-            return;
-        }
-        ApplyFieldCandidate(actor, person, FarmCandidate(FieldOrderKind(instruction.Task!.Action), site,
-            instruction.Task.TargetCropKind), instruction.InstructionId);
-    }
+    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteFieldOrderStep(FieldOrdersWorld, instruction, person);
 
-    private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction)
-    {
-        var actor = instruction.TargetAgentId;
-        var order = instruction.Task!;
-        if (!MayFollowOwnerOrder(actor, order)) return "This agent is too young to work on fields.";
-        if (order.TargetPosition is { } target && !map.Contains(target))
-            return "The requested tile is outside this world.";
-        if (FarmhouseForHousehold(HouseholdFor(actor)) is null) return "The agent needs a household with a Farmhouse.";
-        var kind = FieldOrderKind(order.Action);
-        if (kind is FarmWorkKind.Till or FarmWorkKind.Tend &&
-            ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null)
-            return "Carry a usable hoe for this field work.";
-        if (order.TargetPosition is not null)
-            return kind switch
-            {
-                FarmWorkKind.Till => "The requested tile needs free farmable land near the household's Farmhouse and an open walking route.",
-                FarmWorkKind.Plant => "Planting at the requested tile needs a prepared household field, usable planting stock, carrying space and open walking routes.",
-                FarmWorkKind.Tend => "No available household field at the requested tile has the requested crop ready for tending along an open walking route.",
-                _ => "No available household field at the requested tile has the requested crop ready to harvest along an open walking route.",
-            };
-        return kind switch
-        {
-            FarmWorkKind.Till => "No open walking route reaches free farmable land near the household's Farmhouse.",
-            FarmWorkKind.Plant => "Planting needs an available prepared household field, usable planting stock and carrying space, with open walking routes.",
-            FarmWorkKind.Tend => "No available household field with the requested crop needs tending along an open walking route.",
-            _ => "No available household field with the requested crop is ready to harvest along an open walking route.",
-        };
-    }
+    private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction) =>
+        OrderSystem.FieldOrderBlockedReason(FieldOrdersWorld, instruction);
 
-    private void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction)
-    {
-        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work } field &&
-            work.OrderInstructionId == instruction.InstructionId)
-            CancelFarmWork(field);
-    }
+    private void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.CancelFieldWorkForOrder(FieldOrdersWorld, instruction);
 
     private static void ValidateFieldOrderBindings(IEnumerable<FarmFieldState> savedFields,
         IEnumerable<OwnerQueuedInstruction> instructions)

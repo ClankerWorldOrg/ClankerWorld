@@ -29,7 +29,7 @@ internal sealed partial class AnimalSystem
             var animal = targets[0];
             if (!AnimalHouseholdMember(world, actor, animal) && !MayCareForAnimal(world, actor, animal) && !MayRideAnimal(world, actor, animal) &&
                 !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4)) return null;
-            return new("animal_" + action, "queued", 1, 0, "animal_tasks", repeat) { TargetAnimalId = animal.Id };
+            return OrderStore.PrepareAnimalTarget(OrderStore.CreateOrderTask("animal_" + action, "queued", 1, 0, "animal_tasks", repeat), animal.Id);
         }
         return null;
     }

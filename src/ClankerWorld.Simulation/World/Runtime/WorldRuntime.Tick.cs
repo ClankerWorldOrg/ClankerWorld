@@ -452,17 +452,13 @@ public sealed partial class WorldRuntime
         agentStore = proposed.agentStore;
         resources = proposed.resources;
         communitySystem = proposed.communitySystem;
-        instructionsByIdempotency = proposed.instructionsByIdempotency;
-        instructionReceipts = proposed.instructionReceipts;
-        orderCancellations = proposed.orderCancellations;
-        completedInstructionIds = proposed.completedInstructionIds;
+        orderSystem = proposed.orderSystem;
         worldEventLog = proposed.worldEventLog;
         checkpointSchemaVersion = proposed.checkpointSchemaVersion;
         jevEnabled = proposed.jevEnabled;
         routineHelper = proposed.routineHelper;
         jevPolicyRevision = proposed.jevPolicyRevision;
         conversationSystem = proposed.conversationSystem;
-        nextInstructionSequence = proposed.nextInstructionSequence;
         actionRefusals = proposed.actionRefusals;
         refusedActionCount = proposed.refusedActionCount;
         CopyRecipeProjectPlansFrom(proposed);

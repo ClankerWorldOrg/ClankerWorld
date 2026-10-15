@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record PersonalStorageEffect(string MoveId, string ItemKind, int Quantity);
+    internal sealed record PersonalStorageEffect(string MoveId, string ItemKind, int Quantity);
 
     private IEnumerable<InventoryLot> PersonalStorageLots(string actor, string houseId) =>
         SpendingGoods(actor, GoodsUse.StorePersonal, [actor]).Select(match => match.Lot)

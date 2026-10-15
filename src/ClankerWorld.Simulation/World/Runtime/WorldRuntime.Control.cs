@@ -18,63 +18,7 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            var idempotencyKey = request.IdempotencyKey.Trim();
-            if (instructionsByIdempotency.TryGetValue(idempotencyKey, out var existing))
-            {
-                if (!Matches(existing, request))
-                {
-                    throw new InvalidOperationException(
-                        "An idempotency key cannot be reused for a different instruction request.");
-                }
-
-                return instructionReceipts[idempotencyKey];
-            }
-
-            var targetId = request.TargetAgentId.Trim();
-            var target = society.Checkpoint.Agents.SingleOrDefault(item => item.Id == targetId);
-            if (target is null || target.Status != SocietyAgentStatus.Active)
-            {
-                throw new ArgumentException($"No active agent with ID '{targetId}' exists.", nameof(request));
-            }
-            if (LifeStageRules.IsInfant(target.AgeBand))
-            {
-                throw new ArgumentException("Infants cannot carry out owner instructions; direct care through an adult caregiver.", nameof(request));
-            }
-
-            var text = request.Text.Trim();
-            var hasPendingOrder = PendingInstructionFor(targetId) is not null;
-            var parsedOrder = request.Kind == OwnerInstructionKind.Order ? ParseOrderTask(text, targetId) : null;
-            if (parsedOrder is not null && !request.Queue)
-                ReplacePendingOrders(targetId);
-            if (parsedOrder is not null)
-                parsedOrder = parsedOrder with { Status = request.Queue && hasPendingOrder ? "queued" : "waiting" };
-
-            var sequence = nextInstructionSequence++;
-            var instruction = new OwnerQueuedInstruction(
-                $"private-instruction-{sequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}",
-                idempotencyKey,
-                request.IssuerId.Trim(),
-                targetId,
-                request.Kind,
-                text,
-                WorldTick,
-                society.Checkpoint.RunEpoch,
-                sequence,
-                OwnerInstructionState.Queued,
-                Queue: request.Queue,
-                Task: request.Kind != OwnerInstructionKind.Order ? null : parsedOrder ??
-                    new OrderTask("unknown", "not_understood", 0, 0, "none", false));
-            instructionsByIdempotency.Add(instruction.IdempotencyKey, instruction);
-            var receipt = new OwnerInstructionReceipt(
-                instruction.InstructionId,
-                instruction.IdempotencyKey,
-                instruction.SubmittedTick,
-                instruction.RunEpoch,
-                sequence);
-            instructionReceipts.Add(instruction.IdempotencyKey, receipt);
-            AppendEvent("instruction_queued", $"{instruction.InstructionId}:{ToWireValue(instruction.Kind)}");
-            CloseOrdersNotUnderstood(targetId);
-            return receipt;
+            return OrderSystem.SubmitInstruction(OrderIngressWorld, request);
         }
         finally
         {
@@ -89,36 +33,7 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            var key = request.IdempotencyKey.Trim();
-            if (orderCancellations.TryGetValue(key, out var existing))
-            {
-                if (!Matches(existing, request))
-                    throw new InvalidOperationException("An idempotency key cannot be reused for a different order cancellation.");
-                return existing.Receipt;
-            }
-            if (!string.Equals(request.WorldId.Trim(), society.Checkpoint.WorldId, StringComparison.Ordinal))
-                throw new InvalidOperationException("The cancellation belongs to another world.");
-            var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
-                item.InstructionId == request.OrderId.Trim());
-            if (instruction is null || instruction.Kind != OwnerInstructionKind.Order ||
-                instruction.TargetAgentId != request.TargetAgentId.Trim())
-                throw new ArgumentException("The order does not belong to this active agent in this world.", nameof(request));
-
-            var changed = instruction.Task is { } order && IsActiveOrder(order.Status) &&
-                !completedInstructionIds.Contains(instruction.InstructionId);
-            var status = instruction.Task?.Status ?? "not_understood";
-            if (changed)
-            {
-                CancelActiveOrder(instruction, "owner", null);
-                status = "cancelled";
-            }
-            var receipt = new OwnerOrderControlReceipt(
-                instruction.InstructionId, status, changed, WorldTick, nextEventId - 1);
-            orderCancellations.Add(key, new OwnerOrderCancellation(
-                key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(),
-                request.OrderId.Trim(), receipt));
-            checkpointSchemaVersion = StateSchemaVersion;
-            return receipt;
+            return OrderSystem.CancelOrder(OrderIngressWorld, request);
         }
         finally
         {
@@ -293,94 +208,25 @@ public sealed partial class WorldRuntime
     }
 
     private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
-        instructionsByIdempotency.Values
-            .Where(item => item.TargetAgentId == agentId &&
-                item.Kind == OwnerInstructionKind.Order &&
-                item.Task is not null && IsActiveOrder(item.Task.Status) &&
-                !completedInstructionIds.Contains(item.InstructionId))
-            .OrderBy(item => item.SubmissionSequence)
-            .FirstOrDefault();
+        OrderSystem.PendingInstructionFor(ControlWorld, agentId);
 
-    private void ReplacePendingOrders(string agentId)
-    {
-        foreach (var instruction in instructionsByIdempotency.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
-                     .OrderBy(item => item.SubmissionSequence).ToArray())
-        {
-            CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
-        }
-        checkpointSchemaVersion = StateSchemaVersion;
-    }
+    private void ReplacePendingOrders(string agentId) =>
+        OrderSystem.ReplacePendingOrders(ControlWorld, agentId);
 
-    private void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason)
-    {
-        instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
-        {
-            Task = instruction.Task! with
-            {
-                Status = "cancelled",
-                BlockedReason = reason,
-                WaitForDecisionAfterFailure = false,
-            },
-        };
-        completedInstructionIds.Add(instruction.InstructionId);
-        CancelRepairForOrder(instruction);
-        CancelFieldWorkForOrder(instruction);
-        CancelProductionForOrder(instruction);
-        CancelConstructionForOrder(instruction);
-        CancelExpansionForOrder(instruction);
-        CancelAnimalSupplyForOrder(instruction);
-        CancelBoatTravelForOrder(instruction);
-        CancelKnowledgeWritingForOrder(instruction);
-        checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_cancelled", $"{instruction.TargetAgentId}:{instruction.InstructionId}:{cause}");
-    }
+    private void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason) =>
+        OrderSystem.CancelActiveOrder(ControlWorld, instruction, cause, reason);
 
     private static bool IsActiveOrder(string status) =>
         status is "queued" or "waiting" or "doing" or "interrupted" or "blocked";
 
     private bool HasNewObserverGuidanceFor(string agentId) =>
-        ObserverGuidanceInstructionsFor(agentId).Any(item => item.GuidancePromptedTick is null);
+        OrderSystem.HasNewObserverGuidanceFor(ControlWorld, agentId);
 
-    private OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string agentId)
-    {
-        var messages = instructionsByIdempotency.Values
-            .Where(item => item.TargetAgentId == agentId &&
-                !completedInstructionIds.Contains(item.InstructionId) &&
-                (item.Kind == OwnerInstructionKind.Suggestion ||
-                    item.InstructionId == PendingInstructionFor(agentId)?.InstructionId))
-            .OrderBy(item => item.SubmissionSequence)
-            .ToList();
-        var selected = messages.Take(AgentObservation.MaximumObserverGuidanceCount).ToList();
-        if (messages.Count > selected.Count &&
-            PendingInstructionFor(agentId) is { } operativeOrder &&
-            selected.All(item => item.InstructionId != operativeOrder.InstructionId))
-        {
-            selected[^1] = operativeOrder;
-            selected.Sort((left, right) => left.SubmissionSequence.CompareTo(right.SubmissionSequence));
-        }
-
-        return selected.ToArray();
-    }
+    private OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string agentId) =>
+        OrderSystem.ObserverGuidanceInstructionsFor(ControlWorld, agentId);
 
     private CognitionObserverGuidance[] ObserverGuidanceFor(string agentId) =>
-        ObserverGuidanceInstructionsFor(agentId)
-            .Select(item => new CognitionObserverGuidance(
-                item.InstructionId,
-                item.IssuerId,
-                item.TargetAgentId,
-                ToWireValue(item.Kind),
-                item.Text,
-                item.SubmittedTick,
-                item.RunEpoch,
-                item.SubmissionSequence,
-                item.Kind == OwnerInstructionKind.Order
-                    ? UnderstoodTaskFor(item.Task?.Action)
-                    : null,
-                item.ObserverReply is null))
-            .ToArray();
+        OrderSystem.ObserverGuidanceFor(ControlWorld, agentId);
 
     private static string? UnderstoodTaskFor(string? candidate) => candidate switch
     {
@@ -432,35 +278,13 @@ public sealed partial class WorldRuntime
         _ => null,
     };
 
-    private OrderTask? ParseOrderTask(string text, string actor)
-    {
-        return ParseMarriageOrder(text, actor) ?? ParseKnowledgeReadOrder(text) ?? ParseTalkOrder(text, actor) ?? ParseCartCargoOrder(text, actor) ?? ParseCartOrder(text, actor) ?? ParseAnimalOrder(text, actor) ?? ParseGuardianOrder(text, actor) ?? OrderTaskParser.Parse(text, map.Resources, FoodKnowledgeKind,
-            WorldProductionOrderCatalog.Available(worldContent), WorldDeliveryOrderCatalog.AvailableInputs(worldContent),
-            WorldBuildingOrderCatalog.Available(worldContent),
-            worldSimulation.Buildings.Where(port => Port(port.InstanceId) is not null).ToArray());
-    }
+    private OrderTask? ParseOrderTask(string text, string actor) =>
+        OrderSystem.ParseOrderTask(ControlWorld, text, actor);
 
     // A direct order that names no action the game can carry out is closed
     // at once. It never waits for a decision or holds up later instructions.
-    private void CloseOrdersNotUnderstood(string agentId)
-    {
-        foreach (var order in instructionsByIdempotency.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order &&
-                         !completedInstructionIds.Contains(item.InstructionId) &&
-                         item.Task?.Action == "unknown")
-                     .OrderBy(item => item.SubmissionSequence)
-                     .ToArray())
-        {
-            instructionsByIdempotency[order.IdempotencyKey] = order with
-            {
-                Task = order.Task! with { Status = "not_understood" },
-            };
-            completedInstructionIds.Add(order.InstructionId);
-            AppendEvent("instruction_not_understood", $"{agentId}:{order.InstructionId}");
-        }
-        checkpointSchemaVersion = StateSchemaVersion;
-    }
+    private void CloseOrdersNotUnderstood(string agentId) =>
+        OrderSystem.CloseOrdersNotUnderstood(ControlWorld, agentId);
 
     private static bool Matches(OwnerQueuedInstruction existing, OwnerInstructionRequest request) =>
         existing.IssuerId == request.IssuerId.Trim() &&
