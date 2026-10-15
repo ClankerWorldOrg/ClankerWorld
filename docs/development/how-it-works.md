@@ -437,6 +437,10 @@ urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
 keeps the original swimming and carried-load rules, with a named purpose.
 
+`ActorCapabilities` checks the life-stage policy declared by each action
+definition. Candidate spelling does not add a second age rule inside that
+primitive. The remaining world/order age gates are still under migration.
+
 `Actions/LifeStageRules.cs` owns action age eligibility, and
 `Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
 one per-call reach service with an explicit swimming policy and separate

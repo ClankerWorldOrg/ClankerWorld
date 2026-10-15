@@ -1,0 +1,1 @@
+- Actor capability checks now take age eligibility from the action's declared life-stage policy, without a second candidate-name allowlist overriding that policy.
