@@ -467,6 +467,8 @@ Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The animal world port exposes no unused direct route search; animal action
 plans use their existing purpose-specific reach calls.
+Learning eligibility uses the shared service's boolean reach query, including
+its existing in-range shortcut, rather than a lesson-site-specific wrapper.
 Exploration supply, household tool coverage and tool repair also use actor-position
 reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
 predicate, unnamed need comparison or direct route call outside the shared rules.
