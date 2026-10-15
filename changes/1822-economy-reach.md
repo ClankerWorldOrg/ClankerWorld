@@ -1,0 +1,1 @@
+- Project/blacksmith supply and shared goods collection, delivery and recovery use the common reach service from the actor's position, preserving selected targets, route caches and swimming/load rules. Six direct route-call allowances are removed.

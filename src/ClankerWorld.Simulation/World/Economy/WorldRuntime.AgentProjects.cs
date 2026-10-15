@@ -784,7 +784,7 @@ public sealed partial class WorldRuntime
             return true;
         }
         if (state.Position != destination.Position &&
-            FindUnoccupiedRoute(actor, state.Position, destination.Position, 0).Count == 0)
+            Reach(actor, destination.Position, ReachPurpose.HouseholdReturn, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return false;
         SetProject(actor, state.Project! with { Stage = "delivering", Blocker = "Completing the household supply delivery" });
         HaulHouseholdStock(actor, agents[actor]);
@@ -944,7 +944,7 @@ public sealed partial class WorldRuntime
                 CanGatherFromSource(actor, itemKind, resource, reachableToolCache) &&
                 CanReachByFootOrSwimming(actor, agents[actor].Position, resource.Position) &&
                 (IsWithinInteractionRange(agents[actor].Position, resource.Position, ResourceInteractionRange) ||
-                 FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange).Count > 0) &&
+                 Reach(actor, resource.Position, ReachPurpose.ProjectInput, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
                 (returnTo is null || CanReturnWithHarvest(actor, itemKind, resource, returnTo.Value, returnRange, useHarvestBonus)));
     }
 
