@@ -10,8 +10,7 @@ public sealed partial class WorldRuntime
     private bool KnowsRecipe(string actor, string recipeId) =>
         knowledge.Recipes.Any(item => item.OwnerId == actor && item.RecipeId == recipeId);
 
-    private static string RecipeKnowledgeId(string actor, string recipeId) =>
-        DerivedId.Hash($"{actor}|{recipeId}", "recipe-knowledge:");
+    private static string RecipeKnowledgeId(string actor, string recipeId) => CommunitySystem.RecipeKnowledgeId(actor, recipeId);
 
     private void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick)
     {
@@ -19,38 +18,15 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(job.WorkerId).Status != SocietyAgentStatus.Active ||
             KnowsRecipe(job.WorkerId, recipe.CanonicalId) ||
             knowledge.Recipes.Count(item => item.OwnerId == job.WorkerId) >= AgentKnowledgeRules.MaximumRecipesPerAgent) return;
-        knowledge = knowledge with
-        {
-            Recipes = knowledge.Recipes.Append(new AgentRecipeKnowledge(
+        communitySystem.RecordProducedRecipe(new AgentRecipeKnowledge(
             RecipeKnowledgeId(job.WorkerId, recipe.CanonicalId), job.WorkerId, recipe.CanonicalId, job.WorkerId,
-            tick, "practice", job.JobId)).ToArray()
-        };
+            tick, "practice", job.JobId));
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("agent_recipe_learned", $"{job.WorkerId}|{recipe.CanonicalId}|practice");
     }
 
-    private int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition)
-    {
-        var recipes = knowledge.Recipes.ToList();
-        var count = 0;
-        foreach (var source in artifact.Recipes)
-        {
-            if (recipes.Any(item => item.OwnerId == actor && item.RecipeId == source.RecipeId) ||
-                recipes.Count(item => item.OwnerId == actor) >= AgentKnowledgeRules.MaximumRecipesPerAgent) continue;
-            recipes.Add(source with
-            {
-                Id = RecipeKnowledgeId(actor, source.RecipeId),
-                OwnerId = actor,
-                LearnedTick = WorldTick,
-                Acquisition = acquisition,
-                SourceAgentId = sourceActor,
-                SourceArtifactId = artifact.Id,
-            });
-            count++;
-        }
-        if (count > 0) knowledge = knowledge with { Recipes = recipes.ToArray() };
-        return count;
-    }
+    private int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition) =>
+        communitySystem.LearnArtifactRecipes(actor, sourceActor, artifact, acquisition, WorldTick);
 
     private bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact) =>
         knowledge.Facts.Count(item => item.OwnerId == actor) < AgentKnowledgeRules.MaximumFactsPerAgent &&

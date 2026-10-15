@@ -24,8 +24,7 @@ internal sealed partial class TownSystem
         var founder = SocietyRules.CreateFounder(founderId, name, config: config,
             startingAge: SocietyRules.FounderArrivalAge(config, world.WorldSeed, setup.FounderIds.Count));
         world.ApplySocietyTransition(checkpoint => SocietyRules.PlaceFounder(checkpoint, founder, householdId));
-        world.AddAgent(founderId, new AgentState(founderId, position, 6_500, 0,
-                        "undecided", "find a purpose", IdentityChoicePending: true));
+        world.PhysicalAgents.PlaceFounder(founderId, position);
         founderSetup = setup with { FounderIds = [.. setup.FounderIds, founderId] };
         AddTownResident(world, TownBorderRules.FirstTownId, founderId, "founder_joined");
         world.AppendEvent("founder_placed", $"{founderId}:{householdId}");
@@ -45,7 +44,7 @@ internal sealed partial class TownSystem
             world.Agents.Values.Any(person => person.AgentId != founderId && person.Position == position))
             throw new ArgumentException("Choose an empty passable tile for this founder.", nameof(position));
         if (founder.Position == position) return false;
-        world.SetAgent(founderId, founder with { Position = position });
+        world.PhysicalAgents.RecordPosition(founderId, founder, position);
         world.AppendEvent("founder_moved", $"{founderId}:{founder.Position.X},{founder.Position.Y}->{position.X},{position.Y}");
         return true;
     }
@@ -58,7 +57,7 @@ internal sealed partial class TownSystem
         if (setup.FounderIds[^1] != founderId)
             throw new ArgumentException("Only the most recently placed founder can be undone.", nameof(founderId));
         world.ApplySocietyTransition(checkpoint => SocietyRules.UndoFounderPlacement(checkpoint, founderId));
-        world.RemoveAgent(founderId);
+        world.PhysicalAgents.RemovePhysicalPresence(founderId);
         founderSetup = setup with { FounderIds = setup.FounderIds.Take(setup.FounderIds.Count - 1).ToArray() };
         RemoveTownResident(world, founderId);
         world.AppendEvent("founder_placement_undone", founderId);
@@ -90,8 +89,7 @@ internal sealed partial class TownSystem
         var town = membership.TownId is null ? null : towns.Single(item => item.Id == membership.TownId);
         var householdId = membership.HouseholdIdFor(agentId);
         world.ApplySocietyTransition(checkpoint => SocietyRules.AddAdult(checkpoint, agentId, householdId));
-        world.AddAgent(agentId, new AgentState(agentId, position, 6_500, 0,
-                    "undecided", "find a purpose", IdentityChoicePending: true));
+        world.PhysicalAgents.PlaceFounder(agentId, position);
         if (town is not null) AddTownResident(world, town.Id, agentId, "agent_joined");
         else world.AppendEvent("town_membership_evaluated", $"{agentId}:unaffiliated");
         world.AppendEvent("agent_added", agentId);

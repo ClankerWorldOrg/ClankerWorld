@@ -449,10 +449,9 @@ public sealed partial class WorldRuntime
         constructionSystem = proposed.constructionSystem;
         productionSystem = proposed.productionSystem;
         assetReservations = proposed.assetReservations;
-        agents = proposed.agents;
-        deceasedAgents = proposed.deceasedAgents;
+        agentStore = proposed.agentStore;
         resources = proposed.resources;
-        knowledge = proposed.knowledge;
+        communitySystem = proposed.communitySystem;
         instructionsByIdempotency = proposed.instructionsByIdempotency;
         instructionReceipts = proposed.instructionReceipts;
         orderCancellations = proposed.orderCancellations;
@@ -723,12 +722,9 @@ public sealed partial class WorldRuntime
                                 PrivateThought: { } thought
                             } && agents.TryGetValue(id, out var thinking))
                         {
-                            agents[id] = thinking with
-                            {
-                                RecentThoughts = (thinking.RecentThoughts ?? [])
+                            agentStore.RecordRecentThoughts(id, thinking, (thinking.RecentThoughts ?? [])
                                     .Append(new RecentThought(targetTick, thought))
-                                    .TakeLast(MaximumRecentThoughts).ToArray(),
-                            };
+                                    .TakeLast(MaximumRecentThoughts).ToArray());
                             checkpointSchemaVersion = StateSchemaVersion;
                         }
                         if (outcome.Response is { } response)

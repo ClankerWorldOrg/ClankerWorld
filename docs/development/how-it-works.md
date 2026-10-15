@@ -135,6 +135,18 @@ records and copies live construction plans. Local record checks run before
 test mutations publish and at the save boundary, where the remaining checks
 compare records with content, map, society, inventory, orders and time.
 
+`Community/CommunitySystem.cs` owns personal knowledge records and coordinates
+lessons, skills, practice, household admission, departure, relocation, paused
+household work, belongings and trust. Its per-call ports read the current world
+and request named operations from the systems that own other records. Local
+knowledge, lesson and housing checks run before test mutations publish; save
+validation uses the same checks and retains links to people, households and time.
+`Agents/AgentStore.cs` is the only writer of living and deceased physical-agent
+records. Named component operations preserve captured input records and detached
+preparations until their original commit points. Creation, death, equipment
+rollback and trusted tick preparation keep existing record and insertion order.
+The semantic writer scan rejects physical-agent writes outside this store.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

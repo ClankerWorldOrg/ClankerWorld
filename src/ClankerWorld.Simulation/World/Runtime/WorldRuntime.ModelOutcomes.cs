@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
             acceptedCandidateId ?? previous?.LastAcceptedCandidateId,
             acceptedCandidateId is not null ? WorldTick : previous?.LastAcceptedTick, setupBlocker);
         if (next == previous) return;
-        agents[id] = physical with { LastModelAttempt = next };
+        agentStore.RecordModelAttempt(id, physical, next);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("model_attempt_status", $"{id}:{status}");
     }

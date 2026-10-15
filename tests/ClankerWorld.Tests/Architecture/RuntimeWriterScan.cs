@@ -29,28 +29,34 @@ internal static class RuntimeWriterScan
         {
             var model = compilation.GetSemanticModel(tree);
             var filename = Path.GetRelativePath(root, tree.FilePath).Replace(Path.DirectorySeparatorChar, '/');
+            void Record(string component, SyntaxNode at)
+            {
+                if (!at.Ancestors().OfType<ClassDeclarationSyntax>().Any(type => type.Identifier.ValueText == "AgentStore"))
+                    throw new InvalidDataException($"Agent state may only be written by AgentStore: {filename}: {at}");
+                writers[component].Add(filename);
+            }
             foreach (var node in tree.GetRoot().DescendantNodes())
             {
                 if (node is WithExpressionSyntax with && IsAgent(model.GetTypeInfo(with.Expression).Type))
                     foreach (var assignment in with.Initializer.Expressions.OfType<AssignmentExpressionSyntax>())
-                        if (model.GetSymbolInfo(assignment.Left).Symbol is IPropertySymbol property && writers.TryGetValue(property.Name, out var files))
-                            files.Add(filename);
+                        if (model.GetSymbolInfo(assignment.Left).Symbol is IPropertySymbol property && writers.ContainsKey(property.Name))
+                            Record(property.Name, node);
                 // Construction writes every component, including defaults; moving construction
                 // into a new file must be reviewed just like adding a new component update.
                 if (node is BaseObjectCreationExpressionSyntax creation && IsAgent(model.GetTypeInfo(creation).Type))
-                    foreach (var property in properties) writers[property].Add(filename);
+                    foreach (var property in properties) Record(property, node);
                 if (node is AssignmentExpressionSyntax write)
                 {
                     if (model.GetSymbolInfo(write.Left).Symbol is IPropertySymbol property && IsAgent(property.ContainingType))
-                        writers[property.Name].Add(filename);
+                        Record(property.Name, node);
                     if (write.Left is ElementAccessExpressionSyntax element && IsAgentDictionary(model.GetTypeInfo(element.Expression).Type) ||
                         model.GetSymbolInfo(write.Left).Symbol is IFieldSymbol { Name: "agents", ContainingType.Name: "WorldRuntime" })
-                        writers["$collection"].Add(filename);
+                        Record("$collection", node);
                 }
                 if (node is InvocationExpressionSyntax call && call.Expression is MemberAccessExpressionSyntax access &&
                     access.Name.Identifier.ValueText is "Add" or "Remove" or "Clear" or "TryAdd" &&
                     IsAgentDictionary(model.GetTypeInfo(access.Expression).Type))
-                    writers["$collection"].Add(filename);
+                    Record("$collection", node);
             }
         }
         return new SortedDictionary<string, string[]>(writers.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()), StringComparer.Ordinal);

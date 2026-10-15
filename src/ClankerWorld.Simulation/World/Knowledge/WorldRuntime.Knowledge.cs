@@ -25,13 +25,7 @@ public sealed partial class WorldRuntime
         var fact = new AgentKnowledgeFact(
             previous?.Id ?? KnowledgeFactId(actor, position), actor, actor, position,
             terrain.ToString(), resourcesAtTile, WorldTick, "firsthand");
-        knowledge = knowledge with
-        {
-            Facts = previous is null ? knowledge.Facts.Append(fact).ToArray() :
-                knowledge.Facts.Select(item => item.Id == previous.Id ? fact : item).ToArray(),
-            EarlierFacts = previous is not null && AgentKnowledgeRules.ReferencesFact(knowledge, previous)
-                ? knowledge.EarlierFacts.Append(previous).ToArray() : knowledge.EarlierFacts,
-        };
+        communitySystem.RecordObservedFact(fact, previous);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("agent_knowledge_learned", $"{actor}|firsthand|1");
         return true;
@@ -87,37 +81,8 @@ public sealed partial class WorldRuntime
         return learned;
     }
 
-    private int LearnArtifactFacts(
-        string recipientId,
-        string sourceAgentId,
-        AgentKnowledgeArtifact artifact,
-        string acquisition)
-    {
-        var facts = knowledge.Facts.ToList();
-        var learned = 0;
-        foreach (var fact in artifact.Facts)
-        {
-            if (facts.Any(existing => existing.OwnerId == recipientId && existing.Position == fact.Position) ||
-                facts.Count(existing => existing.OwnerId == recipientId) >= AgentKnowledgeRules.MaximumFactsPerAgent)
-                continue;
-
-            facts.Add(fact with
-            {
-                Id = KnowledgeFactId(recipientId, fact.Position),
-                OwnerId = recipientId,
-                LearnedTick = WorldTick,
-                Acquisition = acquisition,
-                SourceAgentId = sourceAgentId,
-                SourceArtifactId = artifact.Id,
-            });
-            learned++;
-        }
-        if (learned > 0)
-        {
-            knowledge = knowledge with { Facts = facts.ToArray() };
-        }
-        return learned;
-    }
+    private int LearnArtifactFacts(string recipientId, string sourceAgentId, AgentKnowledgeArtifact artifact, string acquisition) =>
+        communitySystem.LearnArtifactFacts(recipientId, sourceAgentId, artifact, acquisition, WorldTick);
 
     private bool KnowsMapFact(string agentId, GridPoint position) =>
         knowledge.Facts.Any(fact => fact.OwnerId == agentId && fact.Position == position);
@@ -143,13 +108,7 @@ public sealed partial class WorldRuntime
             .OrderBy(item => item.CreatedTick).ThenBy(item => item.Id, StringComparer.Ordinal).ToArray();
     }
 
-    private static string KnowledgeFactId(string ownerId, GridPoint position)
-    {
-        var legacyId = $"knowledge-fact:{ownerId}:{position.X}:{position.Y}";
-        // Existing short IDs stay unchanged. Descendant IDs contain ancestry and
-        // can exceed the ledger's limit; hash the complete key, never truncate it.
-        return DerivedId.Create(legacyId, "knowledge-fact-sha256:");
-    }
+    private static string KnowledgeFactId(string ownerId, GridPoint position) => CommunitySystem.KnowledgeFactId(ownerId, position);
 
     private static string CognitionDiscovererId(string discovererId) =>
         // The saved ledger retains the actual identity and provenance. Only the

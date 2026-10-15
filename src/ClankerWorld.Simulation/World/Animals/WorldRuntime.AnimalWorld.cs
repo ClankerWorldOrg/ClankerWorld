@@ -9,6 +9,7 @@ public sealed partial class WorldRuntime
 {
     private sealed class AnimalWorldAdapter(WorldRuntime runtime) : IAnimalWorld
     {
+        public AgentStore PhysicalAgents => runtime.agentStore;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
@@ -55,7 +56,6 @@ public sealed partial class WorldRuntime
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public IReadOnlyList<ContentPackageRecord> Packages => runtime.contentRegistry.ExportState().Packages;
         public GoodsKinds EdibleFoodGoods => WorldRuntime.EdibleFoodGoods;
-        public void SetAgent(string id, AgentState state) => runtime.agents[id] = state;
         public void ReplaceEcologyResource(string id, EcologyResource resource) => runtime.environmentSystem.ReplaceEcologyResource(id, resource);
     }
 

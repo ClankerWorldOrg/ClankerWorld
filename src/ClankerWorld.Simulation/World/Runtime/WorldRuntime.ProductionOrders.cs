@@ -98,7 +98,7 @@ public sealed partial class WorldRuntime
             order = order with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick };
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
-            agents[actor] = person with { Project = project };
+            agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
         }

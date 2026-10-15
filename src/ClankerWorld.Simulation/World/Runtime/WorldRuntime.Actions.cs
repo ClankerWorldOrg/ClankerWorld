@@ -28,7 +28,7 @@ public sealed partial class WorldRuntime
 
         if (state.TravelCooldownTicks > 0)
         {
-            agents[agentId] = state with { TravelCooldownTicks = state.TravelCooldownTicks - 1 };
+            agentStore.RecordTravelCooldown(agentId, state, state.TravelCooldownTicks - 1);
             KeepPlannedRoute(agentId, reason, destination);
             return;
         }
@@ -63,13 +63,8 @@ public sealed partial class WorldRuntime
         }
         MoveAttachedHandcart(agentId, state.Position, next);
         MoveAttachedAnimal(agentId, state.Position, next);
-        agents[agentId] = state with
-        {
-            Position = next,
-            MoveWaitTicks = 0,
-            TravelCooldownTicks = (travelCost + 99) / 100 - 1 +
-                IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0),
-        };
+        agentStore.RecordMovement(agentId, state, next, 0, (travelCost + 99) / 100 - 1 +
+                IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0));
         RecordPlannedRoute(agentId, reason, destination, route);
         RecordBridgeTraffic(agentId, state.Position, next);
         WearCarryAid(agentId);
@@ -173,7 +168,7 @@ public sealed partial class WorldRuntime
         string reason)
     {
         var waitTicks = checked(state.MoveWaitTicks + 1);
-        agents[agentId] = state with { MoveWaitTicks = waitTicks };
+        agentStore.RecordMovementWait(agentId, state, waitTicks);
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
             if (AttachedHandcart(agentId) is not null || reason == "cart_unusable")
@@ -395,11 +390,7 @@ public sealed partial class WorldRuntime
     private string CompleteFoodConsumption(string agentId, AgentState state, InventoryLot lot)
     {
         society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, agentId, lot.Id, 1));
-        agents[agentId] = state with
-        {
-            FullnessBasisPoints = Math.Min(10_000, state.FullnessBasisPoints + FoodNourishment(lot.ItemKind)),
-            Survival = AfterMeal(state, lot)
-        };
+        agentStore.RecordMeal(agentId, state, Math.Min(10_000, state.FullnessBasisPoints + FoodNourishment(lot.ItemKind)), AfterMeal(state, lot));
         AppendEvent("food_consumed", agentId);
         return lot.Id;
     }

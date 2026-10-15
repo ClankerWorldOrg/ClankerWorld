@@ -7,6 +7,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal interface IAnimalWorld
 {
+    AgentStore PhysicalAgents { get; }
     bool IsAdult(string actor);
     ActorCapabilityState? CapabilitiesFor(string actor);
     System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
@@ -53,6 +54,5 @@ internal interface IAnimalWorld
     SocietyCheckpoint Society { get; }
     IReadOnlyList<ContentPackageRecord> Packages { get; }
     GoodsKinds EdibleFoodGoods { get; }
-    void SetAgent(string id, AgentState state);
     void ReplaceEcologyResource(string id, EcologyResource resource);
 }

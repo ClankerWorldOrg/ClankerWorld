@@ -12,15 +12,13 @@
     "continuity",
     "conversationSystem",
     "townSystem",
-    "deceasedAgents",
     "geographyOptions",
     "handcartHitches",
-    "agents",
     "instructionReceipts",
     "instructionsByIdempotency",
     "jevEnabled",
     "jevPolicyRevision",
-    "knowledge",
+    "communitySystem",
     "map",
     "nextInstructionSequence",
     "orderCancellations",
@@ -38,7 +36,8 @@
     "refusedActionCount",
     "farmingSystem",
     "productionSystem",
-    "constructionSystem"
+    "constructionSystem",
+    "agentStore"
   ],
   "live": [
     "animalWorldAdapter",

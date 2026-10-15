@@ -136,7 +136,7 @@ public sealed partial class WorldRuntime
             var project = new AgentProject(TownConstructionCandidateIds.Building(definition!.CanonicalId, position),
                 definition.DisplayName, started, "acquiring", LastTransitionTick: WorldTick,
                 OrderInstructionId: instruction.InstructionId);
-            agents[actor] = person with { Project = project };
+            agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
         }

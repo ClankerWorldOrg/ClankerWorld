@@ -216,6 +216,6 @@ public sealed class AnimalSystemTests
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => throw new NotSupportedException();
         public bool VesselFits(InventoryLot lot, int room) => throw new NotSupportedException();
         public IReadOnlyList<ContentPackageRecord> Packages => throw new NotSupportedException();
-        public void SetAgent(string id, AgentState state) => throw new NotSupportedException();
+        public AgentStore PhysicalAgents => throw new NotSupportedException();
     }
 }

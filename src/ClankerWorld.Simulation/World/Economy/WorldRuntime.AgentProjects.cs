@@ -461,39 +461,33 @@ public sealed partial class WorldRuntime
         {
             if (existing.RequiresFreshChoice)
             {
-                state = state with
+                state = AgentStore.PrepareProject(state, existing with
                 {
-                    Project = existing with
-                    {
-                        CandidateId = candidateId,
-                        Stage = "acquiring",
-                        Blocker = null,
-                        LastTransitionTick = WorldTick,
-                        RequiresFreshChoice = false,
-                    },
-                };
-                agents[agentId] = state;
+                    CandidateId = candidateId,
+                    Stage = "acquiring",
+                    Blocker = null,
+                    LastTransitionTick = WorldTick,
+                    RequiresFreshChoice = false,
+                });
+                agentStore.BeginProject(agentId, state);
                 AppendEvent("project_fresh_choice_resumed", $"{agentId}:{candidateId}");
             }
             else if (existing.CandidateId != candidateId)
             {
-                state = state with
+                state = AgentStore.PrepareProject(state, existing with
                 {
-                    Project = existing with
-                    {
-                        CandidateId = candidateId,
-                        Stage = "acquiring",
-                        Blocker = null,
-                        LastTransitionTick = WorldTick,
-                    },
-                };
-                agents[agentId] = state;
+                    CandidateId = candidateId,
+                    Stage = "acquiring",
+                    Blocker = null,
+                    LastTransitionTick = WorldTick,
+                });
+                agentStore.BeginProject(agentId, state);
                 AppendEvent("project_site_reselected", $"{agentId}:{selected.DefinitionId}");
             }
             else if (existing.Stage == "blocked")
             {
-                state = state with { Project = existing with { LastTransitionTick = WorldTick } };
-                agents[agentId] = state;
+                state = AgentStore.PrepareProject(state, existing with { LastTransitionTick = WorldTick });
+                agentStore.BeginProject(agentId, state);
             }
             ContinueProject(agentId, state);
             return;
@@ -515,8 +509,8 @@ public sealed partial class WorldRuntime
             : worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == definitionId)?.DisplayName;
         if (label is null)
             return;
-        state = state with { Project = new AgentProject(candidateId, label, WorldTick, "acquiring", LastTransitionTick: WorldTick, ToolMakingRequestId: toolMakingRequestId) };
-        agents[agentId] = state;
+        state = AgentStore.PrepareProject(state, new AgentProject(candidateId, label, WorldTick, "acquiring", LastTransitionTick: WorldTick, ToolMakingRequestId: toolMakingRequestId));
+        agentStore.BeginProject(agentId, state);
         AppendEvent("project_chosen", $"{agentId}:{candidateId}");
         ContinueProject(agentId, state);
     }
@@ -1082,6 +1076,6 @@ public sealed partial class WorldRuntime
             project = project with { LastTransitionTick = WorldTick };
             AppendEvent("project_progress", $"{agentId}:{project.Stage}:{project.Blocker ?? project.Label}");
         }
-        agents[agentId] = state with { Project = project };
+        agentStore.RecordProject(agentId, state, project);
     }
 }
