@@ -160,7 +160,9 @@ The same check validates membership, invitation state and the proximity needed
 to invite; revocations retain their existing remote behavior. Invitation caps
 follow filtering. Direct access requests keep their idempotent results.
 Personal collection, storage and borrowed returns retain their selected lot,
-quantity, custody and House or pickup position. Vessel plans retain their
+quantity, custody and House or pickup position. Stored and returned goods also
+retain the House's definition and placement tick, so rebuilding the same ID
+requires a fresh choice. Vessel plans retain their
 contents too. Model choices and native custody operations share the same check
 and mover; explicit orders keep their extra gear and delivery protections and
 interrupt ordinary field work before moving its tool.

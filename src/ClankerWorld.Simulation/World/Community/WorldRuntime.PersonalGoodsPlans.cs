@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
         }
         var physical = InventoryContainerRules.IsContainer(lot.ItemKind) ? index.FamilyQuantity(lot.Id) : quantity;
         return new(actor, choice, mode, lot.OwnerId, lot.ItemKind, quantity, physical, lot.CarrierId, lot.StorageBuildingId,
-            lot.GroundPosition, house?.InstanceId, house?.HouseholdId, target, range,
+            lot.GroundPosition, house?.InstanceId, house?.HouseholdId, house?.DefinitionId, house?.PlacedTick, target, range,
             Reach(actor, target, ReachPurpose.PersonalGoods, range, 0, SwimmingPolicy.WhenCapable),
             InventoryContainerRules.IsContainer(lot.ItemKind) ? GoodsPlanFamily.Capture(society.Checkpoint.Inventory, lot) : null);
     }
@@ -75,7 +75,8 @@ public sealed partial class WorldRuntime
         else
         {
             var house = HouseForHousehold(plan.Choice.Kind == PersonalGoodsKind.Store ? HouseholdFor(plan.Actor) : plan.OwnerId);
-            if (house is null || house.InstanceId != plan.HouseId || house.HouseholdId != plan.HouseOwnerId || house.Position != plan.Target)
+            if (house is null || house.InstanceId != plan.HouseId || house.HouseholdId != plan.HouseOwnerId ||
+                house.DefinitionId != plan.HouseDefinitionId || house.PlacedTick != plan.HousePlacedTick || house.Position != plan.Target)
                 return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House for these belongings has changed");
             var eligible = plan.Choice.Kind == PersonalGoodsKind.Store ? PersonalStorageLots(plan.Actor, house.InstanceId)
                 : plan.Mode == PersonalGoodsMode.BoundOrder ? ReturnableBorrowedGoods(plan.Actor) : BorrowedGoods(plan.Actor);

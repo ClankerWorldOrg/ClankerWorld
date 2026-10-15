@@ -16,7 +16,8 @@ public sealed record PersonalGoodsChoice(PersonalGoodsKind Kind, string LotId)
 
 public sealed record PersonalGoodsActionPlan(string ActorId, PersonalGoodsChoice Choice, PersonalGoodsMode Mode,
     string OwnerId, string ItemKind, int Quantity, int PhysicalQuantity, string? SourceCarrierId, string? SourceStorageId,
-    InventoryGroundPosition? SourceGround, string? HouseId, string? HouseOwnerId, GridPoint Target, int Range,
+    InventoryGroundPosition? SourceGround, string? HouseId, string? HouseOwnerId, string? HouseDefinitionId, long? HousePlacedTick,
+    GridPoint Target, int Range,
     IReadOnlyList<GridPoint> Route, IReadOnlyList<PlannedStockMember>? Family) : ActionPlan(ActorId, Choice.Encode())
 {
     public override string Activity => (Choice.Kind switch { PersonalGoodsKind.Collect => "collect", PersonalGoodsKind.Store => "store", _ => "return" }) +
