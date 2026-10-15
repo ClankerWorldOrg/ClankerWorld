@@ -39,10 +39,10 @@ internal sealed partial class TownSystem
         };
     }
 
-    internal ActionCheck CheckLandHearingRuling(ITownWorld world, LandHearingRulingActionPlan plan, TownRuntimeState? currentTown = null)
+    internal ActionCheck CheckLandHearingRuling(ITownWorld world, LandHearingRulingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? LandHearingCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { Status: "pending" } item ||

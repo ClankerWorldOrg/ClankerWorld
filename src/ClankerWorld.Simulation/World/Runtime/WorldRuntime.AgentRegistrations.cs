@@ -30,6 +30,12 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "LandHearingFiling", [], [], Definition: LandHearingFilingDefinition),
+        new(ActionPhase.FreshAdmission, "LandHearingEvidence", [], [], Definition: LandHearingEvidenceDefinition),
+        new(ActionPhase.FreshAdmission, "LandHearingJudge", [], [], Definition: LandHearingJudgeDefinition),
+        new(ActionPhase.FreshAdmission, "LandHearingRuling", [], [], Definition: LandHearingRulingDefinition),
+        new(ActionPhase.FreshAdmission, "LandHearingReopening", [], [], Definition: LandHearingReopeningDefinition),
+        new(ActionPhase.FreshAdmission, "LandHearingProperty", [], [], Definition: LandHearingPropertyDefinition),
         new(ActionPhase.FreshAdmission, "TownLandClaim", [], [], Definition: TownLandClaimDefinition),
         new(ActionPhase.FreshAdmission, "HouseholdLandFiling", [], [], Definition: HouseholdLandFilingDefinition),
         new(ActionPhase.FreshAdmission, "HouseholdLandResponse", [], [], Definition: HouseholdLandResponseDefinition),
