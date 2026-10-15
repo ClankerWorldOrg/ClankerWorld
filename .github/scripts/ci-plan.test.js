@@ -387,7 +387,9 @@ test('a push of a commit the merge queue already passed runs nothing but scope a
   const job = name => workflow.slice(workflow.indexOf(`\n  ${name}:\n`)).split(/\n  [a-z-]+:\n/)[1];
   // Only a push looks for the queue's run, and only a green run of this exact commit counts.
   assert.match(job('scope'), /\n        if: github\.event_name == 'push'\n/);
-  assert.match(job('scope'), /runs\?event=merge_group&status=success&head_sha=\$\{GITHUB_SHA\}/);
+  assert.match(job('scope'), /uses: actions\/github-script@v8/);
+  assert.match(job('scope'), /require\('\.\/\.github\/scripts\/queue-run\.js'\)/);
+  assert.match(job('scope'), /await findQueueRun\(\{ github, context, core \}\)/);
   assert.match(job('scope'), /queue-run: \$\{\{ steps\.queue\.outputs\.run \}\}/);
   for (const name of ['checks', 'tests', 'windows-documentation', 'windows-provider-storage', 'windows-installer']) {
     assert.match(job(name), /^    if: [^\n]*needs\.scope\.outputs\.queue-run == ''$/m, name);
