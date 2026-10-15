@@ -23,7 +23,7 @@ public static class TownLandGovernmentFilingRules
         request is not null && request.Tiles is { Count: > 0 and <= 64 } &&
         request.Tiles.Distinct().Count() == request.Tiles.Count &&
         request.Tiles.SequenceEqual(TownLandRightsRules.OrderTiles(request.Tiles)) &&
-        TownLandHearingRules.ValidText(request.Statement, 256) &&
+BoundedText.IsValid(request.Statement, 256) &&
         TownLandHearingRules.IsValidOutcome(request.RequestedOutcome, tick) &&
         (request.Property is null ? request.RequestedOutcome.Kind is not ("reclaim" or "grant") :
             TownPropertyRules.IsValid(request.Property) && request.RequestedOutcome == TownPropertyRules.Outcome(request.Property));

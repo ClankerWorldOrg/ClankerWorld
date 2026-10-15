@@ -54,10 +54,11 @@ public sealed class WorldShelterOrderParserTests
         var order = Submit(world, "location", text);
         Assert.Equal((action, buildingKind, new GridPoint(2, 1)), (order.Action, order.TargetBuildingKind, order.TargetPosition!.Value));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var json = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var task = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var json = task["definition"]!.AsObject();
         Assert.False(json.ContainsKey("shelterBinding"));
         Assert.False(json.ContainsKey("shelterCompletion"));
-        Assert.False(json.ContainsKey("quantityIsExplicit"));
+        Assert.False(task.ContainsKey("quantityIsExplicit"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -149,7 +150,7 @@ public sealed class WorldShelterOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
+            OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, value);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -165,9 +166,9 @@ public sealed class WorldShelterOrderParserTests
         foreach (var member in new[] { "shelterBinding", "shelterCompletion" })
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = member == "shelterBinding"
+            OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, member == "shelterBinding"
                 ? JsonNode.Parse("""{"kind":"natural","position":{"x":2,"y":1}}""")
-                : JsonNode.Parse("""{"worldTick":0,"position":{"x":2,"y":1}}""");
+                : JsonNode.Parse("""{"worldTick":0,"position":{"x":2,"y":1}}"""));
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         foreach (var version in new[] { WorldRuntime.StateSchemaVersion - 1, WorldRuntime.StateSchemaVersion + 1 })
@@ -192,14 +193,8 @@ public sealed class WorldShelterOrderParserTests
         using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
         var state = WorldRuntimeCodec.Decode(bytes);
-        var poisoned = state with
-        {
-            Instructions = state.Instructions!.Select(item => item with
-            {
-                Task = item.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(poisoned));
+        var poisoned = OrderSaveMutation.Encode(state, new(Assert.Single(state.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(poisoned));
     }
 
     private static OrderTask Submit(WorldRuntime world, string key, string text)
