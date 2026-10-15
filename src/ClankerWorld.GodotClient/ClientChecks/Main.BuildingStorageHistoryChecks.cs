@@ -19,7 +19,7 @@ public partial class Main
         SelectBuilding(house.InstanceId);
         buildingDetailsButton.EmitSignal(BaseButton.SignalName.Pressed);
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        string[] Rows() => buildingStorageHistoryRows.GetChildren().OfType<Label>().Select(label => label.Text).ToArray();
+        string[] Rows() => buildingStorageHistoryRows.GetChildren().OfType<Label>().Select(CaptionForChecks).ToArray();
         if (!buildingDetailsPanel.Visible || !buildingStorageHistorySection.Visible || Rows().Length != 2 ||
             !Rows()[0].EndsWith("· -1 Wood", StringComparison.Ordinal) || !Rows()[1].EndsWith("· +3 Wood", StringComparison.Ordinal))
             throw new InvalidOperationException("Details must display recorded storage additions/removals and their recorded times in newest-first order.");
