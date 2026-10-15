@@ -75,16 +75,6 @@
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Continuity.cs": [
     "society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant"
   ],
-  "src/ClankerWorld.Simulation/World/Family/WorldRuntime.DependentCare.cs": [
-    "adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)",
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "society.Checkpoint.GetAgent(child).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
-    "society.Checkpoint.GetAgent(edge.TargetId).AgeBand != SocietyAgeBand.Infant",
-    "society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant"
-  ],
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.GuardianPlacement.cs": [
     "FindUnoccupiedRoute(caregiver, origin, person.Position, ResourceInteractionRange)",
     "dependent.FullnessBasisPoints \u003C 7_000",

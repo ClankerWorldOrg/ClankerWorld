@@ -30,8 +30,8 @@ public sealed partial class WorldRuntime
     }
 
     private CognitionCandidate? GuardianOrderCandidate(string adult, string child) =>
-        CanAcceptGuardian(adult, child)
-            ? new("guardian_accept:" + child, "Accept primary care of the child named in this order.", 0)
+        PlanDependentCare(adult, new(DependentCareChoiceKind.Accept, child)) is { } plan && CheckDependentCarePlan(plan).Allowed
+            ? new CognitionCandidate(plan.CandidateId, "Accept primary care of the child named in this order.", 0) { ActionPlan = plan }
             : null;
 
     private void ExecuteGuardianOrder(OwnerQueuedInstruction instruction, CognitionCandidate candidate)
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
             return;
         }
-        ApplyDependentCareCandidate(adult, candidate.Id);
+        ApplyDependentCareCandidate(adult, candidate.Id, candidate.ActionPlan);
         if (society.Checkpoint.GetAgent(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
             CreditOrderEffect(instruction, Identity.Parse(GuardianOrderEffectId(adult, child)), 1);
         else

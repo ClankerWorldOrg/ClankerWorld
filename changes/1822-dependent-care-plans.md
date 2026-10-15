@@ -1,0 +1,1 @@
+- Caregiving choices and guardian orders retain the original relationship and intended home, and explain when that responsibility is no longer available.
