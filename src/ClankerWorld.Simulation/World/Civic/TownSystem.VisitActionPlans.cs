@@ -11,8 +11,10 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckCivicVisit(ITownWorld world, CivicVisitActionPlan plan)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+        var actor = world.CapabilitiesFor(plan.Actor);
+        var capability = ActorCapabilities.Check(actor, plan.CandidateId,
+            new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: actor is not null && LifeStageRules.IsAdult(actor.Age),
+                AllowUrgentWarmth: false, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
         var town = world.Towns.SingleOrDefault(item => item.Id == plan.Choice.TownId);
         return town?.Council is not null && CivicBoard(world, town) == plan.NoticePlace &&
@@ -27,6 +29,11 @@ internal sealed partial class TownSystem
     {
         var first = candidates.Count;
         AddTownCivicCandidateOptions(world, candidates, actor, buildingsWithoutSites);
+        AttachCivicVisitPlans(world, candidates, actor, first);
+    }
+
+    private void AttachCivicVisitPlans(ITownWorld world, List<CognitionCandidate> candidates, string actor, int first)
+    {
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];

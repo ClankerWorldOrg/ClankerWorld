@@ -408,12 +408,16 @@ transitions and marriage cleanup remain their native commit path.
 Housing admission choices retain their request, House and adult electorate.
 Other members' answers can accumulate without changing that selection; a changed
 House, electorate or request receives the same check at all three boundaries.
+The House's definition and original placement tick stay bound if its ID is
+reused. Expanding that same House still uses the current capacity checks.
 Learning choices retain the student, teacher, skill, request and communal lesson
 site. The same check governs offer, admission and apply; native continuation may
-advance the same agreement while a model reply waits.
+advance the same agreement while a model reply waits. A pending withdrawal can
+still stop that agreement and preserves its latest progress.
 Household leave/founding choices retain their household, moving care group and
 exact loose-food allowance. Native membership, custody and paused-work effects
 use the retained selection; automatic displacement plans its own native step.
+Allowance selection and rechecks respect the native transfer's stock holds.
 Paused household work retains its job, original worker/time, material reservation
 IDs, workstation and selected knife. The same check runs at all three boundaries;
 blocked travel waits and expansion checks on arrival keep the native behavior.
@@ -426,6 +430,8 @@ notice writer and deadline reconciliation keep the original timer behavior.
 Tool-request consent choices retain their Smith, recipe and exact request.
 Shared checks run at offer, admission and apply, while fresh accepted personal
 model consent remains required for placement, acceptance, refusal and withdrawal.
+Pending withdrawal permits progress within that same request and preserves the
+current job, offer and payment state when it acts.
 Tool-request visits retain the chosen Smith, recipe and route. The shared check
 uses that exact selection at offer, admission and application; the native
 movement writer keeps its original interaction range and arrival behavior.
@@ -433,11 +439,14 @@ Tool commission continuation retains the request, worker, project, Smith and
 recipe. Shared checks bind that agreement before the existing project writer
 continues its native production step.
 Finished-tool collection retains its request and Smith; an on-site quote also
-retains the exact finished output, payment and quantities. The same selection
-is checked before the native shop writer opens its exchange.
+retains the exact finished output, payment and quantities. Shared shop checks
+recheck those lots' current availability and stock promises before the native
+writer opens the exchange, allowing ordinary processing without choosing other stock.
 Civic notice-place visits retain the Town, public destination and route. Their
-shared check covers residents and eligible visitors before the native civic
-action or its ordinary walking continuation; arrival still asks for a fresh act.
+shared check covers residents and eligible visitors, including children who
+actually know a non-land report or case, before the native civic action or its
+ordinary walking continuation; arrival still asks for a fresh act. A child's
+visit grants no adult civic rights, and urgent food or warmth still comes first.
 Council candidacy responses retain the chosen Town, nominee or remainder-term
 deadline and the actor's existing agreement. A shared check preserves personal
 consent while other residents' registrations can accumulate in the same tick.
@@ -683,7 +692,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 215 references across 59 files. Named delivery, hold and cargo operations
+is 188 references across 53 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
