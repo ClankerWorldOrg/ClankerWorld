@@ -85,6 +85,11 @@ public sealed class TownCouncilStaleRoundTests
             Assert.Equal("runoff", world.Towns[0].Council!.Election!.Stage);
             Assert.Equal(contestId, world.Towns[0].Council!.Election!.Id);
             Assert.True(HasRunoffRelay(world, heldActor, reader), "The held voter must actually learn the runoff from an informed reader.");
+            var heldPlan = Assert.IsType<CouncilBallotActionPlan>(control.MainPlan);
+            Assert.Equal("main", heldPlan.Stage);
+            var beforeRefusal = WorldRuntimeCodec.Encode(world.ExportState());
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(heldPlan).Refusal!.Reason);
+            Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.Contains(world.Towns[0].Council!.Knowledge, receipt => receipt.AgentId == reader &&
                 receipt.SourceAgentId is null && world.Towns[0].Council!.Notices.Any(n => n.Id == receipt.NoticeId && n.Kind == "runoff"));
             control.Release.TrySetResult(true);
@@ -125,6 +130,7 @@ public sealed class TownCouncilStaleRoundTests
         public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
         public string? MainAction { get; set; }
+        public CouncilBallotActionPlan? MainPlan { get; set; }
         public string? FreshAction { get; set; }
     }
 
@@ -144,6 +150,7 @@ public sealed class TownCouncilStaleRoundTests
             {
                 selected = vote;
                 control.MainAction = selected.Id;
+                control.MainPlan = Assert.IsType<CouncilBallotActionPlan>(selected.ActionPlan);
                 control.Started.TrySetResult(true);
                 // Deliberately ignore cancellation: authority must reject a reply after the round changes.
                 await control.Release.Task;

@@ -1,0 +1,1 @@
+- Council ballots keep their original election round and selected candidates when checked before voting.

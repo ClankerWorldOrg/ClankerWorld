@@ -219,8 +219,24 @@ public sealed class TownCouncilRuntimeTests
         {
             Agents = positioned.Agents.Select(p => p with { Position = positioned.Towns![0].OriginSite!.Value }).ToArray(),
         }, _ => new ElectionProvider(observed));
+        var admittedBallots = 0;
         for (var tick = 0; tick < 40 && world.Towns[0].Council!.Election!.Ballots.Count < 4; tick++)
-            await world.AdvanceOneTickAsync();
+        {
+            var step = await world.AdvanceOneTickAsync();
+            foreach (var decision in step.Decisions.Where(decision => decision.Admission.Accepted &&
+                         decision.Admission.Intention?.CandidateId.Contains("|ballot|", StringComparison.Ordinal) == true))
+            {
+                var plan = Assert.IsType<CouncilBallotActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, CouncilBallotChoice.Decode(plan.CandidateId));
+                Assert.Equal(opening.Id, plan.ElectionId);
+                Assert.NotNull(plan.Selected);
+                Assert.Equal(plan.Selected.Order(StringComparer.Ordinal), world.Towns[0].Council!.Election!.Ballots
+                    .Single(ballot => ballot.AgentId == decision.AgentId).Choices.Order(StringComparer.Ordinal));
+                Assert.True(world.CheckActionPlan(plan).Allowed);
+                admittedBallots++;
+            }
+        }
+        Assert.Equal(4, admittedBallots);
         var election = world.Towns[0].Council!.Election!;
         Assert.NotEmpty(election.Ballots);
         Assert.All(election.Ballots, b => Assert.Equal(3, b.Choices.Count));

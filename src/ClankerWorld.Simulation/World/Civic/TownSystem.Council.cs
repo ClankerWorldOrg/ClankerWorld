@@ -184,14 +184,13 @@ internal sealed partial class TownSystem
                 candidates.Add(new(CivicAction(world, town.Id, "yes", proposal.Id), $"Cast your final yes vote on {voteText} in {town.Name}. {proposal.RequiredYes} yes votes required.{plot}", 165));
                 candidates.Add(new(CivicAction(world, town.Id, "no", proposal.Id), $"Cast your final no vote on {voteText} in {town.Name}.{plot}", 166));
             }
-            if (state.Election is { Stage: "main" or "runoff" } election && election.Voters.Contains(actor, StringComparer.Ordinal) &&
-                history.Knows(actor, election.Stage == "main" ? "election" : "runoff", election.Id))
+            if (state.Election is { } election)
             {
-                candidates.Add(new(CivicAction(world, town.Id, "ballot", CivicRoundToken(election)), $"Submit or revise your {election.Stage} ballot in {town.Name}; choose up to {election.Seats} distinct IDs via civic_ballot. " +
+                OfferCouncilBallot(world, candidates, actor, town, null, $"Submit or revise your {election.Stage} ballot in {town.Name}; choose up to {election.Seats} distinct IDs via civic_ballot. " +
                     $"Willing candidates: {string.Join(", ", election.Candidates.Select(id => world.Society.GetAgent(id).Name + " (" + CivicAgentToken(id) + ")"))}. Self-voting is allowed. " +
-                    $"Voting closes on world day {CivicDayNumber(world, election.DeadlineTick)}.", 165));
+                    $"Voting closes on world day {CivicDayNumber(world, election.DeadlineTick)}.", 165);
                 foreach (var id in election.Candidates)
-                    candidates.Add(new(CivicAction(world, town.Id, "single", CivicRoundToken(election), id), $"Submit or revise your ballot to support only {world.Society.GetAgent(id).Name} in {town.Name}. Other previous choices are replaced.", 167));
+                    OfferCouncilBallot(world, candidates, actor, town, id, $"Submit or revise your ballot to support only {world.Society.GetAgent(id).Name} in {town.Name}. Other previous choices are replaced.", 167);
             }
             foreach (var recipient in world.Agents.Values.Where(p => p.AgentId != actor && world.IsWithinInteractionRange(p.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
             {
@@ -228,6 +227,7 @@ internal sealed partial class TownSystem
         var government = town.Government ?? TownGovernmentState.Create();
         var visitPlan = originalPlan as CivicVisitActionPlan;
         var consentPlan = originalPlan as CouncilConsentActionPlan;
+        var ballotPlan = originalPlan as CouncilBallotActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -240,6 +240,13 @@ internal sealed partial class TownSystem
             consentPlan ??= PlanCouncilConsent(world, actor, consent);
             if (consentPlan is null) return;
             if (CheckCouncilConsent(world, consentPlan).Refusal is { } refusal) { world.RefuseChoice(consentPlan, refusal); return; }
+        }
+        else if (CouncilBallotChoice.Decode(selectedId) is { } electionChoice)
+        {
+            ballotPlan ??= PlanCouncilBallot(world, actor, electionChoice);
+            if (ballotPlan is null) return;
+            ballotPlan = BindCouncilBallot(world, ballotPlan, ballot);
+            if (CheckCouncilBallot(world, ballotPlan).Refusal is { } refusal) { world.RefuseChoice(ballotPlan, refusal); return; }
         }
         else
         {
@@ -285,8 +292,11 @@ internal sealed partial class TownSystem
                 town = town with { LandRecords = transferUpdate.LandRecords };
                 SetTown(world, town with { Council = state, Government = government });
             }
-            if (parts[2] is "ballot" or "single" &&
-                (state.Election is not { } currentRound || CivicRoundToken(currentRound) != parts[3])) return;
+            if (ballotPlan is not null && CheckCouncilBallot(world, ballotPlan, town with { Council = state, Government = government }).Refusal is { } ballotRefusal)
+            {
+                world.RefuseChoice(ballotPlan, ballotRefusal);
+                return;
+            }
             switch (parts[2])
             {
                 case "visit":
@@ -355,13 +365,13 @@ internal sealed partial class TownSystem
                 case "yes": case "no": state = TownCouncilRules.VoteProposal(state, parts[3], actor, parts[2] == "yes", world.WorldTick); break;
                 case "withdraw_proposal": state = TownCouncilRules.WithdrawProposal(state, parts[3], actor, world.WorldTick); break;
                 case "ballot":
-                    if (ballot is null) return;
-                    state = TownCouncilRules.VoteElection(state, state.Election!.Id, actor, ballot.Select(token => ResolveCivicAgentToken(world, token)).ToArray(), world.WorldTick); break;
+                    if (ballotPlan!.Selected is null) return;
+                    state = TownCouncilRules.VoteElection(state, ballotPlan.ElectionId, actor, ballotPlan.Selected, world.WorldTick); break;
                 case "government_extend_non_land" or "government_accept_non_land" or "government_propose" or "government_replace" or "government_yes" or "government_no" or "government_withdraw" or
                     "mayor_register" or "mayor_withdraw" or "mayor_resign" or "mayor_vote":
                     (state, government) = ApplyTownGovernmentAction(world, town, actor, parts[2], parts[3], parts[4], state, government);
                     break;
-                case "single": state = TownCouncilRules.VoteElection(state, state.Election!.Id, actor, [parts[4]], world.WorldTick); break;
+                case "single": state = TownCouncilRules.VoteElection(state, ballotPlan!.ElectionId, actor, ballotPlan.Selected!, world.WorldTick); break;
             }
             (state, government) = AdvanceCivic(world, town, state, government);
             // Submitting and registering are actual notice interactions, so the actor knows their own posted notice.

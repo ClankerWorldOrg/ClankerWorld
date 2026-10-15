@@ -487,6 +487,9 @@ visit grants no adult civic rights, and urgent food or warmth still comes first.
 Council candidacy responses retain the chosen Town, nominee or remainder-term
 deadline and the actor's existing agreement. A shared check preserves personal
 consent while other residents' registrations can accumulate in the same tick.
+Council ballots retain their election round, voting window and eligible
+candidates. Structured model choices are bound to that plan at admission;
+the same selected IDs are checked again before the native vote writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
