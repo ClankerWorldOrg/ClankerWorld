@@ -6,33 +6,55 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net;
+using System.Text.Json;
 
 namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
     [Theory]
-    [InlineData(null, false)]
-    [InlineData("wrong", false)]
-    [InlineData("ssssssssssssssssssssssssssssssss", true)]
-    public async Task LaunchCheckRequiresTheSecretAndDoesNotChangeTheWorld(string? secret, bool accepted)
+    [InlineData(null)]
+    [InlineData("short")]
+    [InlineData("valid")]
+    public async Task LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(string? challengeKind)
     {
+        var secret = new string('s', 32);
         using var baseHost = new ServerWebApplicationFactory(null, gameWorld: true);
         using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
-            services.AddSingleton(new ApprovalListenerOptions(5189, new string('s', 32)))));
+            services.AddSingleton(new ApprovalListenerOptions(5189, secret))));
         using var client = host.CreateClient();
         var runtime = host.Services.GetRequiredService<WorldRuntime>();
         var file = host.Services.GetRequiredService<WorldStateFile>();
         var before = File.ReadAllBytes(file.Path);
+        var challenge = challengeKind switch
+        {
+            "valid" => LocalServerLaunchCheck.NewChallenge(),
+            "short" => "too-short",
+            _ => null,
+        };
         var response = await host.Server.SendAsync(context =>
         {
             LocalServerShutdownRequest(context);
             context.Request.Method = "GET";
             context.Request.Path = "/api/v1/approval/launch-check";
+            // The check never needs the secret itself, and the secret alone is not a challenge.
             context.Request.Headers.Remove(ApprovalListenerOptions.LaunchSecretHeader);
-            if (secret is not null) context.Request.Headers[ApprovalListenerOptions.LaunchSecretHeader] = secret;
+            if (challenge is not null) context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader] = challenge;
         });
-        Assert.Equal(accepted ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response.Response.StatusCode);
+        if (challengeKind == "valid")
+        {
+            Assert.Equal(StatusCodes.Status200OK, response.Response.StatusCode);
+            if (response.Response.Body.CanSeek) response.Response.Body.Position = 0;
+            var answer = await JsonSerializer.DeserializeAsync<LocalServerLaunchCheckAnswer>(response.Response.Body,
+                JsonSerializerOptions.Web);
+            Assert.True(LocalServerLaunchCheck.Matches(secret, challenge!, answer?.Answer));
+            Assert.False(LocalServerLaunchCheck.Matches(secret, LocalServerLaunchCheck.NewChallenge(), answer?.Answer));
+            Assert.DoesNotContain(secret, answer!.Answer, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Equal(StatusCodes.Status404NotFound, response.Response.StatusCode);
+        }
         Assert.False(runtime.Society.IsPaused);
         Assert.Equal(before, File.ReadAllBytes(file.Path));
         Assert.False(host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.IsCancellationRequested);

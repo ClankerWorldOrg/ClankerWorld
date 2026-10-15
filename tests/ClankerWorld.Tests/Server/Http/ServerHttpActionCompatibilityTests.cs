@@ -225,7 +225,7 @@ public sealed partial class ServerHttpTests
         };
     }
 
-    private sealed class ActionCompatibilitySigner(ECDsa key) : IOwnerDeviceSigner
+    internal sealed class ActionCompatibilitySigner(ECDsa key) : IOwnerDeviceSigner
     {
         public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
         public string PublicKeyFingerprint => OwnerPairingProtocol.CreatePublicKeyFingerprint(key.ExportSubjectPublicKeyInfo());
