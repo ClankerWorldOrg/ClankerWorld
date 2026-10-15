@@ -63,9 +63,9 @@ everything that is available in the current build. See [what works today](../wha
   can **Check key** to see which models that key can use.
 - Keep one simulation/game-rules implementation for both ways of running the
   world server. The player-facing Godot client should not become the
-  authority merely because the server runs locally. Closing the game still
-  freezes the world, without offline catch-up.
-- **On a player's computer, the local server is a separate process bundled with the game.** The game
+  authority merely because the server runs locally. For one-PC play, closing
+  the game freezes the world, without offline catch-up.
+- **For one-PC play, the local server is a separate process bundled with the game.** The game
   starts it, and it listens only on the loopback address, which means only
   programs on that same computer can connect to it. It is not embedded inside
   the game process.
@@ -109,7 +109,7 @@ everything that is available in the current build. See [what works today](../wha
   blanked. The player sends the zip themselves; nothing is uploaded. The game
   offers it, and the launcher will reuse it.
 - **Agreed on October 15, by the owner in chat: the launcher is where a
-  player starts, hosts and joins a world.** Once the per-user installer below
+  player starts, hosts and joins a world.** Once the per-user installer above
   is published, it is the player's first step. It installs the launcher with
   a Start-menu entry and, if chosen, a desktop shortcut, and that shortcut
   opens the launcher. From there:
