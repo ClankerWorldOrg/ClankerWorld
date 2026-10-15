@@ -24,7 +24,7 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartCargoOrders.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartOrders.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartRepairOrders.cs": 0,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs": 1,
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeliveryOrders.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs": 2,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs": 0,
@@ -74,5 +74,6 @@
   "src/ClankerWorld.Simulation/World/Orders/OrderSystem.DeliveryOrderSelection.cs": 2,
   "src/ClankerWorld.Simulation/World/Orders/OrderSystem.ExpansionOrders.cs": 1,
   "src/ClankerWorld.Simulation/World/Orders/OrderSystem.ToolRepairOrders.cs": 2,
-  "src/ClankerWorld.Simulation/World/Orders/OrderSystem.TreePlantingOrders.cs": 1
+  "src/ClankerWorld.Simulation/World/Orders/OrderSystem.TreePlantingOrders.cs": 1,
+  "src/ClankerWorld.Simulation/World/Cognition/CognitionSystem.Candidates.cs": 1
 }

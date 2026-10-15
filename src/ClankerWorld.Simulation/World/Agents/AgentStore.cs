@@ -60,6 +60,7 @@ internal sealed partial class AgentStore
     {
         CommunitySystem.ValidateLocalAgentCommunity(person);
         FamilySystem.ValidateLocalAgentFamily(person);
+        CognitionSystem.ValidateLocalAgentCognition(person);
         if (person.AgentId != id || string.IsNullOrWhiteSpace(id) ||
             person.FullnessBasisPoints is < 0 or > 10_000 || person.MoveWaitTicks < 0 || person.TravelCooldownTicks < 0)
             throw new InvalidDataException("Physical agent state has invalid local values.");

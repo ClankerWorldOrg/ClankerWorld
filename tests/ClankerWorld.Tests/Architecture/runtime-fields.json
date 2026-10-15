@@ -36,18 +36,16 @@
     "civicWorld",
     "gate",
     "environmentWorld",
-    "maxCognitionDispatchPerCycle",
-    "memoryCompactionTransitions",
     "observerGeneration",
     "observerInstanceId",
     "pendingConversationTurns",
     "pendingModelCalls",
     "pendingIdentityMoments",
-    "providerFactory",
     "agentWorld",
     "tickGate",
     "farmingWorld",
-    "familyWills"
+    "familyWills",
+    "cognitionSystem"
   ],
   "scratch": [
     "familyTurn",

@@ -546,16 +546,8 @@ public sealed partial class WorldRuntime
         ValidateRepairOrderBindings(state.Agents, state.Society.Society.Inventory, state.Instructions ?? []);
         foreach (var person in state.Agents)
         {
-            if (person.LastModelAttempt is { } attempt &&
-                (!CognitionProviderFailures.IsStatus(attempt.Status) ||
-                 attempt.WorldTick < 0 || attempt.WorldTick > state.Society.Society.WorldTick ||
-                 (attempt.LastAcceptedCandidateId is null) != (attempt.LastAcceptedTick is null) ||
-                 attempt.LastAcceptedTick is < 0 || attempt.LastAcceptedTick > attempt.WorldTick ||
-                 attempt.LastAcceptedCandidateId is { } candidate &&
-                    // Offered action IDs can include an entire valid inventory lineage.
-                    (string.IsNullOrWhiteSpace(candidate) || candidate.Any(char.IsControl)) ||
-                 attempt.SetupBlocker is not (null or "unsupported_request") ||
-                 attempt.SetupBlocker is not null && attempt.Status != "model_unavailable"))
+            CognitionSystem.ValidateLocalModelAttempt(person.LastModelAttempt);
+            if (person.LastModelAttempt is { } attempt && attempt.WorldTick > state.Society.Society.WorldTick)
                 throw new InvalidDataException("The saved model attempt is invalid.");
             ValidateSavedChildModelSelection(person, state.Society.Society, state.SchemaVersion);
             ValidateProficiency(person);
@@ -1227,17 +1219,9 @@ public sealed partial class WorldRuntime
         IReadOnlyList<RecentThought>? thoughts, long latestTick)
     {
         if (thoughts is null) return;
-        if (thoughts.Count > MaximumRecentThoughts)
-            throw new InvalidDataException("The private-thought history exceeds its size limit.");
-        long previousTick = -1;
-        foreach (var thought in thoughts)
-        {
-            if (thought is null || thought.Text is null ||
-                thought.WorldTick < 0 || thought.WorldTick < previousTick || thought.WorldTick > latestTick ||
-                CognitionDecisionResponse.NormalizePrivateThought(thought.Text) != thought.Text)
-                throw new InvalidDataException("The private-thought history contains an invalid entry.");
-            previousTick = thought.WorldTick;
-        }
+        CognitionSystem.ValidateLocalThoughts(thoughts);
+        if (thoughts.Any(thought => thought.WorldTick > latestTick))
+            throw new InvalidDataException("The private-thought history contains an invalid entry.");
     }
 
     private static string NormalizeRequiredText(string? value, string name)
