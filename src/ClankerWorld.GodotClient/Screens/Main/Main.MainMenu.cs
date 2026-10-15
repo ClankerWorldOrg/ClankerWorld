@@ -704,7 +704,7 @@ public partial class Main
         // 2048 rows. Check these before decoding or creating a texture; this
         // optional catalog copy must never prevent healthy cards from drawing.
         if (thumbnail is null || thumbnail.Width is < 1 or > 96 || thumbnail.Height is < 1 or > 2048 ||
-            thumbnail.Encoding != "terrain-kind-v1" || thumbnail.Data is null ||
+            thumbnail.Encoding != TerrainCodes.TerrainEncoding || thumbnail.Data is null ||
             thumbnail.Data.Length != ((thumbnail.Width * thumbnail.Height + 2) / 3) * 4)
             return null;
         try
@@ -768,16 +768,18 @@ public partial class Main
         await ownerActionGate.RunAsync(async () =>
         {
             if (!IsCurrentWorldRequest(generation)) return;
-            worldMenuBusy = true;
-            isOwnerAction = true;
-            refreshCancellation?.Cancel();
-            RefreshControlAvailability();
-            try { await action(); }
-            finally
+            try
             {
-                worldMenuBusy = false;
-                isOwnerAction = false;
-                RefreshControlAvailability();
+                await RunOwnerLifecycleAsync(async () => { await action(); return true; }, busy =>
+                {
+                    worldMenuBusy = busy;
+                    SetOwnerRequestBusy(busy);
+                }, bindPanel: false, bindWorld: false);
+            }
+            catch (ObsoleteOwnerRequestException) { }
+            catch (OperationCanceledException exception)
+            {
+                worldMenuStatus.Text = "Could not confirm your request: " + FriendlyFailure(exception);
             }
         });
     }
@@ -878,7 +880,7 @@ public partial class Main
         try
         {
             var result = await ownerApi.PreviewWorldAsync(ResolveWorldUri(), authority,
-                deviceId, action, signer, CancellationToken.None);
+                deviceId, action, signer, OwnerRequestToken);
             if (!IsCurrentWorldRequest(generation) || !SameGeneration(action, CurrentWorldOptions()))
             {
                 return;
@@ -1011,14 +1013,14 @@ public partial class Main
             try
             {
                 await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, true,
-                    signer, CancellationToken.None));
+                    signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
-                await observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
-                    createAction, signer, CancellationToken.None));
+                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
+                    createAction, signer, OwnerRequestToken)));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
             }
-            catch (ObsoleteWorldRequestException) { }
+            catch (ObsoleteOwnerRequestException) { }
             catch (Exception exception)
             {
                 worldMenuStatus.Text = "Could not create world: " + FriendlyFailure(exception);
@@ -1047,14 +1049,14 @@ public partial class Main
             try
             {
                 await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, true,
-                    signer, CancellationToken.None));
+                    signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
-                await observationSession.ChangeTimelineAsync(() => ownerApi.SelectWorldAsync(server, authority, deviceId,
-                    worldId, signer, CancellationToken.None));
+                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.SelectWorldAsync(server, authority, deviceId,
+                    worldId, signer, OwnerRequestToken)));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
             }
-            catch (ObsoleteWorldRequestException) { }
+            catch (ObsoleteOwnerRequestException) { }
             catch (Exception exception)
             {
                 worldMenuStatus.Text = "Could not open world: " + FriendlyFailure(exception);
