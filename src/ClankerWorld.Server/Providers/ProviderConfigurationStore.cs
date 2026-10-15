@@ -1054,6 +1054,8 @@ public sealed partial class ConfigurableDecisionProvider(
     ProviderUsageStore? usageStore = null) : IDecisionProvider, IAgentConversationProvider
 {
     private readonly WorldJevPolicy jevPolicy = jevPolicy ?? new WorldJevPolicy();
+    // Logged in place of a chosen ID that matches none of the offered choices.
+    internal const string NotOfferedCandidate = "<not-offered>";
     private static readonly HashSet<string> RoutineCandidateIds = new(StringComparer.Ordinal)
     {
         "consume_food",
@@ -1535,6 +1537,10 @@ public sealed partial class ConfigurableDecisionProvider(
                     response.Usage?.OutputTokens ?? 0);
             if (logger is not null)
             {
+                // The runtime checks the reply against the offered choices only
+                // later, so log the chosen ID only when it is one of them.
+                var offered = request.Observation.Candidates.Any(candidate =>
+                    string.Equals(candidate.Id, response.SelectedCandidateId, StringComparison.Ordinal));
                 LogProviderCallCompleted(
                     logger,
                     providerId,
@@ -1542,7 +1548,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
                     request.Observation.AgentId,
                     request.Observation.WorldTick,
-                    response.SelectedCandidateId,
+                    offered ? response.SelectedCandidateId : NotOfferedCandidate,
                     response.Confidence,
                     response.Usage?.InputTokens ?? 0,
                     response.Usage?.OutputTokens ?? 0,

@@ -47,10 +47,13 @@ public sealed partial class LocalServerTests
                 GameStarter.ClientDataPath(directory.FullName, arguments, "game-display-preferences.json"));
             preferences.Save(new(Theme: "dark"));
             Assert.Equal("dark", preferences.Load().Theme);
+            var launchSecret = File.ReadAllText(layout.SecretPath);
             Assert.True(await game.StopAsync(CancellationToken.None));
+            // A clean stop removes the secret it no longer needs.
+            Assert.False(File.Exists(layout.SecretPath));
             var log = await ReadSharedAsync(layout.LogPath);
             Assert.Equal(developerMode && detailed, log.Contains("server_launch logging=detailed", StringComparison.Ordinal));
-            Assert.DoesNotContain(File.ReadAllText(layout.SecretPath), log);
+            Assert.DoesNotContain(launchSecret, log);
             Assert.All(sentinels, path => Assert.Equal("keep this data unchanged", File.ReadAllText(path)));
         }
         finally
@@ -232,6 +235,7 @@ public sealed partial class LocalServerTests
 
             await game.StopAsync(CancellationToken.None);
             Assert.False(game.StartedServer);
+            Assert.False(File.Exists(layout.SecretPath));
             Assert.Contains("server_shutdown outcome=saved", await ReadSharedAsync(layout.LogPath), StringComparison.Ordinal);
             await Assert.ThrowsAsync<HttpRequestException>(() => http.GetAsync(new Uri(game.Origin, "api/v1/handshake")));
         }
@@ -470,6 +474,67 @@ public sealed partial class LocalServerTests
             if (original is not null) File.WriteAllText(layout.SecretPath, original);
             await game.StopAsync(CancellationToken.None);
             if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("""{"answer":"not-the-answer"}""")]
+    [InlineData("not json")]
+    public async Task AListenerThatCannotAnswerTheLaunchCheckIsNotReusedAndNeverReceivesTheSecret(string? body)
+    {
+        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-unproven-{Guid.NewGuid():N}");
+        try
+        {
+            var layout = new LocalServerLayout(Path.Combine(data, "missing-host"), [], data, data);
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
+            const string Saved = "synthetic-saved-launch-value-0123456789";
+            File.WriteAllText(layout.SecretPath, Saved);
+            using var handler = new SameBuildListener(body);
+            using var http = new HttpClient(handler);
+            var game = new LocalServer(layout, http, 5188, 5189);
+
+            var start = await game.StartAsync("1.2.3", "abc", CancellationToken.None);
+            Assert.Equal(LocalServerStartOutcome.PortInUse, start.Outcome);
+            Assert.False(game.StartedServer);
+            await game.StopAsync(CancellationToken.None);
+
+            var check = Assert.Single(handler.Requests, request => request.RequestUri!.AbsolutePath == "/api/v1/approval/launch-check");
+            Assert.True(LocalServerLaunchCheck.IsChallenge(check.Headers.GetValues(LocalServerLaunchCheck.ChallengeHeader).Single()));
+            Assert.DoesNotContain(handler.Requests, request => request.Headers.Contains(LocalServer.SecretHeader) ||
+                request.Headers.Any(header => header.Value.Any(value => value.Contains(Saved, StringComparison.Ordinal))));
+            Assert.DoesNotContain(handler.Requests, request => request.RequestUri!.AbsolutePath.EndsWith("/shutdown", StringComparison.Ordinal));
+            Assert.Equal(Saved, File.ReadAllText(layout.SecretPath));
+        }
+        finally
+        {
+            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
+        }
+    }
+
+    /// <summary>Claims the expected build on the game's ports and answers launch checks with <c>body</c>.</summary>
+    private sealed class SameBuildListener(string? body) : HttpMessageHandler
+    {
+        public List<HttpRequestMessage> Requests { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add(request);
+            var response = request.RequestUri!.AbsolutePath switch
+            {
+                "/api/v1/handshake" => new HttpResponseMessage(HttpStatusCode.OK),
+                "/api/v1/status" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"version":"1.2.3","sourceRevision":"abc"}""",
+                        System.Text.Encoding.UTF8, "application/json"),
+                },
+                "/api/v1/approval/launch-check" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(body ?? string.Empty, System.Text.Encoding.UTF8, "application/json"),
+                },
+                _ => new HttpResponseMessage(HttpStatusCode.NotFound),
+            };
+            return Task.FromResult(response);
         }
     }
 

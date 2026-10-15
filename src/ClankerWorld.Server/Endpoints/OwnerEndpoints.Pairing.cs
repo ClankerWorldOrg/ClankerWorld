@@ -34,10 +34,10 @@ internal static partial class OwnerEndpoints
         });
 
         // Prove that this listener is the local server holding the game's secret,
-        // without creating a pairing or changing the world.
+        // without receiving it, creating a pairing or changing the world.
         app.MapGet("/api/v1/approval/launch-check", (HttpContext context, ApprovalListenerOptions options) =>
-            options.IsLocalServer && options.IsApprovalRequest(context)
-                ? Results.Ok() : Results.NotFound());
+            options.LaunchCheckAnswer(context) is { } answer
+                ? Results.Ok(new LocalServerLaunchCheckAnswer(answer)) : Results.NotFound());
 
         app.MapPost("/api/v1/approval/pairings", (
             StartOwnerPairingHttpRequest request, HttpContext context, ApprovalListenerOptions options,
@@ -147,8 +147,7 @@ internal static partial class OwnerEndpoints
                 return Results.NotFound();
             }
 
-            var result = authority.RevokeDeviceLocally(deviceId);
-            stateFile.Save(authority);
+            var result = stateFile.RevokeDevice(authority, deviceId);
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);

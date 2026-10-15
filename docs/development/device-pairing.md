@@ -288,7 +288,16 @@ Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
 The retained authoring-batch protocol is disabled on the native server, as described
 above. There are no viewer, operator, or multiplayer roles yet. A revoked
-device immediately loses access. Authority state retains non-secret public-key
+device immediately loses access. The revocation is written to the authority
+file before it takes effect, so a failed write leaves the device active and
+reports an error instead of losing the revocation at the next restart.
+Revoking also cancels any pending or approved pairing for the same key.
+
+One key belongs to at most one active device: approving or activating a second
+pairing for a key that is already active is refused. A revoked key cannot start
+a pairing or have one approved on the public routes. The approval listener on
+the server's own computer can still deliberately start and approve its pairing,
+which gives it a new device ID beside the revoked record. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.
 
@@ -374,9 +383,10 @@ a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_A
 so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
 
-On such a local server, every `/api/v1/approval/*` request must also carry the
-value in the `X-ClankerWorld-Launch-Secret` header, compared in constant
-time. Without it the routes return 404, exactly as on the forwarded listener.
+On such a local server, every `/api/v1/approval/*` request except the launch
+check below must also carry the value in the `X-ClankerWorld-Launch-Secret`
+header, compared in constant time. Without it the routes return 404, exactly as
+on the forwarded listener.
 The game uses it to start its own pairing with `POST /api/v1/approval/pairings` and
 approve it with the comparison code, so the player sees no code to copy and the
 public route's shared budget and pending slots do not hold it up. Status and
@@ -395,9 +405,17 @@ exit releases its handle, so a crash leaves no stale lock. A failed launch
 restores the prior secret, and cancellation finishes its own starting child's
 stop attempt before releasing the handle. An explicitly refused shutdown keeps
 the server and its paused world available for retry. A running server of the exact same version and
-source revision, started by an earlier launch, is reused only after a
-side-effect-free `GET /api/v1/approval/launch-check`
-confirms the secret already in its file on the approval listener. Anything else on
+source revision, started by an earlier launch, is reused only after it answers
+the side-effect-free launch check on the approval listener. The game sends
+`GET /api/v1/approval/launch-check` with a fresh random challenge in the
+`X-ClankerWorld-Launch-Check` header, and the server returns an HMAC-SHA256 of
+it keyed by the secret (`LocalServerLaunchCheck`). The game compares that with
+the answer for the secret already in its file, in constant time. The secret
+itself never goes over the connection for this check, and the game sends it on
+other approval requests only to a server that has answered; a child of its own
+that has not answered is stopped directly instead of over HTTP. A clean stop, one
+the server acknowledged or of the game's own child, deletes the secret file, so
+only a server still running keeps one for the next launch. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
 two-second request deadlines; an explicit build mismatch, invalid response or
