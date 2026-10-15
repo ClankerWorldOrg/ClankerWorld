@@ -24,7 +24,7 @@ public static class ActorCapabilities
             ActionLifeStages.ReproductiveAdults => LifeStageRules.CanHaveChildren(state.Age),
             _ => !LifeStageRules.IsInfant(state.Age),
         };
-        if (!ageAllowed || !LifeStageRules.Permits(state.Age, candidate))
+        if (!ageAllowed)
             return ActionCheck.Refuse(ActionRefusalReason.LifeStage, policy.LifeStages == ActionLifeStages.Children
                 ? "this activity is for children" : "this activity is not available at their age");
         if (state.Aboard && !policy.AllowBoat)
