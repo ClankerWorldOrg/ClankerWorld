@@ -448,8 +448,6 @@
   "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs|length|top.Length \u003E 1": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs|length|\u003E 512": 2,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs|id|\u0022boat-request:\u0022 \u002B sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)": 1,
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs|id|\u0022boat_cancel:\u0022 \u002B waiting.Id": 1,
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs|id|\u0022boat_queue:\u0022 \u002B waiting.Id": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs|id|offer.Id \u002B \u0022:collect\u0022": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs|id|offer.Id \u002B \u0022:household-payment\u0022": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs|id|ruling.Id \u002B \u0022:\u0022 \u002B lot.Id": 1,

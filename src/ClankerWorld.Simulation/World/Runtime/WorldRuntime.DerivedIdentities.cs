@@ -116,7 +116,7 @@ public sealed partial class WorldRuntime
         DerivedId.Hash(actor + "|" + candidate, $"salvage:{tick}:");
     private static string DeveloperVesselUnitId(string source, int ordinal) => DerivedId.Create(source + ":" + ordinal);
     private static string BoatTripId(string town, string origin, string destination) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new[] { town, origin, destination }), BoatTripPrefix);
+        new BoatTripActionChoice(town, origin, destination).Encode();
     private static string NonLandRemedyChoiceId(string town, string agreement, string term) =>
         DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Agreement = agreement, Term = term }), NonLandRemedyPrefix);
     private static string NonLandRelayChoiceId(string town, string act, string listener) =>

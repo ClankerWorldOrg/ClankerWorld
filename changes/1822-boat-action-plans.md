@@ -1,0 +1,1 @@
+- Boat trip requests, queue returns and cancellations retain their Ports and requests and recheck the same plans before applying.

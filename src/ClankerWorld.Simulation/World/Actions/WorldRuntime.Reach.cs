@@ -2,12 +2,17 @@ using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
-public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering, StoreStock, SmithDelivery, ToolRepair, FieldWork, FieldSeedPickup, TreePlanting, HouseholdVessel, PrivateEquipment, EquipmentRepair, FireFuel, WarmthProtection, OrnamentPickup, FoodSource, HouseholdFood, AnimalProduct, AnimalSupply, AnimalWork, AnimalTrip, AnimalTravel, HandcartControl, HandcartPull, HandcartRepair, HandcartBuildMaterial }
+public enum ReachPurpose { ChildSocial, ChildHelping, HouseholdReturn, TownWarehouse, HouseholdPickup, HouseholdRecovery, FoodCargoStorage, FarmStockPickup, FarmStockDelivery, WorkstationSupply, MaterialGathering, StoreStock, SmithDelivery, ToolRepair, FieldWork, FieldSeedPickup, TreePlanting, HouseholdVessel, PrivateEquipment, EquipmentRepair, FireFuel, WarmthProtection, OrnamentPickup, FoodSource, HouseholdFood, AnimalProduct, AnimalSupply, AnimalWork, AnimalTrip, AnimalTravel, HandcartControl, HandcartPull, HandcartRepair, HandcartBuildMaterial, BoatDeparture }
 public enum SwimmingPolicy { WhenCapable, Never }
 public enum ReachObstacles { OccupiedTiles, Terrain }
 
 public sealed partial class WorldRuntime
 {
+    // A request proves the communal asset's geography before a passenger boards.
+    // This prospective water leg starts from that exact boat, without reserving it.
+    private IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination) =>
+        PortNavigationRules.WaterRoute(map, boat.Position, PortGeometryFor(destination).DockingTiles, PortObstacles());
+
     // The first leg always starts at the current actor position. A return leg
     // names its prospective origin separately instead of using a camp origin.
     private ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose,
