@@ -1,0 +1,1 @@
+- Agent need states and activity labels come from the world server. The Cold label now follows the world's urgent-warmth threshold.

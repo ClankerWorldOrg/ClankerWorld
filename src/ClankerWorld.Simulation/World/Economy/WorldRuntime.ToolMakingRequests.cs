@@ -146,7 +146,7 @@ public sealed partial class WorldRuntime
             toolMakingRequests.Add(new(id, actor, plan.Shop.HouseholdId!, plan.Shop.InstanceId,
                 plan.Recipe.CanonicalId, plan.Recipe.Outputs[0].ResourceId, WorldTick, WorldTick));
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("tool_request_placed", actor + ":" + id);
+            AppendEvent(new ToolRequestPlacedEventPayload(actor, id));
             return;
         }
         var request = toolMakingRequests.Single(item => item.Id == plan.Original!.Id);
@@ -199,7 +199,7 @@ public sealed partial class WorldRuntime
             else if (ToolRequestQuote(actor, request, shop) is { } quote)
             {
                 var offerId = OpenShopQuote(actor, shop, quote);
-                SetToolRequest(request with { Status = ToolMakingRequestStatus.Offered, OfferId = offerId, Blocker = null });
+                SetToolRequest(request with { Status = ToolMakingRequestStatus.Offered, OfferId = Identity.Parse(offerId), Blocker = null });
             }
             return;
         }
@@ -246,7 +246,7 @@ public sealed partial class WorldRuntime
             person.Project?.ToolMakingRequestId == request.Id)
             agents[worker] = person with { Project = person.Project with { ToolMakingRequestId = null } };
         checkpointSchemaVersion = StateSchemaVersion;
-        if (eventKind is not null) AppendEvent(eventKind, (actor ?? request.RequesterId) + ":" + request.Id);
+        if (eventKind is not null) AppendEvent(WorldEvents.ToolRequest(eventKind, actor ?? request.RequesterId, request.Id));
     }
 
     private string? ToolMakingInputBlocker(ToolMakingRequestState request, AgentProject project)
