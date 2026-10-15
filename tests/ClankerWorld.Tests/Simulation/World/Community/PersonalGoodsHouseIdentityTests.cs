@@ -1,5 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -32,7 +33,7 @@ public sealed class PersonalGoodsHouseIdentityTests
         state = state with
         {
             JevEnabled = true,
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == actor ? house.Position : person.Position,
@@ -92,7 +93,7 @@ public sealed class PersonalGoodsHouseIdentityTests
             if (rebuild) Assert.Equal(ActionRefusalReason.TargetUnavailable, decision.PlanRefusal!.Reason);
             else Assert.Null(decision.PlanRefusal);
             var cloth = Assert.Single(world.Society.Inventory.Lots, lot => lot.ItemKind == "cloth" && lot.OwnerId == owner);
-            Assert.Equal((2, owner, rebuild ? actor : null, rebuild ? null : house.InstanceId),
+            Assert.Equal((2, owner, rebuild && kind == PersonalGoodsKind.Return ? actor : null, rebuild ? null : house.InstanceId),
                 (cloth.Quantity, cloth.OwnerId, cloth.CarrierId, cloth.StorageBuildingId));
             Assert.Equal(rebuild ? 0 : 1, world.ExportState().Events.Count(item => item.Kind ==
                 (kind == PersonalGoodsKind.Store ? "personal_goods_stored" : "borrowed_goods_returned")));
