@@ -527,6 +527,8 @@ Town project work retains its selected hammer and exact delivered budget.
 Gathering retains the selected source, harvest tool and yield, or its required
 shared-tool pickup; the resulting goods remain personal until a fresh donation.
 Both use one check before their native work or harvest transition.
+The selected tool keeps its recorded owner even after its carrier leaves that
+household; native carried-input custody and hold checks still govern its use.
 Town project pickup and delivery retain the selected Town-owned lot, exact
 load, current custody and approved destination. One check verifies the same
 load against current project need, carrying room and both physical route legs
