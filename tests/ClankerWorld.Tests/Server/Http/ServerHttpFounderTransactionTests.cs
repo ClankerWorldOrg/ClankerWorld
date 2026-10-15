@@ -11,6 +11,7 @@ using ClankerWorld.Server.Worlds;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ClankerWorld.Tests;
 
@@ -83,6 +84,18 @@ public sealed partial class ServerHttpTests
             var providers = host.Services.GetRequiredService<ProviderConfigurationStore>();
             using var target = new WorldRuntime("selection-gate-target", startPace: WorldStartPace.FounderSetup);
             var entry = host.Services.GetRequiredService<WorldCatalogStore>().Add("Target", target.ExportState());
+            var transitionLog = new RecordingLogger<ServerHttpTests>();
+            bool? commitHeldGate = null;
+            var founderCommitted = transitionLog.WaitForAsync(message =>
+            {
+                if (!message.Contains("town_transition ", StringComparison.Ordinal) ||
+                    !message.Contains("transition=ResidentJoined", StringComparison.Ordinal)) return false;
+                // Observe the native commit on its own thread, before the endpoint leaves its lock.
+                commitHeldGate = Monitor.IsEntered(providers.WorldMutationGate);
+                return true;
+            });
+            host.Services.GetRequiredService<ILoggerFactory>().AddProvider(
+                new RecordingLoggerProvider<ServerHttpTests>(transitionLog));
             var id = "founder:" + Guid.NewGuid().ToString("N");
             var action = new OwnerFounderPlacementAction(id, 0, 0,
                 new("personal", "openai", "test-model", "test-secret", false, id, Guid.NewGuid().ToString("N"), "Test"));
@@ -134,6 +147,8 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains(world.Agents, person => person.AgentId == id);
             Assert.Equal(2, providers.CaptureRuntimeConfiguration().Assignments!.Count(item => item.AgentId == id));
+            await ModelWorkHarness.WaitForSignalAsync(founderCommitted);
+            Assert.True(commitHeldGate, "Founder placement must hold the selection gate through its native commit.");
             using var restored = file.LoadOrCreate(target.ExportState().WorldSeed);
             Assert.Contains(restored.Agents, person => person.AgentId == id);
 
