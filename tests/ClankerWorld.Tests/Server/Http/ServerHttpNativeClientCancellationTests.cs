@@ -70,8 +70,8 @@ public sealed class ServerHttpNativeClientCancellationTests
             // This tests lost receipts and retries; runner delay must not spend the signed-flow deadline.
             var clock = new ManualTimeProvider();
             var api = new OwnerWorldApi(client, clock);
-            await Assert.ThrowsAsync<HttpRequestException>(() => api.CancelOrderAsync(client.BaseAddress,
-                authority, device.DeviceId, action, signer, CancellationToken.None));
+            await Assert.ThrowsAsync<HttpRequestException>(() => ModelWorkHarness.WaitForSignalAsync(api.CancelOrderAsync(client.BaseAddress,
+                authority, device.DeviceId, action, signer, CancellationToken.None)));
             Assert.Equal("cancelled", Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!.Status);
             var original = Assert.Single(runtime.ExportState().OrderCancellations!);
             Assert.Equal((actor, action.OrderId, action.WorldId), (original.TargetAgentId, original.OrderId, original.WorldId));
@@ -85,8 +85,8 @@ public sealed class ServerHttpNativeClientCancellationTests
             Assert.Null(restartedStore.TryLoad(binding with { DeviceId = "other-device" }));
             Assert.Null(restartedStore.TryLoad(binding with { ObservedWorldId = "other-world" }));
             Assert.Null(restartedStore.TryLoad(binding with { Timeline = new(timeline.InstanceId, timeline.Generation + 1) }));
-            var confirmed = await new OwnerWorldApi(client, clock).CancelOrderAsync(client.BaseAddress,
-                authority, device.DeviceId, retained.OrderCancel.ToAction(), signer, CancellationToken.None);
+            var confirmed = await ModelWorkHarness.WaitForSignalAsync(new OwnerWorldApi(client, clock).CancelOrderAsync(client.BaseAddress,
+                authority, device.DeviceId, retained.OrderCancel.ToAction(), signer, CancellationToken.None));
             Assert.Equal((original.Receipt.OrderId, original.Receipt.Status, original.Receipt.Changed),
                 (confirmed.OrderId, confirmed.Status, confirmed.Changed));
             Assert.Equal(new[] { action, action }, handler.Actions);
