@@ -119,25 +119,34 @@ everything that is available in the current build. See [what works today](../wha
     address, a comparison code or a pairing step.
   - **Hosting a world for other devices.** On the computer that will run the
     world, the player installs the same launcher and chooses **Host a world
-    for other devices**. The launcher runs the world server without the game
-    and shows a small host window with the address other devices use, the
-    devices asking to join with **Approve** and **Decline**, and **Stop**. A
-    hosted server keeps running when a game on that computer closes, because
-    other players may still be in the world. It stops only through **Stop**,
-    or when the launcher closes, with a warning first if a device is
-    connected. A game started on the hosting computer joins that running
-    server instead of starting a second one.
+    for other devices**. The launcher then turns into a host app with its own
+    screen: the address other devices use, the devices asking to join with
+    **Approve** and **Decline**, and **Stop hosting**. When the player's game
+    quits, the world saves and pauses, and the host waits idle in the
+    background, using a little memory but no processor time or model calls,
+    until the next session, so the player never has to go back to the host
+    computer between sessions. An option stops the server whenever the game
+    quits instead. Hosting starts again on its own when the host computer
+    restarts, and the player can turn that off. A game started on the hosting
+    computer joins that running server instead of starting a second one.
   - **Joining from another computer.** The host is set up first. Then, on the
     playing computer, the launcher's **Join a world on another computer** asks
-    for the host's address and shows a comparison code. When the host window
+    for the host's address and shows a comparison code. When the host app
     shows the same code, the host approves the device, and from then on the
     launcher connects by itself. Pairing happens in the launcher, so the game
     has no pairing screen of its own.
+  - **When the host isn't running.** If the launcher on the playing computer
+    can't reach the host, it says the world isn't running and how to start
+    it. For a launcher host it says to open ClankerWorld on that computer and
+    choose **Start hosting**. For a terminal-only host it shows the exact
+    command to run there. The launcher knows which applies, because the host
+    says what kind it is when a device pairs.
   - **An always-on Linux machine, such as a VPS.** There is a server-only
-    download, one command that installs it as a service and one command that
-    approves a device, with a step-by-step guide for players who are
-    comfortable with a terminal. The written checklist for updating the
-    development VPS stays a developer page.
+    download, one command that installs it as a service, which also starts it
+    again whenever the machine restarts, and one command that approves a
+    device, with a step-by-step guide for players who are comfortable with a
+    terminal. The written checklist for updating the development VPS stays a
+    developer page.
   - **Private networks only.** A hosted world server is meant for a home
     network or a private connection such as a VPN. It is not built to face the
     open internet.
