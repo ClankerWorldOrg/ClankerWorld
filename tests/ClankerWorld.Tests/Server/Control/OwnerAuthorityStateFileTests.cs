@@ -7,6 +7,31 @@ namespace ClankerWorld.Tests;
 public sealed class OwnerAuthorityStateFileTests
 {
     [Fact]
+    public void ANewServerGetsARandomAuthorityIdThatSurvivesARestart()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-owner-authority-id-");
+        try
+        {
+            var stateFile = new OwnerAuthorityStateFile(System.IO.Path.Combine(directory.FullName, "owner-authority.json"));
+            var first = stateFile.StoredOrNewServerAuthorityId();
+            Assert.Matches("^[0-9a-f]{32}$", first);
+            Assert.NotEqual(first, stateFile.StoredOrNewServerAuthorityId());
+
+            var created = stateFile.LoadOrCreate(new OwnerAuthorityIdentity(first, "world-test-file"));
+            Assert.Equal(first, created.Identity.ServerAuthorityId);
+            // Once saved, the same ID is used after every restart, so pairings stay valid.
+            var restarted = new OwnerAuthorityStateFile(stateFile.Path);
+            Assert.Equal(first, restarted.StoredOrNewServerAuthorityId());
+            Assert.Equal(first, restarted.LoadOrCreate(
+                new OwnerAuthorityIdentity(restarted.StoredOrNewServerAuthorityId(), "world-test-file")).Identity.ServerAuthorityId);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode()
     {
         var directory = System.IO.Path.Combine(
@@ -30,6 +55,7 @@ public sealed class OwnerAuthorityStateFileTests
             Assert.DoesNotContain(pairing.PairingCode, persistedText, StringComparison.Ordinal);
 
             var restarted = stateFile.LoadOrCreate(identity, clock, CryptographicOwnerAuthorityRandom.Instance);
+            Assert.Equal(identity.ServerAuthorityId, stateFile.StoredOrNewServerAuthorityId());
             var approval = restarted.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode);
             Assert.True(approval.IsSuccess);
             stateFile.Save(restarted);

@@ -116,7 +116,7 @@ public static class OwnerFailures
                 (StatusCodes.Status404NotFound, "owner_record_not_found", "Owner record not found"),
             OwnerAuthorityFailure.PublicKeyAlreadyRegistered or OwnerAuthorityFailure.PairingNotPending or OwnerAuthorityFailure.PairingAlreadyActive =>
                 (StatusCodes.Status409Conflict, "owner_state_conflict", "Owner state conflict"),
-            OwnerAuthorityFailure.PairingCapacityExceeded or OwnerAuthorityFailure.ChallengeCapacityExceeded =>
+            OwnerAuthorityFailure.PairingCapacityExceeded =>
                 (StatusCodes.Status429TooManyRequests, "owner_capacity_reached", "Owner authority capacity reached"),
             OwnerAuthorityFailure.ChallengeConsumed =>
                 (StatusCodes.Status409Conflict, "challenge_already_consumed", "Challenge already consumed"),
