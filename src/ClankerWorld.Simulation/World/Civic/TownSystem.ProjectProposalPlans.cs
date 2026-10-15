@@ -25,6 +25,8 @@ internal sealed partial class TownSystem
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their selected Town project proposal authority has changed");
         if (TownProjectRules.PayloadRefusal(plan.Project) is { } payload)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, payload);
+        if (!world.TownProjectDemandIsCurrent(town, plan.Project))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected Market stall or boat project is no longer needed");
         if (world.TownProjectSiteFailure(town, plan.Project, actor: plan.Actor) is { } site)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, site);
         if (TownCouncilRules.ProposalRetryRefusal(town.Council, TownProjectRules.RequestKey(plan.Project),
