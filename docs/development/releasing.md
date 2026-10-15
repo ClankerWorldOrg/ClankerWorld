@@ -2,7 +2,7 @@
 title: Releasing
 type: release-policy
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Releasing
@@ -195,12 +195,20 @@ needs no release gate:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
-  the same two assets as an alpha, so the launcher installs and checks it the
-  same way. New nightly installs are offered in Developer mode. Installed
+  the portable game zip and its `.sha256`, so the launcher installs and checks
+  it the same way as an alpha. Every nightly also includes
+  `ClankerWorld-Setup-<version>-windows-x64.exe` and its `.sha256` beside the
+  portable zip. The [per-user setup](build-and-test.md#windows-installer)
+  bundles the launcher and game from the same commit, using the same package
+  scripts as CI. Linux builds both packages; Windows builds the setup before
+  the publish job attaches all four files. Only that job can write releases.
+  New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.
-- It runs only when main has a commit the newest nightly doesn't have and
-  main's CI passed on that commit. Run it by hand from Actions to publish one
+- Both build jobs use the commit on main that triggered the workflow, even
+  when main advances before either job starts. It runs only when the newest
+  nightly has a different commit and main's CI passed on the selected commit.
+  Run it by hand from Actions with the main branch selected to publish one
   sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
   tags, the one exception to never deleting a pushed tag. Never use a nightly

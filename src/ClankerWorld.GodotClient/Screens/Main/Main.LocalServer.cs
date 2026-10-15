@@ -12,7 +12,9 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
+    private const string LocalServerStartingMessage = "Starting your world server…";
     private readonly LocalServer? localServer;
+    private bool localServerStarting;
     private readonly ConfirmationDialog localServerFailure = new();
     private readonly ConfirmationDialog localServerStopFailure = new();
     private bool isQuittingGame;
@@ -39,6 +41,8 @@ public partial class Main
     private async Task StartLocalServerAsync()
     {
         if (localServer is null) return;
+        localServerStarting = true;
+        RefreshMainMenuAvailability();
         GetTree().AutoAcceptQuit = false;
         if (localServerFailure.GetParent() is null)
         {
@@ -67,14 +71,33 @@ public partial class Main
         }
         if (!start.IsReady)
         {
+            localServerStarting = false;
+            RefreshMainMenuAvailability();
+            SetMainMenuStatus(start.PlayerMessage);
             SetStatus(string.Empty, good: false);
             localServerFailure.DialogText = start.PlayerMessage;
             PopupDialog(localServerFailure);
             return;
         }
-        await InitializeAsync();
-        // First launch: pair this game with its own local server without asking the player.
-        if (registration is null && deviceKey is not null) await StartPairingAsync();
+        try
+        {
+            await InitializeAsync();
+            // First launch: pair this game with its own local server without asking the player.
+            if (registration is null && deviceKey is not null) await StartPairingAsync();
+        }
+        finally
+        {
+            CompleteLocalServerStartup();
+        }
+    }
+
+    private void CompleteLocalServerStartup()
+    {
+        var status = mainMenuStatus.Text;
+        localServerStarting = false;
+        RefreshMainMenuAvailability();
+        if (!string.Equals(status, LocalServerStartingMessage, StringComparison.Ordinal))
+            SetMainMenuStatus(status);
     }
 
     /// <summary>False leaves the ordinary comparison-code flow on screen.</summary>
