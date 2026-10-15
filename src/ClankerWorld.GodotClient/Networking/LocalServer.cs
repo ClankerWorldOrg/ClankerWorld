@@ -274,7 +274,7 @@ public sealed class LocalServer : IAsyncDisposable
         try
         {
             if (File.Exists(layout.SecretPath)) previousSecret = File.ReadAllBytes(layout.SecretPath);
-            secret = WriteFreshSecret();
+            (secret, proven) = (WriteFreshSecret(), false);
             secretWritten = true;
             process = Launch();
         }
