@@ -20,10 +20,11 @@ internal static partial class OwnerEndpoints
 
         // Bound unauthenticated creation before JSON binding. Do not spend this budget
         // on signed owner challenges/reconnect/pause or host-local recovery. Pairing
-        // bodies are already capped by RequestBodyLimits.
+        // bodies are already capped by RequestBodyLimits. Routing has already chosen
+        // the endpoint, so every path spelling it accepts for the route is counted.
         app.Use(async (context, next) =>
         {
-            if (HttpMethods.IsPost(context.Request.Method) && context.Request.Path == "/api/v1/pairings" &&
+            if (context.GetEndpoint()?.Metadata.GetMetadata<PairingRequestBudget.Route>() is not null &&
                 !context.RequestServices.GetRequiredService<PairingRequestBudget>().TryAcquire())
             {
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -66,7 +67,7 @@ internal static partial class OwnerEndpoints
             }
 
             return Results.Ok(result.Value);
-        });
+        }).WithMetadata(PairingRequestBudget.Route.Instance);
 
         app.MapGet("/api/v1/pairings/{pairingId}", (
             string pairingId,

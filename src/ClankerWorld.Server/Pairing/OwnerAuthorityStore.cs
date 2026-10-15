@@ -242,7 +242,6 @@ public enum OwnerAuthorityFailure
     ChallengeConsumed,
     ChallengeDeviceMismatch,
     ChallengeNonceMismatch,
-    ChallengeCapacityExceeded,
 }
 
 /// <summary>
@@ -759,15 +758,11 @@ public sealed class OwnerAuthorityStore
                 return OwnerAuthorityResult<OwnerChallenge>.Fail(OwnerAuthorityFailure.InvalidSignature);
             }
 
-            var pendingChallengeCount = challenges.Values.Count(challenge => challenge.State == OwnerChallengeState.Pending);
-            var pendingChallengesForDevice = challenges.Values.Count(challenge =>
-                challenge.State == OwnerChallengeState.Pending &&
-                string.Equals(challenge.DeviceId, device.DeviceId, StringComparison.Ordinal));
-            if (pendingChallengeCount >= MaximumPendingChallenges ||
-                pendingChallengesForDevice >= MaximumPendingChallengesPerDevice)
-            {
-                return OwnerAuthorityResult<OwnerChallenge>.Fail(OwnerAuthorityFailure.ChallengeCapacityExceeded);
-            }
+            // A full set of pending challenges never refuses a new one: the
+            // oldest unanswered challenges make room, so a device can always get
+            // a fresh challenge however many earlier ones went unused.
+            ExpireOldestPendingChallengesUnsafe(device.DeviceId, MaximumPendingChallengesPerDevice - 1);
+            ExpireOldestPendingChallengesUnsafe(deviceId: null, MaximumPendingChallenges - 1);
 
             var challengeId = CreateOpaqueIdentifierUnsafe(
                 "challenge",
@@ -1166,28 +1161,32 @@ public sealed class OwnerAuthorityStore
 
     private void TrimPendingChallengesUnsafe()
     {
-        foreach (var deviceChallenges in challenges.Values
+        foreach (var deviceId in challenges.Values
                      .Where(challenge => challenge.State == OwnerChallengeState.Pending)
-                     .GroupBy(challenge => challenge.DeviceId, StringComparer.Ordinal))
+                     .Select(challenge => challenge.DeviceId)
+                     .Distinct(StringComparer.Ordinal)
+                     .ToArray())
         {
-            var pendingForDevice = deviceChallenges
-                .OrderBy(challenge => challenge.ExpiresAtUtc)
-                .ThenBy(challenge => challenge.ChallengeId, StringComparer.Ordinal)
-                .ToArray();
-            var removalCount = pendingForDevice.Length - MaximumPendingChallengesPerDevice;
-            foreach (var challenge in pendingForDevice.Take(Math.Max(0, removalCount)))
-            {
-                challenge.State = OwnerChallengeState.Expired;
-            }
+            ExpireOldestPendingChallengesUnsafe(deviceId, MaximumPendingChallengesPerDevice);
         }
 
-        var pendingChallenges = challenges.Values
-            .Where(challenge => challenge.State == OwnerChallengeState.Pending)
+        ExpireOldestPendingChallengesUnsafe(deviceId: null, MaximumPendingChallenges);
+    }
+
+    /// <summary>
+    /// Expires the oldest pending challenges, of one device or of all devices
+    /// when <paramref name="deviceId"/> is null, until at most
+    /// <paramref name="keep"/> remain.
+    /// </summary>
+    private void ExpireOldestPendingChallengesUnsafe(string? deviceId, int keep)
+    {
+        var pending = challenges.Values
+            .Where(challenge => challenge.State == OwnerChallengeState.Pending &&
+                (deviceId is null || string.Equals(challenge.DeviceId, deviceId, StringComparison.Ordinal)))
             .OrderBy(challenge => challenge.ExpiresAtUtc)
             .ThenBy(challenge => challenge.ChallengeId, StringComparer.Ordinal)
             .ToArray();
-        var globalRemovalCount = pendingChallenges.Length - MaximumPendingChallenges;
-        foreach (var challenge in pendingChallenges.Take(Math.Max(0, globalRemovalCount)))
+        foreach (var challenge in pending.Take(Math.Max(0, pending.Length - keep)))
         {
             challenge.State = OwnerChallengeState.Expired;
         }

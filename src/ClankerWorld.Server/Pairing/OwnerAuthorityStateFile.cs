@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace ClankerWorld.Server.Pairing;
@@ -27,6 +28,22 @@ public sealed class OwnerAuthorityStateFile
 
     public string Path { get; }
     public long WriteCount => Interlocked.Read(ref writeCount);
+
+    /// <summary>
+    /// The server authority ID this file already holds, or a new random one for
+    /// a server that has none yet. Pairing replies name it, so it carries
+    /// nothing about the computer, and it stays the same across restarts.
+    /// </summary>
+    public string StoredOrNewServerAuthorityId()
+    {
+        lock (gate)
+        {
+            if (!File.Exists(Path)) return Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+            var state = JsonSerializer.Deserialize<OwnerAuthorityState>(File.ReadAllText(Path), JsonOptions);
+            return state?.Authority?.ServerAuthorityId ??
+                throw new InvalidDataException("The owner-authority state file has no server authority.");
+        }
+    }
 
     public OwnerAuthorityStore LoadOrCreate(
         OwnerAuthorityIdentity initialIdentity,

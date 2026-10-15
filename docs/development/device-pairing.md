@@ -48,7 +48,9 @@ rollback backup. This is the approved pre-release exception described in
    signature over canonical request data. The server consumes the challenge
    once before asking the runtime to commit. Challenges are process-local:
    restarting the server invalidates both pending and consumed challenges, so an
-   old nonce cannot be replayed after a crash. Pairing and revocation remain
+   old nonce cannot be replayed after a crash. Pending challenges are capped per
+   device and overall; a new challenge expires the oldest unanswered ones to make
+   room instead of being refused. Pairing and revocation remain
    durable; idle reads do not rewrite the authority file. It
    derives the durable issuer from the active device; the runtime mints durable
    IDs, event ordering, and submission sequence. A client request ID and
@@ -94,7 +96,10 @@ are the sole plaintext exception, for an explicit local-development server.
 
 The headless server persists paired-device authority separately from the world
 runtime. The authority file contains public keys, fingerprints, state, and
-anti-replay hashes—not device private keys or raw comparison codes. The runtime
+anti-replay hashes—not device private keys or raw comparison codes. It also
+holds the server authority ID that pairing replies and signed proofs name. Unless
+`ClankerWorld:Pairing:ServerAuthorityId` sets one, a new server picks a random
+ID and keeps the file's ID after that, so it says nothing about the computer. The runtime
 file contains world state and never becomes credential storage. Both files are
 written atomically and use owner-only filesystem permissions on Unix servers.
 
@@ -315,7 +320,8 @@ Linux CI export.
 ## Pairing volume and local recovery
 
 Public pairing creation has a shared eight-attempt, one-minute budget, including
-invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
+invalid keys. It is attached to the route itself, so every path spelling routing
+accepts for it counts. A shared budget avoids trusting proxy-supplied source addresses; a
 429 response includes Retry-After: 60. Signed challenges, reconnect and pause do
 not consume it. This is bounded ingress, not a claim that the Tailnet endpoint
 is DoS-proof.

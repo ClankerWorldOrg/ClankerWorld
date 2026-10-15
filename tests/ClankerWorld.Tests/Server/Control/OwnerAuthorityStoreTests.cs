@@ -194,15 +194,26 @@ public sealed class OwnerAuthorityStoreTests
                 pairing.ActivationCanonicalProof,
                 Sign(deviceKey, pairing.ActivationCanonicalProof))).IsSuccess);
 
+        var earlier = new List<OwnerChallenge>();
         for (var index = 0; index < OwnerAuthorityStore.MaximumPendingChallengesPerDevice; index++)
         {
-            IssueChallenge(store, deviceKey, pairing.DeviceId, $"pending-cap-{index}");
+            earlier.Add(IssueChallenge(store, deviceKey, pairing.DeviceId, $"pending-cap-{index}"));
+            clock.UtcNow = clock.UtcNow.AddSeconds(1);
         }
 
-        var overCapacity = store.IssueChallenge(
-            CreateChallengeIssueRequest(store.Identity, pairing.DeviceId, "pending-cap-overflow", deviceKey));
-
-        Assert.Equal(OwnerAuthorityFailure.ChallengeCapacityExceeded, overCapacity.Failure);
+        // A full set never refuses a new challenge, even for a repeated issue
+        // request: the oldest unanswered one makes room, and the new one works.
+        var beyondCapacity = store.IssueChallenge(
+            CreateChallengeIssueRequest(store.Identity, pairing.DeviceId, "pending-cap-0", deviceKey));
+        Assert.True(beyondCapacity.IsSuccess);
+        Assert.Equal(OwnerAuthorityStore.MaximumPendingChallengesPerDevice,
+            store.ExportState().Challenges.Count(challenge => challenge.State == OwnerStoredChallengeState.Pending));
+        Assert.Equal(OwnerAuthorityFailure.ChallengeExpired, store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, earlier[0], "control-request-sha256:oldest", deviceKey)).Failure);
+        Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, earlier[1], "control-request-sha256:second", deviceKey)).IsSuccess);
+        Assert.True(store.ConsumeChallenge(CreateConsumptionRequest(
+            store.Identity, pairing.DeviceId, beyondCapacity.Value!, "control-request-sha256:newest", deviceKey)).IsSuccess);
 
         clock.UtcNow = clock.UtcNow.Add(OwnerAuthorityStore.ChallengeLifetime);
         for (var index = 0; index <= OwnerAuthorityStore.MaximumRetainedTerminalChallenges; index++)
