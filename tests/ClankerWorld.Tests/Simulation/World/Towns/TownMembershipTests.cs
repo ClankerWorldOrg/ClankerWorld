@@ -262,17 +262,31 @@ public sealed partial class TownMembershipTests
         }
         using var world = Reopen(approved, Accepting());
         using var replay = Reopen(approved, Accepting());
+        TownAdmissionActionPlan? acceptedPlan = null;
         var refused = new List<string>();
         for (var tick = 0; tick < 12; tick++)
         {
             var step = await world.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
+            if (step.Decisions.SingleOrDefault(decision => decision.AgentId == newcomer &&
+                    decision.Admission.Accepted && !decision.Admission.FellBack &&
+                    decision.Admission.Intention?.CandidateId.StartsWith(Civic(First, "accept_admission"), StringComparison.Ordinal) == true) is { } accepted)
+            {
+                acceptedPlan = Assert.IsType<TownAdmissionActionPlan>(accepted.ActionPlan);
+                Assert.Equal(firstProposal, acceptedPlan.Approval!.ProposalId);
+                Assert.Equal(newcomer, acceptedPlan.Subject);
+                Assert.Equal(acceptedPlan.Choice, TownAdmissionChoice.Decode(acceptedPlan.CandidateId));
+            }
             refused.AddRange(step.Decisions.Where(item => item.AgentId == newcomer && item.Admission.FellBack)
                 .Select(item => item.Admission.Outcome));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.Contains(newcomer, world.Towns.Single(town => town.Id == First).ResidentIds);
+        Assert.NotNull(acceptedPlan);
+        var afterAdmission = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(acceptedPlan).Refusal!.Reason);
+        Assert.Equal(afterAdmission, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Contains("candidate_not_legal", refused);
 
         var saved = WorldRuntimeCodec.Encode(Paused(world));
