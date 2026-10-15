@@ -441,8 +441,8 @@ public sealed partial class WorldRuntime
         constructionState = WorldConstructionState.From(worldSimulation with
         {
             BuildingExpansions = (worldSimulation.BuildingExpansions ?? []).Append(job).OrderBy(item => item.JobId, StringComparer.Ordinal).ToArray(),
-            NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
         });
+        productionSystem.AdvanceExpansionSequence();
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
         AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
         return new ProductionStartResult(true, jobId, buildingId, null);

@@ -16,7 +16,12 @@ public sealed class ProductionWriterBoundaryTests
             var model = compilation.GetSemanticModel(tree);
             foreach (var write in tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>())
             {
-                if (model.GetSymbolInfo(write.Left).Symbol is not IPropertySymbol property ||
+                if (model.GetSymbolInfo(write.Left).Symbol is not IPropertySymbol property) continue;
+                if (property.ContainingType.Name == "WorldContentSimulationState" &&
+                    property.Name is "ProductionJobs" or "NextProductionJobSequence" or "CropBuilds" &&
+                    !(property.Name == "CropBuilds" && Path.GetFileName(tree.FilePath) == "WorldRuntime.cs"))
+                    violations.Add(tree.FilePath + ": production snapshot write " + write);
+                if (
                     property.ContainingType.ToDisplayString() != "ClankerWorld.Simulation.World.ProductionState" &&
                     !(property.Name == "State" && property.ContainingType.Name == "ProductionSystem")) continue;
                 if (write.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText != "ProductionSystem")

@@ -41,6 +41,8 @@ internal sealed partial class ProductionSystem
         NextSequence = checked(State.NextSequence + 1),
     });
 
+    internal void AdvanceExpansionSequence() => Commit(State with { NextSequence = State.NextSequence + 1 });
+
     internal void FinishJob(string id, bool completed) => Commit(State with
     {
         Jobs = State.Jobs.Select(job => job.JobId == id
