@@ -26,12 +26,14 @@ internal sealed partial class TownSystem
                 candidates.Add(new(choice.Encode(), "Visit the public notice place for a reported act you actually know about. Visiting grants no membership or private access.", 175)
                 { ActionPlan = plan });
         }
+        var offeredReports = 0;
         if (adult && atBoard)
             foreach (var report in NonLandKnownReports(world, town, actor).Where(report => !town.NonLandHearings.Cases.Any(item =>
                          item.Key == TownNonLandRules.CaseKey(town.Id, report.Allegation) &&
                          (item.Status != "pending" || item.Filings.Any(filing => filing.AgentId == actor &&
-                             (filing.Kind == "affected" || actor == item.Allegation.SubjectId))))).Take(6))
+                             (filing.Kind == "affected" || actor == item.Allegation.SubjectId))))))
             {
+                var beforeReport = candidates.Count;
                 var label = "Report known conduct as an allegation: " + NonLandKnownAllegationText(world, town, report.Allegation) +
                     ". Supply civic_nonviolent.statement explaining the alleged breach; the engine does not decide guilt. Source: " + report.Evidence.Acquisition + ".";
                 if (!town.NonLandHearings.Cases.Any(item => item.Key == TownNonLandRules.CaseKey(town.Id, report.Allegation) && item.Filings.Any(filing => filing.AgentId == actor)))
@@ -48,6 +50,7 @@ internal sealed partial class TownSystem
                         council.Members.Contains(actor, StringComparer.Ordinal))
                         OfferNonLandFiling(world, candidates, actor, town, report, "law_case_propose_town", "Ask the Council to authorize this known Town allegation; approval is required. " + label, 186);
                 }
+                if (candidates.Count > beforeReport && ++offeredReports == 6) break;
             }
         foreach (var item in town.NonLandHearings.Cases)
         {

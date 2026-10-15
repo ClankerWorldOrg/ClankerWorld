@@ -487,6 +487,8 @@ that pass that check, and the former second-pass planner is removed.
 Town-project donations likewise count checked plans before applying their four
 offers per budget entry and sixteen overall limits. Native selected-choice lookup
 does not inherit those presentation caps.
+Civic conduct reports count toward their six-report limit only when an offered
+filing plan passes its check, preserving report order and all filing variants.
 Exploration supply, household tool coverage and tool repair also use actor-position
 reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
 predicate, unnamed need comparison or direct route call outside the shared rules.
