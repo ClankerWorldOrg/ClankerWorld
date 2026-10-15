@@ -146,6 +146,12 @@ records. Named component operations preserve captured input records and detached
 preparations until their original commit points. Creation, death, equipment
 rollback and trusted tick preparation keep existing record and insertion order.
 The semantic writer scan rejects physical-agent writes outside this store.
+Local project, equipment, survival, exploration, departure and child-model
+contracts also run before agent publication in tests. Production, community
+and cognition own their component contracts; AgentStore owns equipment and
+survival values. Save checks reuse those contracts and retain clock, map,
+household, population and inventory links. Detached preparations still wait
+for their original publication point.
 
 `Family/FamilySystem.cs` owns saved population continuity and family rules for
 partnerships, parenthood and births, dependent care and guardian travel, medical

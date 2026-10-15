@@ -25,7 +25,7 @@ public sealed record AgentProject(
 
 public sealed partial class WorldRuntime
 {
-    private const int ProjectWorkTicks = 10;
+    private const int ProjectWorkTicks = ProductionSystem.ProjectWorkTicks;
     private const string WaitingForWorkSiteBlocker = "Waiting for a free work site";
     private const string FreshChoicePauseBlocker = "Materials for this work are unavailable. Choose another task for now.";
     private const int BlockedProjectRetryDelayTicks = 60;
@@ -315,19 +315,9 @@ public sealed partial class WorldRuntime
 
     private static void ValidateProject(AgentProject project, long worldTick)
     {
-        if (string.IsNullOrWhiteSpace(project.CandidateId) ||
-            !TownConstructionCandidateIds.TryParse(project.CandidateId, out _) ||
-            string.IsNullOrWhiteSpace(project.Label) || project.Label.Length > 256 ||
-            project.StartedTick < 0 || project.StartedTick > worldTick ||
-            project.LastTransitionTick < project.StartedTick || project.LastTransitionTick > worldTick ||
-            project.WorkDone is < 0 or > ProjectWorkTicks ||
-            project.Stage is not ("acquiring" or "gathering" or "delivering" or "travelling" or "working" or "waiting" or "blocked" or "paused" or "completed" or "cancelled") ||
-            project.RequiresFreshChoice && (project.Stage != "paused" || project.JobId is not null) ||
-            project.OrderInstructionId is { } orderId && (string.IsNullOrWhiteSpace(orderId) ||
-                orderId != orderId.Trim() || orderId.Any(char.IsControl)))
-        {
+        ProductionSystem.ValidateLocalAgentProject(project);
+        if (project.StartedTick > worldTick || project.LastTransitionTick > worldTick)
             throw new InvalidDataException("The saved agent project is invalid.");
-        }
     }
 
     private bool CanContinueProject(AgentState state, bool waitingForModel = false) =>

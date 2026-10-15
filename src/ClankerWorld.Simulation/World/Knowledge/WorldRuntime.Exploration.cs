@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
 {
     private const int StartingExplorationWarmthBudgetSteps = 8;
     private const int ExplorationCooldownTicks = 180;
-    private const int ExplorationMemoryLimit = 256;
+    private const int ExplorationMemoryLimit = CommunitySystem.ExplorationMemoryLimit;
 
     private AgentState CompleteExplorationGoal(string actor, AgentState person)
     {
@@ -209,20 +209,11 @@ public sealed partial class WorldRuntime
         IEnumerable<BridgeState> bridges, long worldTick)
     {
         if (exploration is null) return;
-        if (!ValidExplorationGoal(exploration.Goal) ||
-            exploration.VisitedTiles is null || exploration.OutingPath is null ||
-            exploration.Goal is not null && exploration.OutingPath.Count == 0 ||
-            exploration.VisitedTiles.Count > ExplorationMemoryLimit ||
-            // An outward route never revisits a tile, so the map itself bounds
-            // its length without imposing a distance limit on the scout.
-            exploration.OutingPath.Count > map.Tiles.Count ||
-            exploration.OutingPath.Distinct().Count() != exploration.OutingPath.Count ||
-            (exploration.OutingDiscoveries?.Count ?? 0) > ExplorationMemoryLimit ||
-            exploration.LastOutingTick < 0 || exploration.LastOutingTick > worldTick ||
-            exploration.VisitedTiles.Any(point => !map.IsPassable(point)) ||
-            exploration.OutingPath.Any(point => !map.IsPassable(point)) ||
-            (exploration.OutingDiscoveries ?? []).Any(point => !map.IsPassable(point)) ||
-            (exploration.OutingDiscoveries ?? []).Distinct().Count() != (exploration.OutingDiscoveries?.Count ?? 0))
+        CommunitySystem.ValidateLocalExploration(exploration);
+        // Map bounds, passability and world time are links outside this component.
+        if (exploration.OutingPath.Count > map.Tiles.Count || exploration.LastOutingTick > worldTick ||
+            exploration.VisitedTiles.Any(point => !map.IsPassable(point)) || exploration.OutingPath.Any(point => !map.IsPassable(point)) ||
+            (exploration.OutingDiscoveries ?? []).Any(point => !map.IsPassable(point)))
             throw new InvalidDataException("The saved local exploration record is invalid.");
 
         WorldMap? beforeOuting = null;

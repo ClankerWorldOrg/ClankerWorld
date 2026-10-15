@@ -9,12 +9,7 @@ public sealed partial class WorldRuntime
     private static string ExplorationGoalCandidateId(ExplorationGoal goal) =>
         new ExplorationChoice(false, goal).Encode();
 
-    private static bool ValidExplorationGoal(ExplorationGoal? goal) => goal is null ||
-        (goal.Kind == "resource" && (OrderTaskParser.IsMaterialKind(goal.Target) ||
-            goal.Target is "food" or "berries" or "wild_greens" or "fruit") ||
-         goal.Kind == "terrain" && goal.Target is "Forest" or "Mountain") &&
-        (goal.OrderInstructionId is null || goal.OrderInstructionId.Length is > 0 and <= DerivedId.MaximumLength &&
-            !goal.OrderInstructionId.Any(char.IsControl));
+    private static bool ValidExplorationGoal(ExplorationGoal? goal) => CommunitySystem.ValidExplorationGoal(goal);
 
     private static ExplorationGoal? ExplorationGoalForOrder(OwnerQueuedInstruction instruction) =>
         instruction.Task is { TargetResourceId: null, TargetPosition: null } order
