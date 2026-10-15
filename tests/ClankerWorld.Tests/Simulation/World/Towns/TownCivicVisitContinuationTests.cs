@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -7,13 +8,81 @@ namespace ClankerWorld.Tests;
 public sealed class TownCivicVisitContinuationTests
 {
     [Fact]
+    public async Task AChildWhoKnowsAReportedActCanPersonallyVisitWithoutGainingAdultCivicRights()
+    {
+        var initial = await NonLandRuntimeFixture.ConductAsync();
+        var visitor = NonLandRuntimeFixture.Subject;
+        var town = initial.Towns![0];
+        var board = town.OriginSite!.Value;
+        var start = ReachableDistantPosition(initial, visitor, board);
+        var society = initial.Society.Society;
+        var age = society.Config.DayLifecycle!.ChildStartDay + 1;
+        var birth = society.LifeTickAt(society.WorldTick) - age * society.Config.TicksPerLifecycleAge;
+        initial = initial with
+        {
+            Towns = [town with { Council = town.Council! with { Members = town.Council.Members.Where(id => id != visitor).ToArray() } }],
+            Agents = initial.Agents.Select(person => person.AgentId == visitor
+                ? person with { Position = start, TravelCooldownTicks = 0 } : person).ToArray(),
+            Society = initial.Society with
+            {
+                Society = society with
+                {
+                    Agents = society.Agents.Select(person => person.Id == visitor ? person with
+                    {
+                        BirthTick = birth,
+                        BirthLifeTick = society.LifeClock is null ? null : birth,
+                        AgeBand = SocietyAgeBand.Child,
+                        LastLifecycleYearChecked = age,
+                        PrimaryCaregiverId = NonLandRuntimeFixture.Judge,
+                    } : person).ToArray(),
+                },
+            },
+        };
+        var provider = new VisitOnceProvider();
+        using var world = WorldRuntime.Restore(initial,
+            id => id == visitor ? provider : new ActionCoverageRecorder(chooseIdle: true));
+        NonLandRuntimeFixture.Wake(world, visitor, "child-personal-public-visit");
+        var before = world.ExportState();
+        Assert.Contains(before.Towns![0].NonLandHearings.Acquisitions, item => item.AgentId == visitor);
+        var first = await world.AdvanceOneTickAsync();
+        var decision = Assert.Single(first.Decisions, result => result.AgentId == visitor);
+        Assert.True(decision.Admission.Accepted);
+        Assert.False(decision.Admission.FellBack);
+        Assert.NotEqual(start, Position(world, visitor));
+        var observation = Assert.Single(provider.Observations);
+        var plan = Assert.IsType<CivicVisitActionPlan>(observation.Candidates.Single(candidate => candidate.Id == provider.VisitId).ActionPlan);
+        Assert.Same(plan, decision.ActionPlan);
+        var positions = new HashSet<GridPoint> { start, Position(world, visitor) };
+        for (var tick = 0; tick < 28 && world.ExportState().Map.FootDistance(Position(world, visitor), board) > 1; tick++)
+        {
+            Assert.True(world.CheckActionPlan(plan).Allowed);
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            positions.Add(Position(world, visitor));
+            Assert.Single(provider.Observations);
+        }
+        Assert.True(world.ExportState().Map.FootDistance(Position(world, visitor), board) <= 1);
+        Assert.True(positions.Count > 2);
+        Assert.Equal(VisitActionCount(before, town.Id, visitor) + 1, VisitActionCount(world.ExportState(), town.Id, visitor));
+        Assert.DoesNotContain(visitor, world.Towns[0].Council!.Members);
+        Assert.Empty(world.Towns[0].NonLandHearings.Cases);
+        Assert.Equal(before.Towns[0].Council!.Knowledge, world.Towns[0].Council!.Knowledge);
+        Assert.Equal(before.Society.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.ItemKind, lot.Quantity)),
+            world.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.ItemKind, lot.Quantity)));
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(NonLandRuntimeFixture.Strict(world.ExportState())));
+        world.Validate();
+    }
+
+    [Fact]
     public async Task OnePersonalVisitChoiceWalksToTheNoticePlaceWithoutRepeatingCivicActsOrModelCalls()
     {
         using var source = NormalPathWorld.CreateGenerated("civic-visit-continuation", _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = source.ExportState();
         var town = initial.Towns![0];
         var visitor = town.ResidentIds[0];
-        Assert.True(source.RenameAgent(visitor, "Notice visitor"));
+        Assert.True(source.RenameAgent(visitor, "Notice visitor 🧭 Élodie"));
         initial = source.ExportState();
         town = initial.Towns![0];
         var board = town.OriginSite!.Value;
@@ -33,13 +102,28 @@ public sealed class TownCivicVisitContinuationTests
             }).ToArray(),
         }, id => id == visitor ? provider : new ActionCoverageRecorder(chooseIdle: true));
 
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        provider.Observations.Clear();
+        provider.Reset();
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
+            id => id == visitor ? new VisitOnceProvider() : new ActionCoverageRecorder(chooseIdle: true));
         var first = await world.AdvanceOneTickAsync();
         Assert.True(first.Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var decision = Assert.Single(first.Decisions, result => result.AgentId == visitor);
         Assert.True(decision.Admission.Accepted);
         Assert.False(decision.Admission.FellBack);
         var firstObservation = Assert.Single(provider.Observations);
         Assert.Contains(firstObservation.Candidates, candidate => candidate.Id == provider.VisitId);
+        var plan = Assert.IsType<CivicVisitActionPlan>(firstObservation.Candidates.Single(candidate => candidate.Id == provider.VisitId).ActionPlan);
+        Assert.Same(plan, decision.ActionPlan);
+        Assert.Equal(board, plan.NoticePlace);
+        Assert.NotEmpty(plan.Route);
+        Assert.Equal(plan.Choice, CivicVisitChoice.Decode(plan.CandidateId));
+        Assert.True(world.CheckActionPlan(plan).Allowed);
         Assert.Contains(visitor, world.Towns[0].ResidentIds);
         Assert.True(world.ExportState().Map.FootDistance(start, board) >= 6);
         Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
@@ -51,6 +135,8 @@ public sealed class TownCivicVisitContinuationTests
         for (var tick = 0; tick < 28 && world.ExportState().Map.FootDistance(Position(world, visitor), board) > 1; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             positions.Add(Position(world, visitor));
             Assert.Single(provider.Observations);
             Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
@@ -60,6 +146,10 @@ public sealed class TownCivicVisitContinuationTests
         var arrived = Position(world, visitor);
         Assert.True(world.ExportState().Map.FootDistance(arrived, board) <= 1);
         Assert.True(positions.Count > 2, "The visitor must take local walking steps after the first personal choice.");
+        var arrivedBytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(arrivedBytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(arrivedBytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(arrivedBytes)));
 
         // Arrival removes visit from the offered choices and prompts an
         // ordinary fresh choice. Choosing idle must not read or vote for them.
@@ -100,7 +190,8 @@ public sealed class TownCivicVisitContinuationTests
 
     private static GridPoint ReachableDistantPosition(WorldRuntimeState state, string visitor, GridPoint board)
     {
-        var occupied = state.Agents.Where(person => person.AgentId != visitor)
+        // The trip stops within interaction range, so an occupied board is a valid destination.
+        var occupied = state.Agents.Where(person => person.AgentId != visitor && person.Position != board)
             .Select(person => person.Position).ToHashSet();
         foreach (var point in state.Map.Tiles.Select(tile => tile.Position)
                      .Where(point => state.Map.IsBuildable(point) && !occupied.Contains(point) &&
@@ -127,6 +218,7 @@ public sealed class TownCivicVisitContinuationTests
         public string? VisitId { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
+        public void Reset() => VisitId = null;
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
