@@ -91,15 +91,16 @@ public sealed partial class WorldRuntime
     private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
         var actor = instruction.TargetAgentId;
-        if (!MayFollowOwnerOrder(actor, instruction.Task!)) return "This agent is too young to work on fields.";
-        if (instruction.Task.TargetPosition is { } target && !map.Contains(target))
+        var order = instruction.Task!;
+        if (!MayFollowOwnerOrder(actor, order)) return "This agent is too young to work on fields.";
+        if (order.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";
         if (FarmhouseForHousehold(HouseholdFor(actor)) is null) return "The agent needs a household with a Farmhouse.";
-        var kind = FieldOrderKind(instruction.Task.Action);
+        var kind = FieldOrderKind(order.Action);
         if (kind is FarmWorkKind.Till or FarmWorkKind.Tend &&
             ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null)
             return "Carry a usable hoe for this field work.";
-        if (instruction.Task.TargetPosition is not null)
+        if (order.TargetPosition is not null)
             return kind switch
             {
                 FarmWorkKind.Till => "The requested tile needs free farmable land near the household's Farmhouse and an open walking route.",
