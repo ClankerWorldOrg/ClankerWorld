@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
             RecordMovementBlocked(agentId, state, "cart_unusable");
             return;
         }
-        var route = FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange);
+        var route = Reach(agentId, destination, ReachPurpose.Movement, interactionRange, 0, SwimmingPolicy.WhenCapable);
         if (route.Count < 2)
         {
             RecordMovementBlocked(agentId, state, "no_route");
