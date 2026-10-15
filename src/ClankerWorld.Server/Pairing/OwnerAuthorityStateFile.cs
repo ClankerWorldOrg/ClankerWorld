@@ -86,6 +86,20 @@ public sealed class OwnerAuthorityStateFile
         }
     }
 
+    /// <summary>
+    /// Revokes a device so that the revocation is on disk before any request
+    /// can see it. A failed write leaves the device active and throws.
+    /// </summary>
+    public OwnerAuthorityResult<OwnerDevice> RevokeDevice(OwnerAuthorityStore store, string deviceId)
+    {
+        ArgumentNullException.ThrowIfNull(store);
+        // Same lock order as Save: this file's gate, then the store's.
+        lock (gate)
+        {
+            return store.RevokeDevice(deviceId, SaveUnsafe);
+        }
+    }
+
     public void Save(OwnerAuthorityStore store)
     {
         ArgumentNullException.ThrowIfNull(store);

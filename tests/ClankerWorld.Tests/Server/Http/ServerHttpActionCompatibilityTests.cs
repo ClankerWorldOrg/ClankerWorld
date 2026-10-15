@@ -159,7 +159,7 @@ public sealed partial class ServerHttpTests
         using var signer = new ActionCompatibilitySigner(key);
         var device = await StartAndActivateAsync(host, client, key);
         var authorityStore = host.Services.GetRequiredService<OwnerAuthorityStore>();
-        Assert.True(authorityStore.RevokeDeviceLocally(device.DeviceId).IsSuccess);
+        Assert.True(authorityStore.RevokeDevice(device.DeviceId).IsSuccess);
         var identity = authorityStore.Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
         var api = new ClientNetworking.OwnerWorldApi(client);

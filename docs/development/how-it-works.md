@@ -469,6 +469,16 @@ Shared checks run at offer, admission and apply, while fresh accepted personal
 model consent remains required for placement, acceptance, refusal and withdrawal.
 Pending withdrawal permits progress within that same request and preserves the
 current job, offer and payment state when it acts.
+Tool-request visits retain the chosen Smith, recipe and route. The shared check
+uses that exact selection at offer, admission and application; the native
+movement writer keeps its original interaction range and arrival behavior.
+Tool commission continuation retains the request, worker, project, Smith and
+recipe. Shared checks bind that agreement before the existing project writer
+continues its native production step.
+Finished-tool collection retains its request and Smith; an on-site quote also
+retains the exact finished output, payment and quantities. Shared shop checks
+recheck those lots' current availability and stock promises before the native
+writer opens the exchange, allowing ordinary processing without choosing other stock.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
@@ -4462,7 +4472,9 @@ milestones explicitly; unknown diagnostics do not become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
-player/model text. Memory/belief/map telemetry uses safe IDs, counts and outcome
+player/model text. A reply is checked against its offered choices only after
+its `model_call` line, so that line names the choice only when it is an offered
+one and `<not-offered>` otherwise. Memory/belief/map telemetry uses safe IDs, counts and outcome
 metadata, never private prose or map contents. Logs are derived telemetry, never
 simulation authority or required save state. Observability tests must prove both
 useful signal and absence of representative secrets.

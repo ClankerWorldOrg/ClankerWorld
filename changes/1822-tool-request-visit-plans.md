@@ -1,0 +1,1 @@
+- Visits for tool requests now explain when the selected Blacksmith or recipe changes before they can continue.

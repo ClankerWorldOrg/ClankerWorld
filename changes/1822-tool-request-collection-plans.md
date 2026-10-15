@@ -1,0 +1,1 @@
+- Finished-tool collection keeps the quoted tool and payment while a reply waits, checking their current availability and stock promises before an exchange begins.
