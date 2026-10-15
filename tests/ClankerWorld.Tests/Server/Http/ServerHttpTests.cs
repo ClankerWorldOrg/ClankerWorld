@@ -45,7 +45,7 @@ public sealed partial class ServerHttpTests : IDisposable
         return device;
     }
 
-    private static async Task<OwnerDevice> StartAndActivateAsync(
+    internal static async Task<OwnerDevice> StartAndActivateAsync(
         WebApplicationFactory<Program> host,
         HttpClient client,
         ECDsa key)
@@ -85,7 +85,7 @@ public sealed partial class ServerHttpTests : IDisposable
         return await client.PostAsJsonAsync(path, envelope);
     }
 
-    private static async Task<HttpResponseMessage> SendSignedAsync<TAction>(
+    internal static async Task<HttpResponseMessage> SendSignedAsync<TAction>(
         WebApplicationFactory<Program> host,
         HttpClient client,
         ECDsa key,

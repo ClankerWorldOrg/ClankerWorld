@@ -187,27 +187,15 @@
   },
   {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
-    "Rule": "async-fake",
-    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
     "Rule": "delay",
     "Expression": "Task.Delay(10,timeout.Token)",
-    "Count": 4
+    "Count": 3
   },
   {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
     "Rule": "timeout-cancellation",
     "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(5))",
-    "Count": 4
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
-    "Rule": "timeout-wait",
-    "Expression": "probe.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5))",
-    "Count": 1
+    "Count": 3
   },
   {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
