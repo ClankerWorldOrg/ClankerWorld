@@ -1,0 +1,1 @@
+- Cognition now checks its selected action plan for age and other live conditions, preparing native ordinary steps once and passing that same plan to application instead of consulting a separate candidate-name age gate.
