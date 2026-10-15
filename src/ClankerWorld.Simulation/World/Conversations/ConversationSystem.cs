@@ -8,7 +8,7 @@ using ClankerWorld.Simulation.Society;
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Owns saved dialogue and marriage rules; live provider work stays in the coordinator.</summary>
-public sealed class ConversationSystem(ConversationState state)
+public sealed partial class ConversationSystem(ConversationState state)
 {
     internal static string ConversationId(long tick, string initiator, string invitee) =>
         DerivedId.Hash(JsonSerializer.Serialize(new[] { initiator, invitee }), $"conversation:{tick}:");
@@ -133,9 +133,7 @@ public sealed class ConversationSystem(ConversationState state)
         {
             if (current.Status == AgentConversationStatus.Proposed && current.InviteeId == agentId)
             {
-                if (HasConversationAllowance(world, agentId) && CanContinueConversation(world, current) &&
-                    world.HasExplicitConversationProvider(current.InitiatorId) && world.HasExplicitConversationProvider(current.InviteeId))
-                    result.Add(new CognitionCandidate(
+                result.Add(new CognitionCandidate(
                         $"conversation_accept:{current.Id}",
                         $"Accept {world.Society.GetAgent(current.InitiatorId).Name}'s invitation to talk.", 42));
                 result.Add(new CognitionCandidate(
@@ -174,67 +172,42 @@ public sealed class ConversationSystem(ConversationState state)
                         $"Decline this public wrap-up: \"{wrapUp.Text}\". Proposed effect: {effect}.", 75));
                 }
             }
-            return result;
+            return CheckedConversationCandidates(world, agentId, result);
         }
 
-        if (!HasConversationAllowance(world, agentId) || !world.HasExplicitConversationProvider(agentId) ||
-            world.Agents[agentId] is not { } state || world.NeedsUrgentFood(state) || world.NeedsUrgentWarmth(state))
-            return result;
+        if (!world.Agents.TryGetValue(agentId, out var state)) return result;
 
         foreach (var target in world.Society.Agents
-                     .Where(item => item.Id != agentId && item.Status == SocietyAgentStatus.Active &&
-                         item.AgeBand != SocietyAgeBand.Infant)
+                     .Where(item => item.Id != agentId && world.Agents.ContainsKey(item.Id))
                      .OrderBy(item => world.FootDistance(state.Position, world.Agents[item.Id].Position))
                      .ThenBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (!HasConversationAllowance(world, target.Id) || !world.HasExplicitConversationProvider(target.Id) ||
-                ConversationFor(target.Id) is not null || world.IsAboardBoat(target.Id) ||
-                world.NeedsUrgentFood(world.Agents[target.Id]) || world.NeedsUrgentWarmth(world.Agents[target.Id]) ||
-                !world.IsWithinInteractionRange(state.Position, world.Agents[target.Id].Position, ResourceInteractionRange))
-                continue;
             result.Add(new CognitionCandidate(
                 $"talk:{target.Id}",
                 $"Talk with {target.Name}.", 58, target.Id));
         }
-        return result;
+        return CheckedConversationCandidates(world, agentId, result);
     }
 
-    public bool ApplyConversationCandidate(IConversationWorld world, string agentId, string candidateId)
-    {
-        if (candidateId.StartsWith("talk:", StringComparison.Ordinal))
-            return ProposeConversation(world, agentId, candidateId[5..]);
-        if (candidateId.StartsWith("conversation_accept:", StringComparison.Ordinal))
-            return AcceptConversation(world, agentId, candidateId[20..]);
-        if (candidateId.StartsWith("conversation_decline:", StringComparison.Ordinal))
-            return DeclineConversation(world, agentId, candidateId[21..]);
-        if (candidateId.StartsWith("conversation_resume:", StringComparison.Ordinal))
-            return ResumeConversation(world, agentId, candidateId[20..]);
-        if (candidateId.StartsWith("conversation_end:", StringComparison.Ordinal))
-            return EndConversation(world, agentId, candidateId[17..]);
-        if (candidateId.StartsWith("conversation_wrapup_accept:", StringComparison.Ordinal))
-            return AcceptConversationWrapUp(world, agentId, candidateId[27..]);
-        if (candidateId.StartsWith("conversation_wrapup_decline:", StringComparison.Ordinal))
-            return DeclineConversationWrapUp(world, agentId, candidateId[28..]);
-        return false;
-    }
+    public bool ApplyConversationCandidate(IConversationWorld world, string agentId, string candidateId) =>
+        ConversationChoice.Decode(candidateId) is { } choice && ApplyConversationPlan(world, PlanConversationAction(world, agentId, choice));
 
-    public bool ProposeConversation(IConversationWorld world, string initiatorId, string inviteeId)
+    public bool ApplyConversationPlan(IConversationWorld world, ConversationActionPlan plan) => plan.Choice.Kind switch
     {
-        if (initiatorId == inviteeId || world.IsAboardBoat(initiatorId) || world.IsAboardBoat(inviteeId) ||
-            !world.Agents.TryGetValue(initiatorId, out var initiator) ||
-            !world.Agents.TryGetValue(inviteeId, out var invitee) ||
-            world.Society.GetAgent(initiatorId).Status != SocietyAgentStatus.Active ||
-            world.Society.GetAgent(inviteeId).Status != SocietyAgentStatus.Active ||
-            world.NeedsUrgentFood(initiator) || world.NeedsUrgentWarmth(initiator) ||
-            world.NeedsUrgentFood(invitee) || world.NeedsUrgentWarmth(invitee) ||
-            !world.IsWithinInteractionRange(initiator.Position, invitee.Position, ResourceInteractionRange) ||
-            ConversationFor(initiatorId) is not null || ConversationFor(inviteeId) is not null ||
-            !HasConversationAllowance(world, initiatorId) || !HasConversationAllowance(world, inviteeId) ||
-            !world.HasExplicitConversationProvider(initiatorId) || !world.HasExplicitConversationProvider(inviteeId))
-            return false;
+        ConversationChoiceKind.Talk => ProposeConversation(world, plan.Actor, plan.Choice.TargetId, plan),
+        ConversationChoiceKind.Accept => AcceptConversation(world, plan.Actor, plan.Choice.TargetId, plan),
+        ConversationChoiceKind.Decline => DeclineConversation(world, plan.Actor, plan.Choice.TargetId, plan),
+        ConversationChoiceKind.Resume => ResumeConversation(world, plan.Actor, plan.Choice.TargetId, plan),
+        ConversationChoiceKind.End => EndConversation(world, plan.Actor, plan.Choice.TargetId, plan),
+        ConversationChoiceKind.AcceptWrapUp => AcceptConversationWrapUp(world, plan.Actor, plan.Choice.TargetId, plan),
+        _ => DeclineConversationWrapUp(world, plan.Actor, plan.Choice.TargetId, plan),
+    };
 
+    public bool ProposeConversation(IConversationWorld world, string initiatorId, string inviteeId, ConversationActionPlan? originalPlan = null)
+    {
+        var plan = originalPlan ?? PlanConversationAction(world, initiatorId, new(ConversationChoiceKind.Talk, inviteeId));
+        if (!CheckConversationPlan(world, plan).Allowed) return false;
         TrimConversationHistory(world);
-        if (conversations.Count >= AgentConversationRules.MaximumSavedConversations) return false;
         ReserveConversationAllowance(world, initiatorId);
         var id = ConversationId(world.WorldTick, initiatorId, inviteeId);
         var conversation = AgentConversationRules.Propose(
@@ -245,20 +218,13 @@ public sealed class ConversationSystem(ConversationState state)
         return true;
     }
 
-    public bool AcceptConversation(IConversationWorld world, string participantId, string conversationId)
+    public bool AcceptConversation(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.Accept, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0) return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out _).Allowed) return false;
+        var accepted = prepared!;
         var current = conversations[index];
-        // The current planning choice authorizes this still-open invitation
-        // after a pause or restore. Its original deadline and budget remain.
-        if (current.Status == AgentConversationStatus.Proposed)
-            current = current with { RunEpoch = world.Society.RunEpoch };
-        if (!CanContinueConversation(world, current) || !HasConversationAllowance(world, participantId) ||
-            !world.HasExplicitConversationProvider(current.InitiatorId) || !world.HasExplicitConversationProvider(current.InviteeId) ||
-            !AgentConversationRules.TryAcceptProposal(current, participantId, world.WorldTick,
-                world.Society.RunEpoch, out var accepted))
-            return false;
         ReserveConversationAllowance(world, participantId);
         SetConversationAt(index, accepted);
 
@@ -266,51 +232,48 @@ public sealed class ConversationSystem(ConversationState state)
         return true;
     }
 
-    public bool DeclineConversation(IConversationWorld world, string participantId, string conversationId)
+    public bool DeclineConversation(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.Decline, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0 || !AgentConversationRules.TryDeclineProposal(conversations[index], participantId,
-                world.WorldTick, out var declined))
-            return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out _).Allowed) return false;
+        var declined = prepared!;
         SetConversationAt(index, declined);
 
         world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "refused"));
         return true;
     }
 
-    public bool ResumeConversation(IConversationWorld world, string participantId, string conversationId)
+    public bool ResumeConversation(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.Resume, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0 || !CanContinueConversation(world, conversations[index]) ||
-            !AgentConversationRules.TryResume(conversations[index], participantId, world.WorldTick,
-                world.Society.RunEpoch, out var resumed, out var isResumed))
-            return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out var isResumed).Allowed) return false;
+        var resumed = prepared!;
         SetConversationAt(index, resumed);
 
         world.AppendEvent(isResumed ? new ConversationResumedEventPayload(null, conversationId) : new ConversationResumeRequestedEventPayload(null, conversationId));
         return true;
     }
 
-    public bool EndConversation(IConversationWorld world, string participantId, string conversationId)
+    public bool EndConversation(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.End, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0 || !AgentConversationRules.IsParticipant(conversations[index], participantId) ||
-            !AgentConversationRules.TryEndSuspended(conversations[index], participantId, world.WorldTick, out var ended))
-            return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out _).Allowed) return false;
+        var ended = prepared!;
         SetConversationAt(index, ended);
 
         world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "withdrawn"));
         return true;
     }
 
-    public bool AcceptConversationWrapUp(IConversationWorld world, string participantId, string conversationId)
+    public bool AcceptConversationWrapUp(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.AcceptWrapUp, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0 || !CanContinueConversation(world, conversations[index]) ||
-            conversations[index].WrapUpEffect == AgentConversationEffect.Marriage && !CanProposeMarriage(world, conversations[index]) ||
-            !AgentConversationRules.TryAcceptWrapUp(conversations[index], participantId, world.WorldTick,
-                out var accepted, out var newlyAgreed))
-            return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out var newlyAgreed).Allowed) return false;
+        var accepted = prepared!;
         SetConversationAt(index, accepted);
         if (newlyAgreed && accepted.WrapUpEffect == AgentConversationEffect.MutualTrust)
         {
@@ -318,18 +281,18 @@ public sealed class ConversationSystem(ConversationState state)
             world.IncreaseTrust(accepted.InviteeId, accepted.InitiatorId, 1, "accepted_conversation");
         }
         if (newlyAgreed && accepted.WrapUpEffect == AgentConversationEffect.Marriage)
-            StartAcceptedMarriage(world, accepted);
+            StartAcceptedMarriage(world, accepted, plan.Partnership);
 
         world.AppendEvent(newlyAgreed ? new ConversationAgreementAcceptedEventPayload(null, conversationId) : new ConversationAgreementPendingEventPayload(null, conversationId));
         return true;
     }
 
-    public bool DeclineConversationWrapUp(IConversationWorld world, string participantId, string conversationId)
+    public bool DeclineConversationWrapUp(IConversationWorld world, string participantId, string conversationId, ConversationActionPlan? originalPlan = null)
     {
+        var plan = originalPlan ?? PlanConversationAction(world, participantId, new(ConversationChoiceKind.DeclineWrapUp, conversationId));
         var index = ConversationIndex(item => item.Id == conversationId);
-        if (index < 0 || !CanContinueConversation(world, conversations[index]) ||
-            !AgentConversationRules.TryDeclineWrapUp(conversations[index], participantId, world.WorldTick, out var declined))
-            return false;
+        if (!PrepareConversationAction(world, plan, out var prepared, out _).Allowed) return false;
+        var declined = prepared!;
         SetConversationAt(index, declined);
 
         world.AppendEvent(new ConversationClosedEventPayload(null, conversationId, "disagreed"));
@@ -449,7 +412,7 @@ public sealed class ConversationSystem(ConversationState state)
         if (conversation.Kind == AgentConversationKind.MarriageSurname) return [otherId];
         var hearers = world.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active && item.Id != speakerId &&
-                item.AgeBand != SocietyAgeBand.Infant && world.Agents.ContainsKey(item.Id))
+                !LifeStageRules.IsInfant(item.AgeBand) && world.Agents.ContainsKey(item.Id))
             .Select(item => (item.Id, Distance: world.FootDistance(speakerPosition, world.Agents[item.Id].Position)))
             .Where(item => item.Id == otherId || item.Distance <= ConversationHearingRange)
             .OrderBy(item => item.Id == otherId ? 0 : 1)
@@ -629,9 +592,9 @@ public sealed class ConversationSystem(ConversationState state)
         }
     }
 
-    public void StartAcceptedMarriage(IConversationWorld world, AgentConversation consent)
+    public void StartAcceptedMarriage(IConversationWorld world, AgentConversation consent, SocietyRelationship? originalPartnership = null)
     {
-        var partnership = AgentMarriageRules.Partnership(world.Society, consent.InitiatorId, consent.InviteeId)!;
+        var partnership = originalPartnership ?? AgentMarriageRules.Partnership(world.Society, consent.InitiatorId, consent.InviteeId)!;
         var id = AgentMarriageRules.Id(consent.Id);
         var marriage = new AgentMarriage(id, partnership, consent,
             world.Society.GetAgent(consent.InitiatorId).Name,

@@ -47,13 +47,6 @@
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
     "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
   ],
-  "src/ClankerWorld.Simulation/World/Conversations/AgentMarriageRules.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Conversations/ConversationSystem.cs": [
-    "item.AgeBand != SocietyAgeBand.Infant",
-    "item.AgeBand != SocietyAgeBand.Infant"
-  ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange)",
     "FindUnoccupiedRoute(actor, state.Position, destination.Position, 0)"

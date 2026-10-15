@@ -5,7 +5,7 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
-public sealed class ConversationSystemTests
+public sealed partial class ConversationSystemTests
 {
     private static readonly string[] ListenerIds = ["agent-b", "listener"];
     private static readonly string[] AdmissionEvents = ["conversation_proposed", "conversation_accepted", "conversation_turn_admitted"];
