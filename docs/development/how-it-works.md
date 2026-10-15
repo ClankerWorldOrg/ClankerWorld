@@ -493,7 +493,7 @@ arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
 Town project proposals retain the selected footprint, doorway, material
 budget and Port, with an admitted name bound once. The shared check verifies
-current resident authority, the native site rules and proposal retry rules
+current resident authority, native site and demand rules, and proposal retry rules
 before the retained project reaches its original Council writer.
 Physical non-land work retains its agreement, exact remaining term, selected
 return lot or service load and destination. Repair uses the retained native
