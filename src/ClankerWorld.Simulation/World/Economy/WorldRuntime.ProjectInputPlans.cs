@@ -61,10 +61,10 @@ public sealed partial class WorldRuntime
             target is { } point ? Reach(actor, point, ReachPurpose.ProjectInput, targetRange, 0, SwimmingPolicy.WhenCapable) : [], returnRoute);
     }
 
-    private ActionCheck CheckProjectInput(ProjectInputActionPlan plan)
+    private ActionCheck CheckProjectInput(ProjectInputActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ProjectInputCapabilities);
         if (!capability.Allowed) return capability;
         if (agents[plan.Actor].Project is not { } project || project.CandidateId != plan.ProjectCandidateId ||
             project.StartedTick != plan.ProjectStartedTick || project.RequiresFreshChoice || project.Stage is "completed" or "cancelled" ||
@@ -123,9 +123,8 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected project material step is out of reach");
     }
 
-    private void ApplyProjectInput(ProjectInputActionPlan plan)
+    private void ApplyCheckedProjectInput(ProjectInputActionPlan plan)
     {
-        if (CheckProjectInput(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var state = agents[plan.Actor];
         var project = state.Project!;
         switch (plan.Step)

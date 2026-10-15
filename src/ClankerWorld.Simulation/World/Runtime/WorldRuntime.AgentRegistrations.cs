@@ -9,6 +9,7 @@ public sealed partial class WorldRuntime
     // Registration order is part of saved observation and event ordering.
     private enum ActionPhase
     {
+        ProjectInput,
         FreshAdmission,
         BeforeAge,
         Ordinary
@@ -30,6 +31,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.ProjectInput, "project_input", [], [], Definition: ProjectInputDefinition),
         new(ActionPhase.FreshAdmission, "TownProjectProposal", [], [], Definition: TownProjectProposalDefinition),
         new(ActionPhase.FreshAdmission, "TownProjectDonation", [], [], Definition: TownProjectDonationDefinition),
         new(ActionPhase.FreshAdmission, "NonLandFiling", [], [], Definition: NonLandFilingDefinition),

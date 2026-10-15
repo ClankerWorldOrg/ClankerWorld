@@ -794,8 +794,8 @@ public sealed partial class WorldRuntime
     private void AcquireProjectInput(string agentId, AgentState state,
         ContentQuantity input, string constructionOwner, GridPoint? personalWorkSite)
     {
-        var plan = PlanProjectInput(agentId, input, constructionOwner, personalWorkSite);
-        ApplyProjectInput(plan);
+        var plan = ProjectInputDefinition.Plan(this, agentId, input, constructionOwner, personalWorkSite);
+        TryRegisteredAction(ActionPhase.ProjectInput, new(agentId, state, plan.CandidateId, false, plan));
     }
 
     private ToolGatheringPlan? ProjectMaterialHarvest(string actor, string itemKind, MapResource source,
