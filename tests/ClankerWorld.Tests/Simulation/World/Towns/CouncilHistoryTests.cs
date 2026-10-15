@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Observation;
@@ -11,6 +12,106 @@ namespace ClankerWorld.Tests;
 
 public sealed class CouncilHistoryTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SavingWhileANoticeReadIsPendingKeepsTheCurrentBoardReadable(bool compact)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("council-history-held-read", _ => new ActionCoverageRecorder(chooseIdle: true));
+        var state = WithFailedAttempts(generated.ExportState());
+        var town = state.Towns![0];
+        var actor = town.ResidentIds[0];
+        state = state with
+        {
+            JevEnabled = false,
+            RoutineHelper = RoutineHelperSettings.Off,
+            Agents = state.Agents.Select(person => person with
+            {
+                Position = town.OriginSite!.Value,
+                FullnessBasisPoints = 10_000,
+                LastDecisionContext = null,
+                Project = null,
+                TravelCooldownTicks = 0,
+            }).ToArray(),
+        };
+        var provider = new HeldNoticeReader(actor);
+        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new ActionCoverageRecorder(chooseIdle: true));
+        var harness = ModelWorkHarness.For(world);
+        var directory = Directory.CreateTempSubdirectory("clanker-held-notice-read-");
+        try
+        {
+            Assert.True((await harness.TickAsync()).Advanced);
+            var request = Assert.IsType<CognitionDecisionRequest>(provider.Request);
+            var plan = Assert.IsType<CivicNoticeActionPlan>(provider.Plan);
+            Assert.True(plan.ReadsCurrentBoard);
+            Assert.Equal(48, plan.Notices.Count);
+            Assert.True(world.CheckActionPlan(plan).Allowed);
+            var tick = world.WorldTick;
+            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => new ActionCoverageRecorder(chooseIdle: true));
+            if (compact) Assert.True(file.Save(world));
+            Assert.Equal(tick, world.WorldTick);
+            Assert.Equal(town.OriginSite, plan.NoticePlace);
+            Assert.Equal(town.OriginSite, world.ExportState().Agents.Single(person => person.AgentId == actor).Position);
+            var notices = world.Towns.Single(item => item.Id == town.Id).Council!.Notices;
+            Assert.Equal(compact ? 32 : 48, notices.Count);
+            Assert.Equal(compact, plan.Notices.Any(notice => !notices.Contains(notice)));
+            Assert.Same(request, provider.Request);
+            Assert.Contains(harness.Pending, item => item.Transition.ActorId == actor && !item.Completion.IsCompleted);
+
+            provider.Resolve();
+            await harness.WaitForDecisionAsync(actor);
+            var step = await harness.TickAsync();
+            Assert.True(step.Advanced);
+            var decision = Assert.Single(step.Decisions, item => item.AgentId == actor);
+            Assert.True(decision.Admission.Accepted);
+            Assert.False(decision.Admission.FellBack);
+            Assert.Same(plan, decision.ActionPlan);
+            Assert.Null(decision.PlanRefusal);
+            var council = world.Towns.Single(item => item.Id == town.Id).Council!;
+            var receipts = council.Knowledge.Where(receipt => receipt.AgentId == actor).ToArray();
+            Assert.Equal(council.Notices.Select(notice => notice.Id), receipts.Select(receipt => receipt.NoticeId));
+            Assert.All(receipts, receipt => Assert.Null(receipt.SourceAgentId));
+            world.Validate();
+            Assert.True(file.Save(world));
+            using var loaded = file.LoadOrCreate(state.WorldSeed);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(loaded.ExportState()));
+        }
+        finally
+        {
+            provider.Resolve();
+            await harness.WaitForDecisionAsync(actor);
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private sealed class HeldNoticeReader(string actor) : IDecisionProvider
+    {
+        private readonly InlineCompletionSource<CognitionDecisionResponse> completion = new();
+        public CognitionDecisionRequest? Request { get; private set; }
+        public CivicNoticeActionPlan? Plan { get; private set; }
+        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
+        public long ProviderEpoch => 1;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            if (Request is null && request.Observation.AgentId == actor && request.Observation.Candidates.FirstOrDefault(candidate =>
+                    candidate.ActionPlan is CivicNoticeActionPlan { ReadsCurrentBoard: true }) is { } candidate)
+            {
+                Request = request;
+                Plan = Assert.IsType<CivicNoticeActionPlan>(candidate.ActionPlan);
+                return new(completion.Task.WaitAsync(cancellationToken));
+            }
+            return ValueTask.FromResult(Response(request, "safe_idle"));
+        }
+        public void Resolve()
+        {
+            if (Request is { } request && Plan is { } plan) completion.TrySetResult(Response(request, plan.CandidateId));
+        }
+        private CognitionDecisionResponse Response(CognitionDecisionRequest request, string selected) =>
+            new(request.RequestId, actor, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
+                request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected ? 1d : 0d));
+    }
+
     [Fact]
     public void RepeatedCandidateLessAttemptsHaveABoundedCompactionPlan()
     {
