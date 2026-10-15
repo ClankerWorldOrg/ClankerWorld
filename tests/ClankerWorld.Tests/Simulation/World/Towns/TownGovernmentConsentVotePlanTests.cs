@@ -88,9 +88,9 @@ public sealed partial class TownGovernmentRuntimeTests
             var actor = request.Observation.AgentId;
             var candidate = actor == holder
                 ? request.Observation.Candidates.FirstOrDefault(item => item.Id.Contains("|government_accept_non_land|", StringComparison.Ordinal) &&
-                    item.Id.EndsWith("|" + proposal, StringComparison.Ordinal))
+                    item.Id.EndsWith("|" + proposal + "|", StringComparison.Ordinal))
                 : actor == voter ? request.Observation.Candidates.FirstOrDefault(item => item.ActionPlan is GovernmentProposalActionPlan
-                    { Choice.Kind: GovernmentProposalKind.Yes } plan && plan.Change!.Id == proposal) : null;
+                { Choice.Kind: GovernmentProposalKind.Yes } plan && plan.Change!.Id == proposal) : null;
             if (candidate?.ActionPlan is GovernmentProposalActionPlan plan) Plans[actor] = plan;
             var selected = candidate?.Id ?? "safe_idle";
             Selections[actor] = selected;
