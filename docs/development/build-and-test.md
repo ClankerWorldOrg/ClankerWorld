@@ -128,6 +128,10 @@ the test clock or replace the client's timeout or caller cancellation.
 The manual clock synchronizes timer state and invokes callbacks outside that
 state lock, so a returned HTTP call can dispose its deadline on another thread.
 
+Fixtures that interleave gates run blocking checkpoint and usage completion on
+dedicated workers, so a test waiting for entry cannot starve the worker it needs.
+Keep the real runtime/host gates and diagnostic deadlines in these tests.
+
 Host fixtures use `AdvanceWithModelWorkAsync(world)` to keep the real host save
 and commit path while controlling the same work queues. Use `WaitForAllAsync`
 when every pending input must finish before paired checkpoint continuations,
