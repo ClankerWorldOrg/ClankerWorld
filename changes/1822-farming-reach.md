@@ -1,0 +1,1 @@
+- Farming uses the shared reach query while preserving terrain-only field eligibility and occupied-tile seed-pickup checks. The unused coordinator forwarder, field-specific predicate and separate seed-pickup route port are removed.

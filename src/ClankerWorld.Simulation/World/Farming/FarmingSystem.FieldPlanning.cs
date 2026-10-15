@@ -21,7 +21,7 @@ internal sealed partial class FarmingSystem
         var hasHoe = ToolProgressionRules.PlanWork(world.Society.Inventory, actor, ToolFamily.Hoe) is not null;
         foreach (var field in fields.Where(field => field.HouseholdId == householdId && field.Work is null))
         {
-            if (!CanReachField(world, actor, state.Position, field.Position)) continue;
+            if (!world.CanReach(actor, field.Position, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain)) continue;
             if (field.Stage == FarmFieldStage.Ready)
                 AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Harvest, field.Position), "Harvest the ready crop; it stays on the ground until carried.", 12);
             else if (hasHoe && field.Stage == FarmFieldStage.Growing && !field.Tended)
@@ -43,7 +43,7 @@ internal sealed partial class FarmingSystem
             .OrderByDescending(point => fields.Any(field => field.HouseholdId == householdId && world.Map.FootDistance(field.Position, point) == 1))
             .ThenByDescending(point => fertility.At(point) - world.Map.FootDistance(farmhouse.Position, point) * 2)
             .ThenBy(point => point.Y).ThenBy(point => point.X)
-            .Cast<GridPoint?>().FirstOrDefault(point => CanReachField(world, actor, state.Position, point!.Value));
+            .Cast<GridPoint?>().FirstOrDefault(point => world.CanReach(actor, point!.Value, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain));
         if (site is { } chosen)
             AddPlannedFieldCandidate(world, candidates, actor, new(FarmWorkKind.Till, chosen),
                 $"Prepare {World.LandFertility.Description(fertility.At(chosen)).ToLowerInvariant()} land for another household field.", 17);
@@ -97,13 +97,6 @@ internal sealed partial class FarmingSystem
         return false;
     }
 
-    // Other world.Agents can briefly occupy a destination or route tile. Keep
-    // the field and seed choice legal while they pass so the selected task can
-    // retry its physical route instead of being replaced by another crop.
-    internal static bool CanReachField(IFarmingWorld world, string actor, GridPoint from, GridPoint destination) =>
-        from == destination || world.Reach(actor, destination, ReachPurpose.FieldWork, 0, 0,
-            SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0;
-
     internal static bool FarmNeedsFood(IFarmingWorld world, string householdId) => FarmFoodDemand(world, householdId).MissingMeals > 0;
 
     internal static (int MissingMeals, int FarmingHouseholds) FarmFoodDemand(IFarmingWorld world, string householdId)
@@ -141,7 +134,7 @@ internal sealed partial class FarmingSystem
             return false;
         return fields.Any(field => field.HouseholdId == householdId && field.Work is null &&
             field.Stage is FarmFieldStage.Prepared or FarmFieldStage.Harvested &&
-            CanReachField(world, actor, world.Agents[actor].Position, field.Position) &&
+            world.CanReach(actor, field.Position, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain) &&
             !HasOtherAgentClaimedPlanting(world, field, actor) && PlantingStock(world, actor, field, crop) is null);
     }
 
@@ -167,8 +160,8 @@ internal sealed partial class FarmingSystem
                 world.Society.Inventory.Reservations.Any(item => item.Id == id && item.LotId == lot.Id && item.State == InventoryReservationState.Reserved) ? 1 : 2)
             .ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => lot.OwnerId == actor || world.PickupCarryCapacity(actor, lot, field.Position, 1) >= 1 &&
-                (requirePickupRoute ? world.CanWalkToFieldOrderSite(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot),
-                    WorldRuntime.FarmingSharedRules.HouseholdStockInteractionRange(lot)) :
+                (requirePickupRoute ? world.CanReach(actor, world.HouseholdStockPosition(lot), ReachPurpose.FieldWork,
+                    WorldRuntime.FarmingSharedRules.HouseholdStockInteractionRange(lot), 0, SwimmingPolicy.WhenCapable) :
                 world.Reach(actor, world.HouseholdStockPosition(lot), ReachPurpose.FieldSeedPickup, 0, 0,
                     SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0));
     }

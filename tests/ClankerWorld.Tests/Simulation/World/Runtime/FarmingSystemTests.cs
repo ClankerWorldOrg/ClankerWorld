@@ -164,7 +164,8 @@ public sealed class FarmingSystemTests
         public bool OnBorrowedMarketStall(InventoryLot lot) => throw new NotSupportedException();
         public int PickupCarryCapacity(string actor, InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
         public GridPoint HouseholdStockPosition(InventoryLot lot) => throw new NotSupportedException();
-        public bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) => throw new NotSupportedException();
+        public bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load,
+            SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) => throw new NotSupportedException();
         public void MoveToward(string actor, AgentState state, GridPoint destination, string reason, int interactionRange = 0) => throw new NotSupportedException();
         public void PickUpEquipment(string actor, PlannedEquipmentPickup pickup) => throw new NotSupportedException();
         public bool HasCarriedOwnItem(string actor, string kind) => throw new NotSupportedException();
