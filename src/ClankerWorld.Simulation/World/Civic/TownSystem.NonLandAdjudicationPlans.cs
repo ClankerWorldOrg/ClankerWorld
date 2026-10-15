@@ -4,6 +4,9 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy NonLandAdjudicationCapabilities(ITownWorld world, NonLandAdjudicationActionPlan plan) =>
+        new(plan.Choice.Verb == "law_case_reopen" ? ActionLifeStages.NonInfants : ActionLifeStages.Adults, AllowBoat: true,
+            AllowUrgentFood: !world.IsChild(plan.Actor), AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static NonLandAdjudicationActionPlan? PlanNonLandAdjudication(ITownWorld world, string actor, NonLandAdjudicationChoice choice)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
@@ -27,12 +30,11 @@ internal sealed partial class TownSystem
         };
     }
 
-    internal static ActionCheck CheckNonLandAdjudication(ITownWorld world, NonLandAdjudicationActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckNonLandAdjudication(ITownWorld world, NonLandAdjudicationActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var request = plan.Choice.Verb == "law_case_reopen";
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(request ? ActionLifeStages.NonInfants : ActionLifeStages.Adults, AllowBoat: true,
-                AllowUrgentFood: !world.IsChild(plan.Actor), AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? NonLandAdjudicationCapabilities(world, plan));
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => item.Id == plan.Case.Id) is not { } item ||

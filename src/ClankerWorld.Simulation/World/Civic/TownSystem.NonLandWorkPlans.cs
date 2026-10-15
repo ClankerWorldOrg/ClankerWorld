@@ -2,6 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy NonLandWorkCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    internal static ActorCapabilityPolicy NonLandReportRelayCapabilities =>
+        new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
     internal static NonLandWorkActionPlan? PlanNonLandWork(ITownWorld world, string actor, TownRuntimeState town,
         TownRestorativeAgreement agreement, TownRemedyTerm term)
     {
@@ -32,10 +36,10 @@ internal sealed partial class TownSystem
                 null, [], repair, null) : null;
     }
 
-    internal static ActionCheck CheckNonLandWork(ITownWorld world, NonLandWorkActionPlan plan)
+    internal static ActionCheck CheckNonLandWork(ITownWorld world, NonLandWorkActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? NonLandWorkCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { } town ||
             town.NonLandHearings.Agreements.SingleOrDefault(item => item.Id == plan.Agreement.Id) is not { Status: "pending" or "overdue" } agreement ||
@@ -80,10 +84,10 @@ internal sealed partial class TownSystem
         return source is null || parent is null ? null : new(actor, new(town.Id, record.Id, recipient), record, parent, source.Text);
     }
 
-    internal static ActionCheck CheckNonLandReportRelay(ITownWorld world, NonLandReportRelayActionPlan plan)
+    internal static ActionCheck CheckNonLandReportRelay(ITownWorld world, NonLandReportRelayActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? NonLandReportRelayCapabilities);
         if (!capability.Allowed) return capability;
         return world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is { } town &&
             town.NonLandHearings.ConductRecords.Any(record => TownHearingProcedure.Digest(record) == TownHearingProcedure.Digest(plan.Conduct)) &&

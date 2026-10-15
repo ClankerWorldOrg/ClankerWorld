@@ -373,20 +373,23 @@ internal sealed partial class TownSystem
             }
     }
 
-    internal bool ApplyNonLandRemedyAction(ITownWorld world, TownRuntimeState town, string actor, string candidateId, ActionPlan? originalPlan = null)
+    internal static bool TryPlanNonLandPhysical(ITownWorld world, TownRuntimeState town, string actor, string candidateId,
+        ActionPlan? originalPlan, out ActionPlan? selected)
     {
+        selected = originalPlan switch
+        {
+            NonLandWorkActionPlan work when work.Choice.TownId == town.Id && work.CandidateId == candidateId => work,
+            NonLandReportRelayActionPlan relay when relay.Choice.TownId == town.Id && relay.CandidateId == candidateId => relay,
+            _ => null,
+        };
+        if (selected is not null) return true;
         if (candidateId.StartsWith(NonLandRelayPrefix, StringComparison.Ordinal))
         {
             foreach (var record in town.NonLandHearings.ConductRecords)
                 foreach (var listener in world.Agents.Keys)
                     if (candidateId == NonLandRelayCandidateId(town, record, listener))
                     {
-                        var relay = originalPlan as NonLandReportRelayActionPlan ?? PlanNonLandReportRelay(world, actor, town, record, listener);
-                        if (relay is not null)
-                        {
-                            if (CheckNonLandReportRelay(world, relay).Refusal is { } refusal) { world.RefuseChoice(relay, refusal); return true; }
-                            RelayNonLandKnownReport(world, town, actor, listener, record.Id, relay.Statement, relay.Source);
-                        }
+                        selected = originalPlan as NonLandReportRelayActionPlan ?? PlanNonLandReportRelay(world, actor, town, record, listener);
                         return true;
                     }
             return false;
@@ -396,40 +399,64 @@ internal sealed partial class TownSystem
         foreach (var agreement in town.NonLandHearings.Agreements.Where(item => item.Status is "pending" or "overdue" &&
                      !TownRemedyRules.IsSuperseded(town.NonLandHearings, item.Id)))
             foreach (var term in agreement.Terms.Where(item => item.ContributorId == actor))
-            {
-                if (candidateId != NonLandRemedyCandidateId(town, agreement, term)) continue;
-                var plan = originalPlan as NonLandWorkActionPlan ?? PlanNonLandWork(world, actor, town, agreement, term);
-                if (plan is null) return true;
-                if (CheckNonLandWork(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return true; }
-                var remaining = plan.Remaining;
-                var previousSelection = world.NonLandRemedySelection;
-                world.NonLandRemedySelection = (town.Id, agreement.Id, term.Id);
-                try
+                if (candidateId == NonLandRemedyCandidateId(town, agreement, term))
                 {
-                    if (term.Kind == "return_goods")
-                    {
-                        var lot = NonLandReturnLot(world, term with { Quantity = remaining }, plan.StockId)!;
-                        var operation = WorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
-                        world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
-                            term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-                        RecordNonLandGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
-                        world.AppendEvent("voluntary_goods_returned", $"{actor}:{term.BeneficiaryId}:{lot.Id}:{remaining}");
-                    }
-                    else if (term.Kind == "public_service_goods")
-                        DeliverNonLandTownGoods(world, actor, term, remaining, plan);
-                    else
-                    {
-                        if (plan.Phase == NonLandWorkPhase.ContinueRepair) world.ContinueEquipmentRepair(actor);
-                        else world.ApplyNonLandRepair(plan.Repair!);
-                    }
+                    selected = originalPlan as NonLandWorkActionPlan ?? PlanNonLandWork(world, actor, town, agreement, term);
+                    return true;
                 }
-                finally
-                {
-                    world.NonLandRemedySelection = previousSelection;
-                }
-                return true;
-            }
         return false;
+    }
+
+    internal bool ApplyNonLandRemedyAction(ITownWorld world, TownRuntimeState town, string actor, string candidateId, ActionPlan? originalPlan = null)
+    {
+        if (!TryPlanNonLandPhysical(world, town, actor, candidateId, originalPlan, out var selected)) return false;
+        if (selected is NonLandReportRelayActionPlan relay)
+        {
+            if (CheckNonLandReportRelay(world, relay).Refusal is { } refusal) { world.RefuseChoice(relay, refusal); return true; }
+            ApplyCheckedNonLandReportRelay(world, relay);
+        }
+        else if (selected is NonLandWorkActionPlan plan)
+        {
+            if (CheckNonLandWork(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return true; }
+            ApplyCheckedNonLandWork(world, plan);
+        }
+        return true;
+    }
+
+    internal void ApplyCheckedNonLandReportRelay(ITownWorld world, NonLandReportRelayActionPlan plan) =>
+        RelayNonLandKnownReport(world, world.Towns.Single(town => town.Id == plan.Choice.TownId), plan.Actor,
+            plan.Choice.Recipient, plan.Conduct.Id, plan.Statement, plan.Source);
+
+    internal void ApplyCheckedNonLandWork(ITownWorld world, NonLandWorkActionPlan plan)
+    {
+        var actor = plan.Actor;
+        var term = plan.Term;
+        var remaining = plan.Remaining;
+        var previousSelection = world.NonLandRemedySelection;
+        world.NonLandRemedySelection = (plan.Choice.TownId, plan.Agreement.Id, term.Id);
+        try
+        {
+            if (term.Kind == "return_goods")
+            {
+                var lot = NonLandReturnLot(world, term with { Quantity = remaining }, plan.StockId)!;
+                var operation = WorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
+                world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
+                    term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+                RecordNonLandGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
+                world.AppendEvent("voluntary_goods_returned", $"{actor}:{term.BeneficiaryId}:{lot.Id}:{remaining}");
+            }
+            else if (term.Kind == "public_service_goods")
+                DeliverNonLandTownGoods(world, actor, term, remaining, plan);
+            else
+            {
+                if (plan.Phase == NonLandWorkPhase.ContinueRepair) world.ContinueEquipmentRepair(actor);
+                else world.ApplyNonLandRepair(plan.Repair!);
+            }
+        }
+        finally
+        {
+            world.NonLandRemedySelection = previousSelection;
+        }
     }
 
     internal static string NonLandRelayCandidateId(TownRuntimeState town, TownConductRecord record, string listener) =>

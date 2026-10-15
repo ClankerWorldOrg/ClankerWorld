@@ -4,6 +4,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy NonLandEvidenceCapabilities(ITownWorld world, NonLandEvidenceActionPlan plan) =>
+        new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: !world.IsChild(plan.Actor), AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal const string NonLandWaiverStatement = "I choose not to respond. This admits nothing.";
 
     internal static NonLandEvidenceActionPlan? PlanNonLandEvidence(ITownWorld world, string actor, NonLandEvidenceChoice choice)
@@ -36,10 +38,10 @@ internal sealed partial class TownSystem
         plan.Bound || plan.Choice.Verb is not ("law_case_statement" or "law_case_advise" or "law_case_answer") ? plan :
             plan with { Bound = true, Statement = CognitionDecisionResponse.NormalizeIdentityText(terms?.Statement) };
 
-    internal static ActionCheck CheckNonLandEvidence(ITownWorld world, NonLandEvidenceActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckNonLandEvidence(ITownWorld world, NonLandEvidenceActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: !world.IsChild(plan.Actor), AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? NonLandEvidenceCapabilities(world, plan));
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { } item ||

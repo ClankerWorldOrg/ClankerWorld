@@ -25,7 +25,8 @@ public sealed partial class WorldRuntime
         Func<TPlan, ActorCapabilityPolicy>? PlanCapabilities = null,
         Func<WorldRuntime, ActionContext, bool>? NoPlanFallback = null,
         Func<WorldRuntime, ActionContext, bool>? ApplyUnplanned = null,
-        Func<WorldRuntime, ActionContext, ActionPhase, bool>? HandlesPhase = null) : ActionDefinition
+        Func<WorldRuntime, ActionContext, ActionPhase, bool>? HandlesPhase = null,
+        Func<WorldRuntime, TPlan, ActorCapabilityPolicy>? WorldPlanCapabilities = null) : ActionDefinition
         where TPlan : ActionPlan
     {
         public override Type PlanType => typeof(TPlan);
@@ -38,13 +39,14 @@ public sealed partial class WorldRuntime
         public TPlan? Offer(WorldRuntime world, string actor, TChoice choice)
         {
             var plan = Plan(world, actor, choice);
-            return plan is not null && CheckPlan(world, plan, PolicyFor(plan)).Allowed ? plan : null;
+            return plan is not null && CheckPlan(world, plan, PolicyFor(world, plan)).Allowed ? plan : null;
         }
 
         public override ActionCheck Check(WorldRuntime world, ActionPlan plan) =>
-            CheckPlan(world, (TPlan)plan, PolicyFor((TPlan)plan));
+            CheckPlan(world, (TPlan)plan, PolicyFor(world, (TPlan)plan));
 
-        private ActorCapabilityPolicy PolicyFor(TPlan plan) => PlanCapabilities?.Invoke(plan) ?? Capabilities;
+        private ActorCapabilityPolicy PolicyFor(WorldRuntime world, TPlan plan) =>
+            WorldPlanCapabilities?.Invoke(world, plan) ?? PlanCapabilities?.Invoke(plan) ?? Capabilities;
 
         public override bool Apply(WorldRuntime world, ActionContext context, ActionPhase phase)
         {
@@ -53,7 +55,7 @@ public sealed partial class WorldRuntime
             var plan = context.Plan as TPlan ?? (Decode(context.CandidateId, out var choice)
                 ? Plan(world, context.AgentId, choice) : null);
             if (plan is null) return NoPlanFallback?.Invoke(world, context) ?? true;
-            if (CheckPlan(world, plan, PolicyFor(plan)).Refusal is { } refusal)
+            if (CheckPlan(world, plan, PolicyFor(world, plan)).Refusal is { } refusal)
             {
                 world.RefuseChoice(plan, refusal);
                 return true;
