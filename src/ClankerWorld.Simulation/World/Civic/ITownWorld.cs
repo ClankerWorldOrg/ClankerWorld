@@ -39,13 +39,14 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     EquipmentRepairWork? ContinueEquipmentRepair(string actor);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot);
-    List<GridPoint> FindUnoccupiedRoute(
+    IReadOnlyList<GridPoint> ReachLeg(
             string agentId,
             GridPoint origin,
             GridPoint destination,
+            ReachPurpose purpose,
             int interactionRange,
-            bool allowSwimming = true,
-            int additionalCarriedUnits = 0);
+            int additionalCarriedUnits,
+            SwimmingPolicy swimming);
     int FreeCarryCapacity(string actor);
     bool HasCarriedMaterial(string actor, string itemKind, int quantity);
     PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag);

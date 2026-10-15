@@ -1,0 +1,1 @@
+- Town remedy estimation uses the shared reach service through a typed leg contract, preserving each prospective origin and making purpose, load and swimming policy explicit. Its two direct route-call exceptions are removed.
