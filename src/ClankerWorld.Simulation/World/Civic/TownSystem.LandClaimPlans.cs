@@ -4,6 +4,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy LandRightsCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static TownLandClaimActionPlan? PlanTownLandClaim(ITownWorld world, string actor, TownLandClaimChoice choice)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town || !world.Agents.TryGetValue(actor, out var person)) return null;
@@ -13,10 +15,10 @@ internal sealed partial class TownSystem
     internal static TownLandClaimActionPlan BindTownLandClaim(TownLandClaimActionPlan plan, IReadOnlyList<CognitionLandTile>? tiles) =>
         plan.SelectedTiles is not null || tiles is null ? plan : plan with { SelectedTiles = tiles.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray() };
 
-    internal static ActionCheck CheckTownLandClaim(ITownWorld world, TownLandClaimActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckTownLandClaim(ITownWorld world, TownLandClaimActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? LandRightsCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
