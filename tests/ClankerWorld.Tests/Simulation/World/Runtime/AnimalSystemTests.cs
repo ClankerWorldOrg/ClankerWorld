@@ -162,7 +162,8 @@ public sealed class AnimalSystemTests
         public int EcologySyncs { get; private set; }
         public bool IsAdult(string actor) => actor == "agent";
         public ActorCapabilityState? CapabilitiesFor(string actor) => new(Society.GetAgent(actor).AgeBand, false, false, false, false, false);
-        public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => throw new NotSupportedException();
+        public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) =>
+            Map.FootDistance(Agents[actor].Position, target) <= range ? Array.AsReadOnly(new[] { Agents[actor].Position }) : throw new NotSupportedException();
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => Events.Add(("choice_refused", refusal.Explanation, null));
         public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => Events.Add((payload.Kind, payload.DiagnosticDetail, eventPosition));
@@ -210,7 +211,7 @@ public sealed class AnimalSystemTests
         public OwnerQueuedInstruction? PendingInstructionFor(string agentId) => throw new NotSupportedException();
         public int PhysicalUnreservedQuantity(InventoryLot lot) => throw new NotSupportedException();
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
-        public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => throw new NotSupportedException();
+        public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => FindGoods(request).Matches.FirstOrDefault(match => match.Lot.Id == lotId);
         public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason, bool waitForDecision = false) => throw new NotSupportedException();
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => throw new NotSupportedException();
         public bool VesselFits(InventoryLot lot, int room) => throw new NotSupportedException();

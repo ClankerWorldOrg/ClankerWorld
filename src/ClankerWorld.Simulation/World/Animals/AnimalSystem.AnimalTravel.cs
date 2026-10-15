@@ -13,13 +13,8 @@ internal sealed partial class AnimalSystem
         MayRideAnimal(world, actor, animal) && AnimalRules.HasCare(animal, world.WorldTick) && animal.SaddleLotId is not null);
     internal int HorseCargoCapacity(IAnimalWorld world, string actor) => RidingAnimal(world, actor) is null ? 0 : AnimalRules.RidingCargo;
 
-    internal void SaddleAnimal(IAnimalWorld world, string actor, AnimalState animal)
+    private void CompleteAnimalSaddling(IAnimalWorld world, string actor, AnimalState animal, InventoryLot saddle)
     {
-        if (!AnimalHouseholdMember(world, actor, animal) || animal.Species != "horse" || animal.SaddleLotId is not null ||
-            world.Agents[actor].Position != animal.Position) return;
-        var saddle = AnimalSuppliesAtHand(world, actor, animal).FirstOrDefault(lot => lot.ItemKind == "saddle" &&
-            lot.OwnerId == animal.HouseholdId && lot.ContainerLotId is null);
-        if (saddle is null) return;
         var operation = AnimalSaddleOperationId(animal.Id, world.WorldTick, world.NextEventId);
         var unitId = saddle.Quantity == 1 ? saddle.Id : DerivedId.Create(saddle.Id + "#move:" + operation);
         var reservationId = AnimalSaddleReservationId(operation);

@@ -26,8 +26,7 @@ internal sealed partial class AnimalSystem
             if (animal.LeaderId == actor) yield return new("lead_home", animal.Id);
             if (animal.RiderId == actor) { yield return new("dismount", animal.Id); continue; }
             if (animal.HouseholdId is null && MayLeadAnimal(world, actor, animal) &&
-                (world.Map.FootDistance(person.Position, animal.Position) <= 4 ||
-                 world.PendingInstructionFor(actor)?.Task is { Action: "animal_tame" } order && order.TargetAnimalId == animal.Id) &&
+                MayApproachWildAnimal(world, actor, animal) &&
                 world.HouseholdFor(actor) is { } household && AnimalYard(world, household) is { } yard &&
                 HasAnimalTransferSpace(world, household, yard, animal) && animal.LeaderId is null &&
                 (animal.TamingWork is null || animal.TamingWork.ActorId == actor))
@@ -45,6 +44,10 @@ internal sealed partial class AnimalSystem
                 yield return new("mount", animal.Id);
         }
     }
+    private static bool MayApproachWildAnimal(IAnimalWorld world, string actor, AnimalState animal) =>
+        world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4 ||
+        world.PendingInstructionFor(actor)?.Task is { Action: "animal_tame" } order && order.TargetAnimalId == animal.Id;
+
     internal bool MayLeadAnimal(IAnimalWorld world, string actor, AnimalState animal) => world.AttachedHandcart(actor) is null && world.PassengerBoat(actor) is null &&
         !State.Animals.Any(other => other.RiderId == actor || other.Id != animal.Id && other.LeaderId == actor);
     internal void AddAnimalCandidates(IAnimalWorld world, List<CognitionCandidate> candidates, string actor)
@@ -52,9 +55,9 @@ internal sealed partial class AnimalSystem
         foreach (var choice in AnimalChoices(world, actor))
         {
             var animal = Animal(choice.AnimalId)!;
-            if (choice.Action == "care" && AnimalCareInputs(world, actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
-                    AnimalRules.Definition(animal.Species).DailyWater) is null &&
-                !AnimalSupplyChoices(world, actor).Any(supply => supply.AnimalId == animal.Id && supply.Action == "care")) continue;
+            var workPlan = choice.Action is "care" or "tame" or "saddle" ? PlanAnimalWork(world, actor,
+                new(choice.Action == "care" ? AnimalWorkKind.Care : choice.Action == "tame" ? AnimalWorkKind.Tame : AnimalWorkKind.Saddle, animal.Id)) : null;
+            if (choice.Action is "care" or "tame" or "saddle" && (workPlan is null || !CheckAnimalWorkPlan(world, workPlan).Allowed)) continue;
             var productPlan = choice.Action is "collect" or "collect_hide" ? PlanAnimalProduct(world, actor,
                 new(choice.Action == "collect" ? AnimalProductKind.Product : AnimalProductKind.Hide, animal.Id)) : null;
             if (choice.Action is "collect" or "collect_hide" && (productPlan is null || !CheckAnimalProductPlan(world, productPlan).Allowed)) continue;
@@ -71,13 +74,15 @@ internal sealed partial class AnimalSystem
             };
             candidates.Add(new(choice.Id, description, choice.Action == "lead_home" ? 13 : choice.Action == "care" ? 15 :
                 choice.Action is "collect" or "collect_hide" ? 16 : 110, animal.Id)
-            { ActionPlan = productPlan });
+            { ActionPlan = (ActionPlan?)productPlan ?? workPlan });
         }
         AddAnimalSupplyCandidates(world, candidates, actor);
         AddAnimalPermissionAndTradeCandidates(world, candidates, actor);
     }
     internal bool ApplyAnimalCandidate(IAnimalWorld world, string actor, string candidateId, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is AnimalWorkActionPlan workPlan)
+        { ApplyAnimalWorkPlan(world, workPlan); return true; }
         if (originalPlan is AnimalSupplyActionPlan supplyPlan)
         { ApplyAnimalSupplyPlan(world, supplyPlan); return true; }
         if (originalPlan is AnimalProductActionPlan captured)
@@ -97,33 +102,15 @@ internal sealed partial class AnimalSystem
                 ApplyAnimalProductPlan(world, plan);
             return true;
         }
+        if (choice.Action is "care" or "tame" or "saddle")
+        {
+            if (PlanAnimalWork(world, actor, new(choice.Action == "care" ? AnimalWorkKind.Care : choice.Action == "tame" ? AnimalWorkKind.Tame : AnimalWorkKind.Saddle, choice.AnimalId)) is { } plan)
+                ApplyAnimalWorkPlan(world, plan);
+            return true;
+        }
         var animal = Animal(choice.AnimalId)!;
         var person = world.Agents[actor];
-        if (choice.Action is "care" or "saddle")
-        {
-            var needsSupply = choice.Action switch
-            {
-                "care" => AnimalCareInputs(world, actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
-                    AnimalRules.Definition(animal.Species).DailyWater) is null,
-                _ => !AnimalSuppliesAtHand(world, actor, animal).Any(lot => lot.ItemKind == "saddle" && lot.OwnerId == animal.HouseholdId),
-            };
-            if (needsSupply && AnimalSupplyChoices(world, actor).FirstOrDefault(supply => supply.AnimalId == animal.Id && supply.Action == choice.Action) is { } supply)
-            { _ = ApplyAnimalSupplyCandidate(world, actor, supply.Id); return true; }
-            if (choice.Action == "care" && needsSupply) return true;
-        }
         if (choice.Action == "dismount") { EndAnimalRide(world, animal, "dismounted"); return true; }
-        if (choice.Action == "care" && State.Animals.FirstOrDefault(other =>
-                other.RiderId == actor && other.Id != animal.Id) is { } ridden)
-        {
-            EndAnimalRide(world, ridden, "dismounted");
-            return true;
-        }
-        if (choice.Action is "collect" or "saddle" && State.Animals.FirstOrDefault(other =>
-                other.RiderId == actor && other.Id != animal.Id) is { } riddenForWork)
-        {
-            EndAnimalRide(world, riddenForWork, "dismounted");
-            return true;
-        }
         if (person.Position != animal.Position && animal.LeaderId != actor)
         {
             world.MoveToward(actor, person, animal.Position, "animal_" + choice.Action);
@@ -131,36 +118,7 @@ internal sealed partial class AnimalSystem
         }
         switch (choice.Action)
         {
-            case "tame":
-                if (world.HouseholdFor(actor) is not { } household || AnimalYard(world, household) is not { } yard || !HasAnimalTransferSpace(world, household, yard, animal)) break;
-                if (AnimalCareInputs(world, actor, animal, 2, 1) is not { } tamingInputs) break;
-                var work = animal.TamingWork?.ActorId == actor ? animal.TamingWork.WorkTicks + 1 : 1;
-                if (work < AnimalRules.TamingWorkTicks) { SetAnimal(animal with { TamingWork = new(actor, work) }); break; }
-                ConsumeAnimalInputs(world, actor, "tame:" + animal.Id, tamingInputs);
-                SetAnimal(animal with
-                {
-                    HouseholdId = household,
-                    YardId = yard.InstanceId,
-                    HerdId = AnimalHerdId(household),
-                    CareUntilTick = 0,
-                    TamingWork = null,
-                    LeaderId = actor,
-                    LeadDestination = yard.Position,
-                    WildFedUntilTick = 0,
-                    WildWaterUntilTick = 0
-                });
-                world.AppendEvent(new AnimalTamedEventPayload(actor, animal.Id), animal.Position);
-                break;
-            case "care":
-                var definition = AnimalRules.Definition(animal.Species);
-                if (AnimalCareInputs(world, actor, animal, definition.DailyFeed, definition.DailyWater) is not { } inputs) break;
-                ConsumeAnimalInputs(world, actor, "care:" + animal.Id, inputs);
-                FinishAnimalSupplyTrip(world, actor);
-                SetAnimal(animal with { CareUntilTick = world.WorldTick + AnimalDayTicks(world) });
-                world.AppendEvent(new AnimalCaredEventPayload(actor, animal.Id), animal.Position);
-                break;
             case "lead_home": LeadAnimalHome(world, actor, animal); break;
-            case "saddle": SaddleAnimal(world, actor, animal); break;
             case "mount": SetAnimal(animal with { RiderId = actor }); world.AppendEvent(new HorseMountedEventPayload(actor, animal.Id), animal.Position); break;
         }
         return true;
@@ -171,7 +129,13 @@ internal sealed partial class AnimalSystem
         var owners = new GoodsOwners(animal.HouseholdId is { } home ? [actor, home] : [actor]);
         var kinds = new GoodsKinds(["grain", "wild_greens", "cultivated_greens", "saddle", InventoryContainerRules.FreshWater]);
         return world.FindGoods(new(GoodsUse.ConsumeAt, actor, owners, kinds)).Matches.Select(match => match.Lot)
-            .Where(lot => lot.DeliveryBuildingId is null &&
+            .Where(lot => AnimalSupplyIsAtHand(world, actor, animal, lot))
+            .OrderBy(lot => lot.Id, StringComparer.Ordinal);
+    }
+    private static bool AnimalSupplyIsAtHand(IAnimalWorld world, string actor, AnimalState animal, InventoryLot lot)
+    {
+        var inventory = world.Society.Inventory;
+        return lot.DeliveryBuildingId is null &&
             (lot.OwnerId == actor && PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
              lot.OwnerId == animal.HouseholdId && MayCareForAnimal(world, actor, animal) &&
              (PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
@@ -179,9 +143,9 @@ internal sealed partial class AnimalSystem
               world.Simulation.Buildings.FirstOrDefault(building => building.InstanceId == yardId) is { } yard &&
               (lot.StorageBuildingId == yardId && world.Agents[actor].Position == yard.Position ||
                lot.GroundPosition is { } ground && YardTiles(world, yard).Contains(new(ground.X, ground.Y)) &&
-               world.IsWithinInteractionRange(world.Agents[actor].Position, new(ground.X, ground.Y), 1)))))
-            .OrderBy(lot => lot.Id, StringComparer.Ordinal);
+               world.IsWithinInteractionRange(world.Agents[actor].Position, new(ground.X, ground.Y), 1))));
     }
+
     internal static List<(InventoryLot Lot, int Quantity)>? AnimalCareInputs(IAnimalWorld world, string actor, AnimalState animal, int feed, int water)
     {
         var inventory = world.Society.Inventory;
@@ -266,6 +230,34 @@ internal sealed partial class AnimalSystem
     {
         if (PlanAnimalProduct(world, actor, new(AnimalProductKind.Product, animal.Id)) is { } plan && CheckAnimalProductPlan(world, plan).Allowed)
             CompleteAnimalProductCollection(world, actor, animal, world.Society.Inventory.GetLot(plan.StockId));
+    }
+
+    private void CompleteAnimalCare(IAnimalWorld world, string actor, AnimalState animal, List<(InventoryLot Lot, int Quantity)> inputs, int careTicks)
+    {
+        ConsumeAnimalInputs(world, actor, "care:" + animal.Id, inputs);
+        FinishAnimalSupplyTrip(world, actor);
+        SetAnimal(animal with { CareUntilTick = world.WorldTick + careTicks });
+        world.AppendEvent(new AnimalCaredEventPayload(actor, animal.Id), animal.Position);
+    }
+
+    private void CompleteAnimalTaming(IAnimalWorld world, AnimalWorkActionPlan plan, AnimalState animal, List<(InventoryLot Lot, int Quantity)> inputs)
+    {
+        if (plan.WorkTicks < AnimalRules.TamingWorkTicks)
+        { SetAnimal(animal with { TamingWork = new(plan.Actor, plan.WorkTicks) }); return; }
+        ConsumeAnimalInputs(world, plan.Actor, "tame:" + animal.Id, inputs);
+        SetAnimal(animal with
+        {
+            HouseholdId = plan.ReceivingHouseholdId,
+            YardId = plan.ReceivingYardId,
+            HerdId = AnimalHerdId(plan.ReceivingHouseholdId!),
+            CareUntilTick = 0,
+            TamingWork = null,
+            LeaderId = plan.Actor,
+            LeadDestination = plan.ReceivingYardPosition,
+            WildFedUntilTick = 0,
+            WildWaterUntilTick = 0
+        });
+        world.AppendEvent(new AnimalTamedEventPayload(plan.Actor, animal.Id), animal.Position);
     }
 
     private static void CompleteMilkConsumption(IAnimalWorld world, string actor, InventoryLot milk, int quantity)

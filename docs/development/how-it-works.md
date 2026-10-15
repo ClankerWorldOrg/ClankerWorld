@@ -365,7 +365,11 @@ Animal supply pickup also retains its source, quantity, complete vessel
 contents, yard and care target. Its check uses the same supply-demand rule as
 offering, and filters before the twelve-choice cap. A successful pickup starts
 the existing physical supply trip with the selected load and its stock hold;
-trip completion and care inputs remain separate operations.
+trip completion remains a separate operation. Care, taming and saddling now
+retain their ordered input lots and quantities, preparation pickup or mount,
+and work duration. Taming also retains its yard and current work count. The
+same check verifies physical access, named trip holds, meal reserves and reach
+at all three action boundaries; native commits keep their existing identities.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
