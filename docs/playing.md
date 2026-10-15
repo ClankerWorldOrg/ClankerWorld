@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Playing the current game
@@ -18,8 +18,9 @@ the current limits.
 Run `ClankerWorld-Setup-<version>-windows-x64.exe`. It installs the launcher
 and includes that game version without an administrator prompt. Start
 **ClankerWorld** from the Start menu; setup can also add a desktop shortcut.
-Until a release is published, the unsigned setup is a
-[CI build artifact](development/build-and-test.md#windows-installer).
+Download the setup and its `.sha256` from a nightly pre-release on
+[GitHub Releases](https://github.com/ClankerWorldOrg/ClankerWorld/releases),
+beside the portable game zip. Each setup includes that nightly's launcher and game.
 Windows may warn about an unknown publisher because the alpha is not signed.
 
 To remove the launcher, open **Settings → Apps → Installed apps** in Windows,
