@@ -245,7 +245,6 @@
   "src/ClankerWorld.Simulation/World/Community/HouseRelocationRules.cs|length|unit.Key.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_accept_care:\u0022 \u002B child.Id": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_collect:\u0022 \u002B lot.Id": 1,
-  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_resume_work:\u0022 \u002B job.Id": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_return:\u0022 \u002B lot.Id": 2,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|\u0022household_store_personal:\u0022 \u002B lot.Id": 1,
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs|id|$\u0022{transition}-custody:{actor}:{WorldTick}:{lot.Id}\u0022": 1,
