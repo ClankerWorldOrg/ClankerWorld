@@ -10,7 +10,7 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class TownSystem
 {
     internal static string[] TownAdults(ICivicHistoryWorld world, TownRuntimeState town) => town.ResidentIds.Where(id => world.Society.Agents.Any(p => p.Id == id && p.Status == SocietyAgentStatus.Active &&
-            p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).Order(StringComparer.Ordinal).ToArray();
+            LifeStageRules.IsAdult(p.AgeBand))).Order(StringComparer.Ordinal).ToArray();
     internal static int CivicDay(ICivicHistoryWorld world) => world.CalendarConfig.TicksPerDay;
     internal static long CivicDayNumber(ICivicHistoryWorld world, long tick) => WorldCalendarRules.FromTick(tick, world.CalendarConfig).DayIndex + 1;
     internal static string? CivicNote(ICivicHistoryWorld world, string actor)

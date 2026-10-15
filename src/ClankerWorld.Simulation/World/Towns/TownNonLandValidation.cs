@@ -155,7 +155,7 @@ public static class TownNonLandValidation
                 (judge.Kind == "case_elected" || TownGovernmentRules.CurrentNonLandAuthority(currentGovernment, tick) is { } authority &&
                     authority.HolderId == judge.AgentId && authority.AuthorityId == judge.AuthorityId) &&
                 people[judge.AgentId].Status == SocietyAgentStatus.Active &&
-                people[judge.AgentId].AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder && town.ResidentIds.Contains(judge.AgentId) &&
+                LifeStageRules.IsAdult(people[judge.AgentId].AgeBand) && town.ResidentIds.Contains(judge.AgentId) &&
                 !TownNonLandRules.JudgeConflict(judge.AgentId, people[judge.AgentId].HouseholdId,
                     TownNonLandPartyRules.CurrentParties(town, item, society, tick), item.DirectStakeIds.ToHashSet(StringComparer.Ordinal)),
                 "A current case judge must remain an independent eligible Town adult.");

@@ -7,7 +7,7 @@ internal sealed partial class TownSystem
 {
     internal static string[] FoodPolicyVoters(ICivicWorld world) => world.Society.Agents.Where(person =>
             person.Status == SocietyAgentStatus.Active && person.HouseholdId is not null &&
-            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+            LifeStageRules.IsAdult(person.AgeBand))
         .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
     internal static int ContributionScore(ICivicWorld world, string actor) => world.Society.Memories.Count(memory => memory.SubjectId == actor &&

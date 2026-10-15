@@ -1,0 +1,1 @@
+- Town membership, governance, hearings and markets use the shared life-stage rules for their existing adult and dependent eligibility checks; the source guard no longer permits those copied predicates.

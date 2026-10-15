@@ -444,7 +444,8 @@ definition once and checks the retained plan before dispatch; application checks
 the same plan again. Only the owner-order compatibility age gate remains under
 migration.
 
-`Actions/LifeStageRules.cs` owns action age eligibility, and
+`Actions/LifeStageRules.cs` owns action age eligibility and the shared adult and
+dependent checks used by Town membership, governance, hearings and markets, and
 `Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
 one per-call reach service with an explicit swimming policy and separate
 prospective return origin. Route-call scanning covers bare calls, member calls
