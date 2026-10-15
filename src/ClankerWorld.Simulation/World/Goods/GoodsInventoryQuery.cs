@@ -111,14 +111,19 @@ internal static class GoodsInventoryQuery
             return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) || lot.OwnerId != request.Actor ? GoodsReason.Owner :
                 !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :
                 !PersonalEquipmentRules.IsCarried(lot, request.Actor!) || lot.ContainerLotId is not null || lot.DeliveryBuildingId is not null ? GoodsReason.Place :
-                InventoryRules.AvailableQuantity(index, lot) <= 0 ? GoodsReason.Reservation : null;
+                InventoryRules.AvailableQuantity(index, lot) <= 0 ||
+                !InventoryHoldRules.Allows(index, lot, InventoryHoldRules.BorrowedBy(request.Actor!))
+                    ? GoodsReason.Reservation : null;
         if (request.Use is GoodsUse.DepartureAllowance or GoodsUse.ToolRequestStock or GoodsUse.ProjectMaterialContribution)
             return !request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) ? GoodsReason.Owner :
                 !request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal) ? GoodsReason.Kind :
                 (request.Use == GoodsUse.DepartureAllowance ? lot.CarrierId is not null || lot.ContainerLotId is not null :
                     request.AtBuilding != lot.StorageBuildingId || lot.ContainerLotId is not null || InventoryContainerRules.IsContainer(lot.ItemKind) ||
                     lot.DeliveryBuildingId is not null || lot.GroundPosition is not null) ? GoodsReason.Place :
-                InventoryRules.AvailableQuantity(index, lot) <= 0 ? GoodsReason.Reservation : null;
+                InventoryRules.AvailableQuantity(index, lot) <= 0 ||
+                request.Use == GoodsUse.DepartureAllowance &&
+                    !InventoryHoldRules.Allows(index, lot, InventoryHoldRules.DeliveryFor(request.Actor!, lot.StorageBuildingId))
+                    ? GoodsReason.Reservation : null;
         if (!request.Owners.Ids.Contains(lot.OwnerId, StringComparer.Ordinal) ||
             IsRecovery(request.Use) && lot.OwnerId != request.Actor) return GoodsReason.Owner;
         if (!request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal)) return GoodsReason.Kind;

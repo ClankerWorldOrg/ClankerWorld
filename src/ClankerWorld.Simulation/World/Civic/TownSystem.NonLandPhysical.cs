@@ -207,7 +207,9 @@ internal sealed partial class TownSystem
         .Where(lot => (selectedId is null || lot.Id == selectedId) && lot.OwnerId == term.ContributorId && ToolProgressionRules.IsTopLevelCarriedLot(lot, term.ContributorId) &&
             lot.DeliveryBuildingId is null && lot.ItemKind == term.ItemKind && (term.TargetId is null || lot.Id == term.TargetId) &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) &&
-            !PersonalEquipmentRules.IsSelected(world.Agents[term.ContributorId].Equipment, lot.Id) && world.AvailableLotQuantity(lot) >= term.Quantity)
+            !PersonalEquipmentRules.IsSelected(world.Agents[term.ContributorId].Equipment, lot.Id) &&
+            InventoryRules.CanReserve(InventoryIndex.For(world.Society.Inventory), lot, term.ContributorId, term.Quantity,
+                InventoryHoldRules.BorrowedBy(term.ContributorId)))
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     internal static bool NonLandReturnIsCurrent(ITownWorld world, TownRemedyTerm term, string? selectedId = null) =>
         term.BeneficiaryId is { } recipient && recipient != term.ContributorId && world.Agents.TryGetValue(recipient, out var beneficiary) &&

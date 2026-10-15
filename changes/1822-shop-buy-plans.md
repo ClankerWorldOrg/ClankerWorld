@@ -1,1 +1,2 @@
 - Shop buyers retain the selected shop trip or exact goods and payment quote through shared checks.
+- Hungry adults keep their admitted personal shop-food choice when it interrupts an unrelated owner order.
