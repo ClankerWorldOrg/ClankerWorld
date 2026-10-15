@@ -75,7 +75,7 @@ public sealed partial class TownGovernmentRuntimeTests
         {
             var candidate = responses.TryGetValue(request.Observation.AgentId, out var proposal)
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.ActionPlan is GovernmentProposalActionPlan
-                    { Choice.Kind: GovernmentProposalKind.Withdraw } plan && plan.Change!.Id == proposal) : null;
+                { Choice.Kind: GovernmentProposalKind.Withdraw } plan && plan.Change!.Id == proposal) : null;
             if (candidate is not null) Plans[request.Observation.AgentId] = Assert.IsType<GovernmentProposalActionPlan>(candidate.ActionPlan);
             var selected = candidate?.Id ?? "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,

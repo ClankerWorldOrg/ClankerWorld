@@ -31,12 +31,18 @@ internal sealed partial class TownSystem
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected government arrangement or notice place has changed");
         var current = government.Changes.SingleOrDefault(change => change.Id == plan.Choice.Subject);
         if (current is null || plan.Change is not { } selected ||
-            current with { Votes = selected.Votes, Voters = selected.Voters, OpeningVoters = selected.OpeningVoters } != selected ||
-            !current.Voters.SequenceEqual(selected.Voters) || !current.OpeningVoters.SequenceEqual(selected.OpeningVoters) ||
             current.Status is not ("queued" or "voting") || !CivicHistory(town).Knows(plan.Actor, current.Id))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected protected proposal or voting window has changed");
-        var allowed = plan.Choice.Kind == GovernmentProposalKind.Withdraw ? current.AuthorId == plan.Actor :
-            current.Status == "voting" && world.WorldTick < current.DeadlineTick &&
+        // Withdrawal follows the same request as its vote opens; its writer uses current progress.
+        if (plan.Choice.Kind == GovernmentProposalKind.Withdraw)
+            return current.Id == selected.Id && current.RequestKey == selected.RequestKey && current.Kind == selected.Kind &&
+                current.Target == selected.Target && current.SubmittedTick == selected.SubmittedTick &&
+                current.AuthorId == selected.AuthorId && current.AuthorId == plan.Actor
+                ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected protected proposal or author has changed");
+        if (current with { Votes = selected.Votes, Voters = selected.Voters, OpeningVoters = selected.OpeningVoters } != selected ||
+            !current.Voters.SequenceEqual(selected.Voters) || !current.OpeningVoters.SequenceEqual(selected.OpeningVoters))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected protected proposal or voting window has changed");
+        var allowed = current.Status == "voting" && world.WorldTick < current.DeadlineTick &&
             CivicHistory(town).Knows(plan.Actor, TownGovernmentRules.VoteNoticeToken(current)) &&
             current.Voters.Contains(plan.Actor, StringComparer.Ordinal) && !current.Votes.Any(vote => vote.AgentId == plan.Actor);
         return allowed ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that protected response is final or no longer eligible");
