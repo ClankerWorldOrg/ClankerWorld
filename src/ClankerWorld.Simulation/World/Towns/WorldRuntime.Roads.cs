@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
     {
         var occupied = Ground.BuildingFootprints.ToHashSet();
         var removed = roadTiles.RemoveWhere(occupied.Contains);
-        if (removed > 0) AppendEvent("saved_road_footprints_repaired", $"removed:{removed}");
+        if (removed > 0) AppendEvent(new SavedRoadFootprintsRepairedEventPayload(null, removed));
     }
 
     private int RoadStepCost(GridPoint from, GridPoint to) =>
@@ -53,7 +53,7 @@ public sealed partial class WorldRuntime
         var entrances = BuildingRoadEntrances(building, occupied);
         if (entrances.Length == 0)
         {
-            AppendEvent("town_road_unconnected", $"{building.TownId}:{building.InstanceId}:{RoadRouteOutcomes.NoEntrance}");
+            AppendEvent(new TownRoadUnconnectedEventPayload(null, building.TownId, building.InstanceId, RoadRouteOutcomes.NoEntrance));
             return laid;
         }
         var network = roadTiles.Where(point => border is null || border.Contains(point)).ToHashSet();
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
         var failure = result.Proposal is { } proposal ? RoadRoutePlanner.Validate(request, proposal) : result.Outcome;
         if (failure is not null)
         {
-            AppendEvent("town_road_unconnected", $"{building.TownId}:{building.InstanceId}:{failure}");
+            AppendEvent(new TownRoadUnconnectedEventPayload(null, building.TownId, building.InstanceId, failure));
             return laid;
         }
         var route = result.Proposal!;
@@ -86,7 +86,7 @@ public sealed partial class WorldRuntime
         // The route starts at the entrance it was laid from, so the door faces this Road.
         SetBuildingEntrance(building.InstanceId, route.RoadTiles[0]);
         if (laid.Count > 0)
-            AppendEvent("town_road_generated", $"{building.TownId}:{building.InstanceId}:tiles:{laid.Count}");
+            AppendEvent(new TownRoadGeneratedEventPayload(null, building.TownId, building.InstanceId, laid.Count));
         CommitRoadBridges(route.NewCrossings, routeId);
 
         var (extended, crossings) = ExtendStreetsPastDoors(building, occupied);
@@ -94,11 +94,11 @@ public sealed partial class WorldRuntime
         var roadsAfter = roadTiles.Concat(extended).ToHashSet();
         if (RoadRoutePlanner.ValidateGrowth(map, occupied, roadsAfter, Bridges, extended, crossings) is { } refused)
         {
-            AppendEvent("town_road_extension_refused", $"{building.TownId}:{building.InstanceId}:{refused}");
+            AppendEvent(new TownRoadExtensionRefusedEventPayload(null, building.TownId, building.InstanceId, refused));
             return laid;
         }
         roadTiles.UnionWith(extended);
-        AppendEvent("town_road_extended", $"{building.TownId}:{building.InstanceId}:tiles:{extended.Count}");
+        AppendEvent(new TownRoadExtendedEventPayload(null, building.TownId, building.InstanceId, extended.Count));
         CommitRoadBridges(crossings, routeId);
         laid.AddRange(extended);
         return laid;

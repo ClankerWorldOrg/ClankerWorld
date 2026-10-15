@@ -12,7 +12,7 @@ public sealed record BuildingExpansionJob(
     string JobId, string BuildingInstanceId, string WorkerId, string OwnerId,
     int ExpectedRevision, GridPoint ExpectedPosition, GridPoint TargetPosition,
     BuildingFootprintRevision TargetFootprint, long StartedTick, long CompletionTick,
-    WorldProductionJobState State, IReadOnlyList<string> InputReservationIds,
+    WorldProductionJobState State, IReadOnlyList<Identity> InputReservationIds,
     string? Failure = null,
     string? DefinitionId = null)
 {
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
             var recipe = worldContent.Recipes.Single(item => item.CanonicalId == job.RecipeId);
             return Math.Max(0, recipe.Outputs.Where(item => item.ResourceId != InventoryContainerRules.Handcart)
                 .Sum(item => item.Amount) - job.InputReservationIds
-                .Select((inventory ?? society.Checkpoint.Inventory).GetReservation).Where(reservation =>
+                .Select(id => (inventory ?? society.Checkpoint.Inventory).GetReservation(id)).Where(reservation =>
                     (inventory ?? society.Checkpoint.Inventory).GetLot(reservation.LotId).StorageBuildingId == buildingId)
                 .Sum(reservation => reservation.Quantity));
         });
@@ -376,8 +376,7 @@ public sealed partial class WorldRuntime
                         $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor, owner,
                         delivery.Id, storageQuantity, "building_expansion_material_delivered",
                         destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{storageQuantity}:{building.InstanceId}:stored");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, storageQuantity, building.InstanceId, "stored"));
                 }
                 else
                 {
@@ -386,8 +385,7 @@ public sealed partial class WorldRuntime
                         $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.Id}", actor,
                         owner, delivery.Id, AvailableLotQuantity(delivery),
                         "building_expansion_material_delivered", destinationGroundPosition: site, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{AvailableLotQuantity(delivery)}:{building.InstanceId}:ground");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, AvailableLotQuantity(delivery), building.InstanceId, "ground"));
                 }
                 return;
             }
@@ -413,8 +411,7 @@ public sealed partial class WorldRuntime
                         $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{shared.Id}",
                         shared.OwnerId, actor, shared.Id, quantity, "building_expansion_material_picked_up",
                         destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-                    AppendEvent("building_expansion_material_picked_up",
-                        $"{actor}:{shared.Id}:{quantity}:{building.InstanceId}");
+                    AppendEvent(new BuildingExpansionMaterialPickedUpEventPayload(actor, shared.Id, quantity, building.InstanceId));
                 }
             }
             else if (MaterialSource(missing.ResourceId, actor, building.Position) is { } source)
@@ -457,7 +454,7 @@ public sealed partial class WorldRuntime
         IReadOnlyList<string> reservations = [];
         ApplyInventoryTransition(inventory => ReserveExpansionMaterials(inventory, actor, building, costs, jobId, completion, out reservations));
         var job = new BuildingExpansionJob(jobId, buildingId, actor, owner, building.Footprint?.Revision ?? 0,
-            building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, reservations,
+            building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, (reservations).Select(Identity.Parse).ToArray(),
             DefinitionId: building.DefinitionId)
         { OrderInstructionId = orderInstruction?.InstructionId };
         worldSimulation = worldSimulation with
@@ -466,7 +463,7 @@ public sealed partial class WorldRuntime
             NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
         };
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
-        AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
+        AppendEvent(new BuildingExpansionStartedEventPayload(null, buildingId, jobId));
         return new ProductionStartResult(true, jobId, buildingId, null);
     }
 
@@ -512,8 +509,7 @@ public sealed partial class WorldRuntime
                     ? item with { State = failure is null ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled, Failure = failure } : item).ToArray(),
             };
             if (failure is null) CreditExpansionOrderJob(job);
-            AppendEvent(failure is null ? "building_expanded" : "building_expansion_cancelled",
-                $"{job.BuildingInstanceId}:{job.JobId}" + (failure is null ? "" : $":{failure}"));
+            AppendEvent(failure is null ? new BuildingExpandedEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId) : new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, failure));
         }
     }
 }
