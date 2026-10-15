@@ -36,7 +36,7 @@ public sealed class TownProjectBorrowedToolTests
                 ? person with { Position = hammer ? TownProjectRules.WorkSite(scenario.Project.Plan) : person.Position, LastDecisionContext = null }
                 : person).ToArray(),
         };
-        var provider = new BorrowedToolChoice(actor, hammer);
+        var provider = new BorrowedToolChoice(actor, new TownProjectWorkChoice(scenario.Project.Id, hammer ? null : "stone").Encode());
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
         Assert.True(world.DisplaceAdult(actor));
         Assert.Null(world.Society.GetAgent(actor).HouseholdId);
@@ -49,16 +49,18 @@ public sealed class TownProjectBorrowedToolTests
             OwnerInstructionKind.Suggestion, "Consider helping the approved Town project."));
         restored.Resume();
         TownProjectWorkActionPlan? applied = null;
+        TownProjectWorkActionPlan? selected = null;
         for (var tick = 0; tick < 100 && applied is null; tick++)
         {
             var result = await restored.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
-            applied = result.Decisions.Where(decision => decision.ActionPlan is TownProjectWorkActionPlan plan &&
-                    plan.Actor == actor && decision.Admission.Accepted && decision.PlanRefusal is null &&
-                    result.Events.Any(item => hammer
-                        ? item.Kind == "town_project_worked" && item.Detail.StartsWith(actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)
-                        : plan.Harvest is { } harvest && item.Kind == "material_gathered" && item.Detail == actor + ":stone:" + harvest.Quantity))
-                .Select(decision => (TownProjectWorkActionPlan)decision.ActionPlan!).FirstOrDefault();
+            foreach (var decision in result.Decisions.Where(decision => decision.AgentId == actor))
+                selected = decision.Admission.Accepted && !decision.Admission.FellBack && decision.PlanRefusal is null
+                    ? decision.ActionPlan as TownProjectWorkActionPlan : null;
+            if (selected is { } plan && result.Events.Any(item => hammer
+                ? item.Kind == "town_project_worked" && item.Detail.StartsWith(actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)
+                : plan.Harvest is { } harvest && item.Kind == "material_gathered" && item.Detail == actor + ":stone:" + harvest.Quantity))
+                applied = plan;
         }
         Assert.NotNull(applied);
         Assert.Equal("borrowed-project-tool", hammer ? applied.Hammer!.ToolLotId : applied.Harvest!.ToolLotId);
@@ -85,7 +87,7 @@ public sealed class TownProjectBorrowedToolTests
         }
     }
 
-    private sealed class BorrowedToolChoice(string actor, bool hammer) : IDecisionProvider
+    private sealed class BorrowedToolChoice(string actor, string wanted) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -94,8 +96,8 @@ public sealed class TownProjectBorrowedToolTests
         {
             var observation = request.Observation;
             var selected = observation.AgentId == actor
-                ? Assert.Single(observation.Candidates, candidate => candidate.ActionPlan is TownProjectWorkActionPlan plan &&
-                    (hammer ? plan.Choice.ItemKind is null : plan.Choice.ItemKind == "stone")) : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
+                ? Assert.Single(observation.Candidates, candidate => candidate.Id == wanted)
+                : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

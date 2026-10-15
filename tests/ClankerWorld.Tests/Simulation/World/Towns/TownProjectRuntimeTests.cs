@@ -33,11 +33,24 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.CollectTools = true;
         scenario.Policy.LawAfterHall = true;
         var gatheringPlans = new List<TownProjectWorkActionPlan>();
-        void ObserveGathering(WorldStepResult result) => gatheringPlans.AddRange(result.Decisions.Where(decision =>
-                decision.ActionPlan is TownProjectWorkActionPlan { Choice.ItemKind: not null, Harvest: { } harvest } plan &&
-                decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Kind == "material_gathered" &&
-                    item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + harvest.Quantity))
-            .Select(decision => Assert.IsType<TownProjectWorkActionPlan>(decision.ActionPlan)));
+        var pendingGathering = new Dictionary<string, TownProjectWorkActionPlan>(StringComparer.Ordinal);
+        void ObserveGathering(WorldStepResult result)
+        {
+            foreach (var decision in result.Decisions)
+            {
+                pendingGathering.Remove(decision.AgentId);
+                if (decision.Admission.Accepted && !decision.Admission.FellBack && decision.PlanRefusal is null &&
+                    decision.ActionPlan is TownProjectWorkActionPlan { Choice.ItemKind: not null, Harvest: not null } plan)
+                    pendingGathering[plan.Actor] = plan;
+            }
+            foreach (var plan in pendingGathering.Values.ToArray())
+                if (result.Events.Any(item => item.Kind == "material_gathered" &&
+                    item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + plan.Harvest!.Quantity))
+                {
+                    gatheringPlans.Add(plan);
+                    pendingGathering.Remove(plan.Actor);
+                }
+        }
         await scenario.UntilAsync(() => scenario.DonationTraveler() is not null, 180, ObserveGathering);
         var traveler = scenario.DonationTraveler()!.Value;
         var carried = scenario.World.Society.Inventory.GetLot(traveler.LotId);
