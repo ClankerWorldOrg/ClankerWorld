@@ -526,6 +526,8 @@ Town title-claim proposals retain their offered nearby plot options and bind
 the admitted exact tiles once. The shared native claim validator checks that
 selection before the existing Council and title writers use it.
 Replies without a plot are refused before proposal submission.
+Nearby plot suggestions do not restrict the selection. Before the reply binds
+its exact plot, availability follows the Town's current adjoining unclaimed land.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
