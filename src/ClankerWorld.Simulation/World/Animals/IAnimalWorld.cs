@@ -15,6 +15,7 @@ internal interface IAnimalWorld
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     InventoryLot? AttachedHandcart(string actor);
     int AvailableLotQuantity(InventoryLot lot);
+    int AnimalYardFeedStock(string yardId);
     bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity);
     void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);

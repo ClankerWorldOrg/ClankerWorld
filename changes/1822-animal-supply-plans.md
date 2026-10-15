@@ -1,0 +1,1 @@
+- Animal supply pickups retain their selected load, vessel contents, yard and task, and refuse changed stock or demand before starting a physical supply trip.
