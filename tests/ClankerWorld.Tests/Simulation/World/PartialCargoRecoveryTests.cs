@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -175,7 +176,7 @@ public sealed class PartialCargoRecoveryTests
             var other = state.Agents.First(person => person.AgentId != actor).AgentId;
             inventory = InventoryAuthority.AddLot(inventory, Wood, "wood", other, 1);
             // A real open kernel offer is an explicit pending-work fixture, not a fabricated runtime trade.
-            inventory = InventoryAuthority.CreateDirectBarterOffer(inventory, new(Offer, 1, actor, other, Stone, reserved, Wood, 1, inventory.WorldTick + 1_000));
+            inventory = InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(Offer), 1, actor, other, Stone, reserved, Wood, 1, inventory.WorldTick + 1_000));
         }
         return WithInventory(state, inventory) with
         {

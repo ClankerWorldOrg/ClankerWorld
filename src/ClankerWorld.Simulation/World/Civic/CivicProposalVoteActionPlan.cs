@@ -8,7 +8,9 @@ public sealed record CivicProposalVoteChoice(string TownId, CivicProposalVoteKin
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{ProposalId}|";
     public static CivicProposalVoteChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var proposal, ""] || town.Length == 0 || proposal.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var proposal, ""] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(proposal, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         CivicProposalVoteKind? kind = verb switch { "yes" => CivicProposalVoteKind.Yes, "no" => CivicProposalVoteKind.No, "withdraw_proposal" => CivicProposalVoteKind.Withdraw, _ => null };
         return kind is { } selected ? new(town, selected, proposal) : null;
     }

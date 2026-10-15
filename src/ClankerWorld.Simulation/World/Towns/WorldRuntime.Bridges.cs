@@ -55,7 +55,7 @@ public sealed partial class WorldRuntime
         }
         ApplyBridgeDecks();
         foreach (var bridge in built)
-            AppendEvent("bridge_built", $"{BridgeTriggers.Road}:{bridge.Id}:{routeId}");
+            AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Road, bridge.Id, routeId));
     }
 
     /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
@@ -92,17 +92,17 @@ public sealed partial class WorldRuntime
             if (!RiverBridgeRules.TryResolve(map, id, out var crossing)) continue;
             if (crossing!.Entrances.Any(blocked.Contains))
             {
-                AppendEvent("traffic_bridge_not_built", $"{id}:occupied_bank");
+                AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "occupied_bank"));
                 continue;
             }
             if (RiverBridgeRules.IsRedundant(map, crossing, bridges.Select(RiverBridgeRules.ToCrossing)))
             {
-                AppendEvent("traffic_bridge_not_built", $"{id}:same_banks_bridged");
+                AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "same_banks_bridged"));
                 continue;
             }
             bridges.Add(RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Traffic, WorldTick, routeId: null));
             ApplyBridgeDecks();
-            AppendEvent("bridge_built", $"{BridgeTriggers.Traffic}:{id}");
+            AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Traffic, id, null));
         }
     }
 
