@@ -8,7 +8,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class HandcartRuntimeTests
+public sealed partial class HandcartRuntimeTests
 {
     [Theory]
     [InlineData("essential_first", false, "berries", 1, 0, 6_000)]

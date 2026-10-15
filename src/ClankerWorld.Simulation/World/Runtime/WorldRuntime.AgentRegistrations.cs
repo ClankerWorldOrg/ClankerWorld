@@ -193,7 +193,7 @@ public sealed partial class WorldRuntime
         RegisterAnimalActions(),
         new(ActionPhase.Ordinary, "ApplyHandcartCandidate", [], [], static (runtime, action) =>
     {
-        return runtime.ApplyHandcartCandidate(action.AgentId, action.State, action.CandidateId);
+        return runtime.ApplyHandcartCandidate(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
     }),
         new(ActionPhase.Ordinary, "RepairToolPrefix", [RepairToolPrefix], [], static (runtime, action) =>
     {

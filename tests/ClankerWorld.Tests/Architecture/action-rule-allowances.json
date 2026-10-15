@@ -69,7 +69,6 @@
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": [
     "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
-    "FindUnoccupiedRoute(actor, person.Position, position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, site, 0)"
   ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs": [

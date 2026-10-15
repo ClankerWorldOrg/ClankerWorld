@@ -389,6 +389,11 @@ caps and at admission and apply; fresh personal-model consent remains required.
 Payment queries use exact uncommitted private stock and match native transfer
 access. Acceptance retains its planned leading preparation.
 
+Handcart attach, park and give choices retain the exact cart, cargo family,
+attachment and recipient. One check verifies that selection at offer, admission
+and apply. Parking only detaches the cart and remains available when cargo is
+promised; attaching and giving check the existing cart and cargo access rules.
+
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
 value. The verification switch rebuilds and compares its terrain and rainfall
