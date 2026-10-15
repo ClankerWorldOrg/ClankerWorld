@@ -38,7 +38,6 @@ public sealed class PersonalGoodsHouseIdentityTests
             {
                 Position = person.AgentId == actor ? house.Position : person.Position,
                 FullnessBasisPoints = 10_000,
-                Survival = new(),
                 LastDecisionContext = null,
             }).ToArray(),
         };
