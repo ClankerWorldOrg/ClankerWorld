@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
         Ordinary
     }
 
-    private enum ChoiceGroup
+    internal enum ChoiceGroup
     {
         Prelude,
         Adult,
@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
     }
 
     private readonly record struct ActionContext(string AgentId, AgentState State, string CandidateId, bool ReportIdle, ActionPlan? Plan = null);
-    private readonly record struct ChoiceContext(List<CognitionCandidate> Candidates, string AgentId, AgentState State, bool HasConversation, SocietyAgent? Agent = null, Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>? ReachableTools = null, Lazy<PlacedBuilding[]>? AccessibleWarehouses = null, List<string>? BuildingsWithoutSites = null);
+    internal readonly record struct ChoiceContext(List<CognitionCandidate> Candidates, string AgentId, AgentState State, bool HasConversation, SocietyAgent? Agent = null, Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>? ReachableTools = null, Lazy<PlacedBuilding[]>? AccessibleWarehouses = null, List<string>? BuildingsWithoutSites = null);
     private sealed record ActionRegistration(ActionPhase Phase, string Name, string[] Prefixes, string[] ExactIds, Func<WorldRuntime, ActionContext, bool>? Apply = null, ActionDefinition? Definition = null);
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
