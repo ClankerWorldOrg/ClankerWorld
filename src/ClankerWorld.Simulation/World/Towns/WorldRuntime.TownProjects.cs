@@ -284,7 +284,10 @@ public sealed partial class WorldRuntime
                 !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
-    private IEnumerable<TownProjectChoice> TownProjectDonationChoices(string actor)
+    private IEnumerable<TownProjectChoice> TownProjectDonationChoices(string actor) =>
+        TownProjectDonationGroups(actor).SelectMany(choices => choices);
+
+    private IEnumerable<IEnumerable<TownProjectChoice>> TownProjectDonationGroups(string actor)
     {
         foreach (var (town, project) in KnownTownProjects(actor))
         {
@@ -293,14 +296,14 @@ public sealed partial class WorldRuntime
             {
                 var missing = TownProjectMissing(town, project, cost.ResourceId);
                 if (missing <= 0) continue;
-                foreach (var lot in PersonalTownProjectDonationLots(actor, cost.ResourceId).Take(4))
+                yield return PersonalTownProjectDonationLots(actor, cost.ResourceId).Select(lot =>
                 {
                     var quantity = Math.Min(missing, AvailableLotQuantity(lot));
-                    yield return new(TownProjectChoiceId(TownProjectDonatePrefix, project.Id, lot.Id,
+                    return new TownProjectChoice(TownProjectChoiceId(TownProjectDonatePrefix, project.Id, lot.Id,
                         quantity.ToString(CultureInfo.InvariantCulture),
                         agents[actor].Position == TownProjectRules.WorkSite(project.Plan) ? "at-site" : "travel"),
                         "donate", town, project, cost.ResourceId, lot, quantity);
-                }
+                });
             }
         }
     }
@@ -478,9 +481,17 @@ public sealed partial class WorldRuntime
 
     private void AddTownProjectDonationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        var eligible = new List<CognitionCandidate>();
-        foreach (var choice in TownProjectDonationChoices(actor)) OfferTownProjectDonation(eligible, actor, choice);
-        candidates.AddRange(eligible.Take(16));
+        var offered = 0;
+        foreach (var choices in TownProjectDonationGroups(actor))
+        {
+            var forCost = 0;
+            foreach (var choice in choices)
+            {
+                if (!OfferTownProjectDonation(candidates, actor, choice)) continue;
+                if (++offered == 16) return;
+                if (++forCost == 4) break;
+            }
+        }
     }
 
     // Only a fresh, exact personal-model admission may call this final donation path.

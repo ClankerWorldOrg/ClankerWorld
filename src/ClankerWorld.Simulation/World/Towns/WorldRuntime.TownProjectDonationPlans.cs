@@ -32,12 +32,13 @@ public sealed partial class WorldRuntime
             ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected donation trip has ended or is out of reach");
     }
 
-    private void OfferTownProjectDonation(List<CognitionCandidate> candidates, string actor, TownProjectChoice choice)
+    private bool OfferTownProjectDonation(List<CognitionCandidate> candidates, string actor, TownProjectChoice choice)
     {
         var plan = PlanTownProjectDonation(actor, choice);
-        if (CheckTownProjectDonation(plan).Allowed)
-            candidates.Add(new(plan.CandidateId, $"Choose to donate {choice.Quantity} of your own carried {choice.ItemKind} to {choice.Project.Plan.Name}. " +
-                "The Town will own that exact contribution at the approved site.", 170, choice.Project.Id, choice.Project.Plan.Name)
-            { ActionPlan = plan });
+        if (!CheckActionPlan(plan).Allowed) return false;
+        candidates.Add(new(plan.CandidateId, $"Choose to donate {choice.Quantity} of your own carried {choice.ItemKind} to {choice.Project.Plan.Name}. " +
+            "The Town will own that exact contribution at the approved site.", 170, choice.Project.Id, choice.Project.Plan.Name)
+        { ActionPlan = plan });
+        return true;
     }
 }
