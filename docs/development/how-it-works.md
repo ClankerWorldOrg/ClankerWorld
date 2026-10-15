@@ -461,6 +461,9 @@ blocked travel waits and expansion checks on arrival keep the native behavior.
 Household replacement-care choices retain the child, household and original
 primary-caregiver receipt. Shared checks refuse changed care before the existing
 Society transition grants responsibility to the selected adult.
+Relocation volunteers retain the House, selected adults, replaced notices and
+inherited deadline. The shared check refuses a changed selection; the native
+notice writer and deadline reconciliation keep the original timer behavior.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

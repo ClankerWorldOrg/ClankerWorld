@@ -32,11 +32,6 @@
     "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
     "person.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)"
   ],
-  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Relocation.cs": [
-    "adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
-  ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange)",
     "FindUnoccupiedRoute(actor, state.Position, destination.Position, 0)"
