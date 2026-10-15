@@ -57,7 +57,9 @@ public sealed partial class RestaurantShopPipelineTests
         {
             Agents = state.Agents.Select(person => person.AgentId == fixture.Customer ? person with
             {
-                Position = customerSite!.Value, FullnessBasisPoints = 1_500, LastDecisionContext = null,
+                Position = customerSite!.Value,
+                FullnessBasisPoints = 1_500,
+                LastDecisionContext = null,
             } : person).ToArray(),
             Resources = state.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
