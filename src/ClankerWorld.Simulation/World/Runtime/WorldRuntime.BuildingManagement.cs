@@ -38,12 +38,12 @@ public sealed partial class WorldRuntime
                     .SingleOrDefault(project => project.CompletedBuildingId == instanceId) is { } paidProject)
                 SetTownProject(townId, paidProject with { RemovedTick = WorldTick });
 
-            worldSimulation = worldSimulation with
+            constructionState = WorldConstructionState.From(worldSimulation with
             {
                 Buildings = worldSimulation.Buildings.Where(item => item.InstanceId != instanceId).ToArray(),
                 BuildingExpansions = PreserveExpansionDefinitionIdentity(instanceId, definitionId),
                 GuestInvitations = RemoveHouseInvitations(instanceId),
-            };
+            });
             RecordMarketBuildingRemoval(instanceId);
             if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
             {
@@ -154,7 +154,7 @@ public sealed partial class WorldRuntime
                     RemoveTownBuildingAssignment(previousTownId, instanceId);
                 AddTownBuildingAssignment(reassignedTownId, instanceId);
             }
-            worldSimulation = worldSimulation with
+            constructionState = WorldConstructionState.From(worldSimulation with
             {
                 Buildings = worldSimulation.Buildings.Select(item => item.InstanceId == instanceId
                     ? item with { TownId = nextTownId, HouseholdId = nextHouseholdId }
@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
                 GuestInvitations = nextHouseholdId != building.HouseholdId
                     ? RemoveHouseInvitations(instanceId)
                     : worldSimulation.GuestInvitations,
-            };
+            });
             householdLandUseRights = reassignedRights.ToList();
             if (firstBuildingTown is { } firstTown)
                 GenerateRoadBetweenTowns(towns.Single(town => town.Id == firstTown),

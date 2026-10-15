@@ -446,7 +446,8 @@ public sealed partial class WorldRuntime
         townSystem = proposed.townSystem;
         continuity = proposed.continuity;
         worldContent = proposed.worldContent;
-        worldSimulation = proposed.worldSimulation;
+        constructionState = proposed.constructionState;
+        productionSystem = proposed.productionSystem;
         assetReservations = proposed.assetReservations;
         agents = proposed.agents;
         deceasedAgents = proposed.deceasedAgents;
@@ -466,7 +467,6 @@ public sealed partial class WorldRuntime
         bridgeTraffic = proposed.bridgeTraffic;
         conversationSystem = proposed.conversationSystem;
         shopTrades = proposed.shopTrades;
-        toolMakingRequests = proposed.toolMakingRequests;
         roadBridgeDecks = proposed.roadBridgeDecks;
         nextInstructionSequence = proposed.nextInstructionSequence;
         actionRefusals = proposed.actionRefusals;

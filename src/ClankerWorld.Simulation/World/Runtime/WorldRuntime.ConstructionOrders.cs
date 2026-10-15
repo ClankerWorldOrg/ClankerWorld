@@ -196,11 +196,11 @@ public sealed partial class WorldRuntime
             order.ConstructionPosition!.Value, order.ConstructionStartedTick!.Value, WorldTick,
             society.Checkpoint.Inventory.Reservations.Where(item => item.Purpose == purpose)
                 .Select(item => item.Id).OrderBy(id => id, StringComparer.Ordinal).ToArray());
-        worldSimulation = worldSimulation with
+        constructionState = WorldConstructionState.From(worldSimulation with
         {
             ConstructionReceipts = (worldSimulation.ConstructionReceipts ?? []).Append(receipt)
                 .OrderBy(item => item.InstructionId, StringComparer.Ordinal).ToArray(),
-        };
+        });
         CreditOrderEffect(instruction, ConstructionOrderReceipt(receipt.BuildingInstanceId), 1);
     }
 

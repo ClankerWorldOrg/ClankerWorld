@@ -35,6 +35,8 @@ public sealed partial class WorldRuntime
         DerivedId.Create($"{purpose}:quantity:{quantityIndex}:lot:{lotId}");
     private static string ProductionOutputLotId(string jobId, int outputIndex) =>
         DerivedId.Create($"{jobId}:output:{outputIndex.ToString("D2", CultureInfo.InvariantCulture)}");
+    private static string ProductionJobId(long sequence) =>
+        DerivedId.Create($"production-{sequence.ToString("D10", CultureInfo.InvariantCulture)}");
     private static string ProductionVesselUnitId(string outputLotId, int unitIndex) =>
         DerivedId.Create($"{outputLotId}:unit:{unitIndex.ToString("D2", CultureInfo.InvariantCulture)}");
     private static string ExpansionMaterialReservationId(string jobId, int ordinal) => DerivedId.Create($"{jobId}:material:{ordinal}");

@@ -18,6 +18,8 @@ public sealed class BuildingExpansionTests
         using var prepared = PreparedWorld("first-town-house-a", out var actor, out var house);
         var provider = new IdleProvider("expand_building:" + house.InstanceId);
         using var world = WorldRuntime.Restore(prepared.ExportState(), id => id == actor ? provider : new IdleProvider());
+        var initialSequence = world.WorldSimulation.NextProductionJobSequence;
+        var initialProductionJobs = world.WorldSimulation.ProductionJobs.Count;
         var plans = new List<ExpansionActionPlan>();
         for (var tick = 0; tick < 40 && !(world.WorldSimulation.BuildingExpansions ?? []).Any(); tick++)
         {
@@ -27,6 +29,8 @@ public sealed class BuildingExpansionTests
                 .Select(decision => Assert.IsType<ExpansionActionPlan>(decision.ActionPlan)));
         }
         var job = Assert.Single(world.WorldSimulation.BuildingExpansions!);
+        var addedProductionJobs = world.WorldSimulation.ProductionJobs.Count - initialProductionJobs;
+        Assert.Equal(initialSequence + addedProductionJobs + 1, world.WorldSimulation.NextProductionJobSequence);
         var plan = Assert.Single(plans);
         Assert.Equal((plan.Building.InstanceId, plan.Building.Position, plan.TargetPosition, plan.TargetFootprint, plan.OwnerId),
             (job.BuildingInstanceId, job.ExpectedPosition, job.TargetPosition, job.TargetFootprint, job.OwnerId));
