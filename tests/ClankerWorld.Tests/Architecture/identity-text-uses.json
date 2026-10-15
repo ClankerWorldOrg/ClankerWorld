@@ -397,7 +397,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs|length|value.Length \u003E 512": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs|length|completed.Length \u003E 1": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs|length|value.Length \u003C= 512": 1,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.GuardianOrders.cs|id|\u0022guardian_accept:\u0022 \u002B child": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.GuardianPlacementValidation.cs|length|blocker.Length \u003E 512": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs|id|$\u0022identity:{Guid.NewGuid():N}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.KnowledgeOrders.cs|length|completed.Length \u003E 0": 1,
