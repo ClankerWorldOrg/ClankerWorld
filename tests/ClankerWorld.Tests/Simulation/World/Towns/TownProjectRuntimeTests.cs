@@ -33,10 +33,12 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.CollectTools = true;
         scenario.Policy.LawAfterHall = true;
         var gatheringPlans = new List<TownProjectWorkActionPlan>();
-        await scenario.UntilAsync(() => scenario.DonationTraveler() is not null, 180, result =>
-            gatheringPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectWorkActionPlan { Choice.ItemKind: not null } &&
-                    decision.Admission.Accepted && decision.PlanRefusal is null)
-                .Select(decision => Assert.IsType<TownProjectWorkActionPlan>(decision.ActionPlan))));
+        void ObserveGathering(WorldStepResult result) => gatheringPlans.AddRange(result.Decisions.Where(decision =>
+                decision.ActionPlan is TownProjectWorkActionPlan { Choice.ItemKind: not null, Harvest: { } harvest } plan &&
+                decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Kind == "material_gathered" &&
+                    item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + harvest.Quantity))
+            .Select(decision => Assert.IsType<TownProjectWorkActionPlan>(decision.ActionPlan)));
+        await scenario.UntilAsync(() => scenario.DonationTraveler() is not null, 180, ObserveGathering);
         var traveler = scenario.DonationTraveler()!.Value;
         var carried = scenario.World.Society.Inventory.GetLot(traveler.LotId);
         Assert.Equal(traveler.Actor, carried.OwnerId);
@@ -69,6 +71,7 @@ public sealed class TownProjectRuntimeTests
         var workPlans = new List<TownProjectWorkActionPlan>();
         await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 420, result =>
         {
+            ObserveGathering(result);
             workPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectWorkActionPlan plan &&
                     decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => plan.Choice.ItemKind is null
                         ? item.Kind == "town_project_worked" && item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)
