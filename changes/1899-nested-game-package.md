@@ -1,0 +1,1 @@
+- Games packaged with their program in a subfolder can find their bundled server, including local developer runs.

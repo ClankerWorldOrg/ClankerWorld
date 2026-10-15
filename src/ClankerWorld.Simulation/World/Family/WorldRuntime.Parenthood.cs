@@ -316,7 +316,7 @@ public sealed partial class WorldRuntime
             if (housingBlocker is not null)
             {
                 SetHousing(birth.ChildId, new(Blocker: housingBlocker));
-                AppendEvent("housing_blocked", $"{birth.ChildId}:{housingBlocker}");
+                AppendEvent(new HousingBlockedEventPayload(birth.ChildId, housingBlocker));
             }
             if (TownForResident(caregiverId) is { } parentTownId)
                 AddTownResident(parentTownId, birth.ChildId, "child_joined");
@@ -326,7 +326,7 @@ public sealed partial class WorldRuntime
                 ChildId = birth.ChildId,
                 BirthHouseholdId = birth.HouseholdId,
             });
-            AppendEvent("child_born", birth.ChildId);
+            AppendEvent(new ChildBornEventPayload(birth.ChildId));
         }
     }
 
@@ -360,7 +360,7 @@ public sealed partial class WorldRuntime
             }
         };
         agents[childId] = child;
-        AppendEvent("child_cared_for", childId);
+        AppendEvent(new ChildCaredForEventPayload(childId));
     }
 
     private void SetParenthood(string owner, ParenthoodPlan plan)
@@ -368,7 +368,7 @@ public sealed partial class WorldRuntime
         if (agents[owner].Parenthood?.Stage != plan.Stage)
         {
             plan = plan with { LastTransitionTick = WorldTick };
-            AppendEvent("parenthood_" + plan.Stage, owner);
+            AppendEvent(WorldEvents.Parenthood(plan.Stage, owner));
         }
         agents[owner] = agents[owner] with { Parenthood = plan };
     }

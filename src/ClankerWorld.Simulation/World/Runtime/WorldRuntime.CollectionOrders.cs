@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
         var candidate = CollectionOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", CollectionOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, CollectionOrderBlockedReason(instruction, person));
             return;
         }
         var order = instruction.Task!;
@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         if (CollectPersonalGoods(instruction.TargetAgentId, lotId, remaining) is { } effect)
         {
             var receipt = PersonalCollectionReceipt(effect.MoveId);
-            CreditOrderEffect(instruction, receipt,
+            CreditOrderEffect(instruction, Identity.Parse(receipt),
                 order.ProgressUnit == "collection_loads" ? 1 : effect.Quantity);
         }
     }

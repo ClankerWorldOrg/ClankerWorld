@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -185,20 +186,19 @@ public sealed partial class WorldShelterOrderTests
         var receipt = Submit(world, actor, "held-shelter", "shelter in my House");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-shelter", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             var stopped = Person(world, actor).Position;
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            var deadline = Stopwatch.StartNew();
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
-            while (!admitted && deadline.Elapsed < TimeSpan.FromSeconds(5))
+            for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync();
+                var step = await world.TickModelWorkAsync();
                 Assert.True(step.Advanced);
                 admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
-                if (!admitted) await Task.Delay(10);
+                if (!admitted) await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -221,25 +221,21 @@ public sealed partial class WorldShelterOrderTests
         var completed = Order(world, receipt);
         Assert.Equal(1, completed.CompletedUnits);
         var saved = world.ExportState();
-        foreach (var corrupt in new[]
+        foreach (var corrupt in new OrderSaveChange[]
         {
-            completed with { ShelterBinding = null },
-            completed with { ShelterCompletion = null },
-            completed with { ShelterBinding = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } },
-            completed with { ShelterBinding = completed.ShelterBinding! with { OwnerId = "household:missing" } },
-            completed with { ShelterCompletion = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } },
-            completed with { ShelterCompletion = completed.ShelterCompletion! with { FuelReservationId = "invented-fuel" } },
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = null }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = null }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { OwnerId = "household:missing" } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } }),
+            new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { FuelReservationId = Identity.Parse("invented-fuel") } })
         })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = corrupt } : item).ToArray(),
-            }));
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, corrupt));
         var provider = new ShelterChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new ShelterChoices());
         var unknown = Submit(unsupported, actor, "unknown-shelter", "shelter inside the moon");
         Assert.Equal("not_understood", Order(unsupported, unknown).Status);
         Assert.Empty(provider.Requests);
-        Assert.Contains(unknown.InstructionId, unsupported.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, unsupported.ExportState().CompletedInstructionIds!);
     }
 }
