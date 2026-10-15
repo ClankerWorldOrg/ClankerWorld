@@ -33,7 +33,22 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
 
     public bool IsLocalServer => LaunchSecret is not null;
 
-    public bool IsApprovalRequest(HttpContext context)
+    public bool IsApprovalRequest(HttpContext context) =>
+        IsApprovalListener(context) && (LaunchSecret is null || HasLaunchSecret(context));
+
+    /// <summary>
+    /// A local server's answer to the game's launch check, or null when this is
+    /// not a local server's approval listener or the challenge is malformed.
+    /// The answer proves the secret without sending it.
+    /// </summary>
+    public string? LaunchCheckAnswer(HttpContext context)
+    {
+        if (!IsLocalServer || !IsApprovalListener(context)) return null;
+        var challenge = context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader].ToString();
+        return LocalServerLaunchCheck.IsChallenge(challenge) ? LocalServerLaunchCheck.Answer(LaunchSecret!, challenge) : null;
+    }
+
+    private bool IsApprovalListener(HttpContext context)
     {
         if (ApprovalPort <= 0 || context.Connection.LocalPort != ApprovalPort ||
             context.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))
@@ -45,7 +60,7 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
             context.RequestServices?.GetService<RequestRefusals>()?.ApprovalHostNameRefused();
             return false;
         }
-        return LaunchSecret is null || HasLaunchSecret(context);
+        return true;
     }
 
     /// <summary>
