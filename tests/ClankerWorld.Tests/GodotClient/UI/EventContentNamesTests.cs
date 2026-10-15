@@ -48,8 +48,8 @@ public sealed class EventContentNamesTests
         var worldEvent = ClientEvent(world.ExportState().Events.Last(item => item.Kind == "building_placed"));
         Assert.Contains(definition.CanonicalId, worldEvent.Detail, StringComparison.Ordinal);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.Equal("A new Clinic was built.", WorldEventText.Describe(worldEvent, snapshot));
-        Assert.Equal("A new Clinic was built.", WorldEventText.Describe(worldEvent, null));
+        Assert.Equal("A new Clinic was built.", EventTextFixture.Describe(worldEvent, snapshot));
+        Assert.Equal("A new Clinic was built.", EventTextFixture.Describe(worldEvent, null));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         CheckReload(world);
     }
@@ -100,9 +100,9 @@ public sealed class EventContentNamesTests
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Equal("Make wooden axe", recipe.DisplayName);
         Assert.Equal(ownerOrder ? "Work began on a new Make wooden axe." : "Work began on make wooden axe.",
-            WorldEventText.Describe(events[0], snapshot));
-        Assert.Equal("A batch of make wooden axe was made.", WorldEventText.Describe(events[1], snapshot));
-        Assert.Equal("A batch of wooden axe was made.", WorldEventText.Describe(events[1], null));
+            EventTextFixture.Describe(events[0], snapshot));
+        Assert.Equal("A batch of make wooden axe was made.", EventTextFixture.Describe(events[1], snapshot));
+        Assert.Equal("A batch of wooden axe was made.", EventTextFixture.Describe(events[1], null));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         CheckReload(world);
     }
@@ -112,7 +112,7 @@ public sealed class EventContentNamesTests
     {
         using var world = Restore(WorldRuntimeCodec.Decode(Baseline.Value));
         var worldEvent = ClientEvent(world.ExportState().Events.Single(item => item.Kind == "world_created"));
-        Assert.Equal("A new world has begun.", WorldEventText.Describe(worldEvent, Snapshot(world)));
+        Assert.Equal("A new world has begun.", EventTextFixture.Describe(worldEvent, Snapshot(world)));
         CheckReload(world);
     }
 
@@ -123,8 +123,8 @@ public sealed class EventContentNamesTests
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new ProductionChooser());
     private static OwnerWorldSnapshot Snapshot(WorldRuntime world) => JsonSerializer.Deserialize<OwnerWorldSnapshot>(
         JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot(), WebJson), WebJson)!;
-    private static OwnerWorldEvent ClientEvent(WorldEventEntry worldEvent) => JsonSerializer.Deserialize<OwnerWorldEvent>(
-        JsonSerializer.Serialize(worldEvent, WebJson), WebJson)!;
+    private static OwnerWorldEvent ClientEvent(WorldEventEntry worldEvent) =>
+        new(worldEvent.EventId, worldEvent.WorldTick, worldEvent.Kind, worldEvent.Detail) { Payload = worldEvent.Payload };
     private static void CheckReload(WorldRuntime world)
     {
         world.Validate();

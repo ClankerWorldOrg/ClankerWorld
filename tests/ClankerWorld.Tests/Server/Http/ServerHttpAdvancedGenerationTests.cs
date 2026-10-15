@@ -39,7 +39,7 @@ public sealed partial class ServerHttpTests
         output.WriteLine($"small-balanced-owner-preview elapsed_ms={stopwatch.Elapsed.TotalMilliseconds:F0} " +
             $"response_bytes={responseBytes.Length} candidates={preview.Candidates.Count}");
         Assert.Equal(3, preview.Candidates.Count);
-        var coverage = Assert.IsType<GeographyCandidateReport>(preview.Coverage);
+        var coverage = Assert.IsType<ClankerWorld.Contracts.OwnerWorldCandidateReport>(preview.Coverage);
         Assert.True(coverage.ForestTargetApplicable);
         Assert.True(coverage.MountainTargetApplicable);
         Assert.False(coverage.MeetsTargets);
@@ -85,7 +85,7 @@ public sealed partial class ServerHttpTests
             "Dominant", "Temperate", false, "Abundant", "High", "Low", "High");
         var payload = OwnerHttpBinding.WorldCreationPayload(action);
         Assert.Equal(payload, ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.WorldCreation(
-            new ClankerWorld.GodotClient.Protocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size,
+            new ClankerWorld.Contracts.OwnerWorldCreationAction(action.Name, action.Seed, action.Size,
                 action.WaterPercent, action.WrapEastWest, action.ClimateMode, action.SelectedClimate, action.LatitudeCooling,
                 action.ResourceAbundance, action.ForestCover, action.MountainRelief, action.RiverAbundance)));
         var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", action, payload);
