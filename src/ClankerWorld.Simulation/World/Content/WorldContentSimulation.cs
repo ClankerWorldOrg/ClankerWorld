@@ -6,8 +6,9 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>
 /// A building in the world. <see cref="Entrance"/> is the ground tile just
 /// outside its door, beside one edge of the footprint; the door is on that
-/// side. It is set when the building's Road is laid, and is null for a
-/// building without a Road.
+/// side. Town placements retain a usable entrance even if their Road cannot
+/// connect; a connected Road can choose another side. A null entrance uses
+/// the effective footprint's south-facing door.
 /// For a paid street lantern, Position is its one-tile roadside site and
 /// Entrance is the immutable adjacent Road tile approved by the Council.
 /// Their cardinal difference binds the fitting's Road edge, rather than a door.
@@ -159,8 +160,9 @@ public static class WorldContentSimulationRules
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid footprint.");
             }
 
-            if (building.Entrance is { } entrance &&
-                (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance)))
+            var entrance = BuildingMovementRules.EntranceFor(definition, building);
+            if (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance) ||
+                existing.Any(item => Footprint(item.Definition, item.Placement).Contains(entrance)))
             {
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid entrance.");
             }

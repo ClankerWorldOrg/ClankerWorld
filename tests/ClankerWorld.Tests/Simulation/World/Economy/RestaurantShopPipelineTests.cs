@@ -675,11 +675,14 @@ public sealed partial class RestaurantShopPipelineTests
         inventory = InventoryAuthority.AddLot(inventory, "restaurant-customer-payment", "wood", customer, 1);
         if (customerBallast > 0)
             inventory = InventoryAuthority.AddLot(inventory, "restaurant-customer-ballast", "stone", customer, customerBallast);
-        state = WithInventory(state, inventory);
+        state = MovementTestWorld.ClearOtherBuildingAccess(WithInventory(state, inventory));
         var footprints = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
         var occupied = state.Agents.Where(person => person.AgentId != cook && person.AgentId != miller &&
-                person.AgentId != customer).Select(person => person.Position).Concat(footprints).ToHashSet();
+                person.AgentId != customer).Select(person => person.Position).Concat(footprints)
+            .Concat(state.WorldSimulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                BuildingStorageRules.EffectiveDefinition(state.WorldContent!.Buildings.Single(definition =>
+                    definition.CanonicalId == building.DefinitionId), building), building))).ToHashSet();
         occupied.Add(farmhouse.Position);
         var cookPosition = kitchenReady ? restaurant.Position : Neighbor(farmhouse.Position);
         occupied.Add(cookPosition);

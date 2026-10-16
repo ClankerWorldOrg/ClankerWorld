@@ -2491,7 +2491,7 @@ abort and interrupted movement clear the purpose. Cancellation cannot make
 an old order purpose authoritative for a later outing. Urgent interruptions
 retain the pending goal and instruction through the existing lifecycle.
 
-Outward scouting checks occupied destinations and both diagonal corner tiles
+Outward scouting checks building walls, occupied destinations and both diagonal corner tiles
 before ranking neighboring exits. An attached cart also restricts exits to
 ordinary legal cart steps: cardinal movement without unroaded mountains.
 If no legal outward exit remains, the scout
@@ -2663,6 +2663,25 @@ Revision 0 (including absent revision fields) retains the historical generator;
 unsupported revisions are rejected rather than substituted. Individual trees are
 objects/resources. Old generated worlds recover missing layers from saved
 deterministic options and retain their original resource layout.
+
+Traveler routes apply `BuildingMovementRules` to the same terrain steps in
+forward searches, reverse reachability, cart routing and local scouting. Reverse
+reachability discards already reached adjacent positions before checking the
+canonical foot/swimming edge and building walls, avoiding repeated terrain
+checks during broad return-route proofs. A building
+footprint connects to outdoor ground only through its recorded entrance; without one,
+it uses the drawing's default south doorway. Shared walls and outdoor diagonal
+corners are closed. Expanded footprints use their effective dimensions, and a
+changed building list invalidates the derived geometry and route searches.
+Movement within the departure or destination building remains possible; an
+unrelated building cannot supply a shortcut through its single doorway.
+Interaction-range routes end outdoors or at the exact target tile; they do not
+stop short on a building's interior approach tiles.
+Construction-site reachability uses the same walls. Placement and expansion
+leave existing doorways outdoors and require usable ground for a new doorway;
+Developer map edits cannot cover an existing doorway.
+Strict restore checks doorways too; [Saves and replay](saves-and-replay.md#building-doorways)
+owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
@@ -3541,8 +3560,10 @@ general land ownership.
 A building that joins a Town later is joined to the Road network from one of the
 tiles directly beside its footprint. That starting tile is saved as the
 building's entrance, and the map draws the door on that side. The first Town's
-planner saves the entrance of each lot it chose. A building without a Road has
-no entrance and shows its door in the middle of its south side.
+planner saves the entrance of each lot it chose. A new Town building also keeps
+a clear fallback entrance if its Road cannot connect. A roadless building with
+no recorded entrance uses the middle of its south side, which placement must
+leave clear.
 
 Towns grow along their streets. `TownLayoutService` gives a site whose door can
 face an existing Road a `road_frontage` bonus. A building beside a Road needs

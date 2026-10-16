@@ -68,8 +68,10 @@
   ],
   "scratch": [
     "<RouteSearchesCreated>k__BackingField",
+    "buildingMovement",
     "guardianPlacementActions",
     "lastTickMilliseconds",
+    "movementBuildings",
     "nonLandRemedySelection",
     "plannedRoutes",
     "previousPlannedRoutes",

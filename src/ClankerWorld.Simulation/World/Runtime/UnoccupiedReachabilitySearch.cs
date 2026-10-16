@@ -9,17 +9,20 @@ internal sealed class UnoccupiedReachabilitySearch
 {
     private readonly WorldMap map;
     private readonly HashSet<GridPoint> occupied;
-    private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly bool swimming;
+    private readonly Func<GridPoint, GridPoint, bool>? canStep;
     private readonly bool[] reached;
     private readonly Queue<GridPoint> open = new();
 
     internal UnoccupiedReachabilitySearch(WorldMap map, HashSet<GridPoint> occupied,
         GridPoint destination, int interactionRange,
-        Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null)
+        bool swimming = false,
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
     {
         this.map = map;
         this.occupied = occupied;
-        this.neighbors = neighbors;
+        this.swimming = swimming;
+        this.canStep = canStep;
         Destination = destination;
         InteractionRange = interactionRange;
         reached = new bool[checked(map.Width * map.Height)];
@@ -29,7 +32,8 @@ internal sealed class UnoccupiedReachabilitySearch
             for (var x = 0; x < map.Width; x++)
             {
                 var point = new GridPoint(x, y);
-                if (map.FootDistance(point, destination) > interactionRange || occupied.Contains(point)) continue;
+                if (map.FootDistance(point, destination) > interactionRange || occupied.Contains(point) ||
+                    canStop?.Invoke(point, destination) == false) continue;
                 reached[Index(point)] = true;
                 open.Enqueue(point);
             }
@@ -49,21 +53,18 @@ internal sealed class UnoccupiedReachabilitySearch
         while (!reached[Index(origin)] && open.TryDequeue(out var current))
         {
             ExpandedTiles++;
-            if (neighbors is null)
-            {
-                foreach (var next in map.FootNeighborsForSearch(current)) Visit(current, next);
-            }
-            else
-            {
-                foreach (var next in neighbors(current)) Visit(current, next);
-            }
+            foreach (var next in map.NeighborPositionsForSearch(current)) Visit(current, next);
         }
         return reached[Index(origin)];
     }
 
     private void Visit(GridPoint current, GridPoint next)
     {
-        if (reached[Index(next)] || map.IsDiagonalFootStep(current, next) &&
+        // Most neighbours have already been reached. Avoid repeating terrain,
+        // river, bridge and wall checks for those positions.
+        if (reached[Index(next)] || canStep?.Invoke(current, next) == false ||
+            !(swimming ? SwimmingRules.CanStep(map, current, next) : map.CanFootStep(current, next)) ||
+            map.IsDiagonalFootStep(current, next) &&
             (occupied.Contains(new GridPoint(next.X, current.Y)) ||
              occupied.Contains(new GridPoint(current.X, next.Y)))) return;
         reached[Index(next)] = true;

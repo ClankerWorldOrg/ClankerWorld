@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
 
         if (!HasWarmthForOuting(person) || person.FullnessBasisPoints < OutingFullnessReserve ||
             exploration is not null && WorldTick - exploration.LastOutingTick < ExplorationCooldownTicks ||
-            !map.FootNeighbors(person.Position).Any(map.IsPassable))
+            !FootMovementNeighbors(person.Position).Any(map.IsPassable))
             return;
 
         if (NeededExplorationResource(actor, person) is { } needed)
@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
         // Keep the starting trial budget, then account for a longer recorded return.
         // Shelter at the starting tile is not protection carried along on the outing.
         var steps = Math.Max(StartingExplorationWarmthBudgetSteps, person.Exploration?.OutingPath.Count ?? 0);
-        return map.FootNeighbors(person.Position).Where(map.IsPassable).All(next =>
+        return FootMovementNeighbors(person.Position).Where(map.IsPassable).All(next =>
         {
             var loss = Math.Max(0, OutdoorExposure(next) - ClothingProtection(person.AgentId, next));
             var stepTicks = (RoadStepCost(person.Position, next) + 99) / 100 +
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
         var occupied = agents.Values.Where(item => item.AgentId != actor)
             .Select(item => item.Position).ToHashSet();
         var pullingCart = AttachedHandcart(actor) is not null;
-        var next = map.FootNeighbors(person.Position)
+        var next = FootMovementNeighbors(person.Position)
             .Where(point => map.IsPassable(point) && !occupied.Contains(point) &&
                 !exploration.OutingPath.Contains(point))
             .Where(point => !pullingCart || LegalHandcartStep(person.Position, point))

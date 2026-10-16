@@ -89,6 +89,7 @@ public sealed partial class AnimalPipelineTests
             Agents = At(state, actor, house.Position, inventory, [cow]).Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null } : person).ToArray(),
         };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), id =>
             id == actor ? new AnimalChooser("animal:supply") : new AnimalChooser());
         await Until(world, () => world.ExportState().AnimalWorld.SupplyTrips.Count == 1);

@@ -41,11 +41,17 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
 
     internal IEnumerable<GridPoint> ProtectedBuildingTiles(string? exceptBuildingId = null) => simulation.Buildings
         .Where(building => building.InstanceId != exceptBuildingId).SelectMany(building =>
-            PortNavigationRules.ProtectedBuildingTiles(map, content.BuildingDefinitions[building.DefinitionId], building));
+            PortNavigationRules.ProtectedBuildingTiles(map, content.BuildingDefinitions[building.DefinitionId], building))
+        .Concat(BuildingEntrances(exceptBuildingId));
 
     internal IEnumerable<GridPoint> BuildingFootprintsExcept(string? exceptBuildingId) => simulation.Buildings
         .Where(building => building.InstanceId != exceptBuildingId).SelectMany(building =>
             WorldContentSimulationRules.Footprint(content.BuildingDefinitions[building.DefinitionId], building));
+
+    internal IEnumerable<GridPoint> BuildingEntrances(string? exceptBuildingId = null) => simulation.Buildings
+        .Where(building => building.InstanceId != exceptBuildingId).Select(building =>
+            BuildingMovementRules.EntranceFor(BuildingStorageRules.EffectiveDefinition(
+                content.BuildingDefinitions[building.DefinitionId], building), building));
 
     internal IEnumerable<GridPoint> KnownBuildingFootprints(Func<PlacedBuilding, bool> include) => simulation.Buildings
         .Where(building => include(building) && content.BuildingDefinitions.ContainsKey(building.DefinitionId))

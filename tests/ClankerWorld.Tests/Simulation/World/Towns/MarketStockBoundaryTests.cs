@@ -27,7 +27,8 @@ public sealed class MarketStockBoundaryTests
             "boundary-house-tool-wood", "wood", Household, 3, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "boundary-stall-tools", stockKind, Household, 2,
             groundPosition: new(stall.X, stall.Y));
-        state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), Housemate, stall);
+        state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), Housemate,
+            MovementTestWorld.OpenGround(state, Housemate, stall, 1));
 
         // The same nearby tools cover both adults when this stall is not borrowed.
         var ordinaryPolicy = new MarketRulesPolicy();
@@ -39,7 +40,7 @@ public sealed class MarketStockBoundaryTests
             ordinary.Validate();
         }
 
-        // Borrowing protects sale stock, even when the other adult stands on it.
+        // Borrowing protects sale stock even from an adult standing beside it.
         var salePolicy = new MarketRulesPolicy();
         using var sale = WorldRuntime.Restore(PaidMarketWorld.Borrowing(state, Seller, 0), salePolicy.CreateProvider);
         for (var tick = 0; tick < 4; tick++) Assert.True((await sale.AdvanceOneTickAsync()).Advanced);
@@ -208,7 +209,8 @@ public sealed class MarketStockBoundaryTests
         state = PaidMarketWorld.WithInventory(state, InventoryAuthority.AddLot(inventory, "boundary-smith-stall-wood", "wood", Household, 8,
             groundPosition: new(stall.X, stall.Y)));
         var borrowedPolicy = new MarketRulesPolicy();
-        using var borrowed = WorldRuntime.Restore(PaidMarketWorld.Borrowing(state, Seller, 0), borrowedPolicy.CreateProvider);
+        var borrowedState = PaidMarketWorld.Borrowing(state, Seller, 0);
+        using var borrowed = WorldRuntime.Restore(borrowedState, borrowedPolicy.CreateProvider);
         for (var tick = 0; tick < 4; tick++) Assert.True((await borrowed.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(borrowedPolicy.OfferedTo(Housemate), candidate => candidate.Id == "gather_smith_input:wood");
         Assert.Equal(8, borrowed.Society.Inventory.GetLot("boundary-smith-stall-wood").Quantity);

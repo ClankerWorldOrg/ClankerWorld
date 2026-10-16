@@ -600,7 +600,11 @@ public sealed partial class HouseholdJoinRequestTests
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ScriptedProvider());
         var farmhouse = world.WorldContent.Buildings.Single(item => item.LocalId == "farmhouse-1x1");
-        var property = TownTileBeside(world, house.InstanceId);
+        var free = FreeTiles(world).ToHashSet();
+        var town = world.Towns.Single();
+        var property = MovementTestWorld.BuildingSite(world.ExportState(), farmhouse, string.Empty,
+            allowed: point => free.Contains(point) && town.BorderTiles.Contains(point) &&
+                state.Map.FootDistance(point, house.Position) <= 4);
         var placed = world.PlaceBuilding("alpha-farm-without-house", farmhouse.CanonicalId, property, Alpha);
         Assert.True(placed.Applied, placed.Failure);
         var removed = world.RemoveBuilding(house.InstanceId, house.TownId, Alpha);
@@ -737,12 +741,12 @@ public sealed partial class HouseholdJoinRequestTests
             Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(fillStock) } },
         };
         using var crowded = WorldRuntime.Restore(state, _ => provider);
-        // Each placement may lay a short Road, so the free tiles are found again each time.
-        for (var free = FreeTiles(crowded); free.Length > 0; free = FreeTiles(crowded))
-        {
-            var filled = crowded.PlaceBuilding($"fill-{free[0].X}-{free[0].Y}", filler.CanonicalId, free[0]);
-            Assert.True(filled.Applied, filled.Failure);
-        }
+        // Each paid placement may lay a Road or reserve a door. Fill until
+        // no remaining free tile can hold both the footprint and its access.
+        var initialBuildings = crowded.WorldSimulation.Buildings.Count;
+        while (FreeTiles(crowded).Select(site => crowded.PlaceBuilding(
+                   $"fill-{site.X}-{site.Y}", filler.CanonicalId, site)).Any(result => result.Applied)) { }
+        Assert.True(crowded.WorldSimulation.Buildings.Count > initialBuildings);
         await AdvanceUntil(crowded, () => Housing(crowded, agent)?.Blocker == HousingBlockers.NoLegalSite, 5);
         Assert.Contains(crowded.ExportState().Events, item => item.Kind == "housing_blocked" && item.Detail == $"{agent}:no_legal_site");
         Assert.True((await crowded.AdvanceOneTickAsync()).Advanced);

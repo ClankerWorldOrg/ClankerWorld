@@ -187,18 +187,24 @@ public sealed record WorldMap(
     // rather than allocating the public IEnumerable iterator for each tile.
     internal FootNeighborEnumerator FootNeighborsForSearch(GridPoint point) => new(this, point);
 
+    // Reachability discards visited positions before asking the canonical
+    // walking or swimming rule whether the remaining edge is legal.
+    internal FootNeighborEnumerator NeighborPositionsForSearch(GridPoint point) => new(this, point, footSteps: false);
+
     internal struct FootNeighborEnumerator
     {
         private readonly WorldMap map;
         private readonly GridPoint origin;
+        private readonly bool footSteps;
         private int offset;
 
-        internal FootNeighborEnumerator(WorldMap map, GridPoint point)
+        internal FootNeighborEnumerator(WorldMap map, GridPoint point, bool footSteps = true)
         {
             if (!map.Contains(point))
                 throw new ArgumentOutOfRangeException(nameof(point));
             this.map = map;
             origin = point;
+            this.footSteps = footSteps;
             offset = 0;
             Current = default;
         }
@@ -226,9 +232,9 @@ public sealed record WorldMap(
                     }
                     if (repeated) continue;
                 }
-                // Recheck the live map for every yielded step; no walkability
-                // or bridge-axis result survives between steps or searches.
-                if (!map.CanFootStep(origin, next)) continue;
+                // Walking checks the live map for each step; raw adjacency leaves
+                // legality to its search. Neither caches walkability or bridge axes.
+                if (footSteps ? !map.CanFootStep(origin, next) : !map.Contains(next)) continue;
                 Current = next;
                 return true;
             }

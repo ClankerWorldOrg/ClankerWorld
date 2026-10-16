@@ -242,7 +242,15 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal("blocked", BoatOrder(scenario.World, receipt).Status);
         Assert.Contains("permission", BoatOrder(scenario.World, receipt).BlockedReason, StringComparison.Ordinal);
         Assert.Empty(scenario.World.BoatRequests);
-        var noticePlace = scenario.World.Towns[0].OriginSite!.Value;
+        var board = scenario.World.Towns[0].OriginSite!.Value;
+        // The other readers can surround the board. Walk into reading range
+        // through the real walls rather than requiring its crowded exact tile.
+        state = scenario.World.ExportState();
+        using var routes = MovementTestWorld.Routes(state, state.Agents.Single(person => person.AgentId == BoatPolicy.Author).Position,
+            state.Agents.Where(person => person.AgentId != BoatPolicy.Author).Select(person => person.Position).ToHashSet());
+        var approach = routes.RouteTo(board, 1);
+        Assert.NotEmpty(approach);
+        var noticePlace = approach[^1];
         var move = scenario.World.SubmitInstruction(new("proposer-at-notice-place", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.Order, FormattableString.Invariant($"move to ({noticePlace.X}, {noticePlace.Y})")));
         await scenario.UntilAsync(() => BoatOrder(scenario.World, move).Status == "finished", 40);
