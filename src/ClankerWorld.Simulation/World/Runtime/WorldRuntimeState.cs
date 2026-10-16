@@ -133,6 +133,9 @@ public sealed record WorldRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ToolMakingRequestState>? ToolMakingRequests = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HandcartHitch>? HandcartHitches = null)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorldMapAuthoring? MapAuthoring { get; init; }
+
     [JsonRequired]
     public IReadOnlyList<RecordedInstructionReceipt> InstructionReceipts { get; init; } = [];
 

@@ -145,7 +145,7 @@ public partial class Main
     private async Task SubmitWorldEditAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            observationSession.Current?.Baseline.Snapshot.Authoring is not { IsPaused: true })
+            observationSession.Current?.Baseline.Snapshot is not { Authoring: { IsPaused: true } authoring } snapshot)
         {
             SetStatus("World editing works only once the world server shows the world as paused. Pause it, then try again.", good: false);
             return;
@@ -161,7 +161,12 @@ public partial class Main
             worldEditRenewable.ButtonPressed);
         var batch = new OwnerAuthoringBatchAction(
             $"authoring_{OwnerPairingProtocol.CreateRequestId()}",
-            [operation]);
+            worldEditAdvanced.ButtonPressed ? [operation] :
+                PickedWorldEditTool is { } tool && PickedWorldEditKind is { } kind
+                ? worldEditTiles.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).Select(tile =>
+                    new OwnerAuthoringOperationAction(tool.Operation, null, kind.Value, null, tile.X, tile.Y, kind.IsRenewable)).ToArray()
+                : [], snapshot.WorldId, authoring.Revision, authoring.RunEpoch, observationSession.Timeline);
+        if (batch.Operations.Count == 0) return;
         if (!TryBeginPendingAuthoring(batch, out var pending))
         {
             return;
@@ -172,11 +177,12 @@ public partial class Main
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
                 ResolveWorldUri(), authority, deviceId, batch, signer, OwnerRequestToken));
+            if (!receipt.Applied)
+                throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
             completed = true;
-            return receipt.Applied
-                ? $"World edit applied: {operation.Kind.Replace('_', ' ')}."
-                : $"World edit refused; nothing changed · {receipt.Failure ?? "the world server did not say why"}";
-        }, retainedSubmission: pending);
+            ClearWorldEditPreview();
+            return "World edit saved. See Developer edit in the Event Log.";
+        }, retainedSubmission: pending, sendingPanel: developerPanel);
         if (completed)
         {
             CompletePendingSubmission(pending);
@@ -227,6 +233,7 @@ public partial class Main
             observationSession.AwaitingFreshBaseline;
         menuResumeButton.Disabled = observationSession.AwaitingFreshBaseline;
         menuSaveWorldButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
+        menuLoadSaveButton.Disabled = menuSaveWorldButton.Disabled;
         menuQuitToMainButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var paused = snapshot?.Authoring?.IsPaused == true;
@@ -297,7 +304,12 @@ public partial class Main
         submitInstructionButton.TooltipText = deceasedSelected ? "You can't send messages to someone who has died." :
             infantSelected ? "Send messages to an adult who cares for them instead." : "Send this message to the agent.";
         RenderDeveloperEdits(snapshot, actionDisabled);
-        submitWorldEditButton.Disabled = actionDisabled || !paused;
+        submitWorldEditButton.Disabled = actionDisabled || !paused ||
+            !worldEditAdvanced.ButtonPressed && (worldEditTiles.Count == 0 || PickedWorldEditKind is null);
+        worldEditTool.Disabled = actionDisabled || !paused || worldEditTools.Count == 0;
+        worldEditPick.Disabled = worldEditPaint.Disabled = actionDisabled || !paused || PickedWorldEditKind is null;
+        worldEditAdvanced.Disabled = actionDisabled || !paused;
+        worldEditClear.Disabled = isOwnerAction || worldEditTiles.Count == 0;
         worldEditKind.Disabled = actionDisabled || !paused;
         worldEditId.Editable = !actionDisabled && paused;
         worldEditValue.Editable = !actionDisabled && paused;

@@ -177,6 +177,11 @@ public partial class Main
         }
         else if (@event is InputEventMouseMotion hoverMotion)
         {
+            if (CanPickWorldEditTile && (hoverMotion.ButtonMask & MouseButtonMask.Left) != 0)
+            {
+                PickWorldEditTile(snapshot, TileAtCanvas(hoverMotion.Position, snapshot));
+                mapCanvas.AcceptEvent();
+            }
             if ((hoverMotion.ButtonMask & MouseButtonMask.Middle) == 0) draggingMap = false;
             if (draggingMap)
             {

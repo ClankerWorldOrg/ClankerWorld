@@ -18,7 +18,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 138;
+    public const int StateSchemaVersion = 139;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime : IDisposable
         sourceTowns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         sourceMap.Resources.First(item => item.Id == "berry-patch").Position;
     private GridPoint WeatherAnchor =>
-        map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
+        map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
     private long nextInstructionSequence = 1;
@@ -371,6 +371,7 @@ public sealed partial class WorldRuntime : IDisposable
         }
 
         runtime.map = state.Map;
+        runtime.mapAuthoring = state.MapAuthoring;
         runtime.actionRefusals = state.ActionRefusals.ToList();
         runtime.refusedActionCount = state.RefusedActionCount;
         runtime.jevEnabled = state.JevEnabled ?? true;
@@ -567,6 +568,7 @@ public sealed partial class WorldRuntime : IDisposable
         RoutineHelper = routineHelper,
         ActionRefusals = actionRefusals.ToArray(),
         RefusedActionCount = refusedActionCount,
+        MapAuthoring = mapAuthoring,
     };
 
     private void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) =>
