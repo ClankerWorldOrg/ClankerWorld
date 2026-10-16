@@ -11,6 +11,7 @@ public static class SocietyCheckpointCodec
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
+        Converters = { new StoredIdentityJsonConverter() },
     };
 
     public static byte[] Encode(SocietyCheckpoint checkpoint)

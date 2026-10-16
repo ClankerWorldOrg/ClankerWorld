@@ -47,8 +47,11 @@ normal game reaches it.
 - Set the priority by the [bug rules](../../CONTRIBUTING.md#priorities),
   including the P0 and P1 caps, and add `regression` to something that used
   to work.
-- While a release is being prepared, give a new P0 or P1 bug its label, now
-  `release:alpha-1` ([Release scope](../../CONTRIBUTING.md#release-scope)).
+- While release labels are in use, give a new P0 or P1 bug the current
+  release's label, now `release:alpha-1`, and any other new bug the next
+  release's, now `release:alpha-2`. A bug that exists only in an unmerged pull
+  request takes the label of the issue that pull request works on
+  ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - Give the title in ordinary words about the effect, such as "Returning a jug
   can halt the world". Keep one problem per issue. When several symptoms
   come from the same cause, so one fix covers them all, file one issue that

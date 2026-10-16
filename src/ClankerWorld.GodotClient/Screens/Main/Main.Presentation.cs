@@ -85,7 +85,7 @@ public partial class Main
         // Keep diagnostics bounded and separate; exception messages can contain
         // private paths, server payloads or credentials.
         GD.PushWarning($"owner_action_failed type={exception.GetType().Name}");
-        return GameUiText.FriendlyFailure(exception);
+        return ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(exception);
     }
 
     private static string DescribeWorldEvent(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot) =>

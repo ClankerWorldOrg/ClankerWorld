@@ -103,6 +103,10 @@ unblock has Implementation issues.
   know it works, what is out of scope, and under **Saves, replay and docs**
   which pages the change will update and which sentences it makes false. Label
   each `type:feature`, one or two areas, `priority:p2` and `status:needs-pr`.
+  While release labels are in use, also give it the next release's label,
+  unless the owner adds the work to the current release
+  ([Release scope](../../CONTRIBUTING.md#release-scope)). Waiting for that
+  release is never `status:blocked`.
 - Answers for a later stage, such as combat or inventions, get their
   Implementation issues when that stage starts, so fixing sessions don't build
   them out of order. Say so in the design pull request.

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
@@ -151,7 +152,7 @@ public sealed partial class ParenthoodTests
             Assert.True(await service.TryAdvanceOnceAsync());
 
             var birth = Assert.Single(restored.Society.Births);
-            Assert.Equal($"family:{initiator}:{agreed.RequestedTick}", birth.RequestId);
+            Assert.Equal(DerivedId.Create($"family:{initiator}:{agreed.RequestedTick}"), birth.RequestId);
             Assert.Equal(acceptor, birth.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, birth.HouseholdId);
             Assert.Equal(acceptorHome, restored.Society.GetAgent(birth.ChildId).HouseholdId);
@@ -242,7 +243,7 @@ public sealed partial class ParenthoodTests
         var home = society.GetAgent(partner).HouseholdId!;
         var food = society.Inventory.Lots.First(lot => lot.OwnerId == home && lot.ItemKind == "food" && lot.Quantity >= 4);
         var committed = SocietyRules.CommitBirth(society, new SocietyBirthRequest(
-            $"family:{initiator}:{society.WorldTick}", 1, initiator, partner, home, [partner], [initiator, partner],
+            DerivedId.Create($"family:{initiator}:{society.WorldTick}"), 1, initiator, partner, home, [partner], [initiator, partner],
             food.Id, 4, society.WorldTick, PrimaryCaregiverId: partner));
         var childId = Assert.IsType<string>(committed.CreatedId);
         var birth = Assert.Single(committed.Checkpoint.Births);

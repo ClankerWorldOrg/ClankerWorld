@@ -74,8 +74,8 @@ var providerUsagePath = builder.Configuration["ClankerWorld:Providers:UsagePath"
     Path.Combine(Path.GetDirectoryName(Path.GetFullPath(providerConfigurationPath))!, "provider-usage.json");
 var approvedAssetCatalogPath = builder.Configuration["ClankerWorld:Assets:CatalogPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "approved-assets.json");
-var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"] ??
-    $"clankerworld-host:{Environment.MachineName}";
+// Unset, the authority file's own ID is kept, or a new server gets a random one.
+var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"];
 
 // The catalog is loaded only from a host-owned path at startup. Its absence
 // intentionally yields an empty, deny-all allow-list; malformed existing
@@ -175,7 +175,8 @@ builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSe
     services.GetRequiredService<WorldAutosaveStore>(),
     services.GetRequiredService<WorldJevPolicy>(),
     services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
-    _ => services.GetRequiredService<IDecisionProvider>()));
+    _ => services.GetRequiredService<IDecisionProvider>(),
+    services.GetRequiredService<ManualWorldSaveStore>()));
 
 builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
     new OwnerWorldObservationStore(services.GetRequiredService<WorldRuntime>()));
@@ -197,8 +198,9 @@ builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
     var worldId = services.GetRequiredService<WorldStartupRecovery>().Pending
         ? services.GetRequiredService<WorldStartupRecovery>().WorldId
         : services.GetRequiredService<WorldRuntime>().Society.WorldId;
-    return services.GetRequiredService<OwnerAuthorityStateFile>().LoadOrCreate(
-        new OwnerAuthorityIdentity(configuredAuthorityId, worldId),
+    var stateFile = services.GetRequiredService<OwnerAuthorityStateFile>();
+    return stateFile.LoadOrCreate(
+        new OwnerAuthorityIdentity(configuredAuthorityId ?? stateFile.StoredOrNewServerAuthorityId(), worldId),
         allowWorldSwitch: true);
 });
 builder.Services.AddSingleton<OwnerRequestAuthorizer>();
