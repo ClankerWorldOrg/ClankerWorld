@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime : IDisposable
         sourceTowns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         sourceMap.Resources.First(item => item.Id == "berry-patch").Position;
     private GridPoint WeatherAnchor =>
-        map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
+        map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
     private long nextInstructionSequence = 1;

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Observation;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -126,6 +127,41 @@ public sealed class WorldMapEditTests
     }
 
     [Fact]
+    public void NewCampObjectsKeepTheWorldWeatherAtItsOriginalTown()
+    {
+        using var original = NormalPathWorld.CreateGenerated("map-edit-markers", _ => new DeterministicDecisionProvider());
+        original.Pause();
+        var state = original.ExportState();
+        var anchor = original.Towns.First(town => town.OriginSite is not null).OriginSite!.Value;
+        var point = FreeTiles(original).First(point => point.X / WeatherRules.RegionSize != anchor.X / WeatherRules.RegionSize ||
+            point.Y / WeatherRules.RegionSize != anchor.Y / WeatherRules.RegionSize);
+        var systems = state.WorldSystems!;
+        var weather = systems.RegionalWeather!;
+        using var world = WorldRuntime.Restore(state with
+        {
+            WorldSystems = systems with
+            {
+                RegionalWeather = weather with
+                {
+                    Episodes = weather.Episodes.Select(episode => episode with
+                    {
+                        Weather = episode.X == anchor.X / WeatherRules.RegionSize && episode.Y == anchor.Y / WeatherRules.RegionSize
+                            ? WeatherKind.Rain : WeatherKind.Clear,
+                        StartedAt = 0,
+                        EndsAt = systems.Config.TicksPerDay,
+                        SevereAllowedAt = 0,
+                    }).ToArray(),
+                },
+            },
+        });
+        Assert.Equal(WeatherKind.Clear, WeatherRules.At(world.WorldSystems, point, state.Map.Height));
+        Assert.Equal("rain", new OwnerWorldObservationStore(world).GetSnapshot().Authoring!.Weather);
+        var result = world.ApplyMapEdit(Edit(world, Operation("place_object", "cooking", point)));
+        Assert.True(result.Applied, result.Failure);
+        Assert.Equal("rain", new OwnerWorldObservationStore(world).GetSnapshot().Authoring!.Weather);
+    }
+
+    [Fact]
     public void InvalidOrStaleBatchesLeaveAllLayersResourcesEventsAndSavedBytesUntouched()
     {
         using var world = NormalPathWorld.CreateGenerated("map-edit-refusal", _ => new DeterministicDecisionProvider());
@@ -146,6 +182,8 @@ public sealed class WorldMapEditTests
             command with { Operations = [operation with { Kind = "set_weather_season" }] },
             command with { Operations = [Operation("place_resource", "food", point) with { IsRenewable = false }] },
             command with { Operations = [Operation("place_object", "storage", point) with { Id = new string('x', DerivedId.MaximumLength + 1) }] },
+            command with { Operations = [Operation("place_object", "storage", point) with { Id = "storage" }] },
+            command with { Operations = [Operation("place_object", "cooking", point) with { Id = "cooking" }] },
         })
         {
             var result = world.ApplyMapEdit(invalid, _ => Assert.Fail("A refused batch must never reach persistence."));

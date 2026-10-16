@@ -90,6 +90,8 @@ public sealed partial class WorldRuntime
             }
             else
             {
+                if (WorldMapEditRules.IsReservedObjectId(id))
+                    return "That ID belongs to the starting site. Choose another object ID or leave it empty.";
                 if (!map.IsBuildable(point)) return $"Tile ({x}, {y}) needs open, buildable ground.";
                 if (founderSetup is { Started: false }) return "Start the settlement before placing camp objects.";
                 objects.Add(new(id, choice.ObjectKind!, point));

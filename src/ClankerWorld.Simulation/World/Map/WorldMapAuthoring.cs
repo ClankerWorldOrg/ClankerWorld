@@ -19,7 +19,8 @@ public sealed record WorldMapAuthoring(
         Resources.All(resource => resource is not null && IdentityRules.Reference(resource.Id, DerivedId.MaximumLength) && map.Contains(resource.Position) &&
             resource.TreeKind is null && WorldMapEditRules.Choices.Any(choice => choice.ResourceKind == resource.Kind &&
                 choice.NaturalObjectKind == resource.NaturalObjectKind && choice.IsRenewable == resource.IsRenewable)) &&
-        Objects.All(item => item is not null && IdentityRules.Reference(item.Id, DerivedId.MaximumLength) && map.Contains(item.Position) &&
+        Objects.All(item => item is not null && IdentityRules.Reference(item.Id, DerivedId.MaximumLength) &&
+            !WorldMapEditRules.IsReservedObjectId(item.Id) && map.Contains(item.Position) &&
             WorldMapEditRules.Choices.Any(choice => choice.ObjectKind is not null && choice.ObjectKind == item.Kind)) &&
         Resources.Select(resource => resource.Id).Concat(Objects.Select(item => item.Id)).Distinct(StringComparer.Ordinal).Count() == Resources.Count + Objects.Count &&
         Resources.Select(resource => resource.Position).Concat(Objects.Select(item => item.Position)).Distinct().Count() == Resources.Count + Objects.Count &&

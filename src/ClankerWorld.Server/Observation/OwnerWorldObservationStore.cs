@@ -544,7 +544,7 @@ public sealed partial class OwnerWorldObservationStore
         var mapLayersUnchanged = terrainUnchanged && mapLayersDigest is not null &&
             string.Equals(knownMapLayersDigest, mapLayersDigest, StringComparison.Ordinal);
         var packedTerrain = state.Geography is null || terrainUnchanged ? null : PackTerrain(map);
-        var weatherAnchor = map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
+        var weatherAnchor = map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
             state.Towns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
             map.Resources.First(item => item.Id == "berry-patch").Position;
         var anchorWeather = state.WorldSystems is { } currentSystems

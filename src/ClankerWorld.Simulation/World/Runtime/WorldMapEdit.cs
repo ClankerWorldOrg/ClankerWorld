@@ -15,6 +15,11 @@ public sealed record WorldMapEditChoice(string Operation, string Value, string D
 public static class WorldMapEditRules
 {
     public const int MaximumOperations = 64;
+
+    // Native starting-site references must never be claimed by an added object.
+    public static bool IsReservedObjectId(string id) => id is "cooking" or "founder-scout" or "shelter" or
+        "storage" or "bedroll" or "second-shelter" or "workshop" or "path";
+
     public static IReadOnlyList<WorldMapEditChoice> Choices { get; } = Array.AsReadOnly(new WorldMapEditChoice[]
     {
         new("set_terrain", "meadow", "Meadow", TerrainKind.Meadow),

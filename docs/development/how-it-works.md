@@ -4547,7 +4547,9 @@ checks pause, bounds, supported kinds, unique tiles and empty placement, then
 builds an isolated proposal. Terrain writes update the compatibility tile and
 its independent elevation, hydrology, surface and vegetation layers; resource
 placements update ecology and chunk manifests through `EnvironmentSystem`.
-Map acceptance and strict checkpoint validation run before persistence.
+Map acceptance and strict checkpoint validation run before persistence. Added
+objects cannot claim built-in starting-site IDs or replace the original
+camp/Town weather anchor.
 `WorldStateFile.ApplyMapEdit` saves the proposal before publishing live state,
 so a refusal or failed write exposes none of a batch.
 
