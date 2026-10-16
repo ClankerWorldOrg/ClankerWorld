@@ -1299,7 +1299,7 @@ no offline progress or change to a manual pause. An unfinished model call can
 be cancelled and retried later; the provider may charge for both attempts.
 
 To remove one save, choose it in **Load World**, **Load Save** or **Save World** and choose
-**Delete**.
+**Delete**. Load a world before deleting one of its saves.
 The confirmation also opens when you manage the current world's saves straight
 after starting the game. It names the save; deletion is permanent and
 leaves its world

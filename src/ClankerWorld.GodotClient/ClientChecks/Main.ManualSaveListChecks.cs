@@ -111,6 +111,8 @@ public partial class Main
                 if (!token.IsCancellationRequested || listedSaveWorldId != "world-B" || !WorldHistoryEmbedded)
                     throw new InvalidOperationException("Choosing another world must cancel the old history and show the chosen world's saves.");
                 ChooseTimelineSave(listedManualSaves[0].Id);
+                if (!manualSaveDeleteButton.Disabled)
+                    throw new InvalidOperationException("Deleting a save of an inactive world must wait until that world is open.");
                 var chosenId = SelectedManualSave()?.Id;
                 var status = worldMenuStatus.Text;
                 if (fail) stale.SetException(new IOException("Controlled stale history failure."));
@@ -318,6 +320,18 @@ public partial class Main
                     if (SelectedManualSave()?.Id != "old" || !manualSaveDetails.FindChildren("*", nameof(Label), true, false)
                         .OfType<Label>().Any(label => label is FittedLabel fitted && fitted.FullText == "Before the flood"))
                         throw new InvalidOperationException("Choosing another branch's older save must update the shared description card.");
+                    for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    var visible = worldMenuScroll.GetGlobalRect().Grow(2);
+                    if (menuLayer.Size.X >= 920 && (!visible.Encloses(manualSaveTimeline.GetGlobalRect()) ||
+                        !visible.Encloses(worldSelectButton.GetGlobalRect())))
+                        throw new InvalidOperationException("Load World must keep its timeline and Load button in view without outer scrolling at the default size.");
+                    var evidence = OS.GetEnvironment("CLANKERWORLD_LOAD_TIMELINE_EVIDENCE");
+                    if (evidence.Length > 0)
+                    {
+                        using var capture = GetViewport().GetTexture().GetImage();
+                        if (capture.SavePng(evidence) != Error.Ok)
+                            throw new InvalidOperationException("Load World timeline evidence could not be saved.");
+                    }
                     manualSaveViewChoice.Select(1);
                     manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
                     if (!manualSaveList.IsVisibleInTree() || SelectedManualSave()?.Id != "old")

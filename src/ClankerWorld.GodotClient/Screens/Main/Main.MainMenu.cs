@@ -64,6 +64,7 @@ public partial class Main
     private readonly Button menuLoadSaveButton = new();
     private readonly VBoxContainer worldSaveHistoryHost = new();
     private readonly HFlowContainer worldLoadColumns = new();
+    private readonly HBoxContainer worldMenuActions = new();
     private CatalogWorld[] listedWorlds = [];
     private readonly Button worldDeleteButton = new();
     private string? listedActiveWorldId;
@@ -523,7 +524,7 @@ public partial class Main
         worldSaveHistoryHost.Hide();
         worldMenuBody.AddChild(worldLoadColumns);
 
-        var actions = new HBoxContainer();
+        var actions = worldMenuActions;
         actions.AddThemeConstantOverride("separation", 8);
         // Deleting sits apart on the left, away from the main action on the right.
         worldDeleteButton.Text = "Delete World";
@@ -601,9 +602,11 @@ public partial class Main
         worldMenuColumns.GetChild<Control>(0).CustomMinimumSize = new Vector2(Math.Min(optionsWidth, width), 0);
         worldMenuColumns.GetChild<Control>(1).CustomMinimumSize = new Vector2(previewWidth, 0);
         worldPreviewFrame.CustomMinimumSize = new Vector2(previewWidth, previewWidth / 2);
-        var beside = width >= 896;
-        worldSelectionList.CustomMinimumSize = new Vector2(beside ? 260 : width, beside ? 300 : 150);
-        worldSaveHistoryHost.CustomMinimumSize = new Vector2(beside ? width - 276 : width, 0);
+        // Leave room for the outer scrollbar so it cannot wrap the history below the world cards.
+        var loadWidth = width - 18;
+        var beside = loadWidth >= 860;
+        worldSelectionList.CustomMinimumSize = new Vector2(beside ? 260 : loadWidth, beside ? 300 : 150);
+        worldSaveHistoryHost.CustomMinimumSize = new Vector2(beside ? loadWidth - 276 : loadWidth, 0);
         if (WorldHistoryEmbedded) FitManualSaveTimeline();
         worldMenuScroll.CustomMinimumSize = new Vector2(width, 0);
         var contentHeight = worldMenuBody.GetCombinedMinimumSize().Y;

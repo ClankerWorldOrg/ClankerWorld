@@ -17,6 +17,7 @@ public partial class Main
     private readonly Button manualSaveBackButton = new();
     private readonly SlotList manualSaveList = new();
     private readonly VBoxContainer manualSaveHistory = new();
+    private readonly HBoxContainer manualSaveActions = new();
     private VBoxContainer manualSaveBody = null!;
     private bool WorldHistoryEmbedded => manualSaveHistory.GetParent() == worldSaveHistoryHost;
     private bool worldHistoryLoading;
@@ -241,7 +242,7 @@ public partial class Main
         };
         manualSaveHistory.AddChild(manualSaveList);
         // Deleting sits apart on the left, away from the main action on the right.
-        var actions = new HBoxContainer();
+        var actions = manualSaveActions;
         actions.AddThemeConstantOverride("separation", 8);
         manualSaveDeleteButton.Text = "Delete";
         StyleButton(manualSaveDeleteButton);
@@ -536,6 +537,7 @@ public partial class Main
         worldHistoryLoaded = false;
         worldSaveHistoryHost.Hide();
         if (!WorldHistoryEmbedded) return;
+        manualSaveDeleteButton.Hide();
         manualSaveHistory.Hide();
         listedSaveWorldId = null;
         listedManualSaves = [];
@@ -575,6 +577,14 @@ public partial class Main
             listedManualSaves = OrderSavesByBranch(history.Saves);
             manualSaveLoadMode = true;
             if (!WorldHistoryEmbedded) manualSaveHistory.Reparent(worldSaveHistoryHost);
+            if (manualSaveDeleteButton.GetParent() != worldMenuActions)
+            {
+                manualSaveDeleteButton.Reparent(worldMenuActions);
+                worldMenuActions.MoveChild(manualSaveDeleteButton, 1);
+            }
+            manualSaveDeleteButton.Text = "Delete Save";
+            manualSaveDeleteButton.Show();
+            manualSaveActions.Hide();
             worldSaveHistoryHost.Show();
             manualSaveHistory.Show();
             manualSaveLoadButton.Hide();
@@ -621,7 +631,9 @@ public partial class Main
         }
         manualSaveLoadButton.Disabled = !manualSaveLoadMode || !valid;
         manualSaveOverwriteButton.Disabled = manualSaveLoadMode || !valid || listedManualSaves[selected[0]].IsAutosave;
-        manualSaveDeleteButton.Disabled = !valid || listedSaveWorldId is null;
+        var inactiveWorld = WorldHistoryEmbedded && listedSaveWorldId != CurrentManualSaveWorldId();
+        manualSaveDeleteButton.Disabled = !valid || listedSaveWorldId is null || inactiveWorld;
+        manualSaveDeleteButton.TooltipText = inactiveWorld ? "Open this world before deleting one of its saves." : string.Empty;
         manualSaveCreateButton.Disabled = isOwnerAction || manualSaveLoadMode || observationSession.AwaitingFreshBaseline;
         recoveryCleanupButton.Disabled = WorldHistoryEmbedded || isOwnerAction || observationSession.AwaitingFreshBaseline ||
             listedSaveWorldId is null || observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != true;
@@ -651,6 +663,14 @@ public partial class Main
             manualSaveHistory.Reparent(manualSaveBody);
             manualSaveBody.MoveChild(manualSaveHistory, manualSaveNewBox.GetIndex() + 1);
         }
+        if (manualSaveDeleteButton.GetParent() != manualSaveActions)
+        {
+            manualSaveDeleteButton.Reparent(manualSaveActions);
+            manualSaveActions.MoveChild(manualSaveDeleteButton, 0);
+        }
+        manualSaveDeleteButton.Text = "Delete";
+        manualSaveDeleteButton.Show();
+        manualSaveActions.Show();
         manualSaveHistory.Show();
         listedSaveCalendar = observedCalendarPace;
         listedSaveWorldTick = observationSession.Current?.Baseline.Snapshot.WorldTick;
@@ -925,6 +945,7 @@ public partial class Main
     }
     private void ConfirmSaveDeletion()
     {
+        if (manualSaveDeleteButton.Disabled) return;
         if (manualSaveList.GetSelectedItems() is not { Length: 1 } selected ||
             selected[0] < 0 || selected[0] >= listedManualSaves.Length || listedSaveWorldId is null) return;
         var save = listedManualSaves[selected[0]];

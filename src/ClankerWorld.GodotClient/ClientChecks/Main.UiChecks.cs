@@ -1001,6 +1001,14 @@ public partial class Main
     {
         try
         {
+            if (OS.GetCmdlineUserArgs().Contains("--load-world-timeline-only", StringComparer.Ordinal))
+            {
+                GetWindow().Size = new Vector2I(1280, 720);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                await VerifyLoadWorldTimelineAsync();
+                Callable.From(() => FinishUiSmoke(0)).CallDeferred();
+                return;
+            }
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
             await VerifyPanelDraftPreservationAsync();
