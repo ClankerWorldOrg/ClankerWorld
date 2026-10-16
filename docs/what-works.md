@@ -58,6 +58,8 @@ stored goods, including other owners' goods and materials held for work; the
 household's item grid is a separate view. An older server without a recorded
 limit keeps its item grid and has no guessed capacity bar.
 
+Agents walk out through a building's doorway and stay outside until they reach
+the next building's doorway, including when buildings share a wall.
 People inside a building, standing under its roof, are hidden from the map.
 At close and mid zoom the building shows a small badge in its top-right corner
 with how many people are inside; hovering it names them, and the building's

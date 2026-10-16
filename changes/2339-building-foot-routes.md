@@ -1,0 +1,1 @@
+- Agents leave buildings through their doorways and walk outside to neighbouring buildings instead of passing through their shared walls.

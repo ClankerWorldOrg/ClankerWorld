@@ -2537,6 +2537,15 @@ unsupported revisions are rejected rather than substituted. Individual trees are
 objects/resources. Old generated worlds recover missing layers from saved
 deterministic options and retain their original resource layout.
 
+Traveler routes apply `BuildingMovementRules` to the same terrain steps in
+forward searches, reverse reachability and cart routing. A building footprint
+connects to outdoor ground only through its recorded entrance; without a Road,
+it uses the drawing's default south doorway. Shared walls and outdoor diagonal
+corners are closed. Expanded footprints use their effective dimensions, and a
+changed building list invalidates the derived geometry and route searches.
+Movement within the departure or destination building remains possible; an
+unrelated building cannot supply a shortcut through its single doorway.
+
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
 to be passable, including clear occupancy during a move. A river is waded in a

@@ -10,16 +10,19 @@ internal sealed class UnoccupiedReachabilitySearch
     private readonly WorldMap map;
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly Func<GridPoint, GridPoint, bool>? canStep;
     private readonly bool[] reached;
     private readonly Queue<GridPoint> open = new();
 
     internal UnoccupiedReachabilitySearch(WorldMap map, HashSet<GridPoint> occupied,
         GridPoint destination, int interactionRange,
-        Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null)
+        Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
+        Func<GridPoint, GridPoint, bool>? canStep = null)
     {
         this.map = map;
         this.occupied = occupied;
         this.neighbors = neighbors;
+        this.canStep = canStep;
         Destination = destination;
         InteractionRange = interactionRange;
         reached = new bool[checked(map.Width * map.Height)];
@@ -63,7 +66,7 @@ internal sealed class UnoccupiedReachabilitySearch
 
     private void Visit(GridPoint current, GridPoint next)
     {
-        if (reached[Index(next)] || map.IsDiagonalFootStep(current, next) &&
+        if (canStep?.Invoke(current, next) == false || reached[Index(next)] || map.IsDiagonalFootStep(current, next) &&
             (occupied.Contains(new GridPoint(next.X, current.Y)) ||
              occupied.Contains(new GridPoint(current.X, next.Y)))) return;
         reached[Index(next)] = true;

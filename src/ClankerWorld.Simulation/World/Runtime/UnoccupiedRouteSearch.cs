@@ -18,6 +18,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, GridPoint, int> stepCost;
     private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly Func<GridPoint, GridPoint, bool>? canStep;
     private readonly int[] best;
     private readonly int[] predecessor;
     private readonly int[] finishedOrder;
@@ -31,13 +32,16 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     /// <param name="occupied">Tiles a route may not enter, nor cut past diagonally. The search keeps the set, so it must not change.</param>
     /// <param name="stepCost">The cost of one foot step; it must stay the same while the search is used.</param>
     /// <param name="neighbors">Legal steps for this traveler; defaults to ordinary foot movement. It must stay the same while the search is used.</param>
+    /// <param name="canStep">Additional reversible edge rules, such as building walls; stable for this search.</param>
     public UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
-        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null)
+        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
+        Func<GridPoint, GridPoint, bool>? canStep = null)
     {
         this.map = map ?? throw new ArgumentNullException(nameof(map));
         this.occupied = occupied ?? throw new ArgumentNullException(nameof(occupied));
         this.stepCost = stepCost ?? throw new ArgumentNullException(nameof(stepCost));
         this.neighbors = neighbors;
+        this.canStep = canStep;
         if (!map.Contains(origin))
             throw new ArgumentOutOfRangeException(nameof(origin));
         Origin = origin;
@@ -115,7 +119,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void VisitNeighbor(GridPoint current, int index, int cost, GridPoint next)
     {
-        if (occupied.Contains(next) ||
+        if (canStep?.Invoke(current, next) == false || occupied.Contains(next) ||
             map.IsDiagonalFootStep(current, next) &&
             (occupied.Contains(new GridPoint(next.X, current.Y)) ||
              occupied.Contains(new GridPoint(current.X, next.Y))))
