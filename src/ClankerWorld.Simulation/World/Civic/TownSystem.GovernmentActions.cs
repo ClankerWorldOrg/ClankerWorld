@@ -19,7 +19,8 @@ internal sealed partial class TownSystem
                 TownArrangementRules.Key(government.Arrangement with { NonLand = TownArrangementRules.Mayor }), NonLandExtensionToken(office),
                 "Propose adding nonviolent civil adjudication to " + world.Society.GetAgent(office.HolderId!).Name +
                 "'s existing " + TownArrangementRules.MandateLabel(office.Mandates) + " term. Resident majority and their separate personal consent are required; the existing term deadline stays unchanged.", 195);
-        foreach (var change in government.Changes)
+        foreach (var change in government.Changes.Where(change => change.Status is "queued" or "voting" or "handover" &&
+                     change.NonLandExtension is { ConsentTick: null } extension && extension.HolderId == actor))
             OfferGovernmentOffice(world, candidates, actor, town, GovernmentOfficeKind.AcceptNonLand, change.Id, "",
                 "Personally accept these proposed additional nonviolent adjudication duties for your existing term. This supplies no resident vote, and does not restart your term.", 185);
         OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.ReplaceMayor, TownArrangementRules.Key(government.Arrangement),
