@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record ProjectAssistanceChoice(string ItemKind)
 {
     public const string Prefix = "assist:";
-    public string Encode() => Prefix + ItemKind;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ItemKind);
 }
 
 public sealed record ProjectAssistanceActionPlan(string ActorId, ProjectAssistanceChoice Choice, string RequesterId,

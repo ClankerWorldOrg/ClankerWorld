@@ -3,7 +3,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record ExpansionChoice(string BuildingId)
 {
     public const string Prefix = "expand_building:";
-    public string Encode() => Prefix + BuildingId;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, BuildingId);
 }
 
 public sealed record ExpansionMaterialInput(string LotId, string OwnerId, string ItemKind, int Quantity);

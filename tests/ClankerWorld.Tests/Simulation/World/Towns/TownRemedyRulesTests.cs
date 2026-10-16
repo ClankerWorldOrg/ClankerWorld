@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
 
@@ -118,7 +119,7 @@ public sealed class TownRemedyRulesTests
         var state = Respond(Offered([new("work", kind, "subject", beneficiary, item, 1, target)]), "subject");
         var agreement = state.Agreements[0];
         var receipt = new TownRemedyEffect("effect:work", agreement.Id, "work", "subject", 23, kind,
-            beneficiary, item, 1, target, "native:work", "version");
+            beneficiary, item, 1, target, Identity.Parse("native:work"), "version");
         Assert.Throws<InvalidOperationException>(() => TownRemedyRules.RecordEffect(state, receipt with { TargetId = "other" }));
         Assert.Throws<InvalidOperationException>(() => TownRemedyRules.RecordEffect(state, receipt with { ItemKind = "other" }));
         state = TownRemedyRules.RecordEffect(state, receipt);
@@ -137,5 +138,5 @@ public sealed class TownRemedyRulesTests
         IReadOnlyList<TownCivicReceipt>? receipts = null, bool feasible = true) => TownRemedyRules.Respond(state, state.Offers[0].Id,
             state.Offers[0].Revision, actor, kind, null, tick, 10, receipts ?? [new(actor, "notice:offer", 22)], feasible);
     private static TownRemedyEffect Effect(TownRestorativeAgreement agreement, int quantity, long tick, string receipt) =>
-        new("effect:" + receipt, agreement.Id, "goods", "subject", tick, "return_goods", "witness", "wood", quantity, null, receipt, "version");
+        new("effect:" + receipt, agreement.Id, "goods", "subject", tick, "return_goods", "witness", "wood", quantity, null, Identity.Parse(receipt), "version");
 }

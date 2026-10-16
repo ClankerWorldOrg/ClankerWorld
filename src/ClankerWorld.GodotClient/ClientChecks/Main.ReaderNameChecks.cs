@@ -63,7 +63,7 @@ public partial class Main
                         var close = panel.FindChildren("*", nameof(Button), recursive: true, owned: false).OfType<Button>()
                             .Single(button => button.TooltipText.StartsWith("Close", StringComparison.Ordinal));
                         var viewport = GetViewportRect().Grow(1);
-                        if (!panel.IsVisibleInTree() || title.Text != expected || title.TooltipText != expected ||
+                        if (!panel.IsVisibleInTree() || title is not ClankerWorld.GodotClient.UI.FittedLabel fitted || fitted.FullText != expected || title.TooltipText != expected ||
                             !viewport.Encloses(panel.GetGlobalRect()) || !viewport.Encloses(close.GetGlobalRect()) ||
                             panel.GetGlobalRect().Size.X > (ReaderWidth + 1) * factor)
                             throw new InvalidOperationException($"Reader and Close must fit and retain the complete {name.Length}-character heading at {window.Size}: title={title.Text}, expected={expected}, panel={panel.GetGlobalRect()}, close={close.GetGlobalRect()}.");
@@ -86,6 +86,8 @@ public partial class Main
                         var displayed = snapshot with { Conversations = [conversation] };
                         var viewer = kind == "nearby" ? third.Id : person.Id;
                         OpenConversationReader(displayed, viewer, conversation.Id);
+                        await SettleAsync();
+                        RenderConversationReader(displayed, conversation, viewer, 0);
                         var heading = kind switch
                         {
                             "marriage_surname" => $"Shared surname · {name} and {otherName}",

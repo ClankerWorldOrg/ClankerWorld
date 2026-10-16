@@ -1,0 +1,1 @@
+- Event Log descriptions name the correct animal and Town, and retain both traders in a cancelled Market trade.

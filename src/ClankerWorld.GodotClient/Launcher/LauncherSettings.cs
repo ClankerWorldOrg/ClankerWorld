@@ -114,22 +114,30 @@ public static class GameStarter
     {
         if (settings.DeveloperMode && (settings.UseTestData || settings.DetailedLogs))
         {
-            var manifest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(executable))!, LauncherLayout.PackageManifest);
-            if (!File.Exists(manifest) || !File.ReadLines(manifest).Contains(DeveloperOptionsMarker, StringComparer.Ordinal))
+            var directory = PackageEntryPoints.FindInstalledForGame(executable)?.Directory;
+            var manifest = directory is null ? null : Path.Combine(directory, LauncherLayout.PackageManifest);
+            if (manifest is null || !File.Exists(manifest) || !File.ReadLines(manifest).Contains(DeveloperOptionsMarker, StringComparer.Ordinal))
                 throw new GameInstallException("This build doesn't support the test data folder or detailed logs. Choose a newer build, or turn these options off.");
         }
         var logs = Path.Combine(layout.GameDataDirectory(settings), "logs");
-        Directory.CreateDirectory(logs);
         return StartProcess(executable, launcherExecutable, settings.DeveloperMode, worldId,
-            settings.UseTestData, settings.DetailedLogs, Path.Combine(logs, "game.log"));
+            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs));
+    }
+
+    /// <summary>Godot disables rotation with --log-file; keep the last run before it opens the new log.</summary>
+    public static string PrepareGameLog(string directory)
+    {
+        Directory.CreateDirectory(directory);
+        var current = Path.Combine(directory, "game.log");
+        if (File.Exists(current)) File.Move(current, Path.Combine(directory, "game.previous.log"), overwrite: true);
+        return current;
     }
 
     public static Process StartLocal(string executable, string launcherExecutable, LauncherSettings settings, LauncherLayout layout)
     {
         if (!settings.DeveloperMode) throw new GameInstallException("Turn on Developer mode to run a local build.");
-        var directory = Path.GetDirectoryName(Path.GetFullPath(executable))!;
-        if (!File.Exists(executable) || PackageEntryPoints.ReadInstalled(directory) is not { } entryPoints ||
-            !File.Exists(Path.Combine(directory, entryPoints.Server)))
+        if (!File.Exists(executable) || PackageEntryPoints.FindInstalledForGame(executable) is not { } package ||
+            !File.Exists(Path.Combine(package.Directory, package.EntryPoints.Server)))
             throw new GameInstallException("Choose a locally built portable game with its world server. Your saves are safe.");
         return Start(executable, launcherExecutable, settings, layout);
     }
