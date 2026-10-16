@@ -324,6 +324,9 @@ public sealed partial class WorldConstructionOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "construction-jug", "water_jug", Alpha, 1, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "construction-water", "fresh_water", Alpha, 1,
             storageBuildingId: House, containerLotId: "construction-jug");
+        inventory = InventoryAuthority.AddLot(inventory, "construction-bread", "bread", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-greens", "cultivated_greens", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-meals", "food", Alpha, 8, storageBuildingId: House);
         state = WithInventory(state, inventory) with
         {
             JevEnabled = true,

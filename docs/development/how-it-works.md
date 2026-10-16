@@ -3563,9 +3563,9 @@ reach rules. Construction costs cannot double as the station's only input
 stock. Restaurants also protect one day's meals for the Town's residents.
 Houses and Stores have no production-input prerequisite. Admission rebuilds
 the same eligible offers, and project start and continuation recheck the rule
-before spending construction materials. Already placed buildings and explicit
-owner construction orders retain their existing behavior. No eligibility
-result is cached or saved.
+before spending construction materials. Explicit owner construction orders
+use the same prerequisite; already placed buildings remain in place. No
+eligibility result is cached or saved.
 
 Harvests remain household-owned lots on their actual field tile. An adult
 carries a load of at most four raw crops or planting items to the household's Farmhouse or Silo.

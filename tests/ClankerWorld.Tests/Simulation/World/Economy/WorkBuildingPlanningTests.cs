@@ -201,6 +201,23 @@ public sealed class WorkBuildingPlanningTests
     }
 
     [Fact]
+    public async Task ExplicitConstructionOrderWaitsWhenItsWorkInputsAreMissing()
+    {
+        var (state, actor, _, building) = await Fixture("tailor");
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
+        var receipt = world.SubmitInstruction(new("work-input-order", "owner:planning-test", actor,
+            OwnerInstructionKind.Order, "build one Tailor Shop"));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
+        Assert.Equal("blocked", order.Status);
+        Assert.Equal(0, order.CompletedUnits);
+        Assert.Null(world.Agents.Single(person => person.AgentId == actor).Project);
+        Assert.DoesNotContain(world.WorldSimulation.Buildings, placed => placed.DefinitionId == building.CanonicalId);
+        foreach (var cost in building.BuildCosts)
+            Assert.Equal(cost.Amount, world.Society.Inventory.GetLot("work-cost-" + cost.ResourceId).Quantity);
+    }
+
+    [Fact]
     public async Task ContinuingProjectBlocksWithoutSpendingCostsAndReplaysAfterReload()
     {
         var (state, actor, household, building) = await Fixture("tailor");

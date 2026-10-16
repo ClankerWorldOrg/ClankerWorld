@@ -571,7 +571,7 @@ public sealed partial class WorldRuntime
                 return;
             }
         }
-        if (building is not null && project.OrderInstructionId is null &&
+        if (building is not null &&
             society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
             !WorkBuildingHasInputs(agentId, workHousehold, building))
         {
