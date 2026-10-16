@@ -279,7 +279,22 @@ internal static class MarketTradeScenario
         for (var tick = 0; tick < 160 && !reached(); tick++)
         {
             var before = world.Agents.ToDictionary(person => person.AgentId, person => person.Position);
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            foreach (var decision in result.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null &&
+                         decision.Admission.Intention?.CandidateId is { } candidate &&
+                         (candidate.StartsWith("market_borrow:", StringComparison.Ordinal) || candidate.StartsWith("market_leave:", StringComparison.Ordinal))))
+            {
+                var plan = Assert.IsType<MarketOccupancyActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+                var market = world.Towns.Single(town => town.Id == plan.TownId).Markets.Single(item => item.Id == plan.Choice.MarketId);
+                if (plan.Choice.Leave || plan.Choice.AtSite)
+                {
+                    Assert.Contains(market.Occupancies, occupancy => occupancy.StallBuildingId == plan.Choice.StallId && occupancy.SellerAgentId == plan.Actor &&
+                        (plan.Choice.Leave ? occupancy.Id == plan.Choice.OccupancyId && occupancy.EndedTick == world.WorldTick : occupancy.StartedTick == world.WorldTick));
+                    Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+                }
+            }
             foreach (var person in world.Agents)
             {
                 if (before[person.AgentId] != person.Position)

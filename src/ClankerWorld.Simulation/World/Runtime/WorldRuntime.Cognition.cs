@@ -716,7 +716,7 @@ public sealed partial class WorldRuntime
                     SetOrderStatus(order, OrderStatus.Interrupted, "Food or warmth needs come first.");
                     if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                         IsMarketFoodCandidate(decision.AgentId, candidateId))
-                        ApplyMarketCandidate(decision.AgentId, state, candidateId);
+                        ApplyMarketCandidate(decision.AgentId, state, candidateId, decision.ActionPlan);
                     else if (urgentCandidate is not null)
                         ApplyCandidate(decision.AgentId, state, urgentCandidate.Id, reportIdle: true);
                 }
@@ -753,7 +753,7 @@ public sealed partial class WorldRuntime
             else if (IsMarketCandidate(candidateId))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ApplyMarketCandidate(decision.AgentId, state, candidateId);
+                    ApplyMarketCandidate(decision.AgentId, state, candidateId, decision.ActionPlan);
             }
             else if (!ApplyToolMakingRequestDecision(decision))
                 ApplyRegisteredCandidate(decision.AgentId, state, candidateId, reportIdle: true, decision.ActionPlan);
