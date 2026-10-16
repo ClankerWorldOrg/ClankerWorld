@@ -8,8 +8,7 @@ public sealed partial class WorldRuntime
     {
         var design = BuildingStorageRules.EffectiveDefinition(
             worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building);
-        return WorldContentSimulationRules.Footprint(design, building).SelectMany(point => map.FootNeighbors(point)
-                .Where(next => !map.IsDiagonalFootStep(point, next)))
+        return BuildingMovementRules.EntrancesFor(map, design, building.Position)
             .Where(point => (!occupied.Contains(point) || roadTiles.Contains(point)) && map.IsBuildable(point) &&
                 WorldContentSimulationRules.IsEntrance(design, building.Position, point) &&
                 (!design.Tags.Contains(TownHallContent.HallTag, StringComparer.Ordinal) || point == TownHallContent.Entrance(building.Position)) &&

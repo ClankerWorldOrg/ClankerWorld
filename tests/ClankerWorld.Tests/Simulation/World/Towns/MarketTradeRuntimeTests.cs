@@ -16,7 +16,7 @@ internal static class MarketTradeScenario
 {
     internal static async Task AssertPipelineAsync(WorldRuntime paidWorld)
     {
-        var boundary = paidWorld.ExportState();
+        var boundary = MovementTestWorld.ClearOtherBuildingAccess(paidWorld.ExportState());
         var market = Assert.Single(Assert.Single(boundary.Towns!).Markets);
         Assert.Equal("completed", Assert.Single(boundary.Towns![0].Projects, project => project.Id == market.ProjectId).Stage);
         Assert.Equal(2, market.Stalls.Count);

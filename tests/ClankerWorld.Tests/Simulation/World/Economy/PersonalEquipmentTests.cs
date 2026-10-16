@@ -144,7 +144,7 @@ public sealed class PersonalEquipmentTests
         };
         var target = state.WorldContent!.Recipes.Single(item => item.LocalId == recipeId);
         var weave = state.WorldContent.Recipes.Single(item => item.LocalId == "weave-cloth");
-        string[] choices = ["wear_clothing", "equip_carry_aid", "build:recipe:" + target.CanonicalId,
+        List<string> choices = ["wear_clothing", "equip_carry_aid", "build:recipe:" + target.CanonicalId,
             "haul_household_stock", "supply_workstation:rope", "build:recipe:" + weave.CanonicalId, "supply_workstation:fiber",
             "seek_warmth", "tend_fire", "consume_food", "collect_shared_food"];
         var actorChoices = new Choices(choices);
@@ -158,6 +158,9 @@ public sealed class PersonalEquipmentTests
             var tickLimit = kind == "padded_coat" ? 340 : 300;
             for (var tick = 0; tick < tickLimit; tick++)
             {
+                // Make one garment's inputs; collecting it may now take an outdoor trip.
+                if (world.WorldSimulation.ProductionJobs.Count(job => job.RecipeId == weave.CanonicalId) >= clothCost)
+                    choices.Remove("build:recipe:" + weave.CanonicalId);
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
                 AssertSourceReserves(world);
                 if (!reopened && world.WorldSimulation.ProductionJobs.Any(job =>

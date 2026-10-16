@@ -277,7 +277,9 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Contains(inherited.Id, settling.World.Boats[0].GroundCargoLotIds!);
             settling.World.Validate();
             var settledBytes = WorldRuntimeCodec.Encode(settling.World.ExportState());
-            using var settledReplay = new BoatScenario(WorldRuntimeCodec.Decode(settledBytes), new());
+            var replayPolicy = new BoatPolicy { LeaveToTown = policy.LeaveToTown };
+            replayPolicy.IdleActors.UnionWith(policy.IdleActors);
+            using var settledReplay = new BoatScenario(WorldRuntimeCodec.Decode(settledBytes), replayPolicy);
             for (var tick = 0; tick < 3; tick++)
             {
                 Assert.True((await settling.World.AdvanceOneTickAsync()).Advanced);
@@ -493,31 +495,38 @@ public sealed partial class PortBoatRuntimeTests
     /// <summary>An order to walk to <see cref="FreeSpotAwayFromPorts"/>.</summary>
     private static string MoveAwayFromPorts(WorldRuntime world)
     {
-        var spot = FreeSpotAwayFromPorts(world);
+        var spot = FreeSpotAwayFromPorts(world, Blockers[0]);
         return $"move to {spot.X},{spot.Y}";
     }
 
-    /// <summary>A free buildable tile in the Town, well away from every Port's landing.</summary>
-    private static GridPoint FreeSpotAwayFromPorts(WorldRuntime world)
+    /// <summary>A reachable outdoor tile away from Ports and the busy notice place.</summary>
+    private static GridPoint FreeSpotAwayFromPorts(WorldRuntime world, string actor = BoatPolicy.Author)
     {
         var state = world.ExportState();
         var ports = world.WorldSimulation.Buildings.Where(building => world.WorldContent.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains(PortContent.PortTag)).ToArray();
         var board = world.Towns[0].OriginSite!.Value;
-        var spot = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
-                state.Map.IsReachableOnFoot(board, point) && state.Agents.All(person => person.Position != point) &&
-                ports.All(port => state.Map.FootDistance(port.Position, point) >= 4))
-            .OrderBy(point => state.Map.FootDistance(board, point)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
-        return spot;
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
+        using var routes = MovementTestWorld.Routes(state, state.Agents.Single(person => person.AgentId == actor).Position, occupied);
+        return MovementTestWorld.OpenGround(state, actor, board, allowed: point =>
+            state.Agents.All(person => person.Position != point) &&
+            state.Map.FootDistance(board, point) > 1 &&
+            ports.All(port => state.Map.FootDistance(port.Position, point) >= 4) && routes.RouteTo(point, 0).Count > 0);
     }
 
     private static void AddLandingBlockers(BoatScenario scenario, string portId, int blockerOffset = 0)
     {
         var port = scenario.World.WorldSimulation.Buildings.Single(building => building.InstanceId == portId);
         var definition = scenario.World.WorldContent.Buildings.Single(definition => definition.CanonicalId == port.DefinitionId);
-        var land = PortNavigationRules.Geometry(scenario.World.ExportState().Map, definition, port.Position).LandTiles;
+        var map = scenario.World.ExportState().Map;
+        var entrance = BuildingMovementRules.EntranceFor(definition, port);
+        var walls = new BuildingMovementRules(scenario.World.WorldSimulation.Buildings, scenario.World.WorldContent.Buildings);
+        // The first blocker is the one an owner can walk out through the door
+        // while the other landing tiles remain occupied.
+        var land = PortNavigationRules.Geometry(map, definition, port.Position).LandTiles
+            .OrderByDescending(point => map.CanFootStep(point, entrance) && walls.CanStep(map, point, entrance)).ToArray();
         scenario.World.Pause();
-        for (var index = 0; index < land.Count; index++)
+        for (var index = 0; index < land.Length; index++)
         {
             Assert.Null(scenario.World.AddAgent(Blockers[index + blockerOffset], land[index]));
             scenario.Policy.IdleActors.Add(Blockers[index + blockerOffset]);
@@ -577,7 +586,8 @@ public sealed partial class PortBoatRuntimeTests
         {
             inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-food:" + person.AgentId), "food", person.AgentId,
                 person.AgentId == BoatPolicy.Author ? 2 : 4);
-            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-clothing:" + person.AgentId), "clothing", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-clothing:" + person.AgentId),
+                freshwater ? "padded_coat" : "clothing", person.AgentId, 1);
         }
         inventory = InventoryAuthority.AddLot(inventory, "travel-jug", InventoryContainerRules.WaterJug, BoatPolicy.Author, 1);
         inventory = InventoryAuthority.AddLot(inventory, "travel-water", InventoryContainerRules.FreshWater, BoatPolicy.Author, 1,
@@ -601,6 +611,26 @@ public sealed partial class PortBoatRuntimeTests
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = ticksPerDay, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
         };
+        // Start every voter outdoors; a later civic visit must not trap the builder at home.
+        state = MovementTestWorld.ClearOtherBuildingAccess(state);
+        if (freshwater)
+        {
+            // Three actual personal votes make this four-resident quorum.
+            // Coastal walls leave few approaches; voters may stand on a door
+            // or a resource tile, just as ordinary pedestrians can.
+            var footprints = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
+            var approaches = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
+                    state.Map.FootDistance(point, board) <= 1 && !footprints.Contains(point))
+                .OrderBy(point => point.Y).ThenBy(point => point.X).Take(3).ToArray();
+            Assert.True(approaches.Length == 3, "The coastal notice place needs three outdoor voter approaches.");
+            var voters = state.Agents.Take(3).ToArray();
+            state = state with
+            {
+                Agents = state.Agents.Select(person => Array.FindIndex(voters, voter => voter.AgentId == person.AgentId) is var index && index >= 0
+                    ? person with { Position = approaches[index] } : person).ToArray(),
+            };
+        }
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
         if (freshwater)
@@ -613,7 +643,8 @@ public sealed partial class PortBoatRuntimeTests
         }
         await scenario.UntilAsync(() => scenario.World.Boats.Count == 1, 600);
         policy.Build = false;
-        return WorldRuntimeCodec.Encode(scenario.World.ExportState());
+        // Each journey scenario starts with the idle builders outside, clear of doors.
+        return WorldRuntimeCodec.Encode(MovementTestWorld.ClearOtherBuildingAccess(scenario.World.ExportState()));
     }
 
     private static async Task<byte[]> StartVoyageAsync()
@@ -688,7 +719,7 @@ public sealed partial class PortBoatRuntimeTests
                 }
                 var selected = policy.LeaveToTown && request.Observation.Will is not null ? candidates.Single(candidate => candidate.Id == CognitionWillContext.HeirsCandidateId) :
                     policy.IdleActors.Contains(actor) ? candidates.Single(candidate => candidate.Id == "safe_idle") :
-                    Blockers.Contains(actor, StringComparer.Ordinal) ? candidates.FirstOrDefault(candidate => candidate.Id == "move_to") : null;
+                    candidates.FirstOrDefault(candidate => candidate.Id == "move_to");
                 selected ??= candidates.Where(candidate => candidate.DeterministicPriority <= 5 && candidate.Id is
                         "consume_food" or "collect_shared_food" or "take_food_from_pot" or "harvest_food" or "seek_food" or "seek_warmth" or "wear_clothing")
                     .OrderBy(candidate => candidate.DeterministicPriority).FirstOrDefault() ??

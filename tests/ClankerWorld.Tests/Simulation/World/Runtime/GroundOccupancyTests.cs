@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 public sealed class GroundOccupancyTests
 {
     [Fact]
-    public async Task GrownTownKeepsEachOldObstacleUnionAndItsEnumerationOrder()
+    public async Task GrownTownKeepsObstacleUnionsAndTheirEnumerationOrderIncludingDoorways()
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
         Assert.True(scenario.World.WorldTick > 0);
@@ -53,7 +53,9 @@ public sealed class GroundOccupancyTests
             ["original"] = simulation.Buildings.SelectMany(building =>
                 WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building.Position)),
             ["protected"] = simulation.Buildings.SelectMany(building =>
-                PortNavigationRules.ProtectedBuildingTiles(map, definitions[building.DefinitionId], building)),
+                PortNavigationRules.ProtectedBuildingTiles(map, definitions[building.DefinitionId], building))
+                .Concat(simulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                    BuildingStorageRules.EffectiveDefinition(definitions[building.DefinitionId], building), building))),
             ["expansions"] = (simulation.BuildingExpansions ?? []).Where(job =>
                     job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
                 .SelectMany(job => Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(y =>
@@ -91,7 +93,7 @@ public sealed class GroundOccupancyTests
             ["animals"] = ground.AnimalPositions(),
         };
         foreach (var key in old.Keys) Assert.Equal(old[key].ToArray(), current[key].ToArray());
-        // These are the pre-refactor recipes, including their deliberately different layer orders.
+        // Retain each recipe's deliberately different layer order; protection now includes doors.
         foreach (var recipe in Recipes)
         {
             var names = recipe.Split(' ');
@@ -120,6 +122,9 @@ public sealed class GroundOccupancyTests
             .SelectMany(building => PortNavigationRules.Geometry(map, definitions[building.DefinitionId], building.Position).DockingTiles));
         Assert.Equal(expectedPlacement.ToArray(), ReadProperty<HashSet<GridPoint>>(placement, "Occupied").ToArray());
         Assert.Equal(old["markets"].ToHashSet().ToArray(), ReadProperty<HashSet<GridPoint>>(placement, "Market").ToArray());
+        Assert.Equal(simulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                BuildingStorageRules.EffectiveDefinition(definitions[building.DefinitionId], building), building)).ToHashSet().ToArray(),
+            ReadProperty<HashSet<GridPoint>>(placement, "Entrances").ToArray());
         var siteWorld = Invoke<object>(world, "CreateTownProjectSiteWorld", towns[0], null, false);
         Assert.Equal(Expected("resources objects fields buildings expansions sites").ToArray(),
             ReadProperty<Lazy<HashSet<GridPoint>>>(siteWorld, "Occupied").Value.ToArray());
