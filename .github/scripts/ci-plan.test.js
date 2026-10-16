@@ -160,31 +160,66 @@ test("main's timings are each test's median over its runs, so one slow run doesn
   assert.deepEqual(readMainTimings(undefined), { times: {}, runs: 0, ids: [] });
 });
 
-test("main-timings.sh downloads main's latest green runs into a folder each and drops a failed one", t => {
+test("main-timings.sh skips unmerged successes, paginates to the requested count and drops failed downloads", t => {
   const dir = tempDir(t);
   const bin = path.join(dir, 'bin');
   fs.mkdirSync(bin);
-  // A stand-in gh: three green runs, and the second run's download fails halfway.
+  // First page: newer unmerged retry, divergent candidate, and an actual main run.
+  // Second page supplies the remaining two main runs and one we must not select.
   fs.writeFileSync(path.join(bin, 'gh'), `#!/usr/bin/env bash
-printf '%s\n' "$*" >> "${dir}/calls.txt"
-if [ "$1" = api ]; then printf '11\n22\n33\n'; exit 0; fi
+printf '%s\\n' "$*" >> "${dir}/calls.txt"
+if [ "$1" = api ]; then
+  case "$2" in
+    */commits/main) echo pinned-main ;;
+    *page=1) printf '99\\tahead\\n88\\tdiverged\\n11\\tbehind\\n' ;;
+    *page=2) printf '22\\tidentical\\n33\\tbehind\\n44\\tbehind\\n' ;;
+    */compare/pinned-main...*) echo "\${2##*...}" ;;
+    *) exit 1 ;;
+  esac
+  exit 0
+fi
 out="\${@: -1}"
 mkdir -p "$out/test-timings-1"
 if [ "$3" = 22 ]; then exit 1; fi
 echo trx > "$out/test-timings-1/timings.trx"
 `, { mode: 0o755 });
   const result = spawnSync('bash', [path.join(__dirname, 'main-timings.sh'), path.join(dir, 'main'), '3'], {
-    encoding: 'utf8',
+    encoding: 'utf8', timeout: 10000,
     env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, GITHUB_REPOSITORY: 'owner/repo' },
   });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(fs.readdirSync(path.join(dir, 'main')).sort(), ['11', '33']);
   assert.match(result.stdout, /Could not download the timings of run 22/);
+  assert.match(result.stdout, /Skipping run 99: ahead is not on main pinned-main/);
+  assert.match(result.stdout, /Skipping run 88: diverged is not on main pinned-main/);
   const calls = fs.readFileSync(path.join(dir, 'calls.txt'), 'utf8');
-  // The merge queue's green runs: main moves to the commits they tested, and pushes don't test again.
-  assert.match(calls, /^api repos\/owner\/repo\/actions\/workflows\/ci\.yml\/runs\?event=merge_group&status=success&per_page=3 /m);
-  assert.match(calls, /^run download 33 --repo owner\/repo --pattern test-timings-\* --dir .*\/main\/33$/m);
+  assert.match(calls, /^api repos\/owner\/repo\/actions\/workflows\/ci\.yml\/runs\?event=merge_group&status=success&per_page=100&page=2 /m);
+  assert.deepEqual([...calls.matchAll(/^run download (\d+) /gm)].map(m => m[1]).sort(), ['11', '22', '33']);
+  assert.equal((calls.match(/commits\/main/g) || []).length, 1);
 });
+
+for (const failure of [false, true]) {
+  test(`main-timings.sh leaves no baseline when ancestry ${failure ? 'cannot be read' : 'has no main runs'}`, t => {
+    const dir = tempDir(t);
+    const bin = path.join(dir, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'gh'), `#!/usr/bin/env bash
+case "$2" in
+  */commits/main) echo pinned-main ;;
+  *page=1) printf '99\\tunmerged\\n' ;;
+  *page=2) exit 0 ;;
+  */compare/*) ${failure ? 'exit 1' : 'echo ahead'} ;;
+  *) echo unexpected-call >&2; exit 2 ;;
+esac
+`, { mode: 0o755 });
+    const result = spawnSync('bash', [path.join(__dirname, 'main-timings.sh'), path.join(dir, 'main'), '3'], {
+      encoding: 'utf8', timeout: 10000,
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, GITHUB_REPOSITORY: 'owner/repo' },
+    });
+    assert.equal(result.status, failure ? 1 : 0, result.stderr);
+    assert.deepEqual(readMainTimings(path.join(dir, 'main')), { times: {}, runs: 0, ids: [] });
+  });
+}
 
 // A long class, a very slow method in another class and many quick classes.
 function measured() {
@@ -387,7 +422,9 @@ test('a push of a commit the merge queue already passed runs nothing but scope a
   const job = name => workflow.slice(workflow.indexOf(`\n  ${name}:\n`)).split(/\n  [a-z-]+:\n/)[1];
   // Only a push looks for the queue's run, and only a green run of this exact commit counts.
   assert.match(job('scope'), /\n        if: github\.event_name == 'push'\n/);
-  assert.match(job('scope'), /runs\?event=merge_group&status=success&head_sha=\$\{GITHUB_SHA\}/);
+  assert.match(job('scope'), /uses: actions\/github-script@v8/);
+  assert.match(job('scope'), /require\('\.\/\.github\/scripts\/queue-run\.js'\)/);
+  assert.match(job('scope'), /await findQueueRun\(\{ github, context, core \}\)/);
   assert.match(job('scope'), /queue-run: \$\{\{ steps\.queue\.outputs\.run \}\}/);
   for (const name of ['checks', 'tests', 'windows-documentation', 'windows-provider-storage', 'windows-installer']) {
     assert.match(job(name), /^    if: [^\n]*needs\.scope\.outputs\.queue-run == ''$/m, name);
