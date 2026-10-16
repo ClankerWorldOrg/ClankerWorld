@@ -263,6 +263,8 @@ public static class WorldEventFormatter
             "skill_learned" => DescribeSkill(payload, snapshot),
             "agent_recipe_learned" => $"{Name(snapshot, payload.ActorId ?? "")} learned a recipe through practice.",
             "agent_building_proposed" => $"{LeadingName(snapshot, payload)} suggested a new building design.",
+            "instruction_order_status" => $"{Name(snapshot, payload.ActorId ?? "")}'s order is blocked. See their Orders for the reason.",
+            "instruction_order_cancelled" => $"{Name(snapshot, payload.ActorId ?? "")}'s order was cancelled. See their Orders for details.",
             "instruction_not_understood" => $"{Name(snapshot, payload.ActorId ?? "")} didn't understand your order. " +
                 "Try one of the listed tasks, or use Suggest instead.",
             "town_civic_law" => $"{civicTownName} recorded a law decision. See the Towns page for its wording and scope.",

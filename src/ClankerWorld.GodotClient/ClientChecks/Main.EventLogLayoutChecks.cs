@@ -20,6 +20,7 @@ public partial class Main
         var previousVisibility = HudPanels().Append(familyTreePanel).Append(mainMenuOverlay)
             .Select(panel => (Panel: panel, panel.Visible)).ToArray();
         var previousEvents = knownEvents.ToArray();
+        var previousRefusals = eventLogRefusals;
         var previousRenderedEvents = renderedEventLog;
         var previousEventsWorld = eventLogWorldId;
         var previousSeen = lastSeenEventId;
@@ -46,6 +47,9 @@ public partial class Main
                 throw new InvalidOperationException($"Event Log resize must reach the native viewport and UI: requested {size}, viewport {GetViewport().GetVisibleRect().Size}, UI {UiSize}.");
         }
 
+        const string longEventText = "Élodie 🌿 Vale couldn't complete your order because the promised supplies were no longer available. " +
+            "The order is blocked until the supplies can be replaced. Open the agent's Orders to see the full reason and choose what to do next.";
+
         void Rows(int count, bool wrapped)
         {
             knownEvents.Clear();
@@ -54,7 +58,7 @@ public partial class Main
                 long id = 1_000 + index;
                 var worldEvent = new OwnerWorldEvent(id, index, wrapped ? "model_call_warning" : "tree_planted",
                     wrapped ? "used:812:limit:1000" : "founder-scout:planted-tree-1-1:broadleaf", index == 0 ? new OwnerWorldPosition(0, 0) : null)
-                { Text = wrapped ? "Model calls: 812 of 1,000 used across all worlds. Your worlds pause at the limit; raise it in Settings → Game." : "Someone planted a tree." };
+                { Text = wrapped ? longEventText : "Someone planted a tree." };
                 knownEvents[id] = worldEvent;
                 return (EventId: id, Located: worldEvent.Position is not null,
                     Clock: (index == 0 ? "2 Spring, Year 1" : "1 Spring, Year 1") + " · 12:00",
@@ -87,6 +91,7 @@ public partial class Main
 
         try
         {
+            eventLogRefusals = new();
             isRefreshing = true;
             isInWorld = true;
             mainMenuOverlay.Hide();
@@ -104,6 +109,14 @@ public partial class Main
                 shortRows.Sum(row => row.GetChildren().OfType<Button>().Count(ShowsFind)) != 1 ||
                 shortRows.Any(row => row.GetChildren().OfType<Label>().Last().GetLineCount() <= 1))
                 throw new InvalidOperationException("Event Log geometry fixture must contain two genuinely wrapped rows on different days and one Find button.");
+            foreach (var row in shortRows)
+            {
+                var text = row.GetChildren().OfType<Label>().Last();
+                if (text.Text != longEventText || text.ClipText || text.MaxLinesVisible != -1 ||
+                    text.TextOverrunBehavior != TextServer.OverrunBehavior.NoTrimming ||
+                    text.GetVisibleLineCount() != text.GetLineCount())
+                    throw new InvalidOperationException("Long Event Log sentences must wrap in full without trimming or clipping lines.");
+            }
             CheckShortHistory("with two wrapped days");
 
             Rows(30, wrapped: true);
@@ -159,6 +172,7 @@ public partial class Main
                 throw new InvalidOperationException("An actual model failure must have one readable Event Log row.");
             RenderEventLog();
             if (EventRows().Single() != failureRow) throw new InvalidOperationException("An unchanged failure refresh must retain its row.");
+            VerifyEventLogRefusalRollover();
         }
         finally
         {
@@ -168,6 +182,7 @@ public partial class Main
             window.ContentScaleAspect = previousScaleAspect;
             window.ContentScaleSize = previousRenderSize;
             knownEvents.Clear();
+            eventLogRefusals = previousRefusals;
             foreach (var entry in previousEvents) knownEvents[entry.Key] = entry.Value;
             eventLogPanel.Hide();
             eventLogWorldId = previousEventsWorld;
@@ -189,5 +204,28 @@ public partial class Main
             eventLog.GetVScrollBar().Value = previousTextScroll;
             isRefreshing = previousRefreshing;
         }
+    }
+
+    private void VerifyEventLogRefusalRollover()
+    {
+        knownEvents.Clear();
+        var first = new ClankerWorld.Simulation.World.ActionRefusedEventPayload("agent", "target", 0, 1, "check");
+        var hidden = new ClankerWorld.Simulation.World.TickAdvancedEventPayload(null, 0);
+        var events = Enumerable.Range(1, ClankerWorld.Presentation.EventVocabulary.RetainedEventCount)
+            .Select(id => new OwnerWorldEvent(id, 0, id <= 2 ? first.Kind : hidden.Kind, "")
+            { Payload = id <= 2 ? first : hidden }).ToArray();
+        RememberWorldEvents(events);
+        eventLogPanel.Show();
+        UpdateUnreadEvents("refusal-rollover-check");
+        if (lastSeenEventId != 1 || unreadEvents != 0)
+            throw new InvalidOperationException("Reading duplicate daily refusals must mark only their first row seen.");
+        eventLogPanel.Hide();
+        var nextId = ClankerWorld.Presentation.EventVocabulary.RetainedEventCount + 1;
+        RememberWorldEvents([new(nextId, 0, hidden.Kind, "") { Payload = hidden }]);
+        UpdateUnreadEvents("refusal-rollover-check");
+        if (knownEvents.ContainsKey(1) || knownEvents.Count != ClankerWorld.Presentation.EventVocabulary.RetainedEventCount)
+            throw new InvalidOperationException("The rollover check must expire the first refusal through the real bounded event cache.");
+        if (unreadEvents != 0)
+            throw new InvalidOperationException("Expiring a daily refusal must not promote its old duplicate into an unread Event Log row.");
     }
 }
