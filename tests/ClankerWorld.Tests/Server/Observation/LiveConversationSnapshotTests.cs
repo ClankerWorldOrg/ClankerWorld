@@ -47,6 +47,11 @@ public sealed class LiveConversationSnapshotTests
         var state = WorldRuntimeCodec.Decode(await Invitations.Value);
         using var world = WorldRuntime.Restore(state, _ => new QuietConversationProvider());
         var expiry = world.Conversations.Max(item => item.CreatedTick) + AgentConversationRules.ProposalLifetimeTicks;
+        // Skip only idle time before the first deadline. Expire the actual
+        // invitations on their separate native ticks, retaining recency order.
+        var firstExpiry = world.Conversations.Min(item => item.ProposalDeadlineTick);
+        ParenthoodTests.PositionFamilyFixtureAt(world, firstExpiry - 1);
+        Assert.All(world.Conversations, item => Assert.Equal(AgentConversationStatus.Proposed, item.Status));
         while (world.WorldTick <= expiry)
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
@@ -54,6 +59,7 @@ public sealed class LiveConversationSnapshotTests
         }
         Assert.Equal(17, world.Conversations.Count);
         Assert.All(world.Conversations, item => Assert.Equal(AgentConversationStatus.Closed, item.Status));
+        Assert.True(world.Conversations.Select(item => item.LastUpdatedTick).Distinct().Count() > 1);
         var expected = world.Conversations.OrderByDescending(item => item.LastUpdatedTick)
             .ThenBy(item => item.Id, StringComparer.Ordinal).Take(16).Select(item => item.Id).ToArray();
         Assert.Equal(expected, Snapshot(world).Conversations.Select(item => item.Id));
