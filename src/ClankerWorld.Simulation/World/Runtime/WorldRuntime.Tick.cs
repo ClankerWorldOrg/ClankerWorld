@@ -372,9 +372,15 @@ public sealed partial class WorldRuntime
         var excluded = pendingModelCalls.Keys.Concat(pendingIdentityMoments.Keys).Concat(completedIds)
             .Concat(agents.Keys.Where(id => IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
             .ToHashSet(StringComparer.Ordinal);
+        // Plan checks may read other agents' intentions. Capture and filter
+        // outside the society scheduler's gate so those reads can take it too.
+        var observations = society.Capture().Cognition.Queue
+            .Where(entry => !excluded.Contains(entry.AgentId) && IsQueuedObservationReady(entry.Observation))
+            .ToDictionary(entry => entry.AgentId, entry => RefreshOfferedPlans(entry.Observation), StringComparer.Ordinal);
         // A turn or another participant's decision can change the conversation
         // after this tick's observation was queued. Defer it before batching.
-        foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady, RefreshOfferedPlans).Take(capacity))
+        foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady,
+                     observation => observations[observation.AgentId]).Take(capacity))
         {
             var cancellation = new CancellationTokenSource();
             var task = ScheduleModelWork(ModelWorkKind.Decision, preview.AgentId, preview.Request.RequestId, async () =>
