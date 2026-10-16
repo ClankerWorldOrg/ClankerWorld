@@ -80,7 +80,7 @@ public sealed class PersonalGoodsHouseIdentityTests
             }
             held.Reply(plan.CandidateId);
             await harness.WaitForDecisionAsync(actor);
-            Assert.True(world.ModelDecisionsFinished(actor));
+            Assert.True(harness.DecisionsFinished(actor));
             SocietyCognitionDispatchResult? decision = null;
             for (var tick = 0; tick < 8 && decision is null; tick++)
             {
