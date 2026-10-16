@@ -244,7 +244,7 @@ public sealed class ProviderConfigurationStore
     }
 
     /// <summary>Delete an unused named key from installation-local provider storage.</summary>
-    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId)
+    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId, RoutineHelperSettings? routineHelper = null)
     {
         if (!Guid.TryParseExact(slotId, "N", out _))
             throw new ArgumentException("Choose a valid named credential slot.", nameof(slotId));
@@ -255,6 +255,8 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("That named credential slot no longer exists.", nameof(slotId));
             if ((state.Assignments ?? []).Any(item => item.CredentialSlotId == slotId && item.SelectionReason is null))
                 throw new InvalidOperationException("This key is assigned to an agent. Choose another key or world default for that agent before deleting it.");
+            if (routineHelper?.CredentialSlotId == slotId)
+                throw new InvalidOperationException("This key is used by the world's routine helper. Choose another helper key or turn the helper off before deleting it.");
 
             var next = state with
             {
@@ -281,13 +283,25 @@ public sealed class ProviderConfigurationStore
         }
     }
 
-    /// <summary>Preflight a saved world's required local credentials without changing the active routing.</summary>
-    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
+    /// <summary>Preflight saved agent and helper credentials without changing the active routing.</summary>
+    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments,
+        RoutineHelperSettings? helper = null)
     {
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
-            try { ValidateState(PreparedWorldAssignments(assignments)); return true; }
+            try
+            {
+                ValidateState(PreparedWorldAssignments(assignments));
+                helper?.Validate();
+                // Decisions always routes through its saved OpenAI selection.
+                // A named key must not fall back to the installation default.
+                return helper?.Provider != PlayerDecisionProviders.Decisions ||
+                    !string.IsNullOrWhiteSpace(helper.CredentialSlotId is { } slotId
+                        ? state.CredentialSlots?.FirstOrDefault(slot => slot.Id == slotId &&
+                            slot.Provider == PlayerDecisionProviders.OpenAi)?.ApiKey
+                        : state.OpenAi.ApiKey);
+            }
             catch (Exception exception) when (exception is ArgumentException or InvalidDataException or OverflowException)
             { return false; }
         }
@@ -1040,6 +1054,8 @@ public sealed partial class ConfigurableDecisionProvider(
     ProviderUsageStore? usageStore = null) : IDecisionProvider, IAgentConversationProvider
 {
     private readonly WorldJevPolicy jevPolicy = jevPolicy ?? new WorldJevPolicy();
+    // Logged in place of a chosen ID that matches none of the offered choices.
+    internal const string NotOfferedCandidate = "<not-offered>";
     private static readonly HashSet<string> RoutineCandidateIds = new(StringComparer.Ordinal)
     {
         "consume_food",
@@ -1521,6 +1537,10 @@ public sealed partial class ConfigurableDecisionProvider(
                     response.Usage?.OutputTokens ?? 0);
             if (logger is not null)
             {
+                // The runtime checks the reply against the offered choices only
+                // later, so log the chosen ID only when it is one of them.
+                var offered = request.Observation.Candidates.Any(candidate =>
+                    string.Equals(candidate.Id, response.SelectedCandidateId, StringComparison.Ordinal));
                 LogProviderCallCompleted(
                     logger,
                     providerId,
@@ -1528,7 +1548,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
                     request.Observation.AgentId,
                     request.Observation.WorldTick,
-                    response.SelectedCandidateId,
+                    offered ? response.SelectedCandidateId : NotOfferedCandidate,
                     response.Confidence,
                     response.Usage?.InputTokens ?? 0,
                     response.Usage?.OutputTokens ?? 0,

@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record ToolRepairChoice(string ToolId)
 {
     public const string Prefix = "repair_tool:";
-    public string Encode() => Prefix + ToolId;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ToolId);
 }
 
 public sealed record PlannedRepairMaterial(string StockId, string ItemKind, int Quantity);

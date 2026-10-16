@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Playing the current game
@@ -18,8 +18,9 @@ the current limits.
 Run `ClankerWorld-Setup-<version>-windows-x64.exe`. It installs the launcher
 and includes that game version without an administrator prompt. Start
 **ClankerWorld** from the Start menu; setup can also add a desktop shortcut.
-Until a release is published, the unsigned setup is a
-[CI build artifact](development/build-and-test.md#windows-installer).
+Download the setup and its `.sha256` from a nightly pre-release on
+[GitHub Releases](https://github.com/ClankerWorldOrg/ClankerWorld/releases),
+beside the portable game zip. Each setup includes that nightly's launcher and game.
 Windows may warn about an unknown publisher because the alpha is not signed.
 
 To remove the launcher, open **Settings → Apps → Installed apps** in Windows,
@@ -102,7 +103,8 @@ restarted, check whether your request already took effect before sending it
 again. Check and send again then releases the old saved request; an instruction
 for the same agent and world is ready to review in their Profile before you
 press Send. Discard it restores the other controls but does not undo anything
-the server already accepted.
+the server already accepted. Use **Tab** or **Shift+Tab** to reach the recovery
+buttons and **Enter** to choose one; focus then returns to the screen underneath.
 
 ### Report a problem
 
@@ -258,6 +260,8 @@ connected and paired. Saving a key does not run a model or place an agent.
 Choose the saved key later in **Add Agent** or an agent's **Model** panel.
 **Open model settings** in that panel opens the agent's model in World
 Settings, where you can also delete a saved key.
+A key used by the routine helper cannot be deleted. Choose another helper key
+or turn the helper off first.
 
 To check a selected model, press **Test model · 1 paid call** in Add Agent or
 an agent's Model panel. It uses the chosen **Thinking** setting too. This sends one real request and counts toward the
@@ -287,7 +291,8 @@ beside a small picture of it. Click a tile to open its card: the ground with a
 picture of the tile, its height, climate, weather and soil, its Town, any land
 title, household use right, pending use request or dispute, the household that
 owns it, and anything on it, such as a tree, a field or goods left on the
-ground.
+ground. Crowded cards scroll through their facts and goods, with Close always
+visible above them.
 
 When a building finishes on screen at close or mid zoom, a ring of dust
 settles around it and a few twinkles appear over the roof. The moment plays

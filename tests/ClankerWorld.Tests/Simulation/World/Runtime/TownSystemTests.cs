@@ -237,7 +237,7 @@ public sealed class TownSystemTests
         public bool IsEdibleFood(string kind) => false;
         public int AvailableLotQuantity(InventoryLot lot) => lot.Quantity;
         public bool NeedsUrgentWarmth(AgentState person) => Urgent.Contains(person.AgentId);
-        public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
+        public void AppendEvent(WorldEventPayload payload) => Events.Add((payload.Kind, payload.DiagnosticDetail));
         public string[] HouseholdAdults(string householdId) => Society.Agents
             .Where(person => person.HouseholdId == householdId && person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)

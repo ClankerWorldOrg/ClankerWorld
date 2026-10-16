@@ -11,36 +11,7 @@ public sealed record PairingApprovalHttpRequest(string PairingCode);
 
 public sealed record DeviceRevokeHttpRequest(string? Reason);
 
-public sealed record OwnerControlReceipt(
-    string Operation,
-    bool Changed,
-    bool IsPaused,
-    long RunEpoch,
-    long Revision,
-    long LatestEventId)
-{
-    public static OwnerControlReceipt From(string operation, bool changed, WorldSnapshotView snapshot)
-    {
-        var authoring = snapshot.Authoring;
-        return new OwnerControlReceipt(
-            operation,
-            changed,
-            authoring?.IsPaused ?? snapshot.Cognition?.IsPaused ?? false,
-            authoring?.RunEpoch ?? 0,
-            authoring?.Revision ?? snapshot.WorldTick,
-            snapshot.LatestEventId);
-    }
 
-    // Control acknowledgements must not depend on the optional world-view
-    // projection. A projection defect must never turn an accepted pause into
-    // an HTTP 500 that leaves the client unsure whether the world stopped.
-    public static OwnerControlReceipt From(string operation, bool changed, WorldRuntimeState state)
-    {
-        var revision = state.EventHistoryFloor + state.Events.Count;
-        return new OwnerControlReceipt(operation, changed, state.Society.Society.IsPaused,
-            state.Society.Society.RunEpoch, revision, revision);
-    }
-}
 
 public sealed record OwnerControlFailure(string Code, string Detail);
 
@@ -62,7 +33,22 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
 
     public bool IsLocalServer => LaunchSecret is not null;
 
-    public bool IsApprovalRequest(HttpContext context)
+    public bool IsApprovalRequest(HttpContext context) =>
+        IsApprovalListener(context) && (LaunchSecret is null || HasLaunchSecret(context));
+
+    /// <summary>
+    /// A local server's answer to the game's launch check, or null when this is
+    /// not a local server's approval listener or the challenge is malformed.
+    /// The answer proves the secret without sending it.
+    /// </summary>
+    public string? LaunchCheckAnswer(HttpContext context)
+    {
+        if (!IsLocalServer || !IsApprovalListener(context)) return null;
+        var challenge = context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader].ToString();
+        return LocalServerLaunchCheck.IsChallenge(challenge) ? LocalServerLaunchCheck.Answer(LaunchSecret!, challenge) : null;
+    }
+
+    private bool IsApprovalListener(HttpContext context)
     {
         if (ApprovalPort <= 0 || context.Connection.LocalPort != ApprovalPort ||
             context.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))
@@ -74,7 +60,7 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
             context.RequestServices?.GetService<RequestRefusals>()?.ApprovalHostNameRefused();
             return false;
         }
-        return LaunchSecret is null || HasLaunchSecret(context);
+        return true;
     }
 
     /// <summary>
@@ -130,7 +116,7 @@ public static class OwnerFailures
                 (StatusCodes.Status404NotFound, "owner_record_not_found", "Owner record not found"),
             OwnerAuthorityFailure.PublicKeyAlreadyRegistered or OwnerAuthorityFailure.PairingNotPending or OwnerAuthorityFailure.PairingAlreadyActive =>
                 (StatusCodes.Status409Conflict, "owner_state_conflict", "Owner state conflict"),
-            OwnerAuthorityFailure.PairingCapacityExceeded or OwnerAuthorityFailure.ChallengeCapacityExceeded =>
+            OwnerAuthorityFailure.PairingCapacityExceeded =>
                 (StatusCodes.Status429TooManyRequests, "owner_capacity_reached", "Owner authority capacity reached"),
             OwnerAuthorityFailure.ChallengeConsumed =>
                 (StatusCodes.Status409Conflict, "challenge_already_consumed", "Challenge already consumed"),
