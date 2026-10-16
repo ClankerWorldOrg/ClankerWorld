@@ -586,7 +586,7 @@ public sealed partial class PortBoatRuntimeTests
         {
             inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-food:" + person.AgentId), "food", person.AgentId,
                 person.AgentId == BoatPolicy.Author ? 2 : 4);
-            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create("travel-clothing:" + person.AgentId), "clothing", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create((freshwater ? "boat-clothing:" : "travel-clothing:") + person.AgentId), "clothing", person.AgentId, 1);
         }
         inventory = InventoryAuthority.AddLot(inventory, "travel-jug", InventoryContainerRules.WaterJug, BoatPolicy.Author, 1);
         inventory = InventoryAuthority.AddLot(inventory, "travel-water", InventoryContainerRules.FreshWater, BoatPolicy.Author, 1,

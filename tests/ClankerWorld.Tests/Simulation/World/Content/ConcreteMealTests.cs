@@ -335,19 +335,20 @@ public sealed partial class ConcreteMealTests
         var farmhouse = harvest.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         using var hauling = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(harvest.ExportState())),
             actor, "haul_farm_grain", "haul_household_stock");
-        await AdvanceUntil(hauling, () => hauling.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
-            lot.StorageBuildingId == farmhouse.InstanceId), 100);
+        // Every harvested unit must enter farm stock before the cooking leg,
+        // so no leftover grain on the field can shortcut that physical journey.
+        await AdvanceUntil(hauling, () => hauling.Society.Inventory.Lots.Where(lot => lot.ItemKind == "grain" &&
+            lot.OwnerId == household && lot.StorageBuildingId == farmhouse.InstanceId).Sum(lot => lot.Quantity) >= grain.Quantity, 100);
         var house = hauling.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         Assert.DoesNotContain(hauling.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
             lot.StorageBuildingId == house.InstanceId);
         using var home = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(hauling.ExportState())),
             actor, "supply_workstation", "haul_household_stock", "collect_wooden_axe");
-        // The household first completes its real wood journey around the House
-        // walls, then brings the harvested grain through the same doorway.
-        await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "wood" &&
-            lot.StorageBuildingId == house.InstanceId), 100);
+        // Choices refresh every 30 ticks while these wood trips repeat every
+        // 10 ticks. Finish the finite starter stock before the next supply choice
+        // brings grain from the Farmhouse through the House doorway.
         await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
-            lot.StorageBuildingId == house.InstanceId), 100);
+            lot.StorageBuildingId == house.InstanceId), 200);
         var deliveredWood = home.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" &&
             lot.StorageBuildingId == house.InstanceId).Select(lot => lot.Id).ToArray();
         Assert.NotEmpty(deliveredWood);
