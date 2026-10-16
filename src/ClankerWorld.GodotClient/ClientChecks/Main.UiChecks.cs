@@ -4129,6 +4129,7 @@ public partial class Main
             await VerifyLaunchOptionsAsync();
             await VerifyDeveloperToolsAsync(occupied, founder);
             await VerifyWorldEditCoordinatesAsync(occupied);
+            await VerifyWorldEditPickerAsync();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Minus, Pressed = true });
             AdvanceCameraMotion(CameraEasing.ZoomSeconds);
             var zoomedOutTile = currentTileSize;

@@ -161,7 +161,12 @@ public partial class Main
             worldEditRenewable.ButtonPressed);
         var batch = new OwnerAuthoringBatchAction(
             $"authoring_{OwnerPairingProtocol.CreateRequestId()}",
-            [operation]);
+            worldEditAdvanced.ButtonPressed ? [operation] :
+                PickedWorldEditTool is { } tool && PickedWorldEditKind is { } kind
+                ? worldEditTiles.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).Select(tile =>
+                    new OwnerAuthoringOperationAction(tool.Operation, null, kind.Value, null, tile.X, tile.Y, kind.IsRenewable)).ToArray()
+                : []);
+        if (batch.Operations.Count == 0) return;
         if (!TryBeginPendingAuthoring(batch, out var pending))
         {
             return;
@@ -173,9 +178,10 @@ public partial class Main
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
                 ResolveWorldUri(), authority, deviceId, batch, signer, OwnerRequestToken));
             completed = true;
-            return receipt.Applied
-                ? $"World edit applied: {operation.Kind.Replace('_', ' ')}."
-                : $"World edit refused; nothing changed · {receipt.Failure ?? "the world server did not say why"}";
+            if (!receipt.Applied)
+                throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
+            ClearWorldEditPreview();
+            return "World edit saved. See Developer edit in the Event Log.";
         }, retainedSubmission: pending);
         if (completed)
         {
@@ -295,7 +301,11 @@ public partial class Main
         submitInstructionButton.TooltipText = deceasedSelected ? "You can't send messages to someone who has died." :
             infantSelected ? "Send messages to an adult who cares for them instead." : "Send this message to the agent.";
         RenderDeveloperEdits(snapshot, actionDisabled);
-        submitWorldEditButton.Disabled = actionDisabled || !paused;
+        submitWorldEditButton.Disabled = actionDisabled || !paused ||
+            !worldEditAdvanced.ButtonPressed && (worldEditTiles.Count == 0 || PickedWorldEditKind is null);
+        worldEditTool.Disabled = worldEditPick.Disabled = worldEditPaint.Disabled = actionDisabled || !paused || PickedWorldEditKind is null;
+        worldEditAdvanced.Disabled = actionDisabled || !paused;
+        worldEditClear.Disabled = isOwnerAction || worldEditTiles.Count == 0;
         worldEditKind.Disabled = actionDisabled || !paused;
         worldEditId.Editable = !actionDisabled && paused;
         worldEditValue.Editable = !actionDisabled && paused;

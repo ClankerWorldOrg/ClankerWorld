@@ -4539,6 +4539,15 @@ The native authoring endpoint refuses submitted batches with
 authoring branch is retired. Catalog validation remains available for future
 native authoring and does not provide a complete art-generation pipeline.
 
+The authoring observation's optional `EditTools` collection supplies the map
+picker's operation names, kind labels and renewable defaults. An empty
+collection offers no map edits. The client keeps at most 64 unique preview
+tiles and submits them as one retained authoring batch; previews never alter
+the observed map. Closing Developer tools, resuming or changing the world/map
+context discards the preview. Conflict responses show the server's plain
+reason and clear the completed retry record, while an unconfirmed response
+keeps the exact request for recovery.
+
 ## Building storage history
 
 Building Details receives up to ten recent storage deltas from the existing

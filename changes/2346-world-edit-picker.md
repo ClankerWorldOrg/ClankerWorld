@@ -1,0 +1,1 @@
+- Developer tools put typed world edits behind an Advanced option and show the server's refusal reason instead of a connection error. A map picker previews the server's supported choices; the current alpha server still has no world-edit tools available.

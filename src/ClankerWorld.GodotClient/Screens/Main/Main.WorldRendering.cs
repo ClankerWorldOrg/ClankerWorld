@@ -16,6 +16,8 @@ public partial class Main
 
     private void ResetDisplayedWorldContext()
     {
+        worldEditPaint.ButtonPressed = false;
+        ClearWorldEditPreview();
         graveLayer.SetGraves([]);
         goldenHourLayer.Reset();
         terrainLayer.ResetGroundSnow();
@@ -96,6 +98,7 @@ public partial class Main
         var (mapWidth, mapHeight) = MapDimensions(snapshot);
         worldEditX.MaxValue = Math.Max(0, mapWidth - 1);
         worldEditY.MaxValue = Math.Max(0, mapHeight - 1);
+        RenderWorldEditPicker(snapshot);
         if (usagePauseWorldId != snapshot.WorldId)
         {
             usagePauseWorldId = snapshot.WorldId;

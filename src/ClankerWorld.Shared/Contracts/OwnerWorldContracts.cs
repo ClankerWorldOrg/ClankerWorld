@@ -631,7 +631,15 @@ public sealed record OwnerWorldAuthoringState(
     string CurrentMapManifestDigest,
     string Weather,
     string Season,
-    IReadOnlyList<string> ApprovedAssetReferences);
+    IReadOnlyList<string> ApprovedAssetReferences)
+{
+    public IReadOnlyList<OwnerWorldEditTool> EditTools { get; init; } = [];
+}
+
+public sealed record OwnerWorldEditTool(string Operation, string DisplayName,
+    IReadOnlyList<OwnerWorldEditKind> Kinds);
+
+public sealed record OwnerWorldEditKind(string Value, string DisplayName, bool? IsRenewable = null);
 
 public sealed record OwnerWorldActor(
     string Id,

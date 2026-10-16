@@ -444,7 +444,7 @@ internal static partial class OwnerEndpoints
 
             return Results.Conflict(new OwnerControlFailure(
                 "game_world_authoring_pending",
-                "World authoring is not migrated yet; content activation remains disabled in the alpha runtime."));
+                "World editing is not available on this server yet. Editing the selected agent is still available in Developer tools."));
         });
     }
 }

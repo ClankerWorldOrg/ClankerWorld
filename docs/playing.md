@@ -1184,8 +1184,18 @@ turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
 whose reply was lost, paused world editing and paired-device management. The
 aging override and world editing need the world paused first.
-World-edit coordinates cover the whole current map, from zero to its last
-tile on each axis. Their bounds update when you change worlds.
+**Edit world** lists the tools and kinds the server offers, using their names.
+Choose a kind, turn on **Pick tiles on the map**, then click tiles or drag
+across them. Gold marks show the tiles in your preview; **Apply** sends the
+whole selection for the server to check and save. **Clear preview** starts
+again. Resuming time, changing worlds or closing Developer tools clears it.
+A refused edit shows the server's reason and leaves the world unchanged.
+The typed operations are under **Advanced: typed operations**; their coordinate
+bounds follow the current map.
+
+The current alpha server has no world-edit tools available and refuses typed
+world edits too. The panel says when no choices are available; editing a
+selected agent below remains available.
 
 To set up a test, pause and use **Edit selected agent**. Choose a need and its
 percentage, goods and a quantity, a skill, or another agent for a partnership,

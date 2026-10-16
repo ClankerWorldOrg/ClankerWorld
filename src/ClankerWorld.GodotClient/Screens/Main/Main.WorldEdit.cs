@@ -13,18 +13,48 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
+    private readonly OptionButton worldEditTool = new();
+    private readonly OptionButton worldEditPick = new();
+    private readonly CheckBox worldEditAdvanced = new() { Text = "Advanced: typed operations" };
+    private readonly CheckBox worldEditPaint = new() { Text = "Pick tiles on the map" };
+    private readonly Button worldEditClear = new() { Text = "Clear preview" };
+    private readonly VBoxContainer worldEditAdvancedBody = new();
+    private readonly WorldEditPreviewLayer worldEditPreview = new();
+    private readonly HashSet<Vector2I> worldEditTiles = [];
+    private IReadOnlyList<OwnerWorldEditTool> worldEditTools = [];
+    private string? worldEditWorldId;
+    private (long? Epoch, string? Digest, int Width, int Height) worldEditMapContext;
+
     private void BuildDeveloperWorldEdit()
     {
         var worldEditBody = new VBoxContainer();
+        worldEditBody.AddChild(worldEditTool);
+        worldEditBody.AddChild(worldEditPick);
+        worldEditBody.AddChild(worldEditPaint);
+        worldEditBody.AddChild(worldEditClear);
+        worldEditTool.ItemSelected += _ => ConfigureWorldEditPicker();
+        worldEditPick.ItemSelected += _ => ClearWorldEditPreview();
+        worldEditClear.Pressed += ClearWorldEditPreview;
+        worldEditPaint.Toggled += _ => UpdateWorldEditPreview();
+        worldEditBody.AddChild(worldEditAdvanced);
+        worldEditAdvanced.Toggled += advanced =>
+        {
+            worldEditAdvancedBody.Visible = advanced;
+            worldEditTool.Visible = worldEditPick.Visible = worldEditPaint.Visible = !advanced;
+            worldEditPaint.ButtonPressed = false;
+            ClearWorldEditPreview();
+        };
+        worldEditBody.AddChild(worldEditAdvancedBody);
+        worldEditAdvancedBody.Hide();
         worldEditKind.ItemSelected += _ => UpdateWorldEditHint();
         AddWorldEditKinds();
-        worldEditBody.AddChild(worldEditKind);
+        worldEditAdvancedBody.AddChild(worldEditKind);
         worldEditId.PlaceholderText = "ID (resource/object/draft/asset as required)";
-        worldEditBody.AddChild(worldEditId);
+        worldEditAdvancedBody.AddChild(worldEditId);
         worldEditValue.PlaceholderText = "Value (terrain, kind, name, weather, digest...)";
-        worldEditBody.AddChild(worldEditValue);
+        worldEditAdvancedBody.AddChild(worldEditValue);
         worldEditSecondaryValue.PlaceholderText = "Secondary value (season for set_weather_season)";
-        worldEditBody.AddChild(worldEditSecondaryValue);
+        worldEditAdvancedBody.AddChild(worldEditSecondaryValue);
         var coordinateRow = new HBoxContainer();
         ConfigureCoordinate(worldEditX, "x");
         ConfigureCoordinate(worldEditY, "y");
@@ -32,13 +62,76 @@ public partial class Main
         coordinateRow.AddChild(worldEditY);
         worldEditRenewable.Text = "Renewable resource";
         coordinateRow.AddChild(worldEditRenewable);
-        worldEditBody.AddChild(coordinateRow);
+        worldEditAdvancedBody.AddChild(coordinateRow);
         worldEditHintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         worldEditBody.AddChild(worldEditHintLabel);
-        submitWorldEditButton.Text = "Apply this edit";
+        submitWorldEditButton.Text = "Apply";
         submitWorldEditButton.Pressed += () => _ = SubmitWorldEditAsync();
         worldEditBody.AddChild(submitWorldEditButton);
-        developerBody.AddChild(NewPanel("Paused world editing", worldEditBody));
+        developerBody.AddChild(NewPanel("Edit world", worldEditBody));
+    }
+
+    private void RenderWorldEditPicker(OwnerWorldSnapshot snapshot)
+    {
+        var (width, height) = MapDimensions(snapshot);
+        var context = (snapshot.Authoring?.RunEpoch, snapshot.Authoring?.CurrentMapManifestDigest ?? snapshot.MapManifestDigest, width, height);
+        if (worldEditWorldId != snapshot.WorldId || worldEditMapContext != context || snapshot.Authoring?.IsPaused != true)
+        {
+            worldEditWorldId = snapshot.WorldId;
+            worldEditMapContext = context;
+            worldEditPaint.ButtonPressed = false;
+            ClearWorldEditPreview();
+        }
+        var tools = snapshot.Authoring?.EditTools ?? [];
+        if (tools.Count != worldEditTools.Count || !tools.Zip(worldEditTools).All(pair =>
+            pair.First.Operation == pair.Second.Operation && pair.First.DisplayName == pair.Second.DisplayName &&
+            pair.First.Kinds.SequenceEqual(pair.Second.Kinds)))
+        {
+            worldEditTools = tools;
+            worldEditTool.Clear();
+            foreach (var tool in tools) worldEditTool.AddItem(tool.DisplayName);
+            ConfigureWorldEditPicker();
+        }
+        UpdateWorldEditHint();
+    }
+
+    private OwnerWorldEditTool? PickedWorldEditTool => worldEditTool.Selected >= 0 && worldEditTool.Selected < worldEditTools.Count
+        ? worldEditTools[worldEditTool.Selected] : null;
+
+    private OwnerWorldEditKind? PickedWorldEditKind => PickedWorldEditTool is { } tool && worldEditPick.Selected >= 0 && worldEditPick.Selected < tool.Kinds.Count
+        ? tool.Kinds[worldEditPick.Selected] : null;
+
+    private void ConfigureWorldEditPicker()
+    {
+        worldEditPick.Clear();
+        if (PickedWorldEditTool is { } tool)
+            foreach (var kind in tool.Kinds) worldEditPick.AddItem(kind.DisplayName);
+        ClearWorldEditPreview();
+    }
+
+    private bool CanPickWorldEditTile => developerMode == true && developerPanel.Visible && worldEditPaint.ButtonPressed &&
+        !worldEditAdvanced.ButtonPressed && !worldEditPaint.Disabled && PickedWorldEditKind is not null;
+
+    private void PickWorldEditTile(OwnerWorldSnapshot snapshot, Vector2I tile)
+    {
+        if (!CanPickWorldEditTile || !MapContains(snapshot, tile.X, tile.Y)) return;
+        // Keep a single request small enough to preview and validate as one batch.
+        if (worldEditTiles.Count < 64) worldEditTiles.Add(tile);
+        UpdateWorldEditPreview();
+        RefreshControlAvailability();
+    }
+
+    private void ClearWorldEditPreview()
+    {
+        worldEditTiles.Clear();
+        UpdateWorldEditPreview();
+        RefreshControlAvailability();
+    }
+
+    private void UpdateWorldEditPreview()
+    {
+        worldEditPreview.SetPreview(CanPickWorldEditTile ? worldEditTiles : [], PickedWorldEditKind?.DisplayName ?? "");
+        UpdateWorldEditHint();
     }
 
     private void AddWorldEditKinds()
@@ -74,7 +167,10 @@ public partial class Main
             return;
         }
 
-        worldEditHintLabel.Text = worldEditKind.GetItemMetadata(worldEditKind.Selected).AsString();
+        worldEditHintLabel.Text = worldEditAdvanced.ButtonPressed
+            ? worldEditKind.GetItemMetadata(worldEditKind.Selected).AsString()
+            : PickedWorldEditKind is not { } kind ? "This server has no world-edit choices available."
+            : $"{kind.DisplayName}: {worldEditTiles.Count}/64 tiles in the preview. Click or drag across tiles, then Apply; the server checks the whole edit before saving it.";
     }
 
     private static void ConfigureCoordinate(SpinBox box, string placeholder)

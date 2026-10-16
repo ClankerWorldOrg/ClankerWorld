@@ -234,9 +234,9 @@ public partial class Main
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
                     ResolveWorldUri(), authority, deviceId, authoring.ToAction(), signer, OwnerRequestToken));
                 completed = true;
-                return receipt.Applied
-                    ? "World edit confirmed."
-                    : $"World edit refused · {receipt.Failure ?? "unknown validation failure"}";
+                if (!receipt.Applied)
+                    throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
+                return "World edit confirmed.";
             }
 
             if (pending.OrderCancel is { } cancellation)
@@ -388,6 +388,12 @@ public partial class Main
                 }, SetOwnerRequestBusy, bindPanel: !waitForTurn && !changesTimeline, bindWorld: !changesTimeline, sendingPanel: sendingPanel);
             }
             catch (ObsoleteOwnerRequestException) { return; }
+            catch (OwnerWorldEditRefusedException exception)
+            {
+                SetStatus($"World edit refused; nothing changed. {exception.Message}", good: false);
+                if (retainedSubmission is not null && IsCurrentWorldRequest(generation))
+                    CompletePendingSubmission(retainedSubmission);
+            }
             catch (System.Net.Http.HttpRequestException exception)
                 when (exception.StatusCode == System.Net.HttpStatusCode.Conflict && conflictMessage is not null)
             {
