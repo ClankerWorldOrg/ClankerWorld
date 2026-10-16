@@ -11,10 +11,13 @@ namespace ClankerWorld.Tests;
 public sealed partial class ServerHttpTests
 {
     [Theory]
-    [InlineData("off")]
-    [InlineData("jev")]
-    [InlineData("another-key")]
-    public async Task HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(string nextHelper)
+    [InlineData("decisions", "off")]
+    [InlineData("decisions", "jev")]
+    [InlineData("decisions", "another-key")]
+    [InlineData("jev", "off")]
+    [InlineData("jev", "decisions")]
+    [InlineData("jev", "another-key")]
+    public async Task HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(string provider, string nextHelper)
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-helper-key-delete-");
         try
@@ -33,12 +36,14 @@ public sealed partial class ServerHttpTests
             {
                 deviceId = (await StartAndActivateAsync(host, client, signer)).DeviceId;
                 var store = host.Services.GetRequiredService<ProviderConfigurationStore>();
-                store.CreateCredentialSlot(new(slotId, "openai", "Helper", secret));
-                store.CreateCredentialSlot(new(otherSlotId, "openai", "Other", "synthetic-other-helper-key"));
+                var keyProvider = provider == "jev" ? "jev" : "openai";
+                store.CreateCredentialSlot(new(slotId, keyProvider, "Helper", secret));
+                store.CreateCredentialSlot(new(otherSlotId, keyProvider, "Other", "synthetic-other-helper-key"));
                 Assert.DoesNotContain(store.CaptureStatus().Assignments!, item => item.CredentialSlotId == slotId);
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 runtime.Pause();
-                var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, "decisions", "gpt-6-luna", slotId);
+                var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, provider,
+                    provider == "jev" ? "jev-1.13.0" : "gpt-6-luna", slotId);
                 using var selected = await SendSignedAsync(host, client, signer, deviceId, helperPath,
                     select, OwnerHttpBinding.RoutineHelperPayload(select));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
@@ -71,7 +76,8 @@ public sealed partial class ServerHttpTests
                 {
                     "off" => new OwnerRoutineHelperAction(runtime.Society.WorldId, "off", string.Empty),
                     "jev" => new OwnerRoutineHelperAction(runtime.Society.WorldId, "jev", RoutineHelperSettings.Jev.Model),
-                    _ => new OwnerRoutineHelperAction(runtime.Society.WorldId, "decisions", "gpt-6-luna", otherSlotId),
+                    "decisions" => new OwnerRoutineHelperAction(runtime.Society.WorldId, "decisions", "gpt-6-luna"),
+                    _ => new OwnerRoutineHelperAction(runtime.Society.WorldId, provider, helper.Model, otherSlotId),
                 };
                 using var selected = await SendSignedAsync(host, client, signer, deviceId, helperPath,
                     select, OwnerHttpBinding.RoutineHelperPayload(select));
