@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 # Playing the current game
@@ -109,7 +109,8 @@ buttons and **Enter** to choose one; focus then returns to the screen underneath
 ### Report a problem
 
 **Report a problem**, in **Settings → Game → Build**, saves a zip to send with a bug report
-and shows it in your file manager. It holds the game's latest logs, the world
+and shows it in your file manager. It holds the game's log up to that moment
+and the previous run's log, including after a forced close, the world
 server's logs when the server runs on your PC, and a summary of the game
 version, Windows version, graphics card, screen and open world. It never
 includes keys, pairing codes, saves, prompts or model replies, and anything in
@@ -247,19 +248,23 @@ Keys stay on the server installation, separately from world saves. Cloud
 providers charge you for usage. While paused, open **Settings → World → Routine
 helper** to choose **Off**, **Jev** or **OpenAI Decisions**, pick its model and
 press **Apply helper**. Decisions uses your default OpenAI key or a named saved
-OpenAI key you choose; Jev uses the saved TypeSafe key. Switching helpers keeps
+OpenAI key you choose; Jev uses your default TypeSafe key or a named saved
+TypeSafe key you choose. New Jev selections start on **jev-1.14.0**; a world
+already using **jev-1.13.0** keeps that model until you change it. Switching helpers keeps
 memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
 
 To save keys before placing any agents, open **Settings → Game → API keys**.
-Choose OpenAI, Ollama Cloud or Anthropic, name the key, paste it and press
+Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
 **Save API key**. You can save each provider's keys from Main Menu Settings once this device is
 connected and paired. Saving a key does not run a model or place an agent.
-Choose the saved key later in **Add Agent** or an agent's **Model** panel.
+Choose the saved key later in **Add Agent**, an agent's **Model** panel or
+**Routine helper**. TypeSafe keys are for the Jev helper.
 **Open model settings** in that panel opens the agent's model in World
-Settings, where you can also delete a saved key.
+Settings. To delete a saved key, choose it under **API keys** and press
+**Delete saved key**; an agent's model settings also offer deletion.
 A key used by the routine helper cannot be deleted. Choose another helper key
 or turn the helper off first.
 
@@ -841,9 +846,12 @@ scouting trips all appear. Building and crafting entries name the building or
 recipe, including older recorded work. Town law decisions, government votes
 and handovers, and mayoral elections or office changes also appear; open the
 Towns page for their wording and results. Routine steps such as meals, forage
-trips, cart loading and each Town project work shift are left out, because a
-later line already reports what came of them. An event with a known
-location has a **Find** button that moves the camera there. The log grows to
+trips, storing or collecting personal belongings, stocking a Store, hauling
+supplies, cart loading and each Town project work shift are left out. An agent
+changing an unavailable source quietly also stays out of the log. Blocked or
+failed player orders and broken promises remain visible, with the same problem
+for the same agent and target shown at most once per world day. An event with a
+known location has a **Find** button that moves the camera there. The log grows to
 fit wrapped text and day headings until it reaches the bottom of the screen,
 then scrolls. It adjusts when the window changes size. Opening the log
 marks its new entries read; the ones that were new keep a small dot while it

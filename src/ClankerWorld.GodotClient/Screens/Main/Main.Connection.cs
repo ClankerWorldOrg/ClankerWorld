@@ -269,6 +269,7 @@ public partial class Main
         unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         knownEvents.Clear();
+        eventLogRefusals.Clear();
         pairingPanel.Show();
         connectionPanel.Show();
         OpenMenuForSetup();
@@ -337,6 +338,7 @@ public partial class Main
             else if (reconnect.Baseline.Events.ResetRequired)
             {
                 knownEvents.Clear();
+                eventLogRefusals.Clear();
             }
             using (var draft = sameContext ? new PanelDraft(this) : null)
                 Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);

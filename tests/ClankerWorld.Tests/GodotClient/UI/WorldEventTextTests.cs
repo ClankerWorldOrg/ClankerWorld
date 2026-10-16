@@ -11,7 +11,7 @@ public sealed class WorldEventTextTests
     private const string Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
     [Fact]
-    public void StaleChoiceShowsTheServerReasonInThePlayerEventLog()
+    public void StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog()
     {
         const string reason = "Éloïse 🌿 didn't carry goods home: the selected goods are no longer available.";
         var worldEvent = new OwnerWorldEvent(1, 1, "choice_refused", reason)
@@ -22,9 +22,9 @@ public sealed class WorldEventTextTests
         var text = EventTextFixture.Describe(worldEvent, null);
         Assert.Equal(reason, text);
         worldEvent = worldEvent with { Text = text };
-        Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
+        Assert.False(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
         Assert.Equal(reason, WorldEventText.Describe(worldEvent, null));
-        Assert.Single(GameUiText.PlayerEvents([worldEvent]));
+        Assert.Empty(GameUiText.PlayerEvents([worldEvent]));
     }
 
     [Fact]
@@ -283,7 +283,8 @@ public sealed class WorldEventTextTests
         {
             var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
             Assert.Equal($"Aster {action}.", EventTextFixture.Describe(worldEvent, snapshot));
-            if (kind.StartsWith("child_", StringComparison.Ordinal)) Assert.True(GameUiText.IsPlayerFacingEvent(kind));
+            if (kind.StartsWith("child_", StringComparison.Ordinal))
+                Assert.Equal(kind == "child_born", GameUiText.IsPlayerFacingEvent(kind));
             var renamed = snapshot with { Agents = [Person(id, "Rowan", "dead")] };
             Assert.Equal($"Rowan {action}.", EventTextFixture.Describe(worldEvent, renamed));
             Assert.Equal(detail, worldEvent.Detail);
@@ -438,7 +439,7 @@ public sealed class WorldEventTextTests
     [InlineData("market_trade_completed", "town:first|market|stall|" + AgentId + "|" + FounderId + "|offer", "Mira bought goods from Aster at the Market.")]
     public void MarketEventsNameTheTownAndTheRightTrader(string kind, string detail, string expected)
     {
-        Assert.True(GameUiText.IsPlayerFacingEvent(kind));
+        Assert.Equal(kind != "market_stock_collected", GameUiText.IsPlayerFacingEvent(kind));
         var snapshot = Snapshot(Person(AgentId, "Aster"), Person(FounderId, "Mira")) with
         {
             Towns = [new("town:first", "Riverbend", "founded", 0, [], [], [])],

@@ -11,6 +11,12 @@ public sealed partial class WorldRuntime
     private readonly HashSet<string> admittedModelReplies = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(string ActorId, string RequestId), TrackedModelWork> modelWork = new();
 
+    // Queue keys are saved actor, conversation or estate identities. Dictionary
+    // slots (including reused slots) and transient request IDs are not replay order.
+    private static T[] CompletedModelReplies<T>(IReadOnlyDictionary<string, T> pending, Func<T, Task> task) =>
+        pending.Where(item => task(item.Value).IsCompleted)
+            .OrderBy(item => item.Key, StringComparer.Ordinal).Select(item => item.Value).ToArray();
+
     private sealed class TrackedModelWork(ModelWorkTransition transition,
         CognitionDecisionRequest? decision, AgentConversationTurnRequest? conversation)
     {

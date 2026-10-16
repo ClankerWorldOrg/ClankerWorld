@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # How the game works
@@ -151,7 +151,8 @@ resource or lot, household, House, route purpose and quantity. The same
 before application in agent order. Application uses those selected values;
 continuing intentions plan their next step from the current position. Plans
 are excluded from prompts, observation digests and saved state. A stale plan
-appends one `choice_refused` Event Log line with a plain refusal reason.
+records a `choice_refused` event with a plain refusal reason in accepted history;
+automatic stale choices stay out of the player Event Log.
 The private child forwarders remain for existing callers.
 Deferred admission checks the original offered plan before the scheduler
 completes its reply. A planned identity that disappeared from the current
@@ -159,6 +160,12 @@ choices reaches its typed refusal; current order/context exclusions still
 refuse it, while unplanned identities and request/epoch checks retain their
 existing scheduler gates. An accepted fallback keeps its own plan and never
 receives the refused provider choice's plan metadata.
+Before dispatching a queued observation, the host checks every planned choice
+against the current world with `CheckActionPlan`. Choices invalidated by earlier
+actions are removed from the request and its digest is rebuilt; other choices
+can still proceed. A reply already in flight retains its original plan; refusal
+clears the intention so the agent can make a fresh choice. A finished order's
+undelivered acknowledgement retains its original message.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal
@@ -344,6 +351,11 @@ routes, environment and event sink per call, through an adapter that stays on
 the coordinator. Field and tree orders retain their existing adapters and
 private forwarders. Tree planting updates the coordinator's map and the
 EnvironmentSystem's ecology and chunks through those world services.
+
+The shared farm demand calculation keeps the first field and its initial
+planting eligible while a household has no crop established. Ready food still
+reduces the Town shortage used for further fields and replanting. This same
+demand check governs offers and retained-plan validation.
 
 `Animals/AnimalSystem.cs` owns animals, trade offers and physical supply trips
 in the existing immutable `AnimalWorldState`. Care, breeding, products, wild
@@ -784,6 +796,19 @@ Actual presentation changes refresh immediately, so opening a hidden list shows
 the latest accepted information. World identity, a theme change or resetting the
 displayed world invalidates reuse. This cache belongs only to client presentation;
 it changes no observation cadence, simulation state, saved data or history.
+
+## Client panel layout
+
+Resize-driven text and Profile fitting is coalesced in the next process frame.
+Changing a text panel's height can change its wrapping and the Profile's scroll
+area; those notifications must not schedule another fit in the same idle flush.
+The fresh-process Profile check opens every agent in a generated, three-day
+hard world, including a born child, and measures both the button handler and
+the following layout frames. The normal UI smoke runs separately so its earlier
+profile opens cannot hide a first-open stall.
+The real first Profile open in a rendered game logs `agent_profile_open` at `begin`,
+`controls_ready` and `first_draw`, with elapsed times and no agent data, so a
+platform-specific stall can be separated into control setup and first drawing.
 
 ## Finding goods
 
@@ -1858,7 +1883,8 @@ refused. The runtime still admits only legal actions and requested owner sources
 a refusal or invalid action falls back to `safe_idle`. No confidence veto is added.
 
 Decisions uses the installation's default OpenAI key or an explicitly selected
-OpenAI credential slot. The world saves only the slot ID, helper and model;
+OpenAI credential slot; Jev uses the corresponding TypeSafe default or named key.
+Both can select a key saved in API keys. The world saves only the slot ID, helper and model;
 missing/deleted credentials produce the existing safe provider failure. A call
 reserves one installation usage attempt before HTTP, including action and memory
 questions together. Reply bodies are bounded; timeout, cancellation and sanitized
@@ -1881,7 +1907,14 @@ choice also activates explicit helper routing; repeating it afterward is a no-op
 The Decisions picker starts with `gpt-6-luna` and permits typed model names.
 Its non-billable availability check uses OpenAI's model list with the selected
 key; that list confirms model visibility, not access to the Decisions endpoint.
-Jev offers `jev-1.13.0` without an availability probe.
+Jev offers `jev-1.14.0` without an availability probe. Its default lives once in
+`ClankerWorld.Shared/RoutineHelperDefaults.cs`, compiled into simulation and game,
+and used by the server through the simulation assembly. Explicit saved model
+names, including `jev-1.13.0`, are retained.
+TypeSafe's [model notes](https://docs.typesafe.ai/models) and
+[API reference](https://docs.typesafe.ai/api), checked October 16, 2026, list both
+versions on `POST /v1/systemone` with the same state/questions and typed
+choice/score answers; this update requires no adapter format change.
 
 
 A personal-model request selects one legal candidate, not a free-form dialogue
@@ -3610,6 +3643,33 @@ adult at a time is offered to gather it from a reachable source. Buildings the
 Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
+
+For Stores, Tailor Shops, Restaurants, Clinics and Blacksmiths, household plans
+also share a Town limit: one of each kind per eight recorded residents, rounded
+up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
+provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
+assigned to the Town and other residents' live construction projects, across
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+and Council-approved Town projects keep their separate rules.
+
+`WorkBuildingHasInputs` also filters autonomous plans and material preparation
+by work the building can actually do. Farmhouses and Silos need reachable
+household fields or planting stock, including an available seed site within
+twelve tiles of the Town origin. Animal Yards need reachable wild animals;
+another yard waits until existing Town yards have no free animal places.
+Other work buildings need accessible inputs for at least one of their own
+active recipes. The shared goods query excludes unusable, reserved and promised
+stock and checks access and reach; natural supplies use shared gathering and
+reach rules. Construction costs cannot double as the station's only input
+stock. Restaurants also protect one day's meals for the Town's residents.
+Houses and Stores have no production-input prerequisite. Admission rebuilds
+the same eligible offers, and project start and continuation recheck the rule
+before spending construction materials. Explicit owner construction orders
+use the same prerequisite; already placed buildings remain in place. No
+eligibility result is cached or saved.
+
 Harvests remain household-owned lots on their actual field tile. An adult
 carries a load of at most four raw crops or planting items to the household's Farmhouse or Silo.
 The Farmhouse holds a provisional 96 items; the private Silo holds 64 units per
@@ -3853,13 +3913,30 @@ Resuming an accepted or postponed plan preserves its original initiating
 parent, request tick, selected caregiver and intended home. Birth still follows
 the caregiver's current household, including after a move or when its House
 is full. A plan past its deadline does not expire: it waits for the usual food,
-shelter and readiness checks. The rule only reads accepted partnerships and
-never proposes or accepts one.
+shelter and readiness checks.
+
+Single adults who meet the same parent eligibility check also receive a saved
+`ContinuitySingle` deadline, optional chosen partner and postponement choice. `partner_choose` and
+`partner_postpone` use the existing partnership action plans, including checks
+at offer, admission and application. Choosing or postponing never resets the
+deadline. Already recorded choices are not offered again unchanged; ordinary
+work keeps precedence in built-in decisions. Once both adults' deadlines pass, mutual choices take precedence;
+otherwise combined directed trust selects the strongest eligible pair, with
+ordinal IDs breaking ties. Availability is checked again after every pair,
+so a taken, deceased, elder or close-relative choice cannot force that pair.
+The rule uses the native partnership proposal and acceptance operations,
+including exclusive partnership and domestic-family records; its deadline
+replaces voluntary trust and retry requirements. Outstanding proposals for
+newly paired adults are withdrawn. `continuity_partnership_formed` records both
+adults and explains the pairing in the Event Log. Ending a partnership starts
+a fresh single deadline while the rule remains on.
 
 Each partner's self context carries a `continuity` note saying the rule and
-the hours left; a single agent's stays empty. Loading checks the flag and
-couples: known partner IDs in order, no couples while the rule is off, and no
-deadline more than two world days ahead. These events are logged as
+the hours left; held single adults receive the partnering rule instead.
+Loading checks ordered, known adults and chosen partner references, unique
+single entries and couples, no held entries while the rule is off, and no
+deadline more than two world days ahead. Turning off clears both sets of
+deadlines and all partner choices. These events are logged as
 `family_activity`; the two transitions are also Event Log lines.
 
 A recipe project that finds its work site busy waits with the blocker "Waiting
@@ -4614,7 +4691,16 @@ Use stable event names and named fields such as tick, entity/request ID,
 provider role/model, legal intention, outcome, latency and bounded usage.
 Log transitions and decisions, not render frames or idle polls. The player
 Event Log and unread count select known player-facing events and public
-milestones explicitly; unknown diagnostics do not become player text.
+milestones through the shared `EventLogPolicy` classification for every accepted
+kind. Routine personal storage, stocking and hauling, and automatic source
+changes stay in accepted history without becoming Event Log rows. Player order
+blockage/cancellation and consequential refusals remain visible; each problem
+kind for the same complete actor and target appears at most once per world day,
+using the saved calendar offset. Model failures retain their recovery-based
+coalescing. The client keeps each problem's original event ID across raw-history
+rollover, discards keys from expired calendar days, and resets them with the
+observed world or timeline. The unread count uses the same selection. Unknown diagnostics do not
+become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
@@ -4626,16 +4712,19 @@ simulation authority or required save state. Observability tests must prove both
 useful signal and absence of representative secrets.
 
 **Report a problem** (`Diagnostics/ProblemReport.cs` in the Godot client, with
-no Godot dependency so the launcher can compile the same file) zips `summary.txt` and the last 4 MB of each log it is given: the
-Godot log and the newest older one, plus `server.log` and `server.previous.log`
+no Godot dependency so the launcher can compile the same file) zips `summary.txt`
+and the last 4 MB of each log it is given: the current Godot log and the previous
+run as `game.previous.log`, plus `server.log` and `server.previous.log`
 when the game runs its own local server. It reads only those files, never saves,
 settings or key stores. Each line passes through `ProblemReport.Redact`, which
 blanks the launch secret, values after names such as `api_key`,
 `Authorization`, `password` or `pairing_code`, bearer tokens, passwords in
 addresses, common provider key formats and any token of 32 or more characters
-mixing upper case, lower case and digits. Plain hex IDs and hashes stay so a
-request can be followed. The rule against logging secrets still applies; this
-pass is a safety net, not permission. Reports go to `reports/` in the player's
+mixing upper case, lower case and digits outside file paths. Known secrets,
+named credential values and provider key formats are removed even inside paths;
+ordinary paths, hex IDs and hashes stay readable so a request can be followed.
+The rule against logging secrets still applies; this pass is a safety net,
+not permission. Reports go to `reports/` in the player's
 data folder (or `user://reports` without a local server), keeping the five
 newest.
 
@@ -5147,7 +5236,13 @@ choice with the world/version hint.
 
 `GameStarter` uses separate process arguments for local and installed games.
 It sends `--test-data` and `--detailed-logs` only with `--developer-mode`.
-Godot's `--log-file` points at `logs/game.log` in the selected data root;
+Godot's `--log-file` points at `logs/game.log` in the selected data root.
+Because that option disables Godot's own rotation, `GameStarter.PrepareGameLog`
+moves the last run to `logs/game.previous.log` before starting the game,
+replacing the older backup. A retry with no new log preserves that backup.
+Standalone runs keep Godot's normal timestamped rotation. The project enables
+`application/run/flush_stdout_on_print` in release builds too, so reports and
+logs left by a forced close include the latest printed line.
 `--verbose` applies only to a detailed run. The local server receives a
 per-process `Logging:LogLevel:ClankerWorld=Debug` override and records a bounded
 launch diagnostic. Framework logging, saved settings and the prohibition on
