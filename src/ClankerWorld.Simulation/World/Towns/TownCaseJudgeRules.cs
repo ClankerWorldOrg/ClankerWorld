@@ -11,7 +11,7 @@ public static class TownCaseJudgeRules
     private static TownNonLandHearingState Replace(TownNonLandHearingState state, TownNonLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
     private static bool Willing(TownNonLandCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
-    private static bool Eligible(TownNonLandCase item, string actor, IReadOnlyList<string> adults,
+    public static bool Eligible(TownNonLandCase item, string actor, IReadOnlyList<string> adults,
         IReadOnlyDictionary<string, string?> households, IReadOnlyList<TownCaseParty> parties) =>
         adults.Contains(actor, StringComparer.Ordinal) && !TownNonLandRules.JudgeConflict(actor,
             households.GetValueOrDefault(actor), parties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal));
