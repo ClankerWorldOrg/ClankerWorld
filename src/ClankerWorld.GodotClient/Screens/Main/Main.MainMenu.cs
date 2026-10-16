@@ -61,7 +61,9 @@ public partial class Main
     private readonly SlotList worldSelectionList = new();
     private readonly Button worldCreateButton = new();
     private readonly Button worldSelectButton = new();
-    private readonly Button worldSavesButton = new();
+    private readonly Button menuLoadSaveButton = new();
+    private readonly VBoxContainer worldSaveHistoryHost = new();
+    private readonly HFlowContainer worldLoadColumns = new();
     private CatalogWorld[] listedWorlds = [];
     private readonly Button worldDeleteButton = new();
     private string? listedActiveWorldId;
@@ -309,6 +311,7 @@ public partial class Main
     {
         menuResumeButton.Visible = !visible;
         menuSaveWorldButton.Visible = visible;
+        menuLoadSaveButton.Visible = visible;
         settingsButton.Visible = visible;
         modLibraryButton.Visible = visible;
         worldSettingsCategoryButton.Visible = visible;
@@ -495,8 +498,9 @@ public partial class Main
         worldSelectionList.CustomMinimumSize = new Vector2(0, 300);
         worldSelectionList.ItemSelected += index =>
         {
-            RefreshWorldMenuAvailability();
             if (worldMenuBusy || isOwnerAction) return;
+            ClearWorldSaveHistory();
+            RefreshWorldMenuAvailability();
             if (worldListRequest.IsLoading || index < 0 || index >= listedWorlds.Length) return;
             var world = listedWorlds[(int)index];
             worldMenuStatus.Text = world.Compatibility == OtherVersion && world.GameVersion is not null
@@ -506,12 +510,18 @@ public partial class Main
                 : world.Compatibility == "unknown"
                     ? "Could not check this world. Opening it will try the saved copy and will not delete anything."
                     : world.Id == listedActiveWorldId
-                        ? "This is your current world. Open it, or load one of its saves."
-                        : "This world is ready to open. Open it first to load one of its saves.";
+                        ? "Choose a save, or Load to open its newest save."
+                        : "Choose a save, or Load to open this world at its newest save.";
+            if (world.Compatibility is not ("incompatible" or OtherVersion)) worldSaveHistoryRead = ReadListedWorldSavesAsync(world);
         };
         worldSelectionList.ItemActivated += index => _ = SelectListedWorldAsync();
         worldSelectionList.Hide();
-        worldMenuBody.AddChild(worldSelectionList);
+        worldLoadColumns.AddThemeConstantOverride("h_separation", 16);
+        worldLoadColumns.AddThemeConstantOverride("v_separation", 12);
+        worldLoadColumns.AddChild(worldSelectionList);
+        worldLoadColumns.AddChild(worldSaveHistoryHost);
+        worldSaveHistoryHost.Hide();
+        worldMenuBody.AddChild(worldLoadColumns);
 
         var actions = new HBoxContainer();
         actions.AddThemeConstantOverride("separation", 8);
@@ -532,13 +542,7 @@ public partial class Main
         worldCreateButton.Pressed += () => _ = CreateSelectedWorldAsync();
         worldCreateButton.Disabled = true;
         actions.AddChild(worldCreateButton);
-        worldSavesButton.Text = "Load a save...";
-        worldSavesButton.TooltipText = "Go back to one of the current world's saves. Playing on from an older save starts a new branch.";
-        StyleButton(worldSavesButton);
-        worldSavesButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: true);
-        worldSavesButton.Hide();
-        actions.AddChild(worldSavesButton);
-        worldSelectButton.Text = "Open World";
+        worldSelectButton.Text = "Load";
         StyleButton(worldSelectButton, primary: true);
         worldSelectButton.CustomMinimumSize = new Vector2(170, 34);
         worldSelectButton.Pressed += () => _ = SelectListedWorldAsync();
@@ -553,7 +557,11 @@ public partial class Main
         worldListRequest.Changed += RenderWorldList;
         worldMenuOverlay.VisibilityChanged += () =>
         {
-            if (!worldMenuOverlay.Visible) worldListRequest.Cancel();
+            if (!worldMenuOverlay.Visible)
+            {
+                worldListRequest.Cancel();
+                ClearWorldSaveHistory();
+            }
             Callable.From(LayoutWorldMenu).CallDeferred();
         };
         worldMenuBody.MinimumSizeChanged += () => Callable.From(LayoutWorldMenu).CallDeferred();
@@ -593,6 +601,10 @@ public partial class Main
         worldMenuColumns.GetChild<Control>(0).CustomMinimumSize = new Vector2(Math.Min(optionsWidth, width), 0);
         worldMenuColumns.GetChild<Control>(1).CustomMinimumSize = new Vector2(previewWidth, 0);
         worldPreviewFrame.CustomMinimumSize = new Vector2(previewWidth, previewWidth / 2);
+        var beside = width >= 896;
+        worldSelectionList.CustomMinimumSize = new Vector2(beside ? 260 : width, beside ? 300 : 150);
+        worldSaveHistoryHost.CustomMinimumSize = new Vector2(beside ? width - 276 : width, 0);
+        if (WorldHistoryEmbedded) FitManualSaveTimeline();
         worldMenuScroll.CustomMinimumSize = new Vector2(width, 0);
         var contentHeight = worldMenuBody.GetCombinedMinimumSize().Y;
         worldMenuScroll.CustomMinimumSize = new Vector2(width,
@@ -614,9 +626,9 @@ public partial class Main
         worldPreview.Visible = create && previewedWorldOptions is not null;
         worldCreateButton.Visible = create;
         worldSelectionList.Visible = !create;
+        worldLoadColumns.Visible = !create;
         worldSelectButton.Visible = !create;
-        worldSavesButton.Visible = !create;
-        worldSavesButton.Disabled = true;
+        ClearWorldSaveHistory();
         worldDeleteButton.Visible = !create;
         worldDeleteButton.Disabled = true;
         pendingDeletion = null;
@@ -644,7 +656,7 @@ public partial class Main
         listedActiveWorldId = null;
         worldSelectionList.Clear();
         worldSelectButton.Disabled = true;
-        worldSavesButton.Disabled = true;
+        ClearWorldSaveHistory();
         worldDeleteButton.Disabled = true;
         if (worldListRequest.IsLoading)
         {
@@ -743,12 +755,12 @@ public partial class Main
         var world = SelectedListedWorld();
         // A world another version saved gets the red button that opens it there.
         var otherVersion = world is { Compatibility: OtherVersion, GameVersion: not null };
-        worldSelectButton.Text = otherVersion ? "Open in " + world!.GameVersion : "Open World";
+        worldSelectButton.Text = otherVersion ? "Open in " + world!.GameVersion : "Load";
         worldSelectButton.ThemeTypeVariation = otherVersion ? "DangerButton" : "PrimaryButton";
-        worldSelectButton.Disabled = disabled || world is null || world.Compatibility == "incompatible" ||
+        worldSelectButton.Disabled = disabled || worldHistoryLoading || world is null || world.Compatibility == "incompatible" ||
+            (world.Compatibility != OtherVersion && !worldHistoryLoaded) ||
             (world.Compatibility == OtherVersion && (!otherVersion || LauncherPath is null || GameVersionName.Parse(world.GameVersion) is null));
-        // Saves load into the open world, so another world must be opened first.
-        worldSavesButton.Disabled = disabled || world is null || world.Id != listedActiveWorldId;
+
         worldDeleteButton.Disabled = disabled || world is null;
         worldPreviewButton.Disabled = disabled;
         worldCreateButton.Disabled = disabled || !CanCreatePreview(CurrentWorldOptions());
@@ -1031,18 +1043,25 @@ public partial class Main
 
     private async Task SelectListedWorldAsync()
     {
+        if (worldHistoryLoading)
+        {
+            var chosenWorld = SelectedListedWorld()?.Id;
+            await worldSaveHistoryRead;
+            if (!worldMenuOverlay.Visible || SelectedListedWorld()?.Id != chosenWorld) return;
+        }
         if (!worldMenuBusy && !isOwnerAction && !worldListRequest.IsLoading && !worldSelectButton.Disabled &&
             SelectedListedWorld() is { Compatibility: OtherVersion } other)
         {
             OpenInSavedVersion(other);
             return;
         }
-        if (worldMenuBusy || isOwnerAction || SelectedListedWorld() is not { } world ||
+        if (worldMenuBusy || isOwnerAction || !worldHistoryLoaded || SelectedListedWorld() is not { } world ||
             world.Compatibility is "incompatible" or OtherVersion ||
             !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
         // The catalog and selection can change while the pause response is pending.
         // Keep the player's chosen identity, never its position in the list.
         var worldId = world.Id;
+        var save = listedSaveWorldId == world.WorldId ? SelectedManualSave() ?? NewestListedSave() : null;
         var server = ResolveWorldUri();
         await RunWorldMenuActionAsync(async () =>
         {
@@ -1052,8 +1071,12 @@ public partial class Main
                 await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
-                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.SelectWorldAsync(server, authority, deviceId,
-                    worldId, signer, OwnerRequestToken)));
+                await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(async () =>
+                {
+                    await ownerApi.SelectWorldAsync(server, authority, deviceId, worldId, signer, OwnerRequestToken);
+                    if (save is not null)
+                        await ownerApi.LoadManualSaveAsync(server, authority, deviceId, save.Id, signer, OwnerRequestToken);
+                }));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
             }
@@ -1082,6 +1105,7 @@ public partial class Main
         mainMenuSettingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
         mainMenuConnectButton.Icon = PixelIcons.Themed(PixelGlyph.Link, green, scale);
         settingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
+        menuLoadSaveButton.Icon = PixelIcons.Themed(PixelGlyph.Folder, warm, scale);
         menuSaveWorldButton.Icon = PixelIcons.Themed(PixelGlyph.Book, wood, scale);
         modLibraryButton.Icon = PixelIcons.Themed(PixelGlyph.Box, wood, scale);
         var door = PixelIcons.Themed(PixelGlyph.Door, palette.Bad, scale);

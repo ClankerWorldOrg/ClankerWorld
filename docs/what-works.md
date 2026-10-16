@@ -2,7 +2,7 @@
 title: What works today
 type: product-status
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # What works today
@@ -1773,9 +1773,11 @@ active recovery save can retry while paused; other remaining faults require
 operator inspection. Preserve unsaved in-memory progress before restarting.
 
 Named saves can be overwritten after choosing one and confirming. Load World
-can load an older save of the current world. Playing on from it starts a new
+shows the selected world's save timeline directly and loads a chosen save on any
+branch, or its newest save when none is chosen. The Pause Menu's **Load Save**
+opens the current world's timeline directly. Playing on from an older save starts a new
 branch and keeps the saves of the first version of events
-([#679](https://github.com/compoodment/ClankerWorld/issues/679)). Load Save and
+([#679](https://github.com/compoodment/ClankerWorld/issues/679)). Load World, Load Save and
 Save World draw a world's branches as a timeline over its seasons, mark where
 the running world continues with **You are here**, and keep the save list,
 grouped by branch, behind a **Timeline / List** switch

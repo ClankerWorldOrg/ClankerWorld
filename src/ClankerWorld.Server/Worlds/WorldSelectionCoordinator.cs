@@ -50,6 +50,21 @@ public sealed class WorldSelectionCoordinator(
         string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests, IReadOnlyDictionary<string, long> RecordCounts,
         bool Restorable, WorldThumbnail? Thumbnail, RoutineHelperSettings? Helper = null);
 
+    /// <summary>Browse a catalog world's saves without activating its checkpoint.</summary>
+    public WorldSaveHistory ReadSaveHistory(string id)
+    {
+        lock (gate)
+        {
+            var world = catalog.Capture().Worlds.SingleOrDefault(world => world.Id == id)
+                ?? throw new FileNotFoundException("The selected world does not exist.");
+            var state = id == catalog.Active().Id ? runtime.ExportState() : catalog.Read(id);
+            var config = state.WorldSystems?.Config;
+            var calendar = config is null ? null : new OwnerWorldCalendarPace(config.TicksPerDay, config.DaysPerYear,
+                config.SpringDays, config.SummerDays, config.AutumnDays, config.WinterDays, config.CalendarOffsetTicks);
+            return new(world.WorldId, saves.List(world.WorldId), saves.CurrentPosition(world.WorldId), calendar, state.Society.Society.WorldTick);
+        }
+    }
+
     public WorldCatalogSnapshot List(CancellationToken cancellationToken = default)
     {
         var elapsed = Stopwatch.StartNew();
