@@ -143,13 +143,13 @@ public sealed class NonLandJudgeHeldBallotTests
 
     private sealed class CaseBallotCall
     {
-        public TaskCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Held { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Held { get; } = new(TaskCreationOptions.None);
     }
 
     private sealed class HeldNonLandBallotProvider : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> held = new();
+        private readonly InlineCompletionSource<CognitionDecisionResponse> held = new();
         private CognitionDecisionResponse? response;
         private bool released;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
@@ -157,7 +157,7 @@ public sealed class NonLandJudgeHeldBallotTests
         public bool Armed { get; set; }
         public bool WithdrawOther { get; set; }
         public Channel<CaseBallotCall> Entered { get; } = Channel.CreateUnbounded<CaseBallotCall>();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public string? HeldId { get; private set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
