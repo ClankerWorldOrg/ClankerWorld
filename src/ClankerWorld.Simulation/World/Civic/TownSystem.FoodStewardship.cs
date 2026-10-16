@@ -97,7 +97,7 @@ internal sealed partial class TownSystem
         }
         if (ProposedFoodPolicy(world, actor) is { } policy)
         {
-            var plan = PlanFoodPolicy(actor, "food_policy_propose:" + policy)!;
+            var plan = PlanFoodPolicy(actor, new FoodPolicyChoice(policy, null).Encode())!;
             if (CheckFoodPolicy(world, plan).Allowed) candidates.Add(new(plan.CandidateId, policy == "essential_first"
                 ? "Ask the household to reserve scarce shared food for hungry members; a majority must agree."
                 : "Ask the household to reopen plentiful shared food to everyone.", 14)
