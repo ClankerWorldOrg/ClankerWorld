@@ -77,7 +77,6 @@ public sealed partial class WorldRuntime
             if (divider <= 0 || divider == encoded.Length - 1) return;
             if (HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == encoded[..divider]) is { } artifact)
                 plan = new(actor, artifact, encoded[(divider + 1)..], true);
-
         }
         if (plan is not null) ApplyKnowledgeReading(plan);
     }
