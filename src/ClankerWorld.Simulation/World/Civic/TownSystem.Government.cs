@@ -16,14 +16,14 @@ internal sealed partial class TownSystem
     {
         const string format = "Write civic_proposal as 'subject: rule'. It needs the current council's votes, applies only from adoption " +
             "and records a social rule; it does not block actions, change ownership or create offices.";
-        candidates.Add(new(CivicAction(world, town.Id, "propose", TownLawRules.Jurisdiction),
-            $"Propose a law for everyone on {town.Name}'s claimed land, visitors included. {format}", 190));
-        candidates.Add(new(CivicAction(world, town.Id, "propose", TownLawRules.ResidentDuty),
-            $"Propose a duty for {town.Name}'s residents that applies wherever they are. {format}", 191));
+        OfferTownLaw(world, candidates, actor, town, TownLawChoiceKind.Adopt, TownLawRules.Jurisdiction, "",
+            $"Propose a law for everyone on {town.Name}'s claimed land, visitors included. {format}", 190);
+        OfferTownLaw(world, candidates, actor, town, TownLawChoiceKind.Adopt, TownLawRules.ResidentDuty, "",
+            $"Propose a duty for {town.Name}'s residents that applies wherever they are. {format}", 191);
         var here = world.Agents[actor].Position;
         if (TownLawRules.SiteAround(world.Map, here, town.Id, world.TownLandTitles).Length > 0)
-            candidates.Add(new(CivicAction(world, town.Id, "propose", SiteToken(here)),
-                $"Propose a law for the claimed land within {TownLawRules.SiteRadius} tiles of where you stand in {town.Name}, visitors included. {format}", 192));
+            OfferTownLaw(world, candidates, actor, town, TownLawChoiceKind.Adopt, SiteToken(here), "",
+                $"Propose a law for the claimed land within {TownLawRules.SiteRadius} tiles of where you stand in {town.Name}, visitors included. {format}", 192);
         var history = CivicHistory(town);
         if (town.Government is { } government && !TownEstateDefaultRules.HasPending(government))
         {
@@ -46,11 +46,11 @@ internal sealed partial class TownSystem
         {
             var number = TownLawRules.Number(law.Id).ToString(CultureInfo.InvariantCulture);
             var current = TownLawRules.Current(law);
-            if (current.BoatAccess is null && current.EstateDefault is null) candidates.Add(new(CivicAction(world, town.Id, "amend", law.Id, current.Version.ToString(CultureInfo.InvariantCulture)),
+            OfferTownLaw(world, candidates, actor, town, TownLawChoiceKind.Amend, law.Id, current.Version.ToString(CultureInfo.InvariantCulture),
                 $"Propose amending {town.Name}'s law {number} ({current.Subject}); write the complete new wording in civic_proposal as 'subject: rule'. " +
-                "It keeps the law's scope, needs the council's votes and applies only from adoption.", 193));
-            candidates.Add(new(CivicAction(world, town.Id, "repeal", law.Id, current.Version.ToString(CultureInfo.InvariantCulture)),
-                $"Propose repealing {town.Name}'s law {number} ({current.Subject}). It needs the council's votes; earlier conduct stays under the law.", 194));
+                    "It keeps the law's scope, needs the council's votes and applies only from adoption.", 193);
+            OfferTownLaw(world, candidates, actor, town, TownLawChoiceKind.Repeal, law.Id, current.Version.ToString(CultureInfo.InvariantCulture),
+                $"Propose repealing {town.Name}'s law {number} ({current.Subject}). It needs the council's votes; earlier conduct stays under the law.", 194);
         }
     }
 

@@ -506,6 +506,9 @@ the selected history remains available; receipt ordering and sources stay the sa
 Proposal votes and withdrawal retain the original proposal, voting window and
 electorate. Shared checks allow other votes to accumulate while refusing a
 settled, cancelled or changed proposal before its native response applies.
+Law adoption, amendment and repeal retain the chosen scope, titled site or
+law version. Model wording is bound at admission; the same selected site and
+version are checked before the native law-proposal writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
