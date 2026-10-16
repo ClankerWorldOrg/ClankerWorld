@@ -283,6 +283,7 @@ public sealed class WorkBuildingPlanningTests
                 break;
             case "restaurant": Add("bread", 1); Add("cultivated_greens", 1); Add("wood", 1); Add("food", 10); break;
             case "animal-yard":
+                var position = state.Agents.Single(person => person.AgentId == actor).Position;
                 var born = -(long)AnimalRules.Definition("chicken").AdultDays * state.WorldSystems!.Config.TicksPerDay;
                 state = state with { AnimalWorld = new(true, [new("planning-hen", "Hen", "chicken", "female", born, position, "planning-herd")], []) };
                 break;
