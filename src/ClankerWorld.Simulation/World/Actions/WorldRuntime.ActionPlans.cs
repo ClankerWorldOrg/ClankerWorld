@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        LandSaleExchangeActionPlan landSaleExchange => townSystem.CheckLandSaleExchange(civicWorld, landSaleExchange),
         LandSaleCollectionActionPlan landSaleCollection => townSystem.CheckLandSaleCollection(civicWorld, landSaleCollection),
         LandTransferResponseActionPlan transferResponse => townSystem.CheckLandTransferResponse(civicWorld, transferResponse),
         LandTransferProposalActionPlan transferProposal => townSystem.CheckLandTransferProposal(civicWorld, transferProposal),

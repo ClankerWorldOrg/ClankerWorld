@@ -42,18 +42,19 @@ internal sealed partial class TownSystem
         var household = world.Society.GetAgent(actor).HouseholdId;
         if (household == request.TargetHouseholdId)
         {
-            var carried = LandSaleCarriedQuantity(world, actor, price);
             if (PlanLandSaleCollection(world, actor, new(town.Id, token)) is { } collection && CheckLandSaleCollection(world, collection).Allowed)
                 candidates.Add(new(collection.CandidateId,
                     "Collect available household goods you may carry for this accepted land-use sale. " + LandTransferTerms(world, request), 175)
                 { ActionPlan = collection });
-            if (carried >= price.Quantity && CanWalkToCivicBoard(world, actor, town))
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_pay", token),
-                    "Bring the exact personally owned goods to the notice place; pay the seller household only when an accepted seller adult is present, and transfer the recorded permission together. " + LandTransferTerms(world, request), 180));
+            if (PlanLandSaleExchange(world, actor, new(town.Id, token, LandSaleExchangeKind.Pay)) is { } payment && CheckLandSaleExchange(world, payment).Allowed)
+                candidates.Add(new(payment.CandidateId,
+                    "Bring the exact personally owned goods to the notice place; pay the seller household only when an accepted seller adult is present, and transfer the recorded permission together. " + LandTransferTerms(world, request), 180)
+                { ActionPlan = payment });
         }
-        else if (household == price.SellerHouseholdId && !NearCivicBoard(world, actor, town) && CanWalkToCivicBoard(world, actor, town))
-            candidates.Add(new(CivicAction(world, town.Id, "land_transfer_meet", token),
-                "Meet the buyer at the notice place for the accepted goods sale. Walking supplies no payment or permission change. " + LandTransferTerms(world, request), 175));
+        else if (PlanLandSaleExchange(world, actor, new(town.Id, token, LandSaleExchangeKind.Meet)) is { } meeting && CheckLandSaleExchange(world, meeting).Allowed)
+            candidates.Add(new(meeting.CandidateId,
+                "Meet the buyer at the notice place for the accepted goods sale. Walking supplies no payment or permission change. " + LandTransferTerms(world, request), 175)
+            { ActionPlan = meeting });
     }
 
     internal void ContinueTownLandSaleWalk(ITownWorld world, string actor, string candidate)
@@ -72,12 +73,9 @@ internal sealed partial class TownSystem
                 world.MoveToward(actor, world.Agents[actor], collection.Pickup.Position, "land_sale", collection.Pickup.InteractionRange);
             return;
         }
-        var request = town.LandRecords.Transfers.Single(item => item.Status == "pending" && LandTransferActionToken(item) == parts[3]);
-        var lot = parts[2] == "land_transfer_collect_payment" ? LandSaleStock(world, actor, town, request.Price!) : null;
-        var destination = lot is not null ? world.HouseholdStockPosition(lot) : CivicBoard(world, town);
-        var range = lot is not null ? WorldRuntime.CivicSharedRules.HouseholdStockInteractionRange(lot) : WorldRuntime.CivicSharedRules.ResourceInteractionRange;
-        if (destination is { } position && !world.IsWithinInteractionRange(world.Agents[actor].Position, position, range))
-            world.MoveToward(actor, world.Agents[actor], position, "land_sale", range);
+        if (offered.ActionPlan is LandSaleExchangeActionPlan exchange &&
+            !world.IsWithinInteractionRange(world.Agents[actor].Position, exchange.NoticePlace, WorldRuntime.CivicSharedRules.ResourceInteractionRange))
+            world.MoveToward(actor, world.Agents[actor], exchange.NoticePlace, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
     }
 
     internal void CollectLandSalePayment(ITownWorld world, string actor, TownRuntimeState town, TownLandTransferRequest request,
@@ -97,35 +95,30 @@ internal sealed partial class TownSystem
     }
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) SettleLandSale(ITownWorld world, TownRuntimeState town,
-            TownCouncilState council, TownLandTransferRequest request, string buyer)
+            TownCouncilState council, TownLandTransferRequest request, string buyer, LandSaleExchangeActionPlan? plan = null)
     {
-        var board = CivicBoard(world, town) ?? throw new InvalidOperationException("The sale needs its actual public notice place.");
-        if (!NearCivicBoard(world, buyer, town))
+        plan ??= PlanLandSaleExchange(world, buyer, new(town.Id, LandTransferActionToken(request), LandSaleExchangeKind.Pay));
+        if (plan is null) return (council, town.LandRecords);
+        if (CheckLandSaleExchange(world, plan, town).Refusal is { } refusal)
+        { world.RefuseChoice(plan, refusal); return (council, town.LandRecords); }
+        var board = plan.NoticePlace;
+        if (plan.Stage == LandSaleExchangeStage.Approach)
         {
             world.MoveToward(buyer, world.Agents[buyer], board, "land_sale_payment", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
             return (council, town.LandRecords);
         }
+        if (plan.Stage == LandSaleExchangeStage.Wait) return (council, town.LandRecords);
         var price = request.Price!;
-        var parties = LandTransferParties(world, request);
-        var seller = parties.Single(party => party.HouseholdId == price.SellerHouseholdId).AdultIds
-            .FirstOrDefault(actor => NearCivicBoard(world, actor, town));
-        if (seller is null) return (council, town.LandRecords);
-        if (LandSaleCarriedQuantity(world, buyer, price) < price.Quantity)
-            throw new InvalidOperationException("The exact personally carried surplus goods price is unavailable.");
+        var seller = plan.Seller!;
         var inventory = world.Society.Inventory;
-        var remaining = price.Quantity;
         var paymentLots = new List<TownLandSalePaymentLot>();
-        foreach (var lot in LandSaleCarriedLots(world, buyer, price))
+        foreach (var goods in plan.Goods)
         {
-            var quantity = Math.Min(remaining, WorldRuntime.CivicSharedRules.AvailableLotQuantity(inventory, lot));
             inventory = InventoryAuthority.Transfer(inventory, TownLandTransferRules.PaymentTransferId(request, buyer, paymentLots.Count),
-                buyer, price.SellerHouseholdId, lot.Id, quantity, "land_use_right_payment",
+                buyer, price.SellerHouseholdId, goods.LotId, goods.Quantity, "land_use_right_payment",
                 destinationGroundPosition: new(board.X, board.Y));
-            paymentLots.Add(new(lot.Id, quantity, inventory.Events[^1].EventId));
-            remaining -= quantity;
-            if (remaining == 0) break;
+            paymentLots.Add(new(goods.LotId, goods.Quantity, inventory.Events[^1].EventId));
         }
-        if (remaining != 0) throw new InvalidOperationException("The exact personally carried goods price is unavailable.");
         var payment = new TownLandSalePayment(buyer, seller, board, paymentLots.ToArray());
         var (hearings, rights) = TownLandTransferRules.Advance(town.LandRecords, world.Map, householdLandUseRights,
             town.LandRecords.Transfers.Where(item => item.Status == "pending").ToDictionary(item => item.Id, item => LandTransferParties(world, item), StringComparer.Ordinal),

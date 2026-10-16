@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
 {
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandTransferAction(
     ITownWorld world, TownRuntimeState town, string actor, string action, string subject, string choice,
-            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null, LandTransferResponseActionPlan? responsePlan = null, LandSaleCollectionActionPlan? collectionPlan = null)
+            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null, LandTransferResponseActionPlan? responsePlan = null, LandSaleCollectionActionPlan? collectionPlan = null, LandSaleExchangeActionPlan? exchangePlan = null)
     {
         (council, var hearings) = AdvanceTownLandTransfers(world, town with { Council = council }, council);
         var currentTown = town with { Council = council, LandRecords = hearings };
@@ -55,24 +55,25 @@ internal sealed partial class TownSystem
             { world.RefuseChoice(collectionPlan, refusal); return (council, hearings); }
             request = hearings.Transfers.Single(item => item.Id == collectionPlan.Request.Id);
         }
-        else
+        else if (LandSaleExchangeChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } exchangeChoice)
         {
-            var candidates = new List<CognitionCandidate>();
-            AddTownLandTransferCandidates(world, candidates, actor, currentTown);
-            if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
-                throw new InvalidOperationException("The transfer choice no longer has current source terms or informed household eligibility.");
-            request = hearings.Transfers.Single(item => LandTransferActionToken(item) == subject && item.Status == "pending");
+            exchangePlan ??= PlanLandSaleExchange(world, actor, exchangeChoice);
+            if (exchangePlan is null) return (council, hearings);
+            if (CheckLandSaleExchange(world, exchangePlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(exchangePlan, refusal); return (council, hearings); }
+            request = hearings.Transfers.Single(item => item.Id == exchangePlan.Request.Id);
         }
+        else return (council, hearings);
         switch (action)
         {
             case "land_transfer_collect_payment":
                 CollectLandSalePayment(world, actor, currentTown, request, collectionPlan);
                 break;
             case "land_transfer_meet":
-                world.MoveToward(actor, world.Agents[actor], CivicBoard(world, currentTown)!.Value, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+                world.MoveToward(actor, world.Agents[actor], exchangePlan!.NoticePlace, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                 break;
             case "land_transfer_pay":
-                return SettleLandSale(world, currentTown, council, request, actor);
+                return SettleLandSale(world, currentTown, council, request, actor, exchangePlan);
             case "land_transfer_read":
                 council = TownCouncilRules.LearnNotice(council, actor, request.NoticeId, world.WorldTick);
                 LandTransferEvent(world, "read", currentTown, request, actor, "learned");

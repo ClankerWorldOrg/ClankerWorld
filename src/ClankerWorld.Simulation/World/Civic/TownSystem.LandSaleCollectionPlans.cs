@@ -21,20 +21,10 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandSaleCollection(ITownWorld world, LandSaleCollectionActionPlan plan, TownRuntimeState? currentTown = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
-        if (!capability.Allowed) return capability;
-        if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
-            town.LandRecords.Transfers.SingleOrDefault(request => request.Id == plan.Request.Id) is not { Status: "pending", Price: { } price } current ||
-            current.FilerId != plan.Request.FilerId || current.ProposedTick != plan.Request.ProposedTick || current.NoticeId != plan.Request.NoticeId ||
-            LandTransferActionToken(current) != plan.Choice.TermsToken ||
-            TownLandTransferRules.TermsToken(current) != TownLandTransferRules.TermsToken(plan.Request) ||
-            world.Society.GetAgent(plan.Actor).HouseholdId != current.TargetHouseholdId ||
-            !LandTransferParties(world, current).Any(party => party.HouseholdId == current.TargetHouseholdId && party.AdultIds.Contains(plan.Actor, StringComparer.Ordinal)) ||
-            CivicBoard(world, town) != plan.NoticePlace || !TownLandTransferRules.HasNotice(current, plan.Actor, world.WorldTick, town.Council.Knowledge) ||
-            TownLandTransferRules.PendingFailure(town.LandRecords, current, householdLandUseRights, householdLandUseRequests, world.WorldTick) is not null ||
-            !TownLandTransferRules.HasAllConsents(current, LandTransferParties(world, current), town.Council.Knowledge, world.WorldTick))
-            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected sale terms, household consent or notice place have changed");
+        var terms = CheckLandSaleTerms(world, plan, plan.Request, plan.Choice.TownId, plan.Choice.TermsToken, plan.NoticePlace,
+            plan.Request.TargetHouseholdId, currentTown, out _, out var current);
+        if (!terms.Allowed) return terms;
+        var price = current!.Price!;
         var pickup = plan.Pickup;
         var goods = world.SpendingGoods(plan.Actor, GoodsUse.Collect, [current.TargetHouseholdId], price.ItemKind)
             .SingleOrDefault(match => match.Lot.Id == pickup.StockId);

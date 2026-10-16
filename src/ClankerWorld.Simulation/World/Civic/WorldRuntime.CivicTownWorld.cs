@@ -105,6 +105,18 @@ public sealed partial class WorldRuntime
             runtime.Reach(actor, noticePlace, ReachPurpose.CivicVisit, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable);
         public IReadOnlyList<GridPoint> ReachLandSalePickup(string actor, PlannedEquipmentPickup pickup) =>
             runtime.Reach(actor, pickup.Position, ReachPurpose.LandSalePayment, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable);
+        public IReadOnlyList<GridPoint> ReachLandSaleNoticePlace(string actor, GridPoint noticePlace)
+        {
+            for (var dy = -ResourceInteractionRange; dy <= ResourceInteractionRange; dy++)
+                for (var dx = -ResourceInteractionRange; dx <= ResourceInteractionRange; dx++)
+                {
+                    var tile = runtime.map.WrapColumn(new GridPoint(noticePlace.X + dx, noticePlace.Y + dy));
+                    if (runtime.map.Contains(tile) && runtime.IsWithinInteractionRange(tile, noticePlace, ResourceInteractionRange) &&
+                        runtime.Reach(actor, tile, ReachPurpose.LandSalePayment, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain) is { Count: > 0 } route)
+                        return route;
+                }
+            return [];
+        }
         public IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity)
         {
             if (runtime.PickupPosition(actor, pickup.Position, pickup.InteractionRange) is not { } origin) return [];
