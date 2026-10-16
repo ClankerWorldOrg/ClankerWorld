@@ -479,6 +479,13 @@ public sealed partial class WorldRuntime
         }
 
         var definitionId = selected.DefinitionId;
+        if (selected.IsBuilding &&
+            worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } shop &&
+            !TownHasRoomForSharedShop(agentId, HouseholdBuildingKind(shop)))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "town_shop_limit"));
+            return;
+        }
         // Two members can choose in the same tick; the household still plans one of each kind.
         if (selected.IsBuilding &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } planned &&
@@ -545,6 +552,11 @@ public sealed partial class WorldRuntime
         }
         if (building is not null && HouseholdBuildingKind(building) is { } kind && kind != "house")
         {
+            if (!TownHasRoomForSharedShop(agentId, kind))
+            {
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = "The Town already has enough shops of this kind for its residents." });
+                return;
+            }
             var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
             if (householdId is null)
             {
