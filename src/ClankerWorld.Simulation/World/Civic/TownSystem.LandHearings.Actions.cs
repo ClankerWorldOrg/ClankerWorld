@@ -108,7 +108,9 @@ internal sealed partial class TownSystem
                             { ActionPlan = ruling });
                     }
                 }
-                foreach (var request in item.ReopenRequests)
+                foreach (var request in item.ReopenRequests.Where(request => item.Status == "settled" && request.Status == "pending" &&
+                             item.Reads.Any(read => read.AgentId == actor && read.Revision == revision.Number &&
+                                 read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal))))
                 {
                     OfferLandHearingReopening(world, candidates, actor, town, item, true, request.Id + ":accept",
                         "Accept independently established grounds and open a fresh hearing; current rights remain until a valid correction. Give reasons in civic_land_hearing.statement. Filed " + request.Kind + " claim: " + request.Reasons, 165);
@@ -116,9 +118,10 @@ internal sealed partial class TownSystem
                         "Reject this reopening request with reasons in civic_land_hearing.statement; keep the old ruling and request in the case history. Filed " + request.Kind + " claim: " + request.Reasons, 166);
                 }
             }
-            foreach (var grounds in new[] { "material_evidence", "procedural_error" })
-                OfferLandHearingReopening(world, candidates, actor, town, item, false, grounds,
-                    "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184);
+            if (item.Status == "settled" && isParty && LandHearingReadCurrent(world, item, actor) && LandHearingReadRuling(world, item, actor))
+                foreach (var grounds in new[] { "material_evidence", "procedural_error" })
+                    OfferLandHearingReopening(world, candidates, actor, town, item, false, grounds,
+                        "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184);
             foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor &&
                          world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Relay, recipient.AgentId,
