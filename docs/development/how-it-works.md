@@ -3603,6 +3603,23 @@ adult at a time is offered to gather it from a reachable source. Buildings the
 Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
+
+`WorkBuildingHasInputs` also filters autonomous plans and material preparation
+by work the building can actually do. Farmhouses and Silos need reachable
+household fields or planting stock, including an available seed site within
+twelve tiles of the Town origin. Animal Yards need reachable wild animals;
+another yard waits until existing Town yards have no free animal places.
+Other work buildings need accessible inputs for at least one of their own
+active recipes. The shared goods query excludes unusable, reserved and promised
+stock and checks access and reach; natural supplies use shared gathering and
+reach rules. Construction costs cannot double as the station's only input
+stock. Restaurants also protect one day's meals for the Town's residents.
+Houses and Stores have no production-input prerequisite. Admission rebuilds
+the same eligible offers, and project start and continuation recheck the rule
+before spending construction materials. Explicit owner construction orders
+use the same prerequisite; already placed buildings remain in place. No
+eligibility result is cached or saved.
+
 Harvests remain household-owned lots on their actual field tile. An adult
 carries a load of at most four raw crops or planting items to the household's Farmhouse or Silo.
 The Farmhouse holds a provisional 96 items; the private Silo holds 64 units per
