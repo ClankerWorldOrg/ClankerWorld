@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
 {
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandTransferAction(
     ITownWorld world, TownRuntimeState town, string actor, string action, string subject, string choice,
-            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null)
+            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null, LandTransferResponseActionPlan? responsePlan = null)
     {
         (council, var hearings) = AdvanceTownLandTransfers(world, town with { Council = council }, council);
         var currentTown = town with { Council = council, LandRecords = hearings };
@@ -38,11 +38,23 @@ internal sealed partial class TownSystem
             }
             return (council, hearings);
         }
-        var candidates = new List<CognitionCandidate>();
-        AddTownLandTransferCandidates(world, candidates, actor, currentTown);
-        if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
-            throw new InvalidOperationException("The transfer choice no longer has current source terms or informed household eligibility.");
-        var request = hearings.Transfers.Single(item => LandTransferActionToken(item) == subject && item.Status == "pending");
+        TownLandTransferRequest request;
+        if (LandTransferResponseChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } responseChoice)
+        {
+            responsePlan ??= PlanLandTransferResponse(world, actor, responseChoice);
+            if (responsePlan is null) return (council, hearings);
+            if (CheckLandTransferResponse(world, responsePlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(responsePlan, refusal); return (council, hearings); }
+            request = hearings.Transfers.Single(item => item.Id == responsePlan.Request.Id);
+        }
+        else
+        {
+            var candidates = new List<CognitionCandidate>();
+            AddTownLandTransferCandidates(world, candidates, actor, currentTown);
+            if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
+                throw new InvalidOperationException("The transfer choice no longer has current source terms or informed household eligibility.");
+            request = hearings.Transfers.Single(item => LandTransferActionToken(item) == subject && item.Status == "pending");
+        }
         switch (action)
         {
             case "land_transfer_collect_payment":
@@ -60,7 +72,7 @@ internal sealed partial class TownSystem
             case "land_transfer_accept":
             case "land_transfer_decline":
                 var parties = LandTransferParties(world, request);
-                var party = parties.Single(item => CivicAgentToken(item.HouseholdId) == choice && item.AdultIds.Contains(actor, StringComparer.Ordinal));
+                var party = parties.Single(item => item.HouseholdId == responsePlan!.PartyHousehold && item.AdultIds.Contains(actor, StringComparer.Ordinal));
                 var response = action == "land_transfer_accept" ? "accept" : "decline";
                 hearings = TownLandTransferRules.Respond(hearings, request.Id, TownLandTransferRules.TermsToken(request),
                     actor, party.HouseholdId, response, council.Knowledge, householdLandUseRights, parties, householdLandUseRequests, world.WorldTick);

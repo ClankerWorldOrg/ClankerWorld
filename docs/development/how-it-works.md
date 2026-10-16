@@ -543,6 +543,9 @@ shape overlaps the household's pending request, using native availability rules.
 Permission-transfer proposals retain the source terms and eligible beneficiary
 plots, then bind the admitted target, exact plot and goods price once.
 The shared native transfer validator checks those terms before publication.
+Transfer read/consent/withdrawal choices retain their exact request terms
+and household party. Shared checks allow other responses to accumulate and
+check notice knowledge before the native response writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
