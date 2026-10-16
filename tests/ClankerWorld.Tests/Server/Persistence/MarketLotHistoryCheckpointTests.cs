@@ -11,7 +11,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class MarketLotHistoryCheckpointTests
 {
-    private const string Seller = "founder:00000000000000000000000000000001";
+    private const string Seller = NormalPathWorld.Founder1;
     private static readonly Lazy<Task<byte[]>> LongDeposit = new(async () =>
         WorldRuntimeCodec.Encode(await DepositThroughHostAsync(5, false)));
 

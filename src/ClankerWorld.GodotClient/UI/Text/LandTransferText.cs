@@ -45,7 +45,7 @@ public static class LandTransferText
         };
         if (transfer.Price is { } price)
         {
-            lines.Add("Goods price: " + price.Quantity + " " + price.ItemKind + " to " + price.SellerHouseholdName + ". No money price.");
+            lines.Add("Goods price: " + price.Quantity + " " + price.ItemName + " to " + price.SellerHouseholdName + ". No money price.");
             lines.Add(transfer.Payment is { } payment
                 ? "Paid by " + payment.BuyerName + " to " + payment.SellerName + " for the household at (" + payment.Position.X + ", " + payment.Position.Y + ") · " + clock(payment.Tick) + "."
                 : "Payment has not been made. The buyer must carry the agreed goods to meet a seller adult at the notice place before the use right moves.");

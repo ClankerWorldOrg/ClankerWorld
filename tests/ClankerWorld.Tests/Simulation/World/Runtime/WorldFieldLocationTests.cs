@@ -30,7 +30,7 @@ public sealed partial class WorldFieldOrderTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var working = Assert.Single(world.Fields, field => field.Work is not null);
         Assert.Equal(target, working.Position);
-        Assert.Equal(receipt.InstructionId, working.Work!.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, working.Work!.OrderInstructionId);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 20 && Order(world, receipt).Status != "finished"; tick++)
@@ -152,7 +152,7 @@ public sealed partial class WorldFieldOrderTests
         Assert.Throws<InvalidDataException>(() => Restore(stateWithWork with
         {
             Instructions = stateWithWork.Instructions!.Select(item => item.InstructionId == plant.InstructionId
-                ? item with { Task = item.Task! with { TargetPosition = wrong } } : item).ToArray(),
+                ? item with { Task = item.Task!.UpdateDefinition(definition => definition switch { TillFieldOrderDefinition task => task with { TargetPosition = wrong }, PlantFieldOrderDefinition task => task with { TargetPosition = wrong }, TendFieldOrderDefinition task => task with { TargetPosition = wrong }, HarvestFieldOrderDefinition task => task with { TargetPosition = wrong }, _ => throw new InvalidOperationException() }) } : item).ToArray(),
         }));
         world.Pause();
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));

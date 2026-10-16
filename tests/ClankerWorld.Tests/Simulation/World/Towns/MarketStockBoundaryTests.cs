@@ -6,8 +6,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class MarketStockBoundaryTests
 {
-    private const string Seller = "founder:00000000000000000000000000000001";
-    private const string Housemate = "founder:00000000000000000000000000000002";
+    private const string Seller = NormalPathWorld.Founder1;
+    private const string Housemate = NormalPathWorld.Founder2;
     private const string Household = "household:first";
 
     [Theory]
