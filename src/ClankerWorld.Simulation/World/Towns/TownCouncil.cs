@@ -359,10 +359,8 @@ public static class TownCouncilRules
             kind == "land_use" ? HouseholdLandGrantRules.RequestKey(landUseRequest!) :
             kind == "land_claim" ? TownLandClaimRules.RequestKey(landClaimTiles!) : requestKey ?? (kind == "admission" ? TownRecordIds.Admission(subject!) : "law:" + string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant());
         if (state.Proposals.Any(p => p.RequestKey == key && p.Status == "pending")) return state;
-        var previous = state.Proposals.LastOrDefault(p => p.RequestKey == key);
-        if (previous is { Status: "rejected" or "withdrawn" } && tick < previous.SettledTick + day &&
-            previous.CouncilRevision == state.Revision && previous.Circumstances == circumstances)
-            throw new InvalidOperationException("The same request needs one unpaused day or materially changed circumstances before retrying.");
+        if (ProposalRetryRefusal(state, key, circumstances, tick, day) is { } refusal)
+            throw new InvalidOperationException(refusal);
         var id = TownRecordIds.Proposal(townId, checked(state.Sequence + 1));
         var proposal = new TownProposal(id, key, kind, actor, subject, text.Trim(), circumstances, state.Revision,
             tick, tick + day, state.Members.ToArray(), state.Form == "representative" ? 2 : state.Members.Count / 2 + 1, [],
@@ -372,6 +370,15 @@ public static class TownCouncilRules
         state = state with { Sequence = state.Sequence + 1, Proposals = state.Proposals.Append(proposal).ToArray() };
         return Notice(state, "proposal", id, $"{kind} proposal by {actor}: {noticeText ?? text.Trim()} " +
             $"Needs {proposal.RequiredYes} yes votes by tick {proposal.DeadlineTick}. A cast vote is final.", tick);
+    }
+
+    public static string? ProposalRetryRefusal(TownCouncilState state, string key, string circumstances, long tick, int day)
+    {
+        if (state.Proposals.Any(proposal => proposal.RequestKey == key && proposal.Status == "pending")) return null;
+        var previous = state.Proposals.LastOrDefault(proposal => proposal.RequestKey == key);
+        return previous is { Status: "rejected" or "withdrawn" } && tick < previous.SettledTick + day &&
+            previous.CouncilRevision == state.Revision && previous.Circumstances == circumstances
+                ? "The same request needs one unpaused day or materially changed circumstances before retrying." : null;
     }
 
     public static TownCouncilState VoteProposal(TownCouncilState state, string proposalId, string actor, bool yes, long tick)

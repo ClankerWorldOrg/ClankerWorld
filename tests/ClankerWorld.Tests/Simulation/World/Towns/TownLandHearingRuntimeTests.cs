@@ -33,7 +33,12 @@ public sealed partial class TownLandHearingRuntimeTests
         var property = PrivateProperty(world.ExportState());
         var permissions = Permissions(world.ExportState());
         provider.HearingsEnabled = true;
-        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20, provider);
+        var filingPlans = new List<LandHearingFilingActionPlan>();
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20, provider, result =>
+        {
+            filingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingFilingActionPlan && decision.Admission.Accepted)
+                .Select(decision => Assert.IsType<LandHearingFilingActionPlan>(decision.ActionPlan)));
+        });
 
         var opened = Assert.Single(world.Towns[0].LandRecords.Cases);
         var revision = Assert.Single(opened.Revisions);
@@ -42,6 +47,14 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.Equal(revision.PublishedTick + Day, revision.DeadlineTick);
         Assert.Equal(Filer, Assert.Single(opened.Filings).AgentId);
         Assert.Equal("confirm", revision.RequestedOutcome.Kind);
+        var filingPlan = Assert.Single(filingPlans);
+        Assert.True(filingPlan.Bound);
+        Assert.Equal(LandHearingFilingKind.Household, filingPlan.Choice.Kind);
+        Assert.Equal(filingPlan.Choice, LandHearingFilingChoice.Decode(filingPlan.CandidateId));
+        Assert.Equal(household, filingPlan.Household);
+        Assert.Equal(revision.Tiles, filingPlan.Filing!.Tiles);
+        Assert.Equal(revision.RequestedOutcome, filingPlan.Filing.RequestedOutcome);
+        Assert.Equal(opened.Filings[0].Text, filingPlan.Filing.Statement);
         var council = world.Towns[0].Council!;
         var notice = Assert.Single(council.Notices, item => item.Id == revision.NoticeId);
         Assert.Equal("land_hearing", notice.Kind);
@@ -64,6 +77,7 @@ public sealed partial class TownLandHearingRuntimeTests
 
         var settled = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("settled", settled.Status);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(filingPlan).Refusal!.Reason);
         var ruling = Assert.Single(settled.Rulings);
         Assert.Equal(1, ruling.Revision);
         Assert.Equal("confirm", ruling.Outcome.Kind);
@@ -370,8 +384,18 @@ public sealed partial class TownLandHearingRuntimeTests
         // Part of a plot already under a pending hearing: the Council is not asked to vote on a filing that could not open.
         provider.TownProposals.Enqueue(([lapsing.Tiles[0]], new(Statement: "Review part of this lapsed plot for the Town.", RequestedOutcome: "confirm")));
         Prompt(world, Judge, "Consider asking the Council to authorize a Town land case.");
-        await UntilAsync(world, () => world.ExportState().Events.Any(entry => entry.Kind == "town_civic_action_rejected" &&
-            entry.Detail == world.Towns[0].Id + "|" + Judge + "|hearing_propose_town"), 10, provider);
+        var refusedFilings = new List<LandHearingFilingActionPlan>();
+        await UntilAsync(world, () => world.ExportState().Events.Any(entry => entry.Kind == "choice_refused" &&
+            entry.Detail.Contains("A pending land hearing already covers part of this plot", StringComparison.Ordinal)), 10, provider, result =>
+        {
+            refusedFilings.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingFilingActionPlan && decision.PlanRefusal is not null)
+                .Select(decision => Assert.IsType<LandHearingFilingActionPlan>(decision.ActionPlan)));
+        });
+        var refusedFiling = Assert.Single(refusedFilings);
+        Assert.True(refusedFiling.Bound);
+        Assert.Equal(LandHearingFilingKind.CouncilProposal, refusedFiling.Choice.Kind);
+        Assert.Equal(new[] { lapsing.Tiles[0] }, refusedFiling.Filing!.Tiles);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(refusedFiling).Refusal!.Reason);
         Assert.DoesNotContain(world.Towns[0].Council!.Proposals, proposal => proposal.Kind == "land_hearing");
 
         // A renewal whose requested end date passes before the Council finishes voting.
@@ -379,8 +403,20 @@ public sealed partial class TownLandHearingRuntimeTests
         provider.TownProposals.Enqueue((other.Tiles.ToArray(), new(Statement: "Renew this household's recorded permission.",
             RequestedOutcome: "renew", HouseholdId: other.HouseholdId, AgreedEndTick: end)));
         Prompt(world, Judge, "Consider asking the Council to authorize a different Town land case.");
-        await UntilAsync(world, () => world.Towns[0].Council!.Proposals.Any(proposal => proposal.Kind == "land_hearing"), 10, provider);
+        var councilFilings = new List<LandHearingFilingActionPlan>();
+        await UntilAsync(world, () => world.Towns[0].Council!.Proposals.Any(proposal => proposal.Kind == "land_hearing"), 10, provider, result =>
+        {
+            councilFilings.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingFilingActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<LandHearingFilingActionPlan>(decision.ActionPlan)));
+        });
         var opened = Assert.Single(world.Towns[0].Council!.Proposals, proposal => proposal.Kind == "land_hearing");
+        var councilFiling = Assert.Single(councilFilings);
+        Assert.True(councilFiling.Bound);
+        Assert.Equal(LandHearingFilingKind.CouncilProposal, councilFiling.Choice.Kind);
+        Assert.Equal(other.Tiles, councilFiling.Filing!.Tiles);
+        Assert.Equal(opened.LandHearingRequest!.Tiles, councilFiling.Filing.Tiles);
+        Assert.Equal(opened.LandHearingRequest.RequestedOutcome, councilFiling.Filing.RequestedOutcome);
+        Assert.Equal(opened.LandHearingRequest.Statement, councilFiling.Filing.Statement);
         Assert.Equal(("pending", Judge), (opened.Status, opened.AuthorId));
         while (world.WorldTick < end) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         provider.VoteYes = true;
@@ -451,10 +487,14 @@ public sealed partial class TownLandHearingRuntimeTests
     private static void Prompt(WorldRuntime world, string agent, string text) =>
         world.SubmitInstruction(new("prompt-" + world.WorldTick + "-" + agent[^1], "owner:test", agent, OwnerInstructionKind.Suggestion, text));
 
-    private static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit, HearingProvider provider)
+    private static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit, HearingProvider provider, Action<WorldStepResult>? observe = null)
     {
         for (var step = 0; step < limit && !complete(); step++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
+        }
         Assert.True(complete(), "Missing personal-path boundary; recent selected actions: " + string.Join(", ", provider.Selected.TakeLast(16)));
     }
 

@@ -550,6 +550,13 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Land hearing filing retains the household, governing office or Council
+revision and binds the admitted plot, requested outcome and statement once.
+Its shared check uses the native plot, filing and proposal-retry validators
+before the retained terms reach the original case or Council writer.
+Before binding, household filing availability follows current affected plots;
+the original nearby suggestions do not restrict the exact reply selection.
+Filing plans are constructed only at the notice board.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.

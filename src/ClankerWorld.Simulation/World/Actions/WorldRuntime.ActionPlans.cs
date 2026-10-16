@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        LandHearingFilingActionPlan hearingFiling => townSystem.CheckLandHearingFiling(civicWorld, hearingFiling),
         LandSaleExchangeActionPlan landSaleExchange => townSystem.CheckLandSaleExchange(civicWorld, landSaleExchange),
         LandSaleCollectionActionPlan landSaleCollection => townSystem.CheckLandSaleCollection(civicWorld, landSaleCollection),
         LandTransferResponseActionPlan transferResponse => townSystem.CheckLandTransferResponse(civicWorld, transferResponse),
@@ -91,6 +92,12 @@ public sealed partial class WorldRuntime
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is LandHearingFilingActionPlan hearingFiling)
+            decision = decision with
+            {
+                ActionPlan = TownSystem.BindLandHearingFiling(hearingFiling, decision.Admission.CivicLandTiles,
+                decision.Admission.CivicLandHearing, decision.Admission.CivicProposal)
+            };
         if (decision.ActionPlan is LandTransferProposalActionPlan transfer)
             decision = decision with { ActionPlan = TownSystem.BindLandTransferProposal(transfer, decision.Admission.CivicLandTiles, decision.Admission.CivicLandHearing) };
         if (decision.ActionPlan is HouseholdLandFilingActionPlan filing)
