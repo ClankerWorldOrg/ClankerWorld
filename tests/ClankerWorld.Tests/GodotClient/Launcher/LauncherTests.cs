@@ -2,7 +2,9 @@ using System.IO.Compression;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using ClankerWorld.GodotClient.Diagnostics;
 using ClankerWorld.GodotClient.Launcher;
+using ClankerWorld.GodotClient.Networking;
 
 namespace ClankerWorld.Tests;
 
@@ -14,9 +16,51 @@ public sealed class LauncherTests
         ("package.json", """{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}""");
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task LocalBuildRunsWithSeparateArgumentBoundariesAndUnsupportedOptionsAreRefused(bool detailed)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void RestartRetainsTheWholeLastRunAndReportsBothLogs(bool developerMode, bool useTestData)
+    {
+        var root = Directory.CreateTempSubdirectory("launcher log retention ");
+        try
+        {
+            var layout = new LauncherLayout(root.FullName);
+            var settings = new LauncherSettings(DeveloperMode: developerMode, UseTestData: useTestData);
+            var directory = Path.Combine(layout.GameDataDirectory(settings), "logs");
+            var current = GameStarter.PrepareGameLog(directory);
+            var previous = Path.Combine(directory, "game.previous.log");
+            Assert.False(File.Exists(current));
+            Assert.False(File.Exists(previous));
+            var firstRun = string.Concat(Enumerable.Repeat("resource loaded\n", 1000)) + "last line before forced close\n";
+            File.WriteAllText(current, firstRun);
+            Assert.Equal(current, GameStarter.PrepareGameLog(directory));
+            Assert.Equal(firstRun, File.ReadAllText(previous));
+            // A failed start creates no current log; trying again must keep the crash evidence.
+            GameStarter.PrepareGameLog(directory);
+            Assert.Equal(firstRun, File.ReadAllText(previous));
+            File.WriteAllText(current, "next run reached the world\n");
+            var report = ProblemReport.Write(Path.Combine(root.FullName, "reports"), [],
+                [new("game.log", current), new("game.previous.log", previous)], [], DateTimeOffset.UtcNow);
+            using (var archive = ZipFile.OpenRead(report))
+            {
+                using var last = new StreamReader(archive.GetEntry("logs/game.previous.log")!.Open());
+                using var live = new StreamReader(archive.GetEntry("logs/game.log")!.Open());
+                Assert.Equal(firstRun, last.ReadToEnd());
+                Assert.Equal("next run reached the world\n", live.ReadToEnd());
+            }
+            GameStarter.PrepareGameLog(directory);
+            Assert.Equal("next run reached the world\n", File.ReadAllText(previous));
+            Assert.Equal([previous], Directory.GetFiles(directory));
+        }
+        finally { root.Delete(recursive: true); }
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task LocalBuildRunsWithSeparateArgumentBoundariesAndUnsupportedOptionsAreRefused(bool detailed, bool nested)
     {
         var root = Directory.CreateTempSubdirectory("launcher local build ");
         try
@@ -26,17 +70,21 @@ public sealed class LauncherTests
             var settings = new LauncherSettings(DeveloperMode: true, DetailedLogs: detailed);
             settings.Save(layout);
             Assert.Equal(settings, LauncherSettings.Load(layout));
-            var executable = Path.Combine(root.FullName, "local game", "ClankerWorld.exe");
-            Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(executable)!, "server"));
+            var packageRoot = Path.Combine(root.FullName, "local game");
+            var gamePath = nested ? "bin/ClankerWorld.exe" : "ClankerWorld.exe";
+            var executable = Path.Combine(packageRoot, gamePath.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(executable)!);
+            Directory.CreateDirectory(Path.Combine(packageRoot, "server"));
             File.WriteAllText(executable, "local executable");
             Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
-            File.WriteAllText(Path.Combine(Path.GetDirectoryName(executable)!, EntryPoints.Path), EntryPoints.Text);
-            File.WriteAllText(Path.Combine(Path.GetDirectoryName(executable)!, "server", "ClankerWorld.Server.exe"), "server");
+            File.WriteAllText(Path.Combine(packageRoot, EntryPoints.Path), System.Text.Json.JsonSerializer.Serialize(
+                new { game = gamePath, server = "server/ClankerWorld.Server.exe" }));
+            File.WriteAllText(Path.Combine(packageRoot, "server", "ClankerWorld.Server.exe"), "server");
             Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
             Assert.False(Directory.Exists(layout.TestDataDirectory));
             Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe",
                 settings with { DeveloperMode = false }, layout));
-            File.WriteAllText(Path.Combine(Path.GetDirectoryName(executable)!, LauncherLayout.PackageManifest),
+            File.WriteAllText(Path.Combine(packageRoot, LauncherLayout.PackageManifest),
                 GameStarter.DeveloperOptionsMarker + "\n");
             var log = Path.Combine(layout.TestDataDirectory, "logs", "game.log");
             var arguments = GameStarter.Arguments("launcher with spaces.exe", true, useTestData: true, detailedLogs: detailed, logPath: log);
@@ -48,16 +96,23 @@ public sealed class LauncherTests
             {
                 File.WriteAllText(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
                 File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                Directory.CreateDirectory(Path.GetDirectoryName(log)!);
+                File.WriteAllText(log, "last line from the earlier run\n");
                 using var process = GameStarter.StartLocal(executable, "launcher with spaces.exe", settings, layout);
                 await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
                 Assert.Equal(arguments, File.ReadAllLines(Path.Combine(Path.GetDirectoryName(executable)!, "arguments.txt")));
+                Assert.Equal("last line from the earlier run\n", File.ReadAllText(Path.ChangeExtension(log, "previous.log")));
+                Assert.False(File.Exists(log));
             }
         }
         finally { root.Delete(recursive: true); }
     }
 
-    [Fact]
-    public void EachVersionNamesItsOwnEntryPointsInPackageJson()
+    [Theory]
+    [InlineData("ClankerWorld.exe", "bin/World Server.exe")]
+    [InlineData("bin/ClankerWorld.exe", "server/ClankerWorld.Server.exe")]
+    [InlineData("programs/Game files/New Game.exe", "runtime/World Server.exe")]
+    public void EachVersionNamesItsOwnEntryPointsInPackageJson(string game, string server)
     {
         var root = Directory.CreateTempSubdirectory("launcher-entry-points-");
         try
@@ -66,14 +121,22 @@ public sealed class LauncherTests
             var store = new GameVersionStore(new LauncherLayout(root.FullName), http);
             var version = GameVersionName.Parse("0.1.0-alpha.3")!;
             var zip = Path.Combine(root.FullName, "package.zip");
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
-                ("package.json", """{"game": "ClankerWorld.exe", "server": "bin/World Server.exe"}"""),
-                ("bin/World Server.exe", "server")));
+            File.WriteAllBytes(zip, Package(version, (game, "game"),
+                ("package.json", System.Text.Json.JsonSerializer.Serialize(new { game, server })),
+                (server, "server")));
             var installed = store.InstallPackage(zip, version);
             Assert.Empty(GameVersionStore.Verify(installed));
-            Assert.Equal(new PackageEntryPoints("ClankerWorld.exe", Path.Combine("bin", "World Server.exe")),
+            var gamePath = game.Replace('/', Path.DirectorySeparatorChar);
+            var serverPath = server.Replace('/', Path.DirectorySeparatorChar);
+            Assert.Equal(new PackageEntryPoints(gamePath, serverPath),
                 PackageEntryPoints.ReadInstalled(installed.Directory));
-            Assert.Equal(Path.Combine(installed.Directory, "ClankerWorld.exe"), installed.Executable);
+            Assert.Equal(Path.Combine(installed.Directory, gamePath), installed.Executable);
+            var localData = Path.Combine(root.FullName, "player data");
+            var bundled = LocalServerLayout.FindBundled(installed.Executable, localData);
+            Assert.NotNull(bundled);
+            Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
+            Assert.Equal(Path.GetDirectoryName(bundled.FileName), bundled.ServerDirectory);
+            Assert.Equal(Path.Combine(localData, "ClankerWorld"), bundled.DataDirectory);
 
             // A server the manifest does not list, or an unsafe path, is damage, never a different program.
             File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
@@ -105,6 +168,9 @@ public sealed class LauncherTests
             Assert.Empty(GameVersionStore.Verify(installed));
             Assert.Equal(new PackageEntryPoints("ClankerWorld.exe", serverPath), PackageEntryPoints.ReadInstalled(installed.Directory));
             Assert.Equal(Path.Combine(installed.Directory, "ClankerWorld.exe"), installed.Executable);
+            var bundled = LocalServerLayout.FindBundled(installed.Executable, root.FullName);
+            Assert.NotNull(bundled);
+            Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
 
             File.WriteAllText(Path.Combine(installed.Directory, serverPath), "changed");
             Assert.Equal([serverPath], GameVersionStore.Verify(installed));

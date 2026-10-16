@@ -33,11 +33,11 @@ public partial class Main
             string text;
             if (inside)
             {
-                if (!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.Text != "Animal yard")
+                if (!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.FullText != "Animal yard")
                     throw new InvalidOperationException("The yard must keep its real building card accessible.");
                 buildingDetailsButton.EmitSignal(BaseButton.SignalName.Pressed);
                 text = string.Join('\n', buildingDetailsContent.FindChildren("*", nameof(Label), owned: false)
-                    .OfType<Label>().Select(label => label.Text));
+                    .OfType<Label>().Select(CaptionForChecks));
                 if (!buildingDetailsPanel.Visible) throw new InvalidOperationException("Yard Details must remain open for inspection.");
             }
             else
@@ -58,7 +58,7 @@ public partial class Main
             {
                 Render(map with { WorldTick = map.WorldTick + 1, Animals = [] }, []);
                 text = string.Join('\n', buildingDetailsContent.FindChildren("*", nameof(Label), owned: false)
-                    .OfType<Label>().Select(label => label.Text));
+                    .OfType<Label>().Select(CaptionForChecks));
                 if (text.Contains("Moss", StringComparison.Ordinal))
                     throw new InvalidOperationException("Updated yard inspection must remove animals that are no longer there.");
             }

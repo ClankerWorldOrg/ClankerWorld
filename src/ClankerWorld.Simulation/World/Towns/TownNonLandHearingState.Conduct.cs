@@ -21,7 +21,7 @@ public sealed record TownConductAcquisition(string Id, string ConductId, string 
     [property: JsonRequired] string? PublicCaseId = null);
 
 /// <summary>A native completed effect, retained independently of mutable stock and compacted events.</summary>
-public sealed record TownNativeRemedyReceipt(string Id, string Kind, string ActorId, long Tick,
+public sealed record TownNativeRemedyReceipt(Identity Id, string Kind, string ActorId, long Tick,
     string? BeneficiaryId, string ItemKind, int Quantity, string? TargetId, string SourceLotId,
     string ResultLotId, string PreviousOwnerId, string ResultOwnerId, GridPoint Position,
     int BeforeCondition, int AfterCondition, string Version,

@@ -57,7 +57,9 @@ public sealed partial class RestaurantShopPipelineTests
         {
             Agents = state.Agents.Select(person => person.AgentId == fixture.Customer ? person with
             {
-                Position = customerSite!.Value, FullnessBasisPoints = 1_500, LastDecisionContext = null,
+                Position = customerSite!.Value,
+                FullnessBasisPoints = 1_500,
+                LastDecisionContext = null,
             } : person).ToArray(),
             Resources = state.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
@@ -168,7 +170,7 @@ public sealed partial class RestaurantShopPipelineTests
             var saved = world.ExportState();
             var order = Assert.Single(saved.Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
             Assert.True(order.RepeatUntilCancelled);
-            Assert.DoesNotContain(receipt.InstructionId, saved.CompletedInstructionIds!);
+            Assert.DoesNotContain(receipt.InstructionId.Value, saved.CompletedInstructionIds!);
             Assert.NotEqual("finished", order.Status);
             Assert.NotEqual("cancelled", order.Status);
         }

@@ -8,7 +8,7 @@ public sealed record ToolCollectionChoice(string ItemKind)
         "wooden_axe" => "collect_wooden_axe",
         "wooden_pickaxe" => "collect_wooden_pickaxe",
         "wooden_hoe" => "collect_wooden_hoe",
-        _ => Prefix + ItemKind,
+        _ => IdentityRules.PrefixedReference(Prefix, ItemKind),
     };
     public static ToolCollectionChoice? Decode(string candidate) => candidate switch
     {

@@ -349,6 +349,13 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(home, fallback.Animals.Single().HouseholdId);
         Assert.Equal(2, fallback.Society.Inventory.GetLot("payment").Quantity);
         using var world = WorldRuntime.Restore(state, id => Provider(id, DecisionProviderKind.LargeLanguageModel));
+        await Until(world, () => world.ExportState().AnimalWorld.Offers.Count == 1);
+        var offered = world.ExportState();
+        _ = WorldRuntimeCodec.Encode(offered);
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(offered with
+        {
+            AnimalWorld = offered.AnimalWorld with { Offers = [offered.AnimalWorld.Offers[0] with { Id = null! }] },
+        }));
         await Until(world, () => world.Animals.Single().HouseholdId == buyerHome);
         var transferred = world.Animals.Single();
         Assert.Equal("receiving-yard", transferred.YardId);
@@ -494,7 +501,10 @@ public sealed partial class AnimalPipelineTests
             lot with { GroundPosition = new(site.X, site.Y) } : lot).ToArray()
         };
         chooser.Prefix = "construct_building";
-        using var world = WorldRuntime.Restore(At(state, actor, site, inventory, []), id => id == actor ? chooser : new AnimalChooser());
+        var wild = new AnimalState("native-yard-hen", "Hen", "chicken", "female",
+            -(long)AnimalRules.Definition("chicken").AdultDays * state.WorldSystems!.Config.TicksPerDay,
+            site, "native-yard-herd");
+        using var world = WorldRuntime.Restore(At(state, actor, site, inventory, [wild]), id => id == actor ? chooser : new AnimalChooser());
         world.SubmitInstruction(new("build-yard", "owner", actor, OwnerInstructionKind.Order,
             System.FormattableString.Invariant($"build an animal yard at ({site.X}, {site.Y})")));
         await Until(world, () => world.WorldSimulation.Buildings.Any(building => world.WorldContent.Buildings.Any(definition =>
@@ -547,7 +557,7 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(100, Progress("due"));
     }
 
-    private static (WorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
+    internal static (WorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
     {
         using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser(), ticksPerDay: ticksPerDay);
         var state = setup.ExportState();

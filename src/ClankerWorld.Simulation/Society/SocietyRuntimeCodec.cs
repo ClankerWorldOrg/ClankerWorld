@@ -10,6 +10,7 @@ public static class SocietyRuntimeCodec
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
+        Converters = { new StoredIdentityJsonConverter() },
     };
 
     public static byte[] Encode(SocietyWorldRuntimeState state)
