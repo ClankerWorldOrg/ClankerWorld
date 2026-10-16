@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         if (!map.IsBuildable(plan.Entrance) || occupied.Contains(plan.Entrance))
             return "The approved building's doorway is blocked.";
         if (actor is not null && agents.TryGetValue(actor, out var person) &&
-            person.Position != plan.Site && FindUnoccupiedRoute(actor, person.Position, plan.Site, 0).Count == 0)
+            person.Position != plan.Site && Reach(actor, plan.Site, ReachPurpose.TownProjectProposal, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return "No walking route reaches the approved building site.";
         return null;
     }
@@ -126,7 +126,7 @@ public sealed partial class WorldRuntime
                 var plan = PlanFor(town, definition, site.Position, definition.DisplayName);
                 // The site check also refuses a site that overlaps another proposal whose vote is still open.
                 if (plan is null || TownProjectSiteFailure(town, plan, actor: actor, world: siteWorld) is not null) continue;
-                AddTownProjectProposalCandidate(candidates, town, definition, site.Position);
+                if (!AddTownProjectProposalCandidate(candidates, actor, town, definition, site.Position, plan)) continue;
                 if (++offered == TownLayoutService.DefaultCandidateLimit) break;
             }
         }
@@ -141,7 +141,7 @@ public sealed partial class WorldRuntime
                 var plan = PlanFor(town, stallDefinition, site, "Market stall");
                 if (plan is null || TownProjectSiteFailure(town, plan, actor: actor, world: siteWorld) is not null) continue;
                 // One more stall at a time: the next waits until this one is built and borrowed too.
-                AddTownProjectProposalCandidate(candidates, town, stallDefinition, site);
+                if (!AddTownProjectProposalCandidate(candidates, actor, town, stallDefinition, site, plan)) continue;
                 break;
             }
     }
@@ -159,14 +159,26 @@ public sealed partial class WorldRuntime
                 proposal.Project.DefinitionId == stallId && slots.Contains(proposal.Project.Site));
     }
 
-    private void AddTownProjectProposalCandidate(List<CognitionCandidate> candidates, TownRuntimeState town,
-        ClankerWorld.Simulation.Content.BuildingDefinition definition, GridPoint site)
+    private static bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) =>
+        plan.BoatPortId is { } port
+            ? !town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port) &&
+                !(town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port)
+            : plan.DefinitionId != MarketContent.Stall1x1().CanonicalId ||
+                MarketForStallPlan(town, plan) is { } selected && MarketNeedsMoreStalls(town, selected.Market);
+
+    private bool AddTownProjectProposalCandidate(List<CognitionCandidate> candidates, string actor, TownRuntimeState town,
+        ClankerWorld.Simulation.Content.BuildingDefinition definition, GridPoint site, TownProjectPayload selected)
     {
         var coordinates = site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture);
         var budget = string.Join(" and ", definition.BuildCosts.Select(cost =>
             cost.Amount.ToString(CultureInfo.InvariantCulture) + " " + cost.ResourceId));
-        candidates.Add(new(CivicAction(town.Id, "project", definition.LocalId, coordinates),
-            $"Propose a named {definition.DisplayName} at ({coordinates}) in {town.Name}, with a provisional budget of {budget}; put its name in civic_proposal. Council approval creates no goods or private-stock access.", 191));
+        var choice = new TownProjectProposalChoice(town.Id, false, definition.LocalId, coordinates);
+        var plan = TownSystem.PlanTownProjectProposal(civicWorld, actor, choice, selected);
+        if (plan is null || !TownSystem.CheckTownProjectProposal(civicWorld, plan).Allowed) return false;
+        candidates.Add(new(choice.Encode(),
+            $"Propose a named {definition.DisplayName} at ({coordinates}) in {town.Name}, with a provisional budget of {budget}; put its name in civic_proposal. Council approval creates no goods or private-stock access.", 191)
+        { ActionPlan = plan });
+        return true;
     }
 
     // Both lantern designs stand on one tile beside a Road and share the caller's layout basis. Every Road
@@ -202,8 +214,12 @@ public sealed partial class WorldRuntime
                         definition.BuildCosts), world: siteWorld) is not null) continue;
                 var coordinates = FormattableString.Invariant($"{edge.Site.Position.X},{edge.Site.Position.Y},{edge.Road.X},{edge.Road.Y}");
                 var budget = definition.CanonicalId == StreetLanternContent.Stone().CanonicalId ? "4 stone" : "4 wood and 1 refined iron";
-                candidates.Add(new(CivicAction(town.Id, "project", definition.LocalId, coordinates),
-                    FormattableString.Invariant($"Propose a named {definition.DisplayName} at ({edge.Site.Position.X},{edge.Site.Position.Y}) beside Road ({edge.Road.X},{edge.Road.Y}) in {town.Name}, with a provisional budget of {budget}; put its name in civic_proposal. Council approval creates no goods or private-stock access."), 190));
+                var choice = new TownProjectProposalChoice(town.Id, false, definition.LocalId, coordinates);
+                var plan = TownSystem.PlanTownProjectProposal(civicWorld, actor, choice, new(definition.DisplayName, definition.CanonicalId, edge.Site.Position, edge.Road, definition.BuildCosts));
+                if (plan is null || !TownSystem.CheckTownProjectProposal(civicWorld, plan).Allowed) continue;
+                candidates.Add(new(choice.Encode(),
+                    FormattableString.Invariant($"Propose a named {definition.DisplayName} at ({edge.Site.Position.X},{edge.Site.Position.Y}) beside Road ({edge.Road.X},{edge.Road.Y}) in {town.Name}, with a provisional budget of {budget}; put its name in civic_proposal. Council approval creates no goods or private-stock access."), 190)
+                { ActionPlan = plan });
                 if (++offered == 4) break;
             }
         }
@@ -247,8 +263,7 @@ public sealed partial class WorldRuntime
         var plan = road is { } edge ? new TownProjectPayload(label, supported.CanonicalId, new(x, y), edge, supported.BuildCosts)
             : PlanFor(town, supported, new(x, y), label);
         if (plan is null) return null;
-        try { TownProjectRules.ValidatePayload(plan); }
-        catch (InvalidDataException) { return null; }
+        if (TownProjectRules.PayloadRefusal(plan) is not null) return null;
         return TownProjectSiteFailure(town, plan, actor: actor) is null ? plan : null;
     }
 }

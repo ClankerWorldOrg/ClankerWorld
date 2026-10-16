@@ -166,6 +166,28 @@ public partial class Main
                 throw new InvalidOperationException($"Without the host's answer the timeline must draw no marker: {Details()}.");
             manualSaveOverlay.Hide();
 
+            // A short world fits without sideways scrolling from its first frame.
+            await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([firstSave, harvest]),
+                _ => Task.FromResult<SaveTimelinePosition?>(new("harvest", "a", false)));
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var openingSize = manualSaveCard.Size;
+            if (openingSize.X < 850)
+                throw new InvalidOperationException($"Save World must open wide enough for its short timeline: {openingSize}.");
+            // The disk-space reply arrives after opening and runs responsive layout.
+            // It must not replace the timeline's wide layout with the old list width.
+            RenderSaveDiskSpace(new("ok", null, 0, null));
+            for (var frame = 0; frame < 4; frame++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (!manualSaveCard.Size.IsEqualApprox(openingSize))
+                    throw new InvalidOperationException($"Save World must keep its first-frame size after the disk-space reply: {openingSize} -> {manualSaveCard.Size}.");
+            }
+            var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
+                .OfType<ScrollContainer>().Single();
+            if (timelineScroll.GetHScrollBar().Visible)
+                throw new InvalidOperationException("A short world's timeline must fit without a horizontal scroll bar at the default window size.");
+            manualSaveOverlay.Hide();
+
             // Save World draws the same timeline under its New save box. Autosaves show where the
             // world has been but cannot be overwritten, so only named saves can be chosen.
             await OpenManualSavesAsync(false, _ => Task.FromResult(saves),

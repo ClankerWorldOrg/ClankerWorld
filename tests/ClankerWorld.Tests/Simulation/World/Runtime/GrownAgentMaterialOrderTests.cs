@@ -110,10 +110,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ConcurrentQueue<(string Actor, string? Instruction, string Choice)> Selected { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        // Keep incidental life reviews synchronous; this fixture checks the
-        // descendant's harvest identity and host receipts.
-        public DecisionProviderKind KindFor(AgentObservation observation) =>
-            observation.IdentityMoment is null ? Kind : DecisionProviderKind.Deterministic;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;

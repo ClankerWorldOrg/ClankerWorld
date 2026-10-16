@@ -1,4 +1,5 @@
 using System.Buffers;
+using ClankerWorld.Contracts;
 using ClankerWorld.Simulation.Content;
 using System.Net;
 using System.Collections.ObjectModel;
@@ -233,7 +234,7 @@ public sealed record CognitionParentIdentity(string ParentId, string Name, strin
 /// <summary>
 /// Actor context; absent survival data remains unknown, not invented.
 /// <paramref name="HousingNote"/> explains the actor's housing and current House capacity when known.
-/// <paramref name="ContinuityNote"/> explains the low-population continuity rule to a partner it applies to.
+/// <paramref name="ContinuityNote"/> explains the low-population continuity rule to an adult it applies to.
 /// <paramref name="DepartureNote"/> summarizes goods to collect or return and paused household work after a departure.
 /// <paramref name="TownMembershipNote"/> states recorded Town membership, its rights and any admission the actor knows of.
 /// <paramref name="AllowedChildSurnames"/> lists the chosen biological parents' surnames during a child's naming request;
@@ -852,7 +853,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
         HttpClient httpClient,
         Func<string?> apiKeyAccessor,
         Uri? endpoint = null,
-        string model = "jev-1.13.0",
+        string model = RoutineHelperDefaults.JevModel,
         TimeSpan? requestTimeout = null,
         long providerEpoch = 1,
         ModelNeedFormat needFormat = ModelNeedWords.DefaultFormat)
@@ -1251,7 +1252,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                             ? "Family background gives your biological parents' chosen identities alongside your household and Town. It contains no private thoughts or memories. Choose your own personality and aspiration; you need not copy or combine your parents' choices. "
                             : string.Empty) +
                         "Housing, when present, says why you have no home of your own. " +
-                        "Continuity, when present, is this world's rule on having a child with your partner while few people live here. " +
+                        "Continuity, when present, explains this world's rule on choosing a partner or having a child while few eligible couples live here. " +
                         "Return JSON only, with fields " +
                         "selected_candidate_id (string), confidence (number 0..1), " +
                         "and optional " +

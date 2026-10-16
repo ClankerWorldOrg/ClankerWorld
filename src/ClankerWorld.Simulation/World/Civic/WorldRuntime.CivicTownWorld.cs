@@ -22,6 +22,29 @@ public sealed partial class WorldRuntime
         public void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor) => runtime.AddToolRepairCandidates(candidates, actor);
         public void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownProjectProposalCandidates(candidates, actor, town);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
+        public IReadOnlyList<GridPoint> ReachNonLandService(string actor, GridPoint destination) =>
+            runtime.Reach(actor, destination, ReachPurpose.NonLandService, 0, 0, SwimmingPolicy.WhenCapable);
+        public ActionPlan? PlanNonLandRepair(string actor, string targetId)
+        {
+            var target = InventoryIndex.For(runtime.society.Checkpoint.Inventory).Find(targetId);
+            if (target is null) return null;
+            return target.ItemKind == InventoryContainerRules.Handcart ? runtime.PlanHandcartRepair(actor, new(targetId)) :
+                ToolProgressionRules.Find(target.ItemKind) is not null ? runtime.PlanToolRepair(actor, targetId, target) : runtime.PlanEquipmentRepair(actor, target);
+        }
+        public bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress) =>
+            progress.MaterialReservationIds.All(id => runtime.society.Checkpoint.Inventory.Reservations.Any(reservation =>
+                reservation.Id == id && reservation.State == InventoryReservationState.Reserved && reservation.ExpiryTick >= runtime.WorldTick)) && runtime.CanContinueEquipmentRepair(actor);
+        public ActionCheck CheckNativeActionPlan(ActionPlan plan) => runtime.CheckActionPlan(plan);
+        public void ApplyNonLandRepair(ActionPlan plan)
+        {
+            switch (plan)
+            {
+                case HandcartRepairActionPlan cart: runtime.ApplyHandcartRepairPlan(cart); break;
+                case ToolRepairActionPlan tool: runtime.ApplyToolRepairPlan(tool); break;
+                case EquipmentRepairActionPlan equipment: runtime.ApplyEquipmentRepairPlan(equipment); break;
+                default: throw new InvalidOperationException("A remedy has an unsupported native repair plan.");
+            }
+        }
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
@@ -70,6 +93,7 @@ public sealed partial class WorldRuntime
                 IReadOnlyList<string>? protectedToolIds = null) => runtime.RepairTool(actor, state, lotId, protectedToolIds);
         public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
         public IReadOnlyList<TownLandTitleRecord> TownLandTitles { get => runtime.townLandTitles; }
+        public bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) => WorldRuntime.TownProjectDemandIsCurrent(town, plan);
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
         public IReadOnlyList<TownRuntimeState> Towns { get => runtime.towns; }
@@ -91,8 +115,9 @@ public sealed partial class WorldRuntime
         public void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownPropertyCandidates(candidates, actor, town);
         public bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item) => runtime.PropertyCanTransfer(town, item);
         public bool PropertyMayReopen(TownRuntimeState town, TownLandCase item) => runtime.PropertyMayReopen(town, item);
-        public (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government);
+        public (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government, LandHearingPropertyActionPlan? plan = null) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government, plan);
         public TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) => runtime.CaptureProperty(town, request, revision);
+        public TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure) => runtime.TryCaptureProperty(town, request, revision, out failure);
         public TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
         public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);

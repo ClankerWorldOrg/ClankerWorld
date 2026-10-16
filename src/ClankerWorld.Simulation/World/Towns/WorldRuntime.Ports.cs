@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         }
         var work = TownProjectRules.WorkSite(plan);
         if (actor is not null && agents.TryGetValue(actor, out var person) &&
-            person.Position != work && FindUnoccupiedRoute(actor, person.Position, work, 0).Count == 0)
+            person.Position != work && Reach(actor, work, ReachPurpose.TownProjectProposal, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return "No walking route reaches the Port's land end.";
         return null;
     }
@@ -138,18 +138,21 @@ public sealed partial class WorldRuntime
                 if (geometry.LandTiles.Any(point => !legal.Contains(point)) || !geometry.ApproachTiles.Any(legal.Contains)) continue;
                 var plan = PlanFor(town, definition, site, definition.DisplayName, world);
                 if (plan is null || TownProjectSiteFailure(town, plan, actor: actor, world: world) is not null) continue;
-                AddTownProjectProposalCandidate(candidates, town, definition, site);
+                if (!AddTownProjectProposalCandidate(candidates, actor, town, definition, site, plan)) continue;
                 if (++offered == 2) break;
             }
         }
         foreach (var port in ports.Where(port => PortIsLegal(port, world)).OrderBy(port => port.InstanceId, StringComparer.Ordinal))
         {
-            if (FreePortDock(port) is null || town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port.InstanceId) ||
-                (town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port.InstanceId)) continue;
             var plan = BoatProjectPlan(port, "Communal boat");
+            if (FreePortDock(port) is null || !TownProjectDemandIsCurrent(town, plan)) continue;
             if (TownProjectSiteFailure(town, plan, actor: actor, world: world) is not null) continue;
-            candidates.Add(new(CivicAction(town.Id, "boat_project", port.InstanceId, ""),
-                $"Propose building a communal boat at this Town's Port, with 8 wood, 2 rope and 2 refined iron; put its name in civic_proposal. Council approval creates no goods.", 192));
+            var choice = new TownProjectProposalChoice(town.Id, true, port.InstanceId, "");
+            var proposal = TownSystem.PlanTownProjectProposal(civicWorld, actor, choice, plan);
+            if (proposal is null || !TownSystem.CheckTownProjectProposal(civicWorld, proposal).Allowed) continue;
+            candidates.Add(new(choice.Encode(),
+                $"Propose building a communal boat at this Town's Port, with 8 wood, 2 rope and 2 refined iron; put its name in civic_proposal. Council approval creates no goods.", 192)
+            { ActionPlan = proposal });
         }
     }
 

@@ -66,12 +66,18 @@ public sealed partial class WorldRuntime
         if (person.Project is { Stage: not ("completed" or "cancelled") } project &&
             !IsConstructionOrderProject(instruction, project) && !OrdinaryProjectCanYieldToOrder(project)) return false;
         var kind = HouseholdBuildingKind(definition);
+        failure = "The Town already has enough shops of this kind for its residents.";
+        if (!(IsConstructionOrderProject(instruction, person.Project) &&
+              person.Project is { Stage: not ("completed" or "cancelled") }) &&
+            !TownHasRoomForSharedShop(actor, kind)) return false;
         failure = "This household already holds the requested building.";
         if (HouseholdBuildingWithTag(household, kind!) is not null) return false;
         failure = "Only a household holding a Farmhouse can build a Silo.";
         if (kind == "silo" && FarmhouseForHousehold(household) is null) return false;
         failure = "The household needs a completed House before it can build an animal yard.";
         if (kind == AnimalContent.YardTag && HouseForHousehold(household) is null) return false;
+        failure = "This building has no reachable inputs for its work.";
+        if (!WorkBuildingHasInputs(actor, household, definition)) return false;
         failure = "Another household member is already planning this building.";
         var householdId = household;
         if (agents.Values.Any(other => other.AgentId != actor &&

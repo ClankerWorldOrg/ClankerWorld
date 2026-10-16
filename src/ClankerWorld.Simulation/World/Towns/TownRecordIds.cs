@@ -2,6 +2,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal static class TownRecordIds
 {
+    internal static string RemedyTerm(string caseId, long sequence, int index) => DerivedId.Create("term:" + DerivedId.Hash(caseId + "|" + sequence + "|" + index));
     internal static string Nomination(string actor, string nominee) => DerivedId.Create("nomination:" + actor + "->" + nominee);
     internal static string Admission(string subject) => DerivedId.Create("admission:" + subject);
     internal static string LandRequest(string town, long ordinal) => DerivedId.Create("land-request:" + town + ":" + ordinal);

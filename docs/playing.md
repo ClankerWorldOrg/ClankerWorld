@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 # Playing the current game
@@ -83,7 +83,7 @@ Developer mode on with the `--developer-mode` start option
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
 which saves, closes the game and reopens the launcher with that version chosen.
 After **Play**, choose **Load World** on the Main Menu: the previous world is
-already selected. It opens only when you choose **Open World**. The launcher checks each download against the
+already selected. It opens only when you choose **Load**. The launcher checks each download against the
 release's published SHA-256 before unpacking it, never installs anything
 without your click, and never updates itself: it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
@@ -109,7 +109,8 @@ buttons and **Enter** to choose one; focus then returns to the screen underneath
 ### Report a problem
 
 **Report a problem**, in **Settings → Game → Build**, saves a zip to send with a bug report
-and shows it in your file manager. It holds the game's latest logs, the world
+and shows it in your file manager. It holds the game's log up to that moment
+and the previous run's log, including after a forced close, the world
 server's logs when the server runs on your PC, and a summary of the game
 version, Windows version, graphics card, screen and open world. It never
 includes keys, pairing codes, saves, prompts or model replies, and anything in
@@ -247,19 +248,23 @@ Keys stay on the server installation, separately from world saves. Cloud
 providers charge you for usage. While paused, open **Settings → World → Routine
 helper** to choose **Off**, **Jev** or **OpenAI Decisions**, pick its model and
 press **Apply helper**. Decisions uses your default OpenAI key or a named saved
-OpenAI key you choose; Jev uses the saved TypeSafe key. Switching helpers keeps
+OpenAI key you choose; Jev uses your default TypeSafe key or a named saved
+TypeSafe key you choose. New Jev selections start on **jev-1.14.0**; a world
+already using **jev-1.13.0** keeps that model until you change it. Switching helpers keeps
 memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
 
 To save keys before placing any agents, open **Settings → Game → API keys**.
-Choose OpenAI, Ollama Cloud or Anthropic, name the key, paste it and press
+Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
 **Save API key**. You can save each provider's keys from Main Menu Settings once this device is
 connected and paired. Saving a key does not run a model or place an agent.
-Choose the saved key later in **Add Agent** or an agent's **Model** panel.
+Choose the saved key later in **Add Agent**, an agent's **Model** panel or
+**Routine helper**. TypeSafe keys are for the Jev helper.
 **Open model settings** in that panel opens the agent's model in World
-Settings, where you can also delete a saved key.
+Settings. To delete a saved key, choose it under **API keys** and press
+**Delete saved key**; an agent's model settings also offer deletion.
 A key used by the routine helper cannot be deleted. Choose another helper key
 or turn the helper off first.
 
@@ -841,9 +846,12 @@ scouting trips all appear. Building and crafting entries name the building or
 recipe, including older recorded work. Town law decisions, government votes
 and handovers, and mayoral elections or office changes also appear; open the
 Towns page for their wording and results. Routine steps such as meals, forage
-trips, cart loading and each Town project work shift are left out, because a
-later line already reports what came of them. An event with a known
-location has a **Find** button that moves the camera there. The log grows to
+trips, storing or collecting personal belongings, stocking a Store, hauling
+supplies, cart loading and each Town project work shift are left out. An agent
+changing an unavailable source quietly also stays out of the log. Blocked or
+failed player orders and broken promises remain visible, with the same problem
+for the same agent and target shown at most once per world day. An event with a
+known location has a **Find** button that moves the camera there. The log grows to
 fit wrapped text and day headings until it reaches the bottom of the screen,
 then scrolls. It adjusts when the window changes size. Opening the log
 marks its new entries read; the ones that were new keep a small dot while it
@@ -1184,8 +1192,21 @@ turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
 whose reply was lost, paused world editing and paired-device management. The
 aging override and world editing need the world paused first.
-World-edit coordinates cover the whole current map, from zero to its last
-tile on each axis. Their bounds update when you change worlds.
+**Edit world** lists the tools and kinds the server offers, using their names.
+Choose a tool and kind, then click tiles or drag across them; **Pick tiles on
+the map** shows when the tool is active. Gold marks show the tiles in your preview; **Apply** sends the
+whole selection for the server to check and save. **Clear preview** starts
+again. Resuming time, changing worlds or closing Developer tools clears it.
+A refused edit shows the server's reason and leaves the world unchanged.
+The typed operations are under **Advanced: typed operations**; their coordinate
+bounds follow the current map.
+
+Terrain choices paint ground, water, mountains or peaks. Resource choices add
+berry bushes, timber, fallen wood, stone, fiber or clay; object choices add a
+camp shelter, storage or cooking fire after the settlement starts. Choose empty
+tiles: agents, resources, objects, roads, fields and building sites are protected.
+The server saves the whole edit and marks it **Developer edit** in the Event Log.
+If the world changed since your preview, refresh and choose the tiles again.
 
 To set up a test, pause and use **Edit selected agent**. Choose a need and its
 percentage, goods and a quantity, a skill, or another agent for a partnership,
@@ -1252,8 +1273,10 @@ Damaged autosaves are kept separately from the chosen number of usable copies,
 including when rotation is off.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
-current world and any it cannot open. Double-click a card, or choose it and
-**Open World**. Long card names are shortened to fit; hover a world or save
+current world and any it cannot open. Selecting a card shows that world's save
+timeline below it. Choose a save and **Load**, or double-click the save. With no
+save chosen, **Load** opens the newest save; if there are no saves yet, it opens
+the world as it is now. Double-clicking a world card does the same. Long card names are shortened to fit; hover a world or save
 card to read its full name and details. Open
 and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
@@ -1261,20 +1284,20 @@ another game version last saved, and this one can't open, is marked
 <version>** button asks first, saves and closes the game, and opens the
 launcher with that version chosen, ready to install if needed. After **Play**,
 open **Load World** on the Main Menu: the same world is selected, ready for
-**Open World**. If it is no longer in the saves folder, the game explains that
+**Load**. If it is no longer in the saves folder, the game explains that
 and lets you choose another world. Started without
 the launcher, the game names the version to start instead. If that version is
 neither installed nor available to download, the launcher keeps it selected and
 explains why it cannot start. Failed saving or opening the launcher keeps the
 game open, and **Try Again** keeps the chosen version and world.
 
-To go back to an earlier save, choose the current world in Load World and
-**Load a save...**, then pick a save and **Load**, or double-click it. Your world
-as it was is saved first. Playing on from an older save starts a new **branch**,
-so the saves from the first version of events stay as they were. To load a save
-of another world, open that world first.
+To go back to an earlier save, choose its world in **Load World** and pick it
+on the timeline, then **Load**, or double-click the save. During play, the Pause
+Menu's **Load Save** opens the current world's timeline directly. Your world as
+it was is saved first. Playing on from an older save starts a new **branch**,
+so the saves from the first version of events stay as they were.
 
-Load Save and Save World open on a **timeline** of the world's saves: a line for
+Load World, Load Save and Save World share a **timeline** of the world's saves: a line for
 each branch across the world's days, with the seasons along the top. A new
 branch bends down from the save it grew from. Each branch's newest save has a
 small banner, older saves are open circles and autosaves are small diamonds;
@@ -1296,8 +1319,8 @@ last client stops time and model work after about five seconds. Returning makes
 no offline progress or change to a manual pause. An unfinished model call can
 be cancelled and retried later; the provider may charge for both attempts.
 
-To remove one save, choose it in **Load a save...** or Save World and choose
-**Delete**.
+To remove one save, choose it in **Load World**, **Load Save** or **Save World** and choose
+**Delete**. Load a world before deleting one of its saves.
 The confirmation also opens when you manage the current world's saves straight
 after starting the game. It names the save; deletion is permanent and
 leaves its world

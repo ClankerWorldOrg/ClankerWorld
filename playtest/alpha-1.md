@@ -15,7 +15,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Press **Play** ("Install and Play <version>"). → The download shows a progress bar, then the launcher closes and that version's Main Menu opens.
   - Look in `%LOCALAPPDATA%\ClankerWorld`. → The version is installed under `versions`, with the `saves`, `settings` and `logs` folders beside it untouched.
   - Create and save a world, then choose **Quit to Launcher** on the Main Menu. → It asks first, saves, closes the game and reopens the launcher with that version chosen.
-  - Press **Play** again and open **Load World**. → The game opens at the Main Menu, the world you left is already selected, and it opens only after you choose **Open World**.
+  - Press **Play** again and open **Load World**. → The game opens at the Main Menu, the world you left is already selected, and it opens only after you choose **Load**.
   - Start a game straight from `ClankerWorld.exe`. → Its Main Menu has no **Quit to Launcher** button.
   - Edit a file in the installed version and choose **Versions → Repair** in the launcher. → The file is restored.
   - Try **Versions → Remove**. → It asks first and keeps your worlds.
@@ -1274,7 +1274,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Give two worlds, and two saves, long names that start the same way, then hover their cards in Load World and in the save List, in a small and a large window. → Each full name can be read with its save date and seed, and selecting, opening and the branch-tag hover text still work.
   - Pause and delete an inactive world. → Its card and saves go; Open and Delete stay unavailable until the list refreshes, then open the world you pick.
   - Use a healthy world holding a named save from an older version, then restart. → The unreadable save stays, and restarting still opens the healthy world.
-  - From **Load a save...** on the current world, the Main Menu and after leaving the world, delete a named save and an autosave. → Each asks with a confirmation naming the right save.
+  - From **Load Save** on the current world and **Load World** on the Main Menu, delete a named save and an autosave. → Each asks with a confirmation naming the right save.
   - Cancel one of those deletions. → Cancel keeps both saves.
 - [ ] **On a remote server: two devices on one world server.** ([#312](https://github.com/compoodment/ClankerWorld/issues/312), [#728](https://github.com/compoodment/ClankerWorld/issues/728), [#959](https://github.com/compoodment/ClankerWorld/issues/959), [#1024](https://github.com/compoodment/ClankerWorld/issues/1024))
   - Pair two devices, give two worlds different autosave settings with several copies each, and reload. → Each world keeps its own settings and listed autosaves.

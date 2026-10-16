@@ -20,6 +20,11 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor);
     void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool IsAdult(string actor);
+    IReadOnlyList<GridPoint> ReachNonLandService(string actor, GridPoint destination);
+    ActionPlan? PlanNonLandRepair(string actor, string targetId);
+    ActionCheck CheckNativeActionPlan(ActionPlan plan);
+    void ApplyNonLandRepair(ActionPlan plan);
+    bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress);
     IReadOnlyList<GridPoint> ReachCivicNoticePlace(string actor, GridPoint noticePlace);
     IReadOnlyList<GridPoint> ReachLandSalePickup(string actor, PlannedEquipmentPickup pickup);
     IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity);
@@ -73,6 +78,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
             IReadOnlyList<string>? protectedToolIds = null);
     int SkilledWorkTicks(string actor, SkillKind skill, int ticks);
     IReadOnlyList<TownLandTitleRecord> TownLandTitles { get; }
+    bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan);
     string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
             string? projectId = null, string? actor = null, bool ignorePendingRequests = false);
     int TravelStepCost(string actor, GridPoint from, GridPoint to);
@@ -92,8 +98,9 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item);
     bool PropertyMayReopen(TownRuntimeState town, TownLandCase item);
-    (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government);
+    (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government, LandHearingPropertyActionPlan? plan = null);
     TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision);
+    TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure);
     TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior);
     int CaregiverFoodCarryRequirement(string actor, AgentState parent);
     InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0);

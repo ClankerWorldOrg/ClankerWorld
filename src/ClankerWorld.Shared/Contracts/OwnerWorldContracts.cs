@@ -631,7 +631,15 @@ public sealed record OwnerWorldAuthoringState(
     string CurrentMapManifestDigest,
     string Weather,
     string Season,
-    IReadOnlyList<string> ApprovedAssetReferences);
+    IReadOnlyList<string> ApprovedAssetReferences)
+{
+    public IReadOnlyList<OwnerWorldEditTool> EditTools { get; init; } = [];
+}
+
+public sealed record OwnerWorldEditTool(string Operation, string DisplayName,
+    IReadOnlyList<OwnerWorldEditKind> Kinds);
+
+public sealed record OwnerWorldEditKind(string Value, string DisplayName, bool? IsRenewable = null);
 
 public sealed record OwnerWorldActor(
     string Id,
@@ -760,6 +768,9 @@ public sealed partial record CatalogWorld(string Id, string Name, string WorldId
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
 /// <summary>A small picture of a world's terrain for the Load World list, packed like the world's own terrain.</summary>
 public sealed partial record WorldThumbnail(int Width, int Height, string Encoding, string Data);
+/// <summary>A selected world's save history, read without opening or changing it.</summary>
+public sealed record WorldSaveHistory(string WorldId, IReadOnlyList<ManualWorldSave> Saves,
+    SaveTimelinePosition Position, OwnerWorldCalendarPace? CalendarPace, long WorldTick);
 public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CatalogWorld>? PendingDeletions = null);
 public sealed record OwnerWorldPreview(OwnerWorldPackedTerrain Terrain, OwnerWorldPosition StartingSite,
@@ -960,7 +971,11 @@ public sealed record OwnerAuthoringOperationAction(
 
 public sealed record OwnerAuthoringBatchAction(
     string BatchId,
-    IReadOnlyList<OwnerAuthoringOperationAction> Operations);
+    IReadOnlyList<OwnerAuthoringOperationAction> Operations,
+    string? WorldId = null,
+    long ExpectedEventId = -1,
+    long RunEpoch = -1,
+    OwnerObserverTimeline? Timeline = null);
 
 public sealed record OwnerContentDependencyAction(
     string PackageId,

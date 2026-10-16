@@ -237,6 +237,15 @@ internal sealed partial class TownSystem
         var landHearingFilingPlan = originalPlan as LandHearingFilingActionPlan;
         var landHearingEvidencePlan = originalPlan as LandHearingEvidenceActionPlan;
         var landHearingJudgePlan = originalPlan as LandHearingJudgeActionPlan;
+        var landHearingRulingPlan = originalPlan as LandHearingRulingActionPlan;
+        var landHearingReopeningPlan = originalPlan as LandHearingReopeningActionPlan;
+        var landHearingPropertyPlan = originalPlan as LandHearingPropertyActionPlan;
+        var nonLandFilingPlan = originalPlan as NonLandFilingActionPlan;
+        var nonLandEvidencePlan = originalPlan as NonLandEvidenceActionPlan;
+        var nonLandJudgePlan = originalPlan as NonLandJudgeActionPlan;
+        var nonLandAdjudicationPlan = originalPlan as NonLandAdjudicationActionPlan;
+        var nonLandAgreementPlan = originalPlan as NonLandAgreementActionPlan;
+        var projectProposalPlan = originalPlan as TownProjectProposalActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -280,6 +289,68 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (TownProjectProposalChoice.Decode(selectedId) is { } projectProposalChoice)
+        {
+            projectProposalPlan ??= PlanTownProjectProposal(world, actor, projectProposalChoice);
+            if (projectProposalPlan is null) return;
+            projectProposalPlan = BindTownProjectName(projectProposalPlan, proposalText);
+            if (CheckTownProjectProposal(world, projectProposalPlan).Refusal is { } refusal) { world.RefuseChoice(projectProposalPlan, refusal); return; }
+        }
+        else if (NonLandAgreementChoice.Decode(selectedId) is { } nonLandAgreementChoice)
+        {
+            nonLandAgreementPlan ??= PlanNonLandAgreement(world, actor, nonLandAgreementChoice);
+            if (nonLandAgreementPlan is null) return;
+            nonLandAgreementPlan = BindNonLandAgreement(nonLandAgreementPlan, nonLandChoice, CivicDay(world));
+            if (CheckNonLandAgreement(world, nonLandAgreementPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandAgreementPlan, refusal); return; }
+        }
+        else if (NonLandAdjudicationChoice.Decode(selectedId) is { } nonLandAdjudicationChoice)
+        {
+            nonLandAdjudicationPlan ??= PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice);
+            if (nonLandAdjudicationPlan is null) return;
+            nonLandAdjudicationPlan = BindNonLandAdjudication(nonLandAdjudicationPlan, nonLandChoice);
+            if (CheckNonLandAdjudication(world, nonLandAdjudicationPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandAdjudicationPlan, refusal); return; }
+        }
+        else if (NonLandJudgeChoice.Decode(selectedId) is { } nonLandJudgeChoice)
+        {
+            nonLandJudgePlan ??= PlanNonLandJudge(world, actor, nonLandJudgeChoice);
+            if (nonLandJudgePlan is null) return;
+            if (CheckNonLandJudge(world, nonLandJudgePlan).Refusal is { } refusal) { world.RefuseChoice(nonLandJudgePlan, refusal); return; }
+        }
+        else if (NonLandEvidenceChoice.Decode(selectedId) is { } nonLandEvidenceChoice)
+        {
+            nonLandEvidencePlan ??= PlanNonLandEvidence(world, actor, nonLandEvidenceChoice);
+            if (nonLandEvidencePlan is null) return;
+            nonLandEvidencePlan = BindNonLandEvidence(nonLandEvidencePlan, nonLandChoice);
+            if (CheckNonLandEvidence(world, nonLandEvidencePlan).Refusal is { } refusal) { world.RefuseChoice(nonLandEvidencePlan, refusal); return; }
+        }
+        else if (NonLandFilingChoice.Decode(selectedId) is { } nonLandFilingChoice)
+        {
+            nonLandFilingPlan ??= PlanNonLandFiling(world, actor, nonLandFilingChoice);
+            if (nonLandFilingPlan is null) return;
+            nonLandFilingPlan = BindNonLandFiling(nonLandFilingPlan, nonLandChoice);
+            if (CheckNonLandFiling(world, nonLandFilingPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandFilingPlan, refusal); return; }
+        }
+        else if (LandHearingPropertyChoice.Decode(selectedId) is { } hearingPropertyChoice)
+        {
+            landHearingPropertyPlan ??= PlanLandHearingProperty(world, actor, hearingPropertyChoice);
+            if (landHearingPropertyPlan is null) return;
+            landHearingPropertyPlan = BindLandHearingProperty(landHearingPropertyPlan, hearingChoice, proposalText);
+            if (CheckLandHearingProperty(world, landHearingPropertyPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingPropertyPlan, refusal); return; }
+        }
+        else if (LandHearingReopeningChoice.Decode(selectedId) is { } hearingReopeningChoice)
+        {
+            landHearingReopeningPlan ??= PlanLandHearingReopening(world, actor, hearingReopeningChoice);
+            if (landHearingReopeningPlan is null) return;
+            landHearingReopeningPlan = BindLandHearingReopening(landHearingReopeningPlan, hearingChoice);
+            if (CheckLandHearingReopening(world, landHearingReopeningPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingReopeningPlan, refusal); return; }
+        }
+        else if (LandHearingRulingChoice.Decode(selectedId) is { } hearingRulingChoice)
+        {
+            landHearingRulingPlan ??= PlanLandHearingRuling(world, actor, hearingRulingChoice);
+            if (landHearingRulingPlan is null) return;
+            landHearingRulingPlan = BindLandHearingRuling(landHearingRulingPlan, hearingChoice, proposalText);
+            if (CheckLandHearingRuling(world, landHearingRulingPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingRulingPlan, refusal); return; }
         }
         else if (LandHearingJudgeChoice.Decode(selectedId) is { } hearingJudgeChoice)
         {
@@ -400,7 +471,7 @@ internal sealed partial class TownSystem
             (state, government) = AdvanceCivic(world, town, state, government);
             if (parts[2].StartsWith("law_case_", StringComparison.Ordinal) || parts[2].StartsWith("remedy_", StringComparison.Ordinal))
             {
-                var legalUpdate = ApplyTownNonLandAction(world, town with { Council = state, Government = government }, actor, parts[2], parts[3], parts[4], nonLandChoice, state, government);
+                var legalUpdate = ApplyTownNonLandAction(world, town with { Council = state, Government = government }, actor, parts[2], parts[3], parts[4], nonLandChoice, state, government, nonLandFilingPlan, nonLandEvidencePlan, nonLandJudgePlan, nonLandAdjudicationPlan, nonLandAgreementPlan);
                 state = legalUpdate.Council;
                 town = town with { NonLandHearings = legalUpdate.NonLandHearings };
                 SetTown(world, town with { Council = state, Government = government });
@@ -409,7 +480,7 @@ internal sealed partial class TownSystem
             {
                 var hearingUpdate = ApplyTownLandHearingAction(world, town with { Council = state, Government = government },
                     actor, parts[2], parts[3], parts[4],
-                    proposalText, landTiles, hearingChoice, state, government, landHearingFilingPlan, landHearingEvidencePlan, landHearingJudgePlan);
+                    proposalText, landTiles, hearingChoice, state, government, landHearingFilingPlan, landHearingEvidencePlan, landHearingJudgePlan, landHearingRulingPlan, landHearingReopeningPlan, landHearingPropertyPlan);
                 state = hearingUpdate.Council;
                 town = town with { LandRecords = hearingUpdate.LandRecords };
                 SetTown(world, town with { Council = state, Government = government });
@@ -476,22 +547,13 @@ internal sealed partial class TownSystem
                         : TownLawRules.ProposeEstateDefault(state, government, town.Id, actor,
                             policyPlan.TownShare!.Value, TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
-                case "boat_project":
-                    var boatPort = world.Port(parts[3]);
-                    if (boatPort is null || boatPort.TownId != town.Id) return;
-                    var boatPlan = WorldRuntime.CivicSharedRules.BoatProjectPlan(boatPort, string.IsNullOrWhiteSpace(proposalText) ? "Communal boat" : proposalText.Trim());
-                    if (boatPlan.Name.Length > TownProjectRules.MaximumNameLength || boatPlan.Name.Any(char.IsControl)) return;
-                    if (world.TownProjectSiteFailure(town, boatPlan, actor: actor) is not null) return;
+                case "boat_project" or "project":
+                    if (CheckTownProjectProposal(world, projectProposalPlan!, town with { Council = state, Government = government }).Refusal is { } projectRefusal)
+                    { world.RefuseChoice(projectProposalPlan!, projectRefusal); return; }
+                    var projectPlan = projectProposalPlan!.Project;
                     state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "project", null,
-                        TownProjectRules.ProposalText(boatPlan), "council:" + state.Revision,
-                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: boatPlan);
-                    break;
-                case "project":
-                    var plan = world.OfferedTownProjectPlan(town, actor, parts[3], parts[4], proposalText);
-                    if (plan is null) return;
-                    state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "project", null,
-                        TownProjectRules.ProposalText(plan), "council:" + state.Revision,
-                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: plan);
+                        TownProjectRules.ProposalText(projectPlan), "council:" + projectProposalPlan.CouncilRevision,
+                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: projectPlan);
                     break;
                 case "claim_land":
                     if (CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal is { } claimRefusal)

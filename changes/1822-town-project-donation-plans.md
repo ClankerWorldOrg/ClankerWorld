@@ -1,0 +1,1 @@
+- Town project donations retain the exact personal goods, quantity, approved project and destination through shared checks.
