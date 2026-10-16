@@ -12,6 +12,8 @@ config/custom_user_dir_name="Godot/app_userdata/ClankerWorld"
 run/main_scene="res://Screens/Main/Main.tscn"
 ; The launcher export (custom feature "launcher") opens the launcher instead.
 run/main_scene.launcher="res://Launcher/Launcher.tscn"
+; Reports and forced-close diagnostics need every printed line on disk in release builds too.
+run/flush_stdout_on_print=true
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [clankerworld]

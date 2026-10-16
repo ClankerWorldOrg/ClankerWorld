@@ -293,6 +293,11 @@ public partial class Main : Control
         ApplyUiScale();
         GetWindow().SizeChanged += RefreshRenderSize;
         ShowMainMenu();
+        if (OS.GetCmdlineUserArgs().Contains("--profile-open-smoke-test", StringComparer.Ordinal))
+        {
+            _ = VerifyProfileOpenAsync();
+            return;
+        }
         if (OS.GetCmdlineUserArgs().Contains("--launcher-options-smoke-test", StringComparer.Ordinal))
         {
             VerifyDeveloperRunOptions();

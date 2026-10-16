@@ -4,6 +4,7 @@ using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 using System.Globalization;
+using ClankerWorld.Contracts;
 
 namespace ClankerWorld.GodotClient;
 
@@ -135,7 +136,7 @@ public partial class Main
         }
     }
 
-    private async Task DeleteCredentialSlotAsync()
+    private async Task DeleteCredentialSlotAsync(string? selectedSlotId = null)
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
@@ -143,7 +144,7 @@ public partial class Main
             return;
         }
 
-        var slotId = SelectedCredentialChoice();
+        var slotId = selectedSlotId ?? SelectedCredentialChoice();
         var slot = providerConfiguration?.CredentialSlots?.FirstOrDefault(item => item.Id == slotId);
         if (slot is null)
         {
@@ -167,6 +168,9 @@ public partial class Main
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.DeleteCredentialSlotAsync(
                 ResolveWorldUri(), authority, deviceId, slotId, signer, OwnerRequestToken));
             PopulateCredentialChoices();
+            PopulateFounderCredentials();
+            RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
+            RenderSavedApiKeys();
             RenderProviderConfiguration();
             return $"Deleted the saved key {slot.Label}.";
         });
@@ -465,7 +469,7 @@ public partial class Main
 
     private static string DefaultProviderModel(string provider) => provider switch
     {
-        "jev" => "jev-1.13.0",
+        "jev" => RoutineHelperDefaults.JevModel,
         "openai" or "decisions" => "gpt-6-luna",
         "ollama-cloud" => "glm-5.3-flash:cloud",
         "anthropic" => "claude-haiku-5-5",

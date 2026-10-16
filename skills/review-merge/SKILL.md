@@ -229,10 +229,14 @@ change needs, and what will stay unchecked.
 - List the tests a filter selects before you trust it, especially for classes
   split across files. Check that the tests and theory cases you meant actually
   ran: zero tests, or the wrong ones, is not a check.
-- Read the **test-times** summary CI posts. A pull request that makes tests
-  much slower than on main needs a fix or a stated reason before it merges:
-  slower tests usually mean slower ticks for players, and every later merge
-  waits longer for CI.
+- Read the **test-times** report. CI prints it in the **test-times** job's log
+  as well as the run summary, so read it from the log if you can't open the
+  summary. A pull request that makes tests much slower than on main needs a
+  fix or a stated reason before it merges: slower tests usually mean slower
+  ticks for players, and every later merge waits longer for CI.
+- **Never ask the owner to copy CI output,** logs or summaries for you. Read
+  them from the job logs. If a log really can't be read, say which one in your
+  review record and carry on with what you could check.
 - Use the [test-audit skill](../test-audit/SKILL.md) when judging, adding or
   removing tests. A repaired test must still exercise the real change and keep
   the contract's assertions. Prefer a small world close to the moment being
