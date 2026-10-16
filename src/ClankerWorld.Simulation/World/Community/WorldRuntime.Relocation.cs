@@ -149,15 +149,14 @@ public sealed partial class WorldRuntime
                 deadline = checked(WorldTick + RelocationNoticeTicks);
             var noticeTick = deadline - RelocationNoticeTicks;
             SetRelocation(item.Id, new(householdId, noticeTick, deadline, item.Reason));
-            AppendEvent("relocation_notice", $"{item.Id}|{householdId}|{item.Reason}|" +
-                deadline.ToString(CultureInfo.InvariantCulture));
+            AppendEvent(new RelocationNoticeEventPayload(item.Id, householdId, item.Reason, deadline));
         }
     }
 
     private void CancelRelocation(string actor, RelocationNotice notice, string reason)
     {
         SetRelocation(actor, null);
-        AppendEvent("relocation_cancelled", $"{actor}|{notice.HouseholdId}|{reason}");
+        AppendEvent(new RelocationCancelledEventPayload(actor, notice.HouseholdId, reason));
         // A member who no longer has to move stops asking elsewhere; someone who already left keeps asking.
         if (society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
             agents[actor].Housing?.Request is { } request)
@@ -195,8 +194,7 @@ public sealed partial class WorldRuntime
         // Taking someone's place keeps their deadline, so volunteering never delays the move.
         var deadline = plan.InheritedDeadline ?? checked(WorldTick + RelocationNoticeTicks);
         SetRelocation(actor, new(householdId, WorldTick, deadline, HouseRelocationRules.Volunteer));
-        AppendEvent("relocation_notice", $"{actor}|{householdId}|{HouseRelocationRules.Volunteer}|" +
-            deadline.ToString(CultureInfo.InvariantCulture));
+        AppendEvent(new RelocationNoticeEventPayload(actor, householdId, HouseRelocationRules.Volunteer, deadline));
         ReconcileRelocation(householdId);
     }
 

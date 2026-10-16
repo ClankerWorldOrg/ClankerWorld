@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -13,7 +14,7 @@ public sealed class SocietyTests
         var state = SocietyRules.CreateGenesis("death-barter", [SocietyRules.CreateFounder("a", "A"), SocietyRules.CreateFounder("b", "B")]);
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "a-food", "food", "a", 2) };
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "b-food", "food", "b", 2) };
-        state = SocietyRules.CreateBarterOffer(state, new DirectBarterProposal("offer", 1, "a", "b", "a-food", 1, "b-food", 1, 120)).Checkpoint;
+        state = SocietyRules.CreateBarterOffer(state, new DirectBarterProposal(Identity.Parse("offer"), 1, "a", "b", "a-food", 1, "b-food", 1, 120)).Checkpoint;
         if (accepted) state = SocietyRules.AcceptBarterOffer(state, "offer", 1, "a").Checkpoint;
         var survivor = deceased == "a" ? "b" : "a";
         state = state with { Inventory = InventoryAuthority.Reserve(state.Inventory, "unrelated", survivor, survivor + "-food", 1, "work", 120) };
@@ -33,7 +34,7 @@ public sealed class SocietyTests
         var state = SocietyRules.CreateGenesis("settled-barter-death", [SocietyRules.CreateFounder("a", "A"), SocietyRules.CreateFounder("b", "B")]);
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "a-food", "food", "a", 1) };
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "b-food", "food", "b", 1) };
-        state = SocietyRules.CreateBarterOffer(state, new DirectBarterProposal("done", 1, "a", "b", "a-food", 1, "b-food", 1, 120)).Checkpoint;
+        state = SocietyRules.CreateBarterOffer(state, new DirectBarterProposal(Identity.Parse("done"), 1, "a", "b", "a-food", 1, "b-food", 1, 120)).Checkpoint;
         state = SocietyRules.AcceptBarterOffer(state, "done", 1, "a").Checkpoint;
         state = SocietyRules.AcceptBarterOffer(state, "done", 1, "b").Checkpoint;
         state = SocietyRules.Kill(state, "a", SocietyDeathCause.Accident).Checkpoint;
@@ -572,7 +573,7 @@ public sealed class SocietyTests
         };
         checkpoint = SocietyRules.CreateBarterOffer(
             checkpoint,
-            new DirectBarterProposal("barter-death", 1, "alice", "bob", "food-lot", 1, "tool-lot", 1, 10)).Checkpoint;
+            new DirectBarterProposal(Identity.Parse("barter-death"), 1, "alice", "bob", "food-lot", 1, "tool-lot", 1, 10)).Checkpoint;
 
         var killed = SocietyRules.Kill(checkpoint, "alice", SocietyDeathCause.Hazard).Checkpoint;
 

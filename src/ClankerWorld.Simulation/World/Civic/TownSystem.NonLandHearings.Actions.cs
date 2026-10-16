@@ -9,7 +9,7 @@ internal sealed partial class TownSystem
         TownCaseEvidence? evidence, IReadOnlyList<TownCaseParty>? selectedParties = null)
     {
         var count = state.Cases.Count;
-        state = TownNonLandRules.File(state, town.Id, allegation, filing, selectedParties ?? TownNonLandPartyRules.CurrentParties(town, allegation, [filing], world.Society, world.WorldTick), world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1));
+        state = TownNonLandRules.File(state, town.Id, allegation, filing, selectedParties ?? TownNonLandPartyRules.CurrentParties(town, allegation, [filing], world.Society, world.WorldTick), world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council));
         var item = state.Cases.Single(current => current.Key == TownNonLandRules.CaseKey(town.Id, allegation));
         if (state.Cases.Count > count) council = PostNonLandNotice(council, item);
         council = TownCouncilRules.LearnNotice(council, filing.AgentId, NonLandRevision(item).NoticeId, world.WorldTick);
@@ -70,7 +70,7 @@ internal sealed partial class TownSystem
         }
         else
         {
-            var selectedId = $"civic|{town.Id}|{action}|{subject}|{choice}";
+            var selectedId = new NonLandEvidenceChoice(town.Id, action, subject, choice).Encode();
             if (NonLandEvidenceChoice.Decode(selectedId) is { } selectedEvidence && PlanNonLandEvidence(world, actor, selectedEvidence) is { } plannedEvidence)
             {
                 evidencePlan = BindNonLandEvidence(plannedEvidence, payload);
@@ -139,7 +139,7 @@ internal sealed partial class TownSystem
             var terms = NonLandTerms(world, town, actor, oldOffer.CaseId, payload, agreement.Id);
             state = TownRemedyRules.Offer(state, oldOffer.CaseId, oldOffer.FindingId, actor, terms,
                 payload?.CompletionTicks ?? checked(3L * CivicDay(world)), NonLandText(payload?.Statement), world.WorldTick, CivicDay(world),
-                "notice:" + (council.Notices.Count + 1), true, replacesAgreementId: agreement.Id);
+                TownCouncilRules.NextNoticeId(council), true, replacesAgreementId: agreement.Id);
             council = PostNonLandOffer(world, council, state.Offers[^1]);
             NonLandEvent(world, "offer", town, state.Offers[^1].Id, actor);
             return (council, state);
@@ -155,7 +155,7 @@ internal sealed partial class TownSystem
                 state = TownRemedyRules.Respond(state, offer.Id, offer.Revision, actor, "counter", text, world.WorldTick, CivicDay(world), council.Knowledge,
                     NonLandRemedyDurationFeasible(world, town, offer.Terms.Where(term => term.ContributorId == actor).ToArray(), offer.CompletionTicks));
                 state = TownRemedyRules.Offer(state, offer.CaseId, offer.FindingId, actor, terms, payload?.CompletionTicks ?? checked(3L * CivicDay(world)),
-                    text, world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1), true, replacesOfferId: offer.Id);
+                    text, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), true, replacesOfferId: offer.Id);
                 council = PostNonLandOffer(world, council, state.Offers[^1]);
             }
             else state = TownRemedyRules.Respond(state, offer.Id, offer.Revision, actor, action == "remedy_accept" ? "accept" : "decline",
@@ -218,7 +218,7 @@ internal sealed partial class TownSystem
             case "law_case_assess_reopen":
                 var request = adjudicationPlan!.Request!;
                 var accept = adjudicationPlan.Accept;
-                state = TownNonLandRules.Reopen(state, item.Id, request.Id, adjudicationPlan.Judge!, accept, adjudicationPlan.Reasons!, adjudicationPlan.Parties, world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1), item.Judge is { } reopeningJudge && NonLandJudgeValid(world, town, item, reopeningJudge));
+                state = TownNonLandRules.Reopen(state, item.Id, request.Id, adjudicationPlan.Judge!, accept, adjudicationPlan.Reasons!, adjudicationPlan.Parties, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), item.Judge is { } reopeningJudge && NonLandJudgeValid(world, town, item, reopeningJudge));
                 if (accept) council = PostNonLandNotice(council, state.Cases.Single(current => current.Id == item.Id));
                 break;
             case "law_case_relay":
@@ -230,7 +230,7 @@ internal sealed partial class TownSystem
                 var proposedTerms = NonLandTerms(world, town, actor, item.Id, payload);
                 state = TownRemedyRules.Offer(state, item.Id, choice, actor, proposedTerms,
                     payload?.CompletionTicks ?? checked(3L * CivicDay(world)), NonLandText(payload?.Statement), world.WorldTick, CivicDay(world),
-                    "notice:" + (council.Notices.Count + 1), true);
+                    TownCouncilRules.NextNoticeId(council), true);
                 council = PostNonLandOffer(world, council, state.Offers[^1]);
                 break;
             default: throw new InvalidOperationException("Unsupported non-land case action.");
