@@ -17,8 +17,11 @@ public sealed partial class WorldRuntime
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         if (!IsAdult(actor) || !text.Equals("propose marriage", StringComparison.OrdinalIgnoreCase) &&
             !text.Equals("propose marriage to my partner", StringComparison.OrdinalIgnoreCase)) return null;
-        return new("propose_marriage", "queued", 1, 0, "marriage_attempts", false,
-            TargetAgentId: CurrentMarriageOrderPartner(actor));
+        return new OrderTask(new ProposeMarriageOrderDefinition(TargetAgentId: CurrentMarriageOrderPartner(actor)),
+    "queued",
+    1,
+    0,
+    "marriage_attempts", false);
     }
 
     private string? CurrentMarriageOrderPartner(string actor)
@@ -50,18 +53,18 @@ public sealed partial class WorldRuntime
         if (current.Task is not { Action: "propose_marriage", TalkConversationId: not null } order || !IsActiveOrder(order.Status)) return;
         if (UnacceptedMarriageOrderBlocker(current) is { } blocker)
         {
-            SetOrderStatus(current, "blocked", blocker);
+            SetOrderStatus(current, OrderStatus.Blocked, blocker);
             return;
         }
         // Clear only a recovered eligibility blocker, preserving independently owned interruptions and failures.
         if (order.Status != "blocked" || order.BlockedReason is not
             (MarriageAdultBlocker or MarriagePartnerBlocker or MarriageChangedPartnerBlocker or MarriageEligibilityBlocker)) return;
         if (ConversationForOrder(current)?.Status == AgentConversationStatus.Suspended)
-            SetOrderStatus(current, "blocked", "Conversation stopped; both people must choose to resume, or you may end it.");
+            SetOrderStatus(current, OrderStatus.Blocked, "Conversation stopped; both people must choose to resume, or you may end it.");
         else if (ConversationForOrder(current)?.Outcome == "participant_unavailable")
-            SetOrderStatus(current, "blocked", "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
+            SetOrderStatus(current, OrderStatus.Blocked, "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
         else
-            SetOrderStatus(current, "doing", null);
+            SetOrderStatus(current, OrderStatus.Doing, null);
     }
 
     private AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction)
@@ -87,7 +90,7 @@ public sealed partial class WorldRuntime
         return conversation.Outcome is "agreed" or "disagreed" ? "not_proposed" : conversation.Outcome;
     }
 
-    private static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
+    internal static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
     {
         var order = instruction.Task!;
         return (order.TargetAgentId is null ? order.TalkConversationId is null && order.CompletedUnits == 0 :

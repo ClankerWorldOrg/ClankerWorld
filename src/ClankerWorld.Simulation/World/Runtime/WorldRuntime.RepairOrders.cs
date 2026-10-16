@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
                 if (ContinueEquipmentRepair(actor) is { } effect)
                 {
                     var receipt = EquipmentRepairReceipt(actor, effect.StartedTick, effect.LotId);
-                    CreditOrderEffect(instruction, receipt, 1);
+                    CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 return;
             }
@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         }
         if (RepairOrderCandidateFor(instruction, person)?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", RepairOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, RepairOrderBlockedReason(instruction));
             return;
         }
         RepairEquipment(actor, person, lotId, instruction.InstructionId);
@@ -78,9 +78,7 @@ public sealed partial class WorldRuntime
         foreach (var person in people)
         {
             if (person.Equipment?.Repair is not { OrderInstructionId: { } orderId } repair) continue;
-            var instruction = instructions.Where(item => item.TargetAgentId == person.AgentId &&
-                    item.Kind == OwnerInstructionKind.Order && item.Task is { } order && IsActiveOrder(order.Status))
-                .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+            var instruction = FirstActiveOrderFor(instructions, person.AgentId);
             var target = inventory.Lots.FirstOrDefault(lot => lot.Id == repair.LotId);
             if (target?.OwnerId != person.AgentId || instruction is null || instruction.InstructionId != orderId || instruction.Task is not { Action: "repair_equipment" } task ||
                 task.Status == "queued" || repair.StartedTick < instruction.SubmittedTick ||

@@ -50,7 +50,7 @@ public sealed partial class WorldRuntime
         var town = towns.Single(item => item.Id == plan.TownId);
         var market = town.Markets.Single(item => item.Id == plan.Choice.MarketId);
         var stall = market.Stalls.Single(item => item.BuildingId == plan.Choice.StallId);
-        if (plan.Choice.Leave) { EndMarketOccupancy(town.Id, market, plan.Occupancy!, "The seller gave up the stall."); return; }
+        if (plan.Choice.Leave) { EndMarketOccupancy(town.Id, market, plan.Occupancy!, "The seller gave up the stall.", plan.Actor); return; }
         if (!plan.Choice.AtSite) { MoveToward(plan.Actor, agents[plan.Actor], plan.Destination, "market_borrow", ResourceInteractionRange); return; }
         BorrowMarketStall(plan.Actor, new(plan.CandidateId, "borrow", town, market, stall), plan.Destination);
     }

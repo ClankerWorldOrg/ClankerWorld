@@ -18,13 +18,11 @@ public sealed class RetiredBuildingTests
         var state = seed.ExportState();
         var shelter = seed.WorldContent.Buildings.Single(item => item.LocalId == "shelter");
         var storehouse = seed.WorldContent.Buildings.Single(item => item.LocalId == "storage");
-        var sites = state.Map.Tiles.Where(tile => state.Map.IsBuildable(tile.Position) &&
-                !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-                !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Agents.Any(person => person.Position == tile.Position))
-            .Select(tile => tile.Position).ToArray();
         var (builder, helper) = (state.Agents[0], state.Agents[1]);
-        var (shelterSite, storehouseSite) = (sites[^1], sites[0]);
+        var shelterSite = MovementTestWorld.BuildingSite(state, shelter, builder.AgentId);
+        var shelterAccess = WorldContentSimulationRules.Footprint(shelter, shelterSite)
+            .Append(BuildingMovementRules.EntranceFor(shelter, new("planned-shelter", shelter.CanonicalId, shelterSite, seed.WorldTick)));
+        var storehouseSite = MovementTestWorld.BuildingSite(state, storehouse, helper.AgentId, shelterAccess);
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "retired-tool", "tool", builder.AgentId, 1);
         inventory = InventoryAuthority.AddLot(inventory, "retired-helper-tool", "tool", helper.AgentId, 1);

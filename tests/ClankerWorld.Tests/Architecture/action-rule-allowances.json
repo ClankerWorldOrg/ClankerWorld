@@ -107,6 +107,9 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs": [
     "FindUnoccupiedRoute(actorId, agents[actorId].Position, placed.Position, 0)"
   ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.RouteSearch.cs": [
+    "FindUnoccupiedRoute(actor, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
+  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ShelterOrders.cs": [
     "FindUnoccupiedRoute(actor, origin, destination, 0)",
     "FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange)"
@@ -121,10 +124,6 @@
     "person.FullnessBasisPoints \u003E 3_500"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Swimming.cs": [
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, additionalCarriedUnits: 1)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
     "FindUnoccupiedRoute(actor, position, source, sourceRange)",
     "society.Checkpoint.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
   ],
