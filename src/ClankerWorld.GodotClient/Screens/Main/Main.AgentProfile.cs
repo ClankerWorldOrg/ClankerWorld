@@ -48,6 +48,7 @@ public partial class Main
     private readonly RichTextLabel thoughtsReaderText = new();
     private string? renderedThoughtsReader;
     private bool agentProfileRequested;
+    private bool measuredFirstAgentProfile;
 
     private void BuildAgentProfile()
     {
@@ -412,6 +413,13 @@ public partial class Main
     /// <summary>Opens the Profile from the quick card; Speak also puts the cursor in the message box.</summary>
     private void OpenAgentProfile(bool speak)
     {
+        var firstOpen = !measuredFirstAgentProfile;
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        if (firstOpen)
+        {
+            measuredFirstAgentProfile = true;
+            GD.Print("agent_profile_open stage=begin");
+        }
         agentProfileRequested = true;
         if (agentCardSnapshot is { } snapshot)
             RenderSelectedAgentCard(snapshot);
@@ -422,6 +430,17 @@ public partial class Main
         }
         else if (keyboardNavigation)
             Callable.From(() => FocusKeyboardPanel(agentProfilePanel)).CallDeferred();
+        if (firstOpen)
+        {
+            GD.Print(FormattableString.Invariant($"agent_profile_open stage=controls_ready elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
+            if (DisplayServer.GetName() != "headless") _ = LogFirstAgentProfileDrawAsync(started);
+        }
+    }
+
+    private async Task LogFirstAgentProfileDrawAsync(long started)
+    {
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GD.Print(FormattableString.Invariant($"agent_profile_open stage=first_draw elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
     }
 
     /// <summary>
@@ -476,16 +495,19 @@ public partial class Main
 
     private void QueueAgentProfileFit()
     {
-        if (agentProfileFitQueued) return;
+        // A deferred call runs in the same idle flush. Fitting can change the
+        // minimum size again, so leave that work for the next process frame.
         agentProfileFitQueued = true;
-        Callable.From(() =>
-        {
-            agentProfileFitQueued = false;
-            PositionAgentProfile();
-            // Keep the message box in view while typing, once the scroll has its new height.
-            if (instructionText.HasFocus())
-                Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
-        }).CallDeferred();
+    }
+
+    private void FitQueuedAgentProfile()
+    {
+        if (!agentProfileFitQueued) return;
+        agentProfileFitQueued = false;
+        PositionAgentProfile();
+        // Keep the message box in view once the scroll has its new height.
+        if (instructionText.HasFocus())
+            Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
     }
 
     /// <summary>The Profile's details take the room they need and scroll once the panel would pass the bottom of the screen.</summary>

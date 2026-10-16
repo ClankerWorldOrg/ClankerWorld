@@ -124,6 +124,11 @@ public sealed partial class GrownAgentHelperMemoryTests
                 try { Assert.False(settled.IsCompleted, "The transfer fixture must not count more ticks while its reader's native identity reply is held."); }
                 finally { policy.ReleaseIdentity.TrySetResult(); }
                 await settled;
+                // Finished model work is admitted by a later host tick; the
+                // transfer proposal can already exist before that admission.
+                await AdvanceUntil(() => world.Agents.Single(person => person.AgentId == policy.HeldIdentityId)
+                    .IdentityMoments!.Any(moment => moment.Kind == AgentIdentityMomentKind.Midlife && moment.Outcome == "kept"),
+                    "held identity admission");
             }
             await AdvanceUntil(() => world.Towns[0].LandRecords.Transfers.Count == 1, "proposal");
             policy.Propose = false;

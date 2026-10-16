@@ -448,6 +448,16 @@ public sealed class WorldDeferredCognitionTests
             Assert.True(first.SetRoutineHelper(new("decisions", "future-model")));
             using var modelRestored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(first.ExportState())));
             Assert.Equal(new RoutineHelperSettings("decisions", "future-model"), modelRestored.RoutineHelper);
+            // Named TypeSafe keys use the same saved field, preserving explicit older model choices.
+            foreach (var model in new[] { "jev-1.13.0", "jev-1.14.0" })
+            {
+                var helper = new RoutineHelperSettings("jev", model, Guid.NewGuid().ToString("N"));
+                Assert.True(first.SetRoutineHelper(helper));
+                var bytes = WorldRuntimeCodec.Encode(first.ExportState());
+                using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new QuietDecisionProvider());
+                Assert.Equal(helper, restored.RoutineHelper);
+                Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+            }
         }
         finally
         {

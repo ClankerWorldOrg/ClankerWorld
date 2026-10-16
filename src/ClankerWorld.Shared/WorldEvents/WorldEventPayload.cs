@@ -109,6 +109,7 @@ public sealed record EventPosition(int X, int Y);
 [JsonDerivedType(typeof(ContentRolledBackEventPayload), "content_rolled_back")]
 [JsonDerivedType(typeof(ContentStagedEventPayload), "content_staged")]
 [JsonDerivedType(typeof(ContentValidatedEventPayload), "content_validated")]
+[JsonDerivedType(typeof(ContinuityPartnershipFormedEventPayload), "continuity_partnership_formed")]
 [JsonDerivedType(typeof(ContinuityPlanProceededEventPayload), "continuity_plan_proceeded")]
 [JsonDerivedType(typeof(ContinuityRuleOffEventPayload), "continuity_rule_off")]
 [JsonDerivedType(typeof(ContinuityRuleOnEventPayload), "continuity_rule_on")]

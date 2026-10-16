@@ -100,13 +100,17 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(pending, WorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(pending, WorldRuntimeCodec.Encode(world.ExportState()));
+        var propertyRulingPlans = new List<LandHearingRulingActionPlan>();
         // A recipient who also represents the Town can still owe the separate
         // Town response opportunity. Allow its actual full notice window.
         for (var step = 0; step < NativeHearingDay + 10 && world.Towns[0].LandRecords.Cases[1].Status == "pending"; step++)
         {
             NativeHearingPromptAll(world);
             NativeHearingPromptAll(replay);
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            propertyRulingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingRulingActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<LandHearingRulingActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -115,6 +119,14 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal("grant", Assert.Single(item.Rulings).Outcome.Kind);
         Assert.Equal(choices.Judge, Assert.Single(item.Rulings).Judge.AgentId);
         var transfer = Assert.IsType<TownPropertyTransfer>(item.Property!.Transfer);
+        var propertyRulingPlan = Assert.Single(propertyRulingPlans);
+        Assert.True(propertyRulingPlan.Bound);
+        Assert.Equal(propertyRulingPlan.Choice, LandHearingRulingChoice.Decode(propertyRulingPlan.CandidateId));
+        Assert.Equal(Assert.Single(item.Rulings).Outcome, propertyRulingPlan.Outcome);
+        Assert.Equal(transfer.PriorBuilding, propertyRulingPlan.PropertySnapshot!.Building);
+        Assert.Equal(TownPropertyRules.MaterialVersion(propertyRulingPlan.PropertySnapshot), TownPropertyRules.MaterialVersion(
+            propertyRulingPlan.PropertySnapshot with { SharedLots = transfer.PriorLots }));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(propertyRulingPlan).Refusal!.Reason);
         Assert.Equal(recipient, transfer.ResultBuilding.HouseholdId);
         Assert.All(transfer.ResultLots, lot => Assert.Equal(recipient, lot.OwnerId));
         Assert.Contains(item.Property.Consents, consent => consent.AgentId == actor && consent.Agreed);
@@ -213,6 +225,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Couples = state.Continuity.Couples.Select(couple => couple with
                 { DeadlineTick = society.WorldTick + (couple.DeadlineTick - society.WorldTick) * day / oldDay }).ToArray(),
+                Singles = state.Continuity.Singles.Select(single => single with
+                { DeadlineTick = society.WorldTick + (single.DeadlineTick - society.WorldTick) * day / oldDay }).ToArray(),
             },
             AnimalWorld = state.AnimalWorld! with
             {
@@ -256,13 +270,14 @@ public sealed partial class GrownAgentHelperMemoryTests
                 OwnerInstructionKind.Suggestion, "Consider the current public hearing and make your own informed choice."));
     }
 
-    private static async Task NativeHearingUntil(WorldRuntime world, Func<bool> done, int limit)
+    private static async Task NativeHearingUntil(WorldRuntime world, Func<bool> done, int limit, Action<WorldStepResult>? observe = null)
     {
         for (var step = 0; step < limit && !done(); step++)
         {
             NativeHearingPromptAll(world);
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced, System.Text.Json.JsonSerializer.Serialize(result));
+            observe?.Invoke(result);
         }
         Assert.True(done(), "The native hearing boundary was not reached: " + string.Join("; ", world.ExportState().Events.TakeLast(8).Select(item => item.Kind + ":" + item.Detail)));
     }

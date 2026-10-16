@@ -195,6 +195,9 @@ public static class WorldEventFormatter
                 ? $"{Name(snapshot, payload.ActorId ?? "")} and {partner} became partners."
                 : $"{Name(snapshot, payload.ActorId ?? "")} formed a partnership.",
             "partnership_ended" => $"{Name(snapshot, payload.ActorId ?? "")}'s partnership ended.",
+            "continuity_partnership_formed" => payload is ContinuityPartnershipFormedEventPayload pairing
+                ? $"The continuity rule paired {Name(snapshot, pairing.ActorId ?? "")} and {Name(snapshot, pairing.PartnerId)}."
+                : "The continuity rule formed a partnership.",
             "continuity_rule_on" => DescribeContinuity(true, payload),
             "continuity_rule_off" => DescribeContinuity(false, payload),
             "caregiver_assigned" => Carer(snapshot, payload.ActorId ?? "", worldEvent.WorldTick + 1) is { } carer

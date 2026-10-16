@@ -239,24 +239,11 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
     {
         var item = Exact(state, caseId, revision);
         var notice = CurrentRevision(item);
-        if (item.Status != "pending" || !validAuthority || item.Judge != judge || JudgeConflict(judge.AgentId, null, currentParties) || !CanCloseResponses(item, currentParties, tick) ||
-            !BoundedText.IsValid(reasons, 1024) || !IsValidOutcome(outcome, tick) ||
-            RequiresNewNotice(notice, notice.Tiles, currentRights, currentParties) ||
-            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == revision && r.ReadTick <= tick &&
-                item.Evidence.All(e => e.SubmittedTick <= r.ReadTick && r.EvidenceIds.Contains(e.Id, StringComparer.Ordinal))) ||
-            evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) || lawIds.Any(id => !BoundedText.IsValid(id, 128)))
-            throw new InvalidOperationException("The current authorized judge must inspect the file and revalidate the hearing before ruling.");
+        if (RulingRefusal(item, map, judge, tick, outcome, evidenceIds, lawIds, reasons, currentRights, currentParties, validAuthority, pendingRequests) is { } refusal)
+            throw new InvalidOperationException(refusal);
+
         var transfersProperty = outcome.Kind is "reclaim" or "grant";
-        if (item.Property is null ? transfersProperty : outcome.Kind != "reject" &&
-                (outcome != TownPropertyRules.Outcome(item.Property.Request) || !TownPropertyRules.HasAllConsent(item, tick)))
-            throw new InvalidOperationException("A property ruling requires every living owner's exact personal consent.");
-        if (transfersProperty && !evidenceIds.Any(id => item.Evidence.Any(evidence => evidence.Id == id && evidence.Kind == "record" &&
-                evidence.SourceRecordId == TownPropertyRules.RecordId(item, revision) &&
-                evidence.SourceVersion == RecordVersion(item.Property!.Snapshots.Single(snapshot => snapshot.Revision == revision)))))
-            throw new InvalidOperationException("The judge must cite the actual noticed property record.");
         var changesRights = outcome.Kind is "renew" or "amend" or "end" || transfersProperty;
-        if (changesRights && (evidenceIds.Count == 0 || evidenceIds.All(id => item.Evidence.Single(e => e.Id == id).Kind == "allegation")))
-            throw new InvalidOperationException("Unsupported evidence cannot change formal use permissions.");
         var rulingId = TownRecordIds.LandRuling(item.TownId, checked(state.Sequence + 1));
         var prior = currentRights.Where(r => r.Tiles.Any(notice.Tiles.Contains)).ToArray();
         // Free tiles join a ruling only where a noticed household's pending request for them is being heard.
@@ -265,10 +252,6 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         var result = transfersProperty ? TownPropertyRules.BoundedRights(map, prior, notice.Tiles, item.Property!.Request, rulingId, tick, item.TownId) :
             changesRights ? BoundedOutcome(map, prior, notice.Tiles, outcome, rulingId, tick,
             item.TownId, requested) : prior;
-        if (item.Property is null && result.Any(r => r.AgreedEndTick <= tick && r.Tiles.Any(notice.Tiles.Contains)))
-            throw new InvalidOperationException("A permission past its agreed end stays provisional until the ruling renews, amends or ends it.");
-        if (!transfersProperty && currentParties.Any(p => p.Kind == "household" && p.AdultIds.Count == 0 && IsAdverseChange(prior, result, p.HouseholdId!)))
-            throw new InvalidOperationException("An unrepresented household cannot lose its current or provisional permission.");
         var adjustmentIds = changesRights ? new[] { TownRecordIds.LandAdjustment(item.TownId, checked(state.Sequence + 1)) } : [];
         if (changesRights)
             state = RecordAdjustment(state, new(adjustmentIds[0], transfersProperty ? "property_ruling" : "ruling", tick, prior.Select(Snapshot).ToArray(), result,
@@ -286,6 +269,48 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         };
         state = Replace(state with { Sequence = state.Sequence + 1 }, item);
         return (state, currentRights.Where(r => !prior.Any(p => p.Id == r.Id)).Concat(result).OrderBy(r => r.Id, StringComparer.Ordinal).ToArray());
+    }
+
+    public static string? RulingRefusal(TownLandCase item, WorldMap map, TownLandCaseJudge judge, long tick,
+        TownLandRequestedOutcome outcome, IReadOnlyList<string> evidenceIds, IReadOnlyList<string> lawIds, string reasons,
+        IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandCaseParty> currentParties, bool validAuthority,
+        IReadOnlyList<HouseholdLandUseRequest>? pendingRequests = null)
+    {
+        var notice = CurrentRevision(item);
+        if (item.Status != "pending" || !validAuthority || item.Judge != judge || JudgeConflict(judge.AgentId, null, currentParties) || !CanCloseResponses(item, currentParties, tick) ||
+            !BoundedText.IsValid(reasons, 1024) || !IsValidOutcome(outcome, tick) ||
+            RequiresNewNotice(notice, notice.Tiles, currentRights, currentParties) ||
+            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == notice.Number && r.ReadTick <= tick &&
+                item.Evidence.All(e => e.SubmittedTick <= r.ReadTick && r.EvidenceIds.Contains(e.Id, StringComparer.Ordinal))) ||
+            evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)) || lawIds.Any(id => !BoundedText.IsValid(id, 128)))
+            return "The current authorized judge must inspect the file and revalidate the hearing before ruling.";
+        var transfersProperty = outcome.Kind is "reclaim" or "grant";
+        if (item.Property is null ? transfersProperty : outcome.Kind != "reject" &&
+                (outcome != TownPropertyRules.Outcome(item.Property.Request) || !TownPropertyRules.HasAllConsent(item, tick)))
+            return "A property ruling requires every living owner's exact personal consent.";
+        if (transfersProperty && !evidenceIds.Any(id => item.Evidence.Any(evidence => evidence.Id == id && evidence.Kind == "record" &&
+                evidence.SourceRecordId == TownPropertyRules.RecordId(item, notice.Number) &&
+                evidence.SourceVersion == RecordVersion(item.Property!.Snapshots.Single(snapshot => snapshot.Revision == notice.Number)))))
+            return "The judge must cite the actual noticed property record.";
+        var changesRights = outcome.Kind is "renew" or "amend" or "end" || transfersProperty;
+        if (changesRights && (evidenceIds.Count == 0 || evidenceIds.All(id => item.Evidence.Single(e => e.Id == id).Kind == "allegation")))
+            return "Unsupported evidence cannot change formal use permissions.";
+
+        var prior = currentRights.Where(right => right.Tiles.Any(notice.Tiles.Contains)).ToArray();
+        if (transfersProperty && prior.Any(right => right.HouseholdId != item.Property!.Request.SourceHouseholdId))
+            return "A property transfer cannot take another household's use permission.";
+        if (outcome.Kind is "renew" or "end" && !prior.Any(right => right.HouseholdId == outcome.HouseholdId && right.Tiles.Any(notice.Tiles.Contains)))
+            return "Renewal or ending must identify a current right-holder.";
+        var requested = pendingRequests?.Where(request => request.TownId == item.TownId && request.Status == "pending" && request.RequestedTick <= tick &&
+            currentParties.Any(party => party.HouseholdId == request.HouseholdId)).SelectMany(TownLandRightsRules.UnresolvedRequestTiles).ToHashSet();
+        var previewId = TownRecordIds.LandRuling(item.TownId, 1);
+        var result = transfersProperty ? TownPropertyRules.BoundedRights(map, prior, notice.Tiles, item.Property!.Request, previewId, tick, item.TownId) :
+            changesRights ? BoundedOutcome(map, prior, notice.Tiles, outcome, previewId, tick, item.TownId, requested) : prior;
+        if (item.Property is null && result.Any(right => right.AgreedEndTick <= tick && right.Tiles.Any(notice.Tiles.Contains)))
+            return "A permission past its agreed end stays provisional until the ruling renews, amends or ends it.";
+        if (!transfersProperty && currentParties.Any(party => party.Kind == "household" && party.AdultIds.Count == 0 && IsAdverseChange(prior, result, party.HouseholdId!)))
+            return "An unrepresented household cannot lose its current or provisional permission.";
+        return null;
     }
 
     internal static IReadOnlyList<HouseholdLandUseRight> BoundedOutcome(WorldMap map,
@@ -416,9 +441,8 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         string kind, IReadOnlyList<string> evidenceIds, string reasons, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
-        if (kind is not ("material_evidence" or "procedural_error") || !BoundedText.IsValid(reasons, 1024) ||
-            evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)))
-            throw new InvalidOperationException("Reopening requires identified material evidence or proof of a procedural error.");
+        if (RequestReopenRefusal(item, kind, evidenceIds, reasons) is { } refusal) throw new InvalidOperationException(refusal);
+
         var request = new TownLandReopenRequest(TownRecordIds.LandReopen(item.TownId, checked(state.Sequence + 1)), actor, tick, kind, Ordered(evidenceIds), reasons);
         return Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
@@ -433,14 +457,9 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
         var request = item.ReopenRequests.Single(r => r.Id == requestId && r.Status == "pending");
-        if (!validAuthority || item.Judge != judge || !BoundedText.IsValid(assessment, 1024) ||
-            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number && r.ReadTick >= request.Tick && r.ReadTick <= tick &&
-                r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))
-            throw new InvalidOperationException("An authorized independent judge must inspect and assess the reopening grounds.");
-        if (groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request, state) : DemonstratedProceduralError(item, request)))
-            throw new InvalidOperationException("Disagreement or an unsupported allegation does not establish reopening grounds.");
-        if (groundsEstablished && !ReopeningPlotIsAvailable(state, item))
-            throw new InvalidOperationException("Another pending land hearing covers this plot; reopening waits for that hearing.");
+        if (ReopeningRefusal(state, item, request, judge, groundsEstablished, assessment, tick, validAuthority) is { } refusal)
+            throw new InvalidOperationException(refusal);
+
         request = request with { Status = groundsEstablished ? "accepted" : "rejected", AssessedBy = judge, AssessedTick = tick, Assessment = assessment };
         item = item with { ReopenRequests = item.ReopenRequests.Select(r => r.Id == requestId ? request : r).ToArray() };
         if (groundsEstablished)
@@ -454,6 +473,26 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         else if (!item.ReopenRequests.Any(r => r.Status == "pending"))
             item = item with { Judge = null, JudgeHistory = item.JudgeHistory.Append(new(judge, tick, "reopening_rejected")).ToArray() };
         return Replace(state, item);
+    }
+
+    public static string? RequestReopenRefusal(TownLandCase item, string kind, IReadOnlyList<string> evidenceIds, string reasons) =>
+        item.Status != "settled" || kind is not ("material_evidence" or "procedural_error") || !BoundedText.IsValid(reasons, 1024) ||
+            evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(evidence => evidence.Id == id))
+            ? "Reopening requires identified material evidence or proof of a procedural error." : null;
+
+    public static string? ReopeningRefusal(TownLandRecords state, TownLandCase item, TownLandReopenRequest request,
+        TownLandCaseJudge judge, bool groundsEstablished, string assessment, long tick, bool validAuthority)
+    {
+        if (item.Status != "settled" || request.Status != "pending") return "The selected reopening request is no longer pending on a settled case.";
+        if (!validAuthority || item.Judge != judge || !BoundedText.IsValid(assessment, 1024) ||
+            !item.Reads.Any(r => r.AgentId == judge.AgentId && r.Revision == CurrentRevision(item).Number && r.ReadTick >= request.Tick && r.ReadTick <= tick &&
+                r.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))
+            return "An authorized independent judge must inspect and assess the reopening grounds.";
+        if (groundsEstablished && !(request.Kind == "material_evidence" ? MaterialNewEvidence(item, request, state) : DemonstratedProceduralError(item, request)))
+            return "Disagreement or an unsupported allegation does not establish reopening grounds.";
+        if (groundsEstablished && !ReopeningPlotIsAvailable(state, item))
+            return "Another pending land hearing covers this plot; reopening waits for that hearing.";
+        return null;
     }
 
     public static bool MaterialNewEvidence(TownLandCase item, TownLandReopenRequest request, TownLandRecords? state = null)

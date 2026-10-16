@@ -50,6 +50,17 @@ internal static class BuildingVariantTestWorld
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "variant-build-" + cost.ResourceId,
                 cost.ResourceId, household, cost.Amount, storageBuildingId: house.InstanceId);
+        // Planning requires real work inputs before construction. Keep these
+        // separate from the exact construction lots and later on-site recipe tests.
+        if (family is "clinic" or "restaurant")
+        {
+            var ingredient = family == "clinic" ? CareContent.MedicinalHerbs : FarmFieldRules.Grain;
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-ingredient", ingredient, household,
+                family == "clinic" ? 2 : 1, storageBuildingId: house.InstanceId);
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-jug", "water_jug", household, 1, storageBuildingId: house.InstanceId);
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-water", "fresh_water", household, 1,
+                storageBuildingId: house.InstanceId, containerLotId: "variant-planning-jug");
+        }
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person with

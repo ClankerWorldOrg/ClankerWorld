@@ -49,6 +49,8 @@ public static class EventVocabulary
         {
             return normalized.StartsWith("partner_propose:", StringComparison.Ordinal) ? "propose a partnership"
                 : normalized.StartsWith("partner_accept:", StringComparison.Ordinal) ? "accept a partnership"
+                : normalized.StartsWith("partner_choose:", StringComparison.Ordinal) ? "choose a partner"
+                : normalized.StartsWith("partner_postpone:", StringComparison.Ordinal) ? "put off choosing a partner"
                 : normalized.StartsWith("partner_refuse:", StringComparison.Ordinal) ? "refuse a partnership" : "leave a partnership";
         }
         if (normalized.StartsWith("learn:", StringComparison.Ordinal))
