@@ -145,7 +145,6 @@
   "src/ClankerWorld.Server/Observation/OwnerWorldObservationStore.cs|length|dependents.Length \u003E 0": 1,
   "src/ClankerWorld.Server/Observation/OwnerWorldObservationStore.cs|length|disputedTiles.Length \u003E 0": 2,
   "src/ClankerWorld.Server/Pairing/OwnerHttpProtocol.cs|length|action.Model.Length \u003E 200": 1,
-  "src/ClankerWorld.Server/Program.cs|id|$\u0022clankerworld-host:{Environment.MachineName}\u0022": 1,
   "src/ClankerWorld.Server/Providers/ProviderConfigurationStore.cs|length|\u003C 1": 1,
   "src/ClankerWorld.Server/Providers/ProviderConfigurationStore.cs|length|\u003C 8": 1,
   "src/ClankerWorld.Server/Providers/ProviderConfigurationStore.cs|length|\u003E 64": 1,
