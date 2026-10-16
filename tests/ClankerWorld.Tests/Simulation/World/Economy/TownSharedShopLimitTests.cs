@@ -141,10 +141,25 @@ public sealed class TownSharedShopLimitTests
     {
         var inventory = state.Society.Society.Inventory;
         foreach (var household in new[] { Alpha, Beta })
+        {
             foreach (var kind in state.WorldContent!.Buildings.SelectMany(item => item.BuildCosts)
                 .Select(cost => cost.ResourceId).Distinct())
                 inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create($"shop-test:{household}:{kind}"),
                     kind, household, 100);
+            // Supply actual work inputs so these cases isolate the Town cap.
+            var house = state.WorldSimulation!.Buildings.Single(item => item.HouseholdId == household &&
+                item.InstanceId.Contains("house-", StringComparison.Ordinal));
+            foreach (var (item, quantity) in new[]
+            {
+                ("fiber", 3), ("medicinal_herbs", 2), ("water_jug", 1), ("bread", 1), ("cultivated_greens", 1),
+                ("food", state.Towns!.Single().ResidentIds.Count * FarmFieldRules.MealsPerPersonPerDay),
+            })
+                inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create($"shop-work:{household}:{item}"),
+                    item, household, quantity, storageBuildingId: house.InstanceId);
+            inventory = InventoryAuthority.AddLot(inventory, DerivedId.Create($"shop-work:{household}:water"),
+                "fresh_water", household, 1, storageBuildingId: house.InstanceId,
+                containerLotId: DerivedId.Create($"shop-work:{household}:water_jug"));
+        }
         return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     }
 
