@@ -213,7 +213,7 @@ public sealed partial class WorldRuntime
                 observation));
             if (!accepted)
             {
-                AppendEvent("cognition_backpressure", agent.Id);
+                AppendEvent(new CognitionBackpressureEventPayload(agent.Id, agent.Id));
             }
             else
             {
@@ -258,7 +258,7 @@ public sealed partial class WorldRuntime
         var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
             item.InstructionId == orderId && item.TargetAgentId == observation.AgentId &&
             item.Kind == OwnerInstructionKind.Order && item.Task?.Status == "finished" &&
-            item.ObserverReply is null && completedInstructionIds.Contains(orderId));
+            item.ObserverReply is null && IsInstructionComplete(item));
         // Local work can finish while its original personal reply is held.
         // Keep that exact message available for acknowledgement, never execution.
         return instruction is not null && observation.ObserverGuidance?.Any(message =>
@@ -446,7 +446,7 @@ public sealed partial class WorldRuntime
                 if (TryApplyWaitingRoutine(agent.Id, state))
                 {
                     orderActorsHandledThisTick.Add(agent.Id);
-                    if (order is not null) SetOrderStatus(order, "interrupted", "Caring for a nearby dependent.");
+                    if (order is not null) SetOrderStatus(order, OrderStatus.Interrupted, "Caring for a nearby dependent.");
                     continue;
                 }
             }
@@ -468,7 +468,7 @@ public sealed partial class WorldRuntime
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
-                    SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
+                    SetOrderStatus(order, OrderStatus.Interrupted, "Food or warmth needs come first.");
                     if (urgentCandidate is not null && IsMarketFoodCandidate(agent.Id, urgentCandidate.Id) &&
                         runtimes[agent.Id].CurrentIntention is { Provider: DecisionProviderKind.LargeLanguageModel } orderMarketIntention &&
                         orderMarketIntention.OperativeOrderInstructionId == order.InstructionId &&
@@ -489,7 +489,7 @@ public sealed partial class WorldRuntime
                     ExecuteOrderStep(order, state, orderCandidate);
                     continue;
                 }
-                SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
+                SetOrderStatus(order, OrderStatus.Blocked, OrderBlockedReason(order, state));
                 continue;
             }
             if (CanContinueEquipmentRepair(agent.Id))
@@ -667,7 +667,7 @@ public sealed partial class WorldRuntime
         if (!decision.Admission.Accepted || decision.Admission.Intention is null ||
             !agents.TryGetValue(decision.AgentId, out var state))
         {
-            AppendEvent("cognition_rejected", $"{decision.AgentId}:{decision.Admission.Outcome}");
+            AppendEvent(new CognitionRejectedEventPayload(decision.AgentId, decision.Admission.Outcome));
             return;
         }
 
@@ -678,7 +678,7 @@ public sealed partial class WorldRuntime
         var candidateId = decision.Admission.Intention.CandidateId;
         if (PassengerBoat(decision.AgentId) is not null && candidateId is not ("consume_food" or "drink_milk" or "safe_idle"))
         {
-            AppendEvent("boat_action_blocked", $"{decision.AgentId}:stay_aboard");
+            AppendEvent(new BoatActionBlockedEventPayload(decision.AgentId));
             return;
         }
         if (PassengerBoat(decision.AgentId) is not null)
@@ -689,7 +689,7 @@ public sealed partial class WorldRuntime
         if (candidateId != "safe_idle") guardianPlacementActions.Add(decision.AgentId);
         if (decision.Admission.Intention.OperativeOrderInstructionId != pendingInstruction?.InstructionId)
         {
-            AppendEvent("instruction_order_stale_decision", decision.AgentId);
+            AppendEvent(new InstructionOrderStaleDecisionEventPayload(decision.AgentId));
             return;
         }
 
@@ -702,7 +702,7 @@ public sealed partial class WorldRuntime
             }
             if (decision.Admission.FellBack)
             {
-                SetOrderStatus(order, "blocked", "The order will try again after a short wait.", waitForDecision: true);
+                SetOrderStatus(order, OrderStatus.Blocked, "The order will try again after a short wait.", waitForDecision: true);
                 ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
             }
             else
@@ -713,14 +713,14 @@ public sealed partial class WorldRuntime
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
-                    SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
+                    SetOrderStatus(order, OrderStatus.Interrupted, "Food or warmth needs come first.");
                     if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
                         IsMarketFoodCandidate(decision.AgentId, candidateId))
                         ApplyMarketCandidate(decision.AgentId, state, candidateId, decision.ActionPlan);
                     else if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
-                        decision.ActionPlan is ShopBuyActionPlan selectedShop &&
-                        IsShopFoodCandidate(decision.AgentId, candidateId, selectedShop))
-                        ApplyShopBuy(selectedShop);
+                        decision.ActionPlan is ShopBuyActionPlan or ShopResponseActionPlan &&
+                        IsShopFoodCandidate(decision.AgentId, candidateId, decision.ActionPlan as ShopBuyActionPlan))
+                        ApplyShopCandidate(decision.AgentId, state, candidateId, decision.ActionPlan);
                     else if (urgentCandidate is not null)
                         ApplyCandidate(decision.AgentId, state, urgentCandidate.Id, reportIdle: true);
                 }
@@ -730,7 +730,7 @@ public sealed partial class WorldRuntime
                 }
                 else
                 {
-                    SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
+                    SetOrderStatus(order, OrderStatus.Blocked, OrderBlockedReason(order, state));
                     ApplyCandidate(decision.AgentId, state, "safe_idle", reportIdle: true);
                 }
             }
@@ -796,7 +796,7 @@ public sealed partial class WorldRuntime
                  UnderstoodTaskFor(instruction.Task?.Action) != message.UnderstoodTask) ||
                 (instruction.Kind == OwnerInstructionKind.Suggestion && message.UnderstoodTask is not null) ||
                 (instruction.ObserverReply is null) != message.ReplyAllowed ||
-                completedInstructionIds.Contains(instruction.InstructionId) &&
+                IsInstructionComplete(instruction) &&
                     !(instruction.Kind == OwnerInstructionKind.Order && instruction.Task?.Status == "finished"))
                 continue;
 
@@ -813,7 +813,7 @@ public sealed partial class WorldRuntime
             // so a suggestion it carried stays open for the next fresh request.
             if (instruction.Kind == OwnerInstructionKind.Suggestion &&
                 admission.Intention.OperativeOrderInstructionId == PendingInstructionFor(agentId)?.InstructionId &&
-                completedInstructionIds.Add(instruction.InstructionId))
+                completedSuggestionIds.Add(instruction.InstructionId))
                 completedSuggestions.Add(instruction.InstructionId);
         }
 
@@ -831,7 +831,7 @@ public sealed partial class WorldRuntime
         if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle, plan))) return;
         if (!AgePermitsCandidate(agentId, candidateId))
         {
-            AppendEvent("age_action_rejected", $"{agentId}:{candidateId}");
+            AppendEvent(new AgeActionRejectedEventPayload(agentId, candidateId));
             return;
         }
         if (agents[agentId].Equipment?.Repair is not null && candidateId != "repair_equipment")
@@ -841,7 +841,7 @@ public sealed partial class WorldRuntime
         }
         if (PendingInstructionFor(agentId) is null && ContinueFarmWork(agentId)) return;
         if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle, plan))) return;
-        if (reportIdle) AppendEvent("agent_idle", agentId);
+        if (reportIdle) AppendEvent(new AgentIdleEventPayload(agentId));
     }
 
     private void ApplyBuildDecision(
@@ -851,7 +851,7 @@ public sealed partial class WorldRuntime
     {
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selection))
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:unknown_target");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "unknown_target"));
             return;
         }
 
@@ -873,10 +873,9 @@ public sealed partial class WorldRuntime
 
             if (definition is null || rankedSite is null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:selected_site_no_longer_legal");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "selected_site_no_longer_legal"));
                 if (selection.SitePosition is { } rejectedSite && definition is not null)
-                    AppendEvent("town_layout_site_rejected",
-                        $"{TownForResident(agentId) ?? "none"}|{agentId}|{definition.CanonicalId}|{rejectedSite.X}|{rejectedSite.Y}|site_unavailable");
+                    AppendEvent(new TownLayoutSiteRejectedEventPayload(agentId, TownForResident(agentId) ?? "none", definition.CanonicalId, rejectedSite.X, rejectedSite.Y));
                 return;
             }
             var householdProperty = definition.Tags.Any(IsHouseholdBuildingTag);
@@ -884,13 +883,13 @@ public sealed partial class WorldRuntime
                 ? society.Checkpoint.GetAgent(agentId).HouseholdId : null;
             if (householdProperty && houseOwner is null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:household_required");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "household_required"));
                 return;
             }
             if (definition.Tags.Contains("house", StringComparer.Ordinal) && houseOwner is not null &&
                 HouseForHousehold(houseOwner) is not null)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:existing_house");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "existing_house"));
                 return;
             }
 
@@ -906,7 +905,7 @@ public sealed partial class WorldRuntime
                 state.Project.WorkDone < ProjectWorkTicks ||
                 !TryConstructionOrderSite(constructionOrder, state, out _, out _, out _, out _)))
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:ordered_project_changed");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "ordered_project_changed"));
                 return;
             }
             var materialOwner = BuildingConstructionOwner(agentId, definition);
@@ -921,7 +920,7 @@ public sealed partial class WorldRuntime
                 constructionOrder?.InstructionId);
             if (!placement.Applied)
             {
-                AppendEvent("build_rejected", $"{agentId}:{candidateId}:{placement.Failure}");
+                AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, placement.Failure));
             }
             else
             {
@@ -937,7 +936,7 @@ public sealed partial class WorldRuntime
         var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == recipeId);
         if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out var sitePosition, agentId))
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:no_valid_site");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "no_valid_site"));
             return;
         }
 
@@ -955,7 +954,7 @@ public sealed partial class WorldRuntime
         var started = StartProductionCore(recipe.CanonicalId, siteId, agentId, "build_started", orderInstructionId);
         if (!started.Applied)
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:{started.Failure}");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, started.Failure));
         }
     }
 

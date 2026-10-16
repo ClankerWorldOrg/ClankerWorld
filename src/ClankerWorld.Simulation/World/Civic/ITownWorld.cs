@@ -29,7 +29,8 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     IReadOnlyList<GridPoint> ReachLandSalePickup(string actor, PlannedEquipmentPickup pickup);
     IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity);
     IReadOnlyList<GridPoint> ReachLandSaleNoticePlace(string actor, GridPoint noticePlace);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    void RefuseChoice(ActionPlan plan, ActionRefusal refusal);
+    void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     bool CanContinueEquipmentRepair(string actor);
@@ -107,6 +108,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
     GridPoint HouseholdStockPosition(InventoryLot lot);
     bool ReadyForBriefInteraction(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
     int PhysicalUnreservedQuantity(InventoryLot lot);
     IEnumerable<PlacedBuilding> WarehousesForTown(string townId);
     bool VesselFits(InventoryLot lot, int room);

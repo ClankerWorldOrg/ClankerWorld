@@ -172,7 +172,7 @@ public sealed partial class WorldRuntime
             Blocker = null,
             LastTransitionTick = WorldTick,
         });
-        AppendEvent("communal_boat_launched", $"{townId}:{id}:{port.InstanceId}:{project.Plan.Name}", dock);
+        AppendEvent(new CommunalBoatLaunchedEventPayload(null, townId, id, port.InstanceId, project.Plan.Name), dock);
     }
 
     private void SetBoat(BoatState boat) => boatTransport = boatTransport with

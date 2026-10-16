@@ -1,7 +1,7 @@
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using ClientSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using ClientSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 

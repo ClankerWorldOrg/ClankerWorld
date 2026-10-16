@@ -33,7 +33,7 @@ public sealed partial class ToolMakingRequestTests
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var plan = await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            var plan = await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var quote = Assert.IsType<PlannedShopQuote>(plan.Quote);
             Assert.Equal(foodPayment ? "food" : "wood", quote.Payment.ItemKind);
             Assert.Empty(world.Society.Inventory.Offers);
@@ -124,7 +124,7 @@ public sealed partial class ToolMakingRequestTests
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var plan = await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            var plan = await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var quote = Assert.IsType<PlannedShopQuote>(plan.Quote);
             Assert.Equal("quoted-greens", quote.Payment.Id);
             var supplier = new QuotedPaymentSupplyChooser(quote.Payment.Id);
@@ -178,8 +178,8 @@ public sealed partial class ToolMakingRequestTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        public TaskCompletionSource<ToolRequestCollectionActionPlan> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<ToolRequestCollectionActionPlan> Started { get; } = new();
+        public InlineCompletionSource Release { get; } = new();
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

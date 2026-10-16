@@ -11,21 +11,9 @@ namespace ClankerWorld.Server.Worlds;
 /// that last wrote or opened the world, so any version can show who saved it
 /// without restoring it. Entries from before they were recorded have neither.
 /// </remarks>
-public sealed record CatalogWorld(
-    string Id, string Name, string WorldId, string Seed, DateTimeOffset UpdatedUtc,
-    IReadOnlyList<AgentProviderAssignment> Assignments,
-    WorldAutosaveSettings? AutosaveSettings,
-    string Compatibility = "unknown", string? CompatibilityReason = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorldThumbnail? Thumbnail = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null)
-{
-    internal CatalogWorld StampedByThisBuild() =>
-        this with { GameVersion = BuildInformation.Version, SourceRevision = BuildInformation.SourceRevision };
-}
 
-public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CatalogWorld>? PendingDeletions = null);
+
+
 
 /// <summary>Private installation-level index of independently selectable worlds.</summary>
 public sealed class WorldCatalogStore

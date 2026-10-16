@@ -1,1 +1,2 @@
-- Case judge consent, resignation and ballots retain the selected revision, mandate and ballot round through shared checks. An eligible held vote remains available when another candidate withdraws.
+- Case judge consent, resignation and ballots retain the selected revision, mandate and ballot round through shared checks. An eligible held vote remains available when another candidate withdraws. Personal mandate plans skip closed cases without pending reopening.
+- Case judge choices validate complete Town, round and candidate references through the native shared bounds.

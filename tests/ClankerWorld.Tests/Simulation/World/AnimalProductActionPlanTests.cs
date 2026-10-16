@@ -1,4 +1,5 @@
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -91,7 +92,7 @@ public sealed partial class AnimalPipelineTests
         {
             const string reservation = "product-plan-reservation";
             inventory = InventoryAuthority.Reserve(inventory, reservation, home, stockId, 2, "animal-product:" + animal.Id, long.MaxValue);
-            animal = animal with { ReadyProductLotId = stockId, ReadyProductReservationId = reservation };
+            animal = animal with { ReadyProductLotId = stockId, ReadyProductReservationId = Identity.Parse(reservation) };
         }
         state = At(state, actor, yard.Position, inventory, kind == AnimalProductKind.Milk ? [] : [animal]);
         state = FoodCapacityTestFixture.WithFullness(state, actor, kind == AnimalProductKind.Milk ? 1_000 : 9_500);
