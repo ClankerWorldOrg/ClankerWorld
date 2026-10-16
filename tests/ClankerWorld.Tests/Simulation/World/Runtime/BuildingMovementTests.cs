@@ -7,6 +7,72 @@ namespace ClankerWorld.Tests;
 
 public sealed class BuildingMovementTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PaidPlacementKeepsTheExistingDoorwayClear(bool recordedEntrance)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("building-foot-routes", _ => new VariantActionProvider());
+        var state = generated.ExportState();
+        var actor = NormalPathWorld.Founder1;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "tailor-shop-1x1");
+        var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
+            .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
+            .Concat(generated.RoadTiles).Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
+        var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
+            Enumerable.Range(-2, 6).All(dx => Enumerable.Range(-2, 6).All(dy =>
+            {
+                var tile = new GridPoint(point.X + dx, point.Y + dy);
+                return state.Map.IsBuildable(tile) && !blocked.Contains(tile);
+            })));
+        var inventory = state.Society.Society.Inventory;
+        foreach (var cost in definition.BuildCosts)
+            inventory = InventoryAuthority.AddLot(inventory, "door-placement-" + cost.ResourceId, cost.ResourceId, household, cost.Amount * 3);
+        using var setup = WorldRuntime.Restore(BuildingVariantTestWorld.WithInventory(state, inventory), _ => new VariantActionProvider());
+        var placed = setup.PlaceBuilding("door-first", definition.CanonicalId, site, household);
+        Assert.True(placed.Applied, placed.Failure);
+        state = setup.ExportState();
+        var exit = new GridPoint(site.X, site.Y + 1);
+        if (recordedEntrance)
+            state = state with
+            {
+                WorldSimulation = state.WorldSimulation! with
+                {
+                    Buildings = state.WorldSimulation.Buildings.Select(item => item.InstanceId == "door-first"
+                        ? item with { Entrance = exit } : item).ToArray(),
+                },
+            };
+        using var world = WorldRuntime.Restore(BuildingVariantTestWorld.Strict(state), _ => new VariantActionProvider());
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        var refused = world.PlaceBuilding("door-second", definition.CanonicalId, exit, household);
+        Assert.False(refused.Applied);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        var allowed = world.PlaceBuilding("door-beside", definition.CanonicalId, new(site.X + 1, site.Y), household);
+        Assert.True(allowed.Applied, allowed.Failure);
+        using var reload = WorldRuntime.Restore(BuildingVariantTestWorld.Strict(world.ExportState()), _ => new VariantActionProvider());
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reload.ExportState()));
+    }
+
+    [Fact]
+    public void LayoutRequiresAnOutdoorDoorAndLeavesExistingDoorsOpen()
+    {
+        var map = Meadow();
+        var definition = Definition(1, 1);
+        var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
+        var roadless = new TownLayoutContext(map, null, [], costs, [], []);
+        Assert.False(TownLayoutService.TryEvaluateConstructionSite(roadless, definition, new(2, 5), out _));
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(roadless, definition, new(2, 4), out _));
+        var doorway = new GridPoint(2, 3);
+        var protectedDoor = new TownLayoutContext(map, null, [], costs, [], [], protectedTiles: [doorway]);
+        Assert.False(TownLayoutService.TryEvaluateConstructionSite(protectedDoor, definition, doorway, out _));
+        // A Town can connect a side door even when the south side is blocked.
+        var town = new TownRuntimeState("town:door", "Door Town", "founded", 0, [], [], [new(2, 5)]);
+        var townLayout = new TownLayoutContext(map, town, [], costs, [], []);
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(townLayout, definition, new(2, 5), out _));
+    }
+
     [Fact]
     public async Task ScoutingChoosesLegalNeighboursAndKeepsAValidOutingAcrossReload()
     {

@@ -2634,7 +2634,7 @@ deterministic options and retain their original resource layout.
 
 Traveler routes apply `BuildingMovementRules` to the same terrain steps in
 forward searches, reverse reachability, cart routing and local scouting. A building
-footprint connects to outdoor ground only through its recorded entrance; without a Road,
+footprint connects to outdoor ground only through its recorded entrance; without one,
 it uses the drawing's default south doorway. Shared walls and outdoor diagonal
 corners are closed. Expanded footprints use their effective dimensions, and a
 changed building list invalidates the derived geometry and route searches.
@@ -2642,6 +2642,9 @@ Movement within the departure or destination building remains possible; an
 unrelated building cannot supply a shortcut through its single doorway.
 Interaction-range routes end outdoors or at the exact target tile; they do not
 stop short on a building's interior approach tiles.
+Construction-site reachability uses the same walls. Placement and expansion
+leave existing doorways outdoors and require usable ground for a new doorway;
+Developer map edits cannot cover an existing doorway.
 
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
@@ -3520,8 +3523,10 @@ general land ownership.
 A building that joins a Town later is joined to the Road network from one of the
 tiles directly beside its footprint. That starting tile is saved as the
 building's entrance, and the map draws the door on that side. The first Town's
-planner saves the entrance of each lot it chose. A building without a Road has
-no entrance and shows its door in the middle of its south side.
+planner saves the entrance of each lot it chose. A new Town building also keeps
+a clear fallback entrance if its Road cannot connect. A roadless building with
+no recorded entrance uses the middle of its south side, which placement must
+leave clear.
 
 Towns grow along their streets. `TownLayoutService` gives a site whose door can
 face an existing Road a `road_frontage` bonus. A building beside a Road needs

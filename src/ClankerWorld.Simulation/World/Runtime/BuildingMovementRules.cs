@@ -22,8 +22,25 @@ internal sealed class BuildingMovementRules
     }
 
     internal static GridPoint EntranceFor(BuildingDefinition effectiveDefinition, PlacedBuilding building) =>
-        building.Entrance ?? new GridPoint(building.Position.X + effectiveDefinition.Width / 2,
-            building.Position.Y + effectiveDefinition.Height);
+        building.Entrance ?? DefaultEntrance(effectiveDefinition, building.Position);
+
+    private static GridPoint DefaultEntrance(BuildingDefinition definition, GridPoint position) =>
+        new(position.X + definition.Width / 2, position.Y + definition.Height);
+
+    internal static IEnumerable<GridPoint> EntrancesFor(WorldMap map, BuildingDefinition definition,
+        GridPoint position) => WorldContentSimulationRules.Footprint(definition, position)
+        .SelectMany(point => map.FootNeighbors(point).Where(next => !map.IsDiagonalFootStep(point, next)))
+        .Where(point => WorldContentSimulationRules.IsEntrance(definition, position, point))
+        .Distinct().OrderBy(point => point.Y).ThenBy(point => point.X);
+
+    internal static GridPoint? FindEntrance(WorldMap map, BuildingDefinition definition, GridPoint position,
+        bool mayFaceRoad, IReadOnlySet<GridPoint> occupied, IReadOnlySet<GridPoint> roads, GridPoint? required = null)
+    {
+        var candidates = required is { } entrance ? [entrance] : mayFaceRoad
+            ? EntrancesFor(map, definition, position) : [DefaultEntrance(definition, position)];
+        return candidates.Where(point => map.IsBuildable(point) && (!occupied.Contains(point) || roads.Contains(point)))
+            .Select(point => (GridPoint?)point).FirstOrDefault();
+    }
 
     internal bool CanStep(WorldMap map, GridPoint from, GridPoint to)
     {
