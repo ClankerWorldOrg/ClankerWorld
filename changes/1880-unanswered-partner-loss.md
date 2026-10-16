@@ -1,0 +1,1 @@
+- Death during an unanswered partnership proposal no longer uses the survivor's chance to reconsider their identity after losing a partner or calls them a partner in will context. An accepted partner's death still gives that opportunity.

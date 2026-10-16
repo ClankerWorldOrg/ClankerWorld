@@ -9,9 +9,9 @@ internal sealed partial class TownSystem
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => NonLandActionToken(item) == choice.CaseToken) is not { } item) return null;
         var request = choice.Verb == "law_case_assess_reopen" ? item.ReopenRequests.SingleOrDefault(request =>
-            CivicAgentToken(request.Id + ":accept") == choice.OutcomeOrRequestToken || CivicAgentToken(request.Id + ":reject") == choice.OutcomeOrRequestToken) : null;
+            DerivedId.Create(request.Id + ":accept", "agent-sha256:") == choice.OutcomeOrRequestToken || DerivedId.Create(request.Id + ":reject", "agent-sha256:") == choice.OutcomeOrRequestToken) : null;
         return new(actor, choice, item, NonLandParties(world, town, item), item.Judge, request,
-            request is not null && CivicAgentToken(request.Id + ":accept") == choice.OutcomeOrRequestToken);
+            request is not null && DerivedId.Create(request.Id + ":accept", "agent-sha256:") == choice.OutcomeOrRequestToken);
     }
 
     internal static NonLandAdjudicationActionPlan BindNonLandAdjudication(NonLandAdjudicationActionPlan plan, CognitionNonLandChoice? terms)

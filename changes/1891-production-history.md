@@ -1,0 +1,1 @@
+- Saves move older finished production jobs into history while keeping current work and its proof. Building observations show current work and a recent window of finished jobs. Earlier alpha saves cannot be opened by this build; their files are kept.

@@ -355,63 +355,33 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/owner/buildings/remove", (
             OwnerSignedHttpRequest<OwnerBuildingRemovalAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A building removal action is required."],
-                });
-
-            string payload;
-            try { payload = OwnerContentBinding.BuildingRemovalPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/buildings/remove", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-
+            var action = request.Action;
             var runtime = services.GetRequiredService<WorldRuntime>();
             var result = runtime.RemoveBuilding(request.Action.InstanceId, request.Action.ExpectedTownId,
                 request.Action.ExpectedHouseholdId, request.Action.WorldId);
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
-        });
+        }).ForWorld<OwnerBuildingRemovalAction>(action => action.WorldId,
+            OwnerContentBinding.BuildingRemovalPayload,
+            (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building removal action is required."] }));
 
         app.MapPost("/api/v1/owner/buildings/reassign", (
             OwnerSignedHttpRequest<OwnerBuildingReassignmentAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A building reassignment action is required."],
-                });
-
-            string payload;
-            try { payload = OwnerContentBinding.BuildingReassignmentPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/buildings/reassign", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-
+            var action = request.Action;
             var runtime = services.GetRequiredService<WorldRuntime>();
             var result = runtime.ReassignBuilding(request.Action.InstanceId, request.Action.ExpectedTownId,
                 request.Action.ExpectedHouseholdId, request.Action.TargetTownId, request.Action.TargetHouseholdId, request.Action.WorldId);
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
-        });
+        }).ForWorld<OwnerBuildingReassignmentAction>(action => action.WorldId,
+            OwnerContentBinding.BuildingReassignmentPayload,
+            (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
+            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building reassignment action is required."] }));
 
         app.MapPost("/api/v1/owner/production/start", (
             OwnerSignedHttpRequest<OwnerProductionStartAction> request,
@@ -462,19 +432,29 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapPost("/api/v1/owner/authoring", (
-            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request) =>
+            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request, IServiceProvider services) =>
         {
-            if (request?.Action is null)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["An authoring batch is required."],
-                });
-            }
-
-            return Results.Conflict(new OwnerControlFailure(
-                "game_world_authoring_pending",
-                "World authoring is not migrated yet; content activation remains disabled in the alpha runtime."));
-        });
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var timeline = runtime.ExportObservation().Timeline;
+            if (action.Timeline!.InstanceId != timeline.InstanceId || action.Timeline.Generation != timeline.Generation)
+                return Results.Conflict(new OwnerControlFailure("world_edit_refused",
+                    "The world was loaded or changed. Refresh and select the tiles again."));
+            var result = services.GetRequiredService<WorldStateFile>().ApplyMapEdit(runtime,
+                new(action.WorldId!, action.ExpectedEventId, action.RunEpoch, action.BatchId,
+                    action.Operations.Select(operation => operation is null ? null! : new WorldMapEditOperation(
+                        operation.Kind, operation.Id, operation.Value, operation.SecondaryValue,
+                        operation.X, operation.Y, operation.IsRenewable)).ToArray()));
+            if (result.Failure is { } failure)
+                return Results.Conflict(new OwnerControlFailure("world_edit_refused", failure));
+            var state = runtime.ExportState();
+            return Results.Ok(new OwnerAuthoringBatchReceipt(action.BatchId, result.Applied || result.AlreadyApplied,
+                null, state.EventHistoryFloor + state.Events.Count, 0,
+                state.Map.ManifestDigest));
+        }).ForWorld<OwnerAuthoringBatchAction>(action => action.WorldId ?? "", OwnerHttpBinding.AuthoringPayload,
+            (_, _) => Results.Conflict(new OwnerControlFailure("world_edit_refused", "The active world changed. Refresh before editing.")),
+            validate: action => action.Timeline is not { IsValid: true } || action.WorldId is null || action.ExpectedEventId < 0 || action.RunEpoch < 0 ||
+                action.Operations is not { Count: > 0 and <= WorldMapEditRules.MaximumOperations }
+                ? Results.Conflict(new OwnerControlFailure("world_edit_refused", "Refresh the world, then choose between 1 and 64 tiles to edit.")) : null);
     }
 }
