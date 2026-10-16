@@ -22,6 +22,7 @@
     "jevPolicyRevision",
     "knowledge",
     "map",
+    "mapAuthoring",
     "nextInstructionSequence",
     "orderCancellations",
     "resources",
