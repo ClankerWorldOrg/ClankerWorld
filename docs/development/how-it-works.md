@@ -2641,7 +2641,10 @@ objects/resources. Old generated worlds recover missing layers from saved
 deterministic options and retain their original resource layout.
 
 Traveler routes apply `BuildingMovementRules` to the same terrain steps in
-forward searches, reverse reachability, cart routing and local scouting. A building
+forward searches, reverse reachability, cart routing and local scouting. Reverse
+reachability discards already reached adjacent positions before checking the
+canonical foot/swimming edge and building walls, avoiding repeated terrain
+checks during broad return-route proofs. A building
 footprint connects to outdoor ground only through its recorded entrance; without one,
 it uses the drawing's default south doorway. Shared walls and outdoor diagonal
 corners are closed. Expanded footprints use their effective dimensions, and a

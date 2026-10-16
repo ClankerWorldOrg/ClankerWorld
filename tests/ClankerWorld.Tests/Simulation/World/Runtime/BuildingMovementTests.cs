@@ -241,11 +241,11 @@ public sealed class BuildingMovementTests
         Assert.DoesNotContain(outdoor.RouteTo(new(6, 2), 0), point =>
             point.Y is 2 or 3 && point.X is >= 2 and <= 5);
         HashSet<GridPoint> occupied = [new(doorX, doorY)];
-        var reverse = new UnoccupiedReachabilitySearch(map, occupied, destination, 0, neighbors, CanStep);
+        var reverse = new UnoccupiedReachabilitySearch(map, occupied, destination, 0, swimming, CanStep);
         Assert.False(reverse.CanReachFrom(origin));
         using var blocked = new UnoccupiedRouteSearch(map, origin, occupied, map.FootStepCost, neighbors, CanStep);
         Assert.Empty(blocked.RouteTo(destination, 0));
-        var reachable = new UnoccupiedReachabilitySearch(map, [], destination, 0, neighbors, CanStep);
+        var reachable = new UnoccupiedReachabilitySearch(map, [], destination, 0, swimming, CanStep);
         foreach (var tile in map.Tiles)
         {
             using var search = new UnoccupiedRouteSearch(map, tile.Position, [], map.FootStepCost, neighbors, CanStep);
@@ -289,7 +289,7 @@ public sealed class BuildingMovementTests
         Assert.NotEmpty(route);
         Assert.InRange(map.FootDistance(route[^1], destination), 0, 1);
         Assert.DoesNotContain(route, point => point.X is 2 or 3 && point.Y is 2 or 3);
-        var reverse = new UnoccupiedReachabilitySearch(map, [], destination, 1, neighbors, CanStep, rules.CanStop);
+        var reverse = new UnoccupiedReachabilitySearch(map, [], destination, 1, swimming, CanStep, rules.CanStop);
         foreach (var tile in map.Tiles)
         {
             using var forward = new UnoccupiedRouteSearch(map, tile.Position, [], map.FootStepCost, neighbors, CanStep, rules.CanStop);

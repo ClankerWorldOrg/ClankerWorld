@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
         }
 
         UnoccupiedReachabilitySearch NewSearch() => new(map, occupied, destination, interactionRange,
-            swimming ? point => SwimmingRules.Neighbors(map, point) : null,
+            swimming,
             (from, to) => buildings.CanStep(map, from, to), buildings.CanStop);
     }
 
