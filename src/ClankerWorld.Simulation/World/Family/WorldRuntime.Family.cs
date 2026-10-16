@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
                 WorldTick - relationship.ProposedTick > 120)
             {
                 society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, relationship.Id, relationship.ProposerId));
-                AppendEvent("partnership_expired", relationship.ProposerId);
+                AppendEvent(new PartnershipExpiredEventPayload(relationship.ProposerId));
             }
         }
     }
@@ -113,21 +113,21 @@ public sealed partial class WorldRuntime
                 var id = NewPartnershipId(actor, plan.PartnerId, WorldTick);
                 society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
                     new(id, 1, SocietyRelationshipType.Partnership, actor, plan.PartnerId, WorldTick, PrivacyClass: "public")));
-                AppendEvent("partnership_proposed", actor);
+                AppendEvent(new PartnershipProposedEventPayload(actor));
                 break;
             case PartnershipChoiceKind.Accept:
                 society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, target, plan.Original!.Revision, actor));
                 if (society.Checkpoint.GetRelationship(target).State == SocietyRelationshipState.Accepted)
-                    AppendEvent("partnership_accepted", actor);
+                    AppendEvent(new PartnershipAcceptedEventPayload(actor));
                 break;
             case PartnershipChoiceKind.Refuse:
                 society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, target, plan.Original!.Revision, actor));
-                AppendEvent("partnership_refused", actor);
+                AppendEvent(new PartnershipRefusedEventPayload(actor));
                 break;
             case PartnershipChoiceKind.Leave:
                 society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, target, actor));
                 MaintainMarriages();
-                AppendEvent("partnership_ended", actor);
+                AppendEvent(new PartnershipEndedEventPayload(actor));
                 break;
         }
     }

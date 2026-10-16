@@ -1,0 +1,1 @@
+- Keep the world responsive when a child or another resident blocks a passage while agents look for materials to bring back to a workshop.

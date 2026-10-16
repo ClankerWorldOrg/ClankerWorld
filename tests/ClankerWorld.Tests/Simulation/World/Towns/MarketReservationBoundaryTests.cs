@@ -5,8 +5,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class MarketReservationBoundaryTests
 {
-    private const string Seller = "founder:00000000000000000000000000000001";
-    private const string Buyer = "founder:00000000000000000000000000000003";
+    private const string Seller = NormalPathWorld.Founder1;
+    private const string Buyer = NormalPathWorld.Founder3;
     private static readonly Lazy<Task<byte[]>> Pending = new(BuildOfferAsync);
 
     [Theory]
