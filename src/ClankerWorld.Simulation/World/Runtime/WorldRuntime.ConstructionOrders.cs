@@ -67,7 +67,9 @@ public sealed partial class WorldRuntime
             !IsConstructionOrderProject(instruction, project) && !OrdinaryProjectCanYieldToOrder(project)) return false;
         var kind = HouseholdBuildingKind(definition);
         failure = "The Town already has enough shops of this kind for its residents.";
-        if (!TownHasRoomForSharedShop(actor, kind)) return false;
+        if (!(IsConstructionOrderProject(instruction, person.Project) &&
+              person.Project is { Stage: not ("completed" or "cancelled") }) &&
+            !TownHasRoomForSharedShop(actor, kind)) return false;
         failure = "This household already holds the requested building.";
         if (HouseholdBuildingWithTag(household, kind!) is not null) return false;
         failure = "Only a household holding a Farmhouse can build a Silo.";

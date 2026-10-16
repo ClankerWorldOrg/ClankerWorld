@@ -3555,9 +3555,9 @@ also share a Town limit: one of each kind per eight recorded residents, rounded
 up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
 provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
 assigned to the Town and other residents' live construction projects, across
-all designs of the kind. Offers, plan admission, construction orders and
-continuation use that same check. The current builder keeps its own slot while
-working. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
 and Council-approved Town projects keep their separate rules.
 Harvests remain household-owned lots on their actual field tile. An adult
 carries a load of at most four raw crops or planting items to the household's Farmhouse or Silo.

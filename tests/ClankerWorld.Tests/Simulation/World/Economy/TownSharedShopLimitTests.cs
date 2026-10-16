@@ -19,7 +19,7 @@ public sealed class TownSharedShopLimitTests
         Assert.True(world.RemoveBuilding(smith.InstanceId, smith.TownId, smith.HouseholdId).Applied);
         return world.ExportState();
     });
-    private static readonly IReadOnlyDictionary<int, Lazy<WorldRuntimeState>> PopulationStates =
+    private static readonly Dictionary<int, Lazy<WorldRuntimeState>> PopulationStates =
         Populations.ToDictionary(count => count, count => new Lazy<WorldRuntimeState>(() => WithResidents(count)));
 
     public static IEnumerable<object[]> ShopLimits =>
@@ -89,7 +89,17 @@ public sealed class TownSharedShopLimitTests
                 HouseholdBuildingKinds.KindOf(definition) == kind)).ToArray()).ToArray();
         Assert.All(choices, offers => Assert.NotEmpty(offers));
         // Use different sites, so the Town capacity is what refuses the loser.
-        var chosen = new[] { choices[0][0].Id, choices[1].First(item => item.Id != choices[0][0].Id).Id };
+        var firstChoice = choices[0][0].Id;
+        Assert.True(TownConstructionCandidateIds.TryParse(firstChoice, out var firstSelection));
+        var firstDesign = world.WorldContent.Buildings.Single(item => item.CanonicalId == firstSelection.DefinitionId);
+        var firstFootprint = WorldContentSimulationRules.Footprint(firstDesign, firstSelection.SitePosition!.Value).ToHashSet();
+        var secondChoice = choices[1].First(item =>
+        {
+            if (!TownConstructionCandidateIds.TryParse(item.Id, out var selection)) return false;
+            var design = world.WorldContent.Buildings.Single(item => item.CanonicalId == selection.DefinitionId);
+            return !WorldContentSimulationRules.Footprint(design, selection.SitePosition!.Value).Any(firstFootprint.Contains);
+        }).Id;
+        var chosen = new[] { firstChoice, secondChoice };
         calls[0].Reply(chosen[0]);
         calls[1].Reply(chosen[1]);
         await harness.WaitForAllAsync();

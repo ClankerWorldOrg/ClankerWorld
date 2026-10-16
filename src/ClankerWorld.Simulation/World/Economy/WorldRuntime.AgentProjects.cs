@@ -552,11 +552,6 @@ public sealed partial class WorldRuntime
         }
         if (building is not null && HouseholdBuildingKind(building) is { } kind && kind != "house")
         {
-            if (!TownHasRoomForSharedShop(agentId, kind))
-            {
-                SetProject(agentId, project with { Stage = "cancelled", Blocker = "The Town already has enough shops of this kind for its residents." });
-                return;
-            }
             var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
             if (householdId is null)
             {
