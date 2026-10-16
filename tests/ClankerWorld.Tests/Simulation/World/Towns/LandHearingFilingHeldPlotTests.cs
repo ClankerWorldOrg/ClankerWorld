@@ -112,7 +112,7 @@ public sealed partial class TownLandHearingRuntimeTests
             var observation = request.Observation;
             var selected = observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             var filing = observation.Candidates.FirstOrDefault(candidate => candidate.ActionPlan is LandHearingFilingActionPlan
-                { Choice.Kind: LandHearingFilingKind.Household });
+            { Choice.Kind: LandHearingFilingKind.Household });
             if (observation.AgentId == Filer && !Started.Task.IsCompleted && filing is not null)
             {
                 selected = filing;
