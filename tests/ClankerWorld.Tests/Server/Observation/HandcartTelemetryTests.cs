@@ -16,9 +16,9 @@ public sealed class HandcartTelemetryTests
             new("cart", "handcart", "founder:1", 1, 8_500, 10_000, 0, GroundPosition: new(1, 2)),
             new("load", "stone", "founder:1", 12, 10_000, 10_000, 0, ContainerLotId: "cart"),
         ]);
-        HandcartTelemetry.Record(logger, new(1, 3, "handcart_loaded", "founder:1:cart:private-thought-provider-payload"), inventory, ActorIds);
-        HandcartTelemetry.Record(logger, new(2, 3, "handcart_moved", "founder:1:cart"), inventory, ActorIds);
-        HandcartTelemetry.Record(logger, new(3, 3, "handcart_blocked", "founder:1:no_route:private-text"), inventory, ActorIds);
+        HandcartTelemetry.Record(logger, new(1, 3, new HandcartLoadedEventPayload("founder:1", "cart", "private-thought-provider-payload", 12)), inventory, ActorIds);
+        HandcartTelemetry.Record(logger, new(2, 3, new HandcartMovedEventPayload("founder:1", "cart")), inventory, ActorIds);
+        HandcartTelemetry.Record(logger, new(3, 3, new HandcartBlockedEventPayload("founder:1", "no_route:private-text")), inventory, ActorIds);
         var messages = logger.Messages.ToArray();
         Assert.Equal(2, messages.Length);
         Assert.Contains("event=handcart_loaded agent=founder:1 cart=cart condition=85 cargo=12", messages[0], StringComparison.Ordinal);

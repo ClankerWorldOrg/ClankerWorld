@@ -73,13 +73,13 @@ public sealed class RestaurantMarketDemandTests
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(departing).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await departing.AdvanceOneTickAsync()).Advanced);
             Assert.DoesNotContain(PaidMarketWorld.Market(departing).Occupancies, occupancy => occupancy.EndedTick is null);
-            state = departing.ExportState();
+            state = PaidMarketWorld.Waiting(departing.ExportState(), seller);
         }
         if (mode == "missing")
             state = PaidMarketWorld.WithInventory(state, state.Society.Society.Inventory with
             { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.Id != SaleFlour).ToArray() });
         state = PaidMarketWorld.At(PaidMarketWorld.At(state, buyer, farmhouse.Position), miller,
-            new(farmhouse.Position.X + 1, farmhouse.Position.Y));
+            MovementTestWorld.OpenGround(state, miller, farmhouse.Position, 1));
         state = state with
         {
             Agents = state.Agents.Select(person => person with

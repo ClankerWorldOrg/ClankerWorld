@@ -43,7 +43,7 @@ public sealed class ProviderModelCatalogTests
         Assert.Equal(ProviderModelCatalog.OpenAiModels, Assert.Single(handler.Requests).Uri);
         Assert.Equal("Bearer named-openai-test-key", handler.Requests[0].Authorization);
         var jev = await catalog.ListAsync(new("jev"), CancellationToken.None);
-        Assert.Equal([new OwnerProviderModelChoice("jev-1.13.0", true)], jev.Models);
+        Assert.Equal([new OwnerProviderModelChoice("jev-1.14.0", true)], jev.Models);
         Assert.Single(handler.Requests);
         Assert.DoesNotContain("named-openai-test-key", System.Text.Json.JsonSerializer.Serialize(decisions));
     }

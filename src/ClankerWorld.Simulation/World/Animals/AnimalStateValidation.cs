@@ -12,26 +12,23 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException("The current checkpoint requires complete animal state.");
         if (!world.Seeded && (world.Animals.Count != 0 || world.Offers.Count != 0 || world.SupplyTrips.Count != 0))
             throw new InvalidDataException("An unseeded animal world cannot contain animal history or custody.");
-        static bool Name(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
-        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= DerivedId.MaximumLength && !value.Any(char.IsControl);
-        static bool InventoryReference(string? value) => !string.IsNullOrWhiteSpace(value) && !value.Any(char.IsControl);
         var society = state.Society.Society;
         var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         void UniqueAgents(IEnumerable<string> ids)
         {
             var values = ids.ToArray();
-            if (values.Any(value => !InventoryReference(value) || !people.Contains(value)) ||
+            if (values.Any(value => !IdentityRules.Reference(value) || !people.Contains(value)) ||
                 values.Distinct(StringComparer.Ordinal).Count() != values.Length)
                 throw new InvalidDataException("Animal agent references must name unique, known people.");
         }
-        static void Unique(IEnumerable<string> ids)
+        static void Unique(IEnumerable<string?> ids)
         {
             var values = ids.ToArray();
-            if (values.Any(value => !Identifier(value)) || values.Distinct(StringComparer.Ordinal).Count() != values.Length)
+            if (values.Any(value => !IdentityRules.Reference(value, DerivedId.MaximumLength)) || values.Distinct(StringComparer.Ordinal).Count() != values.Length)
                 throw new InvalidDataException("Animal identities and permissions must be unique, short identifiers.");
         }
         Unique(world.Animals.Select(animal => animal.Id));
-        Unique(world.Offers.Select(offer => offer.Id));
+        Unique(world.Offers.Select(offer => (string?)offer.Id));
         UniqueAgents(world.SupplyTrips.Select(trip => trip.ActorId));
         UniqueAgents(world.Animals.Select(animal => animal.RiderId).OfType<string>());
         UniqueAgents(world.Animals.Select(animal => animal.LeaderId).OfType<string>());
@@ -40,7 +37,7 @@ public sealed partial class WorldRuntime
         var map = TravelMap(state);
         foreach (var animal in world.Animals)
         {
-            if (!Name(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
+            if (!BoundedText.IsValid(animal.Name, 512) || !IdentityRules.Reference(animal.HerdId, DerivedId.MaximumLength) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
                 animal.Sex is not ("female" or "male") || animal.CarePermissions is null || animal.RidingPermissions is null)
                 throw new InvalidDataException("An animal has invalid species, sex, name or permissions.");
             var definition = AnimalRules.Definition(animal.Species);
@@ -62,7 +59,7 @@ public sealed partial class WorldRuntime
                 animal.HouseholdId is null && (animal.SaddleLotId is not null || animal.ReadyProductLotId is not null ||
                     animal.RiderId is not null || animal.LeaderId is not null || animal.CarePermissions.Count != 0 || animal.RidingPermissions.Count != 0))
                 throw new InvalidDataException("An owned animal needs its household's actual animal yard.");
-            if (animal.Pregnancy is { } pregnancy && (!Identifier(pregnancy.FatherId) || animal.Sex != "female" ||
+            if (animal.Pregnancy is { } pregnancy && (!IdentityRules.Reference(pregnancy.FatherId, DerivedId.MaximumLength) || animal.Sex != "female" ||
                 !AnimalRules.IsAdult(animal, society.WorldTick, day) || pregnancy.StartedTick < 0 || pregnancy.StartedTick > society.WorldTick ||
                 pregnancy.ProgressTicks < 0 || pregnancy.ProgressTicks >= definition.GestationDays * day ||
                 world.Animals.FirstOrDefault(father => father.Id == pregnancy.FatherId) is { } father && (father.Species != animal.Species || father.Sex != "male")))

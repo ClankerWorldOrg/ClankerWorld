@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -6,7 +7,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using GodotSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
@@ -65,14 +66,13 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.HoldDonationForActor = traveler.Actor;
         for (var tick = 0; tick < 100 && !scenario.Policy.DonationStarted.Task.IsCompleted; tick++)
         {
-            ObserveGathering(await scenario.World.AdvanceOneTickNonBlockingAsync());
-            await Task.Delay(2);
+            ObserveGathering(await scenario.World.TickModelWorkAsync());
         }
-        await scenario.Policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.For(scenario.World).WaitAsync(scenario.Policy.DonationStarted.Task);
         Assert.Equal(scenario.Project.Plan.Site, scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         for (var tick = 0; tick < 3; tick++)
         {
-            ObserveGathering(await scenario.World.AdvanceOneTickNonBlockingAsync());
+            ObserveGathering(await scenario.World.TickModelWorkAsync());
             Assert.Equal(traveler.Actor, scenario.World.Society.Inventory.GetLot(carried.Id).OwnerId);
             Assert.DoesNotContain(scenario.Project.Deliveries, delivery => delivery.SourceLotId == carried.Id);
         }
@@ -258,7 +258,7 @@ public sealed class TownProjectRuntimeTests
         Assert.All(projectedRemoval.Materials, material => Assert.Equal(material.Budget, material.Supplied));
         scenario.World.Validate();
 
-        ClankerWorld.GodotClient.Protocol.OwnerWorldTownProject ProjectedProject()
+        ClankerWorld.Contracts.OwnerWorldTownProject ProjectedProject()
         {
             var observation = new OwnerWorldObservationStore(scenario.World).GetSnapshot();
             var json = JsonSerializer.Serialize(observation, TownProjectScenario.JsonOptions);
@@ -273,6 +273,8 @@ public sealed class TownProjectRuntimeTests
     public async Task RejectedPreparedProjectTicksLeaveAuthorityGoodsAndCompletionUnchanged(string phase)
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
+        // One native worker exposes the exact final work tick regardless of travel timing.
+        if (phase == "completion") scenario.Policy.WorkActor = TownProjectScenario.Author;
         scenario.Policy.Supply = true;
         if (phase == "delivery")
             await scenario.UntilAsync(() => scenario.Project.Deliveries.Any(d => d.DeliveredTick is null &&
@@ -434,10 +436,9 @@ public sealed class TownProjectRuntimeTests
         policy.ArmHeldVote = true;
         for (var tick = 0; tick < 80 && !policy.VoteStarted.Task.IsCompleted; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            await scenario.World.TickModelWorkAsync();
         }
-        await policy.VoteStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.For(scenario.World).WaitAsync(policy.VoteStarted.Task);
         var original = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
         Assert.Equal("project", original.Kind);
         Assert.Equal("pending", original.Status);
@@ -452,12 +453,11 @@ public sealed class TownProjectRuntimeTests
         scenario.World.AddAgent("agent:00000000000000000000000000000099", site);
         Assert.Equal("cancelled", scenario.World.Towns[0].Council!.Proposals[0].Status);
         policy.ReleaseVote.TrySetResult(true);
-        var lateReply = await policy.VoteReturned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var lateReply = await ModelWorkHarness.For(scenario.World).WaitAsync(policy.VoteReturned.Task);
         Assert.Equal(DecisionProviderKind.LargeLanguageModel, lateReply.Provider);
         for (var tick = 0; tick < 8; tick++)
         {
-            await scenario.World.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            await scenario.World.TickModelWorkAsync();
         }
         var refused = scenario.World.Towns[0].Council!.Proposals.Single(item => item.Id == original.Id);
         Assert.Equal("cancelled", refused.Status);
@@ -529,7 +529,7 @@ public sealed class TownProjectRuntimeTests
             GroundPosition: remote ? new(9, 9) : new(4, 4))]);
         inventory = InventoryAuthority.Reserve(inventory, "paid-load", owner, "load", 4, "town-project:project", 10);
         var project = new TownProject("project", "proposal", plan, 0, "supplying", 0, 0,
-            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, "paid-load")]);
+            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, Identity.Parse("paid-load"))]);
         Assert.Equal(expected, TownProjectRules.DeliveredQuantity(project, TownBorderRules.FirstTownId, inventory, "wood"));
         Assert.Equal(4, inventory.GetLot("load").Quantity);
         Assert.Equal(InventoryReservationState.Reserved, inventory.GetReservation("paid-load").State);
@@ -570,7 +570,7 @@ public sealed class TownProjectRuntimeTests
 
 internal sealed class TownProjectScenario : IDisposable
 {
-    internal const string Author = "founder:00000000000000000000000000000001";
+    internal const string Author = NormalPathWorld.Founder1;
     internal const string PlayableSeed = "town-project-real-donation";
     internal const string Name = "Communal Hall";
     internal const string LaterNotice = "Harvest dates: Post the next harvest dates at our Hall.";
@@ -748,6 +748,7 @@ internal sealed class TownProjectPolicy
     internal bool Proposed { get; set; }
     internal bool OrdinaryLaw { get; init; }
     internal bool Supply { get; set; }
+    internal string? WorkActor { get; set; }
     internal bool PersonalSupply { get; set; } = true;
     internal bool CollectTools { get; set; }
     internal bool LawAfterHall { get; set; }
@@ -757,15 +758,15 @@ internal sealed class TownProjectPolicy
     internal Func<string, bool>? MaterialStillNeeded { get; set; }
     internal Func<string, bool>? MayStoreSpareTool { get; set; }
     internal string? HoldDonationForActor { get; set; }
-    internal TaskCompletionSource<bool> DonationStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    internal TaskCompletionSource<bool> ReleaseDonation { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal InlineCompletionSource<bool> DonationStarted { get; } = new(TaskCreationOptions.None);
+    internal InlineCompletionSource<bool> ReleaseDonation { get; } = new(TaskCreationOptions.None);
     internal bool HoldVote { get; init; }
     internal bool ArmHeldVote { get; set; }
     internal bool AcceptLandUse { get; set; }
     internal bool NoVotes { get; init; }
-    internal TaskCompletionSource<bool> VoteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    internal TaskCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    internal TaskCompletionSource<CognitionDecisionResponse> VoteReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal InlineCompletionSource<bool> VoteStarted { get; } = new(TaskCreationOptions.None);
+    internal InlineCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.None);
+    internal InlineCompletionSource<CognitionDecisionResponse> VoteReturned { get; } = new(TaskCreationOptions.None);
     internal ConcurrentQueue<(string Actor, string Id, long Tick)> Choices { get; } = new();
     internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
 
@@ -811,9 +812,9 @@ internal sealed class TownProjectPolicy
             {
                 var workerMaterial = actor switch
                 {
-                    "founder:00000000000000000000000000000002" => "wood",
+                    NormalPathWorld.Founder2 => "wood",
                     TownProjectScenario.Author => "stone",
-                    "founder:00000000000000000000000000000003" when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
+                    NormalPathWorld.Founder3 when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
                     _ => null,
                 };
                 // Real starter tools, collected by separate people so a whole harvest fits.
@@ -832,6 +833,7 @@ internal sealed class TownProjectPolicy
                 {
                     if (selected is not null) break;
                     if (!policy.PersonalSupply && prefix is "town_project_donate:" or "town_project_gather:") continue;
+                    if (prefix == "town_project_work:" && policy.WorkActor is { } worker && actor != worker) continue;
                     // Keep the wood worker from acquiring a pickaxe merely because stone sorts first.
                     selected = prefix == "town_project_gather:" && policy.CollectTools
                         ? candidates.FirstOrDefault(c => workerMaterial is not null && c.Id.StartsWith(prefix, StringComparison.Ordinal) &&
