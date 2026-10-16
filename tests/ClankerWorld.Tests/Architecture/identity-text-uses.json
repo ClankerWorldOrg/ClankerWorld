@@ -225,8 +225,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022case-evidence:\u0022 \u002B NonLandToken(item.Id \u002B \u0022|\u0022 \u002B evidence.Id \u002B \u0022|\u0022 \u002B actor \u002B \u0022|\u0022 \u002B NonLandRevision(item).Number)": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022statement:\u0022 \u002B NonLandToken(actor \u002B \u0022|\u0022 \u002B text)": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022term:\u0022 \u002B NonLandToken(caseId \u002B \u0022|\u0022 \u002B town.NonLandHearings.Sequence \u002B \u0022|\u0022 \u002B index)": 1,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|request.Id \u002B \u0022:accept\u0022": 2,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|request.Id \u002B \u0022:reject\u0022": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.PublicRecords.cs|id|\u0022public-record:\u0022 \u002B NonLandToken(actor \u002B \u0022|\u0022 \u002B evidence.SourceRecordId \u002B \u0022|\u0022 \u002B evidence.SourceVersion \u002B \u0022|\u0022 \u002B read.ReadTick)": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs|length|NonLandKnownReports(world, town, actor).Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs|id|WorldRuntime.CivicSharedRules.RepairCartPrefix \u002B target.Id": 1,
