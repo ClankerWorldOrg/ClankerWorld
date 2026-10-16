@@ -19,6 +19,8 @@ public sealed class TownSharedShopLimitTests
         Assert.True(world.RemoveBuilding(smith.InstanceId, smith.TownId, smith.HouseholdId).Applied);
         return world.ExportState();
     });
+    private static readonly IReadOnlyDictionary<int, Lazy<WorldRuntimeState>> PopulationStates =
+        Populations.ToDictionary(count => count, count => new Lazy<WorldRuntimeState>(() => WithResidents(count)));
 
     public static IEnumerable<object[]> ShopLimits =>
         from kind in ShopKinds
@@ -29,7 +31,7 @@ public sealed class TownSharedShopLimitTests
     [MemberData(nameof(ShopLimits))]
     public async Task OffersAllSizesOnlyBelowTheTownLimitAndKeepsExistingShops(string kind, int population, int limit)
     {
-        var state = WithResidents(population);
+        var state = PopulationStates[population].Value;
         state = Stock(state);
         using var setup = WorldRuntime.Restore(state);
         var definition = setup.WorldContent.Buildings.First(item => HouseholdBuildingKinds.KindOf(item) == kind);
@@ -44,10 +46,10 @@ public sealed class TownSharedShopLimitTests
 
         PlaceShop(setup, definition, limit - 1);
         var atLimit = new ActionCoverageRecorder(chooseIdle: true);
-        using (var full = WorldRuntime.Restore(setup.ExportState(), _ => atLimit))
+        using (var atCapacity = WorldRuntime.Restore(setup.ExportState(), _ => atLimit))
         {
-            await Observe(full);
-            Assert.Empty(ShopOffers(atLimit, full, kind));
+            await Observe(atCapacity);
+            Assert.Empty(ShopOffers(atLimit, atCapacity, kind));
         }
         // An older world may already exceed the new limit. Loading and ticking
         // must preserve those paid buildings while withholding every size.
