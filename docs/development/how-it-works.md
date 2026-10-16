@@ -4670,7 +4670,7 @@ Accepted batches are serialized in the existing typed `DeveloperEditEventPayload
 with operation `edit_world`; the event records the complete command for replay.
 Exact retained retries succeed without applying again. Once an event leaves hot
 history, its stale event precondition refuses another application. No separate
-unbounded receipt ledger is introduced. Schema 138 retains `MapAuthoring`, a
+unbounded receipt ledger is introduced. Schema 139 retains `MapAuthoring`, a
 bounded set of current terrain overrides and added resource/object definitions.
 Reload applies these to the regenerated baseline before checking the map;
 compacted edit events are not needed to load an edited world. Earlier alpha
