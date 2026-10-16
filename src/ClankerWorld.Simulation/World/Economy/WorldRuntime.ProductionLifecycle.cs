@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         {
             foreach (var job in cancelled)
             {
-                foreach (var id in job.InputReservationIds.Order(StringComparer.Ordinal))
+                foreach (var id in job.InputReservationIds.Order())
                 {
                     if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
                         inventory = InventoryAuthority.ReleaseReservation(inventory, id, reason);
@@ -38,6 +38,6 @@ public sealed partial class WorldRuntime
             CropBuilds = worldSimulation.CropBuilds?.Select(job => ids.Contains(job.JobId)
                 ? job with { State = WorldProductionJobState.Cancelled } : job).ToArray(),
         };
-        foreach (var job in cancelled) AppendEvent(reason, job.JobId);
+        foreach (var job in cancelled) AppendEvent(WorldEvents.ProductionFailure(reason, job.WorkerId, job.JobId));
     }
 }

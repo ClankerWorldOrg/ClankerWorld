@@ -1,0 +1,1 @@
+- The world server applies its pairing limit to every way of writing the pairing address, gives a paired device a new request check by retiring its oldest unused ones instead of refusing, and names itself in pairing replies with a random ID instead of the computer's name. A server that already has paired devices keeps its existing ID.

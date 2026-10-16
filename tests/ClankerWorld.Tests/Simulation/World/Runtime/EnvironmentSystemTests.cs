@@ -58,6 +58,6 @@ public sealed class EnvironmentSystemTests
         public List<(string, bool)> Availability { get; } = [];
         public List<(string, string)> Events { get; } = [];
         public void SetResourceAvailability(string id, bool available) => Availability.Add((id, available));
-        public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
+        public void AppendEvent(WorldEventPayload payload) => Events.Add((payload.Kind, payload.DiagnosticDetail));
     }
 }
