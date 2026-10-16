@@ -109,7 +109,8 @@ buttons and **Enter** to choose one; focus then returns to the screen underneath
 ### Report a problem
 
 **Report a problem**, in **Settings → Game → Build**, saves a zip to send with a bug report
-and shows it in your file manager. It holds the game's latest logs, the world
+and shows it in your file manager. It holds the game's log up to that moment
+and the previous run's log, including after a forced close, the world
 server's logs when the server runs on your PC, and a summary of the game
 version, Windows version, graphics card, screen and open world. It never
 includes keys, pairing codes, saves, prompts or model replies, and anything in

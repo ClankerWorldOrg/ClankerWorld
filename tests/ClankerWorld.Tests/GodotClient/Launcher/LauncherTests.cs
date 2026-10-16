@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using ClankerWorld.GodotClient.Diagnostics;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Networking;
 
@@ -13,6 +14,46 @@ public sealed class LauncherTests
     private const string Page = "https://github.com/ClankerWorldOrg/ClankerWorld/releases/tag/";
     private static readonly (string Path, string Text) EntryPoints =
         ("package.json", """{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}""");
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void RestartRetainsTheWholeLastRunAndReportsBothLogs(bool developerMode, bool useTestData)
+    {
+        var root = Directory.CreateTempSubdirectory("launcher log retention ");
+        try
+        {
+            var layout = new LauncherLayout(root.FullName);
+            var settings = new LauncherSettings(DeveloperMode: developerMode, UseTestData: useTestData);
+            var directory = Path.Combine(layout.GameDataDirectory(settings), "logs");
+            var current = GameStarter.PrepareGameLog(directory);
+            var previous = Path.Combine(directory, "game.previous.log");
+            Assert.False(File.Exists(current));
+            Assert.False(File.Exists(previous));
+            var firstRun = string.Concat(Enumerable.Repeat("resource loaded\n", 1000)) + "last line before forced close\n";
+            File.WriteAllText(current, firstRun);
+            Assert.Equal(current, GameStarter.PrepareGameLog(directory));
+            Assert.Equal(firstRun, File.ReadAllText(previous));
+            // A failed start creates no current log; trying again must keep the crash evidence.
+            GameStarter.PrepareGameLog(directory);
+            Assert.Equal(firstRun, File.ReadAllText(previous));
+            File.WriteAllText(current, "next run reached the world\n");
+            var report = ProblemReport.Write(Path.Combine(root.FullName, "reports"), [],
+                [new("game.log", current), new("game.previous.log", previous)], [], DateTimeOffset.UtcNow);
+            using (var archive = ZipFile.OpenRead(report))
+            {
+                using var last = new StreamReader(archive.GetEntry("logs/game.previous.log")!.Open());
+                using var live = new StreamReader(archive.GetEntry("logs/game.log")!.Open());
+                Assert.Equal(firstRun, last.ReadToEnd());
+                Assert.Equal("next run reached the world\n", live.ReadToEnd());
+            }
+            GameStarter.PrepareGameLog(directory);
+            Assert.Equal("next run reached the world\n", File.ReadAllText(previous));
+            Assert.Equal([previous], Directory.GetFiles(directory));
+        }
+        finally { root.Delete(recursive: true); }
+    }
 
     [Theory]
     [InlineData(false, false)]
@@ -55,9 +96,13 @@ public sealed class LauncherTests
             {
                 File.WriteAllText(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
                 File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                Directory.CreateDirectory(Path.GetDirectoryName(log)!);
+                File.WriteAllText(log, "last line from the earlier run\n");
                 using var process = GameStarter.StartLocal(executable, "launcher with spaces.exe", settings, layout);
                 await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
                 Assert.Equal(arguments, File.ReadAllLines(Path.Combine(Path.GetDirectoryName(executable)!, "arguments.txt")));
+                Assert.Equal("last line from the earlier run\n", File.ReadAllText(Path.ChangeExtension(log, "previous.log")));
+                Assert.False(File.Exists(log));
             }
         }
         finally { root.Delete(recursive: true); }

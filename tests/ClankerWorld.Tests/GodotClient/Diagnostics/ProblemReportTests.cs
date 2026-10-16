@@ -72,6 +72,33 @@ public sealed class ProblemReportTests : IDisposable
         Assert.True(kept.Length < lines.Count);
     }
 
+    [Theory]
+    [InlineData(@"Found hostfxr: C:\Users\Player\AppData\Local\ClankerWorld\versions\0.1.0-nightly.20261015.5\data_ClankerWorld.windows.x86_64\hostfxr.dll")]
+    [InlineData("Found hostfxr: C:/Users/Player/AppData/Local/ClankerWorld/versions/0.1.0-nightly.20261015.5/data_ClankerWorld.windows.x86_64/hostfxr.dll")]
+    [InlineData("Loading /home/Player/ClankerWorld/versions/0.1.0-nightly.20261015.5/data_ClankerWorld.windows.x86_64/ClankerWorld.GodotClient.dll")]
+    [InlineData("Loading res://UI/ClankerWorld1234567890LongResourceName/Menu.tscn")]
+    [InlineData("Loading ../ClankerWorld1234567890LongResourceName/Menu.tscn")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.dll")]
+    public void OrdinaryPathsRemainReadableBesideSecrets(string diagnostic)
+    {
+        const string randomToken = "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb";
+        var line = diagnostic + " api_key=sk-proj-AbCdEf0123456789XyZ pairing_code=482913 launch_secret=local-secret " + randomToken;
+        Assert.Equal(diagnostic + " api_key=[removed] pairing_code=[removed] launch_secret=[removed] [removed]",
+            ProblemReport.Redact(line));
+    }
+
+    [Theory]
+    [InlineData("C:/logs/sk-proj-AbCdEf0123456789XyZ/game.log")]
+    [InlineData("/logs/sk-proj-AbCdEf0123456789XyZ/game.log")]
+    public void PathContextNeverProtectsKnownOrProviderSecrets(string path)
+    {
+        const string launchSecret = "knownLaunchSecret12345678901234567890";
+        var redacted = ProblemReport.Redact(path + "/" + launchSecret, [launchSecret]);
+        Assert.DoesNotContain("sk-proj-AbCdEf0123456789XyZ", redacted);
+        Assert.DoesNotContain(launchSecret, redacted);
+        Assert.Contains("[removed]/game.log/[removed]", redacted);
+    }
+
     [Fact]
     public void OnlyTheNewestReportsAreKept()
     {

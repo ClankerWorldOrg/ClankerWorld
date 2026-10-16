@@ -79,8 +79,8 @@ public static partial class ProblemReport
     /// Blanks anything in one log line that looks like a credential: values
     /// after names such as <c>api_key</c> or <c>Authorization</c>, bearer
     /// tokens, passwords in addresses, common provider key formats and long
-    /// random-looking strings. Plain hex IDs and hashes are kept, because they
-    /// are what a bug report needs to follow a request.
+    /// random-looking strings outside file paths. Plain hex IDs and hashes are
+    /// kept, because they are what a bug report needs to follow a request.
     /// </summary>
     public static string Redact(string line, IReadOnlyCollection<string>? knownSecrets = null)
     {
@@ -90,7 +90,10 @@ public static partial class ProblemReport
         line = NamedValue().Replace(line, match => match.Groups["prefix"].Value + Removed);
         line = AddressPassword().Replace(line, match => match.Groups["scheme"].Value + Removed + "@");
         line = ProviderKey().Replace(line, Removed);
-        return LongToken().Replace(line, match => LooksRandom(match.Value) ? Removed : match.Value);
+        // Named, known and provider secrets have already been removed, even inside paths.
+        // Match paths as a whole so the generic token rule cannot eat their fragments.
+        return PathOrLongToken().Replace(line, match =>
+            !match.Groups["path"].Success && LooksRandom(match.Value) ? Removed : match.Value);
     }
 
     private static bool LooksRandom(string token) =>
@@ -190,6 +193,6 @@ public static partial class ProblemReport
         RegexOptions.CultureInvariant)]
     private static partial Regex ProviderKey();
 
-    [GeneratedRegex("""[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
-    private static partial Regex LongToken();
+    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+)|(?<![A-Za-z0-9+/_=\\.\-])[A-Za-z0-9+/_=-]{32,}(?![A-Za-z0-9+/_=\\.\-])""", RegexOptions.CultureInvariant)]
+    private static partial Regex PathOrLongToken();
 }
