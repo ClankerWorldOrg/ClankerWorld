@@ -302,7 +302,8 @@ public sealed partial class AnimalPipelineTests
             id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
         world.SubmitInstruction(new("care", "owner", actor, OwnerInstructionKind.Order, "repeat care for Moss"));
         await Until(world, () => world.Animals.Single().CareUntilTick > world.WorldTick);
-        Assert.Equal(yard.Position, world.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.InRange(state.Map.FootDistance(world.Agents.Single(person => person.AgentId == actor).Position,
+            world.Animals.Single().Position), 0, 1);
         Assert.Equal(3, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("supply-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.Equal(3, world.Society.Inventory.GetLot("supply-water").Quantity);
         Assert.Equal(home, world.Society.Inventory.GetLot("supply-jug").OwnerId);

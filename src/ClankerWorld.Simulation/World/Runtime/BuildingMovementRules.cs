@@ -42,6 +42,8 @@ internal sealed class BuildingMovementRules
             !interiors.ContainsKey(new GridPoint(from.X, to.Y));
     }
 
+    // Ranged interactions can finish outdoors. Inside a footprint, finish at
+    // the requested tile rather than parking on its internal approach.
     internal bool CanStop(GridPoint point, GridPoint destination) =>
         !interiors.ContainsKey(point) || point == destination;
 

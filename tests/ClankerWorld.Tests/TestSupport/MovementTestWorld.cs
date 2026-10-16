@@ -8,9 +8,11 @@ internal static class MovementTestWorld
     {
         var definitions = state.WorldContent!.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
         var access = state.WorldSimulation!.Buildings.SelectMany(building =>
-            WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)
-                .Append(BuildingMovementRules.EntranceFor(BuildingStorageRules.EffectiveDefinition(definitions[building.DefinitionId], building), building)))
-            .ToHashSet();
+        {
+            var entrance = BuildingMovementRules.EntranceFor(BuildingStorageRules.EffectiveDefinition(definitions[building.DefinitionId], building), building);
+            return WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)
+                .Concat(state.Map.FootNeighbors(entrance)).Append(entrance);
+        }).ToHashSet();
         return ClearOtherAccess(state, actor, access);
     }
 
@@ -39,7 +41,7 @@ internal static class MovementTestWorld
     {
         foreach (var person in state.Agents.Where(person => person.AgentId != actor && access.Contains(person.Position)).ToArray())
         {
-            var free = OpenGround(state, person.AgentId, person.Position);
+            var free = OpenGround(state, person.AgentId, person.Position, allowed: point => !access.Contains(point));
             state = state with { Agents = state.Agents.Select(item => item.AgentId == person.AgentId ? item with { Position = free } : item).ToArray() };
         }
         return state;

@@ -17,6 +17,7 @@ public sealed class BuildingMovementTests
                 candidates.Single(candidate => candidate.Id == "safe_idle"),
         };
         using var generated = NormalPathWorld.CreateGenerated("building-scouting", policy.CreateProvider);
+        Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
