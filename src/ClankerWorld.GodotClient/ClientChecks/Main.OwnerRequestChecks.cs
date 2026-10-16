@@ -122,14 +122,63 @@ public partial class Main
                     !host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus))
                     throw new InvalidOperationException($"Refreshing model settings must keep the provider draft and render its model/key controls: provider={SelectedProviderId()}, picker={agentModelPicker.Visible}, keyVisible={agentModelApiKeyInput.Visible}, draftKept={agentModelApiKeyInput.Text == "disposable-loopback-draft"}, read={host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus)}, status={statusLabel.Text}.");
             });
-            await CheckAsync("obsolete key save feedback", async host =>
+            await CheckAsync("TypeSafe key save and delete", async host =>
+            {
+                ShowSettingsForCheck(worldSpecific: false);
+                apiKeysPanel.Show();
+                var index = Enumerable.Range(0, apiKeyProviderChoice.ItemCount)
+                    .Single(item => apiKeyProviderChoice.GetItemMetadata(item).AsString() == "jev");
+                if (apiKeyProviderChoice.GetItemText(index) != "TypeSafe (Jev)" ||
+                    DefaultProviderModel("jev") != "jev-1.14.0")
+                    throw new InvalidOperationException("API keys must offer TypeSafe and Jev must start on 1.14.0.");
+                apiKeyProviderChoice.Select(index);
+                apiKeyLabelInput.Text = "TypeSafe account";
+                apiKeyInput.Text = "synthetic-typesafe-key";
+                string? slotId = null;
+                host.ActionHandler = (path, envelope, _) =>
+                {
+                    if (path == OwnerPairingEndpoints.OwnerCredentialSlotCreate)
+                    {
+                        var action = envelope.GetProperty("action");
+                        if (action.GetProperty("provider").GetString() != "jev" ||
+                            action.GetProperty("apiKey").GetString() != "synthetic-typesafe-key")
+                            throw new InvalidOperationException("Save must submit the TypeSafe provider and pasted key.");
+                        slotId = action.GetProperty("credentialSlotId").GetString();
+                        return Task.FromResult<object?>(providers with { CredentialSlots = [new(slotId!, "jev", "TypeSafe account")] });
+                    }
+                    return Task.FromResult<object?>(path == OwnerPairingEndpoints.OwnerCredentialSlotDelete
+                        ? providers with { CredentialSlots = [] } : null);
+                };
+                await SaveApiKeyAsync();
+                if (slotId is null || apiKeyInput.Text.Length != 0 || !savedApiKeys.Text.Contains("TypeSafe · TypeSafe account", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Saving a TypeSafe key must clear its secret and list its name.");
+                routineHelperChoice.Select(1);
+                RefreshRoutineHelperKeys(slotId);
+                RequestRoutineHelperModels();
+                if (!routineHelperKeyChoice.Visible || SelectedRoutineHelperKey() != slotId ||
+                    routineHelperKeyChoice.ItemCount != 2)
+                    throw new InvalidOperationException("Jev must offer its saved TypeSafe key without OpenAI keys.");
+                routineHelperChoice.Select(2);
+                RefreshRoutineHelperKeys();
+                if (SelectedRoutineHelperKey() is not null || routineHelperKeyChoice.ItemCount != 1)
+                    throw new InvalidOperationException("Switching to Decisions must release the TypeSafe key selection.");
+                await DeleteApiKeyAsync();
+                if (!host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete) ||
+                    providerConfiguration?.CredentialSlots?.Count != 0 || savedApiKeyChoice.Visible || deleteApiKeyButton.Visible)
+                    throw new InvalidOperationException("An unused TypeSafe key must be deletable from API keys.");
+            });
+            foreach (var deletingKey in new[] { false, true })
+                await CheckAsync($"obsolete key feedback / delete={deletingKey}", async host =>
             {
                 ShowSettingsForCheck(worldSpecific: false);
                 apiKeysPanel.Show();
                 apiKeyLabelInput.Text = "Disposable test key";
                 apiKeyInput.Text = "disposable-loopback-key";
-                saveApiKeyButton.GrabFocus();
-                await HeldAsync(host, OwnerPairingEndpoints.OwnerCredentialSlotCreate, providers, false, SaveApiKeyAsync,
+                providerConfiguration = providers with { CredentialSlots = [new("1234567890abcdef1234567890abcdef", "jev", "TypeSafe account")] };
+                RenderSavedApiKeys();
+                (deletingKey ? deleteApiKeyButton : saveApiKeyButton).GrabFocus();
+                await HeldAsync(host, deletingKey ? OwnerPairingEndpoints.OwnerCredentialSlotDelete : OwnerPairingEndpoints.OwnerCredentialSlotCreate,
+                    providers, false, deletingKey ? DeleteApiKeyAsync : SaveApiKeyAsync,
                     () =>
                     {
                         settingsPanel.Hide();

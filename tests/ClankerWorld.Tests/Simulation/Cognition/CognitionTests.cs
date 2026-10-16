@@ -12,6 +12,7 @@ public sealed class CognitionTests
     public async Task JevAdapterSendsOnlyTheCompactChoiceContractAndRecordsUsage(bool includesProbabilityMap)
     {
         var reply = System.Text.Json.Nodes.JsonNode.Parse(JsonResponse())!;
+        reply["model"] = "jev-1.14.0";
         if (!includesProbabilityMap)
             reply["answers"]!["selected_candidate"]!.AsObject().Remove("probabilities");
         var handler = new RecordingHandler(reply.ToJsonString());
@@ -41,7 +42,7 @@ public sealed class CognitionTests
         Assert.Equal("Bearer test-secret", handler.Authorization);
         Assert.DoesNotContain("energy_basis_points", handler.Body, StringComparison.Ordinal);
         Assert.DoesNotContain("Private riverside promise", handler.Body, StringComparison.Ordinal);
-        Assert.Equal("jev-1.13.0", body.RootElement.GetProperty("model").GetString());
+        Assert.Equal("jev-1.14.0", body.RootElement.GetProperty("model").GetString());
         var question = body.RootElement.GetProperty("questions").GetProperty("selected_candidate");
         Assert.Equal("choice", question.GetProperty("type").GetString());
         Assert.Null(RetiredWording.Find(question.GetProperty("instructions").GetString()!));
@@ -50,7 +51,7 @@ public sealed class CognitionTests
         Assert.False(jevState.TryGetProperty("inhabitant_id", out _));
         Assert.Equal("seek_food", response.SelectedCandidateId);
         Assert.Equal(0.84, response.Confidence);
-        Assert.Equal("jev-1.13.0", response.Usage?.ModelId);
+        Assert.Equal("jev-1.14.0", response.Usage?.ModelId);
         Assert.Equal(123, response.Usage?.InputTokens);
         Assert.Equal(7, response.Usage?.OutputTokens);
     }

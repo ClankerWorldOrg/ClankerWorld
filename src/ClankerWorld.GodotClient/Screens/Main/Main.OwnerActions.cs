@@ -238,6 +238,8 @@ public partial class Main
         buildingManagementChoice.Disabled = actionDisabled;
         buildingRemoveButton.Disabled = actionDisabled;
         saveApiKeyButton.Disabled = actionDisabled;
+        deleteApiKeyButton.Disabled = actionDisabled;
+        savedApiKeyChoice.Disabled = actionDisabled;
         apiKeyProviderChoice.Disabled = actionDisabled;
         apiKeyLabelInput.Editable = !actionDisabled;
         apiKeyInput.Editable = !actionDisabled;

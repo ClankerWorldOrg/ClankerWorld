@@ -81,8 +81,14 @@ internal static partial class OwnerEndpoints
             var settings = new RoutineHelperSettings(action.Provider, action.Model, action.CredentialSlotId);
             var runtime = services.GetRequiredService<WorldRuntime>();
             if (settings.CredentialSlotId is { } slotId && services.GetRequiredService<ProviderConfigurationStore>()
-                .CaptureRuntimeConfiguration().CredentialSlots?.Any(slot => slot.Id == slotId && slot.Provider == PlayerDecisionProviders.OpenAi) != true)
-                return Results.Conflict(new { error = "Choose an available saved OpenAI key." });
+                .CaptureRuntimeConfiguration().CredentialSlots?.Any(slot => slot.Id == slotId &&
+                    slot.Provider == PlayerDecisionProviders.HelperCredentialProvider(settings.Provider)) != true)
+                return Results.Conflict(new
+                {
+                    error = settings.Provider == PlayerDecisionProviders.Jev
+                    ? "Choose an available saved TypeSafe key."
+                    : "Choose an available saved OpenAI key."
+                });
             bool changed;
             try { changed = runtime.SetRoutineHelper(settings, action.WorldId); }
             catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }

@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 # Playing the current game
@@ -247,19 +247,23 @@ Keys stay on the server installation, separately from world saves. Cloud
 providers charge you for usage. While paused, open **Settings → World → Routine
 helper** to choose **Off**, **Jev** or **OpenAI Decisions**, pick its model and
 press **Apply helper**. Decisions uses your default OpenAI key or a named saved
-OpenAI key you choose; Jev uses the saved TypeSafe key. Switching helpers keeps
+OpenAI key you choose; Jev uses your default TypeSafe key or a named saved
+TypeSafe key you choose. New Jev selections start on **jev-1.14.0**; a world
+already using **jev-1.13.0** keeps that model until you change it. Switching helpers keeps
 memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
 
 To save keys before placing any agents, open **Settings → Game → API keys**.
-Choose OpenAI, Ollama Cloud or Anthropic, name the key, paste it and press
+Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
 **Save API key**. You can save each provider's keys from Main Menu Settings once this device is
 connected and paired. Saving a key does not run a model or place an agent.
-Choose the saved key later in **Add Agent** or an agent's **Model** panel.
+Choose the saved key later in **Add Agent**, an agent's **Model** panel or
+**Routine helper**. TypeSafe keys are for the Jev helper.
 **Open model settings** in that panel opens the agent's model in World
-Settings, where you can also delete a saved key.
+Settings. To delete a saved key, choose it under **API keys** and press
+**Delete saved key**; an agent's model settings also offer deletion.
 A key used by the routine helper cannot be deleted. Choose another helper key
 or turn the helper off first.
 
