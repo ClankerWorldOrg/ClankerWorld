@@ -148,20 +148,17 @@ public sealed record CognitionWillContext(
         var keys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in Items)
         {
-            if (item is null || !IsBoundedText(item.Key, 16) || !IsBoundedText(item.Kind, MaximumItemKindLength) ||
-                item.Quantity <= 0 || item.Contents is not null && !IsBoundedText(item.Contents, 128) || !keys.Add(item.Key))
+            if (item is null || !BoundedText.IsValid(item.Key, 16) || !BoundedText.IsValid(item.Kind, MaximumItemKindLength) ||
+                item.Quantity <= 0 || item.Contents is not null && !BoundedText.IsValid(item.Contents, 128) || !keys.Add(item.Key))
                 throw new ArgumentException("A will item is malformed.", nameof(Items));
         }
         foreach (var heir in Heirs)
         {
-            if (heir is null || !IsBoundedText(heir.Key, MaximumHeirKeyLength) || !IsBoundedText(heir.Name, 128) ||
-                heir.Relation is not null && !IsBoundedText(heir.Relation, 32) || !keys.Add(heir.Key))
+            if (heir is null || !BoundedText.IsValid(heir.Key, MaximumHeirKeyLength) || !BoundedText.IsValid(heir.Name, 128) ||
+                heir.Relation is not null && !BoundedText.IsValid(heir.Relation, 32) || !keys.Add(heir.Key))
                 throw new ArgumentException("A will heir is malformed.", nameof(Heirs));
         }
     }
-
-    private static bool IsBoundedText(string? value, int maximumLength) =>
-        !string.IsNullOrWhiteSpace(value) && value.Length <= maximumLength && !value.Any(char.IsControl);
 }
 
 /// <summary>

@@ -10,8 +10,8 @@ public sealed partial class HouseholdDepartureTests
     [InlineData(false)]
     public async Task DepartureAllowanceRespectsAStallHoldAddedAfterItsChoice(bool retainedChoice)
     {
-        const string seller = "founder:00000000000000000000000000000001";
-        const string actor = "founder:00000000000000000000000000000002";
+        const string seller = NormalPathWorld.Founder1;
+        const string actor = NormalPathWorld.Founder2;
         const string food = "000-departure-stall-food";
         var state = await PaidMarketWorld.StateAsync();
         var household = PaidMarketWorld.HouseholdOf(state, actor);

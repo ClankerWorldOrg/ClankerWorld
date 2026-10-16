@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Kernel;
@@ -265,7 +266,7 @@ public sealed class FieldReturnsToGrassTests
             Fields = new[]
             {
                 new FarmFieldState(idle, household, FarmFieldStage.Harvested, "grain", 0, 1, Tended: true, Cycle: 1,
-                    ReplantingReservationId: "grass-test:replant", LastWorkedTick: tick),
+                    ReplantingReservationId: Identity.Parse("grass-test:replant"), LastWorkedTick: tick),
                 new FarmFieldState(worked, household, FarmFieldStage.Prepared, LastWorkedTick: tick),
             }.OrderBy(field => field.Position.Y).ThenBy(field => field.Position.X).ToArray(),
         };

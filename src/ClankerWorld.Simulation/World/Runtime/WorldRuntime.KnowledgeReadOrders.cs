@@ -14,7 +14,11 @@ public sealed partial class WorldRuntime
         text = text.Trim();
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         if (text.Equals("read", StringComparison.OrdinalIgnoreCase))
-            return new("read_knowledge", "queued", 1, 0, "knowledge_reads", false);
+            return new OrderTask(new ReadKnowledgeOrderDefinition(),
+    "queued",
+    1,
+    0,
+    "knowledge_reads", false);
         if (!text.StartsWith("read ", StringComparison.OrdinalIgnoreCase)) return null;
         var subject = text[5..].Trim();
         if (subject.StartsWith("a ", StringComparison.OrdinalIgnoreCase)) subject = subject[2..];
@@ -38,8 +42,11 @@ public sealed partial class WorldRuntime
             target = matches[0].Id;
         }
         else if (kind is null) return null;
-        return new("read_knowledge", "queued", 1, 0, "knowledge_reads", false, TargetItemKind: kind)
-        { TargetKnowledgeArtifactId = target };
+        return new OrderTask(new ReadKnowledgeOrderDefinition(TargetItemKind: kind, TargetKnowledgeArtifactId: target),
+    "queued",
+    1,
+    0,
+    "knowledge_reads", false);
     }
 
     private AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(OwnerQueuedInstruction instruction) =>
@@ -76,7 +83,7 @@ public sealed partial class WorldRuntime
     {
         if (KnowledgeReadOrderBlocker(instruction) is { } blocker)
         {
-            SetOrderStatus(instruction, "blocked", blocker);
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
         var artifact = KnowledgeReadOrderArtifact(instruction)!;
@@ -86,7 +93,7 @@ public sealed partial class WorldRuntime
         var learned = ReadIfKnowledgeArtifact(artifact.LotId, artifact.CreatorId, actor);
         if (learned <= 0)
         {
-            SetOrderStatus(instruction, "blocked", "The written item could not add any new knowledge.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, "The written item could not add any new knowledge.");
             return;
         }
         var sites = knowledge.Facts.Where(fact => fact.OwnerId == actor && !before.Contains(fact.Position) &&
@@ -99,11 +106,14 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         current = current with
         {
-            Task = current.Task! with
-            { TargetKnowledgeArtifactId = artifact.Id, KnowledgeReadCompletion = new(WorldTick, sites) { LearnedRecipes = recipes } }
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ReadKnowledgeOrderDefinition task => task with { TargetKnowledgeArtifactId = artifact.Id, KnowledgeReadCompletion = new(WorldTick, sites) { LearnedRecipes = recipes } },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
-        CreditOrderEffect(current, KnowledgeReadOrderEffectId(current), 1);
+        CreditOrderEffect(current, Identity.Parse(KnowledgeReadOrderEffectId(current)), 1);
     }
 
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)
@@ -115,7 +125,7 @@ public sealed partial class WorldRuntime
             string.Join(';', completion.LearnedRecipes), "read-order:");
     }
 
-    private static bool IsValidKnowledgeReadOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick) =>
+    internal static bool IsValidKnowledgeReadOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick) =>
         order.TargetItemKind is null or "field_record" or "field_map" or "book" &&
         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
         order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
