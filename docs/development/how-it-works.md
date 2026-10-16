@@ -562,6 +562,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Town project pickup and delivery retain the selected Town-owned lot, exact
+load, current custody and approved destination. One check verifies the same
+load against current project need, carrying room and both physical route legs
+before the native pickup or delivery writer runs.
 Town project donations retain the exact personal lot, contribution quantity,
 approved scope and destination. Travel keeps that selected contribution;
 arrival requires a fresh personal choice before the native donation transfer.

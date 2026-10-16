@@ -149,8 +149,14 @@ public sealed class TownProjectRuntimeTests
         Assert.Equal(28, scenario.World.Society.Inventory.GetLot(TownProjectScenario.WoodStock).Quantity);
         Assert.Equal(16, scenario.World.Society.Inventory.GetLot(TownProjectScenario.StoneStock).Quantity);
         scenario.Policy.Supply = true;
+        var loadPlans = new List<TownProjectLoadActionPlan>();
+        void ObserveLoads(WorldStepResult result) => loadPlans.AddRange(result.Decisions
+            .Where(decision => decision.ActionPlan is TownProjectLoadActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                (plan.Choice.Kind == TownProjectLoadKind.Deliver || result.Events.Any(item => item.Kind == "town_project_material_picked_up" &&
+                    item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal))))
+            .Select(decision => Assert.IsType<TownProjectLoadActionPlan>(decision.ActionPlan)));
         await scenario.UntilAsync(() => scenario.Project.Deliveries.Any(d =>
-            d.DeliveredTick is null && d.ReleasedTick is null), 80);
+            d.DeliveredTick is null && d.ReleasedTick is null), 80, ObserveLoads);
         var load = scenario.Project.Deliveries.First(d => d.DeliveredTick is null && d.ReleasedTick is null);
         var inHand = scenario.World.Society.Inventory.GetLot(load.LotId);
         Assert.Equal((TownBorderRules.FirstTownId, load.ContributorId, load.Quantity),
@@ -163,8 +169,18 @@ public sealed class TownProjectRuntimeTests
         scenario.Reload();
         Assert.Equal(carried, WorldRuntimeCodec.Encode(scenario.World.ExportState()));
 
-        await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 240);
+        await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 240, ObserveLoads);
         AssertPaidHall(scenario);
+        Assert.Contains(loadPlans, plan => plan.Choice.Kind == TownProjectLoadKind.Supply);
+        Assert.Contains(loadPlans, plan => plan.Choice.Kind == TownProjectLoadKind.Deliver);
+        Assert.All(loadPlans, plan =>
+        {
+            Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+            Assert.Contains(scenario.Project.Deliveries, delivery => delivery.ContributorId == plan.Actor &&
+                (plan.Choice.Kind == TownProjectLoadKind.Supply ? delivery.SourceLotId == plan.Choice.StockId : delivery.Id == plan.Choice.DeliveryId && delivery.LotId == plan.Choice.StockId) &&
+                delivery.Quantity == plan.Choice.Quantity && delivery.ItemKind == plan.ItemKind);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, scenario.World.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.True(scenario.Project.Deliveries.Select(d => d.ContributorId).Distinct(StringComparer.Ordinal).Count() > 1);
         Assert.All(scenario.Project.Deliveries, delivery =>
             Assert.Contains(delivery.SourceLotId, new[] { TownProjectScenario.WoodStock, TownProjectScenario.StoneStock }));
