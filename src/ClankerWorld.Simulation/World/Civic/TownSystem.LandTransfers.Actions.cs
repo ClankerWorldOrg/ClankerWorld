@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
 {
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandTransferAction(
     ITownWorld world, TownRuntimeState town, string actor, string action, string subject, string choice,
-            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null, LandTransferResponseActionPlan? responsePlan = null)
+            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownCouncilState council, LandTransferProposalActionPlan? proposalPlan = null, LandTransferResponseActionPlan? responsePlan = null, LandSaleCollectionActionPlan? collectionPlan = null)
     {
         (council, var hearings) = AdvanceTownLandTransfers(world, town with { Council = council }, council);
         var currentTown = town with { Council = council, LandRecords = hearings };
@@ -47,6 +47,14 @@ internal sealed partial class TownSystem
             { world.RefuseChoice(responsePlan, refusal); return (council, hearings); }
             request = hearings.Transfers.Single(item => item.Id == responsePlan.Request.Id);
         }
+        else if (LandSaleCollectionChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } collectionChoice)
+        {
+            collectionPlan ??= PlanLandSaleCollection(world, actor, collectionChoice);
+            if (collectionPlan is null) return (council, hearings);
+            if (CheckLandSaleCollection(world, collectionPlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(collectionPlan, refusal); return (council, hearings); }
+            request = hearings.Transfers.Single(item => item.Id == collectionPlan.Request.Id);
+        }
         else
         {
             var candidates = new List<CognitionCandidate>();
@@ -58,7 +66,7 @@ internal sealed partial class TownSystem
         switch (action)
         {
             case "land_transfer_collect_payment":
-                CollectLandSalePayment(world, actor, currentTown, request);
+                CollectLandSalePayment(world, actor, currentTown, request, collectionPlan);
                 break;
             case "land_transfer_meet":
                 world.MoveToward(actor, world.Agents[actor], CivicBoard(world, currentTown)!.Value, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);

@@ -543,6 +543,9 @@ shape overlaps the household's pending request, using native availability rules.
 Permission-transfer proposals retain the source terms and eligible beneficiary
 plots, then bind the admitted target, exact plot and goods price once.
 The shared native transfer validator checks those terms before publication.
+Accepted sale collection retains its household stock, exact pickup quantity
+and notice place. The same check verifies consent, usable goods, reserves and
+carrying room for that selected load before collection.
 Transfer read/consent/withdrawal choices retain their exact request terms
 and household party. Shared checks allow other responses to accumulate and
 check notice knowledge before the native response writer runs.

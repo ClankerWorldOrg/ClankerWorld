@@ -103,6 +103,15 @@ public sealed partial class WorldRuntime
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public IReadOnlyList<GridPoint> ReachCivicNoticePlace(string actor, GridPoint noticePlace) =>
             runtime.Reach(actor, noticePlace, ReachPurpose.CivicVisit, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable);
+        public IReadOnlyList<GridPoint> ReachLandSalePickup(string actor, PlannedEquipmentPickup pickup) =>
+            runtime.Reach(actor, pickup.Position, ReachPurpose.LandSalePayment, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable);
+        public IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity)
+        {
+            if (runtime.PickupPosition(actor, pickup.Position, pickup.InteractionRange) is not { } origin) return [];
+            var foot = runtime.ReachLeg(actor, origin, noticePlace, ReachPurpose.LandSalePayment, ResourceInteractionRange, 0, SwimmingPolicy.Never);
+            return foot.Count > 0 ? foot : runtime.ReachLeg(actor, origin, noticePlace, ReachPurpose.LandSalePayment,
+                ResourceInteractionRange, quantity, SwimmingPolicy.WhenCapable);
+        }
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
         public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);

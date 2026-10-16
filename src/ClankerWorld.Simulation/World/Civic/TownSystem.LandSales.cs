@@ -43,9 +43,10 @@ internal sealed partial class TownSystem
         if (household == request.TargetHouseholdId)
         {
             var carried = LandSaleCarriedQuantity(world, actor, price);
-            if (carried < price.Quantity && LandSaleStock(world, actor, town, price) is { } stock && LandSalePickupCapacity(world, actor, town, stock) > 0)
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_collect_payment", token),
-                    "Collect available household goods you may carry for this accepted land-use sale. " + LandTransferTerms(world, request), 175));
+            if (PlanLandSaleCollection(world, actor, new(town.Id, token)) is { } collection && CheckLandSaleCollection(world, collection).Allowed)
+                candidates.Add(new(collection.CandidateId,
+                    "Collect available household goods you may carry for this accepted land-use sale. " + LandTransferTerms(world, request), 175)
+                { ActionPlan = collection });
             if (carried >= price.Quantity && CanWalkToCivicBoard(world, actor, town))
                 candidates.Add(new(CivicAction(world, town.Id, "land_transfer_pay", token),
                     "Bring the exact personally owned goods to the notice place; pay the seller household only when an accepted seller adult is present, and transfer the recorded permission together. " + LandTransferTerms(world, request), 180));
@@ -63,7 +64,14 @@ internal sealed partial class TownSystem
         if (town is null) return;
         var candidates = new List<CognitionCandidate>();
         AddTownLandTransferCandidates(world, candidates, actor, town);
-        if (!candidates.Any(item => item.Id == candidate)) return;
+        var offered = candidates.SingleOrDefault(item => item.Id == candidate);
+        if (offered is null) return;
+        if (offered.ActionPlan is LandSaleCollectionActionPlan collection)
+        {
+            if (!world.IsWithinInteractionRange(world.Agents[actor].Position, collection.Pickup.Position, collection.Pickup.InteractionRange))
+                world.MoveToward(actor, world.Agents[actor], collection.Pickup.Position, "land_sale", collection.Pickup.InteractionRange);
+            return;
+        }
         var request = town.LandRecords.Transfers.Single(item => item.Status == "pending" && LandTransferActionToken(item) == parts[3]);
         var lot = parts[2] == "land_transfer_collect_payment" ? LandSaleStock(world, actor, town, request.Price!) : null;
         var destination = lot is not null ? world.HouseholdStockPosition(lot) : CivicBoard(world, town);
@@ -72,23 +80,20 @@ internal sealed partial class TownSystem
             world.MoveToward(actor, world.Agents[actor], position, "land_sale", range);
     }
 
-    internal void CollectLandSalePayment(ITownWorld world, string actor, TownRuntimeState town, TownLandTransferRequest request)
+    internal void CollectLandSalePayment(ITownWorld world, string actor, TownRuntimeState town, TownLandTransferRequest request,
+        LandSaleCollectionActionPlan? plan = null)
     {
-        var price = request.Price!;
-        var missing = price.Quantity - LandSaleCarriedQuantity(world, actor, price);
-        if (missing <= 0 || LandSaleStock(world, actor, town, price) is not { } lot) return;
-        var position = world.HouseholdStockPosition(lot);
-        var range = WorldRuntime.CivicSharedRules.HouseholdStockInteractionRange(lot);
-        if (!world.IsWithinInteractionRange(world.Agents[actor].Position, position, range))
+        plan ??= PlanLandSaleCollection(world, actor, new(town.Id, LandTransferActionToken(request)));
+        if (plan is null) return;
+        if (CheckLandSaleCollection(world, plan, town).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        var pickup = plan.Pickup;
+        if (!world.IsWithinInteractionRange(world.Agents[actor].Position, pickup.Position, pickup.InteractionRange))
         {
-            world.MoveToward(actor, world.Agents[actor], position, "land_sale_payment", range);
+            world.MoveToward(actor, world.Agents[actor], pickup.Position, "land_sale_payment", pickup.InteractionRange);
             return;
         }
-        var quantity = Math.Min(missing, Math.Min(LandSalePickupCapacity(world, actor, town, lot), world.MarketSurplus(actor, lot)));
-        if (lot.ItemKind == "food") quantity = Math.Min(quantity, SharedFoodCollectionAllowance(world, actor));
-        if (quantity <= 0) return;
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"land-sale-collect:{world.WorldTick}:{actor}:{request.Id}",
-            lot.OwnerId, actor, lot.Id, quantity, "land_sale_payment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            pickup.OwnerId, actor, pickup.StockId, plan.Quantity, "land_sale_payment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
     }
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) SettleLandSale(ITownWorld world, TownRuntimeState town,

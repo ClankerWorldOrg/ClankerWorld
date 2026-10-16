@@ -37,6 +37,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (LandSaleCollectionChoice.Decode(candidate.Id) is { } collectionChoice)
+            {
+                if ((candidate.ActionPlan as LandSaleCollectionActionPlan ?? PlanLandSaleCollection(world, actor, collectionChoice)) is { } collection &&
+                    CheckLandSaleCollection(world, collection).Allowed)
+                    candidates[index] = candidate with { ActionPlan = collection };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (LandTransferResponseChoice.Decode(candidate.Id) is { } transferResponseChoice)
             {
                 if ((candidate.ActionPlan as LandTransferResponseActionPlan ?? PlanLandTransferResponse(world, actor, transferResponseChoice)) is { } transferResponse &&
