@@ -18,6 +18,7 @@ public partial class Main
         var previousPairingOrigin = pendingPairingOrigin;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
+        var previousLocalStarting = localServerStarting;
         var registrationPath = ProjectSettings.GlobalizePath("user://owner-device-registration.json");
         var previousRegistrationFile = File.Exists(registrationPath) ? File.ReadAllBytes(registrationPath) : null;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -61,7 +62,19 @@ public partial class Main
                 ShowMainMenu();
                 await OpenMainMenuConnectionAsync();
                 var reconnects = Requests(OwnerPairingEndpoints.OwnerReconnect);
-                await PollPairingAsync();
+                localServerStarting = true;
+                RefreshMainMenuAvailability();
+                host.ActivationReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                host.ReleaseActivation = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                var activating = PollPairingAsync();
+                await host.ActivationReceived.Task.WaitAsync(TimeSpan.FromSeconds(3));
+                if (activating.IsCompleted || registration is not null || mainMenuConnectButton.Visible ||
+                    mainMenuStatus.Text != "Starting your world server…" || !mainMenuContinueButton.Disabled ||
+                    !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled)
+                    throw new InvalidOperationException("Local startup must keep waiting through the signed activation reply.");
+                host.ReleaseActivation.TrySetResult();
+                await activating;
+                CompleteLocalServerStartup();
                 if (loseReply)
                 {
                     if (registration is not null || pendingPairing is null || !pauseMenuPanel.Visible)
@@ -69,6 +82,16 @@ public partial class Main
                     await PollPairingAsync();
                 }
                 AssertMenu();
+                // A saved connection still cannot enter a world while its local server starts.
+                localServerStarting = true;
+                RefreshMainMenuAvailability();
+                if (!mainMenuContinueButton.Disabled || !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled ||
+                    mainMenuConnectButton.Visible || mainMenuStatus.Text != "Starting your world server…")
+                    throw new InvalidOperationException("Local startup must disable world choices even with a saved connection.");
+                CompleteLocalServerStartup();
+                AssertMenu();
+                if (mainMenuStatus.Visible)
+                    throw new InvalidOperationException("Successful local startup must clear its wait message.");
                 if (Requests(OwnerPairingEndpoints.OwnerReconnect) != reconnects)
                     throw new InvalidOperationException("Pairing must wait for Continue before requesting the world, including after recovery.");
                 mainMenuSettingsButton.EmitSignal(BaseButton.SignalName.Pressed);
@@ -108,6 +131,8 @@ public partial class Main
         }
         finally
         {
+            host.ReleaseActivation?.TrySetResult();
+            localServerStarting = previousLocalStarting;
             pendingPairing = previousPendingPairing;
             pendingPairingOrigin = previousPairingOrigin;
             registration = previousRegistration;
