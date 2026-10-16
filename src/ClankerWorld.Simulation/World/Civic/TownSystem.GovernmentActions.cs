@@ -7,7 +7,6 @@ internal sealed partial class TownSystem
     internal static void AddTownGovernmentCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
         var government = town.Government!;
-        var history = CivicHistory(town);
         // Each choice costs prompt space on every model call, so protected proposals are
         // made at the notice place, like admission requests.
         foreach (var target in TownArrangementRules.Supported)
@@ -44,12 +43,11 @@ internal sealed partial class TownSystem
         foreach (var office in government.Offices)
             OfferGovernmentOffice(world, candidates, actor, town, GovernmentOfficeKind.Resign, office.Mandates, "",
                 $"Resign only your mandate for {TownArrangementRules.MandateLabel(office.Mandates)} in {town.Name}. Any separate mandate continues.", 198);
-        if (government.Contest is { Stage: "voting", RoundDeadlineTick: { } closes } contest && contest.Voters.Contains(actor, StringComparer.Ordinal) &&
-            history.Knows(actor, TownGovernmentRules.RoundToken(contest)))
+        if (government.Contest is { RoundDeadlineTick: { } closes } contest)
             foreach (var id in contest.Candidates)
-                candidates.Add(new(CivicAction(world, town.Id, "mayor_vote", TownGovernmentRules.RoundToken(contest), id),
+                OfferMayoralBallot(world, candidates, actor, town, contest, id,
                     $"Submit or revise your mayoral ballot for {world.Society.GetAgent(id).Name} in {town.Name}, for {TownArrangementRules.MandateLabel(contest.Mandates)}. " +
-                    $"Round {contest.Round} closes on world day {CivicDayNumber(world, closes)}. A tie requires another vote, never a draw.", 167));
+                    $"Round {contest.Round} closes on world day {CivicDayNumber(world, closes)}. A tie requires another vote, never a draw.", 167);
     }
 
     internal static string NonLandExtensionToken(TownOffice office) => NonLandToken(office.Mandates + "|" + office.ElectionId);

@@ -521,6 +521,9 @@ voting progress in the native writer.
 Personal office choices retain the selected consent, mandate or incumbent
 term. Additional duties retain their exact proposal and use the existing
 current-term consent check before the native government writer runs.
+Mayoral ballots retain their exact contest round, window, electorate and
+resolved candidate. The same check allows other ballots to accumulate and
+refuses a changed round before the native mayoral vote writer runs.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
