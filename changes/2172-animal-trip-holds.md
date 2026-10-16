@@ -1,0 +1,1 @@
+- Animal supply trips can use their own held load for the retained work or delivery step. Releasing the trip removes that access while keeping the remaining goods in place.

@@ -1,0 +1,1 @@
+- At 1280×720 and 1920×1080, inspect ground with many different goods, such as a tile where an agent unloaded several cart loads; check that the card stays inside the window, the mouse wheel and keyboard reach the last goods row, Close stays visible, and an empty tile makes the card short again. [#1875](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1875)
