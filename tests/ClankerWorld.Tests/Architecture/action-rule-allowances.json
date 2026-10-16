@@ -12,9 +12,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs": [
-    "world.Society.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
     "person.FullnessBasisPoints \u003E= 6_500"
   ],

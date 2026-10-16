@@ -434,6 +434,15 @@ public sealed partial class WorldRuntime
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
 
+        if (selected.IsBuilding &&
+            worldContent.BuildingDefinitions.TryGetValue(selected.DefinitionId, out var workBuilding) &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, workBuilding))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "This building has no reachable inputs for its work."));
+            return;
+        }
+
         if (state.Project is { Stage: not ("completed" or "cancelled") } existing &&
             TownConstructionCandidateIds.TryParse(existing.CandidateId, out var current) &&
             current.IsBuilding == selected.IsBuilding && current.DefinitionId == selected.DefinitionId)
@@ -479,6 +488,13 @@ public sealed partial class WorldRuntime
         }
 
         var definitionId = selected.DefinitionId;
+        if (selected.IsBuilding &&
+            worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } shop &&
+            !TownHasRoomForSharedShop(agentId, HouseholdBuildingKind(shop)))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "town_shop_limit"));
+            return;
+        }
         // Two members can choose in the same tick; the household still plans one of each kind.
         if (selected.IsBuilding &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } planned &&
@@ -561,6 +577,13 @@ public sealed partial class WorldRuntime
                 SetProject(agentId, project with { Stage = "cancelled", Blocker = "Only the household holding a Farmhouse builds a Silo." });
                 return;
             }
+        }
+        if (building is not null &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, building))
+        {
+            SetProject(agentId, project with { Stage = "blocked", Blocker = "This building has no reachable inputs for its work." });
+            return;
         }
         if (building?.Tags.Contains("warehouse", StringComparer.Ordinal) == true &&
             (TownForResident(agentId) is not { } townId ||

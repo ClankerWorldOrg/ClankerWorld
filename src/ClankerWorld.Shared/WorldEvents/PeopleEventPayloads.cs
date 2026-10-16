@@ -418,6 +418,15 @@ public sealed record ContinuityPlanProceededEventPayload(string? ActorId) : Worl
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ContinuityPartnershipFormedEventPayload(string? ActorId, [property: JsonRequired] string PartnerId) : WorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string Kind => "continuity_partnership_formed";
+    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}|{PartnerId}";
+    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PartnerId];
+    [JsonIgnore] public override bool FieldsAreValid => !string.IsNullOrWhiteSpace(PartnerId) && PartnerId != ActorId;
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ContinuityRuleOffEventPayload(string? ActorId, [property: JsonRequired] int EligibleCouples, [property: JsonRequired] int Threshold) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "continuity_rule_off";

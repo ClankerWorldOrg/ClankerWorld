@@ -1,0 +1,2 @@
+- Non-land findings and reopening retain their case material, judge, people and cited grounds through shared native checks.
+- Adjudication uses shared bounded identity/text checks and preserves native assessment tokens and notice allocation.

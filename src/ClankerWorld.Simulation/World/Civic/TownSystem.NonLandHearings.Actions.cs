@@ -32,7 +32,7 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownNonLandHearingState NonLandHearings) ApplyTownNonLandAction(ITownWorld world, TownRuntimeState town,
         string actor, string action, string subject, string choice, CognitionNonLandChoice? payload,
-        TownCouncilState council, TownGovernmentState government, NonLandFilingActionPlan? filingPlan = null)
+        TownCouncilState council, TownGovernmentState government, NonLandFilingActionPlan? filingPlan = null, NonLandEvidenceActionPlan? evidencePlan = null, NonLandJudgeActionPlan? judgePlan = null, NonLandAdjudicationActionPlan? adjudicationPlan = null, NonLandAgreementActionPlan? agreementPlan = null)
     {
         (council, var state) = AdvanceTownNonLand(world, town, council, government);
         town = town with { Council = council, Government = government, NonLandHearings = state };
@@ -44,22 +44,88 @@ internal sealed partial class TownSystem
                 return (council, state);
             }
         }
+        else if (evidencePlan is not null)
+        {
+            if (CheckNonLandEvidence(world, evidencePlan, town).Refusal is { } refusal)
+            {
+                world.RefuseChoice(evidencePlan, refusal);
+                return (council, state);
+            }
+        }
+        else if (judgePlan is not null)
+        {
+            if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
+            {
+                world.RefuseChoice(judgePlan, refusal);
+                return (council, state);
+            }
+        }
+        else if (adjudicationPlan is not null)
+        {
+            if (CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal is { } refusal)
+            {
+                world.RefuseChoice(adjudicationPlan, refusal);
+                return (council, state);
+            }
+        }
+        else if (agreementPlan is not null)
+        {
+            if (CheckNonLandAgreement(world, agreementPlan, town).Refusal is { } refusal)
+            {
+                world.RefuseChoice(agreementPlan, refusal);
+                return (council, state);
+            }
+        }
         else
         {
-            var candidates = new List<CognitionCandidate>();
-            AddTownNonLandCandidates(world, candidates, actor, town);
-            if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
-                throw new InvalidOperationException("This legal choice no longer has current authority or informed eligibility.");
-            if (NonLandFilingChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } selected &&
-                PlanNonLandFiling(world, actor, selected) is { } planned)
+            var selectedId = new NonLandEvidenceChoice(town.Id, action, subject, choice).Encode();
+            if (NonLandEvidenceChoice.Decode(selectedId) is { } selectedEvidence && PlanNonLandEvidence(world, actor, selectedEvidence) is { } plannedEvidence)
             {
-                filingPlan = BindNonLandFiling(planned, payload);
+                evidencePlan = BindNonLandEvidence(plannedEvidence, payload);
+                if (CheckNonLandEvidence(world, evidencePlan, town).Refusal is { } refusal)
+                {
+                    world.RefuseChoice(evidencePlan, refusal);
+                    return (council, state);
+                }
+            }
+            if (NonLandJudgeChoice.Decode(selectedId) is { } selectedJudge && PlanNonLandJudge(world, actor, selectedJudge) is { } plannedJudge)
+            {
+                judgePlan = plannedJudge;
+                if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
+                {
+                    world.RefuseChoice(judgePlan, refusal);
+                    return (council, state);
+                }
+            }
+            if (NonLandAdjudicationChoice.Decode(selectedId) is { } selectedAdjudication && PlanNonLandAdjudication(world, actor, selectedAdjudication) is { } plannedAdjudication)
+            {
+                adjudicationPlan = BindNonLandAdjudication(plannedAdjudication, payload);
+                if (CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal is { } refusal)
+                {
+                    world.RefuseChoice(adjudicationPlan, refusal);
+                    return (council, state);
+                }
+            }
+            if (NonLandAgreementChoice.Decode(selectedId) is { } selectedAgreement && PlanNonLandAgreement(world, actor, selectedAgreement) is { } plannedAgreement)
+            {
+                agreementPlan = BindNonLandAgreement(plannedAgreement, payload, CivicDay(world));
+                if (CheckNonLandAgreement(world, agreementPlan, town).Refusal is { } refusal)
+                {
+                    world.RefuseChoice(agreementPlan, refusal);
+                    return (council, state);
+                }
+            }
+            if (NonLandFilingChoice.Decode(selectedId) is { } selectedFiling && PlanNonLandFiling(world, actor, selectedFiling) is { } plannedFiling)
+            {
+                filingPlan = BindNonLandFiling(plannedFiling, payload);
                 if (CheckNonLandFiling(world, filingPlan, town).Refusal is { } refusal)
                 {
                     world.RefuseChoice(filingPlan, refusal);
                     return (council, state);
                 }
             }
+            if (filingPlan is null && evidencePlan is null && judgePlan is null && adjudicationPlan is null && agreementPlan is null)
+                throw new InvalidOperationException("A non-land action has no registered plan.");
         }
         if (action is "law_case_file" or "law_case_file_affected" or "law_case_file_town" or "law_case_propose_town")
         {
@@ -82,11 +148,11 @@ internal sealed partial class TownSystem
         }
         if (action == "remedy_renegotiate")
         {
-            var agreement = state.Agreements.Single(agreement => agreement.Id == subject && agreement.TermsHash == choice);
-            var oldOffer = state.Offers.Single(offer => offer.Id == agreement.OfferId);
-            var terms = NonLandTerms(world, town, actor, oldOffer.CaseId, payload, agreement.Id);
+            var agreement = agreementPlan!.Agreement!;
+            var oldOffer = agreementPlan.Offer!;
+            var terms = PublishedNonLandAgreementTerms(agreementPlan, state.Sequence);
             state = TownRemedyRules.Offer(state, oldOffer.CaseId, oldOffer.FindingId, actor, terms,
-                payload?.CompletionTicks ?? checked(3L * CivicDay(world)), NonLandText(payload?.Statement), world.WorldTick, CivicDay(world),
+                agreementPlan.CompletionTicks, agreementPlan.Reason!, world.WorldTick, CivicDay(world),
                 TownCouncilRules.NextNoticeId(council), true, replacesAgreementId: agreement.Id);
             council = PostNonLandOffer(world, council, state.Offers[^1]);
             NonLandEvent(world, "offer", town, state.Offers[^1].Id, actor);
@@ -94,102 +160,90 @@ internal sealed partial class TownSystem
         }
         if (action is "remedy_read" or "remedy_accept" or "remedy_decline" or "remedy_counter")
         {
-            var offer = state.Offers.Single(offer => NonLandOfferToken(offer) == subject);
+            var offer = agreementPlan!.Offer!;
             if (action == "remedy_read") council = TownCouncilRules.LearnNotice(council, actor, offer.NoticeId, world.WorldTick);
             else if (action == "remedy_counter")
             {
-                var terms = NonLandTerms(world, town, actor, offer.CaseId, payload);
-                var text = NonLandText(payload?.Statement);
+                var terms = PublishedNonLandAgreementTerms(agreementPlan, state.Sequence);
+                var text = agreementPlan.Reason!;
                 state = TownRemedyRules.Respond(state, offer.Id, offer.Revision, actor, "counter", text, world.WorldTick, CivicDay(world), council.Knowledge,
                     NonLandRemedyDurationFeasible(world, town, offer.Terms.Where(term => term.ContributorId == actor).ToArray(), offer.CompletionTicks));
-                state = TownRemedyRules.Offer(state, offer.CaseId, offer.FindingId, actor, terms, payload?.CompletionTicks ?? checked(3L * CivicDay(world)),
+                state = TownRemedyRules.Offer(state, offer.CaseId, offer.FindingId, actor, terms, agreementPlan.CompletionTicks,
                     text, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), true, replacesOfferId: offer.Id);
                 council = PostNonLandOffer(world, council, state.Offers[^1]);
             }
             else state = TownRemedyRules.Respond(state, offer.Id, offer.Revision, actor, action == "remedy_accept" ? "accept" : "decline",
-                payload?.Statement, world.WorldTick, CivicDay(world), council.Knowledge,
+                agreementPlan.Reason, world.WorldTick, CivicDay(world), council.Knowledge,
                 NonLandRemedyCapacityFeasible(world, offer.Terms) &&
                 NonLandRemedyDurationFeasible(world, town, offer.Terms.Where(term => term.ContributorId == actor).ToArray(), offer.CompletionTicks));
             NonLandEvent(world, "offer_response", town, offer.Id, actor);
             return (council, state);
         }
-        var item = state.Cases.Single(item => NonLandActionToken(item) == subject || item.Contest is { } contest &&
+        var item = (evidencePlan?.CaseId ?? judgePlan?.CaseId ?? adjudicationPlan?.Case.Id ?? agreementPlan?.Case.Id) is { } selectedCase ? state.Cases.Single(item => item.Id == selectedCase) : state.Cases.Single(item => NonLandActionToken(item) == subject || item.Contest is { } contest &&
             NonLandActionToken(item) + "#" + TownCaseJudgeRules.RoundToken(contest) == subject);
-        if (payload?.EvidenceIds is { } references)
-            payload = payload with
-            {
-                EvidenceIds = references.Select(reference => item.Evidence.FirstOrDefault(evidence =>
-                evidence.Id == reference || CivicAgentToken(evidence.Id) == reference)?.Id ?? reference).ToArray()
-            };
         var revision = NonLandRevision(item);
         var parties = NonLandParties(world, town, item);
         switch (action)
         {
             case "law_case_inspect":
                 council = TownCouncilRules.LearnNotice(council, actor, revision.NoticeId, world.WorldTick);
-                foreach (var evidence in NonLandKnownEvidence(world, town, item, actor))
+                foreach (var evidence in evidencePlan!.Evidence)
                 {
                     state = AddNonLandEvidence(world, state, state.Cases.Single(current => current.Id == item.Id), evidence, actor, council);
                 }
-                var law = government.Laws.Single(law => law.Id == item.Allegation.LawId);
-                var version = law.Versions.Single(version => version.Version == item.Allegation.LawVersion);
-                var lawText = ("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule));
-                state = AddNonLandEvidence(world, state, state.Cases.Single(current => current.Id == item.Id),
-                    new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor, LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
-                        actor, world.WorldTick, BoundedText.Excerpt(lawText, 256)), actor, council);
+                state = AddNonLandEvidence(world, state, state.Cases.Single(current => current.Id == item.Id), evidencePlan.LawEvidence!, actor, council);
                 state = TownNonLandRules.Inspect(state, item.Id, revision.Number, actor, world.WorldTick);
                 state = AcquireNonLandInspectedSources(world, town with { NonLandHearings = state, Council = council },
                     state.Cases.Single(current => current.Id == item.Id), actor);
                 break;
             case "law_case_evidence":
-                foreach (var evidence in NonLandKnownEvidence(world, town, item, actor))
+                foreach (var evidence in evidencePlan!.Evidence)
                     state = AddNonLandEvidence(world, state, state.Cases.Single(current => current.Id == item.Id), evidence, actor, council);
                 break;
             case "law_case_advise":
             case "law_case_statement":
-                var text = NonLandText(payload?.Statement);
+                var text = evidencePlan!.Statement!;
                 state = AddNonLandEvidence(world, state, item,
                     new("statement:" + NonLandToken(actor + "|" + text), revision.Number, "allegation", "statement", actor,
                         null, null, world.WorldTick, actor, world.WorldTick, text), actor, council);
                 break;
             case "law_case_answer":
             case "law_case_waive":
-                var party = parties.Single(party => CivicAgentToken(party.Id) == choice);
+                var party = evidencePlan!.Party!;
                 state = TownNonLandRules.Respond(state, item.Id, revision.Number, actor, party.SubjectId, party.Id,
-                    action == "law_case_answer" ? "answer" : "waive", action == "law_case_answer" ? NonLandText(payload?.Statement) : "I choose not to respond. This admits nothing.", world.WorldTick, council.Knowledge, parties);
+                    action == "law_case_answer" ? "answer" : "waive", action == "law_case_answer" ? evidencePlan.Statement! : NonLandWaiverStatement, world.WorldTick, council.Knowledge, parties);
                 break;
             case "law_case_judge_register": state = TownCaseJudgeRules.Register(state, item.Id, actor, TownAdults(world, town), LandHearingHouseholds(world), world.WorldTick, parties); break;
             case "law_case_judge_withdraw": state = TownCaseJudgeRules.Withdraw(state, item.Id, actor, world.WorldTick); break;
             case "law_case_judge_resign": state = TownCaseJudgeRules.Resign(state, item.Id, actor, world.WorldTick); break;
-            case "law_case_judge_vote": state = TownCaseJudgeRules.Vote(state, item.Id, TownCaseJudgeRules.RoundToken(item.Contest!), actor, ResolveCivicAgentToken(world, choice), world.WorldTick); break;
+            case "law_case_judge_vote": state = TownCaseJudgeRules.Vote(state, item.Id, TownCaseJudgeRules.RoundToken(judgePlan!.Contest!), actor, judgePlan.Candidate!, world.WorldTick); break;
             case "law_case_find":
-                state = TownNonLandRules.Rule(state, item.Id, revision.Number, item.Judge!, world.WorldTick,
+                state = TownNonLandRules.Rule(state, adjudicationPlan!.Case.Id, revision.Number, adjudicationPlan.Judge!, world.WorldTick,
                     choice == "unsupported" ? "unsupported" : "supported", choice == "unsupported" ? "none" : choice,
-                    payload?.EvidenceIds ?? [], NonLandText(payload?.Statement), NonLandText(payload?.Uncertainty), parties,
+                    adjudicationPlan.EvidenceIds ?? [], adjudicationPlan.Reasons!, adjudicationPlan.Uncertainty!, adjudicationPlan.Parties,
                     item.Judge is { } judge && NonLandJudgeValid(world, town, item, judge),
                     crediblePriorNotice: HasPriorLawNotice(town, item.Allegation, item.Allegation.SubjectId));
                 council = TownCouncilRules.PostNotice(council, "law_case", state.Cases.Single(current => current.Id == item.Id).Findings[^1].Id,
                     "A reasoned civil finding was recorded: " + choice + ". This finding changes no physical facts, stock, membership or office.", world.WorldTick);
                 break;
             case "law_case_reopen":
-                state = TownNonLandRules.RequestReopen(state, item.Id, actor, choice, payload?.EvidenceIds ?? [], NonLandText(payload?.Grounds ?? payload?.Statement), world.WorldTick);
+                state = TownNonLandRules.RequestReopen(state, adjudicationPlan!.Case.Id, actor, choice, adjudicationPlan.EvidenceIds ?? [], adjudicationPlan.Reasons!, world.WorldTick);
                 break;
             case "law_case_assess_reopen":
-                var request = item.ReopenRequests.Single(request => request.Status == "pending" &&
-                    (CivicAgentToken(request.Id + ":accept") == choice || CivicAgentToken(request.Id + ":reject") == choice));
-                var accept = CivicAgentToken(request.Id + ":accept") == choice;
-                state = TownNonLandRules.Reopen(state, item.Id, request.Id, item.Judge!, accept, NonLandText(payload?.Statement), parties, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), item.Judge is { } reopeningJudge && NonLandJudgeValid(world, town, item, reopeningJudge));
+                var request = adjudicationPlan!.Request!;
+                var accept = adjudicationPlan.Accept;
+                state = TownNonLandRules.Reopen(state, item.Id, request.Id, adjudicationPlan.Judge!, accept, adjudicationPlan.Reasons!, adjudicationPlan.Parties, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), item.Judge is { } reopeningJudge && NonLandJudgeValid(world, town, item, reopeningJudge));
                 if (accept) council = PostNonLandNotice(council, state.Cases.Single(current => current.Id == item.Id));
                 break;
             case "law_case_relay":
-                var recipient = ResolveCivicAgentToken(world, choice);
+                var recipient = evidencePlan!.Recipient!;
                 council = TownCouncilRules.LearnNotice(council, recipient, revision.NoticeId, world.WorldTick, actor);
-                state = TownNonLandRules.RelayRead(state, item.Id, revision.Number, actor, recipient, world.WorldTick);
+                state = TownNonLandRules.RelayRead(state, item.Id, revision.Number, actor, recipient, world.WorldTick, evidencePlan.SourceRead);
                 break;
             case "remedy_offer":
-                var proposedTerms = NonLandTerms(world, town, actor, item.Id, payload);
+                var proposedTerms = PublishedNonLandAgreementTerms(agreementPlan!, state.Sequence);
                 state = TownRemedyRules.Offer(state, item.Id, choice, actor, proposedTerms,
-                    payload?.CompletionTicks ?? checked(3L * CivicDay(world)), NonLandText(payload?.Statement), world.WorldTick, CivicDay(world),
+                    agreementPlan!.CompletionTicks, agreementPlan.Reason!, world.WorldTick, CivicDay(world),
                     TownCouncilRules.NextNoticeId(council), true);
                 council = PostNonLandOffer(world, council, state.Offers[^1]);
                 break;
@@ -210,17 +264,28 @@ internal sealed partial class TownSystem
         return (council, state);
     }
 
+    private static TownRemedyTerm[] PublishedNonLandAgreementTerms(NonLandAgreementActionPlan plan, long sequence) =>
+        plan.Terms!.Select((term, index) => term with { Id = TownRecordIds.RemedyTerm(plan.Case.Id, sequence, index) }).ToArray();
+
+    internal static NonLandAgreementReferences CaptureNonLandAgreementReferences(ITownWorld world) => new(
+        world.Society.Agents.Select(person => person.Id).ToArray(),
+        world.Society.Agents.Select(person => person.Id).Concat(world.Society.Households.Select(household => household.Id)).Concat(world.Towns.Select(town => town.Id)).ToArray(),
+        world.Society.Inventory.Lots.Select(lot => lot.Id).Concat(world.WorldSimulation.Buildings.Select(building => building.InstanceId)).ToArray());
+
     internal TownRemedyTerm[] NonLandTerms(ITownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonLandChoice? payload, string? replacingAgreementId = null)
     {
-        if (payload?.Terms is not { Count: > 0 } terms) throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
-        string? PhysicalReference(string? reference) => reference is null ? null : world.Society.Inventory.Lots.Select(lot => lot.Id).Concat(world.WorldSimulation.Buildings.Select(building => building.InstanceId))
-                .FirstOrDefault(id => id == reference || CivicAgentToken(id) == reference) ?? reference;
-        string BeneficiaryReference(string reference) => world.Society.Agents.Select(person => person.Id)
-            .Concat(world.Society.Households.Select(household => household.Id)).Concat(world.Towns.Select(item => item.Id))
-            .FirstOrDefault(id => id == reference || CivicAgentToken(id) == reference) ?? reference;
-        var result = terms.Select((term, index) => new TownRemedyTerm("term:" + NonLandToken(caseId + "|" + town.NonLandHearings.Sequence + "|" + index),
-            term.Kind, ResolveCivicAgentToken(world, term.ContributorId), term.BeneficiaryId is { } beneficiary ? BeneficiaryReference(beneficiary) : null,
-            term.ItemKind, term.Quantity, PhysicalReference(term.TargetId))).ToArray();
+        var references = CaptureNonLandAgreementReferences(world);
+        var result = BindNonLandAgreementTerms(caseId, town.NonLandHearings.Sequence, references, payload);
+        if (result is not [_, ..])
+            throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
+        var duration = payload?.CompletionTicks ?? checked(3L * CivicDay(world));
+        if (NonLandTermsRefusal(world, town, actor, result, duration, replacingAgreementId) is { } refusal) throw new InvalidOperationException(refusal);
+        return result;
+    }
+
+    internal string? NonLandTermsRefusal(ITownWorld world, TownRuntimeState town, string actor, TownRemedyTerm[] result,
+        long duration, string? replacingAgreementId = null)
+    {
         if (replacingAgreementId is not null)
             town = town with
             {
@@ -228,11 +293,10 @@ internal sealed partial class TownSystem
                 { Agreements = town.NonLandHearings.Agreements.Where(agreement => agreement.Id != replacingAgreementId).ToArray() }
             };
         if (result.Any(term => !LandHearingAdult(world, term.ContributorId) || !NonLandRemedyFeasible(world, town, term) || !NonLandRemedyTermKnownTo(world, town, term, actor)))
-            throw new InvalidOperationException("A proposed contribution must be feasible, lawful and known without searching private property.");
-        var duration = payload.CompletionTicks ?? checked(3L * CivicDay(world));
+            return "A proposed contribution must be feasible, lawful and known without searching private property.";
         if (duration > long.MaxValue - world.WorldTick - CivicDay(world) || !NonLandRemedyDurationFeasible(world, town, result, duration))
-            throw new InvalidOperationException("The proposed deadline leaves insufficient time for the named physical work and travel.");
-        return result;
+            return "The proposed deadline leaves insufficient time for the named physical work and travel.";
+        return null;
     }
 
     internal static TownCouncilState PostNonLandOffer(ITownWorld world, TownCouncilState council, TownRemedyOffer offer) =>

@@ -359,6 +359,10 @@ public partial class Main
         StyleMenuChoice(menuSaveWorldButton);
         menuSaveWorldButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: false);
         menuActions.AddChild(menuSaveWorldButton);
+        menuLoadSaveButton.Text = "Load Save";
+        StyleMenuChoice(menuLoadSaveButton);
+        menuLoadSaveButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: true);
+        menuActions.AddChild(menuLoadSaveButton);
 
         settingsButton.Text = "Settings";
         StyleMenuChoice(settingsButton);

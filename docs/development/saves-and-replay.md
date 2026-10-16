@@ -11,6 +11,16 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Browsing saves from Load World
+
+The signed `POST /api/v1/owner/worlds/saves` read takes a catalog world ID and
+returns its saves, timeline position, calendar and world time. It does not
+activate or write that world. The client uses the same timeline, list and
+save-description controls as Save World. A changed world selection cancels the
+read and discards late replies. Loading first uses the existing world selection
+and manual-save load operations, preserving the current world and keeping the
+loaded world paused. No checkpoint format or branch-creation rules change.
+
 ## Stock holds
 
 World schema 132 introduced optional typed holds to inventory lots and matching
@@ -283,6 +293,19 @@ records a transition only if the flag changes, and preserves deadlines for
 couples still held by the procedure. Historical headcount events keep their
 original explanation. Eligible-couple transitions, rejected ticks and replay
 are checked with the current save format.
+
+World schema 138 extends continuity state with each held single adult's fixed
+partnering deadline, optional chosen partner and whether they said not yet.
+The single list is required,
+ordered by adult ID and empty while the rule is off. Loading refuses unknown
+adults or chosen partners, self choices, duplicate or unordered entries, and
+deadlines beyond two world days. Choices may become unavailable before the
+next maintenance check; pairing rechecks the same eligibility used by the
+continuity couple count. The typed `continuity_partnership_formed` event keeps
+both adults. Current-format reload, refused-tick rollback and paired exact-byte
+continuation preserve choices, deadlines and the resulting native partnership
+and family records. Earlier alpha saves are refused and preserved without
+migration. This version is provisional until merge.
 
 World schema 48 adds independent saved Town governance. It records the
 current council and fallback cause, term/retry schedules, personal full-term or
@@ -1307,7 +1330,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 137. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 138. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1873,6 +1896,12 @@ The cognition queue saves unresolved decision points. External HTTP tasks are
 not save authority. Pause or shutdown cancels them; a restored still-relevant
 decision may be retried and incur another attempt.
 
+Completed reply cohorts use ordinal saved queue identities: actor IDs for
+ordinary decisions and life-moment identities, conversation IDs for turns, and
+estate IDs for wills. Dictionary insertion and removal history cannot determine
+the order of accepted events. Live tasks and their request IDs remain transient;
+no extra ordering field or schema change is needed.
+
 The post-death will path is intentionally different: it freezes personally owned
 lot IDs/kinds/quantities and their original building storage in estate escrow.
 A cancellable final choice runs outside
@@ -2409,7 +2438,11 @@ resets it. Renaming still updates existing rows. The game displays this text
 without parsing event details. Event observations also carry the typed payload
 for fields the game uses directly, such as model status and weather. Diagnostic
 detail is not serialized in event observations. Descriptions remain derived
-and do not change checkpoint bytes.
+and do not change checkpoint bytes. `EventLogPolicy` classifies every accepted
+kind once for the server and game. Routine chores and stale automatic choices
+remain in the event stream and archive. Event Log refusal coalescing uses complete
+typed actor/subject references and the saved calendar's day boundary; no saved
+field, event payload or schema changes.
 
 ## Typed world events
 
