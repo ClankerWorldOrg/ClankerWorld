@@ -46,19 +46,19 @@ public sealed class NonLandJudgeHeldBallotTests
             NonLandRuntimeFixture.Wake(world, Voter, "hold-personal-case-ballot");
             for (var step = 0; step < 20 && !provider.Started.Task.IsCompleted; step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(result.Advanced);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Withdrawing))
                     await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Withdrawing);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Voter))
                 {
-                    var call = await provider.Entered.Reader.ReadAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                    var call = await ModelWorkHarness.For(world).WaitAsync(provider.Entered.Reader.ReadAsync().AsTask());
                     call.Proceed.TrySetResult(true);
-                    if (!await call.Held.Task.WaitAsync(CaseBallotDeadline)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Voter);
+                    if (!await ModelWorkHarness.For(world).WaitAsync(call.Held.Task)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Voter);
                 }
             }
             Assert.True(provider.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
-            Assert.False(world.ModelDecisionsFinished(Voter));
+            Assert.False(ModelWorkHarness.For(world).DecisionsFinished(Voter));
             var originalCase = Assert.Single(world.Towns[0].NonLandHearings.Cases);
             Assert.Equal("pending", originalCase.Status);
             var original = Assert.IsType<TownCaseJudgeContest>(originalCase.Contest);
@@ -74,7 +74,7 @@ public sealed class NonLandJudgeHeldBallotTests
             NonLandJudgeActionPlan? withdrawal = null;
             for (var step = 0; step < 10 && world.Towns[0].NonLandHearings.Cases[0].Contest!.Candidates.Contains(Withdrawing); step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(result.Advanced);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Withdrawing))
                     await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Withdrawing);
@@ -98,7 +98,7 @@ public sealed class NonLandJudgeHeldBallotTests
             Assert.Contains(Voter, current.Voters);
             Assert.Contains(Selected, current.Candidates);
             Assert.True(world.WorldTick < current.RoundDeadlineTick);
-            Assert.False(world.ModelDecisionsFinished(Voter));
+            Assert.False(ModelWorkHarness.For(world).DecisionsFinished(Voter));
             var rights = JsonSerializer.Serialize(world.HouseholdLandUseRights);
             var buildings = JsonSerializer.Serialize(world.WorldSimulation.Buildings);
 
@@ -107,7 +107,7 @@ public sealed class NonLandJudgeHeldBallotTests
             NonLandJudgeActionPlan? admitted = null;
             for (var step = 0; step < 10 && admitted is null; step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(result.Advanced);
                 foreach (var decision in result.Decisions.Where(decision => decision.AgentId == Voter &&
                     decision.ActionPlan is NonLandJudgeActionPlan { Choice.Kind: NonLandJudgeKind.Vote }))
@@ -140,8 +140,6 @@ public sealed class NonLandJudgeHeldBallotTests
         }
         finally { provider.Release(); }
     }
-
-    private static readonly TimeSpan CaseBallotDeadline = TimeSpan.FromSeconds(30);
 
     private sealed class CaseBallotCall
     {

@@ -9,97 +9,27 @@ namespace ClankerWorld.Server.Content;
 /// lifecycle. The wire format never accepts a client-supplied lock digest or
 /// activation tick; those are authoritative server outputs.
 /// </summary>
-public sealed record OwnerContentDependencyAction(
-    string PackageId,
-    string MinimumVersion,
-    string MaximumExclusiveVersion,
-    bool Optional);
 
-public sealed record OwnerContentDefinitionAction(
-    string Kind,
-    string LocalId,
-    string Version,
-    string DisplayName,
-    string PayloadDigest,
-    string? PayloadJson = null);
 
-public sealed record OwnerContentAssetReservationAction(
-    string AssetId,
-    string NormalizedDigest,
-    string DecodeProfile,
-    long DurableStorageBytes,
-    long DecodedCacheBytes,
-    long GpuBytes,
-    int RenderUnits);
 
-public sealed record OwnerContentPackageAction(
-    string PackageId,
-    string Version,
-    string PackageDigest,
-    IReadOnlyList<OwnerContentDependencyAction> Dependencies,
-    IReadOnlyList<OwnerContentDefinitionAction> Definitions,
-    IReadOnlyList<string> DeclaredCapabilities,
-    IReadOnlyList<OwnerContentAssetReservationAction>? Assets = null);
 
-public sealed record OwnerContentPackageIdAction(string PackageId);
 
-public sealed record OwnerContentRollbackAction(string PackageId, string Reason);
 
-public sealed record OwnerBuildingPlacementAction(
-    string InstanceId,
-    string DefinitionId,
-    int X,
-    int Y);
 
-public sealed record OwnerBuildingRemovalAction(
-    string InstanceId,
-    string? ExpectedTownId,
-    string? ExpectedHouseholdId,
-    string WorldId);
 
-public sealed record OwnerBuildingReassignmentAction(
-    string InstanceId,
-    string? ExpectedTownId,
-    string? ExpectedHouseholdId,
-    string? TargetTownId,
-    string? TargetHouseholdId,
-    string WorldId);
 
-public sealed record OwnerProductionStartAction(
-    string RecipeId,
-    string BuildingInstanceId,
-    string WorkerId);
 
-public sealed record OwnerContentPackageReceipt(
-    string Operation,
-    bool Applied,
-    string PackageId,
-    string Version,
-    string PackageDigest,
-    string Lifecycle,
-    string? LockDigest,
-    long? ValidationTick,
-    long? StagedTick,
-    long? ActivationTick,
-    string? Failure,
-    string? ManifestDigest = null)
-{
-    public static OwnerContentPackageReceipt From(
-        string operation,
-        ContentPackageRecord record) => new(
-            operation,
-            true,
-            record.Manifest.PackageId,
-            record.Manifest.Version.ToString(),
-            record.Manifest.PackageDigest,
-            record.Lifecycle.ToString().ToLowerInvariant(),
-            record.LockDigest,
-            record.ValidationTick,
-            record.StagedTick,
-            record.ActivationTick,
-            null,
-            record.ManifestDigest);
-}
+
+
+
+
+
+
+
+
+
+
+
 
 public static class OwnerContentBinding
 {

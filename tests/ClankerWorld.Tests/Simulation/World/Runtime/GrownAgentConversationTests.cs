@@ -172,7 +172,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
         public async Task Advance()
         {
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.False(world.Society.IsPaused);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
@@ -200,7 +200,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         world.Resume();
         while (world.Society.AgeAt(world.Society.GetAgent(child), world.WorldTick) < 15)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         world.Pause();
@@ -209,7 +209,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         for (var tick = 0; tick < 40 && (world.Agents.Single(person => person.AgentId == child).IdentityChoicePending ||
                  world.Society.GetAgent(child).NeedsName); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
@@ -224,17 +224,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task AwaitConversationRequestsAsync(WorldRuntime world)
     {
-        await WaitForRequests(world);
-        // The nonblocking host admits each completed task at the next tick.
-        // Include incidental identity/will work so paired hosts admit it together.
-        foreach (var name in new[] { "pendingConversationTurns", "pendingIdentityMoments", "pendingWills" })
-        {
-            var field = typeof(WorldRuntime).GetField(name,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
-            var pending = (System.Collections.IDictionary)field.GetValue(world)!;
-            await Task.WhenAll(pending.Values.Cast<object>().Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!))
-                .WaitAsync(TimeSpan.FromSeconds(30));
-        }
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class NativeConversationChoices(string actor, string partner, IAgentConversationProvider router)

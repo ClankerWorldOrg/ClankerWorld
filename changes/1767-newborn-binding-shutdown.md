@@ -1,0 +1,1 @@
+- Quitting after an interrupted newborn model setup saves the child's original key choice before shutdown. If setup still cannot be saved, the game stays open and paused for retry.

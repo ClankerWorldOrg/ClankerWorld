@@ -342,6 +342,7 @@ public partial class Main
         public TaskCompletionSource RenameReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         // When set, the host holds its rename reply until the check releases it.
         public TaskCompletionSource? ReleaseRename { get; set; }
+        public Func<string, JsonElement, HttpListenerResponse, Task<object?>>? ActionHandler { get; set; }
         public bool FailAgentPlacement { get; set; }
         public HttpStatusCode SubmissionStatus { get; set; } = HttpStatusCode.BadRequest;
         public Func<string, JsonElement, object>? PendingSubmissionReceipt { get; set; }
@@ -420,6 +421,12 @@ public partial class Main
             }
             object response;
             Requests.Enqueue(context.Request.Url!.AbsolutePath);
+            if (ActionHandler is { } handler &&
+                await handler(path, envelope, context.Response).ConfigureAwait(false) is { } handledResponse)
+            {
+                await WriteResponseAsync(context, handledResponse).ConfigureAwait(false);
+                return;
+            }
             switch (context.Request.Url!.AbsolutePath)
             {
                 case OwnerPairingEndpoints.OwnerInstructions:
