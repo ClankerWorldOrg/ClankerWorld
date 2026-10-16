@@ -70,12 +70,15 @@ public sealed partial class TownLandHearingRuntimeTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => replayProvider);
         Assert.Equal(before, WorldRuntimeCodec.Encode(replay.ExportState()));
         var evidencePlans = new List<LandHearingEvidenceActionPlan>();
+        var rulingPlans = new List<LandHearingRulingActionPlan>();
         for (var step = 0; step < Day * 2 && world.Towns[0].LandRecords.Cases[0].Status != "settled"; step++)
         {
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
             evidencePlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingEvidenceActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
                 .Select(decision => Assert.IsType<LandHearingEvidenceActionPlan>(decision.ActionPlan)));
+            rulingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is LandHearingRulingActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<LandHearingRulingActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
@@ -99,6 +102,14 @@ public sealed partial class TownLandHearingRuntimeTests
                 Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
         });
         var ruling = Assert.Single(settled.Rulings);
+        var rulingPlan = Assert.Single(rulingPlans);
+        Assert.True(rulingPlan.Bound);
+        Assert.Equal(rulingPlan.Choice, LandHearingRulingChoice.Decode(rulingPlan.CandidateId));
+        Assert.Equal(ruling.Judge, rulingPlan.Judge);
+        Assert.Equal(ruling.Outcome, rulingPlan.Outcome);
+        Assert.Equal(ruling.Reasons, rulingPlan.Reasons);
+        Assert.Equal(ruling.EvidenceIds, rulingPlan.EvidenceIds!.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(rulingPlan).Refusal!.Reason);
         Assert.Equal(1, ruling.Revision);
         Assert.Equal("confirm", ruling.Outcome.Kind);
         Assert.Equal(Judge, ruling.Judge.AgentId);

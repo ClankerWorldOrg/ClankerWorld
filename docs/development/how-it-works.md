@@ -565,6 +565,10 @@ candidate while allowing current ballots to accumulate or be revised.
 A withdrawn candidate or departed voter does not invalidate other selections;
 the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
+Ruling plans retain the noticed revision, judge, affected permissions and
+applications, cited material and bound outcome/reasons. Property rulings
+retain the actual building/goods snapshot. Shared native refusal validation
+checks those inputs before the original ruling and property writers publish.
 Before binding, household filing availability follows current affected plots;
 the original nearby suggestions do not restrict the exact reply selection.
 Filing plans are constructed only at the notice board.

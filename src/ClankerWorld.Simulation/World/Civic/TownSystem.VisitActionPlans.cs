@@ -37,6 +37,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (LandHearingRulingChoice.Decode(candidate.Id) is { } hearingRulingChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingRulingActionPlan ?? PlanLandHearingRuling(world, actor, hearingRulingChoice)) is { } hearingRuling &&
+                    CheckLandHearingRuling(world, hearingRuling).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingRuling };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (LandHearingJudgeChoice.Decode(candidate.Id) is { } hearingJudgeChoice)
             {
                 if ((candidate.ActionPlan as LandHearingJudgeActionPlan ?? PlanLandHearingJudge(world, actor, hearingJudgeChoice)) is { } hearingJudge &&
