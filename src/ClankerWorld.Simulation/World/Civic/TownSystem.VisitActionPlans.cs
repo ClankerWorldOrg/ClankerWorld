@@ -37,6 +37,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (NonLandAgreementChoice.Decode(candidate.Id) is { } nonLandAgreementChoice)
+            {
+                if ((candidate.ActionPlan as NonLandAgreementActionPlan ?? PlanNonLandAgreement(world, actor, nonLandAgreementChoice)) is { } nonLandAgreement &&
+                    CheckNonLandAgreement(world, nonLandAgreement).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandAgreement };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (NonLandAdjudicationChoice.Decode(candidate.Id) is { } nonLandAdjudicationChoice)
             {
                 if ((candidate.ActionPlan as NonLandAdjudicationActionPlan ?? PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice)) is { } nonLandAdjudication &&

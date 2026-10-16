@@ -107,8 +107,8 @@ internal sealed partial class TownSystem
                     OfferNonLandAdjudication(world, candidates, actor, town, item, "law_case_reopen", grounds, "Request reopening for " + grounds.Replace('_', ' ') + ". Supply actual evidence_ids and grounds; a claim alone changes no finding." + NonLandEvidenceChoices(world, town, item, actor), 184);
             if (adult && item.Findings.Count > 0 && item.Findings[^1] is { Result: "supported" } finding && NonLandReadCurrent(world, item, actor) &&
                 (isParty || finding.Judge.AgentId == actor && NonLandJudgeValid(world, town, item, finding.Judge)))
-                candidates.Add(new(CivicAction(world, town.Id, "remedy_offer", token, finding.Id),
-                    "Offer feasible named goods, repair or Town resource delivery in civic_nonviolent.terms, with reasons and optional completion_ticks (default three days after consent). Each contributing adult must personally agree. No stock is reserved and no work forced." + NonLandRemedyReferences(world, town, actor), 183));
+                OfferNonLandAgreement(world, candidates, actor, town, "remedy_offer", token, finding.Id,
+                    "Offer feasible named goods, repair or Town resource delivery in civic_nonviolent.terms, with reasons and optional completion_ticks (default three days after consent). Each contributing adult must personally agree. No stock is reserved and no work forced." + NonLandRemedyReferences(world, town, actor), 183);
             foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor && world.IsWithinInteractionRange(person.Position, actorState.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 if (NonLandReadCurrent(world, item, actor) && NonLandMayInspect(world, town, item, recipient.AgentId) && !NonLandReadCurrent(world, item, recipient.AgentId))
                     OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_relay", recipient.AgentId, "Relay the case material you actually read to " + world.Society.GetAgent(recipient.AgentId).Name + " nearby.", 181);
@@ -119,20 +119,20 @@ internal sealed partial class TownSystem
             var original = town.NonLandHearings.Offers.Single(offer => offer.Id == agreement.OfferId);
             var file = town.NonLandHearings.Cases.Single(item => item.Id == original.CaseId);
             if (NonLandReadCurrent(world, file, actor) && !town.NonLandHearings.Offers.Any(offer => offer.CaseId == file.Id && offer.Status == "pending"))
-                candidates.Add(new(CivicAction(world, town.Id, "remedy_renegotiate", agreement.Id, agreement.TermsHash),
-                    "Request a feasible change to your unfinished voluntary agreement via civic_nonviolent.terms. Prior work remains recorded; replacement terms require fresh consent. Inability is no new offense." + NonLandRemedyReferences(world, town, actor), 183));
+                OfferNonLandAgreement(world, candidates, actor, town, "remedy_renegotiate", agreement.Id, agreement.TermsHash,
+                    "Request a feasible change to your unfinished voluntary agreement via civic_nonviolent.terms. Prior work remains recorded; replacement terms require fresh consent. Inability is no new offense." + NonLandRemedyReferences(world, town, actor), 183);
         }
         foreach (var offer in town.NonLandHearings.Offers.Where(offer => offer.Status == "pending" && world.WorldTick < offer.ResponseDeadlineTick &&
                      offer.Terms.Any(term => term.ContributorId == actor)))
         {
             if (atBoard && !history.Known(actor).Contains(offer.NoticeId))
-                candidates.Add(new(CivicAction(world, town.Id, "remedy_read", NonLandOfferToken(offer)), "Read the actual voluntary offer: " + NonLandTermsText(offer.Terms) + ". " + NonLandOfferTiming(world, offer) + " Publication alone is not your awareness or consent.", 177));
+                OfferNonLandAgreement(world, candidates, actor, town, "remedy_read", NonLandOfferToken(offer), "", "Read the actual voluntary offer: " + NonLandTermsText(offer.Terms) + ". " + NonLandOfferTiming(world, offer) + " Publication alone is not your awareness or consent.", 177);
             if (!adult || !history.Known(actor).Contains(offer.NoticeId) || offer.Responses.Any(response => response.AgentId == actor && response.Kind == "accept")) continue;
             if (NonLandRemedyCapacityFeasible(world, offer.Terms) &&
                 NonLandRemedyDurationFeasible(world, town, offer.Terms.Where(term => term.ContributorId == actor).ToArray(), offer.CompletionTicks))
-                candidates.Add(new(CivicAction(world, town.Id, "remedy_accept", NonLandOfferToken(offer)), "Personally accept your exact contribution: " + NonLandTermsText(offer.Terms.Where(term => term.ContributorId == actor)) + ". " + NonLandOfferTiming(world, offer) + " This does not start work or reserve goods.", 165));
-            candidates.Add(new(CivicAction(world, town.Id, "remedy_decline", NonLandOfferToken(offer)), "Decline this voluntary offer. Declining creates no offense or automatic penalty.", 166));
-            candidates.Add(new(CivicAction(world, town.Id, "remedy_counter", NonLandOfferToken(offer)), "Counter with feasible named terms in civic_nonviolent.terms; everyone must read and consent to the new offer." + NonLandRemedyReferences(world, town, actor), 183));
+                OfferNonLandAgreement(world, candidates, actor, town, "remedy_accept", NonLandOfferToken(offer), "", "Personally accept your exact contribution: " + NonLandTermsText(offer.Terms.Where(term => term.ContributorId == actor)) + ". " + NonLandOfferTiming(world, offer) + " This does not start work or reserve goods.", 165);
+            OfferNonLandAgreement(world, candidates, actor, town, "remedy_decline", NonLandOfferToken(offer), "", "Decline this voluntary offer. Declining creates no offense or automatic penalty.", 166);
+            OfferNonLandAgreement(world, candidates, actor, town, "remedy_counter", NonLandOfferToken(offer), "", "Counter with feasible named terms in civic_nonviolent.terms; everyone must read and consent to the new offer." + NonLandRemedyReferences(world, town, actor), 183);
         }
     }
 

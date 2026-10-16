@@ -143,18 +143,33 @@ internal static class NonLandRuntimeFixture
                 ? new(Statement: "I offer my own named goods or work, voluntarily.", Terms: terms, CompletionTicks: completionTicks) : null
         };
         using var world = Create(state, consent);
+        var agreementPlans = new List<NonLandAgreementActionPlan>();
         Wake(world, Subject, "consider-voluntary-return");
-        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Offers.Count > 0, 8);
+        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Offers.Count > 0, 8, Capture);
         var offer = Assert.Single(world.Towns[0].NonLandHearings.Offers);
+        var offeredPlan = Assert.Single(agreementPlans, plan => plan.Choice.Verb == "remedy_offer");
+        Assert.True(offeredPlan.Bound);
+        Assert.Equal((offer.FindingId, offer.CompletionTicks, offer.Reason), (offeredPlan.Finding.Id, offeredPlan.CompletionTicks, offeredPlan.Reason));
+        Assert.Equal(MaterialTerms(offer.Terms), MaterialTerms(offeredPlan.Terms!));
         Wake(world, Subject, "read-voluntary-offer");
         await UntilAsync(world, () => world.Towns[0].Council!.Knowledge.Any(receipt =>
-            receipt.AgentId == Subject && receipt.NoticeId == offer.NoticeId), 4);
+            receipt.AgentId == Subject && receipt.NoticeId == offer.NoticeId), 4, Capture);
         if (!accept) return Strict(world.ExportState());
         Wake(world, Subject, "decide-voluntary-consent");
-        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Agreements.Count > 0, 4);
+        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Agreements.Count > 0, 4, Capture);
+        var acceptedPlan = Assert.Single(agreementPlans, plan => plan.Choice.Verb == "remedy_accept");
+        Assert.Equal((offer.Id, offer.TermsHash), (acceptedPlan.Offer!.Id, acceptedPlan.Offer.TermsHash));
+        Assert.Equal(acceptedPlan.Choice, NonLandAgreementChoice.Decode(acceptedPlan.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(acceptedPlan).Refusal!.Reason);
         Assert.Equal("pending", Assert.Single(world.Towns[0].NonLandHearings.Agreements).Status);
         Assert.Empty(world.Towns[0].NonLandHearings.Effects);
         return Strict(world.ExportState());
+
+        void Capture(WorldStepResult result) => agreementPlans.AddRange(result.Decisions.Where(decision =>
+                decision.ActionPlan is NonLandAgreementActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+            .Select(decision => Assert.IsType<NonLandAgreementActionPlan>(decision.ActionPlan)));
+        static string MaterialTerms(IReadOnlyList<TownRemedyTerm> selected) => TownHearingProcedure.Digest(selected.Select(term =>
+            new { term.Kind, term.ContributorId, term.BeneficiaryId, term.ItemKind, term.Quantity, term.TargetId }));
     }
 
     internal static void Wake(WorldRuntime world, string actor, string key) =>
