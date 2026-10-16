@@ -324,6 +324,12 @@ public sealed partial class ConcreteMealTests
         Assert.Equal(starterRations, state.Society.Society.Inventory.Reservations.Where(reservation =>
                 reservation.Purpose == "household_meals" && reservation.State == InventoryReservationState.Completed)
             .Sum(reservation => reservation.Quantity));
+        // Keep unrelated starter timber owned and reserved, leaving six real
+        // units for the House's cooking/tool inputs instead of filling its store.
+        var woodStock = state.Society.Society.Inventory.GetLot("wood:first");
+        Assert.True(woodStock.Quantity > 6);
+        state = FarmFieldTests.WithInventory(state, InventoryAuthority.Reserve(state.Society.Society.Inventory,
+            "harvest-other-timber", household, woodStock.Id, woodStock.Quantity - 6, "other_household_work", long.MaxValue));
         using var harvest = Restore(state);
         Assert.True(harvest.StartFieldWork(actor, point, FarmWorkKind.Harvest).Accepted);
         for (var tick = 0; tick < 4; tick++) Assert.True((await harvest.AdvanceOneTickAsync()).Advanced);
@@ -333,19 +339,18 @@ public sealed partial class ConcreteMealTests
         var reserve = harvest.Society.Inventory.GetReservation(field.ReplantingReservationId!);
         Assert.Equal(InventoryReservationState.Reserved, reserve.State);
         var farmhouse = harvest.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
+        var house = harvest.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        Assert.DoesNotContain(harvest.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
+            lot.StorageBuildingId == house.InstanceId);
         using var hauling = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(harvest.ExportState())),
             actor, "haul_farm_grain", "haul_household_stock");
         // Every harvested unit must enter farm stock before the cooking leg,
         // so no leftover grain on the field can shortcut that physical journey.
         await AdvanceUntil(hauling, () => hauling.Society.Inventory.Lots.Where(lot => lot.ItemKind == "grain" &&
             lot.OwnerId == household && lot.StorageBuildingId == farmhouse.InstanceId).Sum(lot => lot.Quantity) >= grain.Quantity, 100);
-        var house = hauling.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        Assert.DoesNotContain(hauling.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
-            lot.StorageBuildingId == house.InstanceId);
         using var home = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(hauling.ExportState())),
             actor, "supply_workstation", "haul_household_stock", "collect_wooden_axe");
-        // Choices refresh every 30 ticks while these wood trips repeat every
-        // 10 ticks. Finish the finite starter stock before the next supply choice
+        // Let the current real load finish before the next supply choice
         // brings grain from the Farmhouse through the House doorway.
         await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
             lot.StorageBuildingId == house.InstanceId), 200);
@@ -405,6 +410,7 @@ public sealed partial class ConcreteMealTests
         using var savedMeal = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(eating.ExportState())));
         Assert.Equal("porridge", savedMeal.Agents.Single(person => person.AgentId == actor).Survival!.LastMealKind);
         Assert.Equal(InventoryReservationState.Reserved, savedMeal.Society.Inventory.GetReservation(reserve.Id).State);
+        Assert.Equal(InventoryReservationState.Reserved, savedMeal.Society.Inventory.GetReservation("harvest-other-timber").State);
     }
 
     [Fact]
