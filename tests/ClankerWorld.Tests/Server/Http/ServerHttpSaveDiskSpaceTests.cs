@@ -8,10 +8,12 @@ using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using static ClankerWorld.Tests.ServerHttpTests;
 
 namespace ClankerWorld.Tests;
 
-public sealed partial class ServerHttpTests
+public sealed class ServerHttpSaveDiskSpaceTests
 {
     [Theory]
     [InlineData(0, "low")]
@@ -88,7 +90,7 @@ public sealed partial class ServerHttpTests
         try
         {
             using var client = host.CreateClient();
-            await probe.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await ModelWorkHarness.WaitForSignalAsync(probe.Entered.Task);
             var monitor = host.Services.GetRequiredService<SaveDiskSpaceMonitor>();
             Assert.Equal("unknown", monitor.Capture().State);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
@@ -126,7 +128,11 @@ public sealed partial class ServerHttpTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task SaveSpaceAdvisoryRemainsReadableWhileStartupRecoveryKeepsTheWorldClosed(bool stalled)
+    public Task SaveSpaceAdvisoryRemainsReadableWhileStartupRecoveryKeepsTheWorldClosed(bool stalled) =>
+        // Inline probe signals must not queue behind the runner's synchronization context.
+        Task.Run(() => AssertSaveSpaceDuringRecoveryAsync(stalled));
+
+    private static async Task AssertSaveSpaceDuringRecoveryAsync(bool stalled)
     {
         var directory = Directory.CreateTempSubdirectory("disk-advisory-recovery-");
         using var release = new ManualResetEventSlim();
@@ -149,16 +155,19 @@ public sealed partial class ServerHttpTests
                 .ToDictionary(file => file, File.ReadAllBytes);
             var heldProbe = new StalledSaveSpaceProbe(release);
             ISaveDiskSpaceProbe probe = stalled ? heldProbe : new FixedSaveSpaceProbe(0);
+            var logger = new RecordingLogger<SaveDiskSpaceMonitor>();
+            var sampled = logger.WaitForAsync(message => message.Contains("save_disk_space state=low", StringComparison.Ordinal));
             using var baseHost = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
-            using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
-                services.Replace(ServiceDescriptor.Singleton<ISaveDiskSpaceProbe>(probe))));
+            await using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            {
+                services.Replace(ServiceDescriptor.Singleton<ISaveDiskSpaceProbe>(probe));
+                services.Replace(ServiceDescriptor.Singleton<ILogger<SaveDiskSpaceMonitor>>(logger));
+            }));
             try
             {
                 using var client = host.CreateClient();
-                var monitor = host.Services.GetRequiredService<SaveDiskSpaceMonitor>();
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                if (stalled) await heldProbe.Entered.Task.WaitAsync(timeout.Token);
-                else while (monitor.Capture().CheckedUtc is null) await Task.Delay(10, timeout.Token);
+                // Entry proves the query is held; the status log follows publication of the complete sample.
+                await ModelWorkHarness.WaitForSignalAsync(stalled ? heldProbe.Entered.Task : sampled);
                 using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
                 var device = await StartAndActivateAsync(host, client, key);
                 var action = new OwnerControlAction("save-disk-status");
@@ -242,7 +251,7 @@ public sealed partial class ServerHttpTests
 
     private sealed class StalledSaveSpaceProbe(ManualResetEventSlim release) : ISaveDiskSpaceProbe
     {
-        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Entered { get; } = new();
         public long? AvailableBytes(string directory)
         {
             Entered.TrySetResult();
