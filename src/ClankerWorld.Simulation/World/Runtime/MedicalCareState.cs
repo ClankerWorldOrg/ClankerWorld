@@ -7,7 +7,7 @@ public sealed record MedicalSupplyTrip(string PatientId, GridPoint LastSeenPosit
 
 /// <summary>A consumed physical dose and its remaining gradual effect, rather than a second supply store.</summary>
 public sealed record MedicalTreatmentState(string CaregiverId, string SupplyLotId, string SupplyOwnerId,
-    string DoseReservationId, string Kind, long StartedTick, long LastProcessedTick, int RemainingTicks);
+    Identity DoseReservationId, string Kind, long StartedTick, long LastProcessedTick, int RemainingTicks);
 
 public sealed record MedicalCareResult(bool Applied, string? Failure = null);
 

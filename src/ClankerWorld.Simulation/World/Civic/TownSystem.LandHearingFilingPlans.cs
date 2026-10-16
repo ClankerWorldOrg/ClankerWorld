@@ -41,7 +41,7 @@ internal sealed partial class TownSystem
         return plan with
         {
             Bound = true,
-            InvalidTerms = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength),
+            InvalidTerms = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength),
             Filing = new(TownLandRightsRules.OrderTiles(tiles?.Select(tile => new GridPoint(tile.X, tile.Y)) ?? []),
                 new(terms?.RequestedOutcome ?? "", terms?.HouseholdId, terms?.AgreedEndTick), raw?.Trim() ?? "")
         };

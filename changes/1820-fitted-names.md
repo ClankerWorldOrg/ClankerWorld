@@ -1,0 +1,1 @@
+- Long names fit their headings and remain available in full on hover. World refreshes keep the text and selections you are editing.

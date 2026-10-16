@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         var candidate = StorageOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            SetOrderStatus(instruction, "blocked", StorageOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, StorageOrderBlockedReason(instruction, person));
             return;
         }
         var house = CustodyOrderHouse(instruction, HouseholdFor(instruction.TargetAgentId))!;
@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         {
             // Split inventory identities can grow; keep the saved receipt bounded.
             var receipt = PersonalStorageReceipt(effect.MoveId);
-            CreditOrderEffect(instruction, receipt,
+            CreditOrderEffect(instruction, Identity.Parse(receipt),
                 order.ProgressUnit == "storage_loads" ? 1 : effect.Quantity);
         }
     }

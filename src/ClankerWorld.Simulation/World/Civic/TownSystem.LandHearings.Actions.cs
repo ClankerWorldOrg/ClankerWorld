@@ -142,7 +142,7 @@ internal sealed partial class TownSystem
         var propertyRecord = item.Property is null ? [] : item.Evidence.Where(evidence => known.Contains(evidence.Id) &&
             evidence.SourceRecordId == TownPropertyRules.RecordId(item, revision.Number)).Take(1).ToArray();
         var evidence = item.Evidence.Where(evidence => known.Contains(evidence.Id)).TakeLast(4).Concat(propertyRecord).DistinctBy(evidence => evidence.Id).Select(evidence =>
-            evidence.Id + "=" + evidence.Kind + " from " + evidence.SourceAgentId + ": " + NonLandExcerpt(evidence.Text, 160));
+            evidence.Id + "=" + evidence.Kind + " from " + evidence.SourceAgentId + ": " + BoundedText.Excerpt(evidence.Text, 160));
         return "Requested result: " + revision.RequestedOutcome.Kind + " " + revision.RequestedOutcome.HouseholdId +
             ". Affected households: " + string.Join(", ", LandHearingParties(world, town, revision.Tiles, item)
                 .Where(party => party.HouseholdId is not null).Select(party => party.HouseholdId)) +
@@ -284,7 +284,7 @@ internal sealed partial class TownSystem
                     { Snapshots = item.Property.Snapshots.Append(reopenedProperty).ToArray() }, town.Id, world.Society.Agents);
                 hearings = TownLandHearingRules.Reopen(hearings, item.Id, request.Id, item.Judge!, accept,
                     LandHearingText(hearingChoice?.Statement), householdLandUseRights, parties, world.WorldTick, CivicDay(world),
-                    "notice:" + (council.Notices.Count + 1), item.Judge is { } reopeningJudge && LandHearingJudgeValid(world, currentTown, item, reopeningJudge));
+                    TownCouncilRules.NextNoticeId(council), item.Judge is { } reopeningJudge && LandHearingJudgeValid(world, currentTown, item, reopeningJudge));
                 if (accept)
                 {
                     var reopened = hearings.Cases.Single(c => c.Id == item.Id);
@@ -331,7 +331,7 @@ internal sealed partial class TownSystem
         return outcome;
     }
 
-    internal static string LandHearingText(string? text) => TownLandHearingRules.ValidText(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
+    internal static string LandHearingText(string? text) => BoundedText.IsValid(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
             throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
 
 }

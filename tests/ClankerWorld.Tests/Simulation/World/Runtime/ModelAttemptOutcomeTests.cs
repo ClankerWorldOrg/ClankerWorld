@@ -10,7 +10,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ModelAttemptOutcomeTests
 {
-    private const string TargetId = "founder:00000000000000000000000000000001";
+    private const string TargetId = NormalPathWorld.Founder1;
     private static readonly JsonSerializerOptions ClientJson = new() { PropertyNameCaseInsensitive = true };
 
     [Theory]
@@ -37,8 +37,10 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal(expectedStatus, Status(world));
         var failureRows = ClientFailures(world);
         var failure = Assert.Single(failureRows);
-        Assert.Equal($"{TargetId}:{expectedStatus}", failure.Detail);
-        var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var payload = Assert.IsType<ModelAttemptStatusEventPayload>(failure.Payload);
+        Assert.Equal(TargetId, payload.ActorId);
+        Assert.Equal(expectedStatus, payload.Status);
+        var clientSnapshot = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot()),
             ClientJson)!;
         var description = ClankerWorld.GodotClient.UI.WorldEventText.Describe(failure, clientSnapshot);
@@ -91,8 +93,8 @@ public sealed class ModelAttemptOutcomeTests
     {
         using var fixture = new Fixture("held");
         using var world = NormalPathWorld.CreateGenerated("model-outcomes", _ => fixture.Provider);
-        await world.AdvanceOneTickNonBlockingAsync();
-        await fixture.Handler.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await world.TickModelWorkAsync();
+        await ModelWorkHarness.For(world).WaitAsync(fixture.Handler.Started.Task);
         Assert.Equal("waiting", Status(world));
         Assert.Equal("waiting", Status(world)); // independent refreshed projection
         Assert.Empty(ClientFailures(world));
@@ -101,7 +103,7 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Empty(ClientFailures(world));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         fixture.Handler.Release.TrySetResult(true);
-        await fixture.Handler.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.For(world).WaitAsync(fixture.Handler.Returned.Task);
         Assert.Equal("canceled", Status(world));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => fixture.Provider);
         Assert.Equal("canceled", Status(restored));
@@ -111,12 +113,12 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal(1, fixture.Usage.Capture().Attempts);
     }
 
-    private static ClankerWorld.GodotClient.Protocol.OwnerWorldEvent[] ClientFailures(WorldRuntime world)
+    private static ClankerWorld.Contracts.OwnerWorldEvent[] ClientFailures(WorldRuntime world)
     {
-        var events = new OwnerWorldObservationStore(world).GetEventsAfter(0).Events.Select(item =>
-            new ClankerWorld.GodotClient.Protocol.OwnerWorldEvent(item.EventId, item.WorldTick, item.Kind, item.Detail));
-        return ClankerWorld.GodotClient.UI.GameUiText.PlayerEvents(events)
-            .Where(item => item.Kind == "model_attempt_status" && item.Detail.StartsWith(TargetId + ":", StringComparison.Ordinal)).ToArray();
+        var events = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldEventSlice>(
+            JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetEventsAfter(0)), ClientJson)!.Events;
+        return ClankerWorld.Contracts.GameUiText.PlayerEvents(events)
+            .Where(item => item.Payload is ModelAttemptStatusEventPayload payload && payload.ActorId == TargetId).ToArray();
     }
 
     private static string Status(WorldRuntime world) =>
@@ -127,10 +129,10 @@ public sealed class ModelAttemptOutcomeTests
     {
         for (var tick = 0; tick < 400; tick++)
         {
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             var decision = step.Decisions.FirstOrDefault(item => item.AgentId == TargetId);
             if (decision is not null) return decision;
-            await Task.Delay(5);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         throw new TimeoutException("The controlled model attempt was not completed.");
     }
@@ -174,9 +176,9 @@ public sealed class ModelAttemptOutcomeTests
         public int Calls { get; private set; }
         public string? SystemPrompt { get; private set; }
         public bool SentOutputLimit { get; private set; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Calls++;
