@@ -559,6 +559,12 @@ Statements and personal responses retain their submitted text and party identity
 responses still check the actor's current authority when another adult leaves.
 Observations retain the visible plot and physical description. Relays retain
 the recipient and the evidence/reopening material the source already read.
+Case-judge consent and resignation retain their exact case revision and
+consent or mandate. Case ballots retain their round, opening rosters and
+candidate while allowing current ballots to accumulate or be revised.
+A withdrawn candidate or departed voter does not invalidate other selections;
+the retained voter and candidate must remain in the original and current rosters.
+The same checks verify current standing and the native round deadline.
 Before binding, household filing availability follows current affected plots;
 the original nearby suggestions do not restrict the exact reply selection.
 Filing plans are constructed only at the notice board.

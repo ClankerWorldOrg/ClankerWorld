@@ -74,23 +74,21 @@ internal sealed partial class TownSystem
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Waive, party.Id,
                     "Explicitly waive your remaining response opportunity for " + party.Kind + " " + (party.HouseholdId ?? party.TownId) + ". This does not agree to a loss or transfer, or waive another party's answer.", 166);
             }
-            if (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
+            if (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) &&
+                (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
             {
-                var willing = item.JudgeConsents.Any(consent => consent.AgentId == actor && consent.WithdrawnTick is null);
-                if (!willing && !LandHearingJudgeConflict(world, town, item, actor))
-                    candidates.Add(new(CivicAction(world, town.Id, "hearing_judge_register", token), "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180));
-                if (willing)
-                    candidates.Add(new(CivicAction(world, town.Id, "hearing_judge_withdraw", token), "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185));
-                if (item.Judge is { Kind: "case_elected" } judge && judge.AgentId == actor)
-                    candidates.Add(new(CivicAction(world, town.Id, "hearing_judge_resign", token), "Resign your mandate to adjudicate this case only.", 185));
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Register, "",
+                    "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Withdraw, "",
+                    "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Resign, "",
+                    "Resign your mandate to adjudicate this case only.", 185);
             }
-            if (item.Contest is { Stage: "voting" } contest && contest.Voters.Contains(actor, StringComparer.Ordinal) &&
-                council.Knowledge.Any(receipt => receipt.AgentId == actor && council.Notices.Any(notice => notice.Id == receipt.NoticeId &&
-                    notice.Kind == "land_hearing" && notice.SubjectId == TownLandCaseJudgeRules.RoundToken(contest))))
+            if (item.Contest is { } contest)
                 foreach (var candidate in contest.Candidates)
-                    candidates.Add(new(CivicAction(world, town.Id, "hearing_judge_vote", token + "#" + TownLandCaseJudgeRules.RoundToken(contest), candidate),
+                    OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Vote, candidate,
                         "Submit or revise your one-person ballot for " + world.Society.GetAgent(candidate).Name +
-                        " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167));
+                        " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167);
             if (item.Judge is { } adjudicator && adjudicator.AgentId == actor && LandHearingJudgeValid(world, town, item, adjudicator) && LandHearingReadCurrent(world, item, actor))
             {
                 if (item.Status == "pending" && TownLandHearingRules.CanCloseResponses(item, parties, world.WorldTick))
@@ -151,7 +149,7 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) ApplyTownLandHearingAction(ITownWorld world, TownRuntimeState town,
             string actor, string action, string subject, string choice, string? proposalText, IReadOnlyList<CognitionLandTile>? landTiles,
-            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government, LandHearingFilingActionPlan? filingPlan = null, LandHearingEvidenceActionPlan? evidencePlan = null)
+            CognitionLandHearingChoice? hearingChoice, TownCouncilState council, TownGovernmentState government, LandHearingFilingActionPlan? filingPlan = null, LandHearingEvidenceActionPlan? evidencePlan = null, LandHearingJudgeActionPlan? judgePlan = null)
     {
         var currentTown = town with { Council = council, Government = government };
         (council, var hearings) = AdvanceTownLandHearings(world, currentTown, council, government);
@@ -186,6 +184,15 @@ internal sealed partial class TownSystem
             if (CheckLandHearingEvidence(world, evidencePlan, currentTown).Refusal is { } refusal)
             { world.RefuseChoice(evidencePlan, refusal); return (council, hearings); }
             item = hearings.Cases.Single(item => item.Id == evidencePlan.CaseId);
+        }
+        else if (LandHearingJudgeChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } judgeChoice)
+        {
+            SetTown(world, currentTown);
+            judgePlan ??= PlanLandHearingJudge(world, actor, judgeChoice);
+            if (judgePlan is null) return (council, hearings);
+            if (CheckLandHearingJudge(world, judgePlan, currentTown).Refusal is { } refusal)
+            { world.RefuseChoice(judgePlan, refusal); return (council, hearings); }
+            item = hearings.Cases.Single(item => item.Id == judgePlan.CaseId);
         }
         else
         {
@@ -232,7 +239,7 @@ internal sealed partial class TownSystem
             case "hearing_judge_withdraw": hearings = TownLandCaseJudgeRules.Withdraw(hearings, item.Id, actor, world.WorldTick); break;
             case "hearing_judge_resign": hearings = TownLandCaseJudgeRules.Resign(hearings, item.Id, actor, world.WorldTick); break;
             case "hearing_judge_vote":
-                hearings = TownLandCaseJudgeRules.Vote(hearings, item.Id, TownLandCaseJudgeRules.RoundToken(item.Contest!), actor, ResolveCivicAgentToken(world, choice), world.WorldTick);
+                hearings = TownLandCaseJudgeRules.Vote(hearings, item.Id, TownLandCaseJudgeRules.RoundToken(judgePlan!.Contest!), actor, judgePlan.Candidate!, world.WorldTick);
                 break;
             case "hearing_rule":
                 var rulingOutcome = item.Property is not null && choice != "reject" ? TownPropertyRules.Outcome(item.Property.Request) : LandHearingOutcome(world, choice, hearingChoice);

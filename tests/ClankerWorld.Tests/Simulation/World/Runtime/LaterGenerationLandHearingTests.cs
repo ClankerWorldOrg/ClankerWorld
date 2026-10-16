@@ -37,16 +37,20 @@ public sealed partial class GrownAgentHelperMemoryTests
         var house = world.WorldSimulation.Buildings.Single(item => item.InstanceId == NativeHearingHouse);
         foreach (var member in world.Society.GetHousehold(house.HouseholdId!).MemberIds.ToArray())
             Assert.True(world.DisplaceAdult(member));
-        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 1, 20);
+        var judgePlans = new List<LandHearingJudgeActionPlan>();
+        void CaptureJudgePlans(WorldStepResult result) => judgePlans.AddRange(result.Decisions
+            .Where(decision => decision.ActionPlan is LandHearingJudgeActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+            .Select(decision => Assert.IsType<LandHearingJudgeActionPlan>(decision.ActionPlan)));
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 1, 20, CaptureJudgePlans);
         choices.Request = false;
         // A running round retains its opening candidate list. Let an early
         // one-candidate round fail without a ballot; both adults must personally
         // register before the next real round can offer both choices.
         await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases[0].Contest is { Stage: "voting" } contest &&
-            contest.Candidates.SequenceEqual(candidates.Order(StringComparer.Ordinal)), NativeHearingDay * 3);
+            contest.Candidates.SequenceEqual(candidates.Order(StringComparer.Ordinal)), NativeHearingDay * 3, CaptureJudgePlans);
         choices.CaseVote = voter => voter == actor ? actorName : voter == other ? otherName : null;
         await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases[0].Contest is { } contest &&
-            contest.TiedCandidates.Contains(actor) && contest.Rounds.Any(round => round.Result == "tie"), NativeHearingDay * 2);
+            contest.TiedCandidates.Contains(actor) && contest.Rounds.Any(round => round.Result == "tie"), NativeHearingDay * 2, CaptureJudgePlans);
         var tied = world.Towns[0].LandRecords.Cases[0].Contest!;
         Assert.Contains(actor, tied.Voters);
         Assert.Contains(actor, tied.Candidates);
@@ -68,7 +72,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             NativeHearingPromptAll(world);
             NativeHearingPromptAll(replay);
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            CaptureJudgePlans(result);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -76,6 +82,21 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal("settled", item.Status);
         var election = Assert.Single(item.ContestHistory, contest => contest.Stage == "completed");
         Assert.Equal(actor, election.WinnerId);
+        Assert.Contains(judgePlans, plan => plan.Actor == actor && plan.Choice.Kind == LandHearingJudgeKind.Register);
+        Assert.Contains(judgePlans, plan => plan.Actor == actor && plan.Choice.Kind == LandHearingJudgeKind.Vote);
+        Assert.All(judgePlans, plan =>
+        {
+            Assert.Equal(plan.Choice, LandHearingJudgeChoice.Decode(plan.CandidateId));
+            Assert.Equal(item.Id, plan.CaseId);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+            if (plan.Choice.Kind == LandHearingJudgeKind.Vote)
+            {
+                Assert.Contains(plan.Actor, plan.Contest!.Voters);
+                Assert.Contains(plan.Candidate!, plan.Contest.Candidates);
+                Assert.Contains(election.Rounds, savedRound => savedRound.Number == plan.Contest.Round &&
+                    savedRound.Candidates.Contains(plan.Candidate!, StringComparer.Ordinal));
+            }
+        });
         Assert.Contains(election.Rounds, completed => completed.Result == "tie" && completed.TiedCandidates.Contains(actor));
         var ruling = Assert.Single(item.Rulings);
         Assert.Equal((actor, "case_elected", "reclaim"), (ruling.Judge.AgentId, ruling.Judge.Kind, ruling.Outcome.Kind));

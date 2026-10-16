@@ -256,13 +256,14 @@ public sealed partial class GrownAgentHelperMemoryTests
                 OwnerInstructionKind.Suggestion, "Consider the current public hearing and make your own informed choice."));
     }
 
-    private static async Task NativeHearingUntil(WorldRuntime world, Func<bool> done, int limit)
+    private static async Task NativeHearingUntil(WorldRuntime world, Func<bool> done, int limit, Action<WorldStepResult>? observe = null)
     {
         for (var step = 0; step < limit && !done(); step++)
         {
             NativeHearingPromptAll(world);
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced, System.Text.Json.JsonSerializer.Serialize(result));
+            observe?.Invoke(result);
         }
         Assert.True(done(), "The native hearing boundary was not reached: " + string.Join("; ", world.ExportState().Events.TakeLast(8).Select(item => item.Kind + ":" + item.Detail)));
     }
