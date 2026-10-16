@@ -1,0 +1,1 @@
+- After a child is born to parents using a personal model, quit and reopen the world. Confirm that the child's chosen model remains available and changing the provider's default key does not replace that child's saved key choice. ([#1767](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1767))

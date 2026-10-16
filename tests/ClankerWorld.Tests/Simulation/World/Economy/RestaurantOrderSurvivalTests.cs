@@ -170,7 +170,7 @@ public sealed partial class RestaurantShopPipelineTests
             var saved = world.ExportState();
             var order = Assert.Single(saved.Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
             Assert.True(order.RepeatUntilCancelled);
-            Assert.DoesNotContain(receipt.InstructionId, saved.CompletedInstructionIds!);
+            Assert.DoesNotContain(receipt.InstructionId.Value, saved.CompletedInstructionIds!);
             Assert.NotEqual("finished", order.Status);
             Assert.NotEqual("cancelled", order.Status);
         }

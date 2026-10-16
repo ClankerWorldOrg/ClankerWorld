@@ -1,0 +1,1 @@
+- While the continuity rule is on, eligible single adults choose partners and form couples after up to two world days. Mutual choices come first, followed by the strongest relationships. The Event Log explains these pairings, and choices and deadlines survive saving. Earlier alpha saves cannot load in this build and are preserved.

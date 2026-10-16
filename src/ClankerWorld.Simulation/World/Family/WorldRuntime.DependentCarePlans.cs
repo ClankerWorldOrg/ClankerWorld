@@ -35,10 +35,11 @@ public sealed partial class WorldRuntime
                 edge.State == SocietyRelationshipState.Accepted && edge.ProposerId == actor && edge.TargetId == child);
         if (choice.Kind != DependentCareChoiceKind.End && !agents.ContainsKey(child)) return null;
         var home = HouseholdFor(actor);
+        var house = search is not null && home is not null ? HouseholdBuildingWithTag(home, "house") : null;
         return new(actor, choice, relationship, home, agents.ContainsKey(child) ? HouseholdFor(child) : null,
             search?.StartedTick, search is not null ? ImmediateGuardianHousehold(actor, child) : null,
             TownForResident(actor), agents.ContainsKey(child) ? TownForResident(child) : null,
-            search is not null && home is not null ? HouseholdBuildingWithTag(home, "house")?.InstanceId : null,
+            house?.InstanceId, house?.DefinitionId, house?.PlacedTick,
             society.Checkpoint.GetAgent(actor).DomesticFamilyUnitId, agents.ContainsKey(child) ? society.Checkpoint.GetAgent(child).DomesticFamilyUnitId : null);
     }
 
@@ -57,12 +58,14 @@ public sealed partial class WorldRuntime
                 society.Checkpoint.GetAgent(plan.Actor).DomesticFamilyUnitId != plan.ActorFamilyUnit ||
                 society.Checkpoint.GetAgent(child).DomesticFamilyUnitId != plan.ChildFamilyUnit))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected caregiver or child's household has changed");
+        var house = plan.AcceptsGuardianSearch && plan.ActorHousehold is not null
+            ? HouseholdBuildingWithTag(plan.ActorHousehold, "house") : null;
         bool allowed;
         if (plan.AcceptsGuardianSearch)
             allowed = CanAcceptGuardian(plan.Actor, child) && agents[child].GuardianSearch?.StartedTick == plan.GuardianSearchStartedTick &&
                 TownForResident(plan.Actor) == plan.ActorTown && TownForResident(child) == plan.ChildTown &&
                 ImmediateGuardianHousehold(plan.Actor, child) == plan.DestinationHousehold &&
-                (plan.ActorHousehold is null ? null : HouseholdBuildingWithTag(plan.ActorHousehold, "house")?.InstanceId) == plan.HouseId;
+                house?.InstanceId == plan.HouseId && house?.DefinitionId == plan.HouseDefinitionId && house?.PlacedTick == plan.HousePlacedTick;
         else allowed = plan.Choice.Kind switch
         {
             DependentCareChoiceKind.Accept or DependentCareChoiceKind.Refuse => plan.Relationship is { State: SocietyRelationshipState.Proposed } proposal &&

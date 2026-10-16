@@ -10,21 +10,23 @@ namespace ClankerWorld.Tests;
 public sealed class SharedReadServicesTests
 {
     [Fact]
-    public void EventLogPreservesLongestPrefixExplicitPositionsAndHistoryIds()
+    public void EventLogUsesCompletePayloadActorsExplicitPositionsAndHistoryIds()
     {
+        const string actor = "world:agent:birth:agent:parent:agent:other:00000000000000000000000000000001";
         var world = new ReadWorld();
-        world.People.Add("agent:child", new("agent:child", new(8, 2), 10_000, 0, "kind", "learn"));
+        world.Dead.Add("world:agent", new(3, 4));
+        world.People.Add(actor, new(actor, new(8, 2), 10_000, 0, "kind", "learn"));
         world.Dead.Add("agent", new(3, 4));
-        var source = new List<WorldEventEntry> { new(42, 9, "prior", "prior", null) };
+        var source = new List<WorldEventEntry> { new(42, 9, new TickAdvancedEventPayload(null, 9)) };
         var log = new WorldEventLog(source, 41, "archive-head");
         source.Clear();
         var version = log.Version;
-        log.AppendEvent(world, "living", "agent:child:effect:extra");
+        log.AppendEvent(world, new RecipeCancelledEventPayload(actor, "world:agent:job:effect", "recipe:extra", null));
         Assert.NotSame(version, log.Version);
-        log.AppendEvent(world, "deceased", "agent:effect");
-        log.AppendEvent(world, "explicit", "agent:child", new(7, 7));
-        log.AppendEvent(world, "unlocated", "unknown:effect");
-        log.AppendEvent(world, "empty", "");
+        log.AppendEvent(world, new InstructionNotUnderstoodEventPayload("agent", "effect"));
+        log.AppendEvent(world, new AgentIdleEventPayload(actor), new(7, 7));
+        log.AppendEvent(world, new InstructionNotUnderstoodEventPayload("unknown", "effect"));
+        log.AppendEvent(world, new PausedEventPayload(null));
         Assert.Equal(Enumerable.Range(42, 6).Select(id => (long)id), log.Events.Select(item => item.EventId));
         Assert.Equal(new GridPoint?[] { null, new(8, 2), new(3, 4), new(7, 7), null, null },
             log.Events.Select(item => item.Position));
@@ -34,7 +36,7 @@ public sealed class SharedReadServicesTests
         Assert.Equal("archive-head", log.ArchiveHead);
         Assert.Throws<NotSupportedException>(() => ((IList<WorldEventEntry>)log.Events).Clear());
         var prepared = new WorldEventLog(log.Events, log.HistoryFloor, log.ArchiveHead);
-        prepared.AppendEvent(world, "discarded", "agent:child");
+        prepared.AppendEvent(world, new AgentIdleEventPayload(actor));
         Assert.Equal(6, log.Events.Count);
         Assert.Equal(48, log.NextEventId);
         Assert.Equal(49, prepared.NextEventId);

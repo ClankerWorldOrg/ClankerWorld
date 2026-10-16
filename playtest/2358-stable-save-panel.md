@@ -1,0 +1,1 @@
+- At the default window size, pause a short world and open **Save World**. Its panel should open wide and stay that size after the first half second, with the short timeline visible without a horizontal scroll bar. Resize the window, close the panel and reopen it; it should fit the new window and stay steady. ([#2358](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2358))

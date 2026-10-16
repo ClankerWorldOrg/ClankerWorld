@@ -46,7 +46,7 @@ internal sealed partial class AnimalSystem
             AnimalRules.IsFeed(plan.ItemKind) && !AnimalFeedMayBeSpent(world, plan.Actor, animal ?? animals[0], match.Lot, plan.Quantity))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected supply quantity is no longer available for this task");
         var capacity = plan.Carried ? world.FreeCarryCapacity(plan.Actor) :
-            animal is not null ? world.FreeCarryCapacity(plan.Actor) : world.PickupCarryCapacity(plan.Actor, match.Lot, plan.Destination);
+            world.PickupCarryCapacity(plan.Actor, match.Lot, animal?.Position ?? plan.Destination);
         if (!plan.Carried && plan.Quantity > capacity || !plan.Carried && !world.VesselFits(match.Lot, capacity) ||
             animal is null && (plan.Quantity > world.DestinationRoom(yard.InstanceId) || !world.VesselFits(match.Lot, world.DestinationRoom(yard.InstanceId))))
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected animal supply");

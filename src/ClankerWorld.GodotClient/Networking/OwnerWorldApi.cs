@@ -13,10 +13,12 @@ namespace ClankerWorld.GodotClient.Networking;
 public sealed class OwnerWorldApi
 {
     private readonly OwnerPairingClient pairing;
+    private readonly TimeProvider timeProvider;
 
-    public OwnerWorldApi(HttpClient httpClient)
+    public OwnerWorldApi(HttpClient httpClient, TimeProvider? timeProvider = null)
     {
-        pairing = new OwnerPairingClient(httpClient);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        pairing = new OwnerPairingClient(httpClient, timeProvider: this.timeProvider);
     }
 
     public Task<OwnerPairingStart> StartPairingAsync(
@@ -49,8 +51,8 @@ public sealed class OwnerWorldApi
         IOwnerDeviceSigner deviceKey,
         CancellationToken cancellationToken)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(4));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         var action = new OwnerReconnectAction(afterEventId, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return await pairing.SendSignedActionAsync<OwnerReconnectAction, OwnerWorldReconnect>(
@@ -209,6 +211,17 @@ public sealed class OwnerWorldApi
         var action = new OwnerManualSaveAction("overwrite", id);
         return pairing.SendSignedActionAsync<OwnerManualSaveAction, ManualSaveOverwriteReceipt>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerSaveOverwrite,
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
+            action, deviceKey, cancellationToken);
+    }
+
+    public Task<WorldSaveHistory> ReadWorldSaveHistoryAsync(
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string worldId,
+        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        var action = new OwnerManualSaveAction("world-saves", worldId);
+        return pairing.SendSignedActionAsync<OwnerManualSaveAction, WorldSaveHistory>(
+            serverUri, authority, deviceId, "/api/v1/owner/worlds/saves",
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
             action, deviceKey, cancellationToken);
     }

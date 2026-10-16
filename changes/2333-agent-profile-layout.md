@@ -1,0 +1,1 @@
+- Agent profiles spread text and scrolling layout updates across frames to keep the game responsive when a profile first opens.

@@ -18,7 +18,9 @@ public sealed partial class PickupReturnJourneyTests
     public async Task PlantingOrderKeepsPersonalAndHouseholdSeedReturnsPossible(bool personal, int stones, bool swim)
     {
         var (state, actor, home) = await Generated();
-        var destination = new GridPoint(107, 64);
+        // The digest-seeded Town border now reaches row 64; plant just outside it.
+        var destination = new GridPoint(107, 65);
+        Assert.DoesNotContain(destination, state.Towns!.SelectMany(town => town.BorderTiles));
         var source = swim ? new GridPoint(103, 47) : new GridPoint(106, 63);
         Routes(state, source, destination, swim);
         var inventory = Empty(state);
@@ -28,7 +30,7 @@ public sealed partial class PickupReturnJourneyTests
         state = Prepare(state, inventory, actor, source);
         using var world = Restore(state, actor, new Choices());
         var receipt = world.SubmitInstruction(new("return-plant", "owner:test", actor, OwnerInstructionKind.Order,
-            "plant a conifer tree at 107,64"));
+            $"plant a conifer tree at {destination.X},{destination.Y}"));
         var blocked = swim && stones == 4;
         await AdvanceUntil(world, () => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!.Status == "finished", blocked ? 4 : 120);
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
