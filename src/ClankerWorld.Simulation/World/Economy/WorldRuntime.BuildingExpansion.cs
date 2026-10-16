@@ -12,7 +12,7 @@ public sealed record BuildingExpansionJob(
     string JobId, string BuildingInstanceId, string WorkerId, string OwnerId,
     int ExpectedRevision, GridPoint ExpectedPosition, GridPoint TargetPosition,
     BuildingFootprintRevision TargetFootprint, long StartedTick, long CompletionTick,
-    WorldProductionJobState State, IReadOnlyList<string> InputReservationIds,
+    WorldProductionJobState State, IReadOnlyList<Identity> InputReservationIds,
     string? Failure = null,
     string? DefinitionId = null)
 {
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
             var recipe = worldContent.Recipes.Single(item => item.CanonicalId == job.RecipeId);
             return Math.Max(0, recipe.Outputs.Where(item => item.ResourceId != InventoryContainerRules.Handcart)
                 .Sum(item => item.Amount) - job.InputReservationIds
-                .Select((inventory ?? society.Checkpoint.Inventory).GetReservation).Where(reservation =>
+                .Select(id => (inventory ?? society.Checkpoint.Inventory).GetReservation(id)).Where(reservation =>
                     (inventory ?? society.Checkpoint.Inventory).GetLot(reservation.LotId).StorageBuildingId == buildingId)
                 .Sum(reservation => reservation.Quantity));
         });
@@ -265,6 +265,12 @@ public sealed partial class WorldRuntime
                     worldContent.Buildings.Single(value => value.CanonicalId == item.DefinitionId), item))), target, position))
             return false;
         var tiles = WorldContentSimulationRules.Footprint(target, position).ToHashSet();
+        if (Ground.BuildingEntrances(building.InstanceId).Any(tiles.Contains)) return false;
+        var entrance = BuildingMovementRules.EntranceFor(target, building with { Position = position });
+        if (!map.IsBuildable(entrance) || Ground.BuildingFootprintsExcept(building.InstanceId).Contains(entrance) ||
+            (worldSimulation.BuildingExpansions ?? []).Any(job => job.JobId != ownJobId &&
+                job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused && ExpansionTiles(job).Contains(entrance)))
+            return false;
         var original = WorldContentSimulationRules.Footprint(definition, building);
         if (!original.All(tiles.Contains) || tiles.Any(RoadAndBridgeTiles().Contains) || TownProjectProtectedSites().Any(tiles.Contains) ||
             MarketSiteTiles().Any(tiles.Contains) ||
@@ -278,7 +284,7 @@ public sealed partial class WorldRuntime
             failure = "The expansion does not fit the building's Town boundary or overlaps another Town.";
             return false;
         }
-        if (building.Entrance is { } entrance && !WorldContentSimulationRules.IsEntrance(target, position, entrance))
+        if (building.Entrance is { } recordedEntrance && !WorldContentSimulationRules.IsEntrance(target, position, recordedEntrance))
         {
             failure = "The expansion would obstruct the building's entrance.";
             return false;
@@ -435,7 +441,7 @@ public sealed partial class WorldRuntime
         if (selectedInputs is null) return ProductionStartResult.Rejected(buildingId, "The expansion materials are no longer available.");
         ApplyInventoryTransition(inventory => ReserveExpansionInputs(inventory, selectedInputs, actor, jobId, completion, out reservations));
         var job = new BuildingExpansionJob(jobId, buildingId, actor, owner, building.Footprint?.Revision ?? 0,
-            building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, reservations,
+            building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, (reservations).Select(Identity.Parse).ToArray(),
             DefinitionId: building.DefinitionId)
         { OrderInstructionId = orderInstruction?.InstructionId };
         worldSimulation = worldSimulation with
@@ -444,7 +450,7 @@ public sealed partial class WorldRuntime
             NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
         };
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
-        AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
+        AppendEvent(new BuildingExpansionStartedEventPayload(null, buildingId, jobId));
         return new ProductionStartResult(true, jobId, buildingId, null);
     }
 
@@ -490,8 +496,7 @@ public sealed partial class WorldRuntime
                     ? item with { State = failure is null ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled, Failure = failure } : item).ToArray(),
             };
             if (failure is null) CreditExpansionOrderJob(job);
-            AppendEvent(failure is null ? "building_expanded" : "building_expansion_cancelled",
-                $"{job.BuildingInstanceId}:{job.JobId}" + (failure is null ? "" : $":{failure}"));
+            AppendEvent(failure is null ? new BuildingExpandedEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId) : new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, failure));
         }
     }
 }

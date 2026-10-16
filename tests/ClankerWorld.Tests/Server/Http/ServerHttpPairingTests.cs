@@ -24,14 +24,19 @@ public sealed partial class ServerHttpTests
         using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var device = await StartAndActivateAsync(host, client, key);
+        // Every spelling routing accepts for the pairing route spends the same budget.
+        string[] spellings = ["/api/v1/pairings", "/api/v1/pairings/", "/API/V1/Pairings"];
         for (var index = 0; index < 7; index++)
         {
-            using var rejected = await client.PostAsJsonAsync("/api/v1/pairings", new StartOwnerPairingHttpRequest("invalid"));
+            using var rejected = await client.PostAsJsonAsync(spellings[index % spellings.Length], new StartOwnerPairingHttpRequest("invalid"));
             Assert.NotEqual(HttpStatusCode.TooManyRequests, rejected.StatusCode);
         }
-        using var limited = await client.PostAsJsonAsync("/api/v1/pairings", new StartOwnerPairingHttpRequest("invalid"));
-        Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
-        Assert.NotNull(limited.Headers.RetryAfter);
+        foreach (var spelling in spellings)
+        {
+            using var limited = await client.PostAsJsonAsync(spelling, new StartOwnerPairingHttpRequest("invalid"));
+            Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+            Assert.NotNull(limited.Headers.RetryAfter);
+        }
         using var owner = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/reconnect",
             new OwnerReconnectAction(0), OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
         Assert.Equal(HttpStatusCode.OK, owner.StatusCode);

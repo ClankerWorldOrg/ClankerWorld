@@ -74,7 +74,7 @@ public partial class Main
             });
             var text = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             text.AddThemeConstantOverride("separation", 2);
-            text.AddChild(new Label
+            text.AddChild(new FittedLabel
             {
                 Text = GameUiText.PlainEllipses(package.DisplayName ?? GameUiText.HumanizeIdentifier(package.PackageId)),
                 ThemeTypeVariation = "HeadingLabel",
@@ -89,7 +89,7 @@ public partial class Main
                 var proposer = snapshot.Agents.FirstOrDefault(person => person.Id == id);
                 if (proposer is not null)
                     meta.AddChild(new TextureRect { Texture = AgentPortrait(proposer, IsLiving(proposer)), StretchMode = TextureRect.StretchModeEnum.KeepCentered, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
-                meta.AddChild(new Label { Text = $"Proposed by {proposer?.DisplayName ?? "an agent"} ·", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+                meta.AddChild(new FittedLabel { Text = $"Proposed by {proposer?.DisplayName ?? "an agent"} ·", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             }
             meta.AddChild(new Label { Text = $"Version {package.Version}", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             text.AddChild(meta);

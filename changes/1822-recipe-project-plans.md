@@ -1,1 +1,2 @@
 - Recipe projects retain their selected workstation, owner and available input lots through shared checks and native job reservation.
+- Remove the obsolete identity allowance for the recipe candidate now built by the shared helper (#2392).

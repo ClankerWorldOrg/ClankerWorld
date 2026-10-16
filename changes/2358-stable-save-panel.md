@@ -1,0 +1,1 @@
+- Save World keeps its wide layout after opening, so a short world's timeline stays in view when the disk-space check finishes.

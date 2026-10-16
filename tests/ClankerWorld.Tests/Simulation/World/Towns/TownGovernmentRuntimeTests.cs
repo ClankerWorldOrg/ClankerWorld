@@ -5,13 +5,13 @@ using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using GodotSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
 public sealed partial class TownGovernmentRuntimeTests
 {
-    private const string Author = "founder:00000000000000000000000000000001";
+    private const string Author = NormalPathWorld.Founder1;
     private const int Day = 40;
 
     private static WorldRuntime NewWorld(Func<string, IDecisionProvider> providers, bool removeFoundingOffice = false)
@@ -172,7 +172,7 @@ public sealed partial class TownGovernmentRuntimeTests
         var board = town.OriginSite!.Value;
         var away = town.BorderTiles.Where(state.Map.IsPassable)
             .OrderByDescending(point => state.Map.FootDistance(point, board)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
-        const string traveler = "founder:00000000000000000000000000000002";
+        const string traveler = NormalPathWorld.Founder2;
         using var world = WorldRuntime.Restore(state with
         {
             Agents = state.Agents.Select(p => p.AgentId == traveler ? p with { Position = away } : p).ToArray(),

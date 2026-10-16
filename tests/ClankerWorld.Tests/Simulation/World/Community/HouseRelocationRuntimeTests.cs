@@ -246,6 +246,10 @@ public sealed class HouseRelocationRuntimeTests
                     },
                 },
             };
+            // This family stays together rather than forming new continuity partnerships.
+            (state, var ancestor) = FamilyTreeFixture.WithDeadAncestor(state, "relocation-family-ancestor");
+            state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
+                ids.Select(id => (ancestor, id)).ToArray());
         }
         using var world = Restore(state);
         await AdvanceTo(world, Day + 2);

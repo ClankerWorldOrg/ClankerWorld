@@ -13,8 +13,8 @@ public sealed class AgentConversationProviderEpochTests
     public async Task ReassignmentBeforeDispatchCannotChargeTheReplacementRoute()
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-conversation-epoch-");
-        var dispatchReady = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var assignmentChanged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dispatchReady = new InlineCompletionSource(TaskCreationOptions.None);
+        var assignmentChanged = new InlineCompletionSource(TaskCreationOptions.None);
         try
         {
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), new(
