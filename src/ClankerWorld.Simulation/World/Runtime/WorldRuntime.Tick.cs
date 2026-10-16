@@ -100,21 +100,20 @@ public sealed partial class WorldRuntime
                             CancelPendingWill(id, "provider_unavailable");
                         }
                     }
-                    completed = pendingModelCalls.Values.Where(item => item.Task.IsCompleted).ToArray();
+                    completed = CompletedModelReplies(pendingModelCalls, item => item.Task);
                     activeModelCallIds = pendingModelCalls.Keys.ToHashSet(StringComparer.Ordinal);
-                    completedWills = pendingWills.Values.Where(item => item.Task.IsCompleted).ToArray();
+                    completedWills = CompletedModelReplies(pendingWills, item => item.Task);
                     activeWillIds = pendingWills.Keys.ToArray();
                     inactiveWillReasons = new Dictionary<string, string>(pendingWillCancellationReasons, StringComparer.Ordinal);
                 }
                 ReconcilePendingConversationTurns();
                 ReconcileIdentityMoments();
-                completedIdentityMoments = pendingIdentityMoments.Values.Where(item => item.Task.IsCompleted).ToArray();
+                completedIdentityMoments = CompletedModelReplies(pendingIdentityMoments, item => item.Task);
                 retainedIdentityIds = pendingIdentityMoments.Keys.Except(completedIdentityMoments.Select(item => item.Request.Observation.AgentId),
                     StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
                 retainedModelCallIds = pendingModelCalls.Keys.Except(completed.Select(item => item.Request.Observation.AgentId),
                     StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
-                completedConversationTurns = pendingConversationTurns.Values
-                    .Where(item => item.Task.IsCompleted).ToArray();
+                completedConversationTurns = CompletedModelReplies(pendingConversationTurns, item => item.Task);
                 baseline = CaptureState();
                 baselineConversations = conversationSystem.CheckpointState;
                 baselineFarming = farmingSystem.Fork();
@@ -680,8 +679,7 @@ public sealed partial class WorldRuntime
             var deferredDecisions = new List<SocietyCognitionDispatchResult>();
             if (deferModelCalls)
             {
-                foreach (var item in completed.OrderBy(
-                             item => item.Request.Observation.AgentId, StringComparer.Ordinal))
+                foreach (var item in completed)
                 {
                     var id = item.Request.Observation.AgentId;
                     if (!agents.TryGetValue(id, out var physical)) continue;
