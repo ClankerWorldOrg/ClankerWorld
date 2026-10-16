@@ -28,9 +28,6 @@
     "FindUnoccupiedRoute(actor, person.Position, house.Position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, position, range)"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs": [
-    "FindUnoccupiedRoute(trade.BuyerId, buyerState.Position, trade.Position, ResourceInteractionRange)"
-  ],
   "src/ClankerWorld.Simulation/World/Family/WorldRuntime.Continuity.cs": [
     "society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant"
   ],

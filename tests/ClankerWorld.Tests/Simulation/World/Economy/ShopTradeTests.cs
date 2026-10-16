@@ -140,8 +140,23 @@ public sealed partial class ShopTradeTests
         var goodsBefore = TotalQuantity(state.Society.Society.Inventory, goodsKind);
         using var settling = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("shop_continue:") : new ShopProvider("safe_idle"));
+        var responsePlans = new List<ShopResponseActionPlan>();
         for (var step = 0; step < 40 && settling.Society.Inventory.GetOffer(offer.Id).State == DirectBarterState.Open; step++)
-            Assert.True((await settling.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await settling.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            responsePlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is ShopResponseActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<ShopResponseActionPlan>(decision.ActionPlan)));
+        }
+        Assert.NotEmpty(responsePlans);
+        Assert.All(responsePlans, plan =>
+        {
+            Assert.Equal(seller, plan.Actor);
+            Assert.False(plan.Cancel);
+            Assert.Equal(binding, plan.Trade);
+            Assert.Equal(TownHearingProcedure.Digest(offer), TownHearingProcedure.Digest(plan.Offer));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, settling.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.Equal(DirectBarterState.Settled, settling.Society.Inventory.GetOffer(offer.Id).State);
         var purchased = Assert.Single(settling.Society.Inventory.Lots, lot => lot.OwnerId == buyer &&
             lot.ItemKind == goodsKind && lot.ProvenanceLotId == "shop-axe");
