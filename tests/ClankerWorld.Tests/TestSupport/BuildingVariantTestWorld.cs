@@ -22,7 +22,7 @@ internal static class BuildingVariantTestWorld
         return Task.FromResult(WorldRuntimeCodec.Encode(world.ExportState()));
     });
 
-    public static async Task<BuildingVariantFixture> CreatePreparedAsync(string family)
+    public static async Task<BuildingVariantFixture> CreatePreparedAsync(string family, bool keepStartingSmith = false)
     {
         var state = WorldRuntimeCodec.Decode((await Baseline.Value).ToArray());
         var (width, height) = family switch
@@ -62,6 +62,15 @@ internal static class BuildingVariantTestWorld
             }).ToArray(),
         };
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        // The four-resident Town has room for one smith. Free its starting
+        // slot before testing paid construction of the larger design.
+        if (family == "blacksmith" && !keepStartingSmith)
+        {
+            using var world = WorldRuntime.Restore(state, _ => new VariantActionProvider());
+            var smith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
+            Assert.True(world.RemoveBuilding(smith.InstanceId, smith.TownId, smith.HouseholdId).Applied);
+            state = world.ExportState();
+        }
         return new(Strict(state), actor, definition);
     }
 
