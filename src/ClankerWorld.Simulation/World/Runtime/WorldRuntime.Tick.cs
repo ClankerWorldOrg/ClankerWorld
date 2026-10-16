@@ -371,9 +371,15 @@ public sealed partial class WorldRuntime
         var excluded = pendingModelCalls.Keys.Concat(pendingIdentityMoments.Keys).Concat(completedIds)
             .Concat(agents.Keys.Where(id => IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
             .ToHashSet(StringComparer.Ordinal);
+        // Plan checks may read other agents' intentions. Capture and filter
+        // outside the society scheduler's gate so those reads can take it too.
+        var observations = society.Capture().Cognition.Queue
+            .Where(entry => !excluded.Contains(entry.AgentId) && IsQueuedObservationReady(entry.Observation))
+            .ToDictionary(entry => entry.AgentId, entry => RefreshOfferedPlans(entry.Observation), StringComparer.Ordinal);
         // A turn or another participant's decision can change the conversation
         // after this tick's observation was queued. Defer it before batching.
-        foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady).Take(capacity))
+        foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady,
+                     observation => observations[observation.AgentId]).Take(capacity))
         {
             var cancellation = new CancellationTokenSource();
             var task = ScheduleModelWork(ModelWorkKind.Decision, preview.AgentId, preview.Request.RequestId, async () =>
@@ -404,6 +410,22 @@ public sealed partial class WorldRuntime
         observation.WorldTick == WorldTick &&
         string.Equals(observation.ConversationChoiceContext,
             ConversationChoiceContextFor(observation.AgentId), StringComparison.Ordinal);
+
+    private AgentObservation RefreshOfferedPlans(AgentObservation observation)
+    {
+        if (IsUndeliveredFinishedOrderDecision(observation)) return observation;
+        // Earlier actions can spend queued supplies before this model call starts.
+        var candidates = observation.Candidates.Where(candidate =>
+            candidate.ActionPlan is not { } plan || CheckActionPlan(plan).Allowed).ToArray();
+        if (candidates.Length == observation.Candidates.Count) return observation;
+        return observation with
+        {
+            Candidates = candidates,
+            ObservationDigest = ObservationDigest(observation.AgentId, observation.WorldId!, agents[observation.AgentId],
+                candidates, observation.RetrievedMemories ?? [], observation.MemoryCompactionCandidates ?? [],
+                observation.KnownMapFacts ?? [], observation.Self!, observation.ObserverGuidance ?? [], observation.MemorySummaryOptions),
+        };
+    }
 
     private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true)
     {
