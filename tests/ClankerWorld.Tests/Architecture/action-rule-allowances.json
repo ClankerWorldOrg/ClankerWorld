@@ -184,9 +184,6 @@
   "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Towns/TownPropertyRules.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, destination, range)",
     "FindUnoccupiedRoute(trade.BuyerId, agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)"
