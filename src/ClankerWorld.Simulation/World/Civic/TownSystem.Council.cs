@@ -231,6 +231,7 @@ internal sealed partial class TownSystem
         var proposalVotePlan = originalPlan as CivicProposalVoteActionPlan;
         var lawPlan = originalPlan as TownLawActionPlan;
         var policyPlan = originalPlan as TownPolicyActionPlan;
+        var governmentProposalPlan = originalPlan as GovernmentProposalActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -274,6 +275,12 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (GovernmentProposalChoice.Decode(selectedId) is { } governmentChoice)
+        {
+            governmentProposalPlan ??= PlanGovernmentProposal(world, actor, governmentChoice);
+            if (governmentProposalPlan is null) return;
+            if (CheckGovernmentProposal(world, governmentProposalPlan).Refusal is { } refusal) { world.RefuseChoice(governmentProposalPlan, refusal); return; }
         }
         else if (TownPolicyChoice.Decode(selectedId) is { } policyChoice)
         {
@@ -421,7 +428,19 @@ internal sealed partial class TownSystem
                 case "ballot":
                     if (ballotPlan!.Selected is null) return;
                     state = TownCouncilRules.VoteElection(state, ballotPlan.ElectionId, actor, ballotPlan.Selected, world.WorldTick); break;
-                case "government_extend_non_land" or "government_accept_non_land" or "government_propose" or "government_replace" or "government_yes" or "government_no" or "government_withdraw" or
+                case "government_propose" or "government_replace" or "government_yes" or "government_no" or "government_withdraw":
+                    if (CheckGovernmentProposal(world, governmentProposalPlan!, town with { Council = state, Government = government }).Refusal is { } governmentRefusal)
+                    { world.RefuseChoice(governmentProposalPlan!, governmentRefusal); return; }
+                    if (governmentProposalPlan!.Choice.Kind is GovernmentProposalKind.Propose or GovernmentProposalKind.ReplaceMayor)
+                        (state, government) = TownGovernmentRules.Propose(state, government, town.Id, actor,
+                            governmentProposalPlan.Target!, governmentProposalPlan.Choice.Kind == GovernmentProposalKind.ReplaceMayor,
+                            TownAdults(world, town), world.WorldTick, CivicDay(world));
+                    else if (governmentProposalPlan.Choice.Kind == GovernmentProposalKind.Withdraw)
+                        (state, government) = TownGovernmentRules.Withdraw(state, government, governmentProposalPlan.Change!.Id, actor, world.WorldTick);
+                    else government = TownGovernmentRules.Vote(government, governmentProposalPlan.Change!.Id, actor,
+                        governmentProposalPlan.Choice.Kind == GovernmentProposalKind.Yes, world.WorldTick);
+                    break;
+                case "government_extend_non_land" or "government_accept_non_land" or
                     "mayor_register" or "mayor_withdraw" or "mayor_resign" or "mayor_vote":
                     (state, government) = ApplyTownGovernmentAction(world, town, actor, parts[2], parts[3], parts[4], state, government);
                     break;
