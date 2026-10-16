@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # Saves and replay
@@ -1168,7 +1168,7 @@ reading Details changes no stock, permissions or agent knowledge. Earlier
 alpha schemas are refused and preserved without migration or history backfill.
 
 World schema 95 adds a required routine-helper choice, model name and
-optional OpenAI credential-slot ID. API-key bytes remain installation-owned.
+optional credential-slot ID (OpenAI for Decisions, TypeSafe for Jev). API-key bytes remain installation-owned.
 Loading rejects invalid helper/model/slot formats or inconsistent availability;
 missing installation keys cannot be invented from a save. The existing helper
 routing revision invalidates earlier requests, and switches preserve memory
@@ -1448,7 +1448,7 @@ current alpha cutoff.
 | Schema 84 | Required marriage consent receipts and dedicated surname conversations preserve the original surnames, admitted turns and seeded result, including across history compaction. Later player surname changes update both spouses together without rewriting the original decision. |
 | Schema 91 | Non-land mandate consent, conduct-time law context, public hearings and voluntary remedy agreements retain their sources and real physical completion receipts. Earlier alpha saves are refused and preserved without migration. |
 | Schema 94 | Market receipts use required stable sequences and an explicit retirement boundary. Open trades retain their exact deposit proof; bounded closed outcomes may refer below the retired boundary. Live borrowing, current stock, exact payments and accepted offers remain authoritative; closed offers and claims retire together. Earlier alpha saves are refused and preserved without migration. |
-| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned OpenAI key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
+| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
 | Schema 96 | Animals, held products and saddles, care trips, pregnancies, named permissions and exact animal/milk offers retain their physical custody. Current saves require the complete animal record; earlier alpha saves are refused and preserved without migration. |
 | Schema 97 | Native public-service receipts retain the usable personal carried quantity before donation separately from the actual source lot. The four-unit reserve may span carried lots; saved validation preserves source quantity, reservations and exact physical transfer evidence. Earlier alpha saves are refused and preserved without migration. |
 | Schema 98 | Existing inventory events retain exact physical storage additions/removals by building and item kind, with signed quantities. Event identities, trade receipts, rollback and bounded archival remain intact. Malformed changes and earlier alpha schemas are refused; no migration or history reconstruction is added. |
@@ -2031,7 +2031,7 @@ an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
 rotation, and every required history segment must verify. Model preflight includes
-the saved OpenAI Decisions helper's selected key as well as agent assignments.
+the saved routine helper's selected named key as well as agent assignments.
 Load World rechecks that key's availability even when its structural checkpoint
 proof is cached; a missing named key never substitutes the installation default.
 A damaged newer autosave is retained and skipped. No usable

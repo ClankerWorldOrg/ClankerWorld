@@ -120,9 +120,17 @@ public static class GameStarter
                 throw new GameInstallException("This build doesn't support the test data folder or detailed logs. Choose a newer build, or turn these options off.");
         }
         var logs = Path.Combine(layout.GameDataDirectory(settings), "logs");
-        Directory.CreateDirectory(logs);
         return StartProcess(executable, launcherExecutable, settings.DeveloperMode, worldId,
-            settings.UseTestData, settings.DetailedLogs, Path.Combine(logs, "game.log"));
+            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs));
+    }
+
+    /// <summary>Godot disables rotation with --log-file; keep the last run before it opens the new log.</summary>
+    public static string PrepareGameLog(string directory)
+    {
+        Directory.CreateDirectory(directory);
+        var current = Path.Combine(directory, "game.log");
+        if (File.Exists(current)) File.Move(current, Path.Combine(directory, "game.previous.log"), overwrite: true);
+        return current;
     }
 
     public static Process StartLocal(string executable, string launcherExecutable, LauncherSettings settings, LauncherLayout layout)
