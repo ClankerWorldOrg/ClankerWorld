@@ -221,6 +221,13 @@ everything that is available in the current build. See [what works today](../wha
   and pass it to the game as a start option; a game started without the
   launcher uses the same start option, with no in-game switch. A game the
   launcher started offers **Quit to Launcher** on its Main Menu.
+- **Agreed on October 16 ([#2346](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2346)):**
+  paused world editing uses named terrain, resource and object choices, followed
+  by clicking or dragging tiles, a preview and **Apply**. The server validates
+  the whole selection, saves accepted edits and records them as **Developer edit**;
+  a refusal explains why and changes nothing. The owner approved restoring
+  these native server operations, including validation, saving and replay,
+  as part of the same change. Editing remains in Developer tools and requires pause.
 - **Agreed after the October 2 panel review:** computment accepted redesigns
   of the panels that had not been touched yet, shown as before-and-after game
   screenshots, with these changes of their own:

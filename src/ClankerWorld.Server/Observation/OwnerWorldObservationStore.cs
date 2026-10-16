@@ -302,6 +302,7 @@ public sealed partial class OwnerWorldObservationStore
         "owner-provider-configuration.v1",
         "owner-agent-provider-configuration.v1",
         "paused-authoring.request.v1",
+        "paused-authoring.request.v2",
         "content-governance.read.v1",
         "content-governance.write.v1",
     ];
@@ -543,7 +544,7 @@ public sealed partial class OwnerWorldObservationStore
         var mapLayersUnchanged = terrainUnchanged && mapLayersDigest is not null &&
             string.Equals(knownMapLayersDigest, mapLayersDigest, StringComparison.Ordinal);
         var packedTerrain = state.Geography is null || terrainUnchanged ? null : PackTerrain(map);
-        var weatherAnchor = map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
+        var weatherAnchor = map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
             state.Towns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
             map.Resources.First(item => item.Id == "berry-patch").Position;
         var anchorWeather = state.WorldSystems is { } currentSystems
@@ -785,7 +786,14 @@ public sealed partial class OwnerWorldObservationStore
                 map.ManifestDigest,
                 anchorWeather.ToString().ToLowerInvariant(),
                 state.WorldSystems?.Climate.Season.ToString().ToLowerInvariant() ?? "spring",
-                []),
+                [])
+            {
+                EditTools = WorldMapEditRules.Choices.GroupBy(choice => choice.Operation).Select(group =>
+                    new ClankerWorld.Contracts.OwnerWorldEditTool(group.Key, group.Key switch
+                    { "set_terrain" => "Terrain", "place_resource" => "Resource", _ => "Object" },
+                    group.Select(choice => new ClankerWorld.Contracts.OwnerWorldEditKind(choice.Value,
+                        choice.DisplayName, choice.IsRenewable)).ToArray())).ToArray(),
+            },
             Instructions = visibleInstructions
                 .Select(instruction => new InstructionView(
                     instruction.InstructionId,

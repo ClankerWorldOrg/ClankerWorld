@@ -1192,8 +1192,21 @@ turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
 whose reply was lost, paused world editing and paired-device management. The
 aging override and world editing need the world paused first.
-World-edit coordinates cover the whole current map, from zero to its last
-tile on each axis. Their bounds update when you change worlds.
+**Edit world** lists the tools and kinds the server offers, using their names.
+Choose a tool and kind, then click tiles or drag across them; **Pick tiles on
+the map** shows when the tool is active. Gold marks show the tiles in your preview; **Apply** sends the
+whole selection for the server to check and save. **Clear preview** starts
+again. Resuming time, changing worlds or closing Developer tools clears it.
+A refused edit shows the server's reason and leaves the world unchanged.
+The typed operations are under **Advanced: typed operations**; their coordinate
+bounds follow the current map.
+
+Terrain choices paint ground, water, mountains or peaks. Resource choices add
+berry bushes, timber, fallen wood, stone, fiber or clay; object choices add a
+camp shelter, storage or cooking fire after the settlement starts. Choose empty
+tiles: agents, resources, objects, roads, fields and building sites are protected.
+The server saves the whole edit and marks it **Developer edit** in the Event Log.
+If the world changed since your preview, refresh and choose the tiles again.
 
 To set up a test, pause and use **Edit selected agent**. Choose a need and its
 percentage, goods and a quantity, a skill, or another agent for a partnership,

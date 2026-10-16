@@ -11,6 +11,20 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Developer map edits
+
+Paused terrain, resource and camp-object edits persist one validated proposal
+before changing the live world. A failed write preserves the prior checkpoint
+and live map, layers, ecology and history. Accepted batches use the existing
+`developer_edit` event with operation `edit_world`; its value retains the full
+world/event/epoch-bound command for deterministic replay and exact retry.
+Current-format saves retain edited terrain and resource/chunk manifests through
+strict reload and continuation. Schema 139 stores bounded current terrain
+overrides and added resource/object definitions in `MapAuthoring`. Reload checks
+the regenerated baseline with those overrides, including after history
+compaction. Earlier alpha saves are refused and preserved; no migration runs.
+The schema number is provisional until merge.
+
 ## Browsing saves from Load World
 
 The signed `POST /api/v1/owner/worlds/saves` read takes a catalog world ID and
@@ -1330,7 +1344,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 138. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 139. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
