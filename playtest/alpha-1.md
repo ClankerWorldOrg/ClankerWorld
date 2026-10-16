@@ -300,8 +300,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
 
 ## New world and map
 
-- [ ] **Worlds, climates and settings stay separate.** ([#1298](https://github.com/compoodment/ClankerWorld/issues/1298), [#1317](https://github.com/compoodment/ClankerWorld/issues/1317), [#1332](https://github.com/compoodment/ClankerWorld/issues/1332), [#1388](https://github.com/compoodment/ClankerWorld/issues/1388), [#1541](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1541))
-  - Create worlds with each climate, with and without latitude cooling. → The top and bottom rows are always sea, and no agent walks onto them.
+- [ ] **Worlds, climates and settings stay separate.** ([#1298](https://github.com/compoodment/ClankerWorld/issues/1298), [#1332](https://github.com/compoodment/ClankerWorld/issues/1332), [#1388](https://github.com/compoodment/ClankerWorld/issues/1388), [#1541](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1541))
   - Create a Small and a Medium world from the same seed, with different names and autosave settings. → Each world keeps its own map and settings.
   - Make a named save in each, switch worlds and restart. → Each world keeps its own map, settings and save list.
   - Leave a running world with **Quit to Menu**, then open **New World** and preview a Medium world. → The existing world stays paused while the preview shows full terrain detail.

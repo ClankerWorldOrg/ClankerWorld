@@ -538,9 +538,11 @@ public sealed partial class PortBoatRuntimeTests
         {
             Build = true,
             Freshwater = freshwater,
-            FirstPortSite = freshwater ? new(202, 99) : new(189, 14),
+            // The changed map digest seeds a layout with two earlier south-facing
+            // Port offers. Use the first of those real offered sites.
+            FirstPortSite = freshwater ? new(202, 99) : new(197, 13),
             // The nearer freshwater bank at (201,108) now supplies the Town's starter clay.
-            SecondPortSite = freshwater ? new(201, 109) : new(198, 13),
+            SecondPortSite = freshwater ? new(201, 109) : new(189, 14),
             PortLocalId = freshwater ? "port-east" : "port-south",
         };
         using var placed = new WorldRuntime("probe-a", policy.CreateProvider,
@@ -664,8 +666,8 @@ public sealed partial class PortBoatRuntimeTests
         internal WorldRuntime? World { get; set; }
         internal bool Build { get; set; }
         internal bool Freshwater { get; set; }
-        internal GridPoint FirstPortSite { get; set; } = new(189, 14);
-        internal GridPoint SecondPortSite { get; set; } = new(198, 13);
+        internal GridPoint FirstPortSite { get; set; } = new(197, 13);
+        internal GridPoint SecondPortSite { get; set; } = new(189, 14);
         internal string PortLocalId { get; set; } = "port-south";
         internal bool Trips { get; set; }
         internal string TripActor { get; set; } = Author;
@@ -728,7 +730,7 @@ public sealed partial class PortBoatRuntimeTests
                     };
                     // The second Port takes the first offered site other than the launch Port's.
                     selected = candidates.FirstOrDefault(candidate => candidate.Id.Contains(prefix, StringComparison.Ordinal) &&
-                        (prefix != "|project|port-" || !candidate.Id.EndsWith("|project|port-south|189,14", StringComparison.Ordinal)));
+                        (prefix != "|project|port-" || !candidate.Id.EndsWith($"|project|{policy.PortLocalId}|{policy.FirstPortSite.X},{policy.FirstPortSite.Y}", StringComparison.Ordinal)));
                     if (prefix == "|boat_project|")
                     {
                         var launchPort = projects.Single(project => project.Plan.Site == policy.FirstPortSite && project.Plan.BoatPortId is null).CompletedBuildingId!;
