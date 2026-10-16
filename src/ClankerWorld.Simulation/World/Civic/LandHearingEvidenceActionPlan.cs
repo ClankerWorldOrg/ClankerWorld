@@ -16,7 +16,10 @@ public sealed record LandHearingEvidenceChoice(string TownId, LandHearingEvidenc
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{RevisionToken}|{PartyOrRecipientToken}";
     public static LandHearingEvidenceChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var revision, var target] || town.Length == 0 || revision.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var revision, var target] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(revision, DerivedId.MaximumLength) ||
+            target is not "" && !IdentityRules.Reference(target, DerivedId.MaximumLength)) return null;
         LandHearingEvidenceKind? kind = verb switch
         {
             "hearing_inspect" => LandHearingEvidenceKind.Inspect,
