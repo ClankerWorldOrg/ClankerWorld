@@ -242,12 +242,26 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var inventory = AddWritingSupplies(state, actor, paper, cloth);
         var provider = new ChoosingProvider(actor, "knowledge_write:" + kind, "knowledge_continue");
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), _ => provider);
-        await AdvanceUntil(world, () => world.ExportState().Knowledge!.WritingProjects!.Count > 0, 64);
+        var plans = new List<KnowledgeWritingActionPlan>();
+        for (var tick = 0; tick < 64 && world.ExportState().Knowledge!.WritingProjects!.Count == 0; tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is KnowledgeWritingActionPlan { Project: null, Pickup: null } &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<KnowledgeWritingActionPlan>(decision.ActionPlan)));
+        }
 
         var working = world.ExportState();
         var project = Assert.Single(working.Knowledge!.WritingProjects!);
         Assert.Equal(actor, project.ActorId);
         Assert.Equal(kind, project.Kind);
+        var writingPlan = Assert.Single(plans);
+        Assert.Equal(project.Facts, writingPlan.Facts);
+        Assert.Equal(project.Recipes, writingPlan.Recipes);
+        Assert.Equal(project.Materials.Select(input => (input.LotId, input.ItemKind, input.Quantity)),
+            writingPlan.Materials.Select(input => (input.LotId, input.ItemKind, input.Quantity)));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(writingPlan).Refusal!.Reason);
         Assert.Empty(working.Knowledge.Artifacts);
         Assert.Equal(paper, CarriedQuantity(working, actor, "paper"));
         Assert.Equal(cloth, CarriedQuantity(working, actor, "cloth"));
