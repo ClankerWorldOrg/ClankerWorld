@@ -342,7 +342,7 @@ public partial class Main
     /// </summary>
     private void UpdateUnreadEvents(string? worldId)
     {
-        var ids = GameUiText.PlayerEvents(knownEvents.Values)
+        var ids = GameUiText.PlayerEvents(knownEvents.Values, observedCalendarPace)
             .Select(worldEvent => worldEvent.EventId).ToArray();
         var newest = ids.Length == 0 ? long.MinValue : ids.Max();
         if (!string.Equals(eventLogWorldId, worldId, StringComparison.Ordinal))

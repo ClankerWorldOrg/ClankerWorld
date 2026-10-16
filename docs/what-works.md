@@ -707,6 +707,8 @@ source or food. Unsupported, mixed, negated or incomplete requests close as not
 understood and appear in the Event Log. The parser also refuses counted travel
 such as "go get 2 berries" instead of guessing a task. A recognized task that
 cannot be done yet stays pending, with model retries on the usual schedule.
+Blocked orders and orders cancelled by a game error appear in the Event Log;
+the same problem for the same agent and target appears at most once a world day.
 Urgent survival can interrupt it before it resumes; waiting for a model reply
 does not stop the agent from following its task or handling an urgent need.
 Deterministic local choices do not claim the model heard a message, and

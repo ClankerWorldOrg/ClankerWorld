@@ -9,11 +9,13 @@ public static class GameUiText
 {
     private const int MinutesPerDay = 1_440;
 
-    /// <summary>A continuing model problem produces one row until recovery; waits and cancellations stay out of the log.</summary>
-    public static IEnumerable<OwnerWorldEvent> PlayerEvents(IEnumerable<OwnerWorldEvent> events) =>
-        ClankerWorld.Presentation.EventVocabulary.PlayerEvents(events, item => item.EventId,
-            item => item.Kind, item => item.Payload is ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload status
-                ? (status.ActorId, status.Status) : (null, null));
+    /// <summary>Selects notable events and coalesces problems using the world's calendar.</summary>
+    public static IEnumerable<OwnerWorldEvent> PlayerEvents(IEnumerable<OwnerWorldEvent> events,
+        OwnerWorldCalendarPace? calendarPace = null) =>
+        ClankerWorld.Presentation.EventLogPolicy.Select(events, item => item.EventId,
+            item => item.Kind, item => item.Payload,
+            item => CalendarRules.FromTick(item.WorldTick, calendarPace?.TicksPerDay ?? MinutesPerDay,
+                calendarPace?.CalendarOffsetTicks ?? 0).DayIndex);
 
     public static string ModelStatus(string? status) => status switch
     {

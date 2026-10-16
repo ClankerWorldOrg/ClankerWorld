@@ -2409,7 +2409,11 @@ resets it. Renaming still updates existing rows. The game displays this text
 without parsing event details. Event observations also carry the typed payload
 for fields the game uses directly, such as model status and weather. Diagnostic
 detail is not serialized in event observations. Descriptions remain derived
-and do not change checkpoint bytes.
+and do not change checkpoint bytes. `EventLogPolicy` classifies every accepted
+kind once for the server and game. Routine chores and stale automatic choices
+remain in the event stream and archive. Event Log refusal coalescing uses complete
+typed actor/subject references and the saved calendar's day boundary; no saved
+field, event payload or schema changes.
 
 ## Typed world events
 
