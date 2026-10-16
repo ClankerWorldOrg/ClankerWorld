@@ -48,6 +48,7 @@ public partial class Main
     private readonly RichTextLabel thoughtsReaderText = new();
     private string? renderedThoughtsReader;
     private bool agentProfileRequested;
+    private bool measuredFirstAgentProfile;
 
     private void BuildAgentProfile()
     {
@@ -412,6 +413,13 @@ public partial class Main
     /// <summary>Opens the Profile from the quick card; Speak also puts the cursor in the message box.</summary>
     private void OpenAgentProfile(bool speak)
     {
+        var firstOpen = !measuredFirstAgentProfile;
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        if (firstOpen)
+        {
+            measuredFirstAgentProfile = true;
+            GD.Print("agent_profile_open stage=begin");
+        }
         agentProfileRequested = true;
         if (agentCardSnapshot is { } snapshot)
             RenderSelectedAgentCard(snapshot);
@@ -422,6 +430,17 @@ public partial class Main
         }
         else if (keyboardNavigation)
             Callable.From(() => FocusKeyboardPanel(agentProfilePanel)).CallDeferred();
+        if (firstOpen)
+        {
+            GD.Print(FormattableString.Invariant($"agent_profile_open stage=controls_ready elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
+            _ = LogFirstAgentProfileDrawAsync(started);
+        }
+    }
+
+    private async Task LogFirstAgentProfileDrawAsync(long started)
+    {
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GD.Print(FormattableString.Invariant($"agent_profile_open stage=first_draw elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
     }
 
     /// <summary>

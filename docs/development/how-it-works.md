@@ -729,6 +729,9 @@ The fresh-process Profile check opens every agent in a generated, three-day
 hard world, including a born child, and measures both the button handler and
 the following layout frames. The normal UI smoke runs separately so its earlier
 profile opens cannot hide a first-open stall.
+The real first Profile open logs `agent_profile_open` at `begin`,
+`controls_ready` and `first_draw`, with elapsed times and no agent data, so a
+platform-specific stall can be separated into control setup and first drawing.
 
 ## Finding goods
 
