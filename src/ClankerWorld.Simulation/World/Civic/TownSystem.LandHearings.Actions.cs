@@ -71,12 +71,16 @@ internal sealed partial class TownSystem
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Waive, party.Id,
                     "Explicitly waive your remaining response opportunity for " + party.Kind + " " + (party.HouseholdId ?? party.TownId) + ". This does not agree to a loss or transfer, or waive another party's answer.", 166);
             }
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Register, "",
-                "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180);
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Withdraw, "",
-                "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185);
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Resign, "",
-                "Resign your mandate to adjudicate this case only.", 185);
+            if (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) &&
+                (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
+            {
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Register, "",
+                    "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Withdraw, "",
+                    "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Resign, "",
+                    "Resign your mandate to adjudicate this case only.", 185);
+            }
             if (item.Contest is { } contest)
                 foreach (var candidate in contest.Candidates)
                     OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Vote, candidate,
