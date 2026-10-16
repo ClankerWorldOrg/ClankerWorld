@@ -275,7 +275,8 @@ internal sealed partial class TownSystem
     internal TownRemedyTerm[] NonLandTerms(ITownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonLandChoice? payload, string? replacingAgreementId = null)
     {
         var references = CaptureNonLandAgreementReferences(world);
-        if (BindNonLandAgreementTerms(caseId, town.NonLandHearings.Sequence, references, payload) is not { Length: > 0 } result)
+        var result = BindNonLandAgreementTerms(caseId, town.NonLandHearings.Sequence, references, payload);
+        if (result is not [_, ..])
             throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
         var duration = payload?.CompletionTicks ?? checked(3L * CivicDay(world));
         if (NonLandTermsRefusal(world, town, actor, result, duration, replacingAgreementId) is { } refusal) throw new InvalidOperationException(refusal);
