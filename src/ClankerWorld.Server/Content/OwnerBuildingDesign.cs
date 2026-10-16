@@ -8,10 +8,9 @@ using ClankerWorld.Server.Runtime;
 
 namespace ClankerWorld.Server.Content;
 
-public sealed record OwnerBuildingDesignAction(string Name, string Purpose, int WoodCost);
 
-public sealed record OwnerBuildingDesignPreview(OwnerBuildingDesignAction Design, OwnerContentPackageAction Package, string ManifestDigest,
-    string Summary, bool ConstructionPassed, int WoodConsumed);
+
+
 
 public static partial class OwnerBuildingDesign
 {

@@ -1,1 +1,1 @@
-- Land hearing filings retain their authority, plot, requested outcome and statement through shared checks.
+- Land hearing filings retain their authority, plot, requested outcome and statement through shared checks. Unbound filing availability follows current affected plots; original suggestions do not restrict the reply. Filing planning keeps the notice-board guard.
