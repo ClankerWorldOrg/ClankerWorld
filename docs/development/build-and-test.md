@@ -263,7 +263,9 @@ from each test's median, because one run's times swing too much to balance by:
   `PinnedShards`.
 
 No run can finish before its slowest single test. Each test job lists its ten
-slowest tests in the run summary and warns about any test over five minutes.
+slowest tests in the run summary and job log, and warns about any test over five minutes.
+The `test-times` job also prints its complete comparison with main in both places,
+so reviewers can read it through the Actions logs API.
 Aim for under a minute per test: start a test close to the moment it checks,
 in the smallest world that shows the behavior.
 
