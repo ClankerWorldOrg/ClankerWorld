@@ -1,0 +1,1 @@
+- Market loading, deposits and physical collection retain their exact goods, quantities, origin and stall through shared checks.

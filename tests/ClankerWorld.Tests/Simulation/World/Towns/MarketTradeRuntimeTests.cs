@@ -295,6 +295,20 @@ internal static class MarketTradeScenario
                     Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
                 }
             }
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is MarketStockActionPlan { Choice.AtSite: true } &&
+                         decision.Admission.Accepted && decision.PlanRefusal is null))
+            {
+                var plan = Assert.IsType<MarketStockActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+                var market = world.Towns.Single(town => town.Id == plan.TownId).Markets.Single(item => item.Id == plan.Choice.MarketId);
+                if (plan.Choice.Kind == MarketStockKind.Deposit)
+                    Assert.Contains(market.StockReceipts, receipt => receipt.SourceLotId == plan.Choice.StockId && receipt.OwnerId == plan.OwnerId &&
+                        receipt.Quantity == plan.Choice.Quantity && receipt.OccupancyId == plan.Choice.OccupancyId && receipt.DepositedTick == world.WorldTick);
+                else
+                    Assert.Contains(result.Events, item => item.Kind == (plan.Choice.Kind == MarketStockKind.Load ? "market_stock_loaded" : "market_stock_collected") &&
+                        item.Detail == plan.TownId + "|" + plan.Choice.MarketId + "|" + plan.Choice.StallId + "|" + plan.Actor + "|" + plan.Choice.StockId);
+                Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+            }
             foreach (var person in world.Agents)
             {
                 if (before[person.AgentId] != person.Position)
