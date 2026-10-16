@@ -54,7 +54,7 @@ internal sealed partial class TownSystem
         }
         else
         {
-            var selectedId = $"civic|{town.Id}|{action}|{subject}|{choice}";
+            var selectedId = new NonLandEvidenceChoice(town.Id, action, subject, choice).Encode();
             if (NonLandEvidenceChoice.Decode(selectedId) is { } selectedEvidence && PlanNonLandEvidence(world, actor, selectedEvidence) is { } plannedEvidence)
             {
                 evidencePlan = BindNonLandEvidence(plannedEvidence, payload);
