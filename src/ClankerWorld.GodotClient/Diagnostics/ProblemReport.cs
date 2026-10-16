@@ -193,6 +193,6 @@ public static partial class ProblemReport
         RegexOptions.CultureInvariant)]
     private static partial Regex ProviderKey();
 
-    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+)|(?<![A-Za-z0-9+/_=\\.\-])[A-Za-z0-9+/_=-]{32,}(?![A-Za-z0-9+/_=\\.\-])""", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+|[A-Za-z0-9_.-]+\.(?i:dll|exe|pck)(?=$|[\s"'<>|,;).]))|[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
     private static partial Regex PathOrLongToken();
 }

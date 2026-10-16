@@ -79,12 +79,25 @@ public sealed class ProblemReportTests : IDisposable
     [InlineData("Loading res://UI/ClankerWorld1234567890LongResourceName/Menu.tscn")]
     [InlineData("Loading ../ClankerWorld1234567890LongResourceName/Menu.tscn")]
     [InlineData("Loading ClankerWorld1234567890LongResourceName.dll")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.GodotClient.dll")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.dll.")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.DLL")]
     public void OrdinaryPathsRemainReadableBesideSecrets(string diagnostic)
     {
         const string randomToken = "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb";
         var line = diagnostic + " api_key=sk-proj-AbCdEf0123456789XyZ pairing_code=482913 launch_secret=local-secret " + randomToken;
         Assert.Equal(diagnostic + " api_key=[removed] pairing_code=[removed] launch_secret=[removed] [removed]",
             ProblemReport.Redact(line));
+    }
+
+    [Theory]
+    [InlineData(".")]
+    [InlineData(").")]
+    [InlineData(", next diagnostic")]
+    public void SentencePunctuationDoesNotProtectStandaloneRandomValues(string suffix)
+    {
+        const string value = "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb";
+        Assert.Equal("debug: [removed]" + suffix, ProblemReport.Redact("debug: " + value + suffix));
     }
 
     [Theory]
