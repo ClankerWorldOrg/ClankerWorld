@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
         RegisterFoodPolicyActions(),
         new(ActionPhase.Ordinary, "trade_", ["trade_"], [], static (runtime, action) =>
     {
-        runtime.ApplyTradeCandidate(action.AgentId, action.State, action.CandidateId);
+        runtime.ApplyTradeCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "shop_", ["shop_"], [], static (runtime, action) =>

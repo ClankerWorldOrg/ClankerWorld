@@ -1,0 +1,1 @@
+- Direct barter retains its chosen goods, counterpart and original offer through shared checks and shared food thresholds. Candidate references keep their full spelling through the shared identity helper.

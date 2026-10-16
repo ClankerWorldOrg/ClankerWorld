@@ -69,9 +69,13 @@ public sealed class DirectBarterTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), id =>
             new TradeProvider(id == first ? "trade_propose:" + second : id == second ? "trade_accept:" : "safe_idle"));
         world.Validate();
+        var plans = new List<DirectBarterActionPlan>();
         for (var tick = 0; tick < 30; tick++)
         {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is DirectBarterActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<DirectBarterActionPlan>(decision.ActionPlan)));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -89,6 +93,15 @@ public sealed class DirectBarterTests
             var offer = Assert.Single(world.Society.Inventory.Offers);
             Assert.Equal(DirectBarterState.Settled, offer.State);
             Assert.Equal(2, offer.AcceptedBy.Count);
+            Assert.Contains(plans, plan => plan.Choice.Kind == DirectBarterKind.Propose);
+            Assert.Contains(plans, plan => plan.Choice.Kind == DirectBarterKind.Accept);
+            Assert.All(plans, plan =>
+            {
+                Assert.Equal(plan.Choice, DirectBarterChoice.Decode(plan.CandidateId));
+                Assert.Equal(plan.Actor == offer.FirstPartyId ? offer.FirstLotId : offer.SecondLotId, plan.GiveId);
+                Assert.Equal(plan.Actor == offer.FirstPartyId ? offer.SecondLotId : offer.FirstLotId, plan.TakeId);
+                Assert.NotNull(world.CheckActionPlan(plan).Refusal);
+            });
             Assert.Equal(1, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == first && lot.ItemKind == "clothing").Sum(lot => lot.Quantity));
             Assert.Equal(1, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == second && lot.ItemKind == "clothing").Sum(lot => lot.Quantity));
             Assert.Equal(1, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == first && lot.ItemKind == "berries").Sum(lot => lot.Quantity));
