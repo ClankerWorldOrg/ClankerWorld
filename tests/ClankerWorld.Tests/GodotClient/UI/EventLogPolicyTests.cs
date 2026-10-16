@@ -71,6 +71,28 @@ public sealed class EventLogPolicyTests
     }
 
     [Fact]
+    public void RetainedRefusalHistoryDoesNotPromoteOldDuplicatesAfterTheirFirstRowExpires()
+    {
+        var history = new EventLogRefusalHistory();
+        var pace = new OwnerWorldCalendarPace(40, 365, 90, 90, 90, 95, 20);
+        OwnerWorldEvent Refusal(long id, long tick, string target = "house:original:source:one") =>
+            Event(id, tick, new ActionRefusedEventPayload(NormalPathWorld.Founder1, target, tick, tick + 40, "check"));
+        var first = Refusal(1, 1);
+        var duplicate = Refusal(2, 2);
+        Assert.Equal(new long[] { 1 }, GameUiText.PlayerEvents([first, duplicate], pace, history).Select(item => item.EventId));
+        Assert.Empty(GameUiText.PlayerEvents([duplicate], pace, history));
+        Assert.Empty(GameUiText.PlayerEvents([duplicate], pace, history));
+        var otherTarget = Refusal(3, 3, "house:original:source:one:child");
+        Assert.Equal(new long[] { 3 }, GameUiText.PlayerEvents([duplicate, otherTarget], pace, history).Select(item => item.EventId));
+        var nextDay = Refusal(4, 20);
+        Assert.Equal(new long[] { 4 }, GameUiText.PlayerEvents([nextDay], pace, history).Select(item => item.EventId));
+        var laterDuplicate = Refusal(5, 21);
+        Assert.Empty(GameUiText.PlayerEvents([laterDuplicate], pace, history));
+        history.Clear();
+        Assert.Equal(new long[] { 5 }, GameUiText.PlayerEvents([laterDuplicate], pace, history).Select(item => item.EventId));
+    }
+
+    [Fact]
     public void PlayerOrderProblemsAndBrokenPromisesRemainVisibleWithoutPublishingRoutineWaits()
     {
         OwnerWorldEvent[] events =

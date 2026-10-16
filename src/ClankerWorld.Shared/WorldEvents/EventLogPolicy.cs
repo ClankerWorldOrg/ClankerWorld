@@ -4,6 +4,27 @@ namespace ClankerWorld.Presentation;
 
 public enum EventLogImportance { Unknown, Hidden, Important, Refusal, ModelStatus, OrderProblem }
 
+/// <summary>Canonical refusal rows for one observed timeline's retained calendar days.</summary>
+public sealed class EventLogRefusalHistory
+{
+    private readonly Dictionary<(long Day, string Kind, string? Actor, string Target), long> firstEvents = [];
+
+    public void Clear() => firstEvents.Clear();
+
+    internal void ForgetBefore(long day)
+    {
+        foreach (var key in firstEvents.Keys.Where(key => key.Day < day).ToArray())
+            firstEvents.Remove(key);
+    }
+
+    internal bool IsFirst((long Day, string Kind, string? Actor, string Target) key, long eventId)
+    {
+        if (firstEvents.TryGetValue(key, out var first)) return first == eventId;
+        firstEvents.Add(key, eventId);
+        return true;
+    }
+}
+
 /// <summary>The shared Event Log policy. Filtering never removes accepted history.</summary>
 public static class EventLogPolicy
 {
@@ -172,11 +193,14 @@ public static class EventLogPolicy
         status is "missing_key" or "usage_limit" or "unusable_reply" or "timed_out" or "model_unavailable";
 
     public static IEnumerable<T> Select<T>(IEnumerable<T> events, Func<T, long> eventId,
-        Func<T, string> kind, Func<T, WorldEventPayload?> payload, Func<T, long> day)
+        Func<T, string> kind, Func<T, WorldEventPayload?> payload, Func<T, long> day,
+        EventLogRefusalHistory? refusalHistory = null)
     {
+        var ordered = events.OrderBy(eventId).ToArray();
+        refusalHistory?.ForgetBefore(ordered.Length == 0 ? long.MaxValue : ordered.Min(day));
         var modelFailures = new Dictionary<string, string>(StringComparer.Ordinal);
         var refusals = new HashSet<(long Day, string Kind, string? Actor, string Target)>();
-        foreach (var item in events.OrderBy(eventId))
+        foreach (var item in ordered)
         {
             var importance = Importance(kind(item));
             var data = payload(item);
@@ -199,7 +223,8 @@ public static class EventLogPolicy
                 // a guessed colon-delimited prefix. Different reasons for the
                 // same problem/target still produce only one row that day.
                 var target = data is null ? string.Empty : string.Join("\0", data.SubjectIds);
-                if (!refusals.Add((day(item), kind(item), data?.ActorId, target))) continue;
+                var key = (day(item), kind(item), data?.ActorId, target);
+                if (!(refusalHistory?.IsFirst(key, eventId(item)) ?? refusals.Add(key))) continue;
             }
             if (importance is EventLogImportance.Important or EventLogImportance.Refusal or EventLogImportance.OrderProblem)
                 yield return item;

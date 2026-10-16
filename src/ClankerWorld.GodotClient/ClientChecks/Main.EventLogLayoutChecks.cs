@@ -20,6 +20,7 @@ public partial class Main
         var previousVisibility = HudPanels().Append(familyTreePanel).Append(mainMenuOverlay)
             .Select(panel => (Panel: panel, panel.Visible)).ToArray();
         var previousEvents = knownEvents.ToArray();
+        var previousRefusals = eventLogRefusals;
         var previousRenderedEvents = renderedEventLog;
         var previousEventsWorld = eventLogWorldId;
         var previousSeen = lastSeenEventId;
@@ -90,6 +91,7 @@ public partial class Main
 
         try
         {
+            eventLogRefusals = new();
             isRefreshing = true;
             isInWorld = true;
             mainMenuOverlay.Hide();
@@ -170,6 +172,7 @@ public partial class Main
                 throw new InvalidOperationException("An actual model failure must have one readable Event Log row.");
             RenderEventLog();
             if (EventRows().Single() != failureRow) throw new InvalidOperationException("An unchanged failure refresh must retain its row.");
+            VerifyEventLogRefusalRollover();
         }
         finally
         {
@@ -179,6 +182,7 @@ public partial class Main
             window.ContentScaleAspect = previousScaleAspect;
             window.ContentScaleSize = previousRenderSize;
             knownEvents.Clear();
+            eventLogRefusals = previousRefusals;
             foreach (var entry in previousEvents) knownEvents[entry.Key] = entry.Value;
             eventLogPanel.Hide();
             eventLogWorldId = previousEventsWorld;
@@ -200,5 +204,28 @@ public partial class Main
             eventLog.GetVScrollBar().Value = previousTextScroll;
             isRefreshing = previousRefreshing;
         }
+    }
+
+    private void VerifyEventLogRefusalRollover()
+    {
+        knownEvents.Clear();
+        var first = new ClankerWorld.Simulation.World.ActionRefusedEventPayload("agent", "target", 0, 1, "check");
+        var hidden = new ClankerWorld.Simulation.World.TickAdvancedEventPayload(null, 0);
+        var events = Enumerable.Range(1, ClankerWorld.Presentation.EventVocabulary.RetainedEventCount)
+            .Select(id => new OwnerWorldEvent(id, 0, id <= 2 ? first.Kind : hidden.Kind, "")
+            { Payload = id <= 2 ? first : hidden }).ToArray();
+        RememberWorldEvents(events);
+        eventLogPanel.Show();
+        UpdateUnreadEvents("refusal-rollover-check");
+        if (lastSeenEventId != 1 || unreadEvents != 0)
+            throw new InvalidOperationException("Reading duplicate daily refusals must mark only their first row seen.");
+        eventLogPanel.Hide();
+        var nextId = ClankerWorld.Presentation.EventVocabulary.RetainedEventCount + 1;
+        RememberWorldEvents([new(nextId, 0, hidden.Kind, "") { Payload = hidden }]);
+        UpdateUnreadEvents("refusal-rollover-check");
+        if (knownEvents.ContainsKey(1) || knownEvents.Count != ClankerWorld.Presentation.EventVocabulary.RetainedEventCount)
+            throw new InvalidOperationException("The rollover check must expire the first refusal through the real bounded event cache.");
+        if (unreadEvents != 0)
+            throw new InvalidOperationException("Expiring a daily refusal must not promote its old duplicate into an unread Event Log row.");
     }
 }

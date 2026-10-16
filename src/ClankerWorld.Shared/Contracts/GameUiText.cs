@@ -11,11 +11,11 @@ public static class GameUiText
 
     /// <summary>Selects notable events and coalesces problems using the world's calendar.</summary>
     public static IEnumerable<OwnerWorldEvent> PlayerEvents(IEnumerable<OwnerWorldEvent> events,
-        OwnerWorldCalendarPace? calendarPace = null) =>
+        OwnerWorldCalendarPace? calendarPace = null, ClankerWorld.Presentation.EventLogRefusalHistory? refusalHistory = null) =>
         ClankerWorld.Presentation.EventLogPolicy.Select(events, item => item.EventId,
             item => item.Kind, item => item.Payload,
             item => CalendarRules.FromTick(item.WorldTick, calendarPace?.TicksPerDay ?? MinutesPerDay,
-                calendarPace?.CalendarOffsetTicks ?? 0).DayIndex);
+                calendarPace?.CalendarOffsetTicks ?? 0).DayIndex, refusalHistory);
 
     public static string ModelStatus(string? status) => status switch
     {

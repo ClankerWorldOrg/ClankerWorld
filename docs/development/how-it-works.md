@@ -4561,7 +4561,9 @@ changes stay in accepted history without becoming Event Log rows. Player order
 blockage/cancellation and consequential refusals remain visible; each problem
 kind for the same complete actor and target appears at most once per world day,
 using the saved calendar offset. Model failures retain their recovery-based
-coalescing. The unread count uses the same selection. Unknown diagnostics do not
+coalescing. The client keeps each problem's original event ID across raw-history
+rollover, discards keys from expired calendar days, and resets them with the
+observed world or timeline. The unread count uses the same selection. Unknown diagnostics do not
 become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,

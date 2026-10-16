@@ -16,12 +16,13 @@ public partial class Main
 {
     private readonly VBoxContainer eventRows = new();
     private readonly ScrollContainer eventScroll = new();
+    private ClankerWorld.Presentation.EventLogRefusalHistory eventLogRefusals = new();
 
     private void RenderEventLog()
     {
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var offersNewcomer = WorldEventText.OffersNewcomer(snapshot);
-        var entries = GameUiText.PlayerEvents(knownEvents.Values, observedCalendarPace)
+        var entries = GameUiText.PlayerEvents(knownEvents.Values, observedCalendarPace, eventLogRefusals)
             .OrderByDescending(worldEvent => worldEvent.EventId)
             .Take(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount)
             .Select(worldEvent => (worldEvent.EventId, Located: worldEvent.Position is not null,
