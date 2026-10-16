@@ -1,4 +1,5 @@
 using System.Buffers;
+using ClankerWorld.Contracts;
 using ClankerWorld.Simulation.Content;
 using System.Net;
 using System.Collections.ObjectModel;
@@ -852,7 +853,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
         HttpClient httpClient,
         Func<string?> apiKeyAccessor,
         Uri? endpoint = null,
-        string model = "jev-1.13.0",
+        string model = RoutineHelperDefaults.JevModel,
         TimeSpan? requestTimeout = null,
         long providerEpoch = 1,
         ModelNeedFormat needFormat = ModelNeedWords.DefaultFormat)

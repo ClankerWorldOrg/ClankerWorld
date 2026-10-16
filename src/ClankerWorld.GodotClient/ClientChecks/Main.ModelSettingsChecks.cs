@@ -7,7 +7,7 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
-    private async Task VerifyHelperKeyDeletionRefusalAsync(OwnerWorldSnapshot sample)
+    private async Task VerifyHelperKeyDeletionRefusalAsync(OwnerWorldSnapshot sample, string provider = "decisions")
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
@@ -29,8 +29,8 @@ public partial class Main
             {
                 WorldId = host.Authority.WorldId,
                 LatestEventId = 0,
-                RoutineHelperProvider = "decisions",
-                RoutineHelperModel = "gpt-6-luna",
+                RoutineHelperProvider = provider,
+                RoutineHelperModel = DefaultProviderModel(provider),
                 RoutineHelperCredentialSlotId = slotId,
             };
             var handshake = new OwnerWorldHandshake(new(1, 1),
@@ -39,7 +39,7 @@ public partial class Main
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(0, 0, []))), 0, out var failure))
                 throw new InvalidOperationException("Helper key observation refused: " + failure);
             providerConfiguration = new("deterministic", "deterministic", 0, [], Assignments: [],
-                CredentialSlots: [new(slotId, "openai", "Helper")]);
+                CredentialSlots: [new(slotId, provider == "jev" ? "jev" : "openai", "Helper")]);
             agentModelCredentialChoice.Clear();
             agentModelCredentialChoice.AddItem("Helper");
             agentModelCredentialChoice.SetItemMetadata(0, slotId);
@@ -48,6 +48,11 @@ public partial class Main
             if (!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
                 providerConfiguration.CredentialSlots?.Count != 1 || isOwnerAction)
                 throw new InvalidOperationException("Deleting a helper-only key must explain how to release it and keep the saved key.");
+            RenderSavedApiKeys();
+            await DeleteApiKeyAsync();
+            if (!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
+                host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete))
+                throw new InvalidOperationException("API keys must protect the helper's key before sending a deletion.");
         }
         finally
         {
