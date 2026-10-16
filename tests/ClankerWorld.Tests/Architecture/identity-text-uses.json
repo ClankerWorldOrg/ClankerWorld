@@ -353,7 +353,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartRepairOrders.cs|length|missing.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ChildModels.cs|length|selection.ModelId.Length \u003E 200": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs|id|$\u0022build-site:{position.X},{position.Y}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs|id|$\u0022build:recipe:{recipe.CanonicalId}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs|id|$\u0022tick:{WorldTick}:{agent.Id}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs|length|observerGuidance.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ConstructionOrders.cs|id|$\u0022build-site:{position.X},{position.Y}\u0022": 1,
