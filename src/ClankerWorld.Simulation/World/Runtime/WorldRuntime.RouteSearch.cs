@@ -9,6 +9,31 @@ public sealed partial class WorldRuntime
     private readonly List<SharedRouteSearch> routeSearches = [];
     private readonly List<(UnoccupiedReachabilitySearch Search, bool Swimming)> reachabilitySearches = [];
     internal int RouteSearchesCreated { get; private set; }
+    private IReadOnlyList<PlacedBuilding>? movementBuildings;
+    private BuildingMovementRules? buildingMovement;
+
+    private BuildingMovementRules MovementBuildings
+    {
+        get
+        {
+            lock (routeSearches)
+            {
+                if (!ReferenceEquals(movementBuildings, worldSimulation.Buildings))
+                {
+                    ReleaseRouteSearches();
+                    buildingMovement = new BuildingMovementRules(worldSimulation.Buildings, worldContent.Buildings);
+                    movementBuildings = worldSimulation.Buildings;
+                }
+                return buildingMovement!;
+            }
+        }
+    }
+
+    private IEnumerable<GridPoint> FootMovementNeighbors(GridPoint origin)
+    {
+        var buildings = MovementBuildings;
+        return map.FootNeighbors(origin).Where(next => buildings.CanStep(map, origin, next));
+    }
 
     private bool HasUnoccupiedRoute(string actor, GridPoint origin, GridPoint destination,
         int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0)
@@ -20,6 +45,7 @@ public sealed partial class WorldRuntime
         var occupied = RouteOccupiedTiles(actor, origin, destination, interactionRange);
         if (occupied is null) return false;
         var swimming = allowSwimming && CanSwim(actor, origin, additionalCarriedUnits);
+        var buildings = MovementBuildings;
         lock (routeSearches)
         {
             var index = reachabilitySearches.FindIndex(item => item.Swimming == swimming &&
@@ -37,7 +63,8 @@ public sealed partial class WorldRuntime
         }
 
         UnoccupiedReachabilitySearch NewSearch() => new(map, occupied, destination, interactionRange,
-            swimming ? point => SwimmingRules.Neighbors(map, point) : null);
+            swimming,
+            (from, to) => buildings.CanStep(map, from, to), buildings.CanStop);
     }
 
     /// <summary>
@@ -49,6 +76,7 @@ public sealed partial class WorldRuntime
     private List<GridPoint> SharedUnoccupiedRoute(GridPoint origin, HashSet<GridPoint> occupied,
         GridPoint destination, int interactionRange, bool swimming = false)
     {
+        var buildings = MovementBuildings;
         lock (routeSearches)
         {
             var index = routeSearches.FindIndex(item => item.Matches(this, origin, occupied, swimming));
@@ -62,7 +90,8 @@ public sealed partial class WorldRuntime
             {
                 RouteSearchesCreated++;
                 shared = new SharedRouteSearch(new UnoccupiedRouteSearch(map, origin, occupied, swimming ? AgentStepCost : LegalRoadStepCost,
-                    swimming ? point => SwimmingRules.Neighbors(map, point) : null),
+                    swimming ? point => SwimmingRules.Neighbors(map, point) : null,
+                    (from, to) => buildings.CanStep(map, from, to), buildings.CanStop),
                     roadTiles, roadTiles.Count, roadBridgeDecks, swimming);
                 if (routeSearches.Count == SharedRouteSearchLimit)
                 {

@@ -61,6 +61,11 @@ internal static class PaidMarketWorld
         Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = position } : person).ToArray(),
     };
 
+    /// <summary>Waits inside the Market while leaving stall pickup tiles and doors clear.</summary>
+    internal static WorldRuntimeState Waiting(WorldRuntimeState state, string actor) => At(state, actor,
+        MovementTestWorld.OpenGround(state, actor, Market(state).Site,
+            allowed: point => MarketTradeRules.IsInside(Market(state), point)));
+
     internal static string HouseholdOf(WorldRuntimeState state, string actor) =>
         state.Society.Society.GetAgent(actor).HouseholdId!;
 
@@ -68,7 +73,7 @@ internal static class PaidMarketWorld
         state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
 
-    /// <summary>Stands the seller at the stall's doorway and records them as its current borrower.</summary>
+    /// <summary>Stands the seller inside the stall and records them as its current borrower.</summary>
     internal static WorldRuntimeState Borrowing(WorldRuntimeState state, string seller, int slot)
     {
         var market = Market(state);
@@ -78,7 +83,7 @@ internal static class PaidMarketWorld
         {
             SellerHouseholdId = HouseholdOf(state, seller),
         };
-        return WithMarket(At(state, seller, MarketContent.StallEntrance(market.Site, slot)),
+        return WithMarket(At(state, seller, MarketContent.StallSite(market.Site, slot)),
             item => item with { Occupancies = item.Occupancies.Append(occupancy).ToArray() });
     }
 

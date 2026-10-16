@@ -171,7 +171,10 @@ public sealed partial class WorldRuntimeTests
         Assert.Single(final.Events, item => item.Kind == "instruction_order_stale_decision" &&
             item.Detail == HarvestInstructionActor);
         Assert.Contains(suggestion.InstructionId.Value, final.CompletedInstructionIds ?? []);
-        Assert.Equal(2, provider.CallCount);
+        // Nearby movement may justify later requests; the pending suggestion is delivered once.
+        Assert.Single(provider.Requests, request => (request.ObserverGuidance ?? []).Any(item =>
+            item.InstructionId == suggestion.InstructionId && item.ReplyAllowed));
+        Assert.All(provider.Requests.Skip(1), request => Assert.Null(request.OperativeOrderInstructionId));
     }
 
     [Fact]

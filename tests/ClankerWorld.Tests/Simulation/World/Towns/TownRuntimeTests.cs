@@ -262,7 +262,12 @@ public sealed class TownRuntimeTests
             })));
             Assert.All(world.RoadTiles, point => Assert.True(map.IsBuildable(point)));
             Assert.Contains(world.ExportState().Events, item => item.Kind == "town_road_generated");
-            var roadOverlap = world.PlaceBuilding("road-overlap-test", definition.CanonicalId, world.RoadTiles[0]);
+            // A doorway Road has its own earlier refusal. Exercise ordinary
+            // Road occupancy at a tile that is not a building entrance.
+            var doors = world.WorldSimulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)).ToHashSet();
+            var roadSite = world.RoadTiles.First(point => !doors.Contains(point));
+            var roadOverlap = world.PlaceBuilding("road-overlap-test", definition.CanonicalId, roadSite);
             Assert.False(roadOverlap.Applied);
             Assert.Contains("Road", roadOverlap.Failure);
 

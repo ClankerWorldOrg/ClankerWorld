@@ -177,7 +177,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         var (state, lot, actor) = await AtReleasedGroundAsync();
         var inventory = InventoryAuthority.Relocate(state.Society.Society.Inventory, "recovery:held-load", lot.Id,
             lot.OwnerId, lot.Quantity, carrierId: actor, holdAccess: StockHoldTestState.Access(state.Society.Society.Inventory, lot.Id));
-        var otherLoad = inventory.Lots.First(item => item.OwnerId == lot.OwnerId && item.ItemKind == "wood" &&
+        var otherLoad = inventory.Lots.First(item => item.Id != lot.Id && item.OwnerId == lot.OwnerId &&
             item.GroundPosition is not null && state.Towns![0].Projects[0].Deliveries.Any(delivery => delivery.LotId == item.Id));
         inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + otherLoad.Id, "fixture_custody");
         inventory = InventoryAuthority.Relocate(inventory, "recovery:full-carrier", otherLoad.Id, otherLoad.OwnerId,
@@ -327,6 +327,7 @@ public sealed class TownReleasedMaterialRecoveryTests
                     LastDecisionContext = null
                 } : person).ToArray(),
         };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         return (state, lot, actor);
     }
 

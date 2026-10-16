@@ -302,7 +302,8 @@ public sealed partial class AnimalPipelineTests
             id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
         world.SubmitInstruction(new("care", "owner", actor, OwnerInstructionKind.Order, "repeat care for Moss"));
         await Until(world, () => world.Animals.Single().CareUntilTick > world.WorldTick);
-        Assert.Equal(yard.Position, world.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.InRange(state.Map.FootDistance(world.Agents.Single(person => person.AgentId == actor).Position,
+            world.Animals.Single().Position), 0, 1);
         Assert.Equal(3, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("supply-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.Equal(3, world.Society.Inventory.GetLot("supply-water").Quantity);
         Assert.Equal(home, world.Society.Inventory.GetLot("supply-jug").OwnerId);
@@ -572,6 +573,10 @@ public sealed partial class AnimalPipelineTests
         var definition = world.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
         foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Agents[0].Position)))
         {
+            var doorway = BuildingMovementRules.EntranceFor(definition,
+                new PlacedBuilding("test-yard", definition.CanonicalId, tile.Position, state.Society.Society.WorldTick));
+            // These supply fixtures require a land return with the full load.
+            if (!state.Map.IsBuildable(doorway) || !state.Map.IsReachableOnFoot(state.Agents[0].Position, doorway)) continue;
             var result = world.PlaceBuilding("test-yard", definition.CanonicalId, tile.Position, home);
             if (!result.Applied) continue;
             var yard = world.WorldSimulation.Buildings.Single(building => building.InstanceId == "test-yard");
@@ -580,6 +585,8 @@ public sealed partial class AnimalPipelineTests
             Assert.Equal(inventory.Lots.Where(lot => lot.OwnerId == home && lot.ItemKind == "rope").Sum(lot => lot.Quantity) - 2,
                 world.Society.Inventory.Lots.Where(lot => lot.OwnerId == home && lot.ItemKind == "rope").Sum(lot => lot.Quantity));
             var saved = world.ExportState();
+            var access = WorldContentSimulationRules.Footprint(definition, yard).Append(yard.Entrance ?? doorway).ToHashSet();
+            saved = MovementTestWorld.ClearOtherAccess(saved, actor, access);
             return (saved with { AnimalWorld = new(true, [], []) }, actor, home, yard);
         }
         throw new InvalidOperationException("No legal site for the paid animal yard.");

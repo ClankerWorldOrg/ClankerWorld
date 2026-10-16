@@ -94,6 +94,7 @@ public sealed partial class WorldRuntime
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
+        var buildings = MovementBuildings;
         var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
         var best = new Dictionary<GridPoint, int> { [origin] = 0 };
         var predecessor = new Dictionary<GridPoint, GridPoint>();
@@ -104,7 +105,8 @@ public sealed partial class WorldRuntime
         {
             if (priority.Cost != best[current])
                 continue;
-            if (IsWithinInteractionRange(current, destination, interactionRange))
+            if (IsWithinInteractionRange(current, destination, interactionRange) &&
+                (current == origin || buildings.CanStop(current, destination)))
             {
                 var route = new List<GridPoint> { current };
                 while (current != origin)
@@ -119,7 +121,8 @@ public sealed partial class WorldRuntime
 
             foreach (var next in map.FootNeighbors(current))
             {
-                if (handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
+                if (!buildings.CanStep(map, current, next) ||
+                    handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
