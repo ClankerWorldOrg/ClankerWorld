@@ -61,8 +61,23 @@ public sealed class TownProjectRuntimeTests
 
         // The generated world's loose-wood trips, seed storage and final forest load
         // need real travel time before the residents can perform the paid work.
-        await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 420);
+        var donationPlans = new List<TownProjectDonationActionPlan>();
+        await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 420, result =>
+        {
+            donationPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectDonationActionPlan plan && plan.Choice.AtSite &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Kind == "town_project_donated" &&
+                        item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)))
+                .Select(decision => Assert.IsType<TownProjectDonationActionPlan>(decision.ActionPlan)));
+        });
         AssertPaidHall(scenario);
+        Assert.NotEmpty(donationPlans);
+        Assert.All(donationPlans, plan =>
+        {
+            Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+            Assert.Contains(scenario.Project.Deliveries, delivery => delivery.ContributorId == plan.Actor && delivery.SourceLotId == plan.Choice.StockId &&
+                delivery.Quantity == plan.Choice.Quantity && delivery.ItemKind == plan.ItemKind && delivery.DeliveredTick is not null);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, scenario.World.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.Contains(scenario.Project.Deliveries, delivery => delivery.SourceLotId == carried.Id &&
             delivery.ContributorId == traveler.Actor && delivery.DeliveredTick is not null);
         Assert.Contains(scenario.Policy.Choices, choice => choice.Id.StartsWith("town_project_gather:", StringComparison.Ordinal));
