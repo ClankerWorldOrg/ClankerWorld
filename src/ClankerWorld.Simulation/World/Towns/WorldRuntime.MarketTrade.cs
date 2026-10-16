@@ -67,7 +67,7 @@ public sealed partial class WorldRuntime
 
     private bool CanReachMarketPoint(string actor, GridPoint destination, int range) =>
         IsWithinInteractionRange(agents[actor].Position, destination, range) ||
-        FindUnoccupiedRoute(actor, agents[actor].Position, destination, range).Count > 0;
+        Reach(actor, destination, ReachPurpose.MarketExchange, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private string MarketTradeMode(string actor, MarketTradeState trade) =>
         MarketPlaceMode(actor, trade.Position, ResourceInteractionRange) == "walking" ? "walking" :
@@ -150,7 +150,8 @@ public sealed partial class WorldRuntime
     }
 
     private (InventoryLot Goods, InventoryLot Payment)? MarketQuote(string buyer, TownMarketState market,
-        MarketStallState stall, MarketStallOccupancy occupancy, MarketGoodsBasis? buyerGoods = null)
+        MarketStallState stall, MarketStallOccupancy occupancy, MarketGoodsBasis? buyerGoods = null,
+        string? selectedGoodsId = null, string? selectedPaymentId = null)
     {
         var inventory = society.Checkpoint.Inventory;
         var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
@@ -166,11 +167,11 @@ public sealed partial class WorldRuntime
         buyerGoods ??= MarketGoodsFor(buyer);
         foreach (var goods in SpendingGoods(occupancy.SellerAgentId, GoodsUse.Sell,
                      [occupancy.SellerAgentId, occupancy.SellerHouseholdId], inventory: inventory).Select(match => match.Lot)
-                     .Where(lot => MarketTradeRules.IsAt(lot, position) && MarketTradeRules.MaySell(market, occupancy, lot, society.Checkpoint, occupancy.SellerAgentId) &&
+                     .Where(lot => (selectedGoodsId is null || lot.Id == selectedGoodsId) && MarketTradeRules.IsAt(lot, position) && MarketTradeRules.MaySell(market, occupancy, lot, society.Checkpoint, occupancy.SellerAgentId) &&
                          ShopBuyerWants(buyer, lot)))
         {
             foreach (var payment in buyerGoods.Matches.Select(match => match.Lot)
-                         .Where(lot => lot.OwnerId == buyer && PersonalEquipmentRules.IsCarried(lot, buyer) && MarketTradeRules.IsLoose(lot) &&
+                         .Where(lot => (selectedPaymentId is null || lot.Id == selectedPaymentId) && lot.OwnerId == buyer && PersonalEquipmentRules.IsCarried(lot, buyer) && MarketTradeRules.IsLoose(lot) &&
                          lot.StorageBuildingId is null && lot.GroundPosition is null && lot.ItemKind != goods.ItemKind &&
                          !ProtectedMarketItem(buyer, lot) && !ShopBuyerWants(buyer, lot) && MarketSurplus(buyer, lot, buyerGoods) > 0)
                          .OrderBy(lot => lot.Id, StringComparer.Ordinal))
@@ -180,6 +181,27 @@ public sealed partial class WorldRuntime
                     return (goods, payment);
         }
         return null;
+    }
+
+    private MarketExchangeActionPlan PlanMarketExchange(string actor, MarketChoice choice)
+    {
+        var kind = choice.Kind == "buy" ? MarketExchangeKind.Buy : choice.Kind == "cancel" ? MarketExchangeKind.Cancel : MarketExchangeKind.Continue;
+        var offer = choice.Trade is { } trade ? society.Checkpoint.Inventory.GetOffer(trade.OfferId) : null;
+        var mode = kind == MarketExchangeKind.Buy ? MarketPlaceMode(actor, MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex), ResourceInteractionRange) :
+            kind == MarketExchangeKind.Cancel ? "" : MarketTradeMode(actor, choice.Trade!);
+        var destination = choice.Trade?.Position ?? MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
+        var occupancy = choice.Trade is { } selected ? choice.Market.Occupancies.Single(item => item.Id == selected.OccupancyId) : choice.Occupancy!;
+        return new(actor, new(kind, occupancy.Id, actor, choice.Lot?.Id ?? offer!.FirstLotId, choice.Payment?.Id ?? offer!.SecondLotId,
+            offer?.Id, mode), choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, choice.Market.Site, choice.Stall.SlotIndex,
+            destination, occupancy, choice.Lot?.OwnerId ?? choice.Trade!.GoodsOwnerId, choice.Lot?.ItemKind ?? choice.Trade!.GoodsKind,
+            choice.Payment?.ItemKind ?? choice.Trade!.PaymentKind, choice.Trade, offer,
+            Reach(actor, destination, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private bool MarketOfferIsCurrent(MarketExchangeActionPlan plan)
+    {
+        var current = society.Checkpoint.Inventory.GetOffer(plan.Choice.OfferId!);
+        return current.State == DirectBarterState.Open && TownHearingProcedure.Digest(current) == TownHearingProcedure.Digest(plan.Offer);
     }
 
     private bool CanCollectMarketStock(string actor, InventoryLot lot, MarketStallOccupancy? occupancy, InventoryCheckpoint inventory) =>
@@ -330,6 +352,7 @@ public sealed partial class WorldRuntime
             {
                 "borrow" or "leave" => PlanMarketOccupancy(actor, choice),
                 "load" or "deposit" or "collect" => PlanMarketStock(actor, choice),
+                "buy" or "continue" or "cancel" => PlanMarketExchange(actor, choice),
                 _ => null,
             };
             if (choice.Kind is "borrow" or "leave" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
@@ -368,6 +391,7 @@ public sealed partial class WorldRuntime
         if (!IsMarketCandidate(id)) return false;
         if (originalPlan is MarketOccupancyActionPlan occupancyPlan) { ApplyMarketOccupancy(occupancyPlan); return true; }
         if (originalPlan is MarketStockActionPlan stockPlan) { ApplyMarketStock(stockPlan); return true; }
+        if (originalPlan is MarketExchangeActionPlan exchangePlan) { ApplyMarketExchange(exchangePlan); return true; }
         var choice = MarketChoices(actor).SingleOrDefault(item => item.Id == id);
         if (choice is null) return true;
         var position = MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
@@ -377,24 +401,7 @@ public sealed partial class WorldRuntime
             return true;
         }
         if (choice.Kind is "load" or "deposit" or "collect") { ApplyMarketStock(PlanMarketStock(actor, choice)); return true; }
-        if (choice.Kind is "continue" or "cancel")
-        {
-            ContinueMarketTrade(actor, state, choice, choice.Kind == "cancel");
-            return true;
-        }
-        var destination = choice.Kind == "load" ? HouseholdStockPosition(choice.Lot!) : position;
-        var range = choice.Kind == "load" ? HouseholdStockInteractionRange(choice.Lot!) : ResourceInteractionRange;
-        if (!IsWithinInteractionRange(state.Position, destination, range))
-        {
-            MoveToward(actor, state, destination, "market_" + choice.Kind, range);
-            return true;
-        }
-        switch (choice.Kind)
-        {
-            case "buy":
-                OfferMarketTrade(actor, choice, position);
-                break;
-        }
+        ApplyMarketExchange(PlanMarketExchange(actor, choice));
         return true;
     }
 
@@ -517,15 +524,15 @@ public sealed partial class WorldRuntime
             ReservedShopCarrySpace(trade.BuyerId) > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, agents[trade.BuyerId].Equipment) + HorseCargoCapacity(trade.BuyerId))
             return "There is no longer enough room to receive the goods.";
         if (!IsWithinInteractionRange(agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange) &&
-            FindUnoccupiedRoute(trade.BuyerId, agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange).Count == 0)
+            Reach(trade.BuyerId, trade.Position, ReachPurpose.MarketExchange, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return "The buyer can no longer reach the stall.";
         return null;
     }
 
-    private void ContinueMarketTrade(string actor, AgentState state, MarketChoice choice, bool cancel)
+    private void ContinueMarketTrade(string actor, AgentState state, MarketChoice choice, bool cancel, DirectBarterOffer? originalOffer = null)
     {
         var trade = choice.Trade!;
-        var offer = society.Checkpoint.Inventory.GetOffer(trade.OfferId);
+        var offer = originalOffer ?? society.Checkpoint.Inventory.GetOffer(trade.OfferId);
         if (cancel || MarketTradeFailure(choice.Town, choice.Market, trade, offer) is { })
         {
             CancelMarketTrade(choice.Town.Id, choice.Market, trade, cancel

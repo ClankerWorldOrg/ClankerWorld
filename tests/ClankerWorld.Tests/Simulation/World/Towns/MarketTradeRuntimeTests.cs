@@ -309,6 +309,23 @@ internal static class MarketTradeScenario
                         item.Detail == plan.TownId + "|" + plan.Choice.MarketId + "|" + plan.Choice.StallId + "|" + plan.Actor + "|" + plan.Choice.StockId);
                 Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
             }
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is MarketExchangeActionPlan &&
+                         decision.Admission.Accepted && decision.PlanRefusal is null))
+            {
+                var plan = Assert.IsType<MarketExchangeActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+                if (plan.Choice.Kind == MarketExchangeKind.Buy && plan.Choice.Mode == "at-site")
+                {
+                    var market = world.Towns.Single(town => town.Id == plan.TownId).Markets.Single(item => item.Id == plan.MarketId);
+                    var trade = Assert.Single(market.Trades, item => item.ProposedTick == world.WorldTick && item.BuyerId == plan.Actor);
+                    var offer = world.Society.Inventory.GetOffer(trade.OfferId);
+                    Assert.Equal((plan.Choice.GoodsId, plan.Choice.PaymentId, plan.GoodsOwnerId, plan.Actor, 1, 1),
+                        (offer.FirstLotId, offer.SecondLotId, offer.FirstPartyId, offer.SecondPartyId, offer.FirstQuantity, offer.SecondQuantity));
+                    Assert.Equal(plan.Choice.OccupancyId, trade.OccupancyId);
+                }
+                else if (plan.Choice.Kind != MarketExchangeKind.Buy && world.Society.Inventory.GetOffer(plan.Choice.OfferId!).State != DirectBarterState.Open)
+                    Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+            }
             foreach (var person in world.Agents)
             {
                 if (before[person.AgentId] != person.Position)

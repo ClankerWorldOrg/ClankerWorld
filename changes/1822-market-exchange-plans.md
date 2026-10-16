@@ -1,0 +1,1 @@
+- Market quotes and responses retain their exact goods, payment, borrowing and original offer terms through shared checks.
