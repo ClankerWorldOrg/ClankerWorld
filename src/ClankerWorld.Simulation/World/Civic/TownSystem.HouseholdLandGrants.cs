@@ -114,7 +114,9 @@ internal sealed partial class TownSystem
                     TownLandClaimRules.DescribeTiles(extra) + ".", 190)
                 { ActionPlan = plan });
         }
-        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id))
+        var history = CivicHistory(town);
+        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id && request.Status == "pending" &&
+                     history.Knows(actor, "land_use", request.Id)))
         {
             var terms = request.HearingResolutions.Count == 0 ? LandUseTerms(world, request) :
                 "Remaining unheard requested tiles: " + TownLandClaimRules.DescribeTiles(TownLandRightsRules.UnresolvedRequestTiles(request)) +

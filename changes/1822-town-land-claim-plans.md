@@ -1,2 +1,3 @@
 - Town title claims retain their offered plot options and admitted exact tiles through shared checks.
+- A waiting land-claim reply can still propose its valid plot after other residents claim the nearby suggestions.
 - Personal land-claim replies without a plot receive an explained refusal before proposal submission.
