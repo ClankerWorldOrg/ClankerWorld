@@ -112,7 +112,8 @@ public sealed partial class HandcartRuntimeTests
         var chooser = new ActionCoverageRecorder();
         IDecisionProvider Provider(string id) => id == actor ? chooser : new ActionCoverageRecorder(chooseIdle: true);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
-        for (var tick = 0; tick < 40; tick++)
+        // Field work can occupy several ticks between ordinary choices.
+        for (var tick = 0; tick < 120 && chooser.Chosen.Values.Sum() < 5; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), Provider);

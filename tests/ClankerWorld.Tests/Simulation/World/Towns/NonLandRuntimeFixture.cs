@@ -87,8 +87,21 @@ internal static class NonLandRuntimeFixture
         WorldRuntimeState state;
         using (var hearing = Create(await ReadyToFindAsync(), provider))
         {
-            await UntilAsync(hearing, () => hearing.Towns[0].NonLandHearings.Cases[0].Findings.Count > 0, 8);
+            var plans = new List<NonLandAdjudicationActionPlan>();
+            await UntilAsync(hearing, () => hearing.Towns[0].NonLandHearings.Cases[0].Findings.Count > 0, 8, result =>
+            {
+                plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandAdjudicationActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                        result.Events.Any(item => item.Kind == "law_case_finding" && item.Detail == plan.Choice.TownId + "|" + plan.Case.Id + "|" + plan.Actor))
+                    .Select(decision => Assert.IsType<NonLandAdjudicationActionPlan>(decision.ActionPlan)));
+            });
             var finding = Assert.Single(hearing.Towns[0].NonLandHearings.Cases[0].Findings);
+            var plan = Assert.Single(plans);
+            Assert.True(plan.Bound);
+            Assert.Equal(plan.Choice, NonLandAdjudicationChoice.Decode(plan.CandidateId));
+            Assert.Equal((finding.Judge, finding.Reasons, finding.Uncertainty), (plan.Judge, plan.Reasons, plan.Uncertainty));
+            Assert.Equal(finding.EvidenceIds, plan.EvidenceIds!.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+            Assert.Equal(TownHearingProcedure.Digest(finding.Parties), TownHearingProcedure.Digest(plan.Parties));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, hearing.CheckActionPlan(plan).Refusal!.Reason);
             Assert.Equal("warning", finding.Consequence);
             Assert.Equal(Judge, finding.Judge.AgentId);
             Assert.Equal("non_land_mayor", finding.Judge.Kind);
@@ -130,18 +143,33 @@ internal static class NonLandRuntimeFixture
                 ? new(Statement: "I offer my own named goods or work, voluntarily.", Terms: terms, CompletionTicks: completionTicks) : null
         };
         using var world = Create(state, consent);
+        var agreementPlans = new List<NonLandAgreementActionPlan>();
         Wake(world, Subject, "consider-voluntary-return");
-        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Offers.Count > 0, 8);
+        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Offers.Count > 0, 8, Capture);
         var offer = Assert.Single(world.Towns[0].NonLandHearings.Offers);
+        var offeredPlan = Assert.Single(agreementPlans, plan => plan.Choice.Verb == "remedy_offer");
+        Assert.True(offeredPlan.Bound);
+        Assert.Equal((offer.FindingId, offer.CompletionTicks, offer.Reason), (offeredPlan.Finding.Id, offeredPlan.CompletionTicks, offeredPlan.Reason));
+        Assert.Equal(MaterialTerms(offer.Terms), MaterialTerms(offeredPlan.Terms!));
         Wake(world, Subject, "read-voluntary-offer");
         await UntilAsync(world, () => world.Towns[0].Council!.Knowledge.Any(receipt =>
-            receipt.AgentId == Subject && receipt.NoticeId == offer.NoticeId), 4);
+            receipt.AgentId == Subject && receipt.NoticeId == offer.NoticeId), 4, Capture);
         if (!accept) return Strict(world.ExportState());
         Wake(world, Subject, "decide-voluntary-consent");
-        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Agreements.Count > 0, 4);
+        await UntilAsync(world, () => world.Towns[0].NonLandHearings.Agreements.Count > 0, 4, Capture);
+        var acceptedPlan = Assert.Single(agreementPlans, plan => plan.Choice.Verb == "remedy_accept");
+        Assert.Equal((offer.Id, offer.TermsHash), (acceptedPlan.Offer!.Id, acceptedPlan.Offer.TermsHash));
+        Assert.Equal(acceptedPlan.Choice, NonLandAgreementChoice.Decode(acceptedPlan.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(acceptedPlan).Refusal!.Reason);
         Assert.Equal("pending", Assert.Single(world.Towns[0].NonLandHearings.Agreements).Status);
         Assert.Empty(world.Towns[0].NonLandHearings.Effects);
         return Strict(world.ExportState());
+
+        void Capture(WorldStepResult result) => agreementPlans.AddRange(result.Decisions.Where(decision =>
+                decision.ActionPlan is NonLandAgreementActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+            .Select(decision => Assert.IsType<NonLandAgreementActionPlan>(decision.ActionPlan)));
+        static string MaterialTerms(IReadOnlyList<TownRemedyTerm> selected) => TownHearingProcedure.Digest(selected.Select(term =>
+            new { term.Kind, term.ContributorId, term.BeneficiaryId, term.ItemKind, term.Quantity, term.TargetId }));
     }
 
     internal static void Wake(WorldRuntime world, string actor, string key) =>
@@ -201,8 +229,24 @@ internal static class NonLandRuntimeFixture
         using var prepared = Create(state, provider);
         foreach (var (actor, index) in town.ResidentIds.Select((actor, index) => (actor, index)))
             Wake(prepared, actor, "inspect-elected-mayor-case:" + index.ToString(CultureInfo.InvariantCulture));
+        var materialPlans = new List<NonLandEvidenceActionPlan>();
         await UntilAsync(prepared, () => TownNonLandRules.ReadCurrent(prepared.Towns[0].NonLandHearings.Cases[0], Judge, prepared.WorldTick) &&
-            prepared.Towns[0].NonLandHearings.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].NonLandHearings.Cases[0].Allegation.SubjectId), 16);
+            prepared.Towns[0].NonLandHearings.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].NonLandHearings.Cases[0].Allegation.SubjectId), 16, result =>
+        {
+            materialPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandEvidenceActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                    result.Events.Any(item => item.Kind == (plan.Choice.Verb == "law_case_answer" ? "law_case_response" : "law_case_inspected") &&
+                        item.Detail == town.Id + "|" + plan.CaseId + "|" + plan.Actor))
+                .Select(decision => Assert.IsType<NonLandEvidenceActionPlan>(decision.ActionPlan)));
+        });
+        var actual = prepared.Towns[0].NonLandHearings.Cases[0];
+        Assert.Contains(materialPlans, plan => plan.Choice.Verb == "law_case_inspect" && plan.LawEvidence is not null &&
+            actual.Reads.Any(read => read.AgentId == plan.Actor && read.Revision == plan.Revision.Number));
+        var response = Assert.Single(actual.Responses, response => response.AgentId == actual.Allegation.SubjectId);
+        var answered = Assert.Single(materialPlans, plan => plan.Choice.Verb == "law_case_answer" && plan.Actor == response.AgentId);
+        Assert.True(answered.Bound);
+        Assert.Equal((response.PartyId, response.RepresentedAgentId, response.Text), (answered.Party!.Id, answered.Party.SubjectId, answered.Statement));
+        Assert.Equal(answered.Choice, NonLandEvidenceChoice.Decode(answered.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, prepared.CheckActionPlan(answered).Refusal!.Reason);
         Wake(prepared, Judge, "fresh-reasoned-choice");
         return WorldRuntimeCodec.Encode(Strict(prepared.ExportState()));
     }
@@ -216,10 +260,14 @@ internal static class NonLandRuntimeFixture
                 ? new(Statement: "I saw this person travel through the public notice place under the recorded rule.") : null
         };
 
-    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80)
+    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80, Action<WorldStepResult>? observe = null)
     {
         for (var tick = 0; tick < limit && !complete(); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
+        }
         Assert.True(complete(), "The expected native legal boundary was not reached within " + limit + " ticks.");
     }
 

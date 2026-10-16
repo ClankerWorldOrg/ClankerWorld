@@ -37,6 +37,70 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (NonLandAgreementChoice.Decode(candidate.Id) is { } nonLandAgreementChoice)
+            {
+                if ((candidate.ActionPlan as NonLandAgreementActionPlan ?? PlanNonLandAgreement(world, actor, nonLandAgreementChoice)) is { } nonLandAgreement &&
+                    CheckNonLandAgreement(world, nonLandAgreement).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandAgreement };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandAdjudicationChoice.Decode(candidate.Id) is { } nonLandAdjudicationChoice)
+            {
+                if ((candidate.ActionPlan as NonLandAdjudicationActionPlan ?? PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice)) is { } nonLandAdjudication &&
+                    CheckNonLandAdjudication(world, nonLandAdjudication).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandAdjudication };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandJudgeChoice.Decode(candidate.Id) is { } nonLandJudgeChoice)
+            {
+                if ((candidate.ActionPlan as NonLandJudgeActionPlan ?? PlanNonLandJudge(world, actor, nonLandJudgeChoice)) is { } nonLandJudge &&
+                    CheckNonLandJudge(world, nonLandJudge).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandJudge };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandEvidenceChoice.Decode(candidate.Id) is { } nonLandEvidenceChoice)
+            {
+                if ((candidate.ActionPlan as NonLandEvidenceActionPlan ?? PlanNonLandEvidence(world, actor, nonLandEvidenceChoice)) is { } nonLandEvidence &&
+                    CheckNonLandEvidence(world, nonLandEvidence).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandEvidence };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandFilingChoice.Decode(candidate.Id) is { } nonLandFilingChoice)
+            {
+                if ((candidate.ActionPlan as NonLandFilingActionPlan ?? PlanNonLandFiling(world, actor, nonLandFilingChoice)) is { } nonLandFiling &&
+                    CheckNonLandFiling(world, nonLandFiling).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandFiling };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingPropertyChoice.Decode(candidate.Id) is { } hearingPropertyChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingPropertyActionPlan ?? PlanLandHearingProperty(world, actor, hearingPropertyChoice)) is { } hearingProperty &&
+                    CheckLandHearingProperty(world, hearingProperty).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingProperty };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingReopeningChoice.Decode(candidate.Id) is { } hearingReopeningChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingReopeningActionPlan ?? PlanLandHearingReopening(world, actor, hearingReopeningChoice)) is { } hearingReopening &&
+                    CheckLandHearingReopening(world, hearingReopening).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingReopening };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingRulingChoice.Decode(candidate.Id) is { } hearingRulingChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingRulingActionPlan ?? PlanLandHearingRuling(world, actor, hearingRulingChoice)) is { } hearingRuling &&
+                    CheckLandHearingRuling(world, hearingRuling).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingRuling };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (LandHearingJudgeChoice.Decode(candidate.Id) is { } hearingJudgeChoice)
             {
                 if ((candidate.ActionPlan as LandHearingJudgeActionPlan ?? PlanLandHearingJudge(world, actor, hearingJudgeChoice)) is { } hearingJudge &&

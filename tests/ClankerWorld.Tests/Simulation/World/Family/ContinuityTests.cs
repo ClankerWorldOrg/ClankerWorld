@@ -158,11 +158,11 @@ public sealed partial class ParenthoodTests
         Assert.DoesNotContain(asked, observation => observation.WorldTick >= couple.DeadlineTick &&
             observation.Candidates.Any(item => item.Id.StartsWith("parent_", StringComparison.Ordinal)));
 
-        // The rule only works through the existing partnership; the other two adults stay single.
-        Assert.Single(restored.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
+        // The two other adults also form a partnership; their child deadline starts then.
+        Assert.Equal(2, restored.Society.Relationships.Count(item => item.Type == SocietyRelationshipType.Partnership));
         Assert.All(restored.Agents.Where(person => person.AgentId != first && person.AgentId != second),
             person => Assert.Null(person.Parenthood));
-        Assert.Single(restored.ExportState().Continuity!.Couples);
+        Assert.Equal(2, restored.ExportState().Continuity!.Couples.Count);
 
         // A fresh request after the deadline says the plan is going ahead.
         restored.Pause();
@@ -201,7 +201,7 @@ public sealed partial class ParenthoodTests
             item.Id == "parent_postpone:" + first).Description, StringComparison.Ordinal);
         Assert.DoesNotContain(answering.Candidates, item => item.Id.StartsWith("parent_decline:", StringComparison.Ordinal));
         foreach (var single in state.Agents.Skip(2))
-            Assert.All(seen.GetValueOrDefault(single.AgentId) ?? [], observation => Assert.Null(observation.Self!.ContinuityNote));
+            Assert.All(seen.GetValueOrDefault(single.AgentId) ?? [], observation => Assert.Contains("choose a single", observation.Self!.ContinuityNote, StringComparison.Ordinal));
 
         var handler = new ContinuityModelHandler();
         using var client = new HttpClient(handler);
@@ -222,7 +222,7 @@ public sealed partial class ParenthoodTests
         Assert.Contains("Continuity, when present", rendered.System, StringComparison.Ordinal);
         Assert.Contains("may put off having a child for up to two days but may not refuse", rendered.Continuity, StringComparison.Ordinal);
         Assert.Null(RetiredWording.Find(rendered.System + rendered.Continuity));
-        Assert.All(requests.Where(item => item.Agent != first && item.Agent != second), item => Assert.Null(item.Continuity));
+        Assert.All(requests.Where(item => item.Agent != first && item.Agent != second), item => Assert.Contains("choose a single", item.Continuity, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -393,7 +393,7 @@ public sealed partial class ParenthoodTests
             state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
                 (ancestor, first), (ancestor, second));
         }
-        using var world = WorldRuntime.Restore(state with { Continuity = new(false, []) }, _ => new ParentProvider("safe_idle"));
+        using var world = WorldRuntime.Restore(state with { Continuity = new(false, [], []) }, _ => new ParentProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Continuity!.Active);
         Assert.Equal(3, world.ExportState().Continuity!.Couples.Count);

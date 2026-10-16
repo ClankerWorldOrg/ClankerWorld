@@ -2,7 +2,7 @@
 title: The interface, art and audio
 type: game-design
 status: active
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 # The interface, art and audio
@@ -115,7 +115,7 @@ everything that is available in the current build. See [what works today](../wha
   known. Opening World Info never gives any agent knowledge. Experimental or
   unvalidated proposals are shown separately from usable discoveries.
 - The top-right menu button opens the **Pause Menu** and pauses the world. It
-  contains **Save World**, **Settings**, **Mod Library**, then **Quit to Menu**
+  contains **Save World**, **Load Save**, **Settings**, **Mod Library**, then **Quit to Menu**
   at the bottom. There is **no Quit Game action in the Pause Menu**; Quit Game
   belongs to the Main Menu. Settings use categories on the left and selected
   controls on the right. Quit to Menu and Main Menu Quit Game ask for
@@ -256,6 +256,10 @@ everything that is available in the current build. See [what works today](../wha
   - The Mod Library lists mods as cards with a status tag. Confirmation
     dialogs centre their text and have a framed close button inside the frame.
     Status messages show a tick or a warning sign.
+  - **Agreed on October 16 (the owner in chat, #2359):** selecting a world in
+    Load World shows its save timeline directly. Load opens the chosen save,
+    or the newest save when none is chosen. The Pause Menu's Load Save opens
+    the current world's timeline directly.
   - Load Save draws a world's save branches as a large timeline with the
     chosen save described underneath and the list behind a **Timeline / List**
     switch (option C of three, for #680). After two more rounds of drawings,

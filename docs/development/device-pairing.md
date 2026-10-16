@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # Device pairing
@@ -72,7 +72,7 @@ fresh challenge before signing or posting these actions.
 An absent or different format produces an update message while keeping the
 existing pairing. Older servers without this advertisement need an update too.
 Routine helper changes require `clankerworld.owner-routine-helper.v1`, signing
-the observed world ID, helper, model and optional saved OpenAI key-slot ID. The
+the observed world ID, helper, model and optional saved OpenAI or TypeSafe key-slot ID. The
 server holds the world-selection gate through validation and persistence, and
 refuses a changed world or an unpaused world.
 Named-key deletion checks the active world's routine helper together with agent
@@ -228,7 +228,7 @@ when the saved world ID is the same. The exact request and its idempotency key
 remain on disk; the client never retargets them. After a load, switch or server
 restart, check the world before explicitly forgetting a retained request and
 issuing a new one. An older local record without a timeline is not silently
-bound to a server that advertises this capability. Authoring payloads are unchanged.
+bound to a server that advertises this capability.
 
 Client and server must both use this instruction payload. Older requests without
 a simulation world ID are refused rather than guessed into the current world.

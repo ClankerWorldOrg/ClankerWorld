@@ -6,38 +6,39 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision)
+    private TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure)
     {
-        if (!TownPropertyRules.IsValid(request)) throw new InvalidOperationException("The property request is malformed.");
+        failure = null;
+        if (!TownPropertyRules.IsValid(request)) { failure = "The property request is malformed."; return null; }
         var building = worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == request.BuildingId);
         if (building is null || building.TownId != town.Id || building.HouseholdId != request.SourceHouseholdId)
-            throw new InvalidOperationException("The building no longer belongs to the noticed owner.");
+        { failure = "The building no longer belongs to the noticed owner."; return null; }
         var definition = worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId);
         if (!definition.Tags.Any(IsHouseholdBuildingTag))
-            throw new InvalidOperationException("This request needs an existing household building.");
+        { failure = "This request needs an existing household building."; return null; }
         var plot = WorldContentSimulationRules.Footprint(definition, building).ToArray();
         if (plot.Length > 64 || plot.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles)) ||
             householdLandUseRights.Any(right => right.TownId == town.Id && right.HouseholdId != request.SourceHouseholdId && right.Tiles.Any(plot.Contains)))
-            throw new InvalidOperationException("The building needs an undisputed footprint under this Town's title.");
+        { failure = "The building needs an undisputed footprint under this Town's title."; return null; }
         var former = Array.Empty<string>();
         var recipients = Array.Empty<string>();
         if (request.SourceHouseholdId is { } source)
         {
             var household = society.Checkpoint.Households.SingleOrDefault(household => household.Id == source);
             if (household is null || household.MemberIds.Any(id => society.Checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active))
-                throw new InvalidOperationException("The household still has members; its property cannot be reclaimed.");
+            { failure = "The household still has members; its property cannot be reclaimed."; return null; }
             former = TownPropertyRules.FormerMembers(society.Checkpoint, source, WorldTick);
         }
         else
         {
             if (!town.LandRecords.Cases.Any(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null } transfer &&
                     transfer.ResultBuilding.InstanceId == building.InstanceId && transfer.ResultBuilding.TownId == town.Id))
-                throw new InvalidOperationException("Only property previously recovered by a Town ruling can be granted this way.");
+            { failure = "Only property previously recovered by a Town ruling can be granted this way."; return null; }
             var target = society.Checkpoint.Households.SingleOrDefault(household => household.Id == request.TargetHouseholdId);
             recipients = target is null ? [] : HouseholdAdults(target.Id);
             if (target is null || recipients.Length == 0 || worldSimulation.Buildings.Any(other =>
                     other.HouseholdId == target.Id && other.DefinitionId == building.DefinitionId))
-                throw new InvalidOperationException("The receiving household needs current adults and room for this building.");
+            { failure = "The receiving household needs current adults and room for this building."; return null; }
         }
         var owner = request.SourceHouseholdId ?? town.Id;
         var inventory = society.Checkpoint.Inventory;
@@ -47,31 +48,22 @@ public sealed partial class WorldRuntime
         var lots = inventory.Lots.Where(lot => lot.Quantity > 0 && (roots.Contains(lot.Id) || lot.ContainerLotId is { } container && roots.Contains(container)))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         if (lots.Any(lot => lot.OwnerId != owner || lot.CarrierId is not null))
-            throw new InvalidOperationException("Shared containers must retain one recorded owner and physical custody.");
+        { failure = "Shared containers must retain one recorded owner and physical custody."; return null; }
         return new(revision, WorldTick, building, lots, former, recipients);
     }
+
+    private TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) =>
+        TryCaptureProperty(town, request, revision, out var failure) ?? throw new InvalidOperationException(failure);
 
     private bool PropertyIsCurrent(TownRuntimeState town, TownLandCase item)
     {
         if (item.Property is not { Transfer: null } property) return false;
-        try
-        {
-            return TownPropertyRules.MaterialVersion(property.Snapshots[^1]) == TownPropertyRules.MaterialVersion(
-                CaptureProperty(town, property.Request, TownLandHearingRules.CurrentRevision(item).Number));
-        }
-        catch (InvalidOperationException) { return false; }
+        return TryCaptureProperty(town, property.Request, TownLandHearingRules.CurrentRevision(item).Number, out _) is { } current &&
+            TownPropertyRules.MaterialVersion(property.Snapshots[^1]) == TownPropertyRules.MaterialVersion(current);
     }
 
-    private bool PropertyMayReopen(TownRuntimeState town, TownLandCase item)
-    {
-        if (item.Property is not { Transfer: null } property) return true;
-        try
-        {
-            _ = CaptureProperty(town, property.Request, TownLandHearingRules.CurrentRevision(item).Number + 1);
-            return true;
-        }
-        catch (InvalidOperationException) { return false; }
-    }
+    private bool PropertyMayReopen(TownRuntimeState town, TownLandCase item) => item.Property is not { Transfer: null } property ||
+        TryCaptureProperty(town, property.Request, TownLandHearingRules.CurrentRevision(item).Number + 1, out _) is not null;
 
     private bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item)
     {
@@ -106,38 +98,41 @@ public sealed partial class WorldRuntime
             foreach (var target in targets)
             {
                 var request = new TownPropertyRequest(building.InstanceId, building.HouseholdId, target);
-                TownPropertySnapshot snapshot;
-                try { snapshot = CaptureProperty(town, request, 1); }
-                catch (InvalidOperationException) { continue; }
-                var plot = WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building).ToArray();
-                if (TownPropertyRules.FilingRefusal(town.LandRecords, plot, new(request, [snapshot], [])) is not null) continue;
-                candidates.Add(new(CivicAction(town.Id, "hearing_property_request", building.InstanceId, target ?? "town"),
+                if (TryCaptureProperty(town, request, 1, out _) is not { } snapshot) continue;
+                var plot = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building));
+                var choice = LandHearingPropertyChoice.Decode(CivicAction(town.Id, "hearing_property_request", building.InstanceId, target ?? "town"))!;
+                var plan = TownSystem.PlanLandHearingProperty(civicWorld, actor, choice, request, snapshot, plot);
+                if (plan is null || !townSystem.CheckLandHearingProperty(civicWorld, plan).Allowed) continue;
+                candidates.Add(new(plan.CandidateId,
                     (mayor ? "Open" : "Ask the Council to authorize") + " a public property hearing to " +
                     (target is null ? "recover the empty household's " : "grant household " + target + " the recovered ") +
                     "building " + building.InstanceId + " and its " + snapshot.SharedLots.Count + " recorded shared goods lots. " +
                     "Give your statement in civic_land_hearing.statement. The normal notice and independent ruling are required. " +
-                    "Living former members keep their property unless each personally agrees; personal goods and carried goods remain untouched.", 185));
+                    "Living former members keep their property unless each personally agrees; personal goods and carried goods remain untouched.", 185)
+                { ActionPlan = plan });
             }
         }
     }
 
     private (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town,
-        string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government)
+        string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government, LandHearingPropertyActionPlan? plan = null)
     {
-        var building = worldSimulation.Buildings.Single(building => CivicAgentToken(building.InstanceId) == subject);
-        var request = new TownPropertyRequest(building.InstanceId, building.HouseholdId, choice == "town" ? null :
-            society.Checkpoint.Households.Single(household => CivicAgentToken(household.Id) == choice).Id);
-        var snapshot = CaptureProperty(town, request, 1);
-        var tiles = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
-            worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building));
-        var property = new TownPropertyCase(request, [snapshot], []);
-        if (TownPropertyRules.FilingRefusal(town.LandRecords, tiles, property) is { } refusal) throw new InvalidOperationException(refusal);
+        plan ??= LandHearingPropertyChoice.Decode($"civic|{town.Id}|hearing_property_request|{subject}|{choice}") is { } selected
+            ? TownSystem.PlanLandHearingProperty(civicWorld, actor, selected) : null;
+        if (plan is null) return (council, town.LandRecords);
+        plan = TownSystem.BindLandHearingProperty(plan, null, statement);
+        if (townSystem.CheckLandHearingProperty(civicWorld, plan, town with { Council = council, Government = government }).Refusal is { } refusal)
+        { RefuseChoice(plan, refusal); return (council, town.LandRecords); }
+        var request = plan.Request;
+        var snapshot = plan.Snapshot with { Tick = WorldTick, SharedLots = plan.Snapshot.SharedLots.Select(lot => society.Checkpoint.Inventory.GetLot(lot.Id)).ToArray() };
+        var tiles = plan.Tiles;
+        statement = plan.Statement!;
         var outcome = TownPropertyRules.Outcome(request);
-        if (government.Arrangement.Ordinary == TownArrangementRules.Mayor)
+        if (plan.Mayor)
         {
-            var office = government.Offices.Single(office => office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > WorldTick);
+            var office = plan.Office!;
             return OpenLandHearing(town, council, town.LandRecords, new(actor, "town", statement, outcome, WorldTick, office.ElectionId),
-                tiles, townRepresentative: actor, propertyRequest: request);
+                tiles, townRepresentative: actor, propertyRequest: request, propertySnapshot: snapshot);
         }
         var filing = new TownLandFilingRequest(tiles, outcome, statement) { Property = request };
         council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,

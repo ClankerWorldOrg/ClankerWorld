@@ -233,6 +233,7 @@ public partial class Main
             observationSession.AwaitingFreshBaseline;
         menuResumeButton.Disabled = observationSession.AwaitingFreshBaseline;
         menuSaveWorldButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
+        menuLoadSaveButton.Disabled = menuSaveWorldButton.Disabled;
         menuQuitToMainButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var paused = snapshot?.Authoring?.IsPaused == true;
@@ -244,6 +245,8 @@ public partial class Main
         buildingManagementChoice.Disabled = actionDisabled;
         buildingRemoveButton.Disabled = actionDisabled;
         saveApiKeyButton.Disabled = actionDisabled;
+        deleteApiKeyButton.Disabled = actionDisabled;
+        savedApiKeyChoice.Disabled = actionDisabled;
         apiKeyProviderChoice.Disabled = actionDisabled;
         apiKeyLabelInput.Editable = !actionDisabled;
         apiKeyInput.Editable = !actionDisabled;

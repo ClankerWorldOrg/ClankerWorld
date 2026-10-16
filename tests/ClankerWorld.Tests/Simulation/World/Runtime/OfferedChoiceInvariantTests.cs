@@ -202,6 +202,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         state.Conversations,
         state.Marriages,
         state.HandcartHitches,
+        state.Continuity,
     });
 
     private static void AssertScenario(WorldRuntimeState state)

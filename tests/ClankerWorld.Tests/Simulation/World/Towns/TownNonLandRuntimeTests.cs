@@ -108,9 +108,24 @@ public sealed class TownNonLandRuntimeTests
         var physical = Property(state);
         var provider = NonLandRuntimeFixture.FilingProvider();
         using var world = NonLandRuntimeFixture.Create(state, provider);
-        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases.Count > 0, 8);
+        var filingPlans = new List<NonLandFilingActionPlan>();
+        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases.Count > 0, 8, result =>
+        {
+            filingPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandFilingActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<NonLandFilingActionPlan>(decision.ActionPlan)));
+        });
 
         var item = Assert.Single(world.Towns[0].NonLandHearings.Cases);
+        var filingPlan = Assert.Single(filingPlans);
+        Assert.True(filingPlan.Bound);
+        Assert.Equal(filingPlan.Choice, NonLandFilingChoice.Decode(filingPlan.CandidateId));
+        Assert.Equal(filingPlan.Statement, item.Allegation.Statement);
+        Assert.Equal(JsonSerializer.Serialize(filingPlan.Allegation with { Statement = filingPlan.Statement! }), JsonSerializer.Serialize(item.Allegation));
+        Assert.Equal(JsonSerializer.Serialize(filingPlan.Parties), JsonSerializer.Serialize(item.Revisions[0].Parties));
+        Assert.Equal(filingPlan.Evidence.SourceRecordId, Assert.Single(item.Evidence).SourceRecordId);
+        Assert.Equal(filingPlan.Evidence.SourceVersion, item.Evidence[0].SourceVersion);
+        Assert.Equal(filingPlan.Acquisition.Id, item.Evidence[0].Id);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(filingPlan).Refusal!.Reason);
         Assert.Equal(conduct.Id, item.Allegation.IncidentId);
         Assert.Equal(conduct.Tick, item.Allegation.ConductTick);
         Assert.Equal("pending", item.Status);

@@ -197,6 +197,9 @@ public static class WorldEventFormatter
                 ? $"{Name(snapshot, payload.ActorId ?? "")} and {partner} became partners."
                 : $"{Name(snapshot, payload.ActorId ?? "")} formed a partnership.",
             "partnership_ended" => $"{Name(snapshot, payload.ActorId ?? "")}'s partnership ended.",
+            "continuity_partnership_formed" => payload is ContinuityPartnershipFormedEventPayload pairing
+                ? $"The continuity rule paired {Name(snapshot, pairing.ActorId ?? "")} and {Name(snapshot, pairing.PartnerId)}."
+                : "The continuity rule formed a partnership.",
             "continuity_rule_on" => DescribeContinuity(true, payload),
             "continuity_rule_off" => DescribeContinuity(false, payload),
             "caregiver_assigned" => Carer(snapshot, payload.ActorId ?? "", worldEvent.WorldTick + 1) is { } carer
@@ -262,6 +265,8 @@ public static class WorldEventFormatter
             "skill_learned" => DescribeSkill(payload, snapshot),
             "agent_recipe_learned" => $"{Name(snapshot, payload.ActorId ?? "")} learned a recipe through practice.",
             "agent_building_proposed" => $"{LeadingName(snapshot, payload)} suggested a new building design.",
+            "instruction_order_status" => $"{Name(snapshot, payload.ActorId ?? "")}'s order is blocked. See their Orders for the reason.",
+            "instruction_order_cancelled" => $"{Name(snapshot, payload.ActorId ?? "")}'s order was cancelled. See their Orders for details.",
             "instruction_not_understood" => $"{Name(snapshot, payload.ActorId ?? "")} didn't understand your order. " +
                 "Try one of the listed tasks, or use Suggest instead.",
             "town_civic_law" => $"{civicTownName} recorded a law decision. See the Towns page for its wording and scope.",
