@@ -135,7 +135,7 @@ public sealed partial class WorldRuntime
             var recipes = RecipesToWrite(actor, artifact.Kind, artifact);
             if (facts.Length + recipes.Length > 0 && HasCompleteCopyContents(actor, artifact, facts, recipes) &&
                 !AlreadyWrote(actor, artifact.Kind, facts, recipes))
-                OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, KnowledgeCopyPrefix + artifact.Id, facts, recipes, artifact),
+                OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, IdentityRules.PrefixedReference(KnowledgeCopyPrefix, artifact.Id), facts, recipes, artifact),
                     $"Copy {artifact.Title} using real paper{(artifact.Kind == "book" ? " and a cloth cover" : "")}; keep its original discovery sources.", 58);
         }
         if (!MayMakeKnowledgeArtifact(actor)) return;
@@ -145,7 +145,7 @@ public sealed partial class WorldRuntime
             var recipes = RecipesToWrite(actor, kind);
             if (facts.Length + recipes.Length == 0 || AlreadyWrote(actor, kind, facts, recipes)) continue;
             var materials = string.Join(" and ", AgentKnowledgeRules.WritingMaterials(kind).Select(input => $"{input.Quantity} {input.Kind}"));
-            OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, KnowledgeWritePrefix + kind, facts, recipes),
+            OfferKnowledgeWriting(candidates, PlanKnowledgeWriting(actor, IdentityRules.PrefixedReference(KnowledgeWritePrefix, kind), facts, recipes),
                 $"Write a {kind.Replace('_', ' ')} containing {facts.Length} personally learned site(s) and {recipes.Length} recipe(s), using {materials} and {AgentKnowledgeRules.WritingWork(kind)} work (trial amounts).", 56);
         }
     }
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
             var reservationId = WritingMaterialReservationId(id, materials.Count);
             inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, input.LotId, input.Quantity,
                 AgentKnowledgeRules.MaterialPurpose(id, input.ItemKind), long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-            materials.Add(new(reservationId, input.LotId, input.ItemKind, input.Quantity));
+            materials.Add(new(Identity.Parse(reservationId), input.LotId, input.ItemKind, input.Quantity));
         }
         ApplyInventoryTransition(_ => inventory);
         knowledge = knowledge with
