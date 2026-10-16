@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json.Serialization;
+using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -8,7 +10,11 @@ namespace ClankerWorld.Simulation.World;
 /// last check, so turning on or off is logged once; each eligible couple keeps the tick at which its
 /// "not yet" ends and the child plan goes ahead.
 /// </summary>
-public sealed record PopulationContinuity(bool Active, IReadOnlyList<ContinuityCouple> Couples);
+public sealed record PopulationContinuity(bool Active, IReadOnlyList<ContinuityCouple> Couples,
+    [property: JsonRequired] IReadOnlyList<ContinuitySingle> Singles);
+
+/// <summary>A single adult’s fixed deadline and optional partner preference.</summary>
+public sealed record ContinuitySingle(string AgentId, long DeadlineTick, string? ChosenPartnerId = null, bool Postponed = false);
 
 /// <summary>An eligible couple, with partner IDs in ordinal order, and when its child plan goes ahead.</summary>
 public sealed record ContinuityCouple(string FirstPartnerId, string SecondPartnerId, long DeadlineTick);
@@ -19,7 +25,7 @@ public sealed partial class WorldRuntime
     private const int ContinuityEligibleCoupleThreshold = 4;
     private const int ContinuityPostponeDays = 2;
 
-    private PopulationContinuity continuity = new(false, []);
+    private PopulationContinuity continuity = new(false, [], []);
 
     private long ContinuityPostponeTicks => ContinuityPostponeDays * (long)worldSystems.Config.TicksPerDay;
 
@@ -32,7 +38,7 @@ public sealed partial class WorldRuntime
     {
         var couples = EligibleContinuityCouples().Count();
         if (couples >= ContinuityEligibleCoupleThreshold) return;
-        continuity = new(true, []);
+        continuity = new(true, [], []);
         AppendEvent(new ContinuityRuleOnEventPayload(null, couples, ContinuityEligibleCoupleThreshold));
     }
 
@@ -45,22 +51,66 @@ public sealed partial class WorldRuntime
     /// <summary>
     /// Living adult couples who could have children. Having an infant does not remove a partnership
     /// from the risk count; the no-infant check applies separately to holding a child plan.
-    /// The rule only reads accepted partnerships;
-    /// it never proposes or accepts one.
     /// </summary>
     private IEnumerable<(string First, string Second)> EligibleContinuityCouples() => society.Checkpoint.Relationships
         .Where(item => item.Type == SocietyRelationshipType.Partnership && item.State == SocietyRelationshipState.Accepted)
         .Select(item => string.CompareOrdinal(item.ProposerId, item.TargetId) < 0
             ? (First: item.ProposerId, Second: item.TargetId)
             : (First: item.TargetId, Second: item.ProposerId))
-        .Where(pair => society.Checkpoint.GetAgent(pair.First).Status == SocietyAgentStatus.Active &&
-            society.Checkpoint.GetAgent(pair.Second).Status == SocietyAgentStatus.Active && Partners(pair.First, pair.Second))
+        .Where(pair => Partners(pair.First, pair.Second))
         .Distinct()
         .OrderBy(pair => pair.First, StringComparer.Ordinal)
         .ThenBy(pair => pair.Second, StringComparer.Ordinal);
 
     private ContinuityCouple? ContinuityCoupleOf(string actor) => continuity.Couples.FirstOrDefault(item =>
         item.FirstPartnerId == actor || item.SecondPartnerId == actor);
+
+    private ContinuitySingle? ContinuitySingleOf(string actor) => continuity.Singles.FirstOrDefault(single => single.AgentId == actor);
+
+    private bool IsContinuitySingle(string actor) => CanHaveChildren(actor) &&
+        society.Checkpoint.GetAgent(actor) is { Status: SocietyAgentStatus.Active, HouseholdId: not null } &&
+        !Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted);
+
+    private bool CanContinuityPair(string first, string second) =>
+        IsContinuitySingle(first) && IsContinuitySingle(second) && EligibleContinuityParents(first, second);
+
+    private void AddContinuityPartnerCandidates(List<CognitionCandidate> candidates, string actor)
+    {
+        if (!continuity.Active || ContinuitySingleOf(actor) is not { } single || WorldTick >= single.DeadlineTick) return;
+        foreach (var other in agents.Keys.Order(StringComparer.Ordinal).Where(other => other != single.ChosenPartnerId && CanContinuityPair(actor, other)))
+            candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Choose, other).Encode(),
+                $"Choose {society.Checkpoint.GetAgent(other).Name} as your partner under the continuity rule. Mutual choices pair at the deadline.", 95));
+        if (!single.Postponed)
+            candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Postpone, actor).Encode(),
+                "Not yet: put off choosing a partner until your two days end; the continuity rule still pairs eligible adults then, so you may not refuse.", 99));
+    }
+
+    private void PairContinuitySingles()
+    {
+        while (EligibleContinuityCouples().Count() < ContinuityEligibleCoupleThreshold)
+        {
+            var due = continuity.Singles.Where(single => WorldTick >= single.DeadlineTick && IsContinuitySingle(single.AgentId)).ToArray();
+            var pairs = due.SelectMany(first => due.Where(second => string.CompareOrdinal(first.AgentId, second.AgentId) < 0 &&
+                    CanContinuityPair(first.AgentId, second.AgentId)), (first, second) => (First: first, Second: second))
+                .OrderByDescending(pair => pair.First.ChosenPartnerId == pair.Second.AgentId && pair.Second.ChosenPartnerId == pair.First.AgentId)
+                .ThenByDescending(pair => TrustScore(pair.First.AgentId, pair.Second.AgentId) + TrustScore(pair.Second.AgentId, pair.First.AgentId))
+                .ThenBy(pair => pair.First.AgentId, StringComparer.Ordinal).ThenBy(pair => pair.Second.AgentId, StringComparer.Ordinal);
+            if (pairs.FirstOrDefault() is not { First: { } first, Second: { } second }) return;
+            // Use native proposal/acceptance, including its exclusive partnership and family-unit rules.
+            // The continuity deadline replaces voluntary trust and proposal retry requirements.
+            var proposal = Partnerships(first.AgentId).FirstOrDefault(item => item.State == SocietyRelationshipState.Proposed &&
+                (item.ProposerId == second.AgentId || item.TargetId == second.AgentId))
+                ?? ProposePartnership(first.AgentId, second.AgentId);
+            AcceptPartnership(proposal);
+            if (society.Checkpoint.GetRelationship(proposal.Id).State != SocietyRelationshipState.Accepted) return;
+            foreach (var pending in society.Checkpoint.Relationships.Where(item => item.Type == SocietyRelationshipType.Partnership &&
+                         item.State == SocietyRelationshipState.Proposed &&
+                         (item.ProposerId == first.AgentId || item.TargetId == first.AgentId ||
+                          item.ProposerId == second.AgentId || item.TargetId == second.AgentId)).ToArray())
+                society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, pending.Id, pending.ProposerId));
+            AppendEvent(new ContinuityPartnershipFormedEventPayload(first.AgentId, second.AgentId));
+        }
+    }
 
     private ContinuityCouple? ContinuityCoupleFor(string owner, string partner) =>
         ContinuityCoupleOf(owner) is { } couple && (couple.FirstPartnerId == partner || couple.SecondPartnerId == partner)
@@ -76,12 +126,22 @@ public sealed partial class WorldRuntime
     private void MaintainContinuity()
     {
         var eligible = EligibleContinuityCouples().ToArray();
+        if (eligible.Length < ContinuityEligibleCoupleThreshold)
+        {
+            continuity = continuity with
+            {
+                Singles = agents.Keys.Order(StringComparer.Ordinal).Where(IsContinuitySingle)
+                .Select(id => ContinuitySingleOf(id) ?? new(id, WorldTick + ContinuityPostponeTicks)).ToArray()
+            };
+            PairContinuitySingles();
+            eligible = EligibleContinuityCouples().ToArray();
+        }
         var active = eligible.Length < ContinuityEligibleCoupleThreshold;
         if (active != continuity.Active)
             AppendEvent(active ? new ContinuityRuleOnEventPayload(null, eligible.Length, ContinuityEligibleCoupleThreshold) : new ContinuityRuleOffEventPayload(null, eligible.Length, ContinuityEligibleCoupleThreshold));
         if (!active)
         {
-            continuity = new(false, []);
+            continuity = new(false, [], []);
             return;
         }
         var couples = new List<ContinuityCouple>();
@@ -92,7 +152,7 @@ public sealed partial class WorldRuntime
             couples.Add(new(first, second, deadline));
             if (WorldTick >= deadline) ProceedWithContinuityPlan(first, second);
         }
-        continuity = new(true, couples);
+        continuity = new(true, couples, continuity.Singles.Where(single => IsContinuitySingle(single.AgentId)).ToArray());
     }
 
     /// <summary>Once "not yet" has run out, the couple's plan goes ahead as if both had agreed.</summary>
@@ -130,6 +190,12 @@ public sealed partial class WorldRuntime
     /// <summary>What a partner's own model is told about the rule; null when it does not apply to them.</summary>
     private string? ContinuityNote(string actor)
     {
+        if (continuity.Active && ContinuitySingleOf(actor) is { } single)
+            return BoundedText.Excerpt("Continuity rule: choose a single adult, not an elder or close kin. " +
+                "You may say not yet for up to two world days but may not refuse. " +
+                $"{Math.Max(0, (single.DeadlineTick - WorldTick) * 24 + worldSystems.Config.TicksPerDay - 1) / worldSystems.Config.TicksPerDay} hours left. Mutual choices pair first, else strongest relationship. " +
+                (single.ChosenPartnerId is { } chosen ? $"Chosen: {society.Checkpoint.GetAgent(chosen).Name}."
+                    : single.Postponed ? "You said not yet." : "No partner chosen."), 256);
         if (ContinuityCoupleOf(actor) is not { } couple) return null;
         var preparing = agents.Values.FirstOrDefault(person => person.Parenthood is { Stage: "preparing" } plan &&
             (person.AgentId == actor || plan.PartnerId == actor));
@@ -152,10 +218,20 @@ public sealed partial class WorldRuntime
 
     private static void ValidateContinuity(PopulationContinuity? saved, SocietyCheckpoint society, int schemaVersion)
     {
-        if (schemaVersion < ContinuitySchemaVersion || saved?.Couples is null)
+        if (schemaVersion < ContinuitySchemaVersion || saved?.Couples is null || saved.Singles is null)
             throw new InvalidDataException($"World schema {ContinuitySchemaVersion} requires the continuity rule state.");
         var known = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var postponeTicks = ContinuityPostponeDays * (long)society.Config.TicksPerWorldDay;
+        string? previousSingle = null;
+        foreach (var single in saved.Singles)
+        {
+            if (!saved.Active || single is null || !known.Contains(single.AgentId) ||
+                previousSingle is not null && string.CompareOrdinal(previousSingle, single.AgentId) >= 0 ||
+                single.DeadlineTick < postponeTicks || single.DeadlineTick > society.WorldTick + postponeTicks ||
+                single.ChosenPartnerId is { } chosen && (single.Postponed || chosen == single.AgentId || !known.Contains(chosen)))
+                throw new InvalidDataException("The saved continuity partner choices are invalid.");
+            previousSingle = single.AgentId;
+        }
         ContinuityCouple? previous = null;
         foreach (var couple in saved.Couples)
         {

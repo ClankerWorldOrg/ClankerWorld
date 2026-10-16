@@ -27,9 +27,14 @@ public sealed partial class WorldRuntime
         LifeStageRules.CanHaveChildren(society.Checkpoint.GetAgent(actor).AgeBand);
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
-    private bool Partners(string actor, string other) => CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
+    private bool EligibleContinuityParents(string actor, string other) => actor != other &&
+        CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
+        society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active &&
+        society.Checkpoint.GetAgent(other).Status == SocietyAgentStatus.Active &&
         society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
-        society.Checkpoint.GetAgent(other).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(other).HouseholdId is not null;
+
+    private bool Partners(string actor, string other) => EligibleContinuityParents(actor, other) &&
         Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted &&
             (item.ProposerId == other || item.TargetId == other));
 
