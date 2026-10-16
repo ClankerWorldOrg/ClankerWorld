@@ -36,6 +36,30 @@ public sealed class ApprovalListenerTests
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, null)));
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret)));
         Assert.False(new ApprovalListenerOptions(0).IsApprovalRequest(Request(0, null)));
+        Assert.Null(server.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), LocalServerLaunchCheck.NewChallenge())));
+    }
+
+    [Fact]
+    public void OnlyALocalServersApprovalListenerAnswersALaunchCheck()
+    {
+        var localServer = new ApprovalListenerOptions(ApprovalPort, Secret);
+        var challenge = LocalServerLaunchCheck.NewChallenge();
+        // The answer proves the secret without the caller sending it.
+        var answer = localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge));
+        Assert.True(LocalServerLaunchCheck.Matches(Secret, challenge, answer));
+        Assert.False(LocalServerLaunchCheck.Matches(Secret[..^1] + "x", challenge, answer));
+        Assert.Null(localServer.LaunchCheckAnswer(Request(ApprovalPort, Secret)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge[..^1])));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge[..^1] + "=")));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(5188, null), challenge)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null, IPAddress.Parse("192.0.2.4")), challenge)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null, host: "example.test"), challenge)));
+    }
+
+    private static DefaultHttpContext Challenged(DefaultHttpContext context, string challenge)
+    {
+        context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader] = challenge;
+        return context;
     }
 
     [Theory]
