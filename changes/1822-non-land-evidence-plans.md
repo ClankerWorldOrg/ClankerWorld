@@ -1,1 +1,2 @@
 - Non-land case inspection, evidence, personal responses and relays retain their selected sources, people and read material through shared checks.
+- Retained non-land evidence uses the shared bounded identity and historical-law excerpt rules.
