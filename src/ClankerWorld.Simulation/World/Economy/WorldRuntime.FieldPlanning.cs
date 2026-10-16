@@ -17,16 +17,16 @@ public sealed partial class WorldRuntime
         FarmingSystem.NearbyFarmTiles(farmingWorld, origin);
 
     private bool HasOtherAgentClaimedPlanting(FarmFieldState field, string actor) =>
-        FarmingSystem.HasOtherAgentClaimedPlanting(farmingWorld, field, actor);
+        farmingSystem.HasOtherAgentClaimedPlanting(farmingWorld, field, actor);
 
     private bool CanReachField(string actor, GridPoint from, GridPoint destination) =>
         FarmingSystem.CanReachField(farmingWorld, actor, from, destination);
 
     private bool FarmNeedsFood(string householdId) =>
-        FarmingSystem.FarmNeedsFood(farmingWorld, householdId);
+        farmingSystem.FarmNeedsFood(farmingWorld, householdId);
 
     private (int MissingMeals, int FarmingHouseholds) FarmFoodDemand(string householdId) =>
-        FarmingSystem.FarmFoodDemand(farmingWorld, householdId);
+        farmingSystem.FarmFoodDemand(farmingWorld, householdId);
 
     private bool WantsFieldPlantingStock(string actor, string itemKind) =>
         farmingSystem.WantsFieldPlantingStock(farmingWorld, actor, itemKind);

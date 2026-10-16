@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -37,8 +38,13 @@ public sealed class PersonalRecoveryReachabilityTests
         Assert.True(state.Map.IsBuildable(disconnected));
         Assert.False(state.Map.IsReachableFromStartingSiteOnFoot(disconnected));
         Assert.True(state.Map.FootDistance(house.Position, disconnected) > 16);
-        var inventory = state.Society.Society.Inventory;
-        foreach (var kind in new[] { "wooden_axe", "wooden_pickaxe", "wooden_hoe" })
+        // Isolate recovery from initial field preparation without filtering the chooser's offers.
+        var inventory = state.Society.Society.Inventory with
+        {
+            Lots = state.Society.Society.Inventory.Lots.Where(lot =>
+                ToolProgressionRules.Find(lot.ItemKind)?.Family != ToolFamily.Hoe).ToArray(),
+        };
+        foreach (var kind in new[] { "wooden_axe", "wooden_pickaxe" })
             inventory = InventoryAuthority.AddLot(inventory, "recovery-tool-" + kind, kind, actor, 1);
         if (earlier != "missing")
         {

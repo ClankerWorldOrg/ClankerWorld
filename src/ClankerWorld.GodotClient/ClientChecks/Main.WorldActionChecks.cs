@@ -312,6 +312,7 @@ public partial class Main
         public SaveDiskSpaceStatus DiskSpace { get; set; } = new("ok", 4L * 1024 * 1024 * 1024, 1024L * 1024 * 1024, DateTimeOffset.UtcNow);
         public bool FailDiskSpace { get; set; }
         public StartupRecoveryStatus StartupRecovery { get; set; } = new(false, null, null);
+        public bool FailRecoveryStatus { get; set; }
         public TaskCompletionSource RecoveryReceived { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? ReleaseRecovery { get; set; }
         public bool LoseRecoveryReply { get; set; }
@@ -326,6 +327,8 @@ public partial class Main
         public OwnerPairingStart? PairingStart { get; set; }
         public OwnerPairingStatus? PairingStatus { get; set; }
         public bool LoseActivationReply { get; set; }
+        public TaskCompletionSource ActivationReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource? ReleaseActivation { get; set; }
         public TaskCompletionSource ReconnectReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? ReleaseReconnect { get; set; }
         public bool HostPaused { get; private set; } = true;
@@ -342,6 +345,7 @@ public partial class Main
         public TaskCompletionSource RenameReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         // When set, the host holds its rename reply until the check releases it.
         public TaskCompletionSource? ReleaseRename { get; set; }
+        public Func<string, JsonElement, HttpListenerResponse, Task<object?>>? ActionHandler { get; set; }
         public bool FailAgentPlacement { get; set; }
         public HttpStatusCode SubmissionStatus { get; set; } = HttpStatusCode.BadRequest;
         public Func<string, JsonElement, object>? PendingSubmissionReceipt { get; set; }
@@ -404,6 +408,8 @@ public partial class Main
                 if (envelope.GetProperty("canonicalProof").GetString() != activation.ActivationCanonicalProof)
                     throw new InvalidOperationException("Activation must prove possession of the pending pairing key.");
                 Requests.Enqueue(path);
+                ActivationReceived.TrySetResult();
+                if (ReleaseActivation is { } releaseActivation) await releaseActivation.Task.ConfigureAwait(false);
                 PairingStatus = new(activation.Authority, activation.PairingId, activation.DeviceId,
                     activation.PublicKeyFingerprint, OwnerPairingState.Active, activation.ExpiresAtUtc);
                 if (LoseActivationReply)
@@ -420,6 +426,12 @@ public partial class Main
             }
             object response;
             Requests.Enqueue(context.Request.Url!.AbsolutePath);
+            if (ActionHandler is { } handler &&
+                await handler(path, envelope, context.Response).ConfigureAwait(false) is { } handledResponse)
+            {
+                await WriteResponseAsync(context, handledResponse).ConfigureAwait(false);
+                return;
+            }
             switch (context.Request.Url!.AbsolutePath)
             {
                 case OwnerPairingEndpoints.OwnerInstructions:
@@ -451,7 +463,12 @@ public partial class Main
                     response = new { error = "Controlled owner request refusal." };
                     break;
                 case "/api/v1/owner/recovery/status":
-                    response = StartupRecovery;
+                    if (FailRecoveryStatus)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                        response = new { error = "Controlled recovery-status refusal." };
+                    }
+                    else response = StartupRecovery;
                     break;
                 case "/api/v1/owner/recovery/restore":
                     var recoveryId = envelope.GetProperty("action").GetProperty("value").GetString()!;

@@ -1,8 +1,10 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 using System.Globalization;
+using ClankerWorld.Contracts;
 
 namespace ClankerWorld.GodotClient;
 
@@ -14,7 +16,6 @@ public partial class Main
 {
     private async Task RefreshProviderConfigurationAsync()
     {
-        agentModelApiKeyInput.Text = string.Empty;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
             agentModelConfigurationStatus.Text = "Connect this device before setting up agent models.";
@@ -25,12 +26,16 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
-            RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
-            if (worldSettingsContent.Visible) RequestRoutineHelperModels();
-            PopulateAgentModelTargets();
-            PopulateProviderChoices(ActiveProviderForSelectedRole());
-            PopulateCredentialChoices();
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
+            using (var draft = new PanelDraft(agentModelTargetChoice.GetParent()))
+            {
+                RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
+                if (worldSettingsContent.Visible) RequestRoutineHelperModels();
+                PopulateAgentModelTargets();
+                using (var providerDraft = new PanelDraft(agentModelProviderChoice))
+                    PopulateProviderChoices(ActiveProviderForSelectedRole());
+                PopulateCredentialChoices();
+            }
             RenderProviderConfiguration();
             return "Agent model settings loaded.";
         });
@@ -73,19 +78,20 @@ public partial class Main
             CredentialSlotId: creatingSlot ? Guid.NewGuid().ToString("N") : credentialChoice is null or "default" ? null : credentialChoice,
             NewCredentialLabel: creatingSlot ? EmptyToNull(agentModelCredentialLabelInput.Text) : null,
             Thinking: agentUsesModel ? SelectedThinking(agentModelThinkingChoice) : null);
+        var contextRetained = false;
         try
         {
-            await RunOwnerActionAsync(async () =>
+            contextRetained = await RunOwnerActionAsync(async () =>
             {
                 providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
-                    ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
                 PopulateCredentialChoices();
                 return $"{ProviderDisplayName(provider)} will handle {RoleDisplayName(role).ToLowerInvariant()} at the agent's next model choice";
             });
         }
         finally
         {
-            if (IsCurrentWorldRequest(generation))
+            if (contextRetained && IsCurrentWorldRequest(generation))
             {
                 agentModelApiKeyInput.Text = string.Empty;
                 agentModelCredentialLabelInput.Text = string.Empty;
@@ -117,20 +123,20 @@ public partial class Main
             EmptyToNull(agentModelPicker.Model),
             null,
             ForgetCredential: true);
-        await RunOwnerActionAsync(async () =>
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             return $"Forgot the saved {ProviderDisplayName(provider)} key.";
         });
-        if (IsCurrentWorldRequest(generation))
+        if (contextRetained && IsCurrentWorldRequest(generation))
         {
             agentModelApiKeyInput.Text = string.Empty;
             RenderProviderConfiguration();
         }
     }
 
-    private async Task DeleteCredentialSlotAsync()
+    private async Task DeleteCredentialSlotAsync(string? selectedSlotId = null)
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
@@ -138,7 +144,7 @@ public partial class Main
             return;
         }
 
-        var slotId = SelectedCredentialChoice();
+        var slotId = selectedSlotId ?? SelectedCredentialChoice();
         var slot = providerConfiguration?.CredentialSlots?.FirstOrDefault(item => item.Id == slotId);
         if (slot is null)
         {
@@ -151,12 +157,20 @@ public partial class Main
             SetStatus("An agent is still using this key. Give that agent another key first.", good: false);
             return;
         }
+        if (observationSession.Current?.Baseline.Snapshot.RoutineHelperCredentialSlotId == slotId)
+        {
+            SetStatus("The world's routine helper is using this key. Choose another helper key or turn the helper off first.", good: false);
+            return;
+        }
 
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.DeleteCredentialSlotAsync(
-                ResolveWorldUri(), authority, deviceId, slotId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, slotId, signer, OwnerRequestToken));
             PopulateCredentialChoices();
+            PopulateFounderCredentials();
+            RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
+            RenderSavedApiKeys();
             RenderProviderConfiguration();
             return $"Deleted the saved key {slot.Label}.";
         });
@@ -455,7 +469,7 @@ public partial class Main
 
     private static string DefaultProviderModel(string provider) => provider switch
     {
-        "jev" => "jev-1.13.0",
+        "jev" => RoutineHelperDefaults.JevModel,
         "openai" or "decisions" => "gpt-6-luna",
         "ollama-cloud" => "glm-5.3-flash:cloud",
         "anthropic" => "claude-haiku-5-5",
@@ -463,9 +477,9 @@ public partial class Main
     };
 
     /// <summary>A small caption above a field that hides and shows with it.</summary>
-    private static Label FieldCaption(string text, Control field)
+    private static FittedLabel FieldCaption(string text, Control field)
     {
-        var caption = new Label { Text = text, ThemeTypeVariation = "DimLabel", Visible = field.Visible };
+        var caption = new FittedLabel { Text = text, ThemeTypeVariation = "DimLabel", Visible = field.Visible };
         field.VisibilityChanged += () => caption.Visible = field.Visible;
         return caption;
     }

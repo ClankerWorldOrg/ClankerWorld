@@ -1,3 +1,5 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -68,7 +70,7 @@ public sealed class WorldCustodyOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == stored.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldOrderTask>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldOrderTask>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "goods_items", 2), (client.TargetItemKind, client.ProgressUnit, client.CompletedUnits));
         using var replay = Reload(world);
@@ -457,12 +459,8 @@ public sealed class WorldCustodyOrderTests
         Assert.NotEqual("unknown", Order(world, receipt).Action);
         using var valid = Restore(saved);
         Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { TargetAgentId = actor } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
+        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     [Fact]
@@ -477,22 +475,19 @@ public sealed class WorldCustodyOrderTests
         var saved = world.ExportState();
         var order = Order(world, receipt);
         AssertPinned(order, Home(state));
-        foreach (var invalid in new[]
-        {
-            order with { TargetItemKind = null }, order with { TargetItemKind = "fresh_water" },
-            order with { TargetStorageBuildingId = null }, order with { TargetStorageOwnerId = null },
-            order with { TargetStoragePosition = null }, order with { TargetStoragePosition = new(10_000_001, 0) },
-            order with { TargetLotId = "saved-cloth" }, order with { TargetEquipmentKind = "basket" },
-            order with { ProgressUnit = "production_batches" },
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetItemKind"] = "fresh_water" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageBuildingId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageOwnerId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = new GridPoint(10_000_001, 0) }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetLotId"] = "saved-cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "production_batches" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         using var replay = Reload(world);
         await TickTogether(world, replay);
         Assert.Equal("finished", Order(world, receipt).Status);
@@ -500,7 +495,7 @@ public sealed class WorldCustodyOrderTests
         var completedOrder = Order(world, receipt);
         var wrongAction = completedOrder with
         {
-            LastEffectId = "collect:personal:" + completedOrder.LastEffectId!["store:personal:".Length..],
+            LastEffectId = Identity.Parse("collect:personal:" + completedOrder.LastEffectId!.Value["store:personal:".Length..]),
         };
         Assert.Throws<InvalidDataException>(() => Restore(finished with
         {
@@ -524,7 +519,7 @@ public sealed class WorldCustodyOrderTests
         for (var tick = 0; tick < 3; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == unknown.InstructionId ||
             request.ObserverGuidance?.Any(message => message.InstructionId == unknown.InstructionId) == true);
-        Assert.Contains(unknown.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
     }
 

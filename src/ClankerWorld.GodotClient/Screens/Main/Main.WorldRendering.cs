@@ -24,6 +24,7 @@ public partial class Main
         storedStockLayer.SetPiles([]);
         buildingCompletionLayer.Reset();
         knownEvents.Clear();
+        eventLogRefusals.Clear();
         eventLogWorldId = null;
         lastSeenEventId = long.MinValue;
         newEventsAfter = long.MaxValue;
@@ -110,6 +111,7 @@ public partial class Main
         if (cameraWorldId is not null && cameraWorldId != snapshot.WorldId)
         {
             knownEvents.Clear();
+            eventLogRefusals.Clear();
             familyTreePanel.Hide();
             memoriesPanel.Hide();
             thoughtsPanel.Hide();
@@ -117,14 +119,7 @@ public partial class Main
             ClearTileSelection();
             ClearBuildingSelection();
         }
-        foreach (var worldEvent in appendedEvents)
-        {
-            knownEvents[worldEvent.EventId] = worldEvent;
-        }
-        foreach (var expiredId in knownEvents.Keys.OrderByDescending(id => id).Skip(2048).ToArray())
-        {
-            knownEvents.Remove(expiredId);
-        }
+        RememberWorldEvents(appendedEvents);
 
         RenderAgentList(snapshot);
         RenderMap(snapshot);
@@ -144,6 +139,16 @@ public partial class Main
         RenderEventLog();
         RenderDeveloperTools(snapshot);
         RefreshControlAvailability();
+    }
+
+    private void RememberWorldEvents(IReadOnlyList<OwnerWorldEvent> appendedEvents)
+    {
+        foreach (var worldEvent in appendedEvents)
+            knownEvents[worldEvent.EventId] = worldEvent;
+        // Remember the batch's original problem rows before raw history expires.
+        _ = GameUiText.PlayerEvents(knownEvents.Values, observedCalendarPace, eventLogRefusals).Count();
+        foreach (var expiredId in knownEvents.Keys.OrderByDescending(id => id).Skip(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount).ToArray())
+            knownEvents.Remove(expiredId);
     }
 
     private static bool HasMap(OwnerWorldSnapshot snapshot) =>
