@@ -1,9 +1,23 @@
+using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
 internal static class MovementTestWorld
 {
+    internal static GridPoint BuildingSite(WorldRuntimeState state, BuildingDefinition definition, string actor)
+    {
+        var ground = new GroundOccupancy(state.Map, state.WorldContent!, state.WorldSimulation!,
+            state.Fields, state.RoadTiles, state.Bridges, state.Towns);
+        var occupied = GroundOccupancy.Combine(ground.Resources, ground.MapObjects, ground.ProtectedBuildingTiles(),
+            ground.RoadsAndBridgeEntrances, ground.Fields, ground.ExpansionSites, ground.MarketSites,
+            state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position));
+        var roads = ground.Roads.ToHashSet();
+        return state.Map.Tiles.Last(tile => WorldContentSimulationRules.Footprint(definition, tile.Position)
+            .All(point => state.Map.IsBuildable(point) && !occupied.Contains(point)) &&
+            BuildingMovementRules.FindEntrance(state.Map, definition, tile.Position, false, occupied, roads) is not null).Position;
+    }
+
     internal static WorldRuntimeState ClearOtherBuildingAccess(WorldRuntimeState state, string? actor = null)
     {
         var definitions = state.WorldContent!.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);

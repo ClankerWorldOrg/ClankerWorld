@@ -347,11 +347,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
         var actor = state.Agents[0];
-        var position = state.Map.Tiles.Last(tile => state.Map.IsBuildable(tile.Position) &&
-            !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-            !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
+        var position = MovementTestWorld.BuildingSite(state, definition, actor.AgentId);
         state = state with
         {
             Society = state.Society with
