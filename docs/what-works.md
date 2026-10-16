@@ -871,9 +871,10 @@ the original regressions and revised measurements; this is not settled balance.
 Farms plan for their Town's living residents. They subtract the Town residents'
 and households' usable, unreserved ready-to-eat food from the trial two-day
 reserve, then split the shortage among its farming households and estimate
-fields from expected yield. One farm can therefore plan for several households;
-enough Town food stops new tilling and autonomous planting. Fields, planting
-supplies and harvests still belong to their existing households. This adds no
+fields from expected yield. Each Farmhouse household establishes its first crop
+even while starter food covers that reserve. After that, enough Town food stops
+new tilling and autonomous replanting. One farm can plan for several households.
+Fields, planting supplies and harvests still belong to their existing households. This adds no
 delivery or sharing of the harvest.
 
 Preparing births protect household food on an actively borrowed Market stall.

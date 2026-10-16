@@ -345,6 +345,11 @@ the coordinator. Field and tree orders retain their existing adapters and
 private forwarders. Tree planting updates the coordinator's map and the
 EnvironmentSystem's ecology and chunks through those world services.
 
+The shared farm demand calculation keeps the first field and its initial
+planting eligible while a household has no crop established. Ready food still
+reduces the Town shortage used for further fields and replanting. This same
+demand check governs offers and retained-plan validation.
+
 `Animals/AnimalSystem.cs` owns animals, trade offers and physical supply trips
 in the existing immutable `AnimalWorldState`. Care, breeding, products, wild
 forage, permissions, trade, travel and animal orders run in this system. Writes
