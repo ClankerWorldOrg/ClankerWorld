@@ -467,6 +467,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         for (var tick = 0; tick < 1600; tick++)
         {
             await world.AdvanceOneTickAsync();
+            provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
             AssertBelongingsStayStored(world, storedBelongings);
             foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId is not null &&
                          world.Society.Agents.Any(person => person.Id == lot.OwnerId)))
@@ -519,12 +520,16 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         Assert.Contains(snapshot.Agents, person => person.SocialNotes.Count > 0);
         Assert.Contains(snapshot.Agents, person => person.SocialStanding.Count > 0);
         Assert.NotNull(snapshot.FoodStewardship?.StewardName);
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
+        var replayProvider = new ObservingProvider();
+        replayProvider.ArtifactLotIds.UnionWith(state.Knowledge!.Artifacts.Select(artifact => artifact.LotId));
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => replayProvider);
         Assert.Equal(WorldRuntimeCodec.Encode(state), WorldRuntimeCodec.Encode(restored.ExportState()));
         for (var tick = 0; tick < 3; tick++)
         {
             await world.AdvanceOneTickAsync();
             await restored.AdvanceOneTickAsync();
+            provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
+            replayProvider.ArtifactLotIds.UnionWith(restored.Knowledge.Artifacts.Select(artifact => artifact.LotId));
             AssertBelongingsStayStored(restored, storedBelongings);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -549,11 +554,22 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
     private sealed class ObservingProvider : IDecisionProvider
     {
         public bool MeaningfulProjectChoiceSeen { get; private set; }
+        public HashSet<string> ArtifactLotIds { get; } = new(StringComparer.Ordinal);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             MeaningfulProjectChoiceSeen |= request.Observation.Candidates.Count(candidate => candidate.Id.StartsWith("build:", StringComparison.Ordinal)) > 1;
+            // Keep the storage invariant independent of which work the greedy
+            // chooser prioritizes as the planning rules change. Use the actual
+            // offered action, including its native route and room checks.
+            if (request.Observation.Candidates.FirstOrDefault(candidate =>
+                    candidate.Id.StartsWith("household_store_personal:", StringComparison.Ordinal) &&
+                    ArtifactLotIds.Contains(candidate.Id["household_store_personal:".Length..])) is { } storage)
+                return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
+                    ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
+                    request.Observation.ObservationDigest, storage.Id, 1,
+                    request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == storage.Id ? 1d : 0d)));
             return new DeterministicDecisionProvider().DecideAsync(request, cancellationToken);
         }
     }

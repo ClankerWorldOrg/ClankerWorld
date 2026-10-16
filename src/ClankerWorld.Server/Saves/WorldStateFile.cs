@@ -79,6 +79,12 @@ public sealed class WorldStateFile
         return compacted;
     }
 
+    public WorldDeveloperEditResult ApplyMapEdit(WorldRuntime runtime, WorldMapEdit edit)
+        => runtime.ApplyMapEdit(edit, state =>
+        {
+            lock (gate) _ = SaveUnsafe(state);
+        });
+
     public WorldDeveloperEditResult ApplyDeveloperEdit(WorldRuntime runtime, WorldDeveloperEdit edit)
     {
         return runtime.ApplyDeveloperEdit(edit, state =>

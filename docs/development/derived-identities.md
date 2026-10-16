@@ -108,6 +108,12 @@ factory-input records do not represent model-admitted civic or owner orders.
 | [DerivedCivicIdTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs) | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
 | [DerivedPrivateFactoryTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs) | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices; cart build-material transfers |
 
+[WorldMapEditTests.cs](../../tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMapEditTests.cs)
+also exercises the native paused-editor transition: a maximum-length batch ID
+produces bounded resource/object handles, with failed-write rollback, strict
+reload and an exact retry that cannot duplicate the placements. The complete
+batch remains in its Developer edit event for replay.
+
 The civic matrix preserves a named saved Town with a 128-character ID and a
 120-character name, a 128-character household name and an 80-character project
 name. The private matrix retains actual native people and stock, with controlled

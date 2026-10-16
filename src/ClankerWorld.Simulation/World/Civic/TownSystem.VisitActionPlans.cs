@@ -37,6 +37,46 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (TownProjectProposalChoice.Decode(candidate.Id) is { } projectChoice)
+            {
+                if ((candidate.ActionPlan as TownProjectProposalActionPlan ?? PlanTownProjectProposal(world, actor, projectChoice)) is { } project &&
+                    CheckTownProjectProposal(world, project).Allowed)
+                    candidates[index] = candidate with { ActionPlan = project };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandAgreementChoice.Decode(candidate.Id) is { } nonLandAgreementChoice)
+            {
+                if ((candidate.ActionPlan as NonLandAgreementActionPlan ?? PlanNonLandAgreement(world, actor, nonLandAgreementChoice)) is { } nonLandAgreement &&
+                    CheckNonLandAgreement(world, nonLandAgreement).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandAgreement };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandAdjudicationChoice.Decode(candidate.Id) is { } nonLandAdjudicationChoice)
+            {
+                if ((candidate.ActionPlan as NonLandAdjudicationActionPlan ?? PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice)) is { } nonLandAdjudication &&
+                    CheckNonLandAdjudication(world, nonLandAdjudication).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandAdjudication };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandJudgeChoice.Decode(candidate.Id) is { } nonLandJudgeChoice)
+            {
+                if ((candidate.ActionPlan as NonLandJudgeActionPlan ?? PlanNonLandJudge(world, actor, nonLandJudgeChoice)) is { } nonLandJudge &&
+                    CheckNonLandJudge(world, nonLandJudge).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandJudge };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (NonLandEvidenceChoice.Decode(candidate.Id) is { } nonLandEvidenceChoice)
+            {
+                if ((candidate.ActionPlan as NonLandEvidenceActionPlan ?? PlanNonLandEvidence(world, actor, nonLandEvidenceChoice)) is { } nonLandEvidence &&
+                    CheckNonLandEvidence(world, nonLandEvidence).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandEvidence };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (NonLandFilingChoice.Decode(candidate.Id) is { } nonLandFilingChoice)
             {
                 if ((candidate.ActionPlan as NonLandFilingActionPlan ?? PlanNonLandFiling(world, actor, nonLandFilingChoice)) is { } nonLandFiling &&

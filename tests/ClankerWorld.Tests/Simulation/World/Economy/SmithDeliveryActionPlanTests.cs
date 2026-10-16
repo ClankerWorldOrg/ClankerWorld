@@ -83,6 +83,9 @@ public sealed class SmithDeliveryActionPlanTests
         var refusal = Assert.Single(world.ExportState().Events, item => item.Kind == "choice_refused");
         Assert.StartsWith(world.Society.GetAgent(actors[1]).Name + " didn't take supplies to the household Blacksmith:", refusal.Detail);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == actors[1] && lot.DeliveryBuildingId == smith.InstanceId);
+        for (var tick = 0; tick < 32; tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Single(world.ExportState().Events, item => item.Kind == "choice_refused");
         using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reopened.ExportState()));
     }

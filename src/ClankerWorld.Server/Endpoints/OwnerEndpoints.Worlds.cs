@@ -31,6 +31,23 @@ internal static partial class OwnerEndpoints
             }
         });
 
+        app.MapPost("/api/v1/owner/worlds/saves", (
+            OwnerSignedHttpRequest<OwnerManualSaveAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { Operation: "world-saves" } action)
+                return Results.BadRequest(new { error = "A world save-history request is required." });
+            string payload;
+            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/saves", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().ReadSaveHistory(action.Value)); }
+            catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world no longer exists." }); }
+            catch (InvalidDataException) { return Results.Conflict(new { error = "This world's history cannot be read. Your saves are safe." }); }
+        });
+
         app.MapPost("/api/v1/owner/worlds/create", (
             OwnerSignedHttpRequest<OwnerWorldCreationAction> request,
             OwnerRequestAuthorizer authorizer,

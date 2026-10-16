@@ -502,7 +502,10 @@ public sealed partial class AnimalPipelineTests
             lot with { GroundPosition = new(site.X, site.Y) } : lot).ToArray()
         };
         chooser.Prefix = "construct_building";
-        using var world = WorldRuntime.Restore(At(state, actor, site, inventory, []), id => id == actor ? chooser : new AnimalChooser());
+        var wild = new AnimalState("native-yard-hen", "Hen", "chicken", "female",
+            -(long)AnimalRules.Definition("chicken").AdultDays * state.WorldSystems!.Config.TicksPerDay,
+            site, "native-yard-herd");
+        using var world = WorldRuntime.Restore(At(state, actor, site, inventory, [wild]), id => id == actor ? chooser : new AnimalChooser());
         world.SubmitInstruction(new("build-yard", "owner", actor, OwnerInstructionKind.Order,
             System.FormattableString.Invariant($"build an animal yard at ({site.X}, {site.Y})")));
         await Until(world, () => world.WorldSimulation.Buildings.Any(building => world.WorldContent.Buildings.Any(definition =>

@@ -151,7 +151,8 @@ resource or lot, household, House, route purpose and quantity. The same
 before application in agent order. Application uses those selected values;
 continuing intentions plan their next step from the current position. Plans
 are excluded from prompts, observation digests and saved state. A stale plan
-appends one `choice_refused` Event Log line with a plain refusal reason.
+records a `choice_refused` event with a plain refusal reason in accepted history;
+automatic stale choices stay out of the player Event Log.
 The private child forwarders remain for existing callers.
 Deferred admission checks the original offered plan before the scheduler
 completes its reply. A planned identity that disappeared from the current
@@ -159,6 +160,12 @@ choices reaches its typed refusal; current order/context exclusions still
 refuse it, while unplanned identities and request/epoch checks retain their
 existing scheduler gates. An accepted fallback keeps its own plan and never
 receives the refused provider choice's plan metadata.
+Before dispatching a queued observation, the host checks every planned choice
+against the current world with `CheckActionPlan`. Choices invalidated by earlier
+actions are removed from the request and its digest is rebuilt; other choices
+can still proceed. A reply already in flight retains its original plan; refusal
+clears the intention so the agent can make a fresh choice. A finished order's
+undelivered acknowledgement retains its original message.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal
@@ -344,6 +351,11 @@ routes, environment and event sink per call, through an adapter that stays on
 the coordinator. Field and tree orders retain their existing adapters and
 private forwarders. Tree planting updates the coordinator's map and the
 EnvironmentSystem's ecology and chunks through those world services.
+
+The shared farm demand calculation keeps the first field and its initial
+planting eligible while a household has no crop established. Ready food still
+reduces the Town shortage used for further fields and replanting. This same
+demand check governs offers and retained-plan validation.
 
 `Animals/AnimalSystem.cs` owns animals, trade offers and physical supply trips
 in the existing immutable `AnimalWorldState`. Care, breeding, products, wild
@@ -550,6 +562,40 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Town project donations retain the exact personal lot, contribution quantity,
+approved scope and destination. Travel keeps that selected contribution;
+arrival requires a fresh personal choice before the native donation transfer.
+The same check refuses changed scope, stock or remaining material requirements.
+Town project proposals retain the selected footprint, doorway, material
+budget and Port, with an admitted name bound once. The shared check verifies
+current resident authority, native site and demand rules, and proposal retry rules
+before the retained project reaches its original Council writer.
+Physical non-land work retains its agreement, exact remaining term, selected
+return lot or service load and destination. Repair uses the retained native
+cart, tool or equipment plan, then continues its existing reserved work.
+Return stock uses the transfer's inventory access rule, so another task's
+promise prevents both a new return choice and an already selected return.
+Known-act relays retain their listener, personal statement and source chain.
+Voluntary non-land terms retain their named contributor, beneficiary, target,
+quantity, duration and reasons. Personal responses retain the exact noticed
+offer and allow other contributors to accept. Shared native feasibility and
+refusal checks validate the retained terms with the IDs that the current
+publication counter will mint, so another accepted repair cannot be mistaken
+for the proposed contribution. Acceptance reserves no stock or starts any work.
+Non-land findings and reopening retain the exact case material, independent
+judge and response parties. Admitted citations resolve against the retained
+file and reasons bind once. Shared native validators check the same finding,
+reopening grounds or assessment before the original history and notice writers.
+Non-land judge consent and resignation retain the exact personal consent or
+case mandate. Ballots retain the opening round, rosters and selected candidate
+while allowing ballots to accumulate; the same check verifies case knowledge
+and the native election deadline before the original writer runs.
+Native roster progress preserves an original ballot while its selected voter
+and candidate remain eligible in both the opening and current rosters.
+Non-land case material and responses retain the exact file revision, selected
+known sources and historical law, legitimate response party or nearby recipient.
+Relays retain all evidence, response, finding and reopening references actually
+read by the source. Child submissions use the same native standing rules.
 Non-land filing retains the known act, historical law, acquired source, filing
 role and actual ordinary office or Council revision. The same check verifies
 current source knowledge and legitimate response support before the retained
@@ -3610,6 +3656,33 @@ adult at a time is offered to gather it from a reachable source. Buildings the
 Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
+
+For Stores, Tailor Shops, Restaurants, Clinics and Blacksmiths, household plans
+also share a Town limit: one of each kind per eight recorded residents, rounded
+up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
+provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
+assigned to the Town and other residents' live construction projects, across
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+and Council-approved Town projects keep their separate rules.
+
+`WorkBuildingHasInputs` also filters autonomous plans and material preparation
+by work the building can actually do. Farmhouses and Silos need reachable
+household fields or planting stock, including an available seed site within
+twelve tiles of the Town origin. Animal Yards need reachable wild animals;
+another yard waits until existing Town yards have no free animal places.
+Other work buildings need accessible inputs for at least one of their own
+active recipes. The shared goods query excludes unusable, reserved and promised
+stock and checks access and reach; natural supplies use shared gathering and
+reach rules. Construction costs cannot double as the station's only input
+stock. Restaurants also protect one day's meals for the Town's residents.
+Houses and Stores have no production-input prerequisite. Admission rebuilds
+the same eligible offers, and project start and continuation recheck the rule
+before spending construction materials. Explicit owner construction orders
+use the same prerequisite; already placed buildings remain in place. No
+eligibility result is cached or saved.
+
 Harvests remain household-owned lots on their actual field tile. An adult
 carries a load of at most four raw crops or planting items to the household's Farmhouse or Silo.
 The Farmhouse holds a provisional 96 items; the private Silo holds 64 units per
@@ -3853,13 +3926,30 @@ Resuming an accepted or postponed plan preserves its original initiating
 parent, request tick, selected caregiver and intended home. Birth still follows
 the caregiver's current household, including after a move or when its House
 is full. A plan past its deadline does not expire: it waits for the usual food,
-shelter and readiness checks. The rule only reads accepted partnerships and
-never proposes or accepts one.
+shelter and readiness checks.
+
+Single adults who meet the same parent eligibility check also receive a saved
+`ContinuitySingle` deadline, optional chosen partner and postponement choice. `partner_choose` and
+`partner_postpone` use the existing partnership action plans, including checks
+at offer, admission and application. Choosing or postponing never resets the
+deadline. Already recorded choices are not offered again unchanged; ordinary
+work keeps precedence in built-in decisions. Once both adults' deadlines pass, mutual choices take precedence;
+otherwise combined directed trust selects the strongest eligible pair, with
+ordinal IDs breaking ties. Availability is checked again after every pair,
+so a taken, deceased, elder or close-relative choice cannot force that pair.
+The rule uses the native partnership proposal and acceptance operations,
+including exclusive partnership and domestic-family records; its deadline
+replaces voluntary trust and retry requirements. Outstanding proposals for
+newly paired adults are withdrawn. `continuity_partnership_formed` records both
+adults and explains the pairing in the Event Log. Ending a partnership starts
+a fresh single deadline while the rule remains on.
 
 Each partner's self context carries a `continuity` note saying the rule and
-the hours left; a single agent's stays empty. Loading checks the flag and
-couples: known partner IDs in order, no couples while the rule is off, and no
-deadline more than two world days ahead. These events are logged as
+the hours left; held single adults receive the partnering rule instead.
+Loading checks ordered, known adults and chosen partner references, unique
+single entries and couples, no held entries while the rule is off, and no
+deadline more than two world days ahead. Turning off clears both sets of
+deadlines and all partner choices. These events are logged as
 `family_activity`; the two transitions are also Event Log lines.
 
 A recipe project that finds its work site busy waits with the blocker "Waiting
@@ -4588,10 +4678,44 @@ The immutable server-approved catalog is loaded at startup. Its reference policy
 accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` digest;
 a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
-The native authoring endpoint refuses submitted batches with
-`game_world_authoring_pending`; it does not apply them. The fixture's working
-authoring branch is retired. Catalog validation remains available for future
-native authoring and does not provide a complete art-generation pipeline.
+Map editing does not change this catalog or upload assets. The fixture's old
+authoring branch is retired; native map editing uses the runtime's own map,
+ecology and chunk records. This is not an art-generation pipeline.
+
+## Paused map editing
+
+`WorldMapEditRules.Choices` supplies both the supported native terrain, resource
+and camp-object definitions and the server's `EditTools` labels. Signed owner
+batches bind the world, observer timeline, run epoch and latest event ID. `WorldRuntime.ApplyMapEdit`
+checks pause, bounds, supported kinds, unique tiles and empty placement, then
+builds an isolated proposal. Terrain writes update the compatibility tile and
+its independent elevation, hydrology, surface and vegetation layers; resource
+placements update ecology and chunk manifests through `EnvironmentSystem`.
+Map acceptance and strict checkpoint validation run before persistence. Added
+objects cannot claim built-in starting-site IDs or replace the original
+camp/Town weather anchor.
+`WorldStateFile.ApplyMapEdit` saves the proposal before publishing live state,
+so a refusal or failed write exposes none of a batch.
+
+Accepted batches are serialized in the existing typed `DeveloperEditEventPayload`
+with operation `edit_world`; the event records the complete command for replay.
+Exact retained retries succeed without applying again. Once an event leaves hot
+history, its stale event precondition refuses another application. No separate
+unbounded receipt ledger is introduced. Schema 139 retains `MapAuthoring`, a
+bounded set of current terrain overrides and added resource/object definitions.
+Reload applies these to the regenerated baseline before checking the map;
+compacted edit events are not needed to load an edited world. Earlier alpha
+saves are refused and preserved without migration. The number is provisional
+until merge.
+
+The authoring observation's optional `EditTools` collection supplies the map
+picker's operation names, kind labels and renewable defaults. An empty
+collection offers no map edits. The client keeps at most 64 unique preview
+tiles and submits them as one retained authoring batch; previews never alter
+the observed map. Closing Developer tools, resuming or changing the world/map
+context discards the preview. Conflict responses show the server's plain
+reason and clear the completed retry record, while an unconfirmed response
+keeps the exact request for recovery.
 
 ## Building storage history
 
@@ -4614,7 +4738,16 @@ Use stable event names and named fields such as tick, entity/request ID,
 provider role/model, legal intention, outcome, latency and bounded usage.
 Log transitions and decisions, not render frames or idle polls. The player
 Event Log and unread count select known player-facing events and public
-milestones explicitly; unknown diagnostics do not become player text.
+milestones through the shared `EventLogPolicy` classification for every accepted
+kind. Routine personal storage, stocking and hauling, and automatic source
+changes stay in accepted history without becoming Event Log rows. Player order
+blockage/cancellation and consequential refusals remain visible; each problem
+kind for the same complete actor and target appears at most once per world day,
+using the saved calendar offset. Model failures retain their recovery-based
+coalescing. The client keeps each problem's original event ID across raw-history
+rollover, discards keys from expired calendar days, and resets them with the
+observed world or timeline. The unread count uses the same selection. Unknown diagnostics do not
+become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
@@ -5218,6 +5351,9 @@ but cannot enter play or resume time behind another menu. A fresh Continue
 after returning still enters normally.
 
 The manual Save World and Load Save dialog owns one list read per opening.
+Load World embeds those same history controls when a world is selected, using
+the [catalog save-history read](saves-and-replay.md#browsing-saves-from-load-world)
+without activating the world.
 Closing it, creating, overwriting or deleting a save, or starting another opening
 cancels the previous read. Late success and failure replies cannot replace current rows,
 selection or status, including across a world or pairing change. Clearing or

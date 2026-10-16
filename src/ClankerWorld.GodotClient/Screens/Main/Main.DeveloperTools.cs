@@ -146,6 +146,8 @@ public partial class Main
         if (GetViewport().GuiGetFocusOwner() is { } focus && developerPanel.IsAncestorOf(focus))
             focus.ReleaseFocus();
         developerPanel.Hide();
+        worldEditPaint.ButtonPressed = false;
+        ClearWorldEditPreview();
         RenderPlannedPath();
     }
 
