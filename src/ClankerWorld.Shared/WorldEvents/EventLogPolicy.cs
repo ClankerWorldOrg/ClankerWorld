@@ -70,7 +70,7 @@ public static class EventLogPolicy
         "housing_request_refused" or "instruction_not_understood" or "instruction_order_cancelled" or
         "land_case_rejected" or "land_transfer_blocked" or "law_case_rejected" or
         "market_trade_cancelled" or "marriage_surname_blocked" or "medical_treatment_interrupted" or
-        "production_action_refused" or "shop_trade_cancelled" or "tool_request_interrupted" or
+        "shop_trade_cancelled" or "tool_request_interrupted" or
         "tool_request_refused" or "town_project_blocked" or "town_project_cancelled" => EventLogImportance.Refusal,
         // Routine work, automatic retries and diagnostics remain in accepted history.
         "age_action_rejected" or "agent_added" or "agent_identity_chosen" or
@@ -137,7 +137,7 @@ public static class EventLogPolicy
         "parenthood_preparing" or "parenthood_requested" or "partnership_expired" or
         "partnership_proposed" or "partnership_refused" or "personal_goods_collected" or
         "personal_goods_stored" or "port_content_staged" or "pottery_content_staged" or
-        "primary_caregiver_assigned" or "production_input_unusable" or "production_order_paused" or
+        "primary_caregiver_assigned" or "production_action_refused" or "production_input_unusable" or "production_order_paused" or
         "production_order_resumed" or "production_output_unsupported" or "production_tool_unusable" or
         "production_worker_unavailable" or "project_chosen" or "project_fresh_choice_resumed" or
         "project_material_delivered" or "project_progress" or "project_request_fulfilled" or

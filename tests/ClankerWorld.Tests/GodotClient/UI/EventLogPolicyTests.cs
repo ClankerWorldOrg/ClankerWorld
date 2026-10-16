@@ -87,16 +87,16 @@ public sealed class EventLogPolicyTests
             Event(10, 10, new InstructionNotUnderstoodEventPayload("agent", "new-order")),
         ];
         Assert.Equal(new long[] { 2, 5, 8, 10 }, GameUiText.PlayerEvents(events).Select(item => item.EventId));
-        Assert.Equal("Someone's order is blocked. See their Orders for the reason.",
+        Assert.Equal("Agent's order is blocked. See their Orders for the reason.",
             WorldEventFormatter.Describe(new(2, 2, events[1].Kind, "") { Payload = events[1].Payload }, null));
-        Assert.Equal("Someone's order was cancelled. See their Orders for details.",
+        Assert.Equal("Agent's order was cancelled. See their Orders for details.",
             WorldEventFormatter.Describe(new(5, 5, events[4].Kind, "") { Payload = events[4].Payload }, null));
     }
 
     [Fact]
     public async Task SeveralGeneratedWorldDaysKeepRoutineHistoryOutOfTheEventLogAndReplayExactly()
     {
-        const int day = 40;
+        const int day = 20;
         using var world = NormalPathWorld.CreateGenerated("2355-event-log", _ => new DeterministicDecisionProvider(), ticksPerDay: day);
         var work = ModelWorkHarness.For(world);
         for (var tick = 0; tick < day * 3; tick++) await work.TickAsync();

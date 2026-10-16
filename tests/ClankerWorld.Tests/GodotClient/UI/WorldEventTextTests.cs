@@ -283,7 +283,8 @@ public sealed class WorldEventTextTests
         {
             var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
             Assert.Equal($"Aster {action}.", EventTextFixture.Describe(worldEvent, snapshot));
-            if (kind.StartsWith("child_", StringComparison.Ordinal)) Assert.True(GameUiText.IsPlayerFacingEvent(kind));
+            if (kind.StartsWith("child_", StringComparison.Ordinal))
+                Assert.Equal(kind == "child_born", GameUiText.IsPlayerFacingEvent(kind));
             var renamed = snapshot with { Agents = [Person(id, "Rowan", "dead")] };
             Assert.Equal($"Rowan {action}.", EventTextFixture.Describe(worldEvent, renamed));
             Assert.Equal(detail, worldEvent.Detail);
