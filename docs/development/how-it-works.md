@@ -524,6 +524,12 @@ current-term consent check before the native government writer runs.
 Mayoral ballots retain their exact contest round, window, electorate and
 resolved candidate. The same check allows other ballots to accumulate and
 refuses a changed round before the native mayoral vote writer runs.
+Town title-claim proposals retain their offered nearby plot options and bind
+the admitted exact tiles once. The shared native claim validator checks that
+selection before the existing Council and title writers use it.
+Replies without a plot are refused before proposal submission.
+Nearby plot suggestions do not restrict the selection. Before the reply binds
+its exact plot, availability follows the Town's current adjoining unclaimed land.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

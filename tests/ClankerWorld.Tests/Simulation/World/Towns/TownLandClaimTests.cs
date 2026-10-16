@@ -8,6 +8,46 @@ namespace ClankerWorld.Tests;
 public sealed class TownLandClaimTests
 {
     [Fact]
+    public async Task ALandClaimReplyWithoutTilesIsRefusedBeforeTheNativeWriterRuns()
+    {
+        using var source = NormalPathWorld.CreateGenerated("council-land-claim", _ => new ActionCoverageRecorder(chooseIdle: true));
+        var initial = source.ExportState();
+        var town = initial.Towns![0];
+        var actor = town.ResidentIds[0];
+        var reader = new DescribedPlotProvider(actor, omitPlot: true);
+        using var world = WorldRuntime.Restore(initial with
+        {
+            Agents = initial.Agents.Select(person => person with { Position = town.OriginSite!.Value }).ToArray(),
+        }, _ => reader);
+        var initialEvents = initial.Events.Count;
+        ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult? admitted = null;
+        await Until(world, () => admitted is not null, step => admitted ??= step.Decisions.SingleOrDefault(decision =>
+            decision.AgentId == actor && decision.Admission.Intention?.CandidateId.Contains("|claim_land|", StringComparison.Ordinal) == true));
+        Assert.True(admitted!.Admission.Accepted);
+        Assert.False(admitted.Admission.FellBack);
+        var plan = Assert.IsType<TownLandClaimActionPlan>(admitted.ActionPlan);
+        Assert.NotEmpty(plan.OfferedTiles);
+        Assert.NotNull(admitted.PlanRefusal);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, admitted.PlanRefusal.Reason);
+        Assert.NotNull(plan.SelectedTiles);
+        Assert.Empty(plan.SelectedTiles);
+        Assert.Empty(world.Towns[0].Council!.Proposals);
+        Assert.Equal(initial.TownLandTitles, world.TownLandTitles);
+        Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
+        Assert.Equal(initial.WorldSimulation!.Buildings, world.WorldSimulation.Buildings);
+        Assert.Equal(initial.Society.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.Quantity)),
+            world.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.Quantity)));
+        var after = world.ExportState();
+        Assert.Single(after.Events.Skip(initialEvents), item => item.Kind == "choice_refused");
+        Assert.DoesNotContain(after.Events.Skip(initialEvents), item => item.Kind.StartsWith("town_civic_action", StringComparison.Ordinal));
+        Assert.Null(after.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == actor).CurrentIntention);
+        var unchanged = WorldRuntimeCodec.Encode(after);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(unchanged)));
+    }
+
+    [Fact]
     public async Task PersonalProposalNeedsMajorityAndCommitsTitleWithVotesAcrossRollbackAndReload()
     {
         var choices = new ClaimChoices();
@@ -24,7 +64,16 @@ public sealed class TownLandClaimTests
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1);
+        var claimPlans = new List<TownLandClaimActionPlan>();
+        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1, result =>
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is TownLandClaimActionPlan && decision.Admission.Accepted))
+                claimPlans.Add(Assert.IsType<TownLandClaimActionPlan>(decision.ActionPlan));
+        });
+        var claimPlan = Assert.Single(claimPlans);
+        Assert.Equal(claimPlan.Choice, TownLandClaimChoice.Decode(claimPlan.CandidateId));
+        Assert.Equal(plot, claimPlan.SelectedTiles);
+        Assert.NotEmpty(claimPlan.OfferedTiles);
         choices.Plot = null;
         var proposal = Assert.Single(world.Towns[0].Council!.Proposals);
         Assert.Equal("land_claim", proposal.Kind);
@@ -63,6 +112,7 @@ public sealed class TownLandClaimTests
         Assert.True(world.Towns[0].Council!.Proposals[0].Status == "passed", string.Join("\n", choices.Selected.TakeLast(50)));
         var title = Assert.Single(world.TownLandTitles, t => t.Id == TownLandClaimRules.TitleId(proposal.Id));
         Assert.Equal(TownLandRightsRules.OrderTiles(plot), title.Tiles);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(claimPlan).Refusal!.Reason);
         Assert.All(plot, tile => Assert.Contains(tile, world.Towns[0].BorderTiles));
         Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
         Assert.Equal(initial.WorldSimulation!.Buildings, world.WorldSimulation.Buildings);
@@ -202,9 +252,13 @@ public sealed class TownLandClaimTests
         throw new InvalidOperationException("The test Town needs an adjoining unclaimed plot.");
     }
 
-    private static async Task Until(WorldRuntime world, Func<bool> reached)
+    private static async Task Until(WorldRuntime world, Func<bool> reached, Action<WorldStepResult>? observe = null)
     {
-        for (var tick = 0; tick < 60 && !reached(); tick++) await world.AdvanceOneTickAsync();
+        for (var tick = 0; tick < 60 && !reached(); tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            observe?.Invoke(result);
+        }
         Assert.True(reached());
     }
 
@@ -218,7 +272,7 @@ public sealed class TownLandClaimTests
     }
 
     // Reads the claim choice's text the way a model must: it has no map grid, only the listed coordinates.
-    private sealed class DescribedPlotProvider(string author) : IDecisionProvider
+    private sealed class DescribedPlotProvider(string author, bool omitPlot = false) : IDecisionProvider
     {
         public string? Description { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
@@ -239,7 +293,7 @@ public sealed class TownLandClaimTests
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
-                CivicLandTiles: claim is null ? null : [.. ListedTiles(claim.Description).Take(1).Select(tile => new CognitionLandTile(tile.X, tile.Y))]));
+                CivicLandTiles: claim is null || omitPlot ? null : [.. ListedTiles(claim.Description).Take(1).Select(tile => new CognitionLandTile(tile.X, tile.Y))]));
         }
     }
 

@@ -142,10 +142,7 @@ internal sealed partial class TownSystem
                 world.AddBoatAccessCandidates(candidates, actor, town);
                 var here = world.Agents[actor].Position;
                 // The model sees no map grid, so name real claimable tiles it can choose from.
-                if (TownLandClaimRules.ClaimableNear(world.Map, town, world.TownLandTitles, here, 6) is { Length: > 0 } nearest)
-                    candidates.Add(new(CivicAction(world, town.Id, "claim_land"), siteRecovery + $"Ask {town.Name}'s council to claim a connected plot of adjoining unclaimed land; include its exact coordinates in civic_land_tiles. " +
-                        FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); unclaimed tiles beside the Town's land nearest you: {string.Join("; ", nearest.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
-                        "Existing titles, household rights, buildings and goods stay with their holders.", 190));
+                OfferTownLandClaim(world, candidates, actor, town, siteRecovery);
                 if (world.Society.GetAgent(actor).HouseholdId is not null && RequestableLandNear(world, town, here, 6) is { Length: > 0 } free)
                     candidates.Add(new(CivicAction(world, town.Id, "request_land_use"), siteRecovery + $"Ask {town.Name}'s council for household use of a connected plot of Town-titled land; include exact coordinates in civic_land_tiles. " +
                         FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); free Town land nearest you: {string.Join("; ", free.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
@@ -234,6 +231,7 @@ internal sealed partial class TownSystem
         var governmentProposalPlan = originalPlan as GovernmentProposalActionPlan;
         var officePlan = originalPlan as GovernmentOfficeActionPlan;
         var mayoralBallotPlan = originalPlan as MayoralBallotActionPlan;
+        var landClaimPlan = originalPlan as TownLandClaimActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -277,6 +275,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (TownLandClaimChoice.Decode(selectedId) is { } claimChoice)
+        {
+            landClaimPlan ??= PlanTownLandClaim(world, actor, claimChoice);
+            if (landClaimPlan is null) return;
+            landClaimPlan = BindTownLandClaim(landClaimPlan, landTiles);
+            if (CheckTownLandClaim(world, landClaimPlan).Refusal is { } refusal) { world.RefuseChoice(landClaimPlan, refusal); return; }
         }
         else if (MayoralBallotChoice.Decode(selectedId) is { } mayorChoice)
         {
@@ -425,7 +430,11 @@ internal sealed partial class TownSystem
                         TownProjectRules.ProposalText(plan), "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world), project: plan);
                     break;
-                case "claim_land": state = SubmitTownLandClaim(world, town, state, actor, landTiles); break;
+                case "claim_land":
+                    if (CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal is { } claimRefusal)
+                    { world.RefuseChoice(landClaimPlan!, claimRefusal); return; }
+                    state = SubmitTownLandClaim(world, town, state, actor, landTiles, landClaimPlan);
+                    break;
                 case "request_land_use": state = SubmitPersonalLandUseRequest(world, town, state, actor, landTiles); break;
                 case "request_expansion_land": state = SubmitExpansionLandRequest(world, town, state, actor, parts[3]); break;
                 case "accept_land_use":

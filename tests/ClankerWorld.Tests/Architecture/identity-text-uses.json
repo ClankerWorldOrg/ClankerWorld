@@ -214,7 +214,7 @@
   "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.AnimalSupply.cs|id|\u0022animal-donate-\u0022 \u002B world.WorldTick \u002B \u0022-\u0022 \u002B world.NextEventId": 1,
   "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.Animals.cs|id|\u0022animal-wild-\u0022 \u002B species.Id \u002B \u0022-\u0022 \u002B index": 1,
   "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.Animals.cs|id|\u0022herd-\u0022 \u002B species.Id": 1,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs|length|\u003E 0": 2,
+  "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs|length|\u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FirstTownSetup.cs|id|\u0022first-town-\u0022 \u002B building.Role": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs|id|\u0022food_policy_propose:\u0022 \u002B policy": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs|length|living.Length \u003E 0": 1,
