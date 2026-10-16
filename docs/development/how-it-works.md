@@ -503,6 +503,9 @@ Saving may archive older notices while a read is pending without invalidating
 the selected board.
 Relay retains the exact learned notices and recipient. The shared check confirms
 the selected history remains available; receipt ordering and sources stay the same.
+Proposal votes and withdrawal retain the original proposal, voting window and
+electorate. Shared checks allow other votes to accumulate while refusing a
+settled, cancelled or changed proposal before its native response applies.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

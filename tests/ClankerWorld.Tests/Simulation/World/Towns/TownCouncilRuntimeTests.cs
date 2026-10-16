@@ -20,6 +20,65 @@ public sealed class TownCouncilRuntimeTests
     private const string FirstText = "Harvest dates: Publish harvest dates for our Town.";
     private const string SecondText = "Storm notices: Share notices about storms in our Town.";
 
+    [Theory]
+    [InlineData(CivicProposalVoteKind.Yes)]
+    [InlineData(CivicProposalVoteKind.No)]
+    [InlineData(CivicProposalVoteKind.Withdraw)]
+    public async Task NativeProposalResponseRetainsItsReceiptAcrossRollbackReplayAndReload(CivicProposalVoteKind kind)
+    {
+        using var setup = NormalPathWorld.CreateGenerated("civic-response-plan", _ => new ActionCoverageRecorder(chooseIdle: true));
+        var state = setup.ExportState();
+        var town = state.Towns![0];
+        var actor = town.ResidentIds[0];
+        var council = TownCouncilRules.SubmitProposal(town.Council!, town.Id, actor, "law", null,
+            "Élodie 🧭 posts harvest dates", "response-plan", town.ResidentIds, setup.WorldTick, state.WorldSystems!.Config.TicksPerDay);
+        council = TownCouncilRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), setup.WorldTick);
+        state = state with
+        {
+            Towns = [town with { Council = council }],
+            Agents = state.Agents.Select(person => person with
+            { FullnessBasisPoints = 10_000, LastDecisionContext = null }).ToArray()
+        };
+        var chooser = new ProposalResponseProvider(actor, kind);
+        using var world = WorldRuntime.Restore(state, _ => chooser);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ProposalResponseProvider(actor, kind));
+        var step = await world.AdvanceOneTickAsync();
+        Assert.True(step.Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        var plan = Assert.IsType<CivicProposalVoteActionPlan>(chooser.Plan);
+        Assert.Same(plan, step.Decisions.Single(decision => decision.AgentId == actor).ActionPlan);
+        Assert.Equal(plan.Choice, CivicProposalVoteChoice.Decode(plan.CandidateId));
+        var proposal = Assert.Single(world.Towns[0].Council!.Proposals);
+        Assert.Equal(plan.Proposal.Id, proposal.Id);
+        if (kind == CivicProposalVoteKind.Withdraw) Assert.Equal("withdrawn", proposal.Status);
+        else Assert.Equal(kind == CivicProposalVoteKind.Yes, Assert.Single(proposal.Votes).Yes);
+        var unchanged = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(unchanged)));
+    }
+
+    private sealed class ProposalResponseProvider(string actor, CivicProposalVoteKind kind) : IDecisionProvider
+    {
+        public CivicProposalVoteActionPlan? Plan { get; private set; }
+        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(candidate =>
+                candidate.ActionPlan is CivicProposalVoteActionPlan plan && plan.Choice.Kind == kind) : null;
+            if (candidate is not null) Plan = Assert.IsType<CivicProposalVoteActionPlan>(candidate.ActionPlan);
+            var selected = candidate?.Id ?? "safe_idle";
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
+                request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
+                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
+        }
+    }
+
     [Fact]
     public async Task OrdinaryFourFounderWorldOpensCouncilElectionOnDayOneWithoutBuiltInConsentAndReplays()
     {
@@ -367,6 +426,8 @@ public sealed class TownCouncilRuntimeTests
             await generated.TickModelWorkAsync();
         }
         await ModelWorkHarness.WaitForSignalAsync(provider.VoteStarted.Task);
+        var originalPlan = Assert.IsType<CivicProposalVoteActionPlan>(provider.Observations.Last().Candidates
+            .First(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal)).ActionPlan);
         var original = Assert.Single(generated.Towns[0].Council!.Proposals);
         var state = generated.ExportState();
         var site = state.Towns![0].BorderTiles.First(p => state.Map.IsBuildable(p) &&
@@ -374,10 +435,18 @@ public sealed class TownCouncilRuntimeTests
             !state.Agents.Any(i => i.Position == p));
         generated.AddAgent("agent:00000000000000000000000000000099", site);
         Assert.Equal("cancelled", generated.Towns[0].Council!.Proposals[0].Status);
+        var unchanged = WorldRuntimeCodec.Encode(generated.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, generated.CheckActionPlan(originalPlan).Refusal!.Reason);
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(generated.ExportState()));
         provider.ReleaseVote.TrySetResult(true);
         for (var tick = 0; tick < 8; tick++)
         {
-            await generated.TickModelWorkAsync();
+            var step = await generated.TickModelWorkAsync();
+            if (step.Decisions.SingleOrDefault(decision => decision.AgentId == FirstAuthor && decision.PlanRefusal is not null) is { } refused)
+            {
+                Assert.Same(originalPlan, refused.ActionPlan);
+                Assert.Equal(ActionRefusalReason.TargetUnavailable, refused.PlanRefusal!.Reason);
+            }
         }
         var cancelled = generated.Towns[0].Council!.Proposals.Single(p => p.Id == original.Id);
         Assert.Empty(cancelled.Votes);
