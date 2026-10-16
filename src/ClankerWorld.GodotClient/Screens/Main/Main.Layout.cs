@@ -547,6 +547,7 @@ public partial class Main
     }
 
     private const string TextPanelLimit = "text_panel_limit";
+    private readonly HashSet<RichTextLabel> queuedTextPanelFits = [];
 
     /// <summary>A text panel as tall as its text, up to <paramref name="maximumHeight"/>; longer text scrolls.</summary>
     private void ConfigureTextPanel(RichTextLabel label, float maximumHeight)
@@ -558,9 +559,18 @@ public partial class Main
         // Long readers need ordinary Tab/arrow navigation as well.
         ConfigureKeyboardScrollBar(label.GetVScrollBar());
         label.SetMeta(TextPanelLimit, maximumHeight);
-        // A new width rewraps the text, but only after the resized signal, so
-        // measure it once this frame's layout is done.
-        label.Resized += () => Callable.From(() => FitTextPanel(label)).CallDeferred();
+        // A new width rewraps text. Coalesce its height measurements in the
+        // next process frame, so a resize cannot refit itself in an idle loop.
+        label.Resized += () => queuedTextPanelFits.Add(label);
+    }
+
+    private void FitQueuedTextPanels()
+    {
+        if (queuedTextPanelFits.Count == 0) return;
+        var labels = queuedTextPanelFits.ToArray();
+        queuedTextPanelFits.Clear();
+        foreach (var label in labels)
+            if (GodotObject.IsInstanceValid(label)) FitTextPanel(label);
     }
 
     /// <summary>

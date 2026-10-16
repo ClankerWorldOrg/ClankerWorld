@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # How the game works
@@ -746,6 +746,19 @@ Actual presentation changes refresh immediately, so opening a hidden list shows
 the latest accepted information. World identity, a theme change or resetting the
 displayed world invalidates reuse. This cache belongs only to client presentation;
 it changes no observation cadence, simulation state, saved data or history.
+
+## Client panel layout
+
+Resize-driven text and Profile fitting is coalesced in the next process frame.
+Changing a text panel's height can change its wrapping and the Profile's scroll
+area; those notifications must not schedule another fit in the same idle flush.
+The fresh-process Profile check opens every agent in a generated, three-day
+hard world, including a born child, and measures both the button handler and
+the following layout frames. The normal UI smoke runs separately so its earlier
+profile opens cannot hide a first-open stall.
+The real first Profile open in a rendered game logs `agent_profile_open` at `begin`,
+`controls_ready` and `first_draw`, with elapsed times and no agent data, so a
+platform-specific stall can be separated into control setup and first drawing.
 
 ## Finding goods
 
