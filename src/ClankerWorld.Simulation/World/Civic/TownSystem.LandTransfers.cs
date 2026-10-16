@@ -96,7 +96,7 @@ internal sealed partial class TownSystem
         if (!atBoard && MayVisitLandTransfer(world, actor, town) && !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) &&
             !MayVisitAsNewcomer(world, actor, town) && !MayVisitLandHearing(world, actor, town))
             candidates.Add(new(CivicAction(world, town.Id, "visit"), "Walk to the public notice place to read the household permission transfer you actually learned concerns you. Visiting changes no property or membership.", 175));
-        if (household is not null)
+        if (atBoard && household is not null)
         {
             var sourceToken = CivicAgentToken(LandTransferSourceToken(world, town, household));
             var proposalChoice = new LandTransferProposalChoice(town.Id, household, sourceToken, false);
