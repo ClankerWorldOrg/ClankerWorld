@@ -513,8 +513,10 @@ public partial class Main
         Button[] choices = [mainMenuContinueButton, mainMenuNewButton, mainMenuLoadButton, mainMenuSettingsButton, quitGameButton,
             quitToLauncherButton, menuResumeButton, menuSaveWorldButton, menuLoadSaveButton, settingsButton, modLibraryButton, menuQuitToMainButton];
         if (choices.Any(button => button.GetThemeFont("font") != UiFonts.Headings || button.GetThemeFontSize("font_size") != UiFonts.Heading ||
-                button.Alignment != HorizontalAlignment.Left))
-            throw new InvalidOperationException("The Main Menu and Pause Menu choices must share one button style.");
+                button.Alignment != HorizontalAlignment.Left || button.Icon is null))
+            throw new InvalidOperationException("The Main Menu and Pause Menu choices must share one button style with icons.");
+        if (quitToLauncherButton.Icon != quitGameButton.Icon)
+            throw new InvalidOperationException("Quit to Launcher must share the neighbouring quit button's icon.");
         if (deletionConfirmation.GetOkButton().ThemeTypeVariation != "DangerButton" ||
             quitGameConfirmation.GetOkButton().ThemeTypeVariation != "PrimaryButton")
             throw new InvalidOperationException("Permanent deletion must be the red action; other confirmations stay green.");
