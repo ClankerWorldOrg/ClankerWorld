@@ -1,0 +1,1 @@
+- The game checks that the world server on your PC is its own with a fresh challenge the server answers, instead of sending the server its launch secret, and deletes the launch secret file when the server stops cleanly.

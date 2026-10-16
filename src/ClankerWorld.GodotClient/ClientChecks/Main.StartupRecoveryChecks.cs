@@ -14,6 +14,7 @@ public partial class Main
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
+        var previousLocalStarting = localServerStarting;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
         using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
@@ -23,7 +24,7 @@ public partial class Main
         {
             Authoring = new(true, 0, 0, 0, "recovery-map", "recovery-map", "clear", "spring", []),
         };
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "agent-inspection.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1",
             "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1"], []),
             new(snapshot, new(0, 0, [])));
         int Requests(string path) => host.Requests.Count(request => request == path);
@@ -33,6 +34,15 @@ public partial class Main
             deviceKey = signer;
             serverUrlInput.Text = host.Address;
             ShowMainMenu();
+            localServerStarting = true;
+            RefreshMainMenuAvailability();
+            host.FailRecoveryStatus = true;
+            await CheckStartupRecoveryAsync();
+            CompleteLocalServerStartup();
+            if (!mainMenuStatus.Visible || mainMenuContinueButton.Disabled ||
+                mainMenuStatus.Text != "Could not check your saved world. Check your connection and try again.")
+                throw new InvalidOperationException("Finishing local startup must retain a failed recovery check's explanation.");
+            host.FailRecoveryStatus = false;
             resumeWorldOnContinue = true;
             host.StartupRecovery = new(true, snapshot.WorldId, save);
             host.DiskSpace = new("low", 0, 1024L * 1024 * 1024, DateTimeOffset.UtcNow);
@@ -94,6 +104,7 @@ public partial class Main
         }
         finally
         {
+            localServerStarting = previousLocalStarting;
             host.ReleaseRecovery?.TrySetResult();
             startupRecovery = null;
             startupRecoveryBusy = false;
