@@ -28,8 +28,7 @@ public sealed partial class WorldConversationTests
         Assert.NotEqual(proposal.RunEpoch, reloaded.Society.RunEpoch);
         for (var attempt = 0; attempt < 60 && reloaded.Conversations.Single().Turns.Count == 0; attempt++)
         {
-            _ = await reloaded.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(3);
+            _ = await reloaded.TickModelWorkAsync();
         }
 
         var accepted = Assert.Single(reloaded.Conversations);
@@ -64,8 +63,7 @@ public sealed partial class WorldConversationTests
         world.Resume();
         for (var attempt = 0; attempt < 60 && world.WorldTick <= proposal.ProposalDeadlineTick; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(3);
+            _ = await world.TickModelWorkAsync();
         }
 
         var expired = Assert.Single(world.Conversations);
@@ -111,8 +109,7 @@ public sealed partial class WorldConversationTests
         world.Resume();
         for (var attempt = 0; attempt < 15; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(3);
+            _ = await world.TickModelWorkAsync();
         }
 
         var waitingForBoth = Assert.Single(world.Conversations);
@@ -127,8 +124,7 @@ public sealed partial class WorldConversationTests
         bothResume.Resume();
         for (var attempt = 0; attempt < 60 && bothResume.Conversations.Single().Turns.Count == 0; attempt++)
         {
-            _ = await bothResume.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(3);
+            _ = await bothResume.TickModelWorkAsync();
         }
         Assert.NotEmpty(Assert.Single(bothResume.Conversations).Turns);
         Assert.Contains(consentingProvider.PlanningRequests, request => request.Observation.AgentId == InitiatorId &&

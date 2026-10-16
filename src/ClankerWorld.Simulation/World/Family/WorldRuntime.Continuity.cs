@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         var couples = EligibleContinuityCouples().Count();
         if (couples >= ContinuityEligibleCoupleThreshold) return;
         continuity = new(true, []);
-        AppendEvent("continuity_rule_on", ContinuityDetail(couples));
+        AppendEvent(new ContinuityRuleOnEventPayload(null, couples, ContinuityEligibleCoupleThreshold));
     }
 
     private bool HasInfant(string parent) => society.Checkpoint.Relationships.Any(item =>
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
         var eligible = EligibleContinuityCouples().ToArray();
         var active = eligible.Length < ContinuityEligibleCoupleThreshold;
         if (active != continuity.Active)
-            AppendEvent(active ? "continuity_rule_on" : "continuity_rule_off", ContinuityDetail(eligible.Length));
+            AppendEvent(active ? new ContinuityRuleOnEventPayload(null, eligible.Length, ContinuityEligibleCoupleThreshold) : new ContinuityRuleOffEventPayload(null, eligible.Length, ContinuityEligibleCoupleThreshold));
         if (!active)
         {
             continuity = new(false, []);
@@ -124,7 +124,7 @@ public sealed partial class WorldRuntime
                     PrimaryCaregiverId: owner, IntendedHouseholdId: HouseholdFor(owner)));
             checkpointSchemaVersion = StateSchemaVersion;
         }
-        AppendEvent("continuity_plan_proceeded", owner);
+        AppendEvent(new ContinuityPlanProceededEventPayload(owner));
     }
 
     /// <summary>What a partner's own model is told about the rule; null when it does not apply to them.</summary>

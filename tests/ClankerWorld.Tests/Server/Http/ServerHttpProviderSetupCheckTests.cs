@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ClientSetupCheckAction = ClankerWorld.GodotClient.Protocol.OwnerProviderSetupCheckAction;
-using ServerSetupCheckAction = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckAction;
-using ServerSetupCheckResult = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckResult;
+using ClientSetupCheckAction = ClankerWorld.Contracts.OwnerProviderSetupCheckAction;
+using ServerSetupCheckAction = ClankerWorld.Contracts.OwnerProviderSetupCheckAction;
+using ServerSetupCheckResult = ClankerWorld.Contracts.OwnerProviderSetupCheckResult;
 
 namespace ClankerWorld.Tests;
 

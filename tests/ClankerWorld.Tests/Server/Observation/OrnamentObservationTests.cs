@@ -40,7 +40,7 @@ public sealed class OrnamentObservationTests
         Assert.Equal(before.Capacity, equipment.Capacity);
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         var displayed = client.Agents.Single(person => person.Id == actor).Equipment!;
         Assert.Equal("gold_ornament", displayed.OrnamentKind);

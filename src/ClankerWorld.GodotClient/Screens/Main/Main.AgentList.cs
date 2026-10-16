@@ -65,12 +65,12 @@ public partial class Main
             {
                 detail = person.DecisionFactors.Any(factor => factor.Key == "decision-pending")
                     ? "Deciding what to do"
-                    : Capitalize(GameUiText.ActivityPhrase(person.PublicIntention?.CandidateId, person.PublicIntention?.Summary));
-                if (GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry") tags.Add(new SlotTag("Hungry", Note: true));
+                    : Capitalize(person.PublicIntention?.Summary ?? "taking in the surroundings");
+                if (GameUiText.NeedLabel(person, "fullness-state") is "hungry" or "very hungry") tags.Add(new SlotTag("Hungry", Note: true));
                 if (person.Survival is { } survival)
                 {
-                    if (survival.WarmthBasisPoints < 4_000) tags.Add(new SlotTag("Cold", Note: true));
-                    if (survival.IllnessBasisPoints >= 1_500) tags.Add(new SlotTag("Ill", Note: true));
+                    if (GameUiText.NeedLabel(person, "warmth-state") == "cold") tags.Add(new SlotTag("Cold", Note: true));
+                    if (GameUiText.NeedLabel(person, "illness-state") == "ill") tags.Add(new SlotTag("Ill", Note: true));
                 }
             }
             agentListCards.AddItem(person.DisplayName, detail, AgentPortrait(person, living), tags, muted: !living);
@@ -94,12 +94,12 @@ public partial class Main
         var living = IsLiving(person);
         var activity = !living ? string.Empty : person.DecisionFactors.Any(factor => factor.Key == "decision-pending")
             ? "deciding what to do"
-            : GameUiText.ActivityPhrase(person.PublicIntention?.CandidateId, person.PublicIntention?.Summary);
-        var fullness = living ? GameUiText.FullnessState(person.FullnessBasisPoints) : string.Empty;
+            : person.PublicIntention?.Summary ?? "taking in the surroundings";
+        var fullness = living ? GameUiText.NeedLabel(person, "fullness-state") : string.Empty;
         return new(person.Id, person.DisplayName, living, activity,
             fullness is "hungry" or "very hungry" ? fullness : string.Empty,
-            living && person.Survival is { WarmthBasisPoints: < 4_000 },
-            living && person.Survival is { IllnessBasisPoints: >= 1_500 },
+            living && GameUiText.NeedLabel(person, "warmth-state") == "cold",
+            living && GameUiText.NeedLabel(person, "illness-state") == "ill",
             AgentSprites.StageIndex(person.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail));
     }
 
@@ -125,7 +125,7 @@ public partial class Main
         var living = agents.Count(IsLiving);
         var deceased = agents.Length - living;
         var hungry = agents.Count(person => IsLiving(person) &&
-            GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry");
+            GameUiText.NeedLabel(person, "fullness-state") is "hungry" or "very hungry");
         agentsSummaryLabel.Text = agents.Length == 0
             ? "No one lives here yet."
             : (deceased == 0 ? $"{living} living" : $"{living} living · {deceased} deceased") +
@@ -199,8 +199,8 @@ public partial class Main
         if (!IsLiving(agent)) return $"{agent.DisplayName}  ·  died";
         var activity = agent.DecisionFactors.Any(factor => factor.Key == "decision-pending")
             ? "deciding what to do"
-            : GameUiText.ActivityPhrase(agent.PublicIntention?.CandidateId, agent.PublicIntention?.Summary);
-        var fullness = GameUiText.FullnessState(agent.FullnessBasisPoints);
+            : agent.PublicIntention?.Summary ?? "taking in the surroundings";
+        var fullness = GameUiText.NeedLabel(agent, "fullness-state");
         return $"{agent.DisplayName}  ·  {activity}" +
             (fullness is "hungry" or "very hungry" ? $"  ·  {fullness}" : string.Empty);
     }
