@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
             new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
         if (plan.Choice.Kind is PartnershipChoiceKind.Choose or PartnershipChoiceKind.Postpone)
-            return continuity.Active && ContinuitySingleOf(plan.Actor) is { } single && single == plan.OriginalSingle && WorldTick < single.DeadlineTick &&
+            return continuity.Active && ContinuitySingleOf(plan.Actor) is { } single && single.DeadlineTick == plan.OriginalSingle?.DeadlineTick && WorldTick < single.DeadlineTick &&
                 (plan.Choice.Kind == PartnershipChoiceKind.Choose ? CanContinuityPair(plan.Actor, plan.PartnerId)
                     : plan.PartnerId == plan.Actor && IsContinuitySingle(plan.Actor))
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that continuity partner choice is no longer available");

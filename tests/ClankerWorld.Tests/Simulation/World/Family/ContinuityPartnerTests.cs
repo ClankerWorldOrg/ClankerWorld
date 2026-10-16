@@ -10,7 +10,7 @@ namespace ClankerWorld.Tests;
 public sealed partial class ParenthoodTests
 {
     [Fact]
-    public async Task FourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans()
+    public async Task ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans()
     {
         var seen = new ConcurrentDictionary<string, AgentObservation>(StringComparer.Ordinal);
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-mutual", _ => new ParentProvider("safe_idle"));
@@ -25,6 +25,7 @@ public sealed partial class ParenthoodTests
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var singles = world.ExportState().Continuity!.Singles;
         Assert.Equal(4, singles.Count);
+        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "choice_refused");
         Assert.All(singles, single => Assert.Equal(ids[3 - Array.IndexOf(ids, single.AgentId)], single.ChosenPartnerId));
         Assert.All(seen.Values, observation =>
         {
@@ -64,7 +65,7 @@ public sealed partial class ParenthoodTests
     }
 
     [Fact]
-    public async Task NoMutualChoiceUsesStrongestRelationshipThenStableTieBreak()
+    public async Task ContinuityPartneringNoMutualChoiceUsesStrongestRelationshipThenStableTieBreak()
     {
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-strength", _ => new ParentProvider("safe_idle"));
         var state = initial.ExportState();
@@ -87,7 +88,7 @@ public sealed partial class ParenthoodTests
     }
 
     [Fact]
-    public async Task NotYetKeepsDeadlineAndStillPairsWithoutAnyTrust()
+    public async Task ContinuityPartneringNotYetKeepsDeadlineAndStillPairsWithoutAnyTrust()
     {
         using var world = NormalPathWorld.CreateGenerated("continuity-partner-not-yet", actor =>
             new ContinuityPartnerProvider(_ => new PartnershipChoice(PartnershipChoiceKind.Postpone, actor).Encode()));
@@ -101,11 +102,17 @@ public sealed partial class ParenthoodTests
     }
 
     [Fact]
-    public async Task SomeoneWhoChoseAnAlreadyTakenAdultPairsWithAnAvailableAdult()
+    public async Task ContinuityPartneringSomeoneWhoChoseAnAlreadyTakenAdultPairsWithAnAvailableAdult()
     {
+        var plans = new ConcurrentDictionary<string, PartnershipActionPlan>(StringComparer.Ordinal);
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-taken", actor =>
-            new ContinuityPartnerProvider(observation => observation.Candidates.FirstOrDefault(candidate =>
-                candidate.ActionPlan is PartnershipActionPlan { Choice.Kind: PartnershipChoiceKind.Choose })?.Id ?? "safe_idle"));
+            new ContinuityPartnerProvider(observation =>
+            {
+                var candidate = observation.Candidates.FirstOrDefault(candidate =>
+                    candidate.ActionPlan is PartnershipActionPlan { Choice.Kind: PartnershipChoiceKind.Choose });
+                if (candidate?.ActionPlan is PartnershipActionPlan plan) plans[actor] = plan;
+                return candidate?.Id ?? "safe_idle";
+            }));
         for (var tick = 0; tick < 4; tick++) Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
         var state = initial.ExportState();
         var singles = state.Continuity!.Singles;
@@ -118,6 +125,7 @@ public sealed partial class ParenthoodTests
             new("taken-partner", 1, SocietyRelationshipType.Partnership, chosen, third, checkpoint.WorldTick)));
         society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, "taken-partner", 1, third));
         using var world = WorldRuntime.Restore(state with { Society = society.ExportState() }, _ => new ParentProvider("safe_idle"));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plans[first]).Refusal!.Reason);
         PositionFamilyFixtureAt(world, singles[0].DeadlineTick - 1);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         AssertPair(world, chosen, third);
@@ -128,7 +136,7 @@ public sealed partial class ParenthoodTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CloseRelativesAndEldersAreNeverForcedIntoAPartnership(bool elder)
+    public async Task ContinuityPartneringCloseRelativesAndEldersAreNeverForcedIntoAPartnership(bool elder)
     {
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-ineligible", _ => new ParentProvider("safe_idle"));
         var state = initial.ExportState();
@@ -148,7 +156,7 @@ public sealed partial class ParenthoodTests
     }
 
     [Fact]
-    public async Task EndingAForcedPartnershipStartsAFreshDeadline()
+    public async Task ContinuityPartneringEndingAForcedPartnershipStartsAFreshDeadline()
     {
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-again", _ => new ParentProvider("safe_idle"));
         Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
@@ -156,16 +164,20 @@ public sealed partial class ParenthoodTests
         Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
         var state = initial.ExportState();
         var partnership = state.Society.Society.Relationships.First(edge => edge.Type == SocietyRelationshipType.Partnership);
+        // The newly supplied provider must receive a fresh decision instead of retaining safe idle.
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == partnership.ProposerId ? "partner_leave:" : "safe_idle"));
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        for (var tick = 0; tick < 40 && world.Society.GetRelationship(partnership.Id).State != SocietyRelationshipState.Revoked; tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(SocietyRelationshipState.Revoked, world.Society.GetRelationship(partnership.Id).State);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var singles = world.ExportState().Continuity!.Singles;
         Assert.Equal(2, singles.Count);
         Assert.All(singles, single => Assert.Equal(world.WorldTick + 2L * state.WorldSystems!.Config.TicksPerDay, single.DeadlineTick));
     }
 
     [Fact]
-    public async Task RuleTurningOffDiscardsSingleDeadlinesAndChoices()
+    public async Task ContinuityPartneringRuleTurningOffDiscardsSingleDeadlinesAndChoices()
     {
         using var initial = NormalPathWorld.CreateGenerated("continuity-partner-off", _ => new ParentProvider("safe_idle"));
         Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
@@ -178,7 +190,7 @@ public sealed partial class ParenthoodTests
     }
 
     [Fact]
-    public async Task SingleDeadlineAndChoiceValidationRejectsDamageAndMissingState()
+    public async Task ContinuityPartneringSingleDeadlineAndChoiceValidationRejectsDamageAndMissingState()
     {
         using var world = NormalPathWorld.CreateGenerated("continuity-partner-validation", _ => new ParentProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
