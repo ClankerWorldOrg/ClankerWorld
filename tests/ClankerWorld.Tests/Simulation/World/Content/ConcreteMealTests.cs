@@ -342,6 +342,10 @@ public sealed partial class ConcreteMealTests
             lot.StorageBuildingId == house.InstanceId);
         using var home = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(hauling.ExportState())),
             actor, "supply_workstation", "haul_household_stock", "collect_wooden_axe");
+        // The household first completes its real wood journey around the House
+        // walls, then brings the harvested grain through the same doorway.
+        await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "wood" &&
+            lot.StorageBuildingId == house.InstanceId), 100);
         await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
             lot.StorageBuildingId == house.InstanceId), 100);
         var deliveredWood = home.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" &&

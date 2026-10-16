@@ -614,22 +614,21 @@ public sealed partial class PortBoatRuntimeTests
         state = MovementTestWorld.ClearOtherBuildingAccess(state);
         if (freshwater)
         {
-            // Coastal walls can divide nearby land. Start each voter outdoors
-            // with a real route to the notice place, keeping the others clear.
-            var buildings = new BuildingMovementRules(state.WorldSimulation!.Buildings, state.WorldContent!.Buildings);
-            foreach (var person in state.Agents.ToArray())
+            // Three actual personal votes make this four-resident quorum.
+            // Coastal walls leave few approaches; voters may stand on a door
+            // or a resource tile, just as ordinary pedestrians can.
+            var footprints = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
+            var approaches = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
+                    state.Map.FootDistance(point, board) <= 1 && !footprints.Contains(point))
+                .OrderBy(point => point.Y).ThenBy(point => point.X).Take(3).ToArray();
+            Assert.True(approaches.Length == 3, "The coastal notice place needs three outdoor voter approaches.");
+            var voters = state.Agents.Take(3).ToArray();
+            state = state with
             {
-                var occupied = state.Agents.Where(other => other.AgentId != person.AgentId)
-                    .Select(other => other.Position).ToHashSet();
-                var reach = new UnoccupiedReachabilitySearch(state.Map, occupied, board, 1,
-                    canStep: (from, to) => buildings.CanStep(state.Map, from, to), canStop: buildings.CanStop);
-                var position = MovementTestWorld.OpenGround(state, person.AgentId, board, 8, reach.CanReachFrom);
-                state = state with
-                {
-                    Agents = state.Agents.Select(other => other.AgentId == person.AgentId
-                        ? other with { Position = position } : other).ToArray(),
-                };
-            }
+                Agents = state.Agents.Select(person => Array.FindIndex(voters, voter => voter.AgentId == person.AgentId) is var index && index >= 0
+                    ? person with { Position = approaches[index] } : person).ToArray(),
+            };
         }
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
