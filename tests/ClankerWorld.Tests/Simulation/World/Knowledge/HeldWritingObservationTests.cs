@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -13,13 +12,17 @@ public sealed partial class OrchardObservationTests
     {
         var (state, actor, target, _) = await ObserveEmptyTile();
         var known = Assert.Single(state.Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == target);
-        var provider = new HeldOriginalWriting();
+        var provider = new ScriptedProvider();
+        var held = provider.Hold();
         using var world = WorldRuntime.Restore(WithPaper(state, actor), id => id == actor ? provider : new Idle());
+        var harness = ModelWorkHarness.For(world);
         RequestWriting(world, actor, "held-original-observation");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var plan = await provider.Captured.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.True((await harness.TickAsync()).Advanced);
+            Assert.True(held.IsEntered);
+            var plan = Assert.IsType<KnowledgeWritingActionPlan>(Assert.Single(held.Request.Observation.Candidates,
+                candidate => candidate.Id == "knowledge_write:field_record").ActionPlan);
             Assert.Equal(actor, plan.Actor);
             Assert.Equal("knowledge_write:field_record", plan.CandidateId);
             Assert.Null(plan.Source);
@@ -44,16 +47,11 @@ public sealed partial class OrchardObservationTests
             }
             world.Validate();
             AssertReload(world.ExportState());
-            provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
-            SocietyCognitionDispatchResult? decision = null;
-            for (var tick = 0; tick < 32 && decision is null; tick++)
-            {
-                var step = await world.AdvanceOneTickNonBlockingAsync();
-                Assert.True(step.Advanced);
-                decision = step.Decisions.SingleOrDefault(item => item.AgentId == actor && item.ActionPlan == plan);
-                if (decision is null) await Task.Yield();
-            }
+            held.Reply(plan.CandidateId);
+            await harness.WaitForDecisionAsync(actor);
+            var step = await harness.TickAsync();
+            Assert.True(step.Advanced);
+            var decision = Assert.Single(step.Decisions, item => item.AgentId == actor && item.ActionPlan == plan);
             Assert.NotNull(decision);
             Assert.True(decision.Admission.Accepted);
             Assert.False(decision.Admission.FellBack);
@@ -73,32 +71,9 @@ public sealed partial class OrchardObservationTests
                 Assert.Equal(plan.Facts, Assert.Single(world.Knowledge.WritingProjects).Facts);
             }
         }
-        finally { provider.Release.TrySetResult(true); }
-    }
-
-    private sealed class HeldOriginalWriting : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
-        public long ProviderEpoch => 1;
-        public TaskCompletionSource<KnowledgeWritingActionPlan> Captured { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        finally
         {
-            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "knowledge_write:field_record");
-            if (selected?.ActionPlan is KnowledgeWritingActionPlan plan && !Captured.Task.IsCompleted)
-            {
-                Captured.TrySetResult(plan);
-                await Release.Task.WaitAsync(cancellationToken);
-            }
-            else selected = request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
-                request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                selected.Id, 1d, request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
-                    candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal));
-            Returned.TrySetResult(true);
-            return response;
+            if (held.IsEntered) held.Reply("safe_idle");
         }
     }
 }

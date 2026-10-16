@@ -76,7 +76,8 @@ public sealed partial class WorldRuntime
         if (lantern && (!StreetLanternContent.IsRoadEdge(plan.Site, plan.Entrance) ||
             !roadTiles.Contains(plan.Entrance) || !legal.Contains(plan.Entrance)))
             return "The lantern must stand beside a Road, on undisputed Town land.";
-        if (!CanPlaceBuilding(definition, plan.Site, out var failure, projectId, world.Placement)) return failure;
+        if (!CanPlaceBuilding(definition, plan.Site, out var failure, out _, projectId, world.Placement,
+                requiredEntrance: plan.Entrance)) return failure;
         var occupied = world.Occupied.Value;
         if (footprint.Any(point => !map.IsBuildable(point) || occupied.Contains(point)))
             return "The approved building and its plaza need clear buildable ground.";

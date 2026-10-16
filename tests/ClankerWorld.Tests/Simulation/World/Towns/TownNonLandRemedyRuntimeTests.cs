@@ -204,7 +204,28 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-fiber").Quantity);
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-rope").Quantity);
         Assert.All(resumedRepair.MaterialReservationIds, id => Assert.Equal(InventoryReservationState.Completed, replay.Society.Inventory.GetReservation(id).State));
-        NonLandRuntimeFixture.Strict(replay.ExportState());
+        var compacted = RepairHistoryTests.SaveAfterLaterRepairs(replay.ExportState());
+        Assert.All(receipt.RepairInputs, input => Assert.Contains(input.Reservation, compacted.Society.Society.Inventory.Reservations));
+        NonLandRuntimeFixture.Strict(compacted);
+        var damagedReceipt = receipt with
+        {
+            RepairInputs = receipt.RepairInputs.Select(input => input with
+            { Reservation = input.Reservation with { Id = null! } }).ToArray(),
+        };
+        damagedReceipt = damagedReceipt with { Version = TownSystem.NonLandDigest(damagedReceipt with { Version = "" }) };
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(compacted with
+        {
+            Towns = compacted.Towns!.Select(town => town with
+            {
+                NonLandHearings = town.NonLandHearings with
+                {
+                    NativeReceipts = town.NonLandHearings.NativeReceipts.Select(item => item.Id == damagedReceipt.Id
+                        ? damagedReceipt : item).ToArray(),
+                    Effects = town.NonLandHearings.Effects.Select(effect => effect.NativeReceiptId == damagedReceipt.Id
+                        ? effect with { NativeReceiptVersion = damagedReceipt.Version } : effect).ToArray(),
+                },
+            }).ToArray(),
+        }));
     }
 
     [Fact]

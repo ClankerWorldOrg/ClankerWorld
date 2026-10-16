@@ -13,7 +13,8 @@ public sealed record LandHearingFilingChoice(string TownId, LandHearingFilingKin
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}||{AuthorityToken}";
     public static LandHearingFilingChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, "", var authority] || town.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, "", var authority] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         LandHearingFilingKind? kind = verb switch
         {
             "hearing_file" => LandHearingFilingKind.Household,
@@ -21,7 +22,8 @@ public sealed record LandHearingFilingChoice(string TownId, LandHearingFilingKin
             "hearing_propose_town" => LandHearingFilingKind.CouncilProposal,
             _ => null
         };
-        return kind is { } selected ? new(town, selected, authority) : null;
+        return kind is { } selected && (selected == LandHearingFilingKind.TownOffice && authority == "" ||
+            IdentityRules.Reference(authority, DerivedId.MaximumLength)) ? new(town, selected, authority) : null;
     }
 }
 

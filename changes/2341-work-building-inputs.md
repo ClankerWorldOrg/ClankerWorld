@@ -1,0 +1,1 @@
+- Households plan work buildings only when they have reachable work to do: fields or seeds for farms, wild animals for Animal Yards, and supplies for their own recipes. Restaurants also wait for food beyond the Town's daily meals. Plans are checked again before construction, so missing supplies cannot leave an unusable new building.

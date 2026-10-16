@@ -266,6 +266,9 @@ public static class TownLayoutService
                 !context.ReachableFootCosts.ContainsKey(entrance))
                 return false;
         }
+        else if (BuildingMovementRules.FindEntrance(map, definition, position, context.Town is not null,
+                     context.OccupiedTiles, context.RoadTiles) is null)
+            return false;
         var neighborDistance = context.RequiredNeighborTiles is { } neighbors
             ? footprint.SelectMany(point => neighbors.Select(neighbor =>
                 Math.Max(Math.Abs(neighbor.X - point.X), Math.Abs(neighbor.Y - point.Y)))).DefaultIfEmpty(int.MaxValue).Min()
@@ -333,7 +336,7 @@ public static class TownLayoutService
     }
 
     private static bool IsClearFootprintTile(TownLayoutContext context, GridPoint point, GridPoint origin) =>
-        context.Map.Contains(point) && context.Map.IsBuildable(point) &&
+        context.Map.Contains(point) && context.Map.IsBuildable(point) && !context.ProtectedTiles.Contains(point) &&
         (!context.OccupiedTiles.Contains(point) || context.RoadTiles.Contains(point) &&
             !context.ProtectedTiles.Contains(point) &&
             context.PermittedRoadOffsets.Contains(new GridPoint(point.X - origin.X, point.Y - origin.Y)));

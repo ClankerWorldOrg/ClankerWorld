@@ -35,6 +35,19 @@ public sealed partial class WorldRuntime
         {
             return false;
         }
+        if (state.MapAuthoring is { } authoring)
+        {
+            var originalIds = generated.Resources.Select(resource => resource.Id)
+                .Concat(generated.MapObjects.Select(item => item.Id)).ToHashSet(StringComparer.Ordinal);
+            var originalPositions = generated.Resources.Select(resource => resource.Position)
+                .Concat(generated.MapObjects.Select(item => item.Position)).ToHashSet();
+            if (!authoring.IsValid(state.Map) ||
+                authoring.Resources.Any(resource => originalIds.Contains(resource.Id) || originalPositions.Contains(resource.Position)) ||
+                authoring.Objects.Any(item => originalIds.Contains(item.Id) || originalPositions.Contains(item.Position)) ||
+                authoring.Terrain.Any(edit => originalPositions.Contains(edit.Position)))
+                return false;
+            generated = authoring.ApplyToBaseline(generated);
+        }
         return SavedMapMatchesBaseline(state, generated);
     }
 
@@ -70,7 +83,8 @@ public sealed partial class WorldRuntime
                     resource.NaturalObjectKind != (resource.Kind == "wood" ? "fallen_wood" : null))
                     return true;
                 return resource.Kind == "clay"
-                    ? !IsReachableClayBank(baseline, resource.Position)
+                    ? !IsReachableClayBank(baseline,
+                        StartingStoragePosition(state.Map, state.WorldSimulation, state.Towns), resource.Position)
                     : !baseline.IsBuildable(resource.Position);
             })))
             return false;
@@ -83,9 +97,9 @@ public sealed partial class WorldRuntime
         return MapManifestCodec.Digest(original) == baseline.ManifestDigest;
     }
 
-    private static bool IsReachableClayBank(WorldMap baseline, GridPoint point) =>
-        baseline.HydrologyAt(point) == WaterKind.Land && baseline.IsPassable(point) &&
-        baseline.IsReachableFromStartingSiteOnFoot(point) && ClayBankOffsets.Any(offset =>
+    private static bool IsReachableClayBank(WorldMap baseline, GridPoint origin, GridPoint point) =>
+        baseline.HydrologyAt(point) == WaterKind.Land && baseline.IsBuildable(point) &&
+        baseline.IsReachableOnFoot(origin, point) && ClayBankOffsets.Any(offset =>
         {
             var neighbor = baseline.WrapColumn(new GridPoint(point.X + offset.X, point.Y + offset.Y));
             return baseline.Contains(neighbor) &&
@@ -106,7 +120,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("hearth_content_staged", manifest.PackageId);
+        AppendEvent(new HearthContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageHouseContent()
@@ -123,7 +137,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("house_content_staged", manifest.PackageId);
+        AppendEvent(new HouseContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageWarehouseContent()
@@ -140,7 +154,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("warehouse_content_staged", manifest.PackageId);
+        AppendEvent(new WarehouseContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageFarmContent()
@@ -157,7 +171,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("farm_content_staged", manifest.PackageId);
+        AppendEvent(new FarmContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageBlacksmithContent()
@@ -174,7 +188,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("blacksmith_content_staged", manifest.PackageId);
+        AppendEvent(new BlacksmithContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageHouseCookingContent()
@@ -191,7 +205,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("house_cooking_content_staged", manifest.PackageId);
+        AppendEvent(new HouseCookingContentStagedEventPayload(null, manifest.PackageId));
     }
 
     private void StageRestaurantContent() =>
@@ -227,7 +241,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(eventKind, manifest.PackageId);
+        AppendEvent(WorldEvents.ContentStaged(eventKind, null, manifest.PackageId));
     }
 
     private void AddStartingResources()
@@ -245,7 +259,7 @@ public sealed partial class WorldRuntime
             var bank = FreshWaterClayBank(townStorage, occupied);
             if (bank is null)
             {
-                AppendEvent("starting_resource_blocked", "clay");
+                AppendEvent(new StartingResourceBlockedEventPayload(null, "clay"));
             }
             else
             {
@@ -268,7 +282,7 @@ public sealed partial class WorldRuntime
                 map.IsBuildable(tile.Position) && !occupied.Contains(tile.Position));
             if (tile is null)
             {
-                AppendEvent("starting_resource_blocked", kind);
+                AppendEvent(new StartingResourceBlockedEventPayload(null, kind));
                 continue;
             }
             additions.Add(new MapResource(id, kind, tile.Position,
@@ -287,7 +301,7 @@ public sealed partial class WorldRuntime
             .ToHashSet();
         environmentSystem.AddStartingResources(map, additions, changedChunkCoordinates, WorldTick);
         SyncEcologyResourceStates();
-        AppendEvent("starting_resources_added", string.Join(',', additions.Select(resource => resource.Kind)));
+        AppendEvent(new StartingResourcesAddedEventPayload(null, string.Join(',', additions.Select(resource => resource.Kind))));
     }
 
     private GridPoint? FreshWaterClayBank(GridPoint origin, HashSet<GridPoint> occupied)
@@ -301,8 +315,7 @@ public sealed partial class WorldRuntime
             foreach (var (dx, dy) in ClayBankOffsets)
             {
                 var bank = map.WrapColumn(new GridPoint(point.X + dx, point.Y + dy));
-                if (map.Contains(bank) && map.HydrologyAt(bank) == WaterKind.Land && map.IsBuildable(bank) &&
-                    !occupied.Contains(bank) && map.IsReachableFromStartingSiteOnFoot(bank))
+                if (!occupied.Contains(bank) && IsReachableClayBank(map, origin, bank))
                     banks.Add(bank);
             }
         }
@@ -434,6 +447,15 @@ public sealed partial class WorldRuntime
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
 
+        if (selected.IsBuilding &&
+            worldContent.BuildingDefinitions.TryGetValue(selected.DefinitionId, out var workBuilding) &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, workBuilding))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "This building has no reachable inputs for its work."));
+            return;
+        }
+
         var constructionPlan = originalPlan as ConstructionActionPlan;
         if (selected.IsBuilding && selected.SitePosition is { } chosenSite && constructionPlan is null &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } design)
@@ -473,7 +495,7 @@ public sealed partial class WorldRuntime
                     },
                 };
                 agents[agentId] = state;
-                AppendEvent("project_fresh_choice_resumed", $"{agentId}:{candidateId}");
+                AppendEvent(new ProjectFreshChoiceResumedEventPayload(agentId, candidateId));
             }
             else if (existing.CandidateId != candidateId)
             {
@@ -488,7 +510,7 @@ public sealed partial class WorldRuntime
                     },
                 };
                 agents[agentId] = state;
-                AppendEvent("project_site_reselected", $"{agentId}:{selected.DefinitionId}");
+                AppendEvent(new ProjectSiteReselectedEventPayload(agentId, selected.DefinitionId));
             }
             else if (existing.Stage == "blocked")
             {
@@ -500,6 +522,13 @@ public sealed partial class WorldRuntime
         }
 
         var definitionId = selected.DefinitionId;
+        if (selected.IsBuilding &&
+            worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } shop &&
+            !TownHasRoomForSharedShop(agentId, HouseholdBuildingKind(shop)))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "town_shop_limit"));
+            return;
+        }
         // Two members can choose in the same tick; the household still plans one of each kind.
         if (selected.IsBuilding &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } planned &&
@@ -507,7 +536,7 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(agentId).HouseholdId is { } planningHousehold &&
             HouseholdBuildingProjectInProgress(planningHousehold, plannedKind))
         {
-            AppendEvent("build_rejected", $"{agentId}:{candidateId}:household_plan_in_progress");
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "household_plan_in_progress"));
             return;
         }
         var label = selected.IsBuilding
@@ -517,7 +546,7 @@ public sealed partial class WorldRuntime
             return;
         state = state with { Project = new AgentProject(candidateId, label, WorldTick, "acquiring", LastTransitionTick: WorldTick, ToolMakingRequestId: toolMakingRequestId) };
         agents[agentId] = state;
-        AppendEvent("project_chosen", $"{agentId}:{candidateId}");
+        AppendEvent(new ProjectChosenEventPayload(agentId, candidateId));
         ContinueProject(agentId, state);
     }
 
@@ -591,6 +620,13 @@ public sealed partial class WorldRuntime
                 SetProject(agentId, project with { Stage = "cancelled", Blocker = "Only the household holding a Farmhouse builds a Silo." });
                 return;
             }
+        }
+        if (building is not null &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, building))
+        {
+            SetProject(agentId, project with { Stage = "blocked", Blocker = "This building has no reachable inputs for its work." });
+            return;
         }
         if (building?.Tags.Contains("warehouse", StringComparer.Ordinal) == true &&
             (TownForResident(agentId) is not { } townId ||
@@ -686,8 +722,7 @@ public sealed partial class WorldRuntime
                     });
                     if (newlyRejected)
                     {
-                        AppendEvent("town_layout_site_rejected",
-                            $"{TownForResident(agentId) ?? "none"}|{agentId}|{building.CanonicalId}|{selectedSite.X}|{selectedSite.Y}|site_unavailable");
+                        AppendEvent(new TownLayoutSiteRejectedEventPayload(agentId, TownForResident(agentId) ?? "none", building.CanonicalId, selectedSite.X, selectedSite.Y));
                     }
                     return;
                 }
@@ -733,12 +768,12 @@ public sealed partial class WorldRuntime
             SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(ProjectWorkTicks, done), Blocker = null });
             return;
         }
+        var buildingInstanceId = building is null ? null : project.OrderInstructionId is { } orderId
+            ? ConstructionInstanceId(orderId) : BuildInstanceId(agentId, building);
         ApplyBuildDecision(agentId, state, project.CandidateId);
-        if (building is not null && (project.OrderInstructionId is { } orderId
-                ? (worldSimulation.ConstructionReceipts ?? []).Any(receipt => receipt.InstructionId == orderId)
-                : worldSimulation.Buildings.Any(item => item.InstanceId == BuildInstanceId(agentId, building))))
+        if (buildingInstanceId is not null && worldSimulation.Buildings.Any(item => item.InstanceId == buildingInstanceId))
         {
-            SetProject(agentId, project with { Stage = "completed", Blocker = null });
+            SetProject(agentId, agents[agentId].Project! with { Stage = "completed", Blocker = null });
         }
         else if (recipe is not null)
         {
@@ -849,7 +884,7 @@ public sealed partial class WorldRuntime
         }
         if (FreeCarryCapacity(agentId) < checked(plan.Quantity + plan.TreeSeedQuantity))
         {
-            AppendEvent("carrying_full", agentId);
+            AppendEvent(new CarryingFullEventPayload(agentId));
             return null;
         }
         var harvest = EcologyRules.Harvest(ecology, 1);
@@ -873,14 +908,14 @@ public sealed partial class WorldRuntime
         SyncEcologyResourceStates();
         RecordNonLandConduct(agentId, plan.FellTree ? "fell_tree" : "gather_material", source.Position,
             source.Id, itemKind, plan.Quantity, $"gather-material:{WorldTick}:{agentId}:{nextEventId}");
-        AppendEvent("material_gathered", $"{agentId}:{itemKind}:{plan.Quantity}");
+        AppendEvent(new MaterialGatheredEventPayload(agentId, itemKind, plan.Quantity));
         if (plan.FellTree)
-            AppendEvent("tree_harvested", $"{agentId}:{source.Id}:{source.TreeKind}:stump");
+            AppendEvent(new TreeHarvestedEventPayload(agentId, source.Id, source.TreeKind));
         if (plan.TreeSeedQuantity > 0)
         {
             // A felled tree also gives a seed that can replant a stump or
             // start a new tree elsewhere.
-            AppendEvent("tree_seed_collected", $"{agentId}:{source.Id}:{plan.TreeSeedQuantity}");
+            AppendEvent(new TreeSeedCollectedEventPayload(agentId, source.Id, plan.TreeSeedQuantity));
         }
         return new MaterialGatherEffect(MaterialLotId(WorldTick, agentId), itemKind, plan.Quantity, source.Id);
     }
@@ -1055,11 +1090,11 @@ public sealed partial class WorldRuntime
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
-                memoryId, plan.RequesterId, helperId,
+                Identity.Parse(memoryId), plan.RequesterId, helperId,
                 $"Grateful for {society.Checkpoint.GetAgent(helperId).Name}'s help with project materials.", "public", WorldTick)
             { Kind = SocietyMemoryKind.Relationship }));
         }
-        AppendEvent("project_request_fulfilled", $"{helperId}:{plan.RequesterId}:{itemKind}:{quantity}");
+        AppendEvent(new ProjectRequestFulfilledEventPayload(helperId, plan.RequesterId, itemKind, quantity));
     }
 
     private int AvailableLotQuantity(InventoryLot lot) => AvailableLotQuantity(society.Checkpoint.Inventory, lot);
@@ -1078,7 +1113,7 @@ public sealed partial class WorldRuntime
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)
         {
             project = project with { LastTransitionTick = WorldTick };
-            AppendEvent("project_progress", $"{agentId}:{project.Stage}:{project.Blocker ?? project.Label}");
+            AppendEvent(new ProjectProgressEventPayload(agentId, project.Stage, project.Blocker ?? project.Label));
         }
         agents[agentId] = state with { Project = project };
     }
