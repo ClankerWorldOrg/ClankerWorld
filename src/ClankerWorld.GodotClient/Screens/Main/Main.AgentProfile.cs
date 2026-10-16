@@ -433,7 +433,7 @@ public partial class Main
         if (firstOpen)
         {
             GD.Print(FormattableString.Invariant($"agent_profile_open stage=controls_ready elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
-            _ = LogFirstAgentProfileDrawAsync(started);
+            if (DisplayServer.GetName() != "headless") _ = LogFirstAgentProfileDrawAsync(started);
         }
     }
 
