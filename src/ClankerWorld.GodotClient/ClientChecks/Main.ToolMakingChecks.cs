@@ -51,8 +51,8 @@ public partial class Main
             selectedBuildingId = buildingId;
             buildingDetailsRequested = true;
             RenderBuildingCard(snapshot);
-            var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
-            if (buildingDetailsHeader.NameLabel.Text != "River Blacksmith" ||
+            var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
+            if (buildingDetailsHeader.NameLabel.FullText != "River Blacksmith" ||
                 !facts.Contains("Mira · Stone pickaxe", StringComparison.Ordinal) ||
                 !facts.Contains("Household accepted", StringComparison.Ordinal) || !facts.Contains(missing, StringComparison.Ordinal) ||
                 facts.Contains(requestId, StringComparison.Ordinal) || facts.Contains(recipeId, StringComparison.Ordinal))
@@ -63,7 +63,7 @@ public partial class Main
                 PlacedBuildings = [shop with
                 { ToolMakingRequests = [request with { Blocker = full }] }]
             });
-            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (!facts.Contains(full, StringComparison.Ordinal) || facts.Contains(missing, StringComparison.Ordinal))
                 throw new InvalidOperationException("Refreshing a tool request must replace its missing-input reason with the actual full-storage reason.");
             RenderBuildingCard(snapshot with
@@ -71,7 +71,7 @@ public partial class Main
                 PlacedBuildings = [shop with
                 { ToolMakingRequests = [request with { Status = "ready", Blocker = null }] }]
             });
-            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
+            facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
             if (!facts.Contains("Tool ready · payment still to be agreed", StringComparison.Ordinal) || facts.Contains(full, StringComparison.Ordinal))
                 throw new InvalidOperationException("A finished tool must clear the blocker while preserving that payment still needs agreement.");
 
@@ -81,13 +81,13 @@ public partial class Main
             if (!agentDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal))
                 throw new InvalidOperationException("The agent card must show its own request note from the wire.");
             OwnerWorldEvent[] events = [
-                new(1, 1, "tool_request_placed", customerId + ":" + requestId),
-                new(2, 1, "tool_request_accepted", smithId + ":" + requestId),
-                new(3, 1, "tool_request_ready", smithId + ":" + requestId),
-                new(4, 1, "tool_request_completed", customerId + ":" + requestId),
+                new(1, 1, "tool_request_placed", customerId + ":" + requestId) { Text = "Mira asked the Blacksmith for a tool." },
+                new(2, 1, "tool_request_accepted", smithId + ":" + requestId) { Text = "Orin agreed to make the tool." },
+                new(3, 1, "tool_request_ready", smithId + ":" + requestId) { Text = "The tool is ready and can be handed over once it's paid for." },
+                new(4, 1, "tool_request_completed", customerId + ":" + requestId) { Text = "The tool was paid for and handed over." },
             ];
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(1, 0, events))), 0, out var failure))
                 throw new InvalidOperationException("The tool-making Event Log observation was rejected: " + failure);

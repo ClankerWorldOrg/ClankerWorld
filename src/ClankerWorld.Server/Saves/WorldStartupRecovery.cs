@@ -8,9 +8,8 @@ using ClankerWorld.Server.Worlds;
 namespace ClankerWorld.Server.Saves;
 
 /// <param name="SavedByVersion">The game version that last saved a refused checkpoint, when it was recorded.</param>
-public sealed record StartupRecoveryStatus(bool Pending, string? WorldId, ManualWorldSave? Autosave, string? Reason = null,
-    string? SavedByVersion = null);
-public sealed record StartupRecoveryReceipt(string LoadedId, long WorldTick);
+
+
 
 /// <summary>Keep a refused active checkpoint untouched until an authenticated owner accepts a verified autosave.</summary>
 public sealed partial class WorldStartupRecovery
@@ -36,6 +35,9 @@ public sealed partial class WorldStartupRecovery
         this.providers = providers;
         this.providerFactory = providerFactory;
         this.logger = logger;
+        // A pending manual load owns the checkpoint, routing, schedule and
+        // timeline until it is complete. Failure must not expose a mixed world.
+        saves.RecoverInterruptedLoad(stateFile, providers, providerFactory);
         try
         {
             runtime = stateFile.LoadOrCreate(seed);
@@ -84,7 +86,7 @@ public sealed partial class WorldStartupRecovery
                 if (saved.Checkpoint.Society.Society.WorldId != identity ||
                     candidate.WorldTick != saved.Checkpoint.Society.Society.WorldTick ||
                     saved.AutosaveSettings is not { WorldId: var savedWorld } || savedWorld != identity ||
-                    !providers.CanRestoreWorldAssignments(saved.Assignments)) continue;
+                    !providers.CanRestoreWorldAssignments(saved.Assignments, saved.Checkpoint.RoutineHelper)) continue;
                 WorldAutosaveStore.Validate(saved.AutosaveSettings.IntervalMinutes, saved.AutosaveSettings.RotationCount);
                 stateFile.VerifyRequiredHistory(saved.Checkpoint);
                 using var verified = WorldRuntime.Restore(saved.Checkpoint);

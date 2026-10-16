@@ -88,7 +88,7 @@ public sealed partial class WorldRuntime
             ? delivery with { ReleasedTick = WorldTick, ReleaseReason = reason } : delivery).ToArray();
         var claims = project.Deliveries.Where(delivery => delivery.ReleasedTick is null &&
                 delivery.ReservationId is not null)
-            .Select(delivery => delivery.ReservationId!).ToHashSet(StringComparer.Ordinal);
+            .Select(delivery => delivery.ReservationId!.Value).ToHashSet(StringComparer.Ordinal);
         if (claims.Count > 0)
             ApplyInventoryTransition(inventory =>
             {
@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
         if (project.Stage == "blocked" && project.Blocker == failure) return;
         project = ReleaseTownProjectClaims(project, failure) with { Stage = "blocked", Blocker = failure };
         SetTownProject(town.Id, project);
-        AppendEvent("town_project_blocked", $"{town.Id}:{project.Id}:{failure}", TownProjectRules.WorkSite(project.Plan));
+        AppendEvent(new TownProjectBlockedEventPayload(null, town.Id, project.Id, failure), TownProjectRules.WorkSite(project.Plan));
     }
 
     // A cancelled project keeps its goods where they are, releases its claims and no longer holds its site.
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
     {
         project = ReleaseTownProjectClaims(project, reason) with { Stage = "cancelled", Blocker = reason };
         SetTownProject(town.Id, project);
-        AppendEvent("town_project_cancelled", $"{town.Id}:{project.Id}:{reason}", TownProjectRules.WorkSite(project.Plan));
+        AppendEvent(new TownProjectCancelledEventPayload(null, town.Id, project.Id, reason), TownProjectRules.WorkSite(project.Plan));
     }
 
     // Wait only when a pending household request is the site's sole problem; it may still be refused.
@@ -137,7 +137,7 @@ public sealed partial class WorldRuntime
                 var project = new TownProject(id, proposal.Id, proposal.Project!,
                     proposal.SettledTick!.Value, "supplying", 0, WorldTick, []);
                 SetTownProject(town.Id, project);
-                AppendEvent("town_project_approved", $"{town.Id}:{project.Id}:{project.Plan.Name}", TownProjectRules.WorkSite(project.Plan));
+                AppendEvent(new TownProjectApprovedEventPayload(null, town.Id, project.Id, project.Plan.Name), TownProjectRules.WorkSite(project.Plan));
             }
             foreach (var originalProject in towns.Single(item => item.Id == originalTown.Id).Projects.Where(IsLiveTownProject).ToArray())
             {
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
                 {
                     project = project with { Stage = "supplying", Blocker = null, LastTransitionTick = WorldTick };
                     SetTownProject(town.Id, project);
-                    AppendEvent("town_project_resumed", $"{town.Id}:{project.Id}", TownProjectRules.WorkSite(project.Plan));
+                    AppendEvent(new TownProjectResumedEventPayload(null, town.Id, project.Id), TownProjectRules.WorkSite(project.Plan));
                 }
                 var staleIncoming = project.Deliveries.Where(delivery => delivery.ReleasedTick is null &&
                     delivery.DeliveredTick is null && !TownProjectIncomingIsLive(town.Id, delivery)).Select(delivery => delivery.Id)
@@ -448,7 +448,7 @@ public sealed partial class WorldRuntime
         var operation = deliveryId + ":donation";
         var lotId = choice.Quantity == choice.Lot.Quantity ? choice.Lot.Id : DerivedId.Create(choice.Lot.Id + "#transfer:" + operation);
         var delivery = new TownProjectDelivery(deliveryId, actor, choice.Lot.Id, lotId, choice.ItemKind,
-            choice.Quantity, WorldTick, WorldTick, TownRecordIds.DeliveryInput(deliveryId));
+            choice.Quantity, WorldTick, WorldTick, Identity.Parse(TownRecordIds.DeliveryInput(deliveryId)));
         ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryAuthority.Transfer(inventory,
             operation, actor, choice.Town.Id, choice.Lot.Id, choice.Quantity, "town_project_donated",
             destinationGroundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y), holdAccess: InventoryHoldRules.BorrowedBy(actor)), choice.Town.Id, choice.Project, delivery));
@@ -457,7 +457,7 @@ public sealed partial class WorldRuntime
             Deliveries = choice.Project.Deliveries.Append(delivery).ToArray(),
             LastTransitionTick = WorldTick,
         });
-        AppendEvent("town_project_donated", $"{actor}:{choice.Project.Id}:{lotId}:{choice.Quantity}:{choice.ItemKind}", TownProjectRules.WorkSite(choice.Project.Plan));
+        AppendEvent(new TownProjectDonatedEventPayload(actor, choice.Project.Id, lotId, choice.Quantity, choice.ItemKind), TownProjectRules.WorkSite(choice.Project.Plan));
         return true;
     }
 
@@ -500,7 +500,7 @@ public sealed partial class WorldRuntime
             Deliveries = choice.Project.Deliveries.Append(delivery).ToArray(),
             LastTransitionTick = WorldTick,
         });
-        AppendEvent("town_project_material_picked_up", $"{actor}:{choice.Project.Id}:{movedId}:{choice.Quantity}:{choice.ItemKind}", TownProjectRules.WorkSite(choice.Project.Plan));
+        AppendEvent(new TownProjectMaterialPickedUpEventPayload(actor, choice.Project.Id, movedId, choice.Quantity, choice.ItemKind), TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
     private void DeliverTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
@@ -510,7 +510,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, TownProjectRules.WorkSite(choice.Project.Plan), "town_project_materials", 0);
             return;
         }
-        var delivery = choice.Delivery! with { DeliveredTick = WorldTick, ReservationId = TownRecordIds.DeliveryInput(choice.Delivery.Id) };
+        var delivery = choice.Delivery! with { DeliveredTick = WorldTick, ReservationId = Identity.Parse(TownRecordIds.DeliveryInput(choice.Delivery.Id)) };
         ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryAuthority.Relocate(inventory,
             TownRecordIds.DeliveryFinal(delivery.Id), delivery.LotId, choice.Town.Id, delivery.Quantity,
             groundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y), holdAccess: InventoryHoldRules.BorrowedBy(actor)), choice.Town.Id, choice.Project, delivery));
@@ -519,7 +519,7 @@ public sealed partial class WorldRuntime
             Deliveries = choice.Project.Deliveries.Select(item => item.Id == delivery.Id ? delivery : item).ToArray(),
             LastTransitionTick = WorldTick,
         });
-        AppendEvent("town_project_material_delivered", $"{actor}:{choice.Project.Id}:{delivery.LotId}:{delivery.Quantity}:{delivery.ItemKind}", TownProjectRules.WorkSite(choice.Project.Plan));
+        AppendEvent(new TownProjectMaterialDeliveredEventPayload(actor, choice.Project.Id, delivery.LotId, delivery.Quantity, delivery.ItemKind), TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
     private void RecoverTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
@@ -543,7 +543,7 @@ public sealed partial class WorldRuntime
         {
             Deliveries = choice.Project.Deliveries.Append(delivery).ToArray(),
         });
-        AppendEvent("town_project_material_recovered", $"{actor}:{choice.Project.Id}:{movedId}:{choice.Quantity}:{choice.ItemKind}", position);
+        AppendEvent(new TownProjectMaterialRecoveredEventPayload(actor, choice.Project.Id, movedId, choice.Quantity, choice.ItemKind), position);
     }
 
     private void ReturnTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
@@ -567,8 +567,7 @@ public sealed partial class WorldRuntime
                     Deliveries = choice.Project.Deliveries.Append(delivery).ToArray(),
                 });
             }
-            AppendEvent("town_project_material_returned",
-                $"{actor}:{choice.Project.Id}:{choice.Lot!.Id}:{choice.Quantity}:ground", TownProjectRules.WorkSite(choice.Project.Plan));
+            AppendEvent(new TownProjectMaterialReturnedEventPayload(actor, choice.Project.Id, choice.Lot!.Id, choice.Quantity, "ground"), TownProjectRules.WorkSite(choice.Project.Plan));
             return;
         }
         if (state.Position != warehouse.Position)
@@ -579,7 +578,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
             $"{choice.Id}:{WorldTick}", choice.Lot!.Id, choice.Town.Id, choice.Quantity,
             storageBuildingId: warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
-        AppendEvent("town_project_material_returned", $"{actor}:{choice.Project.Id}:{choice.Lot!.Id}:{choice.Quantity}:{warehouse.InstanceId}", TownProjectRules.WorkSite(choice.Project.Plan));
+        AppendEvent(new TownProjectMaterialReturnedEventPayload(actor, choice.Project.Id, choice.Lot!.Id, choice.Quantity, warehouse.InstanceId), TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
     private void WorkOnTownProject(string actor, AgentState state, TownProjectChoice choice)
@@ -602,7 +601,7 @@ public sealed partial class WorldRuntime
         if (hammer is not null) ApplyToolWork(actor, hammer);
         var project = choice.Project with { Stage = "working", WorkDone = done, LastTransitionTick = WorldTick };
         SetTownProject(choice.Town.Id, project);
-        AppendEvent("town_project_worked", $"{actor}:{project.Id}:{done}", TownProjectRules.WorkSite(project.Plan));
+        AppendEvent(new TownProjectWorkedEventPayload(actor, project.Id, done), TownProjectRules.WorkSite(project.Plan));
         if (done == workNeeded) CompletePaidTownProject(actor, choice.Town.Id, project);
     }
 
@@ -651,6 +650,6 @@ public sealed partial class WorldRuntime
         CompletePaidMarketConstruction(townId, project, placed);
         AssignBuildingToTown(placed, worldContent.Buildings.Single(item => item.CanonicalId == placed.DefinitionId));
         CreditCompletedWork(actor, "building");
-        AppendEvent("town_project_completed", $"{actor}:{project.Id}:{id}:{project.Plan.Name}", TownProjectRules.WorkSite(project.Plan));
+        AppendEvent(new TownProjectCompletedEventPayload(actor, project.Id, id, project.Plan.Name), TownProjectRules.WorkSite(project.Plan));
     }
 }

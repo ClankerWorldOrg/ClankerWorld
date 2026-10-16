@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -19,7 +20,7 @@ public sealed partial class ShopTradeTests
             var seller = parties[sale % 2];
             var buyer = parties[1 - sale % 2];
             var offer = "ordinary-milk-sale-" + sale;
-            inventory = InventoryAuthority.CreateDirectBarterOffer(inventory, new(offer, 1,
+            inventory = InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(offer), 1,
                 seller, buyer, "ordinary-resale-milk", 1, "ordinary-resale-payment", 1, inventory.WorldTick + 120));
             inventory = InventoryAuthority.AcceptDirectBarterOffer(inventory, offer, 1, seller);
             Assert.Equal(DirectBarterState.Open, inventory.GetOffer(offer).State);

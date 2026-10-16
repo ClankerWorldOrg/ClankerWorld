@@ -28,16 +28,16 @@ public sealed partial class WorldRuntime
             var recipe = content.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId);
             var building = simulation.Buildings.FirstOrDefault(building => building.InstanceId == request.BuildingInstanceId);
             var accepted = request.AcceptedTick is not null;
-            if (!Enum.IsDefined(request.Status) || !BoundedShopText(request.Id, 128) ||
+            if (!Enum.IsDefined(request.Status) || !BoundedText.IsValid(request.Id, 128, requireTrimmed: true) ||
                 !request.Id.StartsWith("tool-making-request:", StringComparison.Ordinal) ||
                 request.Id != ToolMakingRequestId(request.RequesterId, request.BuildingInstanceId, request.RecipeId, request.RequestedTick) ||
-                !BoundedShopText(request.BuildingInstanceId, 256) || !IsToolRequestRecipeId(request.RecipeId) ||
+                !BoundedText.IsValid(request.BuildingInstanceId, 256, requireTrimmed: true) || !IsToolRequestRecipeId(request.RecipeId) ||
                 ToolProgressionRules.Find(request.ItemKind) is null || request.RequestedTick < 0 ||
                 request.LastTransitionTick < request.RequestedTick || request.LastTransitionTick > worldTick ||
                 request.AcceptedTick is { } acceptedTick && (acceptedTick < request.RequestedTick || acceptedTick > request.LastTransitionTick) ||
                 !societyState.Agents.Any(person => person.Id == request.RequesterId) ||
                 !societyState.Households.Any(household => household.Id == request.SellerHouseholdId) ||
-                request.Blocker is not null && !BoundedShopText(request.Blocker, 160) ||
+                request.Blocker is not null && !BoundedText.IsValid(request.Blocker, 160, requireTrimmed: true) ||
                 accepted != (request.WorkerId is not null) || request.WorkerId is { } worker &&
                     !societyState.Agents.Any(person => person.Id == worker) ||
                 request.Status is ToolMakingRequestStatus.Requested or ToolMakingRequestStatus.Refused &&
@@ -117,7 +117,7 @@ public sealed partial class WorldRuntime
         var purpose = job.JobId + ":input";
         var receipts = inventory.Reservations.Where(receipt => receipt.Purpose == purpose).ToArray();
         if (receipts.Length == 0 || job.InputReservationIds is not { Count: > 0 } ||
-            !job.InputReservationIds.Order(StringComparer.Ordinal).SequenceEqual(receipts.Select(receipt => receipt.Id).Order(StringComparer.Ordinal)))
+            !job.InputReservationIds.Order().SequenceEqual(receipts.Select(receipt => receipt.Id).Order()))
             return false;
         if (recipe is null) return true;
         var matched = 0;
