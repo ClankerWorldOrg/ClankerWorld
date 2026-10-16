@@ -41,7 +41,8 @@ public sealed partial class TownLandHearingRuntimeTests
                 }
             }
             Assert.True(provider.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
-            Assert.False(world.ModelDecisionsFinished(Judge));
+            Assert.Contains(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
+                item.Transition.ActorId == Judge && !item.Completion.IsCompleted);
             var originalCase = Assert.Single(world.Towns[0].LandRecords.Cases);
             var original = Assert.IsType<TownLandCaseJudgeContest>(originalCase.Contest);
             var token = TownLandCaseJudgeRules.RoundToken(original);
@@ -80,7 +81,8 @@ public sealed partial class TownLandHearingRuntimeTests
             Assert.Contains(Judge, current.Voters);
             Assert.Contains(Filer, current.Candidates);
             Assert.True(world.WorldTick < current.RoundDeadlineTick);
-            Assert.False(world.ModelDecisionsFinished(Judge));
+            Assert.Contains(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
+                item.Transition.ActorId == Judge && !item.Completion.IsCompleted);
             var rights = JsonSerializer.Serialize(world.HouseholdLandUseRights);
             var buildings = JsonSerializer.Serialize(world.WorldSimulation.Buildings);
 
