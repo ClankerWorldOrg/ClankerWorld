@@ -215,6 +215,17 @@ public sealed class OwnerWorldApi
             action, deviceKey, cancellationToken);
     }
 
+    public Task<WorldSaveHistory> ReadWorldSaveHistoryAsync(
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string worldId,
+        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        var action = new OwnerManualSaveAction("world-saves", worldId);
+        return pairing.SendSignedActionAsync<OwnerManualSaveAction, WorldSaveHistory>(
+            serverUri, authority, deviceId, "/api/v1/owner/worlds/saves",
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
+            action, deviceKey, cancellationToken);
+    }
+
     public Task<WorldCatalogSnapshot> ListWorldsAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
         IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)

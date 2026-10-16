@@ -5286,6 +5286,9 @@ but cannot enter play or resume time behind another menu. A fresh Continue
 after returning still enters normally.
 
 The manual Save World and Load Save dialog owns one list read per opening.
+Load World embeds those same history controls when a world is selected, using
+the [catalog save-history read](saves-and-replay.md#browsing-saves-from-load-world)
+without activating the world.
 Closing it, creating, overwriting or deleting a save, or starting another opening
 cancels the previous read. Late success and failure replies cannot replace current rows,
 selection or status, including across a world or pairing change. Clearing or
