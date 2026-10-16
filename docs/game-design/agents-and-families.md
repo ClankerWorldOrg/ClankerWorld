@@ -2,7 +2,7 @@
 title: Agents, families and social life
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # Agents, families and social life
@@ -509,7 +509,9 @@ stage, and what each stage can do is agreed above
   a separate credential. Each helper offers its own short model list and
   **Type a model name…**. Decisions starts with **gpt-6-luna**, the only model
   supported by its public beta endpoint at launch; Jev starts with
-  **jev-1.13.0**. The helper and model are set per world while paused. Switching
+  **jev-1.14.0** (updated at the owner's request on October 16); explicitly saved
+  older model names are retained. Jev uses a saved TypeSafe key, including a named
+  key the player chooses. The helper and model are set per world while paused. Switching
   helpers or models cancels pending work and discards late replies, preserving
   memories and their existing scores. Personal-model and child eligibility
   rules still apply. OpenAI published the request and reply format on October 6
