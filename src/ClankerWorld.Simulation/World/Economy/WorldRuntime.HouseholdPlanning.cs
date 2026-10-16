@@ -13,6 +13,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string GatherBuildingMaterialPrefix = "gather_building_material:";
+    // Provisional balance: tune the shared offer/admission limit here.
+    private const int ResidentsPerSharedShop = 8;
 
     private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyAgent agent,
         AgentState state, string householdId, List<string> buildingsWithoutSites)
@@ -59,9 +61,31 @@ public sealed partial class WorldRuntime
 
     private bool HouseholdMayPlan(string householdId, string kind, string actor) =>
         HouseholdBuildingWithTag(householdId, kind) is null &&
+        TownHasRoomForSharedShop(actor, kind) &&
         (kind != "silo" || FarmhouseForHousehold(householdId) is not null) &&
         (kind != AnimalContent.YardTag || HouseForHousehold(householdId) is not null) &&
         !HouseholdBuildingProjectInProgress(householdId, kind, actor);
+
+    /// <summary>Placed shops and other residents' live construction plans hold a Town slot.</summary>
+    private bool TownHasRoomForSharedShop(string actor, string? kind)
+    {
+        if (kind is not ("store" or "tailor" or "restaurant" or "clinic" or "blacksmith"))
+            return true;
+        if (TownForResident(actor) is not { } townId)
+            return false;
+        var town = towns.Single(item => item.Id == townId);
+        var limit = (town.ResidentIds.Count + ResidentsPerSharedShop - 1) / ResidentsPerSharedShop;
+        var placed = worldSimulation.Buildings.Count(building => building.TownId == townId &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
+                HouseholdBuildingKind(definition) == kind));
+        var planned = agents.Values.Count(person => person.AgentId != actor &&
+            TownForResident(person.AgentId) == townId &&
+            person.Project is { Stage: not ("completed" or "cancelled") } project &&
+            TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection) && selection.IsBuilding &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == selection.DefinitionId &&
+                HouseholdBuildingKind(definition) == kind));
+        return placed + planned < limit;
+    }
 
     /// <summary>Whether a member already has a live plan for this kind, so the household plans at most one.</summary>
     private bool HouseholdBuildingProjectInProgress(string householdId, string? kind = null,

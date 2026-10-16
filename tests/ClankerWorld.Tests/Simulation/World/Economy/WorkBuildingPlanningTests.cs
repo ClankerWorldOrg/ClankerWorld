@@ -281,6 +281,14 @@ public sealed class WorkBuildingPlanningTests
                 },
             },
         };
+        if (kind == "blacksmith")
+        {
+            using var setup = WorldRuntime.Restore(state);
+            var smith = setup.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
+            var removed = setup.RemoveBuilding(smith.InstanceId, smith.TownId, smith.HouseholdId);
+            Assert.True(removed.Applied, removed.Failure);
+            state = setup.ExportState();
+        }
         return (state, actor, household, building);
     }
 

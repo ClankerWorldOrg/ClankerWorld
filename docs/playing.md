@@ -846,9 +846,12 @@ scouting trips all appear. Building and crafting entries name the building or
 recipe, including older recorded work. Town law decisions, government votes
 and handovers, and mayoral elections or office changes also appear; open the
 Towns page for their wording and results. Routine steps such as meals, forage
-trips, cart loading and each Town project work shift are left out, because a
-later line already reports what came of them. An event with a known
-location has a **Find** button that moves the camera there. The log grows to
+trips, storing or collecting personal belongings, stocking a Store, hauling
+supplies, cart loading and each Town project work shift are left out. An agent
+changing an unavailable source quietly also stays out of the log. Blocked or
+failed player orders and broken promises remain visible, with the same problem
+for the same agent and target shown at most once per world day. An event with a
+known location has a **Find** button that moves the camera there. The log grows to
 fit wrapped text and day headings until it reaches the bottom of the screen,
 then scrolls. It adjusts when the window changes size. Opening the log
 marks its new entries read; the ones that were new keep a small dot while it

@@ -151,7 +151,8 @@ resource or lot, household, House, route purpose and quantity. The same
 before application in agent order. Application uses those selected values;
 continuing intentions plan their next step from the current position. Plans
 are excluded from prompts, observation digests and saved state. A stale plan
-appends one `choice_refused` Event Log line with a plain refusal reason.
+records a `choice_refused` event with a plain refusal reason in accepted history;
+automatic stale choices stay out of the player Event Log.
 The private child forwarders remain for existing callers.
 Deferred admission checks the original offered plan before the scheduler
 completes its reply. A planned identity that disappeared from the current
@@ -159,6 +160,12 @@ choices reaches its typed refusal; current order/context exclusions still
 refuse it, while unplanned identities and request/epoch checks retain their
 existing scheduler gates. An accepted fallback keeps its own plan and never
 receives the refused provider choice's plan metadata.
+Before dispatching a queued observation, the host checks every planned choice
+against the current world with `CheckActionPlan`. Choices invalidated by earlier
+actions are removed from the request and its digest is rebuilt; other choices
+can still proceed. A reply already in flight retains its original plan; refusal
+clears the intention so the agent can make a fresh choice. A finished order's
+undelivered acknowledgement retains its original message.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal
@@ -3633,6 +3640,16 @@ Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
 
+For Stores, Tailor Shops, Restaurants, Clinics and Blacksmiths, household plans
+also share a Town limit: one of each kind per eight recorded residents, rounded
+up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
+provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
+assigned to the Town and other residents' live construction projects, across
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+and Council-approved Town projects keep their separate rules.
+
 `WorkBuildingHasInputs` also filters autonomous plans and material preparation
 by work the building can actually do. Farmhouses and Silos need reachable
 household fields or planting stock, including an available seed site within
@@ -4670,7 +4687,16 @@ Use stable event names and named fields such as tick, entity/request ID,
 provider role/model, legal intention, outcome, latency and bounded usage.
 Log transitions and decisions, not render frames or idle polls. The player
 Event Log and unread count select known player-facing events and public
-milestones explicitly; unknown diagnostics do not become player text.
+milestones through the shared `EventLogPolicy` classification for every accepted
+kind. Routine personal storage, stocking and hauling, and automatic source
+changes stay in accepted history without becoming Event Log rows. Player order
+blockage/cancellation and consequential refusals remain visible; each problem
+kind for the same complete actor and target appears at most once per world day,
+using the saved calendar offset. Model failures retain their recovery-based
+coalescing. The client keeps each problem's original event ID across raw-history
+rollover, discards keys from expired calendar days, and resets them with the
+observed world or timeline. The unread count uses the same selection. Unknown diagnostics do not
+become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded

@@ -488,6 +488,13 @@ public sealed partial class WorldRuntime
         }
 
         var definitionId = selected.DefinitionId;
+        if (selected.IsBuilding &&
+            worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } shop &&
+            !TownHasRoomForSharedShop(agentId, HouseholdBuildingKind(shop)))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "town_shop_limit"));
+            return;
+        }
         // Two members can choose in the same tick; the household still plans one of each kind.
         if (selected.IsBuilding &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } planned &&
