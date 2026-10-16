@@ -229,10 +229,12 @@ public sealed partial class ConcreteMealTests
     {
         var (state, actor, household, restaurant, _) = Prepared("porridge", true);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        // Keep this ordinary-choice check focused on the shared jug, before farming tools arrive.
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.Id != "meal-test-jug" &&
-                lot.ContainerLotId != "meal-test-jug").ToArray(),
+                lot.ContainerLotId != "meal-test-jug" &&
+                ToolProgressionRules.Find(lot.ItemKind)?.Family != ToolFamily.Hoe).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "shared-jug", InventoryContainerRules.WaterJug,
             household, 1, storageBuildingId: house.InstanceId);
