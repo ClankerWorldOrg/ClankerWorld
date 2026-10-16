@@ -41,15 +41,20 @@ public sealed class PersonalGoodsHouseIdentityTests
                 LastDecisionContext = null,
             }).ToArray(),
         };
-        var provider = new HeldGoods(kind);
+        var provider = new ScriptedProvider();
+        var held = provider.Hold();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? provider : new ActionCoverageRecorder(chooseIdle: true));
+        var harness = ModelWorkHarness.For(world);
         world.SubmitInstruction(new("hold-personal-goods", "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider putting away the carried belongings."));
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var plan = await provider.Captured.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.True((await harness.TickAsync()).Advanced);
+            Assert.True(held.IsEntered);
+            var plan = Assert.IsType<PersonalGoodsActionPlan>(Assert.Single(held.Request.Observation.Candidates,
+                item => item.ActionPlan is PersonalGoodsActionPlan selected &&
+                    selected.Choice == new PersonalGoodsChoice(kind, "held-personal-cloth")).ActionPlan);
             Assert.Equal((actor, owner, "held-personal-cloth", 2, house.InstanceId, house.Position),
                 (plan.Actor, plan.OwnerId, plan.Choice.LotId, plan.Quantity, plan.HouseId, plan.Target));
             Assert.True(world.CheckActionPlan(plan).Allowed);
@@ -73,14 +78,13 @@ public sealed class PersonalGoodsHouseIdentityTests
                 Assert.Equal(!rebuild, reopened.CheckActionPlan(plan).Allowed);
                 reopened.Validate();
             }
-            provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
-            for (var spin = 0; spin < 1_000 && !world.ModelDecisionsFinished(actor); spin++) await Task.Delay(1);
+            held.Reply(plan.CandidateId);
+            await harness.WaitForDecisionAsync(actor);
             Assert.True(world.ModelDecisionsFinished(actor));
             SocietyCognitionDispatchResult? decision = null;
             for (var tick = 0; tick < 8 && decision is null; tick++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync();
+                var step = await harness.TickAsync();
                 Assert.True(step.Advanced);
                 decision = step.Decisions.SingleOrDefault(item => item.AgentId == actor && item.ActionPlan == plan);
             }
@@ -100,32 +104,9 @@ public sealed class PersonalGoodsHouseIdentityTests
             using var finalReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
             finalReload.Validate();
         }
-        finally { provider.Release.TrySetResult(true); }
-    }
-
-    private sealed class HeldGoods(PersonalGoodsKind kind) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
-        public long ProviderEpoch => 1;
-        public TaskCompletionSource<PersonalGoodsActionPlan> Captured { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        finally
         {
-            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.ActionPlan is PersonalGoodsActionPlan plan &&
-                plan.Choice == new PersonalGoodsChoice(kind, "held-personal-cloth"));
-            if (candidate?.ActionPlan is PersonalGoodsActionPlan selected && !Captured.Task.IsCompleted)
-            {
-                Captured.TrySetResult(selected);
-                await Release.Task.WaitAsync(cancellationToken);
-            }
-            else candidate = request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
-                request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                candidate.Id, 1, request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == candidate.Id ? 1d : 0d, StringComparer.Ordinal));
-            Returned.TrySetResult(true);
-            return response;
+            if (held.IsEntered) held.Reply("safe_idle");
         }
     }
 }

@@ -7,7 +7,7 @@ public enum PersonalGoodsMode { Choice, Native, BoundOrder }
 
 public sealed record PersonalGoodsChoice(PersonalGoodsKind Kind, string LotId)
 {
-    public string Encode() => (Kind switch { PersonalGoodsKind.Collect => "household_collect:", PersonalGoodsKind.Store => "household_store_personal:", _ => "household_return:" }) + LotId;
+    public string Encode() => IdentityRules.PrefixedReference(Kind switch { PersonalGoodsKind.Collect => "household_collect:", PersonalGoodsKind.Store => "household_store_personal:", _ => "household_return:" }, LotId);
     public static PersonalGoodsChoice? Decode(string candidate) => candidate.StartsWith("household_collect:", StringComparison.Ordinal)
         ? new(PersonalGoodsKind.Collect, candidate["household_collect:".Length..]) : candidate.StartsWith("household_store_personal:", StringComparison.Ordinal)
             ? new(PersonalGoodsKind.Store, candidate["household_store_personal:".Length..]) : candidate.StartsWith("household_return:", StringComparison.Ordinal)

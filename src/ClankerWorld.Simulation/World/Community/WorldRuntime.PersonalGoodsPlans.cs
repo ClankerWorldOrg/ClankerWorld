@@ -115,8 +115,13 @@ public sealed partial class WorldRuntime
                 holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor))
             : InventoryAuthority.Relocate(inventory, moveId, plan.Choice.LotId, plan.OwnerId, plan.Quantity,
                 storageBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-        var eventType = plan.Choice.Kind switch { PersonalGoodsKind.Collect => "personal_goods_collected", PersonalGoodsKind.Store => "personal_goods_stored", _ => "borrowed_goods_returned" };
-        AppendEvent(eventType, $"{plan.Actor}|{plan.ItemKind}|{plan.Quantity}|{plan.OwnerId}");
+        WorldEventPayload payload = plan.Choice.Kind switch
+        {
+            PersonalGoodsKind.Collect => new PersonalGoodsCollectedEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.OwnerId),
+            PersonalGoodsKind.Store => new PersonalGoodsStoredEventPayload(plan.Actor, plan.ItemKind, plan.Quantity),
+            _ => new BorrowedGoodsReturnedEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.OwnerId),
+        };
+        AppendEvent(payload);
         return (moveId, plan.ItemKind, plan.Quantity);
     }
 }

@@ -1,2 +1,3 @@
 - Personal collection, storage and borrowed returns retain their selected goods, quantities and destinations through shared checks.
 - Delayed storage and return choices refuse a replacement House rebuilt with the same ID and position.
+- Personal goods choices use shared complete references and existing typed native events.
