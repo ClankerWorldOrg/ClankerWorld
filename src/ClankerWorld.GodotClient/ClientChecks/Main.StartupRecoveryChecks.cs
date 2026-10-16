@@ -14,6 +14,7 @@ public partial class Main
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
+        var previousLocalStarting = localServerStarting;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
         using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
@@ -33,6 +34,15 @@ public partial class Main
             deviceKey = signer;
             serverUrlInput.Text = host.Address;
             ShowMainMenu();
+            localServerStarting = true;
+            RefreshMainMenuAvailability();
+            host.FailRecoveryStatus = true;
+            await CheckStartupRecoveryAsync();
+            CompleteLocalServerStartup();
+            if (!mainMenuStatus.Visible || mainMenuContinueButton.Disabled ||
+                mainMenuStatus.Text != "Could not check your saved world. Check your connection and try again.")
+                throw new InvalidOperationException("Finishing local startup must retain a failed recovery check's explanation.");
+            host.FailRecoveryStatus = false;
             resumeWorldOnContinue = true;
             host.StartupRecovery = new(true, snapshot.WorldId, save);
             host.DiskSpace = new("low", 0, 1024L * 1024 * 1024, DateTimeOffset.UtcNow);
@@ -94,6 +104,7 @@ public partial class Main
         }
         finally
         {
+            localServerStarting = previousLocalStarting;
             host.ReleaseRecovery?.TrySetResult();
             startupRecovery = null;
             startupRecoveryBusy = false;
