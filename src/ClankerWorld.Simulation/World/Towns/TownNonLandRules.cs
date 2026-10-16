@@ -102,11 +102,16 @@ IdentityRules.Reference(p.SubjectId, int.MaxValue, requireTrimmed: true) && (p.R
             }).ToArray()
         });
     }
-    public static TownNonLandHearingState RelayRead(TownNonLandHearingState state, string caseId, int revision, string source, string recipient, long tick)
+    public static TownNonLandHearingState RelayRead(TownNonLandHearingState state, string caseId, int revision, string source, string recipient, long tick, TownCaseRead? selectedRead = null)
     {
         var item = Exact(state, caseId, revision);
         var reads = item.Reads.Where(r => r.Revision == revision && r.ReadTick <= tick && r.AgentId == source).ToArray();
         if (source == recipient || reads.Length == 0) throw new InvalidOperationException("Only an informed person can relay this case.");
+        if (selectedRead is not null)
+        {
+            if (RelayReadRefusal(item, source, selectedRead, tick) is { } refusal) throw new InvalidOperationException(refusal);
+            reads = [selectedRead];
+        }
         reads = reads.Concat(item.Reads.Where(r => r.Revision == revision && r.ReadTick <= tick && r.AgentId == recipient)).ToArray();
         return Replace(state, item with
         {
@@ -118,6 +123,17 @@ IdentityRules.Reference(p.SubjectId, int.MaxValue, requireTrimmed: true) && (p.R
             }).ToArray()
         });
     }
+    public static string? RelayReadRefusal(TownNonLandCase item, string source, TownCaseRead selectedRead, long tick)
+    {
+        var reads = item.Reads.Where(read => read.AgentId == source && read.Revision == CurrentRevision(item).Number && read.ReadTick <= tick).ToArray();
+        return selectedRead.AgentId != source || selectedRead.Revision != CurrentRevision(item).Number || reads.Length == 0 ||
+            selectedRead.EvidenceIds.Except(reads.SelectMany(read => read.EvidenceIds), StringComparer.Ordinal).Any() ||
+            selectedRead.ReopenRequestIds.Except(reads.SelectMany(read => read.ReopenRequestIds), StringComparer.Ordinal).Any() ||
+            selectedRead.ResponseIds.Except(reads.SelectMany(read => read.ResponseIds), StringComparer.Ordinal).Any() ||
+            selectedRead.FindingIds.Except(reads.SelectMany(read => read.FindingIds), StringComparer.Ordinal).Any()
+                ? "The selected material was not read by this source." : null;
+    }
+
     public static TownNonLandHearingState Respond(TownNonLandHearingState state, string caseId, int revision, string actor,
         string representedActor, string partyId, string kind, string text, long tick, IReadOnlyList<TownCivicReceipt> receipts,
         IReadOnlyList<TownCaseParty> currentParties)

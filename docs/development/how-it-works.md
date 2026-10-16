@@ -550,6 +550,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Non-land case material and responses retain the exact file revision, selected
+known sources and historical law, legitimate response party or nearby recipient.
+Relays retain all evidence, response, finding and reopening references actually
+read by the source. Child submissions use the same native standing rules.
 Non-land filing retains the known act, historical law, acquired source, filing
 role and actual ordinary office or Council revision. The same check verifies
 current source knowledge and legitimate response support before the retained
