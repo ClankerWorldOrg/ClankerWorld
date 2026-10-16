@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
                 default: throw new InvalidOperationException("A remedy has an unsupported native repair plan.");
             }
         }
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);

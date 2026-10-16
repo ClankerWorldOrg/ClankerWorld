@@ -7,8 +7,6 @@ namespace ClankerWorld.Tests;
 
 public sealed class NonLandAgreementHeldOfferTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(30);
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -77,7 +75,7 @@ public sealed class NonLandAgreementHeldOfferTests
             var sequence = world.Towns[0].NonLandHearings.Sequence;
             var originalCase = world.Towns[0].NonLandHearings.Cases[0];
             Assert.Empty(world.Towns[0].NonLandHearings.Offers);
-            Assert.False(world.ModelDecisionsFinished(NonLandRuntimeFixture.Judge));
+            Assert.False(ModelWorkHarness.For(world).DecisionsFinished(NonLandRuntimeFixture.Judge));
             enabled = true;
             NonLandRuntimeFixture.Wake(world, actor, "independently-offer-and-consent-to-repair");
             await AdvanceUntilAsync(() => world.Towns[0].NonLandHearings.Agreements.Count == 1, 16);
@@ -135,12 +133,12 @@ public sealed class NonLandAgreementHeldOfferTests
         {
             for (var step = 0; step < limit && !complete(); step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline);
+                var result = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(result.Advanced);
                 observe?.Invoke(result);
                 foreach (var person in result.Events.Where(entry => entry.Kind == "hosted_decision_started").Select(entry => entry.Detail))
                 {
-                    if (person == NonLandRuntimeFixture.Judge && await held.Entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline)) continue;
+                    if (person == NonLandRuntimeFixture.Judge && await ModelWorkHarness.For(world).WaitAsync(held.Entered.Reader.ReadAsync().AsTask())) continue;
                     await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, person);
                 }
             }
@@ -150,13 +148,13 @@ public sealed class NonLandAgreementHeldOfferTests
 
     private sealed class HeldOfferProvider(CognitionNonLandChoice payload) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> pending = new();
+        private readonly InlineCompletionSource<CognitionDecisionResponse> pending = new();
         private CognitionDecisionResponse? response;
         private bool released;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public Channel<bool> Entered { get; } = Channel.CreateUnbounded<bool>();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

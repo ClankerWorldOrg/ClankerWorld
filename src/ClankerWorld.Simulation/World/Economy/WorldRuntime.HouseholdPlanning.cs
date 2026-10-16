@@ -74,15 +74,13 @@ public sealed partial class WorldRuntime
             !(person.AgentId == retryingActor && project.Stage == "blocked" &&
                 WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks));
 
-    /// <summary>Materials the household owns, wherever it stores them, plus what its members carry.</summary>
+    /// <summary>Usable materials the household or its members own, wherever they store them.</summary>
     private bool HouseholdHasMaterialsInHand(string householdId, IReadOnlyList<ContentQuantity> costs) =>
         costs.All(cost => HouseholdMaterialInHand(householdId, cost.ResourceId) >= cost.Amount);
 
     private long HouseholdMaterialInHand(string householdId, string itemKind) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == itemKind &&
-                (lot.OwnerId == householdId ||
-                 agents.ContainsKey(lot.OwnerId) && HouseholdFor(lot.OwnerId) == householdId))
-            .Sum(lot => (long)AvailableLotQuantity(lot));
+        HoldingsTotal(agents.Keys.Where(actor => HouseholdFor(actor) == householdId).Prepend(householdId),
+            GoodsKinds.One(itemKind));
 
     /// <summary>
     /// The first material missing for the first building the household still

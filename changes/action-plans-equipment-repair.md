@@ -1,1 +1,2 @@
 - Personal equipment repair now keeps the selected worn item, work site and material lots from the offered choice through pickup and repair start. Changed stock gets a plain refusal. Timed repair, orders and material costs keep their existing behavior.
+- Repair trips check the complete material load before crossing water, and orders use the selected pickup order too.

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -50,21 +51,21 @@ public sealed class WorldMemoryRetrievalTests
         var longSummary = "Mira knows where food grows. " + new string('x', 300);
         var memories = new[]
         {
-            new SocietySocialMemory("food", "founder-scout", "founder-mira",
+            new SocietySocialMemory(Identity.Parse("food"), "founder-scout", "founder-mira",
                 longSummary, "private", 0),
-            new SocietySocialMemory("recent", "founder-scout", "founder-rowan",
+            new SocietySocialMemory(Identity.Parse("recent"), "founder-scout", "founder-rowan",
                 "Rowan repaired the old shed roof.", "private", 0),
-            new SocietySocialMemory("extra-1", "founder-scout", "founder-rowan", "A quiet evening.", "private", 0),
-            new SocietySocialMemory("extra-2", "founder-scout", "founder-rowan", "A cloudy day.", "private", 0),
-            new SocietySocialMemory("extra-3", "founder-scout", "founder-rowan", "A small song.", "private", 0),
-            new SocietySocialMemory("extra-4", "founder-scout", "founder-rowan", "A shared joke.", "private", 0),
-            new SocietySocialMemory("secret", "founder-mira", "founder-scout",
+            new SocietySocialMemory(Identity.Parse("extra-1"), "founder-scout", "founder-rowan", "A quiet evening.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("extra-2"), "founder-scout", "founder-rowan", "A cloudy day.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("extra-3"), "founder-scout", "founder-rowan", "A small song.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("extra-4"), "founder-scout", "founder-rowan", "A shared joke.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("secret"), "founder-mira", "founder-scout",
                 "My private hidden supply is under a stone.", "public", 0),
-            new SocietySocialMemory("forgotten", "founder-scout", "founder-mira",
+            new SocietySocialMemory(Identity.Parse("forgotten"), "founder-scout", "founder-mira",
                 "A false abandoned promise.", "private", 0, TombstonedTick: 0),
         };
         var belief = new SocietyAgentBelief(
-            "belief-hidden-store", "founder-scout", "Mira told me a hidden store is beneath the old oak.",
+            Identity.Parse("belief-hidden-store"), "founder-scout", "Mira told me a hidden store is beneath the old oak.",
             SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: "founder-mira");
         state = state with
         {
@@ -73,7 +74,7 @@ public sealed class WorldMemoryRetrievalTests
             {
                 Society = state.Society.Society with
                 {
-                    Memories = memories.OrderBy(item => item.Id).ToArray(),
+                    Memories = memories.OrderBy(item => item.Id.Value).ToArray(),
                     Beliefs = [belief],
                 },
             },
@@ -102,11 +103,11 @@ public sealed class WorldMemoryRetrievalTests
         Assert.Equal("secret", Assert.Single(mira.RetrievedMemories!).Id);
         Assert.All(observations, observation => Assert.All(observation.RetrievedMemories!,
             memory => Assert.Equal(observation.AgentId, memory.OwnerId)));
-        Assert.Equal(memories.OrderBy(item => item.Id), world.Society.Memories);
+        Assert.Equal(memories.OrderBy(item => item.Id.Value), world.Society.Memories);
         Assert.Equal(belief, Assert.Single(world.Society.Beliefs!));
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False(saved.JevEnabled);
-        Assert.Equal(memories.OrderBy(item => item.Id), saved.Society.Society.Memories);
+        Assert.Equal(memories.OrderBy(item => item.Id.Value), saved.Society.Society.Memories);
 
         var repeatObservations = new List<AgentObservation>();
         using var repeat = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded),
@@ -126,7 +127,7 @@ public sealed class WorldMemoryRetrievalTests
         using var seed = new WorldRuntime("memory-compaction-window");
         var state = seed.ExportState();
         var memories = Enumerable.Range(0, 260).Select(index => new SocietySocialMemory(
-            $"memory-{index:D3}", "founder-scout", "founder-mira", "A private remembered place.", "private", 0))
+            Identity.Create($"memory-{index:D3}"), "founder-scout", "founder-mira", "A private remembered place.", "private", 0))
             .ToArray();
         var indexed = memories.Take(256).Select(memory => new SocietyAgentMemoryImportance(
             memory.Id, SocietyMemorySourceKind.Experience, 0, 5_000, 8_000, 0)).ToArray();
@@ -161,15 +162,15 @@ public sealed class WorldMemoryRetrievalTests
         const string repeatedExperience = "Mira described a quasar, tungsten, zirconium, and xylophonic monolith.";
         var memories = new[]
         {
-            new SocietySocialMemory("permanent-rename", "founder-scout", "founder-scout", "I was renamed on day 1 to Scout Vale.", "private", 0, Permanent: true),
-            new SocietySocialMemory("experience-major", "founder-scout", "founder-mira", repeatedExperience, "private", 0),
-            new SocietySocialMemory("experience-low-1", "founder-scout", "founder-rowan", repeatedExperience, "private", 0),
-            new SocietySocialMemory("experience-low-2", "founder-scout", "founder-ilya", repeatedExperience, "private", 0),
-            new SocietySocialMemory("experience-low-3", "founder-scout", "founder-rowan", repeatedExperience, "private", 0),
-            new SocietySocialMemory("experience-low-4", "founder-scout", "founder-ilya", repeatedExperience, "private", 0),
-            new SocietySocialMemory("other-agent-secret", "founder-mira", "founder-scout", "My private cache is under the stone.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("permanent-rename"), "founder-scout", "founder-scout", "I was renamed on day 1 to Scout Vale.", "private", 0, Permanent: true),
+            new SocietySocialMemory(Identity.Parse("experience-major"), "founder-scout", "founder-mira", repeatedExperience, "private", 0),
+            new SocietySocialMemory(Identity.Parse("experience-low-1"), "founder-scout", "founder-rowan", repeatedExperience, "private", 0),
+            new SocietySocialMemory(Identity.Parse("experience-low-2"), "founder-scout", "founder-ilya", repeatedExperience, "private", 0),
+            new SocietySocialMemory(Identity.Parse("experience-low-3"), "founder-scout", "founder-rowan", repeatedExperience, "private", 0),
+            new SocietySocialMemory(Identity.Parse("experience-low-4"), "founder-scout", "founder-ilya", repeatedExperience, "private", 0),
+            new SocietySocialMemory(Identity.Parse("other-agent-secret"), "founder-mira", "founder-scout", "My private cache is under the stone.", "private", 0),
         };
-        var belief = new SocietyAgentBelief("belief-cache", "founder-scout",
+        var belief = new SocietyAgentBelief(Identity.Parse("belief-cache"), "founder-scout",
             repeatedExperience, SocietyBeliefProvenance.Hearsay,
             4_200, 0, SourceAgentId: "founder-mira");
         state = state with
@@ -179,7 +180,7 @@ public sealed class WorldMemoryRetrievalTests
             {
                 Society = state.Society.Society with
                 {
-                    Memories = memories.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                    Memories = memories.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
                     Beliefs = [belief],
                 },
             },
@@ -196,9 +197,9 @@ public sealed class WorldMemoryRetrievalTests
         var compaction = Assert.Single(world.Society.MemoryCompactions!, item => item.OwnerId == "founder-scout");
         Assert.Equal(6, compaction.Sources.Count);
         Assert.Contains(compaction.Sources, item => item.Kind == SocietyMemorySourceKind.Belief && item.SourceId == belief.Id);
-        Assert.DoesNotContain(compaction.Sources, item => item.SourceId is "other-agent-secret" or "permanent-rename");
+        Assert.DoesNotContain(compaction.Sources, item => item.SourceId.Value is "other-agent-secret" or "permanent-rename");
         Assert.Equal(1, provider.JevDecisionCount);
-        Assert.Equal(memories.OrderBy(item => item.Id, StringComparer.Ordinal), world.Society.Memories);
+        Assert.Equal(memories.OrderBy(item => item.Id.Value, StringComparer.Ordinal), world.Society.Memories);
         Assert.Equal(belief, Assert.Single(world.Society.Beliefs!));
         Assert.Equal(beforeSocietyEvents, world.Society.Events.Take(beforeSocietyEvents.Count).ToArray());
         Assert.DoesNotContain(world.ExportState().Events, item => item.Detail.Contains("hidden cache", StringComparison.Ordinal));
@@ -245,11 +246,11 @@ public sealed class WorldMemoryRetrievalTests
         var state = seed.ExportState();
         var memories = new[]
         {
-            new SocietySocialMemory("secret", "founder-scout", "founder-mira",
+            new SocietySocialMemory(Identity.Parse("secret"), "founder-scout", "founder-mira",
                 "Secret map marker that must remain private.", "private", 0),
-            new SocietySocialMemory("secret-2", "founder-scout", "founder-mira", "A private remembered event.", "private", 0),
-            new SocietySocialMemory("secret-3", "founder-scout", "founder-mira", "Another private remembered event.", "private", 0),
-            new SocietySocialMemory("secret-4", "founder-scout", "founder-mira", "A final private remembered event.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("secret-2"), "founder-scout", "founder-mira", "A private remembered event.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("secret-3"), "founder-scout", "founder-mira", "Another private remembered event.", "private", 0),
+            new SocietySocialMemory(Identity.Parse("secret-4"), "founder-scout", "founder-mira", "A final private remembered event.", "private", 0),
         };
         state = state with
         {
@@ -263,12 +264,12 @@ public sealed class WorldMemoryRetrievalTests
         using var world = WorldRuntime.Restore(state, id => id == "founder-scout"
             ? new FailingModelProvider(observed)
             : new CapturingProvider(observed));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         for (var attempt = 0; attempt < 20 &&
              !world.ExportState().Events.Any(item => item.Kind == "hosted_decision_completed"); attempt++)
         {
-            await Task.Delay(10);
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
         Assert.Contains(observed, item => item.AgentId == "founder-scout" &&
@@ -293,7 +294,7 @@ public sealed class WorldMemoryRetrievalTests
         var state = seed.ExportState();
         const string privateSource = "Private telemetry marker: secret oath under the quartz arch.";
         var memories = Enumerable.Range(0, 6).Select(index => new SocietySocialMemory(
-            $"memory-{index}", "founder-scout", "founder-mira", privateSource, "private", 0)).ToArray();
+            Identity.Create($"memory-{index}"), "founder-scout", "founder-mira", privateSource, "private", 0)).ToArray();
         state = state with
         {
             JevEnabled = true,
@@ -318,7 +319,7 @@ public sealed class WorldMemoryRetrievalTests
 
             for (var attempt = 0; attempt < 10 &&
                  !logger.Messages.Any(message => message.Contains("agent_memory_compaction", StringComparison.Ordinal)); attempt++)
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
 
             var message = Assert.Single(logger.Messages, item =>
                 item.Contains("agent_memory_compaction", StringComparison.Ordinal));

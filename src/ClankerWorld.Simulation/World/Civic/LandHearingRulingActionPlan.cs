@@ -4,7 +4,8 @@ public sealed record LandHearingRulingChoice(string TownId, string RevisionToken
 {
     public string Encode() => $"civic|{TownId}|hearing_rule|{RevisionToken}|{OutcomeKind}";
     public static LandHearingRulingChoice? Decode(string value) =>
-        value.Split('|') is ["civic", var town, "hearing_rule", var revision, var outcome] && town.Length > 0 && revision.Length > 0 &&
+        value.Split('|') is ["civic", var town, "hearing_rule", var revision, var outcome] && IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(revision, DerivedId.MaximumLength) &&
         outcome is "confirm" or "renew" or "amend" or "end" or "reject" or "reclaim" or "grant" ? new(town, revision, outcome) : null;
 }
 
