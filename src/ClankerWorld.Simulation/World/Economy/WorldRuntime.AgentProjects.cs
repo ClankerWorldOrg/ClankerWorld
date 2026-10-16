@@ -439,7 +439,7 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
             !WorkBuildingHasInputs(agentId, workHousehold, workBuilding))
         {
-            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "work_inputs_unavailable"));
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "This building has no reachable inputs for its work."));
             return;
         }
 

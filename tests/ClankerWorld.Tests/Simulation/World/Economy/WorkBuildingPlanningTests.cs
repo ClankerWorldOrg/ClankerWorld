@@ -46,14 +46,21 @@ public sealed class WorkBuildingPlanningTests
         if (boundary == "reserved")
             inventory = InventoryAuthority.Reserve(inventory, "work-input-reservation", household, fiber.Id, 3, "other_work", long.MaxValue);
         else if (boundary == "promised")
-            inventory = InventoryAuthority.AssignDelivery(inventory, fiber.Id, "first-town-blacksmith");
+        {
+            inventory = inventory with
+            {
+                Lots = inventory.Lots.Select(lot => lot.Id == fiber.Id
+                ? lot with { OwnerId = actor, StorageBuildingId = null } : lot).ToArray()
+            };
+            inventory = InventoryAuthority.AssignDelivery(inventory, fiber.Id, "first-town-house-a");
+        }
         else
             inventory = inventory with
             {
                 Lots = inventory.Lots.Select(lot => lot.Id != fiber.Id ? lot : boundary switch
                 {
                     "broken" => lot with { ConditionBasisPoints = 0 },
-                    "foreign" => lot with { OwnerId = "household:second" },
+                    "foreign" => lot with { OwnerId = "household:second", StorageBuildingId = "first-town-house-b" },
                     _ => lot with { StorageBuildingId = null, GroundPosition = new(FarIsland(state).X, FarIsland(state).Y) },
                 }).ToArray(),
             };
@@ -79,9 +86,40 @@ public sealed class WorkBuildingPlanningTests
             },
         };
         Assert.NotEmpty(Offers(state, actor, building));
-        var far = FarIsland(state);
-        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = far } : person).ToArray() };
+        var townOrigin = state.Towns!.Single().OriginSite!.Value;
+        var distant = state.Map.Resources.First(item => item.Kind == FarmFieldRules.GrainSeed &&
+            state.Map.FootDistance(townOrigin, item.Position) > 12);
+        state = state with
+        {
+            Resources = state.Resources.Select(item => item with
+            { State = item.ResourceId == distant.Id ? ResourceState.Available : ResourceState.Depleted }).ToArray(),
+            WorldSystems = state.WorldSystems! with
+            {
+                Ecology = state.WorldSystems.Ecology with
+                {
+                    Resources = state.WorldSystems.Ecology.Resources.Select(item => item with
+                    {
+                        Quantity = item.Id == distant.Id ? item.Capacity : 0,
+                        State = item.Id == distant.Id ? EcologyResourceState.Available : EcologyResourceState.Depleted
+                    }).ToArray(),
+                },
+            },
+        };
         Assert.Empty(Offers(state, actor, building));
+    }
+
+    [Fact]
+    public async Task ExistingHouseholdFieldQualifiesASiloWithoutAnySeeds()
+    {
+        var (state, actor, household, building) = await Fixture("silo");
+        var fertility = new LandFertility(state.Map, state.WorldSeed);
+        var ground = new GroundOccupancy(state.Map, state.WorldContent!, state.WorldSimulation!, roads: state.RoadTiles!);
+        var occupied = GroundOccupancy.Combine(ground.Resources, ground.MapObjects, ground.Roads, ground.BuildingFootprints);
+        var origin = state.Agents.Single(person => person.AgentId == actor).Position;
+        var point = state.Map.Tiles.Select(tile => tile.Position).First(tile => fertility.CanFarm(tile) &&
+            !occupied.Contains(tile) && state.Map.IsReachableOnFoot(origin, tile));
+        Assert.Empty(Offers(state, actor, building));
+        Assert.NotEmpty(Offers(state with { Fields = [new(point, household, FarmFieldStage.Prepared)] }, actor, building));
     }
 
     [Fact]
@@ -94,10 +132,15 @@ public sealed class WorkBuildingPlanningTests
         var animal = Assert.Single(state.AnimalWorld.Animals);
         var far = FarIsland(state);
         Assert.Empty(Offers(state with { AnimalWorld = state.AnimalWorld with { Animals = [animal with { Position = far }] } }, actor, building));
-        using var placement = WorldRuntime.Restore(state);
         var otherHousehold = "household:second";
+        var inventory = state.Society.Society.Inventory;
+        foreach (var cost in building.BuildCosts)
+            inventory = InventoryAuthority.AddLot(inventory, "other-yard-cost-" + cost.ResourceId, cost.ResourceId,
+                otherHousehold, cost.Amount, storageBuildingId: "first-town-house-b");
+        using var placement = WorldRuntime.Restore(WithInventory(state, inventory));
         var site = Offers(state, actor, building).First().SitePosition!.Value;
-        Assert.True(placement.PlaceBuilding("other-yard", building.CanonicalId, site, otherHousehold).Applied);
+        var placed = placement.PlaceBuilding("other-yard", building.CanonicalId, site, otherHousehold);
+        Assert.True(placed.Applied, placed.Failure);
         Assert.Empty(Offers(placement.ExportState(), actor, building));
         var full = placement.ExportState();
         var yard = placement.WorldSimulation.Buildings.Single(item => item.InstanceId == "other-yard");
@@ -132,7 +175,7 @@ public sealed class WorkBuildingPlanningTests
     {
         var (state, actor, household, building) = await Fixture("tailor");
         var house = state.WorldSimulation!.Buildings.Single(item => item.HouseholdId == household && item.InstanceId.Contains("house-", StringComparison.Ordinal));
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cloth-for-planning", "cloth", household, 2, storageBuildingId: house.InstanceId);
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cloth-for-planning", "cloth", household, 1, storageBuildingId: house.InstanceId);
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Position } : person).ToArray(),
@@ -157,6 +200,38 @@ public sealed class WorkBuildingPlanningTests
         Assert.True(step.Advanced);
     }
 
+    [Fact]
+    public async Task ContinuingProjectBlocksWithoutSpendingCostsAndReplaysAfterReload()
+    {
+        var (state, actor, household, building) = await Fixture("tailor");
+        state = Supply(state, actor, household, "tailor");
+        var site = Offers(state, actor, building).First().SitePosition!.Value;
+        var candidate = TownConstructionCandidateIds.Building(building.CanonicalId, site);
+        var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "future-fiber-held", household,
+            "work-input-fiber", 3, "other_work", long.MaxValue);
+        state = WithInventory(state, inventory) with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
+            { Project = new(candidate, building.DisplayName, state.Society.Society.WorldTick, "working", WorkDone: 1, LastTransitionTick: state.Society.Society.WorldTick) } : person).ToArray(),
+        };
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var project = world.Agents.Single(person => person.AgentId == actor).Project!;
+        Assert.Equal("blocked", project.Stage);
+        Assert.Equal(1, project.WorkDone);
+        Assert.Contains("inputs", project.Blocker!, StringComparison.Ordinal);
+        foreach (var cost in building.BuildCosts)
+            Assert.Equal(cost.Amount, world.Society.Inventory.GetLot("work-cost-" + cost.ResourceId).Quantity);
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
+            _ => new ActionCoverageRecorder(chooseIdle: true));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+    }
+
     private static async Task<(WorldRuntimeState State, string Actor, string Household, BuildingDefinition Building)> Fixture(string kind)
     {
         var state = WorldRuntimeCodec.Decode(await Baseline.Value);
@@ -173,7 +248,10 @@ public sealed class WorkBuildingPlanningTests
             AnimalWorld = new(true, [], []),
             Agents = state.Agents.Select(person => person with
             {
-                Equipment = null, Project = null, LastDecisionContext = null, FullnessBasisPoints = 10_000,
+                Equipment = null,
+                Project = null,
+                LastDecisionContext = null,
+                FullnessBasisPoints = 10_000,
                 Survival = new SurvivalCondition(),
             }).ToArray(),
             Resources = state.Resources.Select(item => item with { State = ResourceState.Depleted }).ToArray(),
@@ -205,8 +283,8 @@ public sealed class WorkBuildingPlanningTests
                 break;
             case "restaurant": Add("bread", 1); Add("cultivated_greens", 1); Add("wood", 1); Add("food", 10); break;
             case "animal-yard":
-                var position = state.Agents.Single(person => person.AgentId == actor).Position;
-                state = state with { AnimalWorld = new(true, [new("planning-hen", "Hen", "chicken", "female", -3600, position, "planning-herd")], []) };
+                var born = -(long)AnimalRules.Definition("chicken").AdultDays * state.WorldSystems!.Config.TicksPerDay;
+                state = state with { AnimalWorld = new(true, [new("planning-hen", "Hen", "chicken", "female", born, position, "planning-herd")], []) };
                 break;
         }
         return WithInventory(state, inventory);

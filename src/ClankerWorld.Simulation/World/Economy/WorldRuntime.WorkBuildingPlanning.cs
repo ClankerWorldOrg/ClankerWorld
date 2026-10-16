@@ -18,11 +18,21 @@ public sealed partial class WorldRuntime
             .Prepend(household).Concat(WarehousesAccessibleTo(actor).Select(warehouse => warehouse.TownId!))
             .Distinct(StringComparer.Ordinal).ToArray());
         var tools = new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
+        var inputs = new Dictionary<(string Item, int Quantity, bool NearTown), bool>();
+        var seedArea = new Lazy<HashSet<GridPoint>>(() =>
+            FarmingSystem.NearbyFarmTiles(farmingWorld, town?.OriginSite ?? home).ToHashSet());
         bool Reachable(GridPoint position, int range = 0) =>
             IsWithinInteractionRange(agents[actor].Position, position, range) ||
             Reach(actor, position, ReachPurpose.WorkstationSupply, range, 0, SwimmingPolicy.WhenCapable,
                 ReachObstacles.Terrain).Count > 0;
         bool Input(string item, int quantity, bool nearTown = false)
+        {
+            var key = (item, quantity, nearTown);
+            if (!inputs.TryGetValue(key, out var available))
+                inputs.Add(key, available = InputAvailable(item, quantity, nearTown));
+            return available;
+        }
+        bool InputAvailable(string item, int quantity, bool nearTown)
         {
             // Construction must not spend the only stock that would give the
             // new station work. Natural supplies can be gathered afterwards.
@@ -30,18 +40,20 @@ public sealed partial class WorldRuntime
             var stock = FindGoods(new(GoodsUse.ReachableHoldings, actor, owners, GoodsKinds.One(item))).Matches
                 .Where(match => (match.Root.CarrierId is null || match.Root.CarrierId == actor) &&
                     MayCollectGoodsAt(actor, match.Root) && (!nearTown || match.Place.Position is { } position &&
-                        map.FootDistance(town?.OriginSite ?? home, position) <= 12))
+                        seedArea.Value.Contains(position)))
                 .Sum(match => (long)match.Quantity);
             if (stock >= quantity + cost)
                 return true;
             if (item == InventoryContainerRules.FreshWater)
                 return FindGoods(new(GoodsUse.Collect, actor, owners, GoodsKinds.One(InventoryContainerRules.WaterJug))).First is not null &&
                     FindFreshWaterShore(actor, agents[actor].Position, returnTo: home) is not null;
-            return map.Resources.Any(source => (source.Kind == item || item == "wood" && source.Kind == "construction") &&
-                (!nearTown || map.FootDistance(town?.OriginSite ?? home, source.Position) <= 12) &&
+            return map.Resources.Where(source => (source.Kind == item || item == "wood" && source.Kind == "construction") &&
+                (!nearTown || seedArea.Value.Contains(source.Position)) &&
                 resources.GetValueOrDefault(source.Id) == ResourceState.Available &&
-                worldSystems.Ecology.GetResource(source.Id).Quantity >= quantity &&
-                CanGatherFromSource(actor, item, source, tools) && Reachable(source.Position, ResourceInteractionRange));
+                worldSystems.Ecology.GetResource(source.Id).Quantity >= quantity)
+                .OrderBy(source => map.FootDistance(agents[actor].Position, source.Position))
+                .ThenBy(source => source.Id, StringComparer.Ordinal)
+                .Any(source => CanGatherFromSource(actor, item, source, tools) && Reachable(source.Position, ResourceInteractionRange));
         }
         if (kind is "farmhouse" or "silo")
             return fields.Any(field => field.HouseholdId == household && Reachable(field.Position)) ||
@@ -57,18 +69,19 @@ public sealed partial class WorldRuntime
                         ReachPurpose.AnimalWork, 0, 0, SwimmingPolicy.Never, ReachObstacles.Terrain).Count > 0));
 
         var recipes = worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == building.CanonicalId && !recipe.IsCrop);
+        var foodSurplus = new Lazy<long>(() => RestaurantFoodSurplus(actor, household, town));
         return recipes.Any(recipe => recipe.Inputs.All(input => Input(input.ResourceId, input.Amount)) &&
-            (kind != "restaurant" || RestaurantHasSurplus(actor, household, town, recipe)));
+            (kind != "restaurant" || foodSurplus.Value >= Math.Max(1,
+                recipe.Inputs.Where(input => IsEdibleFood(input.ResourceId)).Sum(input => input.Amount))));
     }
 
-    private bool RestaurantHasSurplus(string actor, string household, TownRuntimeState? town, RecipeDefinition recipe)
+    private long RestaurantFoodSurplus(string actor, string household, TownRuntimeState? town)
     {
         var residents = society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             (town is null ? person.HouseholdId == household : town.ResidentIds.Contains(person.Id, StringComparer.Ordinal))).ToArray();
         var owners = residents.Select(person => person.Id).Concat(residents.Select(person => person.HouseholdId).OfType<string>())
             .Concat(town is null ? [] : new[] { town.Id }).Distinct(StringComparer.Ordinal).ToArray();
         var stock = FindGoods(new(GoodsUse.ReachableHoldings, actor, new(owners), EdibleFoodGoods)).Total;
-        var eatenInputs = recipe.Inputs.Where(input => IsEdibleFood(input.ResourceId)).Sum(input => input.Amount);
-        return stock - Math.Max(1, eatenInputs) >= residents.Length * FarmFieldRules.MealsPerPersonPerDay;
+        return stock - residents.Length * FarmFieldRules.MealsPerPersonPerDay;
     }
 }
