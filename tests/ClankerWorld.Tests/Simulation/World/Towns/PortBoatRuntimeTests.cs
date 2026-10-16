@@ -493,31 +493,38 @@ public sealed partial class PortBoatRuntimeTests
     /// <summary>An order to walk to <see cref="FreeSpotAwayFromPorts"/>.</summary>
     private static string MoveAwayFromPorts(WorldRuntime world)
     {
-        var spot = FreeSpotAwayFromPorts(world);
+        var spot = FreeSpotAwayFromPorts(world, Blockers[0]);
         return $"move to {spot.X},{spot.Y}";
     }
 
-    /// <summary>A free buildable tile in the Town, well away from every Port's landing.</summary>
-    private static GridPoint FreeSpotAwayFromPorts(WorldRuntime world)
+    /// <summary>A reachable outdoor tile away from Ports and the busy notice place.</summary>
+    private static GridPoint FreeSpotAwayFromPorts(WorldRuntime world, string actor = BoatPolicy.Author)
     {
         var state = world.ExportState();
         var ports = world.WorldSimulation.Buildings.Where(building => world.WorldContent.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains(PortContent.PortTag)).ToArray();
         var board = world.Towns[0].OriginSite!.Value;
-        var spot = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
-                state.Map.IsReachableOnFoot(board, point) && state.Agents.All(person => person.Position != point) &&
-                ports.All(port => state.Map.FootDistance(port.Position, point) >= 4))
-            .OrderBy(point => state.Map.FootDistance(board, point)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
-        return spot;
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
+        using var routes = MovementTestWorld.Routes(state, state.Agents.Single(person => person.AgentId == actor).Position, occupied);
+        return MovementTestWorld.OpenGround(state, actor, board, allowed: point =>
+            state.Agents.All(person => person.Position != point) &&
+            state.Map.FootDistance(board, point) > 1 &&
+            ports.All(port => state.Map.FootDistance(port.Position, point) >= 4) && routes.RouteTo(point, 0).Count > 0);
     }
 
     private static void AddLandingBlockers(BoatScenario scenario, string portId, int blockerOffset = 0)
     {
         var port = scenario.World.WorldSimulation.Buildings.Single(building => building.InstanceId == portId);
         var definition = scenario.World.WorldContent.Buildings.Single(definition => definition.CanonicalId == port.DefinitionId);
-        var land = PortNavigationRules.Geometry(scenario.World.ExportState().Map, definition, port.Position).LandTiles;
+        var map = scenario.World.ExportState().Map;
+        var entrance = BuildingMovementRules.EntranceFor(definition, port);
+        var walls = new BuildingMovementRules(scenario.World.WorldSimulation.Buildings, scenario.World.WorldContent.Buildings);
+        // The first blocker is the one an owner can walk out through the door
+        // while the other landing tiles remain occupied.
+        var land = PortNavigationRules.Geometry(map, definition, port.Position).LandTiles
+            .OrderByDescending(point => map.CanFootStep(point, entrance) && walls.CanStep(map, point, entrance)).ToArray();
         scenario.World.Pause();
-        for (var index = 0; index < land.Count; index++)
+        for (var index = 0; index < land.Length; index++)
         {
             Assert.Null(scenario.World.AddAgent(Blockers[index + blockerOffset], land[index]));
             scenario.Policy.IdleActors.Add(Blockers[index + blockerOffset]);
@@ -613,7 +620,8 @@ public sealed partial class PortBoatRuntimeTests
         }
         await scenario.UntilAsync(() => scenario.World.Boats.Count == 1, 600);
         policy.Build = false;
-        return WorldRuntimeCodec.Encode(scenario.World.ExportState());
+        // Each journey scenario starts with the idle builders outside, clear of doors.
+        return WorldRuntimeCodec.Encode(MovementTestWorld.ClearOtherBuildingAccess(scenario.World.ExportState()));
     }
 
     private static async Task<byte[]> StartVoyageAsync()
@@ -688,7 +696,7 @@ public sealed partial class PortBoatRuntimeTests
                 }
                 var selected = policy.LeaveToTown && request.Observation.Will is not null ? candidates.Single(candidate => candidate.Id == CognitionWillContext.HeirsCandidateId) :
                     policy.IdleActors.Contains(actor) ? candidates.Single(candidate => candidate.Id == "safe_idle") :
-                    Blockers.Contains(actor, StringComparer.Ordinal) ? candidates.FirstOrDefault(candidate => candidate.Id == "move_to") : null;
+                    candidates.FirstOrDefault(candidate => candidate.Id == "move_to");
                 selected ??= candidates.Where(candidate => candidate.DeterministicPriority <= 5 && candidate.Id is
                         "consume_food" or "collect_shared_food" or "take_food_from_pot" or "harvest_food" or "seek_food" or "seek_warmth" or "wear_clothing")
                     .OrderBy(candidate => candidate.DeterministicPriority).FirstOrDefault() ??
