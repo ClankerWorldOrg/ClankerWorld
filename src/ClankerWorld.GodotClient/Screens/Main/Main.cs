@@ -313,6 +313,11 @@ public partial class Main : Control
             _ = VerifyMenuLayoutAsync();
             return;
         }
+        if (OS.GetCmdlineUserArgs().Contains("--world-edit-smoke-test", StringComparer.Ordinal))
+        {
+            _ = VerifyWorldEditSmokeAsync();
+            return;
+        }
         _ = TryGetCommandLineServerUrl(out var commandLineUrl);
         serverUrlInput.Text = localServer?.Origin.AbsoluteUri ?? commandLineUrl ?? ConfiguredServerUrl();
         _ = localServer is null ? InitializeAsync() : StartLocalServerAsync();

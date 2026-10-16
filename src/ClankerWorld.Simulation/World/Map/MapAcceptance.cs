@@ -112,7 +112,9 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("An empty starting site cannot contain a founder marker.");
 
         var requiredKinds = new[] { "shelter", "storage", "cooking" };
-        if ((!allowEmptyStartingSite || map.MapObjects.Count > 0) && requiredKinds.Any(kind => !map.MapObjects.Any(mapObject =>
+        // Generated settlements use real buildings; their authored camp objects
+        // may be placed individually after founding. Legacy camps require the trio.
+        if (!allowEmptyStartingSite && requiredKinds.Any(kind => !map.MapObjects.Any(mapObject =>
                 string.Equals(mapObject.Kind, kind, StringComparison.Ordinal))))
         {
             return MapValidationResult.Invalid("A required starting-site placement is missing.");
@@ -183,7 +185,7 @@ public static class MapAcceptance
         return MapValidationResult.Valid;
     }
 
-    private static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>
+    internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>
         resource.NaturalObjectKind is "stone_outcrop" or "iron_outcrop" or "gold_outcrop" or "diamond_outcrop"
             ? map.IsPassable(resource.Position)
             : map.IsBuildable(resource.Position);
