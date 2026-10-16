@@ -1,0 +1,1 @@
+- Household land filing and expansion requests retain the household and exact plot through shared refusal checks. Missing household plots are refused before submission; retained expansion choices still wait for pending requests on alternative House tiles.

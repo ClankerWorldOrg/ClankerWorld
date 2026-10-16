@@ -103,12 +103,17 @@ internal sealed partial class TownSystem
 
     internal void AddHouseholdLandCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (TownAdults(world, town).Contains(actor, StringComparer.Ordinal))
-            foreach (var building in world.WorldSimulation.Buildings.Where(b => b.TownId == town.Id && b.HouseholdId == world.HouseholdFor(actor)))
-                if (ExpansionLandRequestTiles(world, actor, building) is { Length: > 0 } extra)
-                    candidates.Add(new(CivicAction(world, town.Id, "request_expansion_land", building.InstanceId, TownLandClaimRules.DescribeTiles(extra)),
-                        "Request household use of the extra land needed to expand your House. Council approval and every current adult's acceptance are required. Exact tiles: " +
-                        TownLandClaimRules.DescribeTiles(extra) + ".", 190));
+        foreach (var building in world.WorldSimulation.Buildings.Where(building => building.TownId == town.Id && building.HouseholdId == world.HouseholdFor(actor)))
+        {
+            if (ExpansionLandRequestTiles(world, actor, building) is not { } extra) continue;
+            var id = CivicAction(world, town.Id, "request_expansion_land", building.InstanceId, TownLandClaimRules.DescribeTiles(extra));
+            var choice = HouseholdLandFilingChoice.Decode(id)!;
+            var plan = new HouseholdLandFilingActionPlan(actor, choice, world.HouseholdFor(actor), extra, extra, building);
+            if (CheckHouseholdLandFiling(world, plan).Allowed)
+                candidates.Add(new(id, "Request household use of the extra land needed to expand your House. Council approval and every current adult's acceptance are required. Exact tiles: " +
+                    TownLandClaimRules.DescribeTiles(extra) + ".", 190)
+                { ActionPlan = plan });
+        }
         var history = CivicHistory(town);
         foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id && request.Status == "pending" &&
                      history.Knows(actor, "land_use", request.Id)))
@@ -188,12 +193,13 @@ internal sealed partial class TownSystem
     }
 
     internal TownCouncilState SubmitPersonalLandUseRequest(ITownWorld world, TownRuntimeState town, TownCouncilState state,
-            string actor, IReadOnlyList<CognitionLandTile>? landTiles)
+            string actor, IReadOnlyList<CognitionLandTile>? landTiles, HouseholdLandFilingActionPlan? plan = null)
     {
-        if (landTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
+        var selectedTiles = plan?.SelectedTiles ?? landTiles?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray();
+        if (selectedTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
             throw new InvalidOperationException("Choose exact land tiles for the household request.");
         var (result, updated) = FileHouseholdLandUse(world, TownRecordIds.LandRequest(town.Id, TownCouncilRules.NextNoticeSequence(state)),
-            actor, town.Id, landTiles.Select(t => new GridPoint(t.X, t.Y)).ToArray(), null, state);
+            actor, town.Id, selectedTiles, null, state);
         if (!result.Applied) throw new InvalidOperationException(result.Failure);
         return updated;
     }

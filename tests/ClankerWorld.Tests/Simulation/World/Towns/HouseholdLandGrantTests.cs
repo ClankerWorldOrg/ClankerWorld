@@ -68,7 +68,16 @@ public sealed partial class HouseholdLandGrantTests
         var household = world.Society.GetAgent(choices.Author).HouseholdId!;
         var adults = world.Society.Agents.Where(p => p.HouseholdId == household).Select(p => p.Id).Order().ToArray();
         Assert.Equal(2, adults.Length);
-        await Until(world, () => world.HouseholdLandUseRequests.Count == 1);
+        var filingPlans = new List<HouseholdLandFilingActionPlan>();
+        await Until(world, () => world.HouseholdLandUseRequests.Count == 1, result =>
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is HouseholdLandFilingActionPlan && decision.Admission.Accepted))
+                filingPlans.Add(Assert.IsType<HouseholdLandFilingActionPlan>(decision.ActionPlan));
+        });
+        var filingPlan = Assert.Single(filingPlans);
+        Assert.Equal(filingPlan.Choice, HouseholdLandFilingChoice.Decode(filingPlan.CandidateId));
+        Assert.Equal(choices.Plot, filingPlan.SelectedTiles);
+        Assert.Equal(household, filingPlan.Household);
         choices.Plot = null;
         var request = Assert.Single(world.HouseholdLandUseRequests);
         Assert.Empty(request.Consents);
@@ -117,6 +126,7 @@ public sealed partial class HouseholdLandGrantTests
         }
         var granted = world.HouseholdLandUseRequests[0];
         Assert.Equal("granted", granted.Status);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(filingPlan).Refusal!.Reason);
         Assert.Equal(2, responsePlans.Count);
         Assert.All(responsePlans, plan => Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.Equal(adults, granted.GrantAdults);
