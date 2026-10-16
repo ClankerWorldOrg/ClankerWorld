@@ -1,0 +1,1 @@
+- Towns allow one Store, Tailor Shop, Restaurant, Clinic and Blacksmith of each kind per eight residents, rounded up, including shops under construction. Existing shops stay when a Town is already above the limit.

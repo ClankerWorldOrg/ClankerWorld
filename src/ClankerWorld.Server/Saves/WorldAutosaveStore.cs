@@ -4,9 +4,7 @@ using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Server.Saves;
 
-public sealed record WorldAutosaveSettings(
-    string WorldId, bool Enabled, int IntervalMinutes, int RotationCount,
-    DateTimeOffset LastSavedUtc, long LastWorldTick);
+
 
 /// <summary>
 /// Per-world autosave schedule. The per-tick active checkpoint remains crash

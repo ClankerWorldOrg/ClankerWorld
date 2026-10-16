@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -27,7 +28,7 @@ public sealed partial class AnimalPipelineTests
         Assert.True((await producing.AdvanceOneTickAsync()).Advanced);
         var ready = producing.Animals.Single(animal => animal.Id == cow.Id);
         var productId = Assert.IsType<string>(ready.ReadyProductLotId);
-        var reservationId = Assert.IsType<string>(ready.ReadyProductReservationId);
+        var reservationId = Assert.IsType<Identity>(ready.ReadyProductReservationId).Value;
         var initial = WorldRuntimeCodec.Encode(producing.ExportState());
         using var world = RestoreMountedCollection(WorldRuntimeCodec.Decode(initial), actor);
         Assert.Equal(initial, WorldRuntimeCodec.Encode(world.ExportState()));

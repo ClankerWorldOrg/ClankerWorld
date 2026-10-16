@@ -73,6 +73,7 @@ public sealed class MarketAnimalSupplyTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
         };
+        if (leaveFirst) state = MovementTestWorld.ClearOtherBuildingAccess(state, collector);
         var supply = new MarketRulesPolicy
         {
             Choose = (actor, candidates) => actor == collector ? candidates.FirstOrDefault(candidate =>

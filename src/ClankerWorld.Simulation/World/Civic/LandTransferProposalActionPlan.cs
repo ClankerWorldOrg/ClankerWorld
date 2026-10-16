@@ -4,7 +4,9 @@ public sealed record LandTransferProposalChoice(string TownId, string SourceHous
 {
     public string Encode() => $"civic|{TownId}|{(Sale ? "land_transfer_sell" : "land_transfer_propose")}|{SourceHousehold}|{SourceToken}";
     public static LandTransferProposalChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var household, var source] &&
-        town.Length > 0 && household.Length > 0 && source.Length > 0 && verb is "land_transfer_propose" or "land_transfer_sell"
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(household, requireTrimmed: true) && IdentityRules.Reference(source, DerivedId.MaximumLength) &&
+        verb is "land_transfer_propose" or "land_transfer_sell"
         ? new(town, household, source, verb == "land_transfer_sell") : null;
 }
 

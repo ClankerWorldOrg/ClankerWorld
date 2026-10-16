@@ -4,7 +4,8 @@ public sealed record NonLandAgreementChoice(string TownId, string Verb, string S
 {
     public string Encode() => $"civic|{TownId}|{Verb}|{SubjectToken}|{TermsToken}";
     public static NonLandAgreementChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var subject, var terms] &&
-        town.Length > 0 && subject.Length > 0 && verb is "remedy_offer" or "remedy_renegotiate" or "remedy_read" or "remedy_accept" or "remedy_decline" or "remedy_counter"
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(subject, DerivedId.MaximumLength) &&
+        (terms is "" || IdentityRules.Reference(terms, DerivedId.MaximumLength)) && verb is "remedy_offer" or "remedy_renegotiate" or "remedy_read" or "remedy_accept" or "remedy_decline" or "remedy_counter"
             ? new(town, verb, subject, terms) : null;
 }
 
