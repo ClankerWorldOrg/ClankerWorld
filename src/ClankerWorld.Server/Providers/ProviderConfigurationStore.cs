@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
+using ClankerWorld.Contracts;
 
 namespace ClankerWorld.Server.Providers;
 
@@ -24,7 +25,7 @@ public static class PlayerDecisionProviders
     public const string OllamaCloud = "ollama-cloud";
     public const string Anthropic = "anthropic";
 
-    public const string DefaultJevModel = "jev-1.13.0";
+    public const string DefaultJevModel = RoutineHelperDefaults.JevModel;
     public const string DefaultOpenAiModel = "gpt-6-luna";
     public const string DefaultOllamaCloudModel = "glm-5.3-flash:cloud";
     public const string DefaultAnthropicModel = "claude-haiku-5-5";
@@ -38,6 +39,10 @@ public static class PlayerDecisionProviders
 
     /// <summary>Providers that host an agent's own paid model, with a key and a thinking setting.</summary>
     public static bool IsModelProvider(string? provider) => provider is OpenAi or OllamaCloud or Anthropic;
+
+    public static bool IsCredentialProvider(string? provider) => provider == Jev || IsModelProvider(provider);
+
+    public static string HelperCredentialProvider(string provider) => provider == Decisions ? OpenAi : provider;
 
     public static string Normalize(string? provider) => provider?.Trim().ToLowerInvariant() switch
     {
@@ -222,8 +227,8 @@ public sealed class ProviderConfigurationStore
         if (!Guid.TryParseExact(action.CredentialSlotId, "N", out _))
             throw new ArgumentException("Choose a valid named credential slot.", nameof(action));
         var provider = PlayerDecisionProviders.Normalize(action.Provider);
-        if (!PlayerDecisionProviders.IsModelProvider(provider))
-            throw new ArgumentException("Choose OpenAI, Ollama Cloud or Anthropic for this key.", nameof(action));
+        if (!PlayerDecisionProviders.IsCredentialProvider(provider))
+            throw new ArgumentException("Choose OpenAI, Ollama Cloud, Anthropic or TypeSafe for this key.", nameof(action));
         var label = NormalizeSlotLabel(action.Label);
         var key = NormalizeRequiredApiKey(action.ApiKey);
         lock (gate)
@@ -294,13 +299,15 @@ public sealed class ProviderConfigurationStore
             {
                 ValidateState(PreparedWorldAssignments(assignments));
                 helper?.Validate();
-                // Decisions always routes through its saved OpenAI selection.
-                // A named key must not fall back to the installation default.
-                return helper?.Provider != PlayerDecisionProviders.Decisions ||
-                    !string.IsNullOrWhiteSpace(helper.CredentialSlotId is { } slotId
-                        ? state.CredentialSlots?.FirstOrDefault(slot => slot.Id == slotId &&
-                            slot.Provider == PlayerDecisionProviders.OpenAi)?.ApiKey
-                        : state.OpenAi.ApiKey);
+                // Preserve keyless legacy Jev worlds. An explicit named key
+                // must never fall back to an installation default.
+                if (helper is null || helper.Provider == "off" ||
+                    helper.Provider == PlayerDecisionProviders.Jev && helper.CredentialSlotId is null)
+                    return true;
+                var provider = PlayerDecisionProviders.HelperCredentialProvider(helper.Provider);
+                return !string.IsNullOrWhiteSpace(helper.CredentialSlotId is { } slotId
+                    ? state.CredentialSlots?.FirstOrDefault(slot => slot.Id == slotId && slot.Provider == provider)?.ApiKey
+                    : CredentialFor(state, provider)?.ApiKey);
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidDataException or OverflowException)
             { return false; }
@@ -831,7 +838,7 @@ public sealed class ProviderConfigurationStore
         foreach (var slot in state.CredentialSlots ?? [])
         {
             if (!Guid.TryParseExact(slot.Id, "N", out _) || !slotIds.Add(slot.Id) ||
-                !PlayerDecisionProviders.IsModelProvider(slot.Provider))
+                !PlayerDecisionProviders.IsCredentialProvider(slot.Provider))
                 throw new InvalidDataException("A credential slot has an invalid or duplicate identity.");
             _ = NormalizeSlotLabel(slot.Label);
             _ = NormalizeRequiredApiKey(slot.ApiKey);
@@ -1470,10 +1477,12 @@ public sealed partial class ConfigurableDecisionProvider(
         if (providerId == PlayerDecisionProviders.Decisions ||
             providerId == PlayerDecisionProviders.Jev && worldJev.Revision > 0)
             credential = credential with { Model = worldJev.Helper.Model };
-        if (providerId == PlayerDecisionProviders.Decisions && worldJev.Helper.CredentialSlotId is { } helperSlotId)
+        if (providerId is PlayerDecisionProviders.Decisions or PlayerDecisionProviders.Jev &&
+            worldJev.Helper.CredentialSlotId is { } helperSlotId)
         {
-            var helperSlot = selected.CredentialSlots?.FirstOrDefault(item => item.Id == helperSlotId && item.Provider == PlayerDecisionProviders.OpenAi);
-            if (helperSlot is null) throw new CognitionProviderUnavailableException("missing_key", "Choose a saved OpenAI key for this world's helper.");
+            var helperProvider = PlayerDecisionProviders.HelperCredentialProvider(providerId);
+            var helperSlot = selected.CredentialSlots?.FirstOrDefault(item => item.Id == helperSlotId && item.Provider == helperProvider);
+            if (helperSlot is null) throw new CognitionProviderUnavailableException("missing_key", "Choose an available saved key for this world's routine helper.");
             credential = credential with { ApiKey = helperSlot.ApiKey };
         }
         if (routing.Assignment?.CredentialSlotId is { } slotId)

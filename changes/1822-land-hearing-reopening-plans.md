@@ -1,0 +1,1 @@
+- Reopening requests and assessments retain the selected ruling, grounds and assessor through shared native refusal checks. Planning retains the existing informed-party/request filters and shared native identity/text/notice contracts.

@@ -216,10 +216,14 @@ internal static class NonLandRuntimeFixture
                 ? new(Statement: "I saw this person travel through the public notice place under the recorded rule.") : null
         };
 
-    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80)
+    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80, Action<WorldStepResult>? observe = null)
     {
         for (var tick = 0; tick < limit && !complete(); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
+        }
         Assert.True(complete(), "The expected native legal boundary was not reached within " + limit + " ticks.");
     }
 
