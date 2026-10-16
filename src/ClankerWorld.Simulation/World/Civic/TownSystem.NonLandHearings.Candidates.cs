@@ -17,7 +17,7 @@ internal sealed partial class TownSystem
 
     internal void AddTownNonLandCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (town.Council is not { } council || !world.Agents.TryGetValue(actor, out var actorState) || world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant) return;
+        if (town.Council is not { } council || !world.Agents.TryGetValue(actor, out var actorState) || LifeStageRules.IsInfant(world.Society.GetAgent(actor).AgeBand)) return;
         var adult = LandHearingAdult(world, actor);
         var atBoard = NearCivicBoard(world, actor, town);
         var history = CivicHistory(town);
@@ -29,22 +29,21 @@ internal sealed partial class TownSystem
                          (item.Status != "pending" || item.Filings.Any(filing => filing.AgentId == actor &&
                              (filing.Kind == "affected" || actor == item.Allegation.SubjectId))))).Take(6))
             {
-                var token = NonLandReportToken(report.Allegation);
                 var label = "Report known conduct as an allegation: " + NonLandKnownAllegationText(world, town, report.Allegation) +
                     ". Supply civic_nonviolent.statement explaining the alleged breach; the engine does not decide guilt. Source: " + report.Evidence.Acquisition + ".";
                 if (!town.NonLandHearings.Cases.Any(item => item.Key == TownNonLandRules.CaseKey(town.Id, report.Allegation) && item.Filings.Any(filing => filing.AgentId == actor)))
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_file", token), label, 185));
+                    OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file", label, 185);
                 if (actor != report.Allegation.SubjectId)
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_file_affected", token),
-                        "Report this known act as personally affecting you, explaining your claimed harm in civic_nonviolent.statement. Your claimed stake grants a response opportunity, not proof that the allegation or harm is true. " + label, 185));
+                    OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file_affected",
+                        "Report this known act as personally affecting you, explaining your claimed harm in civic_nonviolent.statement. Your claimed stake grants a response opportunity, not proof that the allegation or harm is true. " + label, 185);
                 if (town.Government is { } government && TownAdults(world, town).Contains(actor, StringComparer.Ordinal))
                 {
                     if (government.Arrangement.Ordinary == TownArrangementRules.Mayor && government.Offices.Any(office =>
                             office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > world.WorldTick))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_file_town", token), "File this known allegation under your current ordinary Town office. " + label, 186));
+                        OfferNonLandFiling(world, candidates, actor, town, report, "law_case_file_town", "File this known allegation under your current ordinary Town office. " + label, 186);
                     else if (government.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil or TownArrangementRules.AllAdultCouncil &&
                         council.Members.Contains(actor, StringComparer.Ordinal))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_propose_town", token), "Ask the Council to authorize this known Town allegation; approval is required. " + label, 186));
+                        OfferNonLandFiling(world, candidates, actor, town, report, "law_case_propose_town", "Ask the Council to authorize this known Town allegation; approval is required. " + label, 186);
                 }
             }
         foreach (var item in town.NonLandHearings.Cases)
@@ -55,26 +54,26 @@ internal sealed partial class TownSystem
             var isParty = parties.Any(party => party.SubjectId == actor || party.RespondingAdultId == actor);
             if (atBoard && NonLandMayInspect(world, town, item, actor) && (!NonLandReadCurrent(world, item, actor) ||
                 item.ReopenRequests.Any(request => !item.Reads.Any(read => read.AgentId == actor && read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal)))))
-                candidates.Add(new(CivicAction(world, town.Id, "law_case_inspect", token),
-                    "Read this public case, its alleged act, historical law and sourced evidence. It remains an allegation until a reasoned finding; reading grants no private access.", 177));
+                OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_inspect", "",
+                    "Read this public case, its alleged act, historical law and sourced evidence. It remains an allegation until a reasoned finding; reading grants no private access.", 177);
             if (!NonLandKnows(world, town, item, actor)) continue;
             if (NonLandMayInspect(world, town, item, actor))
             {
-                candidates.Add(new(CivicAction(world, town.Id, "law_case_statement", token),
-                    "Submit your own statement via civic_nonviolent.statement. A child may speak with caregiver support; testimony is not a verified fact or another person's consent.", 182));
+                OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_statement", "",
+                    "Submit your own statement via civic_nonviolent.statement. A child may speak with caregiver support; testimony is not a verified fact or another person's consent.", 182);
                 if (NonLandKnownEvidence(world, town, item, actor).Any(evidence => !item.Evidence.Any(old => old.SourceRecordId == evidence.SourceRecordId &&
                         old.SourceVersion == evidence.SourceVersion && old.SubmittedByAgentId == actor)))
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_evidence", token), "Submit only evidence you actually observed or lawfully learned. Private information stays private.", 181));
+                    OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_evidence", "", "Submit only evidence you actually observed or lawfully learned. Private information stays private.", 181);
             }
             if (adult && council.Members.Contains(actor, StringComparer.Ordinal) && town.Government?.Arrangement.NonLand != TownArrangementRules.Mayor)
-                candidates.Add(new(CivicAction(world, town.Id, "law_case_advise", token), "Offer Council mediation or advice via civic_nonviolent.statement while the formal non-land mandate is absent. Advice is a sourced statement, not a finding or enforceable consequence.", 183));
+                OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_advise", "", "Offer Council mediation or advice via civic_nonviolent.statement while the formal non-land mandate is absent. Advice is a sourced statement, not a finding or enforceable consequence.", 183);
             foreach (var party in parties.Where(party => item.Status == "pending" && party.RespondingAdultId == actor &&
                          !item.Responses.Any(response => response.Revision == revision.Number && response.PartyId == party.Id)))
             {
-                candidates.Add(new(CivicAction(world, town.Id, "law_case_answer", token, party.Id),
+                OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_answer", party.Id,
                     "Answer this allegation for " + world.Society.GetAgent(party.SubjectId).Name +
-                    (party.SubjectId == actor ? "." : " with your actual caregiver support.") + " Supply civic_nonviolent.statement. This promises no goods or work." + NonLandEvidenceChoices(world, town, item, actor), 165));
-                candidates.Add(new(CivicAction(world, town.Id, "law_case_waive", token, party.Id), "Explicitly waive only this person's current response opportunity; this admits nothing and supplies no restorative consent.", 166));
+                    (party.SubjectId == actor ? "." : " with your actual caregiver support.") + " Supply civic_nonviolent.statement. This promises no goods or work." + NonLandEvidenceChoices(world, town, item, actor), 165);
+                OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_waive", party.Id, "Explicitly waive only this person's current response opportunity; this admits nothing and supplies no restorative consent.", 166);
             }
             if (adult && TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
             {
@@ -112,7 +111,7 @@ internal sealed partial class TownSystem
                     "Offer feasible named goods, repair or Town resource delivery in civic_nonviolent.terms, with reasons and optional completion_ticks (default three days after consent). Each contributing adult must personally agree. No stock is reserved and no work forced." + NonLandRemedyReferences(world, town, actor), 183));
             foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor && world.IsWithinInteractionRange(person.Position, actorState.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 if (NonLandReadCurrent(world, item, actor) && NonLandMayInspect(world, town, item, recipient.AgentId) && !NonLandReadCurrent(world, item, recipient.AgentId))
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_relay", token, recipient.AgentId), "Relay the case material you actually read to " + world.Society.GetAgent(recipient.AgentId).Name + " nearby.", 181));
+                    OfferNonLandEvidence(world, candidates, actor, town, item, "law_case_relay", recipient.AgentId, "Relay the case material you actually read to " + world.Society.GetAgent(recipient.AgentId).Name + " nearby.", 181);
         }
         foreach (var agreement in town.NonLandHearings.Agreements.Where(agreement => adult && agreement.Status != "completed" &&
                      !TownRemedyRules.IsSuperseded(town.NonLandHearings, agreement.Id) && agreement.Terms.Any(term => term.ContributorId == actor)))

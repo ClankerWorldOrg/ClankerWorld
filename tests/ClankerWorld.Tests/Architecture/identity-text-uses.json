@@ -219,8 +219,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs|length|living.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.Government.cs|length|TownLawRules.SiteAround(world.Map, here, town.Id, world.TownLandTitles).Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs|id|TownLandHearingRules.RevisionToken(item) \u002B \u0022#\u0022 \u002B TownLandCaseJudgeRules.RoundToken(contest)": 1,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs|id|request.Id \u002B \u0022:accept\u0022": 2,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs|id|request.Id \u002B \u0022:reject\u0022": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Evidence.cs|id|\u0022land-evidence:\u0022 \u002B TownLandHearingRules.Digest(item.Id \u002B \u0022|\u0022 \u002B TownLandHearingRules.CurrentRevision(item).Number \u002B \u0022|\u0022 \u002B item.Evidence.Count \u002B \u0022|\u0022 \u002B actor \u002B \u0022|\u0022 \u002B kind \u002B \u0022|\u0022 \u002B source)[..32]": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs|id|$\u0022land-sale-collect:{world.WorldTick}:{actor}:{request.Id}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022case-evidence:\u0022 \u002B NonLandToken(item.Id \u002B \u0022|\u0022 \u002B evidence.Id \u002B \u0022|\u0022 \u002B actor \u002B \u0022|\u0022 \u002B NonLandRevision(item).Number)": 1,

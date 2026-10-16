@@ -201,8 +201,24 @@ internal static class NonLandRuntimeFixture
         using var prepared = Create(state, provider);
         foreach (var (actor, index) in town.ResidentIds.Select((actor, index) => (actor, index)))
             Wake(prepared, actor, "inspect-elected-mayor-case:" + index.ToString(CultureInfo.InvariantCulture));
+        var materialPlans = new List<NonLandEvidenceActionPlan>();
         await UntilAsync(prepared, () => TownNonLandRules.ReadCurrent(prepared.Towns[0].NonLandHearings.Cases[0], Judge, prepared.WorldTick) &&
-            prepared.Towns[0].NonLandHearings.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].NonLandHearings.Cases[0].Allegation.SubjectId), 16);
+            prepared.Towns[0].NonLandHearings.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].NonLandHearings.Cases[0].Allegation.SubjectId), 16, result =>
+        {
+            materialPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandEvidenceActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                    result.Events.Any(item => item.Kind == (plan.Choice.Verb == "law_case_answer" ? "law_case_response" : "law_case_inspected") &&
+                        item.Detail == town.Id + "|" + plan.CaseId + "|" + plan.Actor))
+                .Select(decision => Assert.IsType<NonLandEvidenceActionPlan>(decision.ActionPlan)));
+        });
+        var actual = prepared.Towns[0].NonLandHearings.Cases[0];
+        Assert.Contains(materialPlans, plan => plan.Choice.Verb == "law_case_inspect" && plan.LawEvidence is not null &&
+            actual.Reads.Any(read => read.AgentId == plan.Actor && read.Revision == plan.Revision.Number));
+        var response = Assert.Single(actual.Responses, response => response.AgentId == actual.Allegation.SubjectId);
+        var answered = Assert.Single(materialPlans, plan => plan.Choice.Verb == "law_case_answer" && plan.Actor == response.AgentId);
+        Assert.True(answered.Bound);
+        Assert.Equal((response.PartyId, response.RepresentedAgentId, response.Text), (answered.Party!.Id, answered.Party.SubjectId, answered.Statement));
+        Assert.Equal(answered.Choice, NonLandEvidenceChoice.Decode(answered.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, prepared.CheckActionPlan(answered).Refusal!.Reason);
         Wake(prepared, Judge, "fresh-reasoned-choice");
         return WorldRuntimeCodec.Encode(Strict(prepared.ExportState()));
     }
@@ -216,10 +232,14 @@ internal static class NonLandRuntimeFixture
                 ? new(Statement: "I saw this person travel through the public notice place under the recorded rule.") : null
         };
 
-    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80)
+    internal static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit = 80, Action<WorldStepResult>? observe = null)
     {
         for (var tick = 0; tick < limit && !complete(); tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            observe?.Invoke(result);
+        }
         Assert.True(complete(), "The expected native legal boundary was not reached within " + limit + " ticks.");
     }
 

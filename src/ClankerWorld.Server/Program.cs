@@ -30,7 +30,7 @@ if (clientPresenceTimeoutSeconds is < 2 or > 60)
         "ClankerWorld:Clock:ClientPresenceTimeoutSeconds must be between 2 and 60 seconds.");
 }
 var configuredDecisionProvider = builder.Configuration["ClankerWorld:Providers:DecisionProvider"] ?? "deterministic";
-var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? "jev-1.13.0";
+var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? PlayerDecisionProviders.DefaultJevModel;
 var configuredModel = builder.Configuration["ClankerWorld:Providers:Model"];
 var configuredOpenAiModel = builder.Configuration["ClankerWorld:Providers:OpenAiModel"] ??
     (configuredDecisionProvider.StartsWith("openai", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);

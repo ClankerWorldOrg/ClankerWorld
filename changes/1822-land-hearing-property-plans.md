@@ -1,0 +1,3 @@
+- Property filings and personal consent retain their exact assets, authority and noticed material through shared checks.
+- Settled property cases skip personal-consent planning.
+- Property hearing choices validate complete Town, property and target references through the native shared bounds.

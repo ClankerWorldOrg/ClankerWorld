@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 # The world, time and survival
@@ -312,10 +312,14 @@ still needs playtesting.
   real northern and southern polar regions, not north/south wrapping into a
   torus. **Latitude cooling** is also on by default, giving the world a warmer
   equator and colder poles; it can be turned off independently for unusual
-  climates without changing the map's wrapping choice. **Agreed on October 8
-  ([#1249](https://github.com/compoodment/ClankerWorld/issues/1249)):** the
-  outer rows at the north and south map edges are always polar sea or ice that
-  nobody can cross, so no agent walks into an edge it cannot see.
+  climates without changing the map's wrapping choice. **Agreed on October 16,
+  by the owner in chat, replacing the October 8 answer to
+  [#1249](https://github.com/compoodment/ClankerWorld/issues/1249):** the map
+  does not force a band of polar sea or ice along its north and south edges.
+  The October 8 rule drew an unbroken strip of water or ice across the map
+  that looked much worse, and agents still stopped at the edge either way.
+  Land, sea and ice reach the north and south edges as the climate and
+  generator make them, and the edge itself is simply where the map ends.
 - Keep simple New World presets, with a compact Advanced section rather than
   sliders for every generator parameter. **Balanced** is the default climate
   mode; **Uniform** and **Dominant** remain choices. Advanced controls are

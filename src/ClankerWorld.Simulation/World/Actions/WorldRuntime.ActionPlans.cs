@@ -6,6 +6,12 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        NonLandEvidenceActionPlan nonLandEvidence => TownSystem.CheckNonLandEvidence(civicWorld, nonLandEvidence),
+        NonLandFilingActionPlan nonLandFiling => TownSystem.CheckNonLandFiling(civicWorld, nonLandFiling),
+        LandHearingPropertyActionPlan hearingProperty => townSystem.CheckLandHearingProperty(civicWorld, hearingProperty),
+        LandHearingReopeningActionPlan hearingReopening => townSystem.CheckLandHearingReopening(civicWorld, hearingReopening),
+        LandHearingRulingActionPlan hearingRuling => townSystem.CheckLandHearingRuling(civicWorld, hearingRuling),
+        LandHearingJudgeActionPlan hearingJudge => townSystem.CheckLandHearingJudge(civicWorld, hearingJudge),
         LandHearingEvidenceActionPlan hearingEvidence => townSystem.CheckLandHearingEvidence(civicWorld, hearingEvidence),
         LandHearingFilingActionPlan hearingFiling => townSystem.CheckLandHearingFiling(civicWorld, hearingFiling),
         LandSaleExchangeActionPlan landSaleExchange => townSystem.CheckLandSaleExchange(civicWorld, landSaleExchange),
@@ -93,6 +99,16 @@ public sealed partial class WorldRuntime
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)
     {
+        if (decision.ActionPlan is NonLandEvidenceActionPlan nonLandEvidence)
+            decision = decision with { ActionPlan = TownSystem.BindNonLandEvidence(nonLandEvidence, decision.Admission.CivicNonLandHearing) };
+        if (decision.ActionPlan is NonLandFilingActionPlan nonLandFiling)
+            decision = decision with { ActionPlan = TownSystem.BindNonLandFiling(nonLandFiling, decision.Admission.CivicNonLandHearing) };
+        if (decision.ActionPlan is LandHearingPropertyActionPlan hearingProperty)
+            decision = decision with { ActionPlan = TownSystem.BindLandHearingProperty(hearingProperty, decision.Admission.CivicLandHearing, decision.Admission.CivicProposal) };
+        if (decision.ActionPlan is LandHearingReopeningActionPlan hearingReopening)
+            decision = decision with { ActionPlan = TownSystem.BindLandHearingReopening(hearingReopening, decision.Admission.CivicLandHearing) };
+        if (decision.ActionPlan is LandHearingRulingActionPlan hearingRuling)
+            decision = decision with { ActionPlan = TownSystem.BindLandHearingRuling(hearingRuling, decision.Admission.CivicLandHearing, decision.Admission.CivicProposal) };
         if (decision.ActionPlan is LandHearingEvidenceActionPlan hearingEvidence)
             decision = decision with { ActionPlan = TownSystem.BindLandHearingEvidence(hearingEvidence, decision.Admission.CivicLandHearing, decision.Admission.CivicProposal) };
         if (decision.ActionPlan is LandHearingFilingActionPlan hearingFiling)

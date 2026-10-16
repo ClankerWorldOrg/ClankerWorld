@@ -189,8 +189,9 @@ public sealed class TownLandHearingHeldReplyTests
         }
     }
 
-    private static Task WaitForModelCompletionAsync(WorldRuntime world) =>
-        ModelWorkHarness.For(world).WaitForDecisionAsync(Actor);
+    internal static Task WaitForModelCompletionAsync(WorldRuntime world, string actor = Actor) =>
+        ModelWorkHarness.WaitForExistingAsync(world, item => item.Transition.Kind == ModelWorkKind.Decision &&
+            item.Transition.ActorId == actor);
 
     private static WorldRuntime NewWorld(HeldReplyProvider provider)
     {

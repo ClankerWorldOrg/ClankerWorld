@@ -43,19 +43,25 @@ public static class TownNonLandRules
             filing.Kind == "town" && !IdentityRules.Reference(filing.AuthorityId, int.MaxValue, requireTrimmed: true) || !ValidParties(parties) ||
             !parties.Any(p => p.SubjectId == allegation.SubjectId && p.Role == "subject") || day <= 0 || !IdentityRules.Reference(noticeId, int.MaxValue, requireTrimmed: true))
             throw new InvalidOperationException("A report needs specific conduct, its applicable law, known sources and affected people.");
+        if (FilingRefusal(state, townId, allegation) is { } refusal) throw new InvalidOperationException(refusal);
         var key = CaseKey(townId, allegation);
         if (state.Cases.SingleOrDefault(c => c.Key == key) is { } old)
         {
-            if (old.Allegation.SubjectId != allegation.SubjectId || old.Allegation.ConductTick != allegation.ConductTick ||
-                old.Allegation.Position != allegation.Position || old.Allegation.ConductKind != allegation.ConductKind)
-                throw new InvalidOperationException("The same incident cannot silently identify different conduct.");
-            if (old.Status != "pending") throw new InvalidOperationException("A settled act requires grounded reopening, not another report.");
             return Replace(state, old with { Filings = old.Filings.Contains(filing) ? old.Filings : old.Filings.Append(filing).ToArray() });
         }
         var revision = new TownCaseRevision(1, parties.OrderBy(p => p.Id, StringComparer.Ordinal).ToArray(), noticeId, tick, checked(tick + day));
         var item = new TownNonLandCase(NextId(state, "case", townId), key, townId, allegation, tick, "pending", [revision], [filing],
             [], [], [], [], null, [], [], null, [], [], TownHearingProcedure.Ordered(parties.Select(p => p.SubjectId).Append(filing.AgentId)));
         return state with { Sequence = checked(state.Sequence + 1), Cases = state.Cases.Append(item).ToArray() };
+    }
+
+    public static string? FilingRefusal(TownNonLandHearingState state, string townId, TownViolationAllegation allegation)
+    {
+        if (state.Cases.SingleOrDefault(item => item.Key == CaseKey(townId, allegation)) is not { } old) return null;
+        if (old.Allegation.SubjectId != allegation.SubjectId || old.Allegation.ConductTick != allegation.ConductTick ||
+            old.Allegation.Position != allegation.Position || old.Allegation.ConductKind != allegation.ConductKind)
+            return "The same incident cannot silently identify different conduct.";
+        return old.Status != "pending" ? "A settled act requires grounded reopening, not another report." : null;
     }
 
     internal static bool ValidAllegation(TownViolationAllegation? a) => a is not null && IdentityRules.Reference(a.IncidentId, int.MaxValue, requireTrimmed: true) &&
@@ -96,11 +102,16 @@ IdentityRules.Reference(p.SubjectId, int.MaxValue, requireTrimmed: true) && (p.R
             }).ToArray()
         });
     }
-    public static TownNonLandHearingState RelayRead(TownNonLandHearingState state, string caseId, int revision, string source, string recipient, long tick)
+    public static TownNonLandHearingState RelayRead(TownNonLandHearingState state, string caseId, int revision, string source, string recipient, long tick, TownCaseRead? selectedRead = null)
     {
         var item = Exact(state, caseId, revision);
         var reads = item.Reads.Where(r => r.Revision == revision && r.ReadTick <= tick && r.AgentId == source).ToArray();
         if (source == recipient || reads.Length == 0) throw new InvalidOperationException("Only an informed person can relay this case.");
+        if (selectedRead is not null)
+        {
+            if (RelayReadRefusal(item, source, selectedRead, tick) is { } refusal) throw new InvalidOperationException(refusal);
+            reads = [selectedRead];
+        }
         reads = reads.Concat(item.Reads.Where(r => r.Revision == revision && r.ReadTick <= tick && r.AgentId == recipient)).ToArray();
         return Replace(state, item with
         {
@@ -112,6 +123,17 @@ IdentityRules.Reference(p.SubjectId, int.MaxValue, requireTrimmed: true) && (p.R
             }).ToArray()
         });
     }
+    public static string? RelayReadRefusal(TownNonLandCase item, string source, TownCaseRead selectedRead, long tick)
+    {
+        var reads = item.Reads.Where(read => read.AgentId == source && read.Revision == CurrentRevision(item).Number && read.ReadTick <= tick).ToArray();
+        return selectedRead.AgentId != source || selectedRead.Revision != CurrentRevision(item).Number || reads.Length == 0 ||
+            selectedRead.EvidenceIds.Except(reads.SelectMany(read => read.EvidenceIds), StringComparer.Ordinal).Any() ||
+            selectedRead.ReopenRequestIds.Except(reads.SelectMany(read => read.ReopenRequestIds), StringComparer.Ordinal).Any() ||
+            selectedRead.ResponseIds.Except(reads.SelectMany(read => read.ResponseIds), StringComparer.Ordinal).Any() ||
+            selectedRead.FindingIds.Except(reads.SelectMany(read => read.FindingIds), StringComparer.Ordinal).Any()
+                ? "The selected material was not read by this source." : null;
+    }
+
     public static TownNonLandHearingState Respond(TownNonLandHearingState state, string caseId, int revision, string actor,
         string representedActor, string partyId, string kind, string text, long tick, IReadOnlyList<TownCivicReceipt> receipts,
         IReadOnlyList<TownCaseParty> currentParties)

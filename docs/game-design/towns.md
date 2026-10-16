@@ -2,7 +2,7 @@
 title: Towns, buildings and government
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # Towns, buildings and government
@@ -778,12 +778,38 @@ rights](#town-land-and-household-use-rights).
 **Agreed, what a household plans:** a household plans only the buildings it
 needs for itself: a House, or a Farmhouse, Blacksmith, Store or Tailor Shop it
 does not yet hold. It plans at most one of each kind, and only once it has the
-materials in hand. There is no Town-wide limit on how many of a kind exist
-until playtests show agents overbuilding. Only the household that holds the
-Farmhouse plans a Silo, next to its Farmhouse. The **Workshop is the one
-exception**: a household may plan it, and once it is built the Town holds it.
-Other shared buildings use the Council-approved Town projects below. Any Town
-resident may still plan the Warehouse's expansion once its stock is nearly full.
+materials in hand. Only the household that holds the Farmhouse plans a Silo,
+next to its Farmhouse. The **Workshop is the one exception**: a household may
+plan it, and once it is built the Town holds it. Other shared buildings use
+the Council-approved Town projects below. Any Town resident may still plan the
+Warehouse's expansion once its stock is nearly full.
+
+**Agreed on October 16, by the owner in chat, after a playtest showed agents
+overbuilding:** a Town grows by what its people need and can actually use, not
+because there is wood to spend. In that playtest, four agents in two
+households built two Stores, two Tailor Shops, two Restaurants, two Clinics,
+two Farmhouses with Silos but no fields, and two Animal Yards on an island with
+no animals. Two rules replace the earlier "no Town-wide limit until playtests
+show agents overbuilding":
+
+- **A work building needs work it can do.** A household plans a work building
+  only when what that building works with exists and the household can reach
+  it. For example:
+  - a Farmhouse and its Silo only once the household has farm fields, or a
+    seed site near the Town it can plant from;
+  - an Animal Yard only when there are animals the household can reach and
+    tame, and a second yard only when the first is full;
+  - a Tailor Shop only with a supply of fibre, wool or hides it can get;
+  - a Restaurant only when the Town has food to cook beyond what its
+    households eat.
+
+  The same holds for every other work building, using the inputs its own
+  recipes need.
+- **One of each shared shop per Town until it grows.** A Town holds at most
+  one Store, Tailor Shop, Restaurant, Clinic and Blacksmith of each kind for
+  every eight residents, rounded up. A second of a kind may be planned only
+  once the Town has more than eight residents, a third once it has more than
+  sixteen, and so on. Eight is provisional, to be tuned in playtests.
 
 ### Shared Town projects
 
