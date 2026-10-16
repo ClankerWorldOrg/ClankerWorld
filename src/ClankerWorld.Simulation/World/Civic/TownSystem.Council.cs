@@ -245,6 +245,7 @@ internal sealed partial class TownSystem
         var nonLandJudgePlan = originalPlan as NonLandJudgeActionPlan;
         var nonLandAdjudicationPlan = originalPlan as NonLandAdjudicationActionPlan;
         var nonLandAgreementPlan = originalPlan as NonLandAgreementActionPlan;
+        var projectProposalPlan = originalPlan as TownProjectProposalActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
         if (parts[2] == "visit")
         {
@@ -288,6 +289,13 @@ internal sealed partial class TownSystem
             proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
             if (proposalVotePlan is null) return;
             if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
+        }
+        else if (TownProjectProposalChoice.Decode(selectedId) is { } projectProposalChoice)
+        {
+            projectProposalPlan ??= PlanTownProjectProposal(world, actor, projectProposalChoice);
+            if (projectProposalPlan is null) return;
+            projectProposalPlan = BindTownProjectName(projectProposalPlan, proposalText);
+            if (CheckTownProjectProposal(world, projectProposalPlan).Refusal is { } refusal) { world.RefuseChoice(projectProposalPlan, refusal); return; }
         }
         else if (NonLandAgreementChoice.Decode(selectedId) is { } nonLandAgreementChoice)
         {
@@ -539,22 +547,13 @@ internal sealed partial class TownSystem
                         : TownLawRules.ProposeEstateDefault(state, government, town.Id, actor,
                             policyPlan.TownShare!.Value, TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
-                case "boat_project":
-                    var boatPort = world.Port(parts[3]);
-                    if (boatPort is null || boatPort.TownId != town.Id) return;
-                    var boatPlan = WorldRuntime.CivicSharedRules.BoatProjectPlan(boatPort, string.IsNullOrWhiteSpace(proposalText) ? "Communal boat" : proposalText.Trim());
-                    if (boatPlan.Name.Length > TownProjectRules.MaximumNameLength || boatPlan.Name.Any(char.IsControl)) return;
-                    if (world.TownProjectSiteFailure(town, boatPlan, actor: actor) is not null) return;
+                case "boat_project" or "project":
+                    if (CheckTownProjectProposal(world, projectProposalPlan!, town with { Council = state, Government = government }).Refusal is { } projectRefusal)
+                    { world.RefuseChoice(projectProposalPlan!, projectRefusal); return; }
+                    var projectPlan = projectProposalPlan!.Project;
                     state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "project", null,
-                        TownProjectRules.ProposalText(boatPlan), "council:" + state.Revision,
-                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: boatPlan);
-                    break;
-                case "project":
-                    var plan = world.OfferedTownProjectPlan(town, actor, parts[3], parts[4], proposalText);
-                    if (plan is null) return;
-                    state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "project", null,
-                        TownProjectRules.ProposalText(plan), "council:" + state.Revision,
-                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: plan);
+                        TownProjectRules.ProposalText(projectPlan), "council:" + projectProposalPlan.CouncilRevision,
+                        TownAdults(world, town), world.WorldTick, CivicDay(world), project: projectPlan);
                     break;
                 case "claim_land":
                     if (CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal is { } claimRefusal)

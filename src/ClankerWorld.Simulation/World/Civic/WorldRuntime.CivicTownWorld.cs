@@ -93,6 +93,7 @@ public sealed partial class WorldRuntime
                 IReadOnlyList<string>? protectedToolIds = null) => runtime.RepairTool(actor, state, lotId, protectedToolIds);
         public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
         public IReadOnlyList<TownLandTitleRecord> TownLandTitles { get => runtime.townLandTitles; }
+        public bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) => WorldRuntime.TownProjectDemandIsCurrent(town, plan);
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
         public IReadOnlyList<TownRuntimeState> Towns { get => runtime.towns; }

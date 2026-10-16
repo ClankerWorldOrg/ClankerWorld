@@ -179,15 +179,9 @@
     "FindUnoccupiedRoute(actor, agents[actor].Position, destination, range)",
     "FindUnoccupiedRoute(trade.BuyerId, agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)"
   ],
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Ports.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, work, 0)"
-  ],
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectSites.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, plan.Site, 0)"
   ],
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs": [
     "FindUnoccupiedRoute(actor, from, target, range)"
