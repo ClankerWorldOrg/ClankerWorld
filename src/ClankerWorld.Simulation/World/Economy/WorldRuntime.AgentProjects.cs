@@ -1136,12 +1136,11 @@ public sealed partial class WorldRuntime
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
-                memoryId, plan.RequesterId, helperId,
+                Identity.Parse(memoryId), plan.RequesterId, helperId,
                 $"Grateful for {society.Checkpoint.GetAgent(helperId).Name}'s help with project materials.", "public", WorldTick)
             { Kind = SocietyMemoryKind.Relationship }));
         }
-        AppendEvent("project_request_fulfilled", $"{helperId}:{plan.RequesterId}:{itemKind}:{quantity}");
-
+        AppendEvent(new ProjectRequestFulfilledEventPayload(helperId, plan.RequesterId, itemKind, quantity));
     }
 
     private int AvailableLotQuantity(InventoryLot lot) => AvailableLotQuantity(society.Checkpoint.Inventory, lot);

@@ -267,7 +267,6 @@
   "src/ClankerWorld.Simulation/World/Conversations/ConversationSystem.cs|id|$\u0022talk:{target.Id}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Conversations/ConversationSystem.cs|length|AgentMarriageRules.WithSurname(world.Society.GetAgent(agentId).Name, surname).Length \u003C= 48": 1,
   "src/ClankerWorld.Simulation/World/Economy/FarmFieldState.cs|id|$\u0022field-{point.X}-{point.Y}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs|id|\u0022assist:\u0022 \u002B itemKind": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs|id|\u0022settlement-\u0022 \u002B kind": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs|id|$\u0022gather-material:{WorldTick}:{agentId}:{nextEventId}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs|id|$\u0022project-delivery:{WorldTick}:{agentId}\u0022": 1,
