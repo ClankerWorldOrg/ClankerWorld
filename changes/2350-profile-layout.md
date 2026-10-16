@@ -1,0 +1,1 @@
+- Agent profiles wrap activity, orders and trade notes to the available width, and scroll long histories without overlapping sections.

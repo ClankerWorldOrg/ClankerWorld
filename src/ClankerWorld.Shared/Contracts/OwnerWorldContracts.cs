@@ -760,6 +760,9 @@ public sealed partial record CatalogWorld(string Id, string Name, string WorldId
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
 /// <summary>A small picture of a world's terrain for the Load World list, packed like the world's own terrain.</summary>
 public sealed partial record WorldThumbnail(int Width, int Height, string Encoding, string Data);
+/// <summary>A selected world's save history, read without opening or changing it.</summary>
+public sealed record WorldSaveHistory(string WorldId, IReadOnlyList<ManualWorldSave> Saves,
+    SaveTimelinePosition Position, OwnerWorldCalendarPace? CalendarPace, long WorldTick);
 public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CatalogWorld>? PendingDeletions = null);
 public sealed record OwnerWorldPreview(OwnerWorldPackedTerrain Terrain, OwnerWorldPosition StartingSite,
