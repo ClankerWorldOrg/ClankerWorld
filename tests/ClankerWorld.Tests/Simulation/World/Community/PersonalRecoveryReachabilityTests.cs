@@ -30,8 +30,8 @@ public sealed class PersonalRecoveryReachabilityTests
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand == SocietyAgeBand.Adult).Id;
-        // The north edge is polar sea. Use actual disconnected land for the
-        // earlier lot, preserving the native route and custody controls.
+        // Use actual disconnected land for the earlier lot, preserving the
+        // native route and custody controls.
         var disconnected = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.IsBuildable(point) && !state.Map.IsReachableFromStartingSiteOnFoot(point) &&
             state.Map.FootDistance(house.Position, point) > 16);

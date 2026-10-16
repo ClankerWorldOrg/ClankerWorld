@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # Saves and replay
@@ -1194,12 +1194,13 @@ The save format and schema number do not change. As with any unloadable active
 world, the server will not start until that save is moved aside. Hills are drawn
 from the saved elevation and water layers, so nothing extra is saved for them.
 
-The polar sea rows at the north and south edges
-([#1317](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1317)) also change
+Removing the forced polar sea rows at the north and south edges
+([#2367](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2367)) also changes
 generated maps in the same way: there is no generator switch or migration.
-A saved map that differs from deterministic regeneration fails the check
+Existing save files keep their maps; restore never rewrites them to the new
+terrain. A saved map that differs from deterministic regeneration is refused
 with the same message, and its file is kept. The save format and schema number
-do not change for the polar rows.
+do not change.
 
 Mountain massifs ([#683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/683))
 change elevation, rivers, climate and resources for every generated world, so

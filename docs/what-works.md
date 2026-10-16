@@ -2,7 +2,7 @@
 title: What works today
 type: product-status
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # What works today
@@ -68,8 +68,9 @@ On a fresh server, Continue opens New World instead of entering the
 empty world the server starts with. The normal map preview and acceptance steps still apply, and saved
 worlds with founders or other progress keep opening normally.
 
-Generated maps always end in polar sea at the north and south edges, two rows
-deep, whatever the climate settings, so agents never walk into the map's edge.
+Generated maps let ordinary terrain reach the north and south edges, without
+forcing a straight strip of polar sea. Agents stop at those edges; east/west
+wrapping and latitude cooling keep their existing settings.
 Earlier worlds whose maps differ from regeneration no longer load; their saves are kept.
 
 New worlds open paused with nothing built. Choosing the first Town lays a winding
