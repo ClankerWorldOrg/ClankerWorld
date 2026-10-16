@@ -175,12 +175,13 @@ public partial class Main
 
     private void RefreshMainMenuAvailability()
     {
-        var paired = !registeredEndpointInvalid && registration is not null && deviceKey is not null;
+        var paired = !localServerStarting && !registeredEndpointInvalid && registration is not null && deviceKey is not null;
         mainMenuContinueButton.Disabled = !paired;
         mainMenuNewButton.Disabled = !paired;
         mainMenuLoadButton.Disabled = !paired;
-        mainMenuConnectButton.Visible = !paired;
-        SetMainMenuStatus(paired ? null : "Connect this device to your world to play.");
+        mainMenuConnectButton.Visible = !paired && !localServerStarting;
+        SetMainMenuStatus(localServerStarting ? LocalServerStartingMessage
+            : paired ? null : "Connect this device to your world to play.");
     }
 
     /// <summary>The Main Menu only shows a line when something needs the player's attention.</summary>

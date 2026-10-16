@@ -1,0 +1,1 @@
+- Nightly downloads now include the launcher setup and its SHA-256 beside the portable game zip, so you can install the launcher directly from GitHub Releases.
