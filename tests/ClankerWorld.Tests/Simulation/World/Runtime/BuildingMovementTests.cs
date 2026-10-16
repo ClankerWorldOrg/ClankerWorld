@@ -120,8 +120,13 @@ public sealed class BuildingMovementTests
     {
         var map = Meadow();
         var definition = Definition();
+        var first = new PlacedBuilding("work", definition.CanonicalId, new(2, 2), 0, Entrance: new(4, 2));
+        var open = new BuildingMovementRules([first], [definition]);
+        using var control = new UnoccupiedRouteSearch(map, new(2, 2), [], map.FootStepCost,
+            canStep: (from, to) => open.CanStep(map, from, to));
+        Assert.NotEmpty(control.RouteTo(new(4, 2), 0));
         var rules = new BuildingMovementRules([
-            new("work", definition.CanonicalId, new(2, 2), 0, Entrance: new(4, 2)),
+            first,
             new("neighbour", definition.CanonicalId, new(4, 2), 0, Entrance: new(4, 4))], [definition]);
         bool CanStep(GridPoint from, GridPoint to) => rules.CanStep(map, from, to);
         using var search = new UnoccupiedRouteSearch(map, new(2, 2), [], map.FootStepCost, canStep: CanStep);
