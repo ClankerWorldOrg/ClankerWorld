@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime
         if (plan is null) return;
         if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var exploration = plan.Prepared;
-        if (plan.Interrupted) AppendEvent("exploration_aborted", $"{actor}:interrupted_movement");
+        if (plan.Interrupted) AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
         if (plan.Starting)
         {
             var learnedStartingTile = RecordKnowledgeFact(actor, person.Position);
@@ -181,7 +181,7 @@ public sealed partial class WorldRuntime
         if (plan is null) return;
         if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Original is { Returning: false })
-            AppendEvent("exploration_return_started", actor);
+            AppendEvent(new ExplorationReturnStartedEventPayload(actor));
         ReturnFromExploration(actor, person, plan.Prepared, plan);
     }
 
