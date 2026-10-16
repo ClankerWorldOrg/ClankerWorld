@@ -113,6 +113,9 @@ public partial class Main
                 ChooseTimelineSave(listedManualSaves[0].Id);
                 if (!manualSaveDeleteButton.Disabled)
                     throw new InvalidOperationException("Deleting a save of an inactive world must wait until that world is open.");
+                manualSaveDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
+                if (deletionConfirmation.Visible || pendingDeletion is not null)
+                    throw new InvalidOperationException("An inactive world's save must refuse deletion even if the old button signal arrives.");
                 var chosenId = SelectedManualSave()?.Id;
                 var status = worldMenuStatus.Text;
                 if (fail) stale.SetException(new IOException("Controlled stale history failure."));

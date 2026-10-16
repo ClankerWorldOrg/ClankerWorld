@@ -1375,6 +1375,7 @@ public partial class Main
             manualSaveList.Clear();
             manualSaveList.AddItem("Selected snapshot");
             manualSaveList.Select(0);
+            manualSaveList.EmitSignal(SlotList.SignalName.ItemSelected, 0L);
             manualSaveDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!deletionConfirmation.Visible || pendingDeletion?.Id != "smoke-save" ||
                 !deletionConfirmation.DialogText.Contains("Selected snapshot", StringComparison.Ordinal) ||

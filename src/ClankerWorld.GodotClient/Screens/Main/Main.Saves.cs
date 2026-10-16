@@ -619,6 +619,8 @@ public partial class Main
         previous?.Cancel();
     }
 
+    private bool ListedSaveWorldIsActive => !WorldHistoryEmbedded || listedSaveWorldId == CurrentManualSaveWorldId();
+
     private void RefreshManualSaveAvailability()
     {
         var selected = manualSaveList.GetSelectedItems();
@@ -631,9 +633,8 @@ public partial class Main
         }
         manualSaveLoadButton.Disabled = !manualSaveLoadMode || !valid;
         manualSaveOverwriteButton.Disabled = manualSaveLoadMode || !valid || listedManualSaves[selected[0]].IsAutosave;
-        var inactiveWorld = WorldHistoryEmbedded && listedSaveWorldId != CurrentManualSaveWorldId();
-        manualSaveDeleteButton.Disabled = !valid || listedSaveWorldId is null || inactiveWorld;
-        manualSaveDeleteButton.TooltipText = inactiveWorld ? "Open this world before deleting one of its saves." : string.Empty;
+        manualSaveDeleteButton.Disabled = !valid || listedSaveWorldId is null || !ListedSaveWorldIsActive;
+        manualSaveDeleteButton.TooltipText = ListedSaveWorldIsActive ? string.Empty : "Open this world before deleting one of its saves.";
         manualSaveCreateButton.Disabled = isOwnerAction || manualSaveLoadMode || observationSession.AwaitingFreshBaseline;
         recoveryCleanupButton.Disabled = WorldHistoryEmbedded || isOwnerAction || observationSession.AwaitingFreshBaseline ||
             listedSaveWorldId is null || observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != true;
@@ -945,7 +946,7 @@ public partial class Main
     }
     private void ConfirmSaveDeletion()
     {
-        if (manualSaveDeleteButton.Disabled) return;
+        if (!ListedSaveWorldIsActive) return;
         if (manualSaveList.GetSelectedItems() is not { Length: 1 } selected ||
             selected[0] < 0 || selected[0] >= listedManualSaves.Length || listedSaveWorldId is null) return;
         var save = listedManualSaves[selected[0]];
