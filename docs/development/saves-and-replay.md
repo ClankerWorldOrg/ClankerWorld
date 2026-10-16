@@ -61,6 +61,16 @@ plain refusal reason when a selected person, resource, lot or quantity becomes
 unavailable. World schema 137 adds this event payload. Earlier alpha saves are
 refused and preserved without migration.
 
+## Building doorways
+
+Doorway movement adds no saved fields or schema version. Strict validation
+checks the building's effective footprint and its recorded entrance, or the
+default south doorway when none is recorded. The doorway must be on buildable
+ground, directly beside the footprint and outside every other building.
+Older alpha layouts with sealed doors are refused and their files preserved;
+no migration moves a building or invents another entrance. Native placement,
+strict reload, refused-tick and paired continuation checks cover the rules.
+
 ## Mod content identities
 
 Content IDs use the 512-character import limit in
