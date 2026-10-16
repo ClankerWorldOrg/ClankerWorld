@@ -21,6 +21,18 @@ public sealed class WorldEditRefusalTests
     }
 
     [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    public async Task OtherDefinitiveRefusalsAlsoKeepTheServersReason(HttpStatusCode status)
+    {
+        using var http = new HttpClient(new ReplyHandler(status, "{\"detail\":\"Refresh the world before editing.\"}"));
+        var failure = await Assert.ThrowsAsync<OwnerWorldEditRefusedException>(() => Submit(new OwnerPairingClient(http)));
+        Assert.Equal("Refresh the world before editing.", failure.Message);
+    }
+
+    [Theory]
     [InlineData(HttpStatusCode.RequestTimeout)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task UnconfirmedRepliesKeepTheirHttpFailure(HttpStatusCode status)

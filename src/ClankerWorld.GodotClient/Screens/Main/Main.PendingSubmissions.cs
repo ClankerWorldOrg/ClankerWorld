@@ -233,9 +233,10 @@ public partial class Main
             {
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
                     ResolveWorldUri(), authority, deviceId, authoring.ToAction(), signer, OwnerRequestToken));
-                completed = true;
                 if (!receipt.Applied)
                     throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
+                completed = true;
+                ClearWorldEditPreview();
                 return "World edit confirmed.";
             }
 

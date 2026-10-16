@@ -1185,8 +1185,8 @@ planned it. The panel also holds the aging override, recovery for a request
 whose reply was lost, paused world editing and paired-device management. The
 aging override and world editing need the world paused first.
 **Edit world** lists the tools and kinds the server offers, using their names.
-Choose a kind, turn on **Pick tiles on the map**, then click tiles or drag
-across them. Gold marks show the tiles in your preview; **Apply** sends the
+Choose a tool and kind, then click tiles or drag across them; **Pick tiles on
+the map** shows when the tool is active. Gold marks show the tiles in your preview; **Apply** sends the
 whole selection for the server to check and save. **Clear preview** starts
 again. Resuming time, changing worlds or closing Developer tools clears it.
 A refused edit shows the server's reason and leaves the world unchanged.

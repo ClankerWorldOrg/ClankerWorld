@@ -177,12 +177,12 @@ public partial class Main
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
                 ResolveWorldUri(), authority, deviceId, batch, signer, OwnerRequestToken));
-            completed = true;
             if (!receipt.Applied)
                 throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
+            completed = true;
             ClearWorldEditPreview();
             return "World edit saved. See Developer edit in the Event Log.";
-        }, retainedSubmission: pending);
+        }, retainedSubmission: pending, sendingPanel: developerPanel);
         if (completed)
         {
             CompletePendingSubmission(pending);
@@ -303,7 +303,8 @@ public partial class Main
         RenderDeveloperEdits(snapshot, actionDisabled);
         submitWorldEditButton.Disabled = actionDisabled || !paused ||
             !worldEditAdvanced.ButtonPressed && (worldEditTiles.Count == 0 || PickedWorldEditKind is null);
-        worldEditTool.Disabled = worldEditPick.Disabled = worldEditPaint.Disabled = actionDisabled || !paused || PickedWorldEditKind is null;
+        worldEditTool.Disabled = actionDisabled || !paused || worldEditTools.Count == 0;
+        worldEditPick.Disabled = worldEditPaint.Disabled = actionDisabled || !paused || PickedWorldEditKind is null;
         worldEditAdvanced.Disabled = actionDisabled || !paused;
         worldEditClear.Disabled = isOwnerAction || worldEditTiles.Count == 0;
         worldEditKind.Disabled = actionDisabled || !paused;

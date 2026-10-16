@@ -6,7 +6,7 @@ namespace ClankerWorld.GodotClient.UI;
 public partial class WorldEditPreviewLayer : Control
 {
     private WorldTerrainLayer? terrain;
-    private Vector2I[] tiles = [];
+    private List<Vector2I> tiles = [];
     private Rect2 drawnCamera;
     private int drawnSize;
     public IReadOnlyList<Vector2I> Tiles => tiles;
@@ -22,14 +22,14 @@ public partial class WorldEditPreviewLayer : Control
 
     public void SetPreview(IEnumerable<Vector2I> selected, string kindName)
     {
-        tiles = selected.ToArray();
+        tiles = selected.ToList();
         KindName = kindName;
         QueueRedraw();
     }
 
     public override void _Process(double delta)
     {
-        if (terrain is not null && tiles.Length > 0 &&
+        if (terrain is not null && tiles.Count > 0 &&
             (terrain.VisibleTiles != drawnCamera || terrain.TileSize != drawnSize)) QueueRedraw();
     }
 

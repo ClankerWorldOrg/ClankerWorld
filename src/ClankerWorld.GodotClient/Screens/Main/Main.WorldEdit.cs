@@ -32,10 +32,22 @@ public partial class Main
         worldEditBody.AddChild(worldEditPick);
         worldEditBody.AddChild(worldEditPaint);
         worldEditBody.AddChild(worldEditClear);
-        worldEditTool.ItemSelected += _ => ConfigureWorldEditPicker();
-        worldEditPick.ItemSelected += _ => ClearWorldEditPreview();
+        worldEditTool.ItemSelected += _ =>
+        {
+            ConfigureWorldEditPicker();
+            worldEditPaint.ButtonPressed = true;
+        };
+        worldEditPick.ItemSelected += _ =>
+        {
+            ClearWorldEditPreview();
+            worldEditPaint.ButtonPressed = true;
+        };
         worldEditClear.Pressed += ClearWorldEditPreview;
-        worldEditPaint.Toggled += _ => UpdateWorldEditPreview();
+        worldEditPaint.Toggled += active =>
+        {
+            if (active) UpdateWorldEditPreview();
+            else ClearWorldEditPreview();
+        };
         worldEditBody.AddChild(worldEditAdvanced);
         worldEditAdvanced.Toggled += advanced =>
         {
@@ -87,10 +99,18 @@ public partial class Main
             pair.First.Operation == pair.Second.Operation && pair.First.DisplayName == pair.Second.DisplayName &&
             pair.First.Kinds.SequenceEqual(pair.Second.Kinds)))
         {
+            var previousOperation = PickedWorldEditTool?.Operation;
+            var previousKind = PickedWorldEditKind?.Value;
             worldEditTools = tools;
             worldEditTool.Clear();
-            foreach (var tool in tools) worldEditTool.AddItem(tool.DisplayName);
-            ConfigureWorldEditPicker();
+            foreach (var tool in tools)
+            {
+                worldEditTool.AddItem(tool.DisplayName);
+                var index = worldEditTool.ItemCount - 1;
+                worldEditTool.SetItemMetadata(index, tool.Operation);
+                if (tool.Operation == previousOperation) worldEditTool.Select(index);
+            }
+            ConfigureWorldEditPicker(PickedWorldEditTool?.Operation == previousOperation ? previousKind : null);
         }
         UpdateWorldEditHint();
     }
@@ -101,11 +121,17 @@ public partial class Main
     private OwnerWorldEditKind? PickedWorldEditKind => PickedWorldEditTool is { } tool && worldEditPick.Selected >= 0 && worldEditPick.Selected < tool.Kinds.Count
         ? tool.Kinds[worldEditPick.Selected] : null;
 
-    private void ConfigureWorldEditPicker()
+    private void ConfigureWorldEditPicker(string? previousKind = null)
     {
         worldEditPick.Clear();
         if (PickedWorldEditTool is { } tool)
-            foreach (var kind in tool.Kinds) worldEditPick.AddItem(kind.DisplayName);
+            foreach (var kind in tool.Kinds)
+            {
+                worldEditPick.AddItem(kind.DisplayName);
+                var index = worldEditPick.ItemCount - 1;
+                worldEditPick.SetItemMetadata(index, kind.Value);
+                if (kind.Value == previousKind) worldEditPick.Select(index);
+            }
         ClearWorldEditPreview();
     }
 

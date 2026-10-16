@@ -525,7 +525,7 @@ public sealed class OwnerPairingClient
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
         if (endpointUri.AbsolutePath == OwnerPairingEndpoints.OwnerAuthoring &&
-            response.StatusCode == HttpStatusCode.Conflict)
+            (int)response.StatusCode is >= 400 and < 500 && response.StatusCode != HttpStatusCode.RequestTimeout)
         {
             string? reason = null;
             try
