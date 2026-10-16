@@ -282,7 +282,7 @@ internal static class MarketTradeScenario
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
             foreach (var decision in result.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null &&
-                         decision.Admission.Intention.CandidateId is { } candidate &&
+                         decision.Admission.Intention?.CandidateId is { } candidate &&
                          (candidate.StartsWith("market_borrow:", StringComparison.Ordinal) || candidate.StartsWith("market_leave:", StringComparison.Ordinal))))
             {
                 var plan = Assert.IsType<MarketOccupancyActionPlan>(decision.ActionPlan);
