@@ -92,7 +92,7 @@ public partial class Main
             serverUrlInput.Text = host.Address;
             observedCalendarPace = new OwnerWorldCalendarPace(Day, 40, 10, 10, 10, 10);
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             observationSession.ResetAfterLoad();
             var snapshot = new OwnerWorldSnapshot("timeline-world", 7 * Day, "timeline-map", [new(0, 0, "meadow")], [], [], null, 0)
@@ -102,7 +102,7 @@ public partial class Main
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(snapshot.WorldTick, 0, []))), 0, out var failure))
                 throw new InvalidOperationException("Save-timeline observation fixture was refused: " + failure);
             string Details() => string.Join(" | ", manualSaveDetails.FindChildren("*", nameof(Label), true, false)
-                .OfType<Label>().Select(label => label.Text));
+                .OfType<Label>().Select(label => label is FittedLabel fitted ? fitted.FullText : label.Text));
             var rows = manualSaveTimeline.Rows;
             void Click(string id, bool twice = false) => rows._GuiInput(new InputEventMouseButton
             {
@@ -164,6 +164,28 @@ public partial class Main
                 manualSaveTimeline.Lanes.Any(lane => lane.IsUnsaved) || Details().Contains("You are here", StringComparison.Ordinal) ||
                 !Details().Contains("Choose a save to see it here", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Without the host's answer the timeline must draw no marker: {Details()}.");
+            manualSaveOverlay.Hide();
+
+            // A short world fits without sideways scrolling from its first frame.
+            await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([firstSave, harvest]),
+                _ => Task.FromResult<SaveTimelinePosition?>(new("harvest", "a", false)));
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var openingSize = manualSaveCard.Size;
+            if (openingSize.X < 850)
+                throw new InvalidOperationException($"Save World must open wide enough for its short timeline: {openingSize}.");
+            // The disk-space reply arrives after opening and runs responsive layout.
+            // It must not replace the timeline's wide layout with the old list width.
+            RenderSaveDiskSpace(new("ok", null, 0, null));
+            for (var frame = 0; frame < 4; frame++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (!manualSaveCard.Size.IsEqualApprox(openingSize))
+                    throw new InvalidOperationException($"Save World must keep its first-frame size after the disk-space reply: {openingSize} -> {manualSaveCard.Size}.");
+            }
+            var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
+                .OfType<ScrollContainer>().Single();
+            if (timelineScroll.GetHScrollBar().Visible)
+                throw new InvalidOperationException("A short world's timeline must fit without a horizontal scroll bar at the default window size.");
             manualSaveOverlay.Hide();
 
             // Save World draws the same timeline under its New save box. Autosaves show where the

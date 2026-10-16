@@ -22,7 +22,7 @@ internal static class BuildingVariantTestWorld
         return Task.FromResult(WorldRuntimeCodec.Encode(world.ExportState()));
     });
 
-    public static async Task<BuildingVariantFixture> CreatePreparedAsync(string family)
+    public static async Task<BuildingVariantFixture> CreatePreparedAsync(string family, bool keepStartingSmith = false)
     {
         var state = WorldRuntimeCodec.Decode((await Baseline.Value).ToArray());
         var (width, height) = family switch
@@ -50,6 +50,17 @@ internal static class BuildingVariantTestWorld
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "variant-build-" + cost.ResourceId,
                 cost.ResourceId, household, cost.Amount, storageBuildingId: house.InstanceId);
+        // Planning requires real work inputs before construction. Keep these
+        // separate from the exact construction lots and later on-site recipe tests.
+        if (family is "clinic" or "restaurant")
+        {
+            var ingredient = family == "clinic" ? CareContent.MedicinalHerbs : FarmFieldRules.Grain;
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-ingredient", ingredient, household,
+                family == "clinic" ? 2 : 1, storageBuildingId: house.InstanceId);
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-jug", "water_jug", household, 1, storageBuildingId: house.InstanceId);
+            inventory = InventoryAuthority.AddLot(inventory, "variant-planning-water", "fresh_water", household, 1,
+                storageBuildingId: house.InstanceId, containerLotId: "variant-planning-jug");
+        }
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person with
@@ -62,6 +73,15 @@ internal static class BuildingVariantTestWorld
             }).ToArray(),
         };
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        // The four-resident Town has room for one smith. Free its starting
+        // slot before testing paid construction of the larger design.
+        if (family == "blacksmith" && !keepStartingSmith)
+        {
+            using var world = WorldRuntime.Restore(state, _ => new VariantActionProvider());
+            var smith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
+            Assert.True(world.RemoveBuilding(smith.InstanceId, smith.TownId, smith.HouseholdId).Applied);
+            state = world.ExportState();
+        }
         return new(Strict(state), actor, definition);
     }
 

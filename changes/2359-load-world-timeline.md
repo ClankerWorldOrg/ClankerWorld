@@ -1,0 +1,1 @@
+- Load World now shows a world’s save timeline as soon as you select it. Load any save on any branch directly, or use Load Save in the Pause Menu for the current world.

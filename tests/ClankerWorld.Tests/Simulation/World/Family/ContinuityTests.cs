@@ -9,8 +9,8 @@ using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
-using GodotOwnerWorldEvent = ClankerWorld.GodotClient.Protocol.OwnerWorldEvent;
-using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotOwnerWorldEvent = ClankerWorld.Contracts.OwnerWorldEvent;
+using GodotOwnerWorldSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
@@ -158,11 +158,11 @@ public sealed partial class ParenthoodTests
         Assert.DoesNotContain(asked, observation => observation.WorldTick >= couple.DeadlineTick &&
             observation.Candidates.Any(item => item.Id.StartsWith("parent_", StringComparison.Ordinal)));
 
-        // The rule only works through the existing partnership; the other two adults stay single.
-        Assert.Single(restored.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
+        // The two other adults also form a partnership; their child deadline starts then.
+        Assert.Equal(2, restored.Society.Relationships.Count(item => item.Type == SocietyRelationshipType.Partnership));
         Assert.All(restored.Agents.Where(person => person.AgentId != first && person.AgentId != second),
             person => Assert.Null(person.Parenthood));
-        Assert.Single(restored.ExportState().Continuity!.Couples);
+        Assert.Equal(2, restored.ExportState().Continuity!.Couples.Count);
 
         // A fresh request after the deadline says the plan is going ahead.
         restored.Pause();
@@ -201,14 +201,14 @@ public sealed partial class ParenthoodTests
             item.Id == "parent_postpone:" + first).Description, StringComparison.Ordinal);
         Assert.DoesNotContain(answering.Candidates, item => item.Id.StartsWith("parent_decline:", StringComparison.Ordinal));
         foreach (var single in state.Agents.Skip(2))
-            Assert.All(seen.GetValueOrDefault(single.AgentId) ?? [], observation => Assert.Null(observation.Self!.ContinuityNote));
+            Assert.All(seen.GetValueOrDefault(single.AgentId) ?? [], observation => Assert.Contains("choose a single", observation.Self!.ContinuityNote, StringComparison.Ordinal));
 
         var handler = new ContinuityModelHandler();
         using var client = new HttpClient(handler);
         using var modelWorld = WorldRuntime.Restore(state, _ => new OpenAiCompatibleDecisionProvider(client,
             () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model"));
-        await modelWorld.AdvanceOneTickNonBlockingAsync();
-        for (var attempt = 0; attempt < 100 && handler.Bodies.Count < state.Agents.Count; attempt++) await Task.Delay(10);
+        await modelWorld.TickModelWorkAsync();
+        await ModelWorkHarness.For(modelWorld).WaitForAllAsync();
         var requests = handler.Bodies.Select(body =>
         {
             using var payload = JsonDocument.Parse(body);
@@ -217,11 +217,12 @@ public sealed partial class ParenthoodTests
             return (System: messages[0].GetProperty("content").GetString()!, Agent: user.RootElement.GetProperty("agent_id").GetString()!,
                 Continuity: user.RootElement.GetProperty("self").GetProperty("continuity").GetString());
         }).ToArray();
+        Assert.Equal(state.Agents.Select(item => item.AgentId).Order(), requests.Select(item => item.Agent).Order());
         var rendered = Assert.Single(requests, item => item.Agent == first);
         Assert.Contains("Continuity, when present", rendered.System, StringComparison.Ordinal);
         Assert.Contains("may put off having a child for up to two days but may not refuse", rendered.Continuity, StringComparison.Ordinal);
         Assert.Null(RetiredWording.Find(rendered.System + rendered.Continuity));
-        Assert.All(requests.Where(item => item.Agent != first && item.Agent != second), item => Assert.Null(item.Continuity));
+        Assert.All(requests.Where(item => item.Agent != first && item.Agent != second), item => Assert.Contains("choose a single", item.Continuity, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -260,7 +261,7 @@ public sealed partial class ParenthoodTests
         var transitions = fewer.ExportState().Events.Where(item => item.Kind.StartsWith("continuity_rule_", StringComparison.Ordinal)).ToArray();
         Assert.Equal(["continuity_rule_on", "continuity_rule_off", "continuity_rule_on"], transitions.Select(item => item.Kind));
         Assert.Equal("eligible_couples|3|threshold|4", transitions[^1].Detail);
-        Assert.Equal(ContinuityOnText(3), WorldEventText.Describe(
+        Assert.Equal(ContinuityOnText(3), EventTextFixture.Describe(
             new GodotOwnerWorldEvent(transitions[^1].EventId, transitions[^1].WorldTick, transitions[^1].Kind, transitions[^1].Detail), null));
         Assert.Equal(3, fewer.ExportState().Continuity!.Couples.Count);
         Assert.Contains(fewer.ExportState().Continuity!.Couples, couple => couple.FirstPartnerId == first || couple.SecondPartnerId == first);
@@ -288,7 +289,7 @@ public sealed partial class ParenthoodTests
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<WorldRuntimeService>();
             using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.Contains(logger.Messages, message => message.Contains("family_activity", StringComparison.Ordinal) &&
                 message.Contains("event=continuity_rule_off", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-continuity-secret", StringComparison.Ordinal));
@@ -329,7 +330,7 @@ public sealed partial class ParenthoodTests
         var clientEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(
             JsonSerializer.Serialize(accepted, ContinuityGodotJson), ContinuityGodotJson);
         Assert.True(GameUiText.IsPlayerFacingEvent(clientEvent!.Kind));
-        return WorldEventText.Describe(clientEvent, snapshot);
+        return EventTextFixture.Describe(clientEvent, snapshot);
     }
 
     private static GodotOwnerWorldSnapshot ClientSnapshot(WorldRuntime world) =>
@@ -392,7 +393,7 @@ public sealed partial class ParenthoodTests
             state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
                 (ancestor, first), (ancestor, second));
         }
-        using var world = WorldRuntime.Restore(state with { Continuity = new(false, []) }, _ => new ParentProvider("safe_idle"));
+        using var world = WorldRuntime.Restore(state with { Continuity = new(false, [], []) }, _ => new ParentProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Continuity!.Active);
         Assert.Equal(3, world.ExportState().Continuity!.Couples.Count);
@@ -462,7 +463,7 @@ public sealed partial class ParenthoodTests
     [InlineData(false)]
     public void LegacyContinuityEventsKeepTheirHistoricalReason(bool active)
     {
-        var text = WorldEventText.Describe(new GodotOwnerWorldEvent(1, 1,
+        var text = EventTextFixture.Describe(new GodotOwnerWorldEvent(1, 1,
             active ? "continuity_rule_on" : "continuity_rule_off", "non_elders:8"), null);
         Assert.Contains("people who are not elders are alive", text, StringComparison.Ordinal);
         Assert.DoesNotContain("couples of adults", text, StringComparison.Ordinal);

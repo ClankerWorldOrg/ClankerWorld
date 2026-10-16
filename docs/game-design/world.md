@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # The world, time and survival
@@ -63,14 +63,16 @@ everything that is available in the current build. See [what works today](../wha
   can **Check key** to see which models that key can use.
 - Keep one simulation/game-rules implementation for both ways of running the
   world server. The player-facing Godot client should not become the
-  authority merely because the server runs locally. Closing the game still
-  freezes the world, without offline catch-up.
-- **On a player's computer, the local server is a separate process bundled with the game.** The game
+  authority merely because the server runs locally. For one-PC play, closing
+  the game freezes the world, without offline catch-up.
+- **For one-PC play, the local server is a separate process bundled with the game.** The game
   starts it, and it listens only on the loopback address, which means only
   programs on that same computer can connect to it. It is not embedded inside
   the game process.
-- **The first local package is an unsigned portable zip.** An installer and code
-  signing (a publisher signature on the files) come later.
+- **The first local package is an unsigned portable zip.** Nightly builds also
+  include the unsigned per-user launcher setup and its SHA-256 beside the
+  portable zip (the owner's choice in chat, October 15). Code signing (a
+  publisher signature on the files) comes later.
 - **Agreed on October 10
   ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)):** the
   first alpha, `v0.1.0-alpha.1`, is the portable zip together with the
@@ -108,9 +110,48 @@ everything that is available in the current build. See [what works today](../wha
   model replies never go in, and anything in a log that looks like a key is
   blanked. The player sends the zip themselves; nothing is uploaded. The game
   offers it, and the launcher will reuse it.
-- **Deploying a world server to another machine starts with a written
-  checklist.** A staged deployment command waits until the local package
-  works.
+- **Agreed on October 15, by the owner in chat: the launcher is where a
+  player starts, hosts and joins a world.** Once the per-user installer above
+  is published, it is the player's first step. It installs the launcher with
+  a Start-menu entry and, if chosen, a desktop shortcut, and that shortcut
+  opens the launcher. From there:
+  - **Playing on one PC.** The launcher starts the game, and the game starts
+    its own world server. Quitting the game saves the world and stops that
+    server; starting the game starts it again. The player never sees a server
+    address, a comparison code or a pairing step.
+  - **Hosting a world for other devices.** On the computer that will run the
+    world, the player installs the same launcher and chooses **Host a world
+    for other devices**. The launcher then turns into a host app with its own
+    screen: the address other devices use, the devices asking to join with
+    **Approve** and **Decline**, and **Stop hosting**. When the player's game
+    quits, the world saves and pauses, and the host waits idle in the
+    background, using a little memory but no processor time or model calls,
+    until the next session, so the player never has to go back to the host
+    computer between sessions. An option stops the server whenever the game
+    quits instead. Hosting starts again on its own when the host computer
+    restarts, and the player can turn that off. A game started on the hosting
+    computer joins that running server instead of starting a second one.
+  - **Joining from another computer.** The host is set up first. Then, on the
+    playing computer, the launcher's **Join a world on another computer** asks
+    for the host's address and shows a comparison code. When the host app
+    shows the same code, the host approves the device, and from then on the
+    launcher connects by itself. Pairing happens in the launcher, so the game
+    has no pairing screen of its own.
+  - **When the host isn't running.** If the launcher on the playing computer
+    can't reach the host, it says it can't connect and explains how to start
+    the host if it is stopped. For a launcher host it says to open ClankerWorld
+    on that computer and choose **Start hosting**. For a terminal-only host it
+    shows the exact command to run there. The launcher knows which applies,
+    because the host says what kind it is when a device pairs.
+  - **An always-on Linux machine, such as a VPS.** There is a server-only
+    download, one command that installs it as a service, which also starts it
+    again whenever the machine restarts, and one command that approves a
+    device, with a step-by-step guide for players who are comfortable with a
+    terminal. The written checklist for updating the development VPS stays a
+    developer page.
+  - **Private networks only.** A hosted world server is meant for a home
+    network or a private connection such as a VPN. It is not built to face the
+    open internet.
 - **Agreed on October 1
   ([#638](https://github.com/compoodment/ClankerWorld/issues/638)):** a new
   world starts only when every founder has a personal model and a working key.
@@ -271,10 +312,14 @@ still needs playtesting.
   real northern and southern polar regions, not north/south wrapping into a
   torus. **Latitude cooling** is also on by default, giving the world a warmer
   equator and colder poles; it can be turned off independently for unusual
-  climates without changing the map's wrapping choice. **Agreed on October 8
-  ([#1249](https://github.com/compoodment/ClankerWorld/issues/1249)):** the
-  outer rows at the north and south map edges are always polar sea or ice that
-  nobody can cross, so no agent walks into an edge it cannot see.
+  climates without changing the map's wrapping choice. **Agreed on October 16,
+  by the owner in chat, replacing the October 8 answer to
+  [#1249](https://github.com/compoodment/ClankerWorld/issues/1249):** the map
+  does not force a band of polar sea or ice along its north and south edges.
+  The October 8 rule drew an unbroken strip of water or ice across the map
+  that looked much worse, and agents still stopped at the edge either way.
+  Land, sea and ice reach the north and south edges as the climate and
+  generator make them, and the edge itself is simply where the map ends.
 - Keep simple New World presets, with a compact Advanced section rather than
   sliders for every generator parameter. **Balanced** is the default climate
   mode; **Uniform** and **Dominant** remain choices. Advanced controls are
