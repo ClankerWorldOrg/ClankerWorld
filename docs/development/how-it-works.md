@@ -151,7 +151,8 @@ resource or lot, household, House, route purpose and quantity. The same
 before application in agent order. Application uses those selected values;
 continuing intentions plan their next step from the current position. Plans
 are excluded from prompts, observation digests and saved state. A stale plan
-appends one `choice_refused` Event Log line with a plain refusal reason.
+records a `choice_refused` event with a plain refusal reason in accepted history;
+automatic stale choices stay out of the player Event Log.
 The private child forwarders remain for existing callers.
 Deferred admission checks the original offered plan before the scheduler
 completes its reply. A planned identity that disappeared from the current
@@ -4666,7 +4667,16 @@ Use stable event names and named fields such as tick, entity/request ID,
 provider role/model, legal intention, outcome, latency and bounded usage.
 Log transitions and decisions, not render frames or idle polls. The player
 Event Log and unread count select known player-facing events and public
-milestones explicitly; unknown diagnostics do not become player text.
+milestones through the shared `EventLogPolicy` classification for every accepted
+kind. Routine personal storage, stocking and hauling, and automatic source
+changes stay in accepted history without becoming Event Log rows. Player order
+blockage/cancellation and consequential refusals remain visible; each problem
+kind for the same complete actor and target appears at most once per world day,
+using the saved calendar offset. Model failures retain their recovery-based
+coalescing. The client keeps each problem's original event ID across raw-history
+rollover, discards keys from expired calendar days, and resets them with the
+observed world or timeline. The unread count uses the same selection. Unknown diagnostics do not
+become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
