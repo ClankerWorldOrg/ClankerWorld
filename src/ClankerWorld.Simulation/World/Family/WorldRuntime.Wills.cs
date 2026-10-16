@@ -63,8 +63,8 @@ public sealed partial class WorldRuntime
                 var request = new CognitionDecisionRequest(
                     $"will:{estate.Id}", provider.ProviderEpoch, observation);
                 request.Validate();
-                var cancellation = new CancellationTokenSource(WillDecisionTimeout);
-                var task = Task.Run(async () =>
+                var cancellation = new CancellationTokenSource(WillDecisionTimeout, modelTimeProvider);
+                var task = ScheduleModelWork(ModelWorkKind.Will, estate.DeceasedId, request.RequestId, async () =>
                 {
                     try
                     {
@@ -80,11 +80,11 @@ public sealed partial class WorldRuntime
                     {
                         return new WillDecisionOutcome(null, $"provider_{exception.GetType().Name}");
                     }
-                });
+                }, decision: request);
                 pendingWills.Add(estate.Id, new PendingWillDecision(estate.Id, request,
                     observation.Candidates.Select(item => item.Id).ToHashSet(StringComparer.Ordinal),
                     context.HeirKeys, context.ItemKeys, task, cancellation));
-                AppendEvent("estate_will_started", estate.Id);
+                AppendEvent(new EstateWillStartedEventPayload(estate.DeceasedId, estate.Id));
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
             towns.SingleOrDefault(item => item.Id == archived.TownId)?.Name);
         var memories = WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [],
             (checkpoint.MemoryCompactions ?? []).SingleOrDefault(item => item.OwnerId == deceased.Id),
-            deceased.Id, estate.CreatedTick, candidates);
+            deceased.Id, estate.CreatedTick, candidates, checkpoint);
         var digestInput = estate.Id + "|" + string.Join("|", snapshot.Select(item =>
             $"{item.LotId}:{item.ItemKind}:{item.Quantity}")) + "|" +
             string.Join("|", candidates.Select(item => $"{item.Id}:{item.Description}")) + "|" +
@@ -300,6 +300,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
 
+                admittedModelReplies.Add(pending.Request.RequestId);
                 // Final words belong to an admitted reply; they stand even when
                 // its division is unusable and default inheritance applies.
                 var finalWords = response.Will?.FinalWords;
@@ -317,9 +318,7 @@ public sealed partial class WorldRuntime
                 var result = society.Apply(checkpoint => SocietyRules.ResolveWill(
                     checkpoint, estate.Id, directive, "accepted", finalWords, TownsThatMayInherit()));
                 var accepted = result.Checkpoint.GetEstate(estate.Id).WillStatus == "accepted";
-                AppendEvent(accepted ? "estate_will_accepted" : "estate_will_default", accepted
-                    ? $"{estate.Id}:{directive.Split}:{directive.HeirIds.Count.ToString(CultureInfo.InvariantCulture)}"
-                    : $"{estate.Id}:invalid_estate_or_heir");
+                AppendEvent(accepted ? new EstateWillAcceptedEventPayload(estate.DeceasedId, estate.Id, directive.Split, directive.HeirIds.Count) : new EstateWillDefaultEventPayload(estate.DeceasedId, estate.Id, "invalid_estate_or_heir"));
             }
             else if (!active.Contains(estate.Id))
             {
@@ -370,14 +369,16 @@ public sealed partial class WorldRuntime
 
     private void ResolveWillDefault(string estateId, string reason, string? finalWords = null)
     {
+        var actor = society.Checkpoint.Estates.FirstOrDefault(estate => estate.Id == estateId)?.DeceasedId;
         society.Apply(checkpoint => SocietyRules.ResolveWill(checkpoint, estateId, null, reason, finalWords));
-        AppendEvent("estate_will_default", $"{estateId}:{reason}");
+        AppendEvent(new EstateWillDefaultEventPayload(actor, estateId, reason));
     }
 
     private void CancelPendingWill(string estateId, string reason = "interrupted", bool underRuntimeGate = true)
     {
         var estateIsPending = society.Checkpoint.Estates.Any(item => item.Id == estateId && item.WillStatus == "pending");
         if (!pendingWills.Remove(estateId, out var pending)) return;
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         if (estateIsPending) pendingWillCancellationReasons[estateId] = reason;
         else pendingWillCancellationReasons.Remove(estateId);
         CancelProviderCall(pending.Cancellation, underRuntimeGate);

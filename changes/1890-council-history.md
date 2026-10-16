@@ -1,0 +1,1 @@
+- Old Council election attempts and their notices move into saved history, keeping recent results and learned notices available without growing every live checkpoint. Earlier alpha saves use an unsupported format and are kept unchanged.

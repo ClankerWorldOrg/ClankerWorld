@@ -1,0 +1,1 @@
+- Crowded tile cards stay inside the window and let you scroll through all their facts and goods while Close remains visible.

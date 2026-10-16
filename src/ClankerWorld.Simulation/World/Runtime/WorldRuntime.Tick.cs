@@ -296,6 +296,8 @@ public sealed partial class WorldRuntime
                     lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
                     foreach (var item in completedIdentityMoments)
                     {
+                        FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                            ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                         pendingIdentityMoments.Remove(item.Request.Observation.AgentId);
                         item.Cancellation.Dispose();
                     }
@@ -304,12 +306,19 @@ public sealed partial class WorldRuntime
                             StartPreparedIdentityMoment(identityMoment);
                     if (deferModelCalls)
                     {
+                        foreach (var item in completedWills)
+                            FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId,
+                                proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                                    ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                         foreach (var id in pendingWills.Keys.Where(id =>
                                      society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
                                  .ToArray())
                             CancelPendingWill(id);
                         foreach (var item in completed)
                         {
+                            var decision = result.Decisions.FirstOrDefault(decision => decision.AgentId == item.Request.Observation.AgentId);
+                            FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, decision?.Admission is { Accepted: true, FellBack: false }
+                                ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingModelCalls.Remove(item.Request.Observation.AgentId);
                             item.Cancellation.Dispose();
                         }
@@ -320,6 +329,8 @@ public sealed partial class WorldRuntime
                         }
                         foreach (var item in completedConversationTurns)
                         {
+                            FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                                ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingConversationTurns.Remove(item.Request.ConversationId);
                             item.Cancellation.Dispose();
                         }
@@ -334,6 +345,8 @@ public sealed partial class WorldRuntime
                     {
                         foreach (var item in completedConversationTurns)
                         {
+                            FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
+                                ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
                             pendingConversationTurns.Remove(item.Request.ConversationId);
                             item.Cancellation.Dispose();
                         }
@@ -364,7 +377,7 @@ public sealed partial class WorldRuntime
         foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady).Take(capacity))
         {
             var cancellation = new CancellationTokenSource();
-            var task = Task.Run(async () =>
+            var task = ScheduleModelWork(ModelWorkKind.Decision, preview.AgentId, preview.Request.RequestId, async () =>
             {
                 try
                 {
@@ -377,11 +390,11 @@ public sealed partial class WorldRuntime
                     return new ModelDecisionOutcome(null,
                         CognitionProviderFailures.FromException(exception, cancellation.Token));
                 }
-            });
+            }, decision: preview.Request);
             pendingModelCalls.Add(preview.AgentId, new PendingModelDecision(preview.Request, task, cancellation,
                 agents[preview.AgentId].LastDecisionContext));
             RecordModelAttempt(preview.AgentId, "waiting");
-            AppendEvent("hosted_decision_started", preview.AgentId);
+            AppendEvent(new HostedDecisionStartedEventPayload(preview.AgentId));
         }
     }
 
@@ -393,20 +406,10 @@ public sealed partial class WorldRuntime
         string.Equals(observation.ConversationChoiceContext,
             ConversationChoiceContextFor(observation.AgentId), StringComparison.Ordinal);
 
-    /// <summary>
-    /// For tests: whether each named agent's model call has finished, so the
-    /// next tick admits all of them together.
-    /// </summary>
-    internal bool ModelDecisionsFinished(params string[] agentIds)
-    {
-        gate.Wait();
-        try { return agentIds.All(id => pendingModelCalls.TryGetValue(id, out var pending) && pending.Task.IsCompleted); }
-        finally { gate.Release(); }
-    }
-
     private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true)
     {
         if (!pendingModelCalls.Remove(agentId, out var pending)) return;
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         RecordModelAttempt(agentId, "canceled");
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
         _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);
@@ -453,7 +456,7 @@ public sealed partial class WorldRuntime
         instructionsByIdempotency = proposed.instructionsByIdempotency;
         instructionReceipts = proposed.instructionReceipts;
         orderCancellations = proposed.orderCancellations;
-        completedInstructionIds = proposed.completedInstructionIds;
+        completedSuggestionIds = proposed.completedSuggestionIds;
         worldEventLog = proposed.worldEventLog;
         checkpointSchemaVersion = proposed.checkpointSchemaVersion;
         jevEnabled = proposed.jevEnabled;
@@ -620,16 +623,14 @@ public sealed partial class WorldRuntime
 
             foreach (var activated in contentRegistry.ActivateReady(targetTick))
             {
-                AppendEvent("content_activated", activated.Manifest.PackageId);
+                AppendEvent(new ContentActivatedEventPayload(null, activated.Manifest.PackageId));
                 if (activated.Manifest.PackageId == HearthContent.PackageId)
                 {
                     AddStartingResources();
                 }
                 if (activated.Manifest.Definitions.Any(definition => !string.IsNullOrWhiteSpace(definition.PayloadJson)))
                 {
-                    AppendEvent(
-                        "content_definitions_activated",
-                        $"{activated.Manifest.PackageId}:buildings={activatedWorldContent.Buildings.Count}:recipes={activatedWorldContent.Recipes.Count}");
+                    AppendEvent(new ContentDefinitionsActivatedEventPayload(null, activated.Manifest.PackageId, activatedWorldContent.Buildings.Count, activatedWorldContent.Recipes.Count));
                 }
             }
             worldContent = activatedWorldContent;
@@ -733,12 +734,12 @@ public sealed partial class WorldRuntime
                         if (physical.IdentityChoicePending && agents[id] is { IdentityChoicePending: false } identified)
                             society.CompleteQueuedIdentityChoice(id, identified.Personality, identified.Aspiration);
                         deferredDecisions.Add(decision);
-                        AppendEvent("hosted_decision_completed", $"{id}:{decision.Admission.Outcome}");
+                        AppendEvent(new HostedDecisionCompletedEventPayload(id, decision.Admission.Outcome));
                     }
                     else
                     {
                         RecordModelAttempt(id, "canceled");
-                        AppendEvent("hosted_decision_discarded", id);
+                        AppendEvent(new HostedDecisionDiscardedEventPayload(id));
                     }
                 }
             }
@@ -761,22 +762,10 @@ public sealed partial class WorldRuntime
             ReconcileMedicalSupplyTrips();
             // An agent whose reply was accepted this tick already acted, even if newer work stays queued.
             if (deferModelCalls) ApplySafeRoutinesWhileWaiting(waiting.Except(decisions.Select(item => item.AgentId), StringComparer.Ordinal), orderActorsHandledThisTick);
-            ReconcileGuardianPlacements();
-            AdvanceGuardianPlacementFollowers(orderActorsHandledThisTick);
-            AdvanceBridgeTraffic();
-            SettleGuardianSearches();
-            ReconcileGuardianPlacements();
-            MaintainTownProjects();
-            MaintainMarkets();
-            MaintainToolMakingRequests();
-            RefreshTownLandHearings();
-            MaintainKnowledgeWriting();
-            ProcessBoatQueue();
-            ReconcileAnimalCustody();
-            CompleteClosedTalkOrders();
+            CompleteActionPhase(orderActorsHandledThisTick);
 
             ArchiveOldAgentMemories(activeModelCallIds);
-            AppendEvent("tick_advanced", targetTick.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            AppendEvent(new TickAdvancedEventPayload(null, targetTick));
             var newEvents = events.Skip(startingEvent).ToArray();
             return new WorldStepResult(true, "advanced", targetTick, decisions, newEvents)
             {
@@ -787,6 +776,24 @@ public sealed partial class WorldRuntime
         {
             gate.Release();
         }
+    }
+
+    private void CompleteActionPhase(IEnumerable<string> handledActors)
+    {
+        ReconcileGuardianPlacements();
+        AdvanceGuardianPlacementFollowers(handledActors);
+        AdvanceBridgeTraffic();
+        SettleGuardianSearches();
+        ReconcileGuardianPlacements();
+        MaintainTownProjects();
+        MaintainMarkets();
+        MaintainToolMakingRequests();
+        RefreshTownLandHearings();
+        MaintainKnowledgeWriting();
+        ProcessBoatQueue();
+        ReconcileAnimalCustody();
+        CompleteClosedTalkOrders();
+
     }
 
 }
