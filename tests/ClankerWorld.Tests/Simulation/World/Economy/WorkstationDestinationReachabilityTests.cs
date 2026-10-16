@@ -17,8 +17,7 @@ public sealed class WorkstationDestinationReachabilityTests
         var house = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var start = new GridPoint(119, 49);
-        Assert.Equal(new GridPoint(125, 55), shop.Position);
-        Assert.Equal(new GridPoint(125, 56), house.Position);
+        Assert.Equal(1, state.Map.FootDistance(shop.Position, house.Position));
         var ring = state.Map.FootNeighbors(shop.Position).Where(state.Map.IsPassable)
             .OrderBy(point => point.X == shop.Position.X + 1 && point.Y == shop.Position.Y ? 0 : 1)
             .ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
