@@ -15,7 +15,9 @@ public sealed record GovernmentProposalChoice(string TownId, GovernmentProposalK
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{Subject}|";
     public static GovernmentProposalChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] || town.Length == 0 || subject.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(subject, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         GovernmentProposalKind? kind = verb switch
         {
             "government_propose" => GovernmentProposalKind.Propose,

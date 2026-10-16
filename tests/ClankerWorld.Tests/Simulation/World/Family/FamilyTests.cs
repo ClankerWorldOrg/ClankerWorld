@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -306,7 +307,7 @@ public sealed partial class FamilyTests
         var other = state.Agents[1].AgentId;
         using var society = SocietyRuntime.Restore(state.Society);
         society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new("trust-memory:" + proposer + ":" + other, proposer, other, "Exchanged needed materials.", "public", checkpoint.WorldTick)));
+            new(Identity.Parse("trust-memory:" + proposer + ":" + other), proposer, other, "Exchanged needed materials.", "public", checkpoint.WorldTick)));
         return state with { Society = society.ExportState(), Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
     }
 

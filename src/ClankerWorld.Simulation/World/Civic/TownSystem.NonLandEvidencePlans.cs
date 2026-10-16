@@ -20,7 +20,7 @@ internal sealed partial class TownSystem
             law.Versions.SingleOrDefault(version => version.Version == item.Allegation.LawVersion) is { } version)
             lawEvidence = new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor,
                 LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick, actor, world.WorldTick,
-                NonLandExcerpt("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule), 256));
+                BoundedText.Excerpt("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule), 256));
         return new(actor, choice, item.Id, revision, choice.Verb == "law_case_inspect" ? CivicBoard(world, town) : null,
             choice.Verb is "law_case_inspect" or "law_case_evidence" ? NonLandKnownEvidence(world, town, item, actor) : [], lawEvidence, party,
             choice.Verb == "law_case_relay" ? ResolveCivicAgentToken(world, choice.PartyOrRecipientToken) : null,

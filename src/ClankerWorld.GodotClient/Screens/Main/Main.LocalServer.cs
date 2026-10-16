@@ -12,7 +12,9 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
+    private const string LocalServerStartingMessage = "Starting your world server…";
     private readonly LocalServer? localServer;
+    private bool localServerStarting;
     private readonly ConfirmationDialog localServerFailure = new();
     private readonly ConfirmationDialog localServerStopFailure = new();
     private bool isQuittingGame;
@@ -39,6 +41,8 @@ public partial class Main
     private async Task StartLocalServerAsync()
     {
         if (localServer is null) return;
+        localServerStarting = true;
+        RefreshMainMenuAvailability();
         GetTree().AutoAcceptQuit = false;
         if (localServerFailure.GetParent() is null)
         {
@@ -59,7 +63,7 @@ public partial class Main
         try
         {
             start = await localServer.StartAsync(BuildInformation.Version, BuildInformation.SourceRevision,
-                CancellationToken.None);
+                OwnerRequestToken);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -67,14 +71,33 @@ public partial class Main
         }
         if (!start.IsReady)
         {
+            localServerStarting = false;
+            RefreshMainMenuAvailability();
+            SetMainMenuStatus(start.PlayerMessage);
             SetStatus(string.Empty, good: false);
             localServerFailure.DialogText = start.PlayerMessage;
             PopupDialog(localServerFailure);
             return;
         }
-        await InitializeAsync();
-        // First launch: pair this game with its own local server without asking the player.
-        if (registration is null && deviceKey is not null) await StartPairingAsync();
+        try
+        {
+            await InitializeAsync();
+            // First launch: pair this game with its own local server without asking the player.
+            if (registration is null && deviceKey is not null) await StartPairingAsync();
+        }
+        finally
+        {
+            CompleteLocalServerStartup();
+        }
+    }
+
+    private void CompleteLocalServerStartup()
+    {
+        var status = mainMenuStatus.Text;
+        localServerStarting = false;
+        RefreshMainMenuAvailability();
+        if (!string.Equals(status, LocalServerStartingMessage, StringComparison.Ordinal))
+            SetMainMenuStatus(status);
     }
 
     /// <summary>False leaves the ordinary comparison-code flow on screen.</summary>
@@ -83,7 +106,7 @@ public partial class Main
         try
         {
             if (localServer is null || !await localServer.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode,
-                    CancellationToken.None))
+                    OwnerRequestToken))
                 return false;
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
@@ -102,7 +125,7 @@ public partial class Main
     private async Task<string?> ReadCurrentWorldForLauncherAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return null;
-        var catalog = await ownerApi.ListWorldsAsync(ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None);
+        var catalog = await ownerApi.ListWorldsAsync(ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken);
         return GameStarter.WorldId(catalog.ActiveId);
     }
 
@@ -122,7 +145,7 @@ public partial class Main
             if (localServer is not null)
             {
                 SetStatus("Saving your world…", good: true);
-                if (!await localServer.StopAsync(CancellationToken.None))
+                if (!await localServer.StopAsync(OwnerRequestToken))
                 {
                     ShowLocalServerStopFailure(requestedVersion, launcherWorld);
                     return;
