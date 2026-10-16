@@ -25,7 +25,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity);
     IReadOnlyList<GridPoint> ReachLandSaleNoticePlace(string actor, GridPoint noticePlace);
     void RefuseChoice(ActionPlan plan, ActionRefusal refusal);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     bool CanContinueEquipmentRepair(string actor);

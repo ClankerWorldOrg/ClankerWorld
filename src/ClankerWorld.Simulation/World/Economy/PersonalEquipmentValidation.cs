@@ -77,9 +77,9 @@ public sealed partial class WorldRuntime
              repair.StartedTick < 0 || repair.StartedTick > tick || tick - repair.StartedTick > 120 ||
              repair.WorkDone < 0 || repair.WorkDone >= PersonalEquipmentRules.RepairWorkTicks ||
              repair.WorkDone > tick - repair.StartedTick || repair.MaterialReservationIds is null ||
-             repair.MaterialReservationIds.Count is < 1 or > 2 || repair.MaterialReservationIds.Any(InvalidId) ||
-             repair.MaterialReservationIds.Any(id => id is null) ||
-             repair.MaterialReservationIds.Distinct(StringComparer.Ordinal).Count() != repair.MaterialReservationIds.Count))
+             repair.MaterialReservationIds.Count is < 1 or > 2 ||
+             repair.MaterialReservationIds.Any(id => !IdentityRules.Reference(id, int.MaxValue)) ||
+             repair.MaterialReservationIds.Distinct().Count() != repair.MaterialReservationIds.Count))
             throw new InvalidDataException("The saved personal equipment is invalid.");
     }
 }
