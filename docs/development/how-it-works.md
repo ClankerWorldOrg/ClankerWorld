@@ -1829,7 +1829,8 @@ refused. The runtime still admits only legal actions and requested owner sources
 a refusal or invalid action falls back to `safe_idle`. No confidence veto is added.
 
 Decisions uses the installation's default OpenAI key or an explicitly selected
-OpenAI credential slot. The world saves only the slot ID, helper and model;
+OpenAI credential slot; Jev uses the corresponding TypeSafe default or named key.
+Both can select a key saved in API keys. The world saves only the slot ID, helper and model;
 missing/deleted credentials produce the existing safe provider failure. A call
 reserves one installation usage attempt before HTTP, including action and memory
 questions together. Reply bodies are bounded; timeout, cancellation and sanitized
@@ -1852,7 +1853,14 @@ choice also activates explicit helper routing; repeating it afterward is a no-op
 The Decisions picker starts with `gpt-6-luna` and permits typed model names.
 Its non-billable availability check uses OpenAI's model list with the selected
 key; that list confirms model visibility, not access to the Decisions endpoint.
-Jev offers `jev-1.13.0` without an availability probe.
+Jev offers `jev-1.14.0` without an availability probe. Its default lives once in
+`ClankerWorld.Shared/RoutineHelperDefaults.cs`, compiled into simulation and game,
+and used by the server through the simulation assembly. Explicit saved model
+names, including `jev-1.13.0`, are retained.
+TypeSafe's [model notes](https://docs.typesafe.ai/models) and
+[API reference](https://docs.typesafe.ai/api), checked October 16, 2026, list both
+versions on `POST /v1/systemone` with the same state/questions and typed
+choice/score answers; this update requires no adapter format change.
 
 
 A personal-model request selects one legal candidate, not a free-form dialogue
