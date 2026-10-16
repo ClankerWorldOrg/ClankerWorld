@@ -314,6 +314,7 @@ public sealed partial class ConcreteMealTests
     public async Task GeneratedHarvestTravelsThroughFarmStockAndHouseCookingBeforeItIsEaten()
     {
         var (state, actor, household, point) = await FarmFieldTests.ReadyFarmer("grain-harvest-to-porridge");
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         var starterRations = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == household &&
             lot.ItemKind == "food").Sum(lot => lot.Quantity);
         Assert.True(starterRations > 0);

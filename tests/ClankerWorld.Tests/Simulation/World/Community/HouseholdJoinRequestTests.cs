@@ -600,7 +600,11 @@ public sealed partial class HouseholdJoinRequestTests
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ScriptedProvider());
         var farmhouse = world.WorldContent.Buildings.Single(item => item.LocalId == "farmhouse-1x1");
-        var property = TownTileBeside(world, house.InstanceId);
+        var free = FreeTiles(world).ToHashSet();
+        var town = world.Towns.Single();
+        var property = MovementTestWorld.BuildingSite(world.ExportState(), farmhouse, string.Empty,
+            allowed: point => free.Contains(point) && town.BorderTiles.Contains(point) &&
+                state.Map.FootDistance(point, house.Position) <= 4);
         var placed = world.PlaceBuilding("alpha-farm-without-house", farmhouse.CanonicalId, property, Alpha);
         Assert.True(placed.Applied, placed.Failure);
         var removed = world.RemoveBuilding(house.InstanceId, house.TownId, Alpha);

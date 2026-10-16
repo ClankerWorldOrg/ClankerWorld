@@ -277,7 +277,9 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Contains(inherited.Id, settling.World.Boats[0].GroundCargoLotIds!);
             settling.World.Validate();
             var settledBytes = WorldRuntimeCodec.Encode(settling.World.ExportState());
-            using var settledReplay = new BoatScenario(WorldRuntimeCodec.Decode(settledBytes), new());
+            var replayPolicy = new BoatPolicy { LeaveToTown = policy.LeaveToTown };
+            replayPolicy.IdleActors.UnionWith(policy.IdleActors);
+            using var settledReplay = new BoatScenario(WorldRuntimeCodec.Decode(settledBytes), replayPolicy);
             for (var tick = 0; tick < 3; tick++)
             {
                 Assert.True((await settling.World.AdvanceOneTickAsync()).Advanced);
@@ -610,6 +612,25 @@ public sealed partial class PortBoatRuntimeTests
         };
         // Start every voter outdoors; a later civic visit must not trap the builder at home.
         state = MovementTestWorld.ClearOtherBuildingAccess(state);
+        if (freshwater)
+        {
+            // Coastal walls can divide nearby land. Start each voter outdoors
+            // with a real route to the notice place, keeping the others clear.
+            var buildings = new BuildingMovementRules(state.WorldSimulation!.Buildings, state.WorldContent!.Buildings);
+            foreach (var person in state.Agents.ToArray())
+            {
+                var occupied = state.Agents.Where(other => other.AgentId != person.AgentId)
+                    .Select(other => other.Position).ToHashSet();
+                var reach = new UnoccupiedReachabilitySearch(state.Map, occupied, board, 1,
+                    canStep: (from, to) => buildings.CanStep(state.Map, from, to), canStop: buildings.CanStop);
+                var position = MovementTestWorld.OpenGround(state, person.AgentId, board, 8, reach.CanReachFrom);
+                state = state with
+                {
+                    Agents = state.Agents.Select(other => other.AgentId == person.AgentId
+                        ? other with { Position = position } : other).ToArray(),
+                };
+            }
+        }
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
         if (freshwater)

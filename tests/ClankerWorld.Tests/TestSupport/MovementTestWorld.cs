@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 internal static class MovementTestWorld
 {
     internal static GridPoint BuildingSite(WorldRuntimeState state, BuildingDefinition definition, string actor,
-        IEnumerable<GridPoint>? unavailable = null)
+        IEnumerable<GridPoint>? unavailable = null, Func<GridPoint, bool>? allowed = null)
     {
         var ground = new GroundOccupancy(state.Map, state.WorldContent!, state.WorldSimulation!,
             state.Fields, state.RoadTiles, state.Bridges, state.Towns);
@@ -15,7 +15,8 @@ internal static class MovementTestWorld
             state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position));
         if (unavailable is not null) occupied.UnionWith(unavailable);
         var roads = ground.Roads.ToHashSet();
-        return state.Map.Tiles.Last(tile => WorldContentSimulationRules.Footprint(definition, tile.Position)
+        return state.Map.Tiles.Last(tile => (allowed?.Invoke(tile.Position) ?? true) &&
+            WorldContentSimulationRules.Footprint(definition, tile.Position)
             .All(point => state.Map.IsBuildable(point) && !occupied.Contains(point)) &&
             BuildingMovementRules.FindEntrance(state.Map, definition, tile.Position, false, occupied, roads) is not null).Position;
     }
