@@ -72,6 +72,7 @@ public sealed class ToolProgressionRuntimeTests
                     LastDecisionContext = null
                 } : person).ToArray(),
         };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         var chooser = new WorkChoiceRecorder();
         using var preparing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), id => id == actor ? chooser : new CandidateProvider("safe_idle"));

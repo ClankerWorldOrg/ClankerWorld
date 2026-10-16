@@ -8,6 +8,57 @@ namespace ClankerWorld.Tests;
 public sealed class BuildingMovementTests
 {
     [Fact]
+    public async Task ScoutingChoosesLegalNeighboursAndKeepsAValidOutingAcrossReload()
+    {
+        var actor = NormalPathWorld.Founder1;
+        var policy = new MarketRulesPolicy
+        {
+            Choose = (person, candidates) => candidates.FirstOrDefault(candidate => person == actor && candidate.Id == "explore") ??
+                candidates.Single(candidate => candidate.Id == "safe_idle"),
+        };
+        using var generated = NormalPathWorld.CreateGenerated("building-scouting", policy.CreateProvider);
+        var state = generated.ExportState();
+        var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
+        state = WeatherTestFixture.WithWeather(state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
+            {
+                Position = house.Position,
+                FullnessBasisPoints = 10_000,
+                Survival = new(),
+                TravelCooldownTicks = 0,
+                Project = null,
+                Exploration = null,
+                LastDecisionContext = null,
+            } : person).ToArray(),
+        }, WeatherKind.Clear);
+        var rules = new BuildingMovementRules(state.WorldSimulation!.Buildings, state.WorldContent!.Buildings);
+        using var world = WorldRuntime.Restore(state, policy.CreateProvider);
+        using var replay = WorldRuntime.Restore(state, policy.CreateProvider);
+        var previous = house.Position;
+        var moved = false;
+        for (var tick = 0; tick < 32; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            var person = world.Agents.Single(person => person.AgentId == actor);
+            if (person.Position != previous)
+            {
+                if (!moved) Assert.Equal(house.Entrance, person.Position);
+                Assert.True(rules.CanStep(state.Map, previous, person.Position));
+                moved = true;
+            }
+            previous = person.Position;
+            var saved = WorldRuntimeCodec.Encode(world.ExportState());
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(replay.ExportState()));
+            using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), policy.CreateProvider);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
+        }
+        Assert.True(moved);
+    }
+
+    [Fact]
     public async Task NeighbouringBuildingsRequireAnOutdoorWalkBetweenDoorways()
     {
         using var generated = NormalPathWorld.CreateGenerated("building-foot-routes", _ => new VariantActionProvider());
@@ -157,6 +208,23 @@ public sealed class BuildingMovementTests
             using var forward = new UnoccupiedRouteSearch(map, tile.Position, [], map.FootStepCost, neighbors, CanStep, rules.CanStop);
             Assert.Equal(forward.RouteTo(destination, 1).Count > 0, reverse.CanReachFrom(tile.Position));
         }
+    }
+
+    [Fact]
+    public void AnInteractionApproachDoesNotStopShortInsideTheDestinationBuilding()
+    {
+        var map = Meadow();
+        var definition = Definition();
+        var rules = new BuildingMovementRules([
+            new("work", definition.CanonicalId, new(2, 2), 0, Entrance: new(3, 4))], [definition]);
+        using var search = new UnoccupiedRouteSearch(map, new(3, 5), [], map.FootStepCost,
+            canStep: (from, to) => rules.CanStep(map, from, to), canStop: rules.CanStop);
+        var route = search.RouteTo(new(2, 2), 1);
+        Assert.NotEmpty(route);
+        Assert.True(route[^1] == new GridPoint(2, 2) ||
+            route[^1].X is < 2 or > 3 || route[^1].Y is < 2 or > 3);
+        Assert.InRange(map.FootDistance(route[^1], new(2, 2)), 0, 1);
+        Assert.False(rules.CanStop(new(3, 3), new(2, 2)));
     }
 
     [Fact]

@@ -307,9 +307,22 @@ public sealed class TownReleasedMaterialRecoveryTests
                     FullnessBasisPoints = 9_500,
                     Project = null,
                     Equipment = null,
+                    TravelCooldownTicks = 0,
                     LastDecisionContext = null
                 } : person).ToArray(),
         };
+        state = state with
+        {
+            Society = state.Society with
+            {
+                Cognition = state.Society.Cognition with
+                {
+                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.AgentId == actor
+                        ? runtime with { CurrentIntention = null } : runtime).ToArray(),
+                },
+            },
+        };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         return (state, lot, actor);
     }
 

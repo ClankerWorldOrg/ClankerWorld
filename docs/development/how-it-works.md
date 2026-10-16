@@ -2362,7 +2362,7 @@ abort and interrupted movement clear the purpose. Cancellation cannot make
 an old order purpose authoritative for a later outing. Urgent interruptions
 retain the pending goal and instruction through the existing lifecycle.
 
-Outward scouting checks occupied destinations and both diagonal corner tiles
+Outward scouting checks building walls, occupied destinations and both diagonal corner tiles
 before ranking neighboring exits. An attached cart also restricts exits to
 ordinary legal cart steps: cardinal movement without unroaded mountains.
 If no legal outward exit remains, the scout
@@ -2538,14 +2538,15 @@ objects/resources. Old generated worlds recover missing layers from saved
 deterministic options and retain their original resource layout.
 
 Traveler routes apply `BuildingMovementRules` to the same terrain steps in
-forward searches, reverse reachability and cart routing. A building footprint
-connects to outdoor ground only through its recorded entrance; without a Road,
+forward searches, reverse reachability, cart routing and local scouting. A building
+footprint connects to outdoor ground only through its recorded entrance; without a Road,
 it uses the drawing's default south doorway. Shared walls and outdoor diagonal
 corners are closed. Expanded footprints use their effective dimensions, and a
 changed building list invalidates the derived geometry and route searches.
 Movement within the departure or destination building remains possible; an
 unrelated building cannot supply a shortcut through its single doorway.
-Interaction-range routes also end outdoors unless the target lies in that building.
+Interaction-range routes end outdoors or at the exact target tile; they do not
+stop short on a building's interior approach tiles.
 
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles

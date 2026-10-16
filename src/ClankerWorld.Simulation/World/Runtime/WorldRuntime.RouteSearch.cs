@@ -29,6 +29,12 @@ public sealed partial class WorldRuntime
         }
     }
 
+    private IEnumerable<GridPoint> FootMovementNeighbors(GridPoint origin)
+    {
+        var buildings = MovementBuildings;
+        return map.FootNeighbors(origin).Where(next => buildings.CanStep(map, origin, next));
+    }
+
     private bool HasUnoccupiedRoute(string actor, GridPoint origin, GridPoint destination,
         int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0)
     {

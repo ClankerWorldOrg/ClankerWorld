@@ -599,6 +599,8 @@ public sealed partial class PortBoatRuntimeTests
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = ticksPerDay, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
         };
+        // Voters wait outdoors, clear of the builder's only exit and the Warehouse door.
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, BoatPolicy.Author);
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
         if (freshwater)

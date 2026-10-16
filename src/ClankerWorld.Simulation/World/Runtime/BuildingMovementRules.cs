@@ -14,13 +14,16 @@ internal sealed class BuildingMovementRules
         {
             var definition = BuildingStorageRules.EffectiveDefinition(byId[building.DefinitionId], building);
             // Buildings without a Road use the same south-facing door as their drawing.
-            var entrance = building.Entrance ?? new GridPoint(building.Position.X + definition.Width / 2,
-                building.Position.Y + definition.Height);
+            var entrance = EntranceFor(definition, building);
             var doorway = new Doorway(entrance);
             foreach (var point in WorldContentSimulationRules.Footprint(definition, building.Position))
                 interiors.Add(point, doorway);
         }
     }
+
+    internal static GridPoint EntranceFor(BuildingDefinition effectiveDefinition, PlacedBuilding building) =>
+        building.Entrance ?? new GridPoint(building.Position.X + effectiveDefinition.Width / 2,
+            building.Position.Y + effectiveDefinition.Height);
 
     internal bool CanStep(WorldMap map, GridPoint from, GridPoint to)
     {
@@ -40,8 +43,7 @@ internal sealed class BuildingMovementRules
     }
 
     internal bool CanStop(GridPoint point, GridPoint destination) =>
-        !interiors.TryGetValue(point, out var interior) ||
-        interiors.TryGetValue(destination, out var target) && ReferenceEquals(interior, target);
+        !interiors.ContainsKey(point) || point == destination;
 
     private sealed record Doorway(GridPoint Entrance);
 }
