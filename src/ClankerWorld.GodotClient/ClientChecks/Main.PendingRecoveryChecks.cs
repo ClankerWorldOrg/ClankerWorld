@@ -20,6 +20,10 @@ public partial class Main
         var previousOrder = instructionOrderButton.ButtonPressed;
         var previousQueue = instructionQueueToggle.ButtonPressed;
         var previousProfile = agentProfilePanel.Visible;
+        var previousProfileRequested = agentProfileRequested;
+        var previousInWorld = isInWorld;
+        var previousMenus = (Main: mainMenuOverlay.Visible, Card: mainMenuCard.Visible,
+            Pause: pauseMenuPanel.Visible, Shade: menuShade.Visible);
         var previousDeveloperMode = developerMode;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
@@ -28,7 +32,7 @@ public partial class Main
         const string worldId = "lost-request-world";
         const string agentId = "lost-request-agent";
         var position = new OwnerWorldPosition(1, 1);
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "agent-inspection.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1",
             "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1",
             "owner-observation-timeline.v1"], []), new(
             new(worldId, 0, "lost-request-map", [], [], [], null, 0)
@@ -104,23 +108,56 @@ public partial class Main
                 if (host.PendingSubmissionActions.Count != 2)
                     throw new InvalidOperationException("A confirmed receipt must end recovery without sending another request.");
             }
-            var ambiguous = OwnerPendingSubmission.ForInstruction(binding,
-                new("ambiguous-twice", agentId, "suggestion", "Rest.", worldId));
-            host.PendingSubmissionActions.Clear();
-            if (!TryRetainPendingSubmission(ambiguous)) throw new InvalidOperationException("Could not retain the ambiguous recovery request.");
-            host.LoseNextSubmissionReply = true;
-            await RetryPendingSubmissionAsync();
-            host.LoseNextSubmissionReply = true;
-            await RefreshAsync();
-            await RefreshAsync();
-            if (host.PendingSubmissionActions.Count != 2 || !ReferenceEquals(pendingSubmission, ambiguous) ||
-                !pendingSubmissionPanel.IsVisibleInTree() || retryPendingSubmissionButton.Disabled || forgetPendingSubmissionButton.Disabled)
-                throw new InvalidOperationException("A second lost reply must offer normal recovery without automatically retrying on every pulse.");
-            retryPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
-            await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "explicit recovery after a second lost reply");
-            var manualReplies = host.PendingSubmissionActions.ToArray();
-            if (manualReplies.Length != 3 || manualReplies.Any(action => action != manualReplies[0]))
-                throw new InvalidOperationException("The normal retry button must preserve the same exact payload after automatic recovery fails.");
+            foreach (var onMainMenu in new[] { false, true })
+                foreach (var discard in new[] { false, true })
+                {
+                    pauseMenuPanel.Hide();
+                    menuShade.Hide();
+                    mainMenuOverlay.Visible = onMainMenu;
+                    if (onMainMenu) mainMenuCard.Show();
+                    isInWorld = !onMainMenu;
+                    selectedAgentId = agentId;
+                    agentProfileRequested = !onMainMenu;
+                    RenderSelectedAgentCard(host.Reconnect.Baseline.Snapshot);
+                    agentProfilePanel.Visible = !onMainMenu;
+                    var scope = onMainMenu ? mainMenuOverlay : agentProfilePanel;
+                    var opener = KeyboardControls(scope)[0];
+                    opener.GrabFocus();
+                    var ambiguous = OwnerPendingSubmission.ForInstruction(binding,
+                        new("ambiguous-twice", agentId, "order", "Rest.", worldId));
+                    host.PendingSubmissionActions.Clear();
+                    if (!TryRetainPendingSubmission(ambiguous)) throw new InvalidOperationException("Could not retain the ambiguous recovery request.");
+                    host.LoseNextSubmissionReply = true;
+                    await RetryPendingSubmissionAsync();
+                    host.LoseNextSubmissionReply = true;
+                    await RefreshAsync();
+                    await RefreshAsync();
+                    if (host.PendingSubmissionActions.Count != 2 || !ReferenceEquals(pendingSubmission, ambiguous) ||
+                        !pendingSubmissionPanel.IsVisibleInTree() || retryPendingSubmissionButton.Disabled || forgetPendingSubmissionButton.Disabled)
+                        throw new InvalidOperationException("A second lost reply must offer normal recovery without automatically retrying on every pulse.");
+                    opener.GrabFocus();
+                    await KeyboardKeyAsync(Godot.Key.Tab);
+                    if (GetViewport().GuiGetFocusOwner() != retryPendingSubmissionButton)
+                        throw new InvalidOperationException($"Tab must reach request recovery from {(onMainMenu ? "Main Menu" : "Profile")}.");
+                    await KeyboardKeyAsync(Godot.Key.Tab, shift: true);
+                    if (GetViewport().GuiGetFocusOwner() != forgetPendingSubmissionButton ||
+                        retryPendingSubmissionButton.GetThemeStylebox("focus") is Godot.StyleBoxEmpty ||
+                        forgetPendingSubmissionButton.GetThemeStylebox("focus") is Godot.StyleBoxEmpty)
+                        throw new InvalidOperationException("Shift+Tab must reach Discard it with a visible focus style.");
+                    await KeyboardActivateAsync(pendingSubmissionPanel, discard ? forgetPendingSubmissionButton : retryPendingSubmissionButton);
+                    await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "keyboard recovery after a second lost reply");
+                    for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), Godot.SceneTree.SignalName.ProcessFrame);
+                    var manualReplies = host.PendingSubmissionActions.ToArray();
+                    if (manualReplies.Length != (discard ? 2 : 3) || manualReplies.Any(action => action != manualReplies[0]) ||
+                        pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible)
+                        throw new InvalidOperationException("Keyboard recovery must clear the retained request; retry keeps its exact payload and discard sends nothing.");
+                    var focus = GetViewport().GuiGetFocusOwner();
+                    if (focus is null || !IsKeyboardFocusable(focus) || !scope.IsAncestorOf(focus))
+                        throw new InvalidOperationException("Recovery must return focus to a usable control on the original screen.");
+                    await KeyboardKeyAsync(Godot.Key.Tab);
+                    if (GetViewport().GuiGetFocusOwner() is not { } nextFocus || !scope.IsAncestorOf(nextFocus))
+                        throw new InvalidOperationException("Normal screen focus must stay within its menu or Profile after recovery.");
+                }
 
             var originalReconnect = host.Reconnect;
             foreach (var changed in new[] { "load", "restart", "switch" })
@@ -225,6 +262,12 @@ public partial class Main
             instructionSuggestButton.ButtonPressed = !previousOrder;
             instructionQueueToggle.ButtonPressed = previousQueue;
             agentProfilePanel.Visible = previousProfile;
+            agentProfileRequested = previousProfileRequested;
+            isInWorld = previousInWorld;
+            mainMenuOverlay.Visible = previousMenus.Main;
+            mainMenuCard.Visible = previousMenus.Card;
+            pauseMenuPanel.Visible = previousMenus.Pause;
+            menuShade.Visible = previousMenus.Shade;
             developerMode = previousDeveloperMode;
             RefreshControlAvailability();
             System.Environment.SetEnvironmentVariable("CI", previousCi);

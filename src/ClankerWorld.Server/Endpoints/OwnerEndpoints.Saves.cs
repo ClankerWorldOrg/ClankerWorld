@@ -67,50 +67,46 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/owner/saves/autosave/configure", (
             OwnerSignedHttpRequest<OwnerAutosaveConfigurationAction> request,
-            OwnerRequestAuthorizer authorizer,
             WorldAutosaveStore autosave,
             ManualWorldSaveStore saves,
             WorldRuntime runtime,
             ProviderConfigurationStore providers,
             ILogger<WorldRuntimeService> logger) =>
         {
-            if (request?.Action is not { } action)
-                return Results.BadRequest(new { error = "Autosave settings are required." });
-            string payload;
-            try { payload = OwnerHttpBinding.AutosaveConfigurationPayload(action); }
+            var action = request.Action;
+            if (action.WorldId != autosave.Capture().WorldId)
+            {
+                ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "world_changed");
+                return Results.Conflict(new { error = "The world changed. Reopen World Settings before changing autosaves." });
+            }
+            if (!runtime.Society.IsPaused)
+            {
+                ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "not_paused");
+                return Results.Conflict(new { error = "Pause the world before changing autosave settings." });
+            }
+            try
+            {
+                var updated = autosave.Configure(action.Enabled, action.IntervalMinutes, action.RotationCount);
+                saves.KeepNewestAutosaves(Math.Max(1, updated.RotationCount), worldId: updated.WorldId);
+                ManualWorldSaveTelemetry.AutosaveConfigured(logger, updated.Enabled,
+                    updated.IntervalMinutes, updated.RotationCount, runtime.WorldTick);
+                return Results.Ok(updated);
+            }
             catch (ArgumentException)
             {
-                return Results.BadRequest(new { error = "Read this world's autosave settings before changing them." });
+                ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "invalid_option");
+                return Results.BadRequest(new { error = "Choose an offered interval and rotation count." });
             }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/autosave/configure", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (providers.WorldMutationGate)
+
+        }).ForWorld<OwnerAutosaveConfigurationAction>(action => action.WorldId,
+            OwnerHttpBinding.AutosaveConfigurationPayload,
+            (context, _) =>
             {
-                if (action.WorldId != runtime.Society.WorldId || action.WorldId != autosave.Capture().WorldId)
-                {
-                    ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "world_changed");
-                    return Results.Conflict(new { error = "The world changed. Reopen World Settings before changing autosaves." });
-                }
-                if (!runtime.Society.IsPaused)
-                {
-                    ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "not_paused");
-                    return Results.Conflict(new { error = "Pause the world before changing autosave settings." });
-                }
-                try
-                {
-                    var updated = autosave.Configure(action.Enabled, action.IntervalMinutes, action.RotationCount);
-                    saves.KeepNewestAutosaves(Math.Max(1, updated.RotationCount), worldId: updated.WorldId);
-                    ManualWorldSaveTelemetry.AutosaveConfigured(logger, updated.Enabled,
-                        updated.IntervalMinutes, updated.RotationCount, runtime.WorldTick);
-                    return Results.Ok(updated);
-                }
-                catch (ArgumentException)
-                {
-                    ManualWorldSaveTelemetry.Rejected(logger, "autosave_configure", "invalid_option");
-                    return Results.BadRequest(new { error = "Choose an offered interval and rotation count." });
-                }
-            }
-        });
+                ManualWorldSaveTelemetry.Rejected(context.RequestServices.GetRequiredService<ILogger<WorldRuntimeService>>(), "autosave_configure", "world_changed");
+                return Results.Conflict(new { error = "The world changed. Reopen World Settings before changing autosaves." });
+            },
+            invalidPayload: (_, _) => Results.BadRequest(new { error = "Read this world's autosave settings before changing them." }),
+            missingAction: () => Results.BadRequest(new { error = "Autosave settings are required." }));
 
         app.MapPost("/api/v1/owner/saves/create", (
             OwnerSignedHttpRequest<OwnerManualSaveAction> request,
@@ -206,6 +202,7 @@ internal static partial class OwnerEndpoints
             ProviderConfigurationStore providers,
             WorldAutosaveStore autosave,
             WorldJevPolicy jevPolicy,
+            IHostApplicationLifetime lifetime,
             ILogger<WorldRuntimeService> logger) =>
         {
             if (request?.Action is not { Operation: "load" } action)
@@ -227,8 +224,6 @@ internal static partial class OwnerEndpoints
                     var committed = saves.ReadCommitted(action.Value);
                     var checkpoint = committed.Checkpoint;
                     stateFile.VerifyRequiredHistory(checkpoint);
-                    var assignments = committed.Assignments;
-                    var autosaveSettings = committed.AutosaveSettings;
                     var current = runtime.ExportState();
                     if (!string.Equals(checkpoint.WorldSeed, current.WorldSeed, StringComparison.Ordinal) ||
                         !string.Equals(checkpoint.Society.Society.WorldId, current.Society.Society.WorldId, StringComparison.Ordinal))
@@ -243,27 +238,15 @@ internal static partial class OwnerEndpoints
                     var currentAutosave = autosave.Capture();
                     var backup = saves.FindUnchangedSave(runtime, currentAssignments, currentAutosave)
                         ?? saves.CreateLoadRecovery(runtime, currentAssignments, currentAutosave);
-                    var timelineRestore = saves.ContinueFrom(action.Value);
-                    try
-                    {
-                        runtime.LoadPausedCheckpoint(checkpoint);
-                        stateFile.Save(runtime);
-                        providers.RestoreWorldAssignments(assignments);
-                        if (autosaveSettings is not null) autosave.RestoreFromCheckpoint(autosaveSettings);
-                        jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                        saves.RecordLoadedState(runtime);
-                    }
+                    try { saves.Load(action.Value, backup.Id, runtime, stateFile, providers, autosave); }
                     catch
                     {
-                        runtime.LoadPausedCheckpoint(saves.Read(backup.Id));
-                        stateFile.Save(runtime);
-                        providers.RestoreWorldAssignments(saves.ReadAssignments(backup.Id));
-                        if (saves.ReadAutosaveSettings(backup.Id) is { } previousAutosave)
-                            autosave.RestoreFromCheckpoint(previousAutosave);
-                        jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
-                        saves.RestoreTimeline(timelineRestore);
+                        // An unfinished rollback still owns this world. Stop
+                        // serving it until startup can finish the durable intent.
+                        if (saves.HasPendingLoad) lifetime.StopApplication();
                         throw;
                     }
+                    jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
                     ManualWorldSaveTelemetry.Loaded(logger, action.Value, backup.Id, runtime.WorldTick);
                     return Results.Ok(new { loadedId = action.Value, backupId = backup.Id, worldTick = runtime.WorldTick });
                 }

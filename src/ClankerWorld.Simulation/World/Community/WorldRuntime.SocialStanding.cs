@@ -19,9 +19,9 @@ public sealed partial class WorldRuntime
         // trust transition materializes this bounded snapshot.
         return Math.Min(10, society.Checkpoint.Memories.Where(memory =>
                 memory.OwnerId == owner && memory.SubjectId == subject && memory.TombstonedTick is null)
-            .Sum(memory => memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
+            .Sum(memory => memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
     }
 
     private void IncreaseTrust(string owner, string subject, int amount, string reason)
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
             .OrderBy(item => item.SubjectId, StringComparer.Ordinal).ToArray();
         agents[owner] = person with { SocialStanding = standing };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("social_standing_changed", $"{owner}:{subject}:{reason}");
+        AppendEvent(new SocialStandingChangedEventPayload(owner, subject, reason));
     }
 
     private static void ValidateSocialStanding(

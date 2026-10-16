@@ -22,7 +22,7 @@ public sealed partial class ToolMakingRequestTests
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var plan = await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            var plan = await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             Assert.Equal(ToolMakingRequestStatus.Accepted, plan.Original!.Status);
             Assert.Null(plan.Original.JobId);
             for (var tick = 0; tick < 160 && Assert.Single(world.ToolMakingRequests).JobId is null; tick++)
@@ -63,8 +63,8 @@ public sealed partial class ToolMakingRequestTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        public TaskCompletionSource<ToolRequestConsentActionPlan> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<ToolRequestConsentActionPlan> Started { get; } = new();
+        public InlineCompletionSource Release { get; } = new();
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

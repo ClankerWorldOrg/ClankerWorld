@@ -45,7 +45,7 @@ public sealed partial class ServerHttpTests
             }
             var action = new OwnerDeletionAction("save", selected.Id, runtime.Society.WorldId, selected.CreatedUtc);
             Assert.Equal(OwnerHttpBinding.Deletion(action), ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.Deletion(
-                new ClankerWorld.GodotClient.Protocol.OwnerDeletionAction(action.Kind, action.Id, action.WorldId, action.ExpectedCreatedUtc)));
+                new ClankerWorld.Contracts.OwnerDeletionAction(action.Kind, action.Id, action.WorldId, action.ExpectedCreatedUtc)));
             var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
             using var tampered = await client.PostAsJsonAsync("/api/v1/owner/delete", signed with { Action = action with { Id = keep.Id } });
