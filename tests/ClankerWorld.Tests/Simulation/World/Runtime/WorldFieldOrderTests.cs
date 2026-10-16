@@ -1,3 +1,5 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -32,7 +34,7 @@ public sealed partial class WorldFieldOrderTests
         var receipt = Submit(world, "plant", "plant " + crop.Replace('_', ' '));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var work = Assert.Single(world.Fields).Work!;
-        Assert.Equal(receipt.InstructionId, work.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, work.OrderInstructionId);
         Assert.Equal(("doing", 0, "fields"), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit));
         Assert.Equal(1, SeedQuantity(world, crop));
         Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(work.SeedReservationId!).State);
@@ -149,13 +151,22 @@ public sealed partial class WorldFieldOrderTests
         tending.Validate();
     }
 
-    [Fact]
-    public async Task QueuedFieldWorkReplaysFromAPartialPlantingWithoutDuplicateSeedUse()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task QueuedFieldWorkReplaysFromAPartialPlantingWithoutDuplicateSeedUse(bool replace)
     {
         var state = WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared));
         using var world = Restore(state);
         var plant = Submit(world, "plant", "plant a field of grain");
         var tend = Submit(world, "tend", "tend grain", queue: true);
+        if (replace)
+        {
+            var original = plant;
+            plant = Submit(world, "replacement", "plant a field of grain");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, tend).Status);
+        }
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("queued", Order(world, tend).Status);
         Assert.Equal(0, Order(world, plant).CompletedUnits);
@@ -367,22 +378,21 @@ public sealed partial class WorldFieldOrderTests
         var state = world.ExportState();
         var field = Assert.Single(state.Fields!);
         Assert.Throws<InvalidDataException>(() => Restore(state with { Fields = [field with { Work = field.Work! with { OrderInstructionId = "wrong-order" } }] }));
-        foreach (var invalid in new[]
-        {
-            Order(world, receipt) with { TargetCropKind = "potatoes" },
-            Order(world, receipt) with { TargetCropKind = "apples" },
-            Order(world, receipt) with { TargetCropKind = null },
-            Order(world, receipt) with { Action = "tend_field" },
-            Order(world, receipt) with { TargetFoodKind = "berries" },
-            Order(world, receipt) with { TargetMaterialKind = "wood" },
-            Order(world, receipt) with { TargetEquipmentKind = "basket" },
-            Order(world, receipt) with { TargetAgentId = Actor },
-            Order(world, receipt) with { TargetPosition = new(1, 2) },
-            Order(world, receipt) with { ProgressUnit = "food_items" },
-            Order(world, receipt) with { LastEffectId = "field:work:unearned" },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(state with
-            { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = "potatoes" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = "apples" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = null }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["Action"] = "tend_field" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetAgentId"] = Actor }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(1, 2) }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["ProgressUnit"] = "food_items" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["LastEffectId"] = "field:work:unearned" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, invalid));
         Assert.Throws<InvalidDataException>(() => Restore(state with { SchemaVersion = 71 }));
     }
 
@@ -392,8 +402,7 @@ public sealed partial class WorldFieldOrderTests
     [InlineData(true, true)]
     public async Task ACancelledHeldModelReplyCannotSpendTheReleasedSeed(bool explicitLocation, bool delayedStartup = false)
     {
-        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true,
-            entryDelayMilliseconds: delayedStartup ? 1_000 : 0);
+        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
         using var world = WorldRuntime.Restore(WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared)),
             actor => actor == Actor ? provider : new FieldChoices());
         var text = "plant grain" + (explicitLocation ? $" at ({Point.X}, {Point.Y})" : "");
@@ -401,7 +410,7 @@ public sealed partial class WorldFieldOrderTests
         var startAfterTick = world.WorldTick + 3;
         // Preserve the deliberate two-extra-tick entry row, then freeze that
         // working frame: further polling ticks could spend the reserved seed.
-        if (delayedStartup) provider.CanStart = () => world.WorldTick >= startAfterTick;
+        if (delayedStartup) ModelWorkHarness.For(world).Scheduler.CanStart = () => world.WorldTick >= startAfterTick;
         try
         {
             var entryFrame = delayedStartup ? startAfterTick : world.WorldTick + 1;
@@ -410,23 +419,23 @@ public sealed partial class WorldFieldOrderTests
             var task = GrownAgentHelperMemoryTests.WaitForRequests(world);
             Assert.False(task.IsCompleted);
             var working = Assert.IsType<FarmFieldWork>(Assert.Single(world.Fields).Work);
-            Assert.Equal(receipt.InstructionId, working.OrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, working.OrderInstructionId);
             var reservation = working.SeedReservationId!;
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservation).State);
             var entering = WorldRuntimeCodec.Encode(world.ExportState());
-            await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+            await Task.WhenAny(provider.Started.Task, task);
             Assert.True(provider.Started.Task.IsCompleted, "The registered field worker finished before held provider entry.");
             Assert.False(task.IsCompleted);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(entering, WorldRuntimeCodec.Encode(world.ExportState()));
             if (delayedStartup) Assert.True(world.WorldTick >= startAfterTick);
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, Actor, receipt.InstructionId)).Changed);
             var cancelled = WorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             await task;
             Assert.Equal(cancelled, WorldRuntimeCodec.Encode(world.ExportState()));
-            for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 8; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(1, SeedQuantity(world, "grain"));
             Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(reservation).State);
@@ -533,13 +542,13 @@ public sealed partial class WorldFieldOrderTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested)
             {
                 Assert.Fail($"World tick {world.WorldTick} stalled during poll {tick + 1} of 40.");
             }
-            if (!done()) await Task.Delay(5);
+            if (!done()) await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(done(), failureMessage);
     }
@@ -554,20 +563,16 @@ public sealed partial class WorldFieldOrderTests
             !occupied.Contains(point) && !state.Agents.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
             .OrderBy(point => state.Map.FootDistance(Point, point)).First();
     }
-    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false,
-        int entryDelayMilliseconds = 0) : IDecisionProvider
+    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public Func<bool>? CanStart { get; set; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
-            if (entryDelayMilliseconds > 0) await Task.Delay(entryDelayMilliseconds, cancellationToken);
             request.Validate();
             var observation = request.Observation;
             Requests.Enqueue(observation);

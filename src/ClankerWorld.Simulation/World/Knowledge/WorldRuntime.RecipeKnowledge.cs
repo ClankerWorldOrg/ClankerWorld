@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
             tick, "practice", job.JobId)).ToArray()
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_recipe_learned", $"{job.WorkerId}|{recipe.CanonicalId}|practice");
+        AppendEvent(new AgentRecipeLearnedEventPayload(job.WorkerId, recipe.CanonicalId));
     }
 
     private int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition)

@@ -1,1 +1,2 @@
 - Property filings and personal consent retain their exact assets, authority and noticed material through shared checks.
+- Settled property cases skip personal-consent planning.
