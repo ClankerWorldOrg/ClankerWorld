@@ -1003,6 +1003,13 @@ public partial class Main
     {
         try
         {
+            await VerifyProfileHistoryLayoutAsync();
+            if (OS.GetCmdlineUserArgs().Contains("--profile-history-only", StringComparer.Ordinal))
+            {
+                GD.Print("Profile history layout checks passed.");
+                GetTree().Quit();
+                return;
+            }
             if (OS.GetCmdlineUserArgs().Contains("--load-world-timeline-only", StringComparer.Ordinal))
             {
                 GetWindow().Size = new Vector2I(1280, 720);
