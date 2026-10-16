@@ -115,7 +115,11 @@ public sealed partial class WorldRuntime
                 continuity = continuity with
                 {
                     Singles = continuity.Singles.Select(single => single.AgentId == actor
-                    ? single with { ChosenPartnerId = plan.Choice.Kind == PartnershipChoiceKind.Choose ? plan.PartnerId : null }
+                    ? single with
+                    {
+                        ChosenPartnerId = plan.Choice.Kind == PartnershipChoiceKind.Choose ? plan.PartnerId : null,
+                        Postponed = plan.Choice.Kind == PartnershipChoiceKind.Postpone
+                    }
                     : single).ToArray()
                 };
                 break;

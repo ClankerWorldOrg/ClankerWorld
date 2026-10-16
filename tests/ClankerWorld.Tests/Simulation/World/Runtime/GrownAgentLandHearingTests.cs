@@ -213,6 +213,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Couples = state.Continuity.Couples.Select(couple => couple with
                 { DeadlineTick = society.WorldTick + (couple.DeadlineTick - society.WorldTick) * day / oldDay }).ToArray(),
+                Singles = state.Continuity.Singles.Select(single => single with
+                { DeadlineTick = society.WorldTick + (single.DeadlineTick - society.WorldTick) * day / oldDay }).ToArray(),
             },
             AnimalWorld = state.AnimalWorld! with
             {

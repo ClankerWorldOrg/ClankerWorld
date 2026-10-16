@@ -285,7 +285,8 @@ original explanation. Eligible-couple transitions, rejected ticks and replay
 are checked with the current save format.
 
 World schema 138 extends continuity state with each held single adult's fixed
-partnering deadline and optional chosen partner. The single list is required,
+partnering deadline, optional chosen partner and whether they said not yet.
+The single list is required,
 ordered by adult ID and empty while the rule is off. Loading refuses unknown
 adults or chosen partners, self choices, duplicate or unordered entries, and
 deadlines beyond two world days. Choices may become unavailable before the

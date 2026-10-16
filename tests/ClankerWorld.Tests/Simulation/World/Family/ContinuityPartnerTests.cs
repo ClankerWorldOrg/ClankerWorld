@@ -31,8 +31,8 @@ public sealed partial class ParenthoodTests
         {
             Assert.Contains("may not refuse", observation.Self!.ContinuityNote, StringComparison.Ordinal);
             Assert.Contains("two world days", observation.Self.ContinuityNote, StringComparison.Ordinal);
-            Assert.Equal(3, observation.Candidates.Count(candidate => candidate.ActionPlan is PartnershipActionPlan
-            { Choice.Kind: PartnershipChoiceKind.Choose }));
+            Assert.InRange(observation.Candidates.Count(candidate => candidate.ActionPlan is PartnershipActionPlan
+            { Choice.Kind: PartnershipChoiceKind.Choose }), 2, 3);
             Assert.Contains(observation.Candidates, candidate => candidate.ActionPlan is PartnershipActionPlan
             { Choice.Kind: PartnershipChoiceKind.Postpone });
         });
@@ -95,6 +95,7 @@ public sealed partial class ParenthoodTests
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var singles = world.ExportState().Continuity!.Singles;
         Assert.All(singles, single => Assert.Null(single.ChosenPartnerId));
+        Assert.All(singles, single => Assert.True(single.Postponed));
         PositionFamilyFixtureAt(world, singles[0].DeadlineTick - 1);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         AssertPair(world, singles[0].AgentId, singles[1].AgentId);

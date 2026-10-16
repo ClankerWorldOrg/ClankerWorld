@@ -3796,10 +3796,11 @@ is full. A plan past its deadline does not expire: it waits for the usual food,
 shelter and readiness checks.
 
 Single adults who meet the same parent eligibility check also receive a saved
-`ContinuitySingle` deadline and optional chosen partner. `partner_choose` and
+`ContinuitySingle` deadline, optional chosen partner and postponement choice. `partner_choose` and
 `partner_postpone` use the existing partnership action plans, including checks
 at offer, admission and application. Choosing or postponing never resets the
-deadline. Once both adults' deadlines pass, mutual choices take precedence;
+deadline. Already recorded choices are not offered again unchanged; ordinary
+work keeps precedence in built-in decisions. Once both adults' deadlines pass, mutual choices take precedence;
 otherwise combined directed trust selects the strongest eligible pair, with
 ordinal IDs breaking ties. Availability is checked again after every pair,
 so a taken, deceased, elder or close-relative choice cannot force that pair.
