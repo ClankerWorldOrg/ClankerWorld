@@ -170,12 +170,15 @@ public sealed partial class GrownAgentHelperMemoryTests
             return Saved();
         }
 
-        public async Task Advance()
+        public async Task<(byte[] Bytes, WorldRuntimeState State)> Advance()
         {
             Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.False(world.Society.IsPaused);
-            Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
-            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
+            var bytes = Saved();
+            var state = WorldRuntimeCodec.Decode(bytes);
+            Assert.Equal(world.WorldTick, state.Society.Society.WorldTick);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), bytes);
+            return (bytes, state);
         }
 
         public void Dispose()
