@@ -538,13 +538,6 @@ public sealed partial class WorldRuntime
             SetProject(agentId, project with { Stage = "cancelled", Blocker = "This building or recipe is no longer available" });
             return;
         }
-        if (building is not null && project.OrderInstructionId is null &&
-            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
-            !WorkBuildingHasInputs(agentId, workHousehold, building))
-        {
-            SetProject(agentId, project with { Stage = "blocked", Blocker = "This building has no reachable inputs for its work." });
-            return;
-        }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
         {
             var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
@@ -577,6 +570,13 @@ public sealed partial class WorldRuntime
                 SetProject(agentId, project with { Stage = "cancelled", Blocker = "Only the household holding a Farmhouse builds a Silo." });
                 return;
             }
+        }
+        if (building is not null && project.OrderInstructionId is null &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, building))
+        {
+            SetProject(agentId, project with { Stage = "blocked", Blocker = "This building has no reachable inputs for its work." });
+            return;
         }
         if (building?.Tags.Contains("warehouse", StringComparer.Ordinal) == true &&
             (TownForResident(agentId) is not { } townId ||

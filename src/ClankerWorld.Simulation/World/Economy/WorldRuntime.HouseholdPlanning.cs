@@ -26,7 +26,8 @@ public sealed partial class WorldRuntime
             // synchronous query; compute it once rather than for every building.
             var instanceId = BuildInstanceId(agent.Id, definition);
             if (worldSimulation.Buildings.Any(item => item.InstanceId == instanceId) ||
-                !HouseholdHasMaterialsInHand(householdId, definition.BuildCosts))
+                !HouseholdHasMaterialsInHand(householdId, definition.BuildCosts) ||
+                !WorkBuildingHasInputs(agent.Id, householdId, definition))
                 continue;
 
             var layout = HouseholdBuildingKind(definition) == "silo"
@@ -52,8 +53,7 @@ public sealed partial class WorldRuntime
     /// <summary>Active building designs this household may plan now, in a stable order.</summary>
     private IEnumerable<BuildingDefinition> PlannableHouseholdBuildings(string householdId, string actor) => worldContent.Buildings
         .Where(definition => !RetiredBuildings.Contains(definition) &&
-            HouseholdBuildingKind(definition) is { } kind && HouseholdMayPlan(householdId, kind, actor) &&
-            WorkBuildingHasInputs(actor, householdId, definition))
+            HouseholdBuildingKind(definition) is { } kind && HouseholdMayPlan(householdId, kind, actor))
         .OrderBy(definition => HouseholdBuildingKinds.PlanOrder(HouseholdBuildingKind(definition)))
         .ThenBy(definition => definition.CanonicalId, StringComparer.Ordinal);
 
@@ -96,7 +96,7 @@ public sealed partial class WorldRuntime
         {
             var missing = definition.BuildCosts.FirstOrDefault(cost =>
                 HouseholdMaterialInHand(householdId, cost.ResourceId) < cost.Amount);
-            if (missing.Amount == 0)
+            if (missing.Amount == 0 || !WorkBuildingHasInputs(actor, householdId, definition))
                 continue;
             if (MaterialSource(missing.ResourceId, actor, HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
                 HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is not null)
