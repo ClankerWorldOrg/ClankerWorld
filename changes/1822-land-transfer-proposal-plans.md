@@ -1,0 +1,1 @@
+- Household permission-transfer proposals retain their source, exact plot, beneficiary and goods price through shared checks, and skip proposal planning away from the notice board.

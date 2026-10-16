@@ -225,8 +225,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs|length|affected.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Evidence.cs|id|\u0022land-evidence:\u0022 \u002B TownLandHearingRules.Digest(item.Id \u002B \u0022|\u0022 \u002B TownLandHearingRules.CurrentRevision(item).Number \u002B \u0022|\u0022 \u002B item.Evidence.Count \u002B \u0022|\u0022 \u002B actor \u002B \u0022|\u0022 \u002B kind \u002B \u0022|\u0022 \u002B source)[..32]": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs|id|$\u0022land-sale-collect:{world.WorldTick}:{actor}:{request.Id}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs|length|eligible.Length \u003E 0": 1,
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs|length|option.Tiles.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022case-evidence:\u0022 \u002B NonLandToken(item.Id \u002B \u0022|\u0022 \u002B evidence.Id \u002B \u0022|\u0022 \u002B actor \u002B \u0022|\u0022 \u002B NonLandRevision(item).Number)": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022statement:\u0022 \u002B NonLandToken(actor \u002B \u0022|\u0022 \u002B text)": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs|id|\u0022term:\u0022 \u002B NonLandToken(caseId \u002B \u0022|\u0022 \u002B town.NonLandHearings.Sequence \u002B \u0022|\u0022 \u002B index)": 1,

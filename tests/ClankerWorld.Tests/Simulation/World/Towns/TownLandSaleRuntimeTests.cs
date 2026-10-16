@@ -116,7 +116,19 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = NewWorld(provider);
         Configure(provider, world);
         var before = world.ExportState();
-        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
+        var salePlans = new List<LandTransferProposalActionPlan>();
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider, result =>
+        {
+            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is LandTransferProposalActionPlan && decision.Admission.Accepted))
+                salePlans.Add(Assert.IsType<LandTransferProposalActionPlan>(decision.ActionPlan));
+        });
+        var selectedPlan = Assert.Single(salePlans);
+        Assert.True(selectedPlan.Bound);
+        Assert.True(selectedPlan.Choice.Sale);
+        Assert.Equal(selectedPlan.Choice, LandTransferProposalChoice.Decode(selectedPlan.CandidateId));
+        Assert.Equal(provider.TargetHouseholdId, selectedPlan.TargetHousehold);
+        Assert.Equal(provider.Plot, selectedPlan.Tiles);
+        Assert.Equal(world.Towns[0].LandRecords.Transfers[0].Price, selectedPlan.Price);
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers[0].Status != "pending", 80, provider);
         var rejected = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(status, rejected.Status);

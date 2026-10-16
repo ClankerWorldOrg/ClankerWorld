@@ -98,25 +98,24 @@ internal sealed partial class TownSystem
             candidates.Add(new(CivicAction(world, town.Id, "visit"), "Walk to the public notice place to read the household permission transfer you actually learned concerns you. Visiting changes no property or membership.", 175));
         if (atBoard && household is not null)
         {
-            var known = LandTransferKnownHouseholds(world, actor, town).Where(target => target.Id != household).ToArray();
-            var own = householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household &&
-                (right.AgreedEndTick is null || right.AgreedEndTick > world.WorldTick)).OrderBy(right => right.Id, StringComparer.Ordinal).ToArray();
-            var adultHouseholds = LandTransferAdultHouseholds(world);
-            var eligible = known.Select(target => (Target: target, Tiles: TownLandRightsRules.OrderTiles(own.SelectMany(right => right.Tiles).Distinct()
-                .Where(tile => TownLandTransferRules.CanPropose(town.LandRecords, world.Map, town.Id, actor, [tile], target.Id,
-                    householdLandUseRights, TownLandTransferRules.PartiesFor(householdLandUseRights, [tile], target.Id, adultHouseholds),
-                    householdLandUseRequests, world.WorldTick))))).Where(option => option.Tiles.Length > 0).ToArray();
-            if (eligible.Length > 0)
+            var sourceToken = CivicAgentToken(LandTransferSourceToken(world, town, household));
+            var proposalChoice = new LandTransferProposalChoice(town.Id, household, sourceToken, false);
+            if (PlanLandTransferProposal(world, actor, proposalChoice) is { } proposalPlan && CheckLandTransferProposal(world, proposalPlan).Allowed)
             {
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_propose", household, LandTransferSourceToken(world, town, household)),
+                var eligible = proposalPlan.Beneficiaries;
+                candidates.Add(new(proposalPlan.CandidateId,
                     "Propose transferring only an exact connected plot of existing household permission. Supply exact civic_land_tiles and civic_land_hearing.household_id from these known beneficiary households: " +
-                    string.Join("; ", eligible.Select(option => option.Target.Name + "=" + option.Target.Id)) +
-                    ". Eligible source coordinates by beneficiary: " + string.Join("; ", eligible.Select(option => option.Target.Id + ": " + TownLandClaimRules.DescribeTiles(option.Tiles))) +
-                    ". Existing terms remain; every current adult in each source and beneficiary household must separately learn and accept. Proposing gives no consent, title, building, goods or membership.", 185));
-                candidates.Add(new(CivicAction(world, town.Id, "land_transfer_sell", household, LandTransferSourceToken(world, town, household)),
-                    "Offer an exact existing connected permission plot for goods. Supply civic_land_tiles, civic_land_hearing.household_id, payment_item_kind and positive payment_quantity. Known buyers: " +
-                    string.Join("; ", eligible.Select(option => option.Target.Name + "=" + option.Target.Id + ": " + TownLandClaimRules.DescribeTiles(option.Tiles))) +
-                    ". Every affected adult must separately accept this exact goods price; physical payment at the notice place precedes the rights change. No money price or title sale.", 185));
+                    string.Join("; ", eligible.Select(option => option.Name + "=" + option.HouseholdId)) +
+                    ". Eligible source coordinates by beneficiary: " + string.Join("; ", eligible.Select(option => option.HouseholdId + ": " + TownLandClaimRules.DescribeTiles(option.Tiles))) +
+                    ". Existing terms remain; every current adult in each source and beneficiary household must separately learn and accept. Proposing gives no consent, title, building, goods or membership.", 185)
+                { ActionPlan = proposalPlan });
+                var salePlan = new LandTransferProposalActionPlan(actor, proposalChoice with { Sale = true }, proposalPlan.NoticePlace, proposalPlan.Beneficiaries);
+                if (CheckLandTransferProposal(world, salePlan).Allowed)
+                    candidates.Add(new(salePlan.CandidateId,
+                        "Offer an exact existing connected permission plot for goods. Supply civic_land_tiles, civic_land_hearing.household_id, payment_item_kind and positive payment_quantity. Known buyers: " +
+                        string.Join("; ", eligible.Select(option => option.Name + "=" + option.HouseholdId + ": " + TownLandClaimRules.DescribeTiles(option.Tiles))) +
+                        ". Every affected adult must separately accept this exact goods price; physical payment at the notice place precedes the rights change. No money price or title sale.", 185)
+                    { ActionPlan = salePlan });
             }
         }
         foreach (var request in town.LandRecords.Transfers.Where(request => request.Status == "pending"))

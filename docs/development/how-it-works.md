@@ -540,6 +540,9 @@ Plan checks and native submission share the existing plot refusal validator.
 Replies without a household plot bind an empty selection and are refused before submission.
 Expansion filing keeps its selected tiles and waits while a feasible alternative
 shape overlaps the household's pending request, using native availability rules.
+Permission-transfer proposals retain the source terms and eligible beneficiary
+plots, then bind the admitted target, exact plot and goods price once.
+The shared native transfer validator checks those terms before publication.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
