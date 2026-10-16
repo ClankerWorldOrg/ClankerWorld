@@ -812,6 +812,45 @@ public sealed partial class ProviderConfigurationStoreTests
     }
 
     [Fact]
+    public async Task ModelCallLogNamesOnlyAnOfferedChoice()
+    {
+        var directory = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"clankerworld-provider-log-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var store = new ProviderConfigurationStore(System.IO.Path.Combine(directory, "providers.json"), EmptySeed());
+            var handler = new ProviderResponseHandler();
+            var logger = new RecordingLogger<ConfigurableDecisionProvider>();
+            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);
+            store.Configure(new OwnerProviderConfigurationAction("planning", "openai", "openai-test", "openai-secret-123", false));
+
+            await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision, strategic: true));
+            Assert.Contains(logger.Messages, message =>
+                message.Contains("model_call status=completed", StringComparison.Ordinal) &&
+                message.Contains("candidate=safe_idle ", StringComparison.Ordinal));
+
+            // A reply naming something else is logged with a fixed placeholder,
+            // whatever its length or line breaks; the runtime refuses it later.
+            var unoffered = "safe_idle\r\nmodel_call status=completed candidate=" + new string('x', 4096);
+            handler.HostedChoice = unoffered;
+            var earlier = logger.Messages.Count;
+            var response = await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision, strategic: true));
+            Assert.Equal(unoffered, response.SelectedCandidateId);
+            var line = Assert.Single(logger.Messages.Skip(earlier), message => message.Contains("model_call", StringComparison.Ordinal));
+            Assert.Contains("candidate=<not-offered> ", line, StringComparison.Ordinal);
+            Assert.DoesNotContain("xxxx", line, StringComparison.Ordinal);
+            Assert.DoesNotContain('\n', line);
+            Assert.DoesNotContain('\r', line);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack()
     {
         var directory = System.IO.Path.Combine(
@@ -1050,6 +1089,8 @@ public sealed partial class ProviderConfigurationStoreTests
         public string? LastAuthorization { get; private set; }
         public string? LastModel { get; private set; }
         public string? LastBody { get; private set; }
+        /// <summary>The choice an OpenAI-compatible reply names.</summary>
+        public string HostedChoice { get; set; } = "safe_idle";
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -1070,9 +1111,26 @@ public sealed partial class ProviderConfigurationStoreTests
                 ? """
                   {"model":"jev-test","answers":{"selected_candidate":{"type":"choice","choice":"safe_idle","probabilities":{"safe_idle":1.0},"confidence":1.0},"memory_salience_00":{"type":"score","score":1.8,"confidence":0.75}}}
                   """
-                : """
-                  {"model":"hosted-test","choices":[{"message":{"role":"assistant","content":"{\"selected_candidate_id\":\"safe_idle\",\"confidence\":1.0,\"probabilities\":{\"safe_idle\":1.0}}"}}]}
-                  """;
+                : System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    model = "hosted-test",
+                    choices = new[]
+                    {
+                        new
+                        {
+                            message = new
+                            {
+                                role = "assistant",
+                                content = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+                                {
+                                    ["selected_candidate_id"] = HostedChoice,
+                                    ["confidence"] = 1.0,
+                                    ["probabilities"] = new Dictionary<string, double> { [HostedChoice] = 1.0 },
+                                }),
+                            },
+                        },
+                    },
+                });
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(body),

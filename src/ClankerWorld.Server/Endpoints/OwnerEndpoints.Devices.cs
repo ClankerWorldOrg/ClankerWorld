@@ -86,8 +86,7 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(authorization.Failure);
             }
 
-            var revoked = authority.RevokeDevice(request.Action.DeviceId);
-            stateFile.Save(authority);
+            var revoked = stateFile.RevokeDevice(authority, request.Action.DeviceId);
             if (!revoked.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(revoked.Failure);
