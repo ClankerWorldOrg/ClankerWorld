@@ -186,13 +186,13 @@ public static partial class ProblemReport
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex AuthorizationScheme();
 
-    [GeneratedRegex("""(?<scheme>\b[A-Za-z][A-Za-z0-9+.-]*://)[^/\s:@]+:[^/\s@]+@""", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("""(?<scheme>\b[A-Za-z][A-Za-z0-9+.-]*://)[^/\s:@]+:[^/\s@]+@""", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
     private static partial Regex AddressPassword();
 
     [GeneratedRegex("""\b(?:sk-[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,})""",
         RegexOptions.CultureInvariant)]
     private static partial Regex ProviderKey();
 
-    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+|[A-Za-z0-9_.-]+\.(?i:dll|exe|pck)(?=$|[\s"'<>|,;).]))|[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+|(?<![A-Za-z0-9_.-])[A-Za-z0-9_.-]+\.(?i:dll|exe|pck)(?=$|[\s"'<>|,;).]))|[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
     private static partial Regex PathOrLongToken();
 }

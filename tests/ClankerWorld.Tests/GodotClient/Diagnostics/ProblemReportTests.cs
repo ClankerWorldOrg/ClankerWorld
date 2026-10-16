@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using ClankerWorld.GodotClient.Diagnostics;
 
@@ -70,6 +71,18 @@ public sealed class ProblemReportTests : IDisposable
         Assert.All(kept[1..^1], item => Assert.Equal(line, item));
         Assert.Equal("last line before the crash", kept[^1]);
         Assert.True(kept.Length < lines.Count);
+    }
+
+    [Fact]
+    public void LongDottedDiagnosticLineDoesNotStallRedaction()
+    {
+        var line = string.Concat(Enumerable.Repeat("Some.Type.", 26_214));
+        var started = Stopwatch.GetTimestamp();
+
+        Assert.Equal(line, ProblemReport.Redact(line));
+
+        var elapsed = Stopwatch.GetElapsedTime(started);
+        Assert.True(elapsed < TimeSpan.FromSeconds(5), $"Redacting a bounded diagnostic line took {elapsed}.");
     }
 
     [Theory]
