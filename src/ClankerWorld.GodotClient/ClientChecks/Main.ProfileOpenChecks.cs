@@ -1,4 +1,5 @@
 using ClankerWorld.GodotClient.Protocol;
+using ClankerWorld.Simulation;
 using Godot;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,7 +21,7 @@ public partial class Main
             var reconnect = JsonSerializer.Deserialize<OwnerWorldReconnect>(File.ReadAllText(input))
                 ?? throw new InvalidOperationException("The profile check needs a generated owner baseline.");
             var snapshot = reconnect.Baseline.Snapshot;
-            if (snapshot.Agents.Count < 5 || snapshot.Agents.All(agent => agent.Id.Length < 128) ||
+            if (snapshot.Agents.Count < 5 || snapshot.Agents.All(agent => BoundedText.IsValid(agent.Id, 127)) ||
                 snapshot.CalendarPace is not { } pace || snapshot.WorldTick < pace.TicksPerDay * 3L)
                 throw new InvalidOperationException("The profile check needs a hard generated world after three game days, including a born child.");
             if (!observationSession.TryAccept(reconnect, 0, out var failure))
@@ -60,13 +61,33 @@ public partial class Main
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 Record(stage, Stopwatch.GetElapsedTime(start));
             }
+            void Click(Button button)
+            {
+                var point = button.GetGlobalRect().GetCenter();
+                GetViewport().PushInput(new InputEventMouseMotion { Position = point, GlobalPosition = point }, true);
+                GetViewport().PushInput(new InputEventMouseButton
+                {
+                    Position = point,
+                    GlobalPosition = point,
+                    ButtonIndex = MouseButton.Left,
+                    ButtonMask = MouseButtonMask.Left,
+                    Pressed = true,
+                }, true);
+                GetViewport().PushInput(new InputEventMouseButton
+                {
+                    Position = point,
+                    GlobalPosition = point,
+                    ButtonIndex = MouseButton.Left,
+                    Pressed = false,
+                }, true);
+            }
             async Task OpenAndClose(OwnerWorldAgent agent)
             {
                 if (!IsDeceased(agent))
                 {
                     if (!agentQuickCard.IsVisibleInTree() || quickCardProfileButton.Disabled)
                         throw new InvalidOperationException("The profile check must start from the selected agent's usable quick card.");
-                    Timed("profile-button", () => quickCardProfileButton.EmitSignal(BaseButton.SignalName.Pressed));
+                    Timed("profile-button", () => Click(quickCardProfileButton));
                 }
                 // Observe the following frames, including native text layout
                 // and drawing, rather than timing only the click handler.
@@ -82,7 +103,7 @@ public partial class Main
                     if (agentProfilePanel.GetRect() != settled)
                         throw new InvalidOperationException("The profile kept changing size after its initial layout.");
                 }
-                Timed("back-button", () => profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed));
+                Timed("back-button", () => Click(profileCloseButton));
                 await Frame("back-frame");
                 if (agentProfilePanel.Visible || !IsDeceased(agent) && !agentQuickCard.IsVisibleInTree())
                     throw new InvalidOperationException("Back or Close must respond and return living agents to the quick card.");
