@@ -562,6 +562,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Released Town project recovery and return retain the exact parcel, quantity,
+release receipt and Warehouse, or the carrier's actual ground-drop position.
+Checks preserve one carrying space for food and terrain-only return eligibility
+while a pedestrian briefly blocks movement; urgent carriers can set goods down.
 Town project work retains its selected hammer and exact delivered budget.
 Gathering retains the selected source, harvest tool and yield, or its required
 shared-tool pickup; the resulting goods remain personal until a fresh donation.

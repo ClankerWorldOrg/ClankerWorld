@@ -182,8 +182,5 @@
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs": [
-    "FindUnoccupiedRoute(actor, from, target, range)"
   ]
 }

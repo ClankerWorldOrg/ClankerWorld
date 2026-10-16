@@ -137,7 +137,14 @@ public sealed class TownReleasedMaterialRecoveryTests
         var policy = new RecoveryChoice(actor);
         using var world = WorldRuntime.Restore(state, _ => policy);
         var initialStored = world.Society.Inventory.Lots.Where(item => item.StorageBuildingId == "first-town-warehouse").Sum(item => item.Quantity);
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var result = await world.AdvanceOneTickAsync();
+        Assert.True(result.Advanced);
+        var plan = Assert.Single(result.Decisions.Where(decision => decision.ActionPlan is TownProjectRecoveryActionPlan { Choice.Recover: true } &&
+                decision.Admission.Accepted && decision.PlanRefusal is null)
+            .Select(decision => Assert.IsType<TownProjectRecoveryActionPlan>(decision.ActionPlan)));
+        Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+        Assert.Equal((lot.Id, 2, "first-town-warehouse"), (plan.Choice.StockId, plan.Choice.Quantity, plan.Choice.WarehouseId));
+        Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
         var recovered = Assert.Single(world.Towns[0].Projects[0].Deliveries, delivery => delivery.ReleaseReason == "Unused construction materials are being returned.");
         Assert.Equal(2, recovered.Quantity);
         var split = world.Society.Inventory.GetLot(recovered.LotId);
@@ -204,7 +211,17 @@ public sealed class TownReleasedMaterialRecoveryTests
             Assert.NotNull(instruction.Task);
             Assert.Equal("move_to", instruction.Task.Action);
         }
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var result = await world.AdvanceOneTickAsync();
+        Assert.True(result.Advanced);
+        var dropPlan = result.Decisions.Select(decision => decision.ActionPlan).OfType<TownProjectRecoveryActionPlan>()
+            .SingleOrDefault(plan => plan.Choice.StockId == lot.Id);
+        if (dropPlan is not null)
+        {
+            Assert.False(dropPlan.Choice.Recover);
+            Assert.Null(dropPlan.Choice.WarehouseId);
+            Assert.Equal(lot.Quantity - (reservedRemainder ? 1 : 0), dropPlan.Choice.Quantity);
+            Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(dropPlan).Refusal!.Reason);
+        }
         var dropped = Assert.Single(world.Society.Inventory.Lots, item =>
             item.OwnerId == lot.OwnerId && item.GroundPosition == lot.GroundPosition &&
             (item.Id == lot.Id || item.ProvenanceLotId == lot.Id));
