@@ -85,7 +85,17 @@ public sealed class FoodPolicyBallotExpiryTests
             Assert.Equal(nextTick, world.Society.GetAgent(dying).DeathTick);
         }
         var votes = result.Events.Where(item => item.Kind == "food_policy_vote_recorded").ToArray();
-        if (castThirdApproval) Assert.Equal(voters[2], Assert.Single(votes).Detail);
+        if (castThirdApproval)
+        {
+            Assert.Equal(voters[2], Assert.Single(votes).Detail);
+            var plan = Assert.Single(result.Decisions.Where(decision => decision.ActionPlan is FoodPolicyActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<FoodPolicyActionPlan>(decision.ActionPlan)));
+            Assert.True(plan.Choice.Approve);
+            Assert.Equal("essential_first", plan.Choice.Policy);
+            Assert.Equal(voters, plan.Ballot!.Electorate);
+            Assert.Equal(BallotExpiryTick, plan.Ballot.ExpiryTick);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        }
         else Assert.Empty(votes);
         Assert.Equal(expectedPending, after.FoodStewardship!.Ballot is not null);
         Assert.Equal(expectedPolicy, after.FoodStewardship.FoodPolicy);
