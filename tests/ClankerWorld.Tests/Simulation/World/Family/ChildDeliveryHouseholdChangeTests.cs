@@ -155,7 +155,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         choices.Deliver = false;
         Refresh(world, child);
         Refresh(world, caregiver);
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        var bytes = WorldRuntimeCodec.Encode(ShortEscort(world.ExportState(), child, scenario.House.Position));
         var replayChoices = choices.Copy();
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => replayChoices);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -179,6 +179,22 @@ public sealed class ChildDeliveryHouseholdChangeTests
             Assert.DoesNotContain(continuing.ExportState().Events, item => item.Kind == "child_collected_household" || item.Kind == "child_delivered_household");
         }
         Assert.Single(continuing.ExportState().Events, item => item.Kind == "guardian_placement_completed");
+    }
+
+    private static WorldRuntimeState ShortEscort(WorldRuntimeState state, string child, GridPoint home)
+    {
+        // Collection/delivery above remain native. Start the independent escort
+        // close to home, retaining two legal steps and the refused final arrival.
+        var occupied = state.Agents.Where(person => person.AgentId != child).Select(person => person.Position).ToHashSet();
+        var position = state.Map.FootNeighbors(home).Where(point => state.Map.IsBuildable(point) && !occupied.Contains(point))
+            .SelectMany(state.Map.FootNeighbors).Where(point => state.Map.FootDistance(point, home) == 2 &&
+                state.Map.IsBuildable(point) && !occupied.Contains(point)).First();
+        Assert.Equal(2, state.Map.FootDistance(position, home));
+        return state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == child ? person with
+            { Position = position, TravelCooldownTicks = 0, MoveWaitTicks = 0, LastDecisionContext = null } : person).ToArray(),
+        };
     }
 
     private static WorldRuntimeState AddStock(WorldRuntimeState state, string child, string household, string house, GridPoint point)

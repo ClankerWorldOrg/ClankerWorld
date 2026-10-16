@@ -499,6 +499,8 @@ that selection after the shared check confirms it remains available. Founding
 records adopted buildings at the actual founding time.
 Public notice reading retains the Town board and recipient and reads its
 current contents, including notices published during native council processing.
+Saving may archive older notices while a read is pending without invalidating
+the selected board.
 Relay retains the exact learned notices and recipient. The shared check confirms
 the selected history remains available; receipt ordering and sources stay the same.
 Proposal votes and withdrawal retain the original proposal, voting window and
@@ -4578,7 +4580,9 @@ milestones explicitly; unknown diagnostics do not become player text.
 
 Never log API keys, authorization headers, signatures, credential-bearing URLs,
 prompts, raw provider request/response bodies, hidden reasoning or unbounded
-player/model text. Memory/belief/map telemetry uses safe IDs, counts and outcome
+player/model text. A reply is checked against its offered choices only after
+its `model_call` line, so that line names the choice only when it is an offered
+one and `<not-offered>` otherwise. Memory/belief/map telemetry uses safe IDs, counts and outcome
 metadata, never private prose or map contents. Logs are derived telemetry, never
 simulation authority or required save state. Observability tests must prove both
 useful signal and absence of representative secrets.
