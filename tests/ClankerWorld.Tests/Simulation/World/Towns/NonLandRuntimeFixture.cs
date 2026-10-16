@@ -87,8 +87,21 @@ internal static class NonLandRuntimeFixture
         WorldRuntimeState state;
         using (var hearing = Create(await ReadyToFindAsync(), provider))
         {
-            await UntilAsync(hearing, () => hearing.Towns[0].NonLandHearings.Cases[0].Findings.Count > 0, 8);
+            var plans = new List<NonLandAdjudicationActionPlan>();
+            await UntilAsync(hearing, () => hearing.Towns[0].NonLandHearings.Cases[0].Findings.Count > 0, 8, result =>
+            {
+                plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandAdjudicationActionPlan plan && decision.Admission.Accepted && decision.PlanRefusal is null &&
+                        result.Events.Any(item => item.Kind == "law_case_finding" && item.Detail == plan.Choice.TownId + "|" + plan.Case.Id + "|" + plan.Actor))
+                    .Select(decision => Assert.IsType<NonLandAdjudicationActionPlan>(decision.ActionPlan)));
+            });
             var finding = Assert.Single(hearing.Towns[0].NonLandHearings.Cases[0].Findings);
+            var plan = Assert.Single(plans);
+            Assert.True(plan.Bound);
+            Assert.Equal(plan.Choice, NonLandAdjudicationChoice.Decode(plan.CandidateId));
+            Assert.Equal((finding.Judge, finding.Reasons, finding.Uncertainty), (plan.Judge, plan.Reasons, plan.Uncertainty));
+            Assert.Equal(finding.EvidenceIds, plan.EvidenceIds!.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+            Assert.Equal(TownHearingProcedure.Digest(finding.Parties), TownHearingProcedure.Digest(plan.Parties));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, hearing.CheckActionPlan(plan).Refusal!.Reason);
             Assert.Equal("warning", finding.Consequence);
             Assert.Equal(Judge, finding.Judge.AgentId);
             Assert.Equal("non_land_mayor", finding.Judge.Kind);

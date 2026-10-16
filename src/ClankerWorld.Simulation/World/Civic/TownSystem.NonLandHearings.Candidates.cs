@@ -92,19 +92,19 @@ internal sealed partial class TownSystem
                 if (item.Status == "pending" && TownNonLandRules.CanCloseResponses(item, parties, world.WorldTick))
                     foreach (var outcome in NonLandFindingChoices.Where(outcome => outcome != "censure" ||
                                  HasPriorLawNotice(town, item.Allegation, item.Allegation.SubjectId)))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_find", token, outcome),
-                            "Record " + outcome + ". An adverse finding requires more-likely-than-not evidence, reasons and uncertainty in civic_nonviolent; rumor or silence alone is insufficient. A first incident without credible prior law notice favors explanation or warning. No property or membership changes." + NonLandEvidenceChoices(world, town, item, actor), 165));
+                        OfferNonLandAdjudication(world, candidates, actor, town, item, "law_case_find", outcome,
+                            "Record " + outcome + ". An adverse finding requires more-likely-than-not evidence, reasons and uncertainty in civic_nonviolent; rumor or silence alone is insufficient. A first incident without credible prior law notice favors explanation or warning. No property or membership changes." + NonLandEvidenceChoices(world, town, item, actor), 165);
                 foreach (var request in item.ReopenRequests.Where(request => request.Status == "pending" && item.Reads.Any(read => read.AgentId == actor &&
                              read.Revision == revision.Number && read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal))))
                 {
                     if (request.Kind == "material_evidence" ? TownNonLandRules.MaterialNewEvidence(item, request) : TownNonLandRules.DemonstratedProceduralError(item, request))
-                        candidates.Add(new(CivicAction(world, town.Id, "law_case_assess_reopen", token, request.Id + ":accept"), "Reopen on established material evidence or procedure error, with reasons in civic_nonviolent.statement. Prior findings and physical effects remain recorded.", 165));
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_assess_reopen", token, request.Id + ":reject"), "Explain why these reopening grounds are not established; retain the request and prior result.", 166));
+                        OfferNonLandAdjudication(world, candidates, actor, town, item, "law_case_assess_reopen", request.Id + ":accept", "Reopen on established material evidence or procedure error, with reasons in civic_nonviolent.statement. Prior findings and physical effects remain recorded.", 165);
+                    OfferNonLandAdjudication(world, candidates, actor, town, item, "law_case_assess_reopen", request.Id + ":reject", "Explain why these reopening grounds are not established; retain the request and prior result.", 166);
                 }
             }
             if (item.Status == "settled" && isParty && NonLandReadCurrent(world, item, actor))
                 foreach (var grounds in new[] { "material_evidence", "procedural_error" })
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_reopen", token, grounds), "Request reopening for " + grounds.Replace('_', ' ') + ". Supply actual evidence_ids and grounds; a claim alone changes no finding." + NonLandEvidenceChoices(world, town, item, actor), 184));
+                    OfferNonLandAdjudication(world, candidates, actor, town, item, "law_case_reopen", grounds, "Request reopening for " + grounds.Replace('_', ' ') + ". Supply actual evidence_ids and grounds; a claim alone changes no finding." + NonLandEvidenceChoices(world, town, item, actor), 184);
             if (adult && item.Findings.Count > 0 && item.Findings[^1] is { Result: "supported" } finding && NonLandReadCurrent(world, item, actor) &&
                 (isParty || finding.Judge.AgentId == actor && NonLandJudgeValid(world, town, item, finding.Judge)))
                 candidates.Add(new(CivicAction(world, town.Id, "remedy_offer", token, finding.Id),

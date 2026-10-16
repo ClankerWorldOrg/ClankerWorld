@@ -561,6 +561,10 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Non-land findings and reopening retain the exact case material, independent
+judge and response parties. Admitted citations resolve against the retained
+file and reasons bind once. Shared native validators check the same finding,
+reopening grounds or assessment before the original history and notice writers.
 Non-land judge consent and resignation retain the exact personal consent or
 case mandate. Ballots retain the opening round, rosters and selected candidate
 while allowing ballots to accumulate; the same check verifies case knowledge

@@ -98,18 +98,38 @@ public sealed class TownNonLandPublicRecordTests
         await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].Reads.Any(read => read.AgentId == actor && read.EvidenceIds.Contains(imported.Id)), 8);
         stage = 4;
         NonLandRuntimeFixture.Wake(world, actor, "request-public-record-rehearing");
-        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].ReopenRequests.Count > 0, 8);
+        var requestPlans = new List<NonLandAdjudicationActionPlan>();
+        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].ReopenRequests.Count > 0, 8, Capture);
         stage = 5;
         NonLandRuntimeFixture.Wake(world, NonLandRuntimeFixture.Judge, "inspect-actual-reopening-request");
         await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].Reads.Any(read =>
             read.AgentId == NonLandRuntimeFixture.Judge && read.ReopenRequestIds.Count > 0), 8);
         stage = 6;
         NonLandRuntimeFixture.Wake(world, NonLandRuntimeFixture.Judge, "assess-actual-public-record");
-        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].Revisions.Count == 2, 8);
+        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases[0].Revisions.Count == 2, 8, Capture);
         var reopened = world.Towns[0].NonLandHearings.Cases[0];
-        Assert.Equal("accepted", Assert.Single(reopened.ReopenRequests).Status);
+        var request = Assert.Single(reopened.ReopenRequests);
+        Assert.Equal("accepted", request.Status);
+        var requested = Assert.Single(requestPlans, plan => plan.Choice.Verb == "law_case_reopen");
+        var assessed = Assert.Single(requestPlans, plan => plan.Choice.Verb == "law_case_assess_reopen");
+        Assert.Equal(request.Reasons, requested.Reasons);
+        Assert.Equal(request.EvidenceIds, requested.EvidenceIds!.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+        Assert.Equal(request.Id, assessed.Request!.Id);
+        Assert.True(assessed.Accept);
+        Assert.Equal((request.AssessedBy, request.Assessment), (assessed.Judge, assessed.Reasons));
+        Assert.All(requestPlans, plan =>
+        {
+            Assert.True(plan.Bound);
+            Assert.Equal(plan.Choice, NonLandAdjudicationChoice.Decode(plan.CandidateId));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.Equal(original.Findings[0], Assert.Single(reopened.Findings));
         Assert.Equal(NonLandRuntimeFixture.Day, reopened.Revisions[^1].DeadlineTick - reopened.Revisions[^1].PublishedTick);
         NonLandRuntimeFixture.Strict(world.ExportState());
+
+        void Capture(WorldStepResult result) => requestPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandAdjudicationActionPlan plan &&
+                decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Detail == plan.Choice.TownId + "|" + plan.Case.Id + "|" + plan.Actor &&
+                    item.Kind is "law_case_reopen_requested" or "law_case_reopened"))
+            .Select(decision => Assert.IsType<NonLandAdjudicationActionPlan>(decision.ActionPlan)));
     }
 }

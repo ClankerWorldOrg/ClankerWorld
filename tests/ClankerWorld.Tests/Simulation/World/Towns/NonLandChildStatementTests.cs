@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 public sealed class NonLandChildStatementTests
 {
     [Fact]
-    public async Task ABornChildCanSpeakForTheirOwnReportedActWithoutAnsweringForAnotherPerson()
+    public async Task ABornChildCanSpeakForTheirOwnReportedActAndRequestItsReopening()
     {
         var state = NonLandRuntimeFixture.Prepared();
         var checkpoint = state.Society.Society;
@@ -86,6 +86,73 @@ public sealed class NonLandChildStatementTests
         Assert.DoesNotContain(speaker.Observations.Where(observation => observation.AgentId == child).SelectMany(observation => observation.Candidates),
             candidate => candidate.Id.Contains("|law_case_answer|", StringComparison.Ordinal));
         Assert.Equal(parents[0], actual.Revisions[^1].Parties.Single(party => party.SubjectId == child).RespondingAdultId);
-        NonLandRuntimeFixture.Strict(world.ExportState());
+        state = NonLandRuntimeFixture.Strict(world.ExportState());
+        var adults = state.Towns![0].ResidentIds.Where(id => LifeStageRules.IsAdult(state.Society.Society.GetAgent(id).AgeBand)).ToArray();
+        var adjudicator = adults.First(id => id != NonLandRuntimeFixture.Witness && state.Society.Society.GetAgent(id).HouseholdId != household.Id);
+        town = state.Towns[0];
+        var tick = state.Society.Society.WorldTick;
+        var (council, government) = TownGovernmentRules.RegisterMayor(town.Council!, town.Government!, adjudicator, "land+non_land", adults, tick);
+        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, tick, NonLandRuntimeFixture.Day);
+        var election = Assert.IsType<TownMayoralContest>(government.Contest);
+        foreach (var voter in adults)
+            government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(election), voter, adjudicator, tick);
+        state = NonLandRuntimeFixture.Strict(state with { Towns = [town with { Council = council, Government = government }] });
+        var judgeProvider = new NonLandTestProvider
+        {
+            Choose = observation => observation.AgentId == adjudicator ? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|visit|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|read|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|law_case_find|", StringComparison.Ordinal) && candidate.Id.EndsWith("|unsupported", StringComparison.Ordinal)) : null,
+            Payload = (_, choice) => choice.Id.Contains("|law_case_find|", StringComparison.Ordinal)
+                ? new(Statement: "The record does not establish an adverse finding.", Uncertainty: "I do not infer a child's intent from this passage.") : null
+        };
+        using (var clock = NonLandRuntimeFixture.Create(state, new NonLandTestProvider()))
+        {
+            await NonLandRuntimeFixture.UntilAsync(clock, () => TownGovernmentRules.CurrentNonLandAuthority(clock.Towns[0].Government!, clock.WorldTick)?.HolderId == adjudicator,
+                NonLandRuntimeFixture.Day + 3);
+            state = NonLandRuntimeFixture.Strict(clock.ExportState());
+        }
+        using (var adjudicating = NonLandRuntimeFixture.Create(state, judgeProvider))
+        {
+            NonLandRuntimeFixture.Wake(adjudicating, adjudicator, "consider-child-case-with-current-mayor-authority");
+            var attempts = 0;
+            await NonLandRuntimeFixture.UntilAsync(adjudicating, () => adjudicating.Towns[0].NonLandHearings.Cases.Any(item => item.Id == actual.Id && item.Status == "settled"),
+                12, result =>
+                {
+                    if (++attempts == 12)
+                    {
+                        var file = adjudicating.Towns[0].NonLandHearings.Cases.Single(item => item.Id == actual.Id);
+                        Assert.True(file.Status == "settled", "Judge: " + file.Judge + "; read: " + TownNonLandRules.ReadCurrent(file, adjudicator, adjudicating.WorldTick) +
+                            "; selected: " + string.Join(", ", judgeProvider.Selected.TakeLast(8)) + "; refusals: " + string.Join(", ", result.Events.Where(item => item.Kind == "choice_refused").Select(item => item.Detail)));
+                    }
+                });
+            state = NonLandRuntimeFixture.Strict(adjudicating.ExportState());
+        }
+        var requesting = new NonLandTestProvider
+        {
+            Choose = observation => observation.AgentId == child ? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ?? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|law_case_reopen|", StringComparison.Ordinal) && candidate.Id.EndsWith("|procedural_error", StringComparison.Ordinal)) : null,
+            Payload = (_, choice) => choice.Id.Contains("|law_case_reopen|", StringComparison.Ordinal) ? new(
+                Grounds: "I personally ask for an independent assessment of the hearing procedure.",
+                EvidenceIds: state.Towns![0].NonLandHearings.Cases.Single(item => item.Id == actual.Id).Evidence.Take(1).Select(evidence => evidence.Id).ToArray()) : null
+        };
+        using var reopening = NonLandRuntimeFixture.Create(state, requesting);
+        NonLandRuntimeFixture.Wake(reopening, child, "child-personal-reopening-request");
+        NonLandAdjudicationActionPlan? requestPlan = null;
+        await NonLandRuntimeFixture.UntilAsync(reopening, () => reopening.Towns[0].NonLandHearings.Cases.Any(item => item.Id == actual.Id && item.ReopenRequests.Count > 0), 12, result =>
+        {
+            requestPlan = result.Decisions.Where(decision => decision.ActionPlan is NonLandAdjudicationActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<NonLandAdjudicationActionPlan>(decision.ActionPlan)).LastOrDefault() ?? requestPlan;
+        });
+        var reopened = reopening.Towns[0].NonLandHearings.Cases.Single(item => item.Id == actual.Id);
+        var request = Assert.Single(reopened.ReopenRequests);
+        Assert.Equal((child, "pending", "settled"), (request.AgentId, request.Status, reopened.Status));
+        Assert.NotNull(requestPlan);
+        Assert.True(requestPlan.Bound);
+        Assert.Equal((request.AgentId, request.Reasons), (requestPlan.Actor, requestPlan.Reasons));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, reopening.CheckActionPlan(requestPlan).Refusal!.Reason);
+        NonLandRuntimeFixture.Strict(reopening.ExportState());
     }
 }
