@@ -1,1 +1,2 @@
 - Project input delivery, Warehouse collection and harvesting retain their selected lot, source, tool and destination through shared checks.
+- Project input steps use the current typed events and shared complete transaction-key helper, keeping native fields and spelling.
