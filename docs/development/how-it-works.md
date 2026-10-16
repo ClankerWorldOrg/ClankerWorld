@@ -815,6 +815,12 @@ it changes no observation cadence, simulation state, saved data or history.
 Resize-driven text and Profile fitting is coalesced in the next process frame.
 Changing a text panel's height can change its wrapping and the Profile's scroll
 area; those notifications must not schedule another fit in the same idle flush.
+Profile activity, orders, details, People notes and messages share one outer
+scroll. `AddProfileText` gives text its container's width and wrapped height;
+People stacks rows vertically instead of flowing independently sized labels.
+The history layout check renders long trade and message histories at 1280×720
+and 1920×1080, checks text widths and section bounds, and reaches the controls
+and final message through the scroll.
 The fresh-process Profile check opens every agent in a generated, three-day
 hard world, including a born child, and measures both the button handler and
 the following layout frames. The normal UI smoke runs separately so its earlier
@@ -4678,10 +4684,44 @@ The immutable server-approved catalog is loaded at startup. Its reference policy
 accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` digest;
 a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
-The native authoring endpoint refuses submitted batches with
-`game_world_authoring_pending`; it does not apply them. The fixture's working
-authoring branch is retired. Catalog validation remains available for future
-native authoring and does not provide a complete art-generation pipeline.
+Map editing does not change this catalog or upload assets. The fixture's old
+authoring branch is retired; native map editing uses the runtime's own map,
+ecology and chunk records. This is not an art-generation pipeline.
+
+## Paused map editing
+
+`WorldMapEditRules.Choices` supplies both the supported native terrain, resource
+and camp-object definitions and the server's `EditTools` labels. Signed owner
+batches bind the world, observer timeline, run epoch and latest event ID. `WorldRuntime.ApplyMapEdit`
+checks pause, bounds, supported kinds, unique tiles and empty placement, then
+builds an isolated proposal. Terrain writes update the compatibility tile and
+its independent elevation, hydrology, surface and vegetation layers; resource
+placements update ecology and chunk manifests through `EnvironmentSystem`.
+Map acceptance and strict checkpoint validation run before persistence. Added
+objects cannot claim built-in starting-site IDs or replace the original
+camp/Town weather anchor.
+`WorldStateFile.ApplyMapEdit` saves the proposal before publishing live state,
+so a refusal or failed write exposes none of a batch.
+
+Accepted batches are serialized in the existing typed `DeveloperEditEventPayload`
+with operation `edit_world`; the event records the complete command for replay.
+Exact retained retries succeed without applying again. Once an event leaves hot
+history, its stale event precondition refuses another application. No separate
+unbounded receipt ledger is introduced. Schema 139 retains `MapAuthoring`, a
+bounded set of current terrain overrides and added resource/object definitions.
+Reload applies these to the regenerated baseline before checking the map;
+compacted edit events are not needed to load an edited world. Earlier alpha
+saves are refused and preserved without migration. The number is provisional
+until merge.
+
+The authoring observation's optional `EditTools` collection supplies the map
+picker's operation names, kind labels and renewable defaults. An empty
+collection offers no map edits. The client keeps at most 64 unique preview
+tiles and submits them as one retained authoring batch; previews never alter
+the observed map. Closing Developer tools, resuming or changing the world/map
+context discards the preview. Conflict responses show the server's plain
+reason and clear the completed retry record, while an unconfirmed response
+keeps the exact request for recovery.
 
 ## Building storage history
 
@@ -5317,6 +5357,9 @@ but cannot enter play or resume time behind another menu. A fresh Continue
 after returning still enters normally.
 
 The manual Save World and Load Save dialog owns one list read per opening.
+Load World embeds those same history controls when a world is selected, using
+the [catalog save-history read](saves-and-replay.md#browsing-saves-from-load-world)
+without activating the world.
 Closing it, creating, overwriting or deleting a save, or starting another opening
 cancels the previous read. Late success and failure replies cannot replace current rows,
 selection or status, including across a world or pairing change. Clearing or

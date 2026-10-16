@@ -489,10 +489,19 @@ public static class OwnerHttpBinding
         ArgumentNullException.ThrowIfNull(action.Operations);
         var lines = new List<string>
         {
-            "clankerworld.owner-authoring.v1",
+            action.WorldId is null ? "clankerworld.owner-authoring.v1" : "clankerworld.owner-authoring.v2",
             $"batch-id={EncodeRequired(action.BatchId, nameof(action.BatchId))}",
             $"operation-count={action.Operations.Count.ToString(CultureInfo.InvariantCulture)}",
         };
+
+        if (action.WorldId is not null)
+        {
+            lines.Add($"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}");
+            lines.Add($"expected-event-id={action.ExpectedEventId.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"run-epoch={action.RunEpoch.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"observer-instance={EncodeOptional(action.Timeline?.InstanceId)}");
+            lines.Add($"observer-generation={action.Timeline?.Generation.ToString(CultureInfo.InvariantCulture) ?? "-"}");
+        }
 
         for (var index = 0; index < action.Operations.Count; index++)
         {

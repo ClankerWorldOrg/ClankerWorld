@@ -1,0 +1,1 @@
+- Developer tools now let you choose terrain, resources or camp objects, click or drag across map tiles, review a preview and Apply. The server saves accepted batches as Developer edit and explains why it refuses an edit without changing the world. Typed fields are under Advanced. Earlier alpha saves use an older format and are preserved but cannot be loaded.

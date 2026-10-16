@@ -1,0 +1,1 @@
+- Start the game from the launcher and open the Main Menu. Quit to Launcher should show the same pixel door icon as Quit Game, with matching size and alignment in both Light and Dark themes. ([#2335](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2335))
