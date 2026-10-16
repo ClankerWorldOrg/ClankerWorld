@@ -46,6 +46,8 @@ public static class WorldEventFormatter
 
     private static string DescribeDeveloperEdit(WorldEventPayload payload, WorldSnapshotView? snapshot)
     {
+        if (payload is DeveloperEditEventPayload { Operation: "edit_world" } worldEdit)
+            return $"Developer edit: saved map changes on {worldEdit.Amount} tile{(worldEdit.Amount == 1 ? "" : "s")}.";
         if (payload is not DeveloperEditEventPayload edit || string.IsNullOrWhiteSpace(edit.ActorId) ||
             string.IsNullOrWhiteSpace(edit.Operation) || string.IsNullOrWhiteSpace(edit.Value)) return "Developer edit.";
         var name = Name(snapshot, edit.ActorId ?? "");

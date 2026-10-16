@@ -968,7 +968,11 @@ public sealed record OwnerAuthoringOperationAction(
 
 public sealed record OwnerAuthoringBatchAction(
     string BatchId,
-    IReadOnlyList<OwnerAuthoringOperationAction> Operations);
+    IReadOnlyList<OwnerAuthoringOperationAction> Operations,
+    string? WorldId = null,
+    long ExpectedEventId = -1,
+    long RunEpoch = -1,
+    OwnerObserverTimeline? Timeline = null);
 
 public sealed record OwnerContentDependencyAction(
     string PackageId,

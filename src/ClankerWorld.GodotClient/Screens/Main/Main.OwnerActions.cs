@@ -145,7 +145,7 @@ public partial class Main
     private async Task SubmitWorldEditAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            observationSession.Current?.Baseline.Snapshot.Authoring is not { IsPaused: true })
+            observationSession.Current?.Baseline.Snapshot is not { Authoring: { IsPaused: true } authoring } snapshot)
         {
             SetStatus("World editing works only once the world server shows the world as paused. Pause it, then try again.", good: false);
             return;
@@ -165,7 +165,7 @@ public partial class Main
                 PickedWorldEditTool is { } tool && PickedWorldEditKind is { } kind
                 ? worldEditTiles.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).Select(tile =>
                     new OwnerAuthoringOperationAction(tool.Operation, null, kind.Value, null, tile.X, tile.Y, kind.IsRenewable)).ToArray()
-                : []);
+                : [], snapshot.WorldId, authoring.Revision, authoring.RunEpoch, observationSession.Timeline);
         if (batch.Operations.Count == 0) return;
         if (!TryBeginPendingAuthoring(batch, out var pending))
         {

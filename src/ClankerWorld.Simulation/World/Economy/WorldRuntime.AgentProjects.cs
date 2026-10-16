@@ -35,6 +35,19 @@ public sealed partial class WorldRuntime
         {
             return false;
         }
+        if (state.MapAuthoring is { } authoring)
+        {
+            var originalIds = generated.Resources.Select(resource => resource.Id)
+                .Concat(generated.MapObjects.Select(item => item.Id)).ToHashSet(StringComparer.Ordinal);
+            var originalPositions = generated.Resources.Select(resource => resource.Position)
+                .Concat(generated.MapObjects.Select(item => item.Position)).ToHashSet();
+            if (!authoring.IsValid(state.Map) ||
+                authoring.Resources.Any(resource => originalIds.Contains(resource.Id) || originalPositions.Contains(resource.Position)) ||
+                authoring.Objects.Any(item => originalIds.Contains(item.Id) || originalPositions.Contains(item.Position)) ||
+                authoring.Terrain.Any(edit => originalPositions.Contains(edit.Position)))
+                return false;
+            generated = authoring.ApplyToBaseline(generated);
+        }
         return SavedMapMatchesBaseline(state, generated);
     }
 

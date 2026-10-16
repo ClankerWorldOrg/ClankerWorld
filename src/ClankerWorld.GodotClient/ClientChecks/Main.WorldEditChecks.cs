@@ -31,7 +31,6 @@ public partial class Main
         var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousMap = renderedMapSnapshot;
-        var previousRenderedGeneration = renderedObservationGeneration;
         var previousPending = pendingSubmission;
         var previousDeveloperMode = developerMode;
         var previousInWorld = isInWorld;
@@ -50,13 +49,13 @@ public partial class Main
                 [
                     new("set_terrain", "Terrain", [new("meadow", "Meadow"), new("mountain", "Mountains")]),
                     new("place_resource", "Resource", [new("food", "Berry bush", true)]),
-                    new("place_object", "Object", [new("bedroll", "Bedroll")]),
+                    new("place_object", "Object", [new("shelter", "Camp shelter")]),
                 ],
             },
         };
         host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "owner-event-presentation.v2",
-            "agent-inspection.read.v1", "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1"], []),
-            new(snapshot, new(0, 0, [])));
+            "agent-inspection.read.v1", "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1", "owner-observation-timeline.v1"], []),
+            new(snapshot, new(0, 0, []), new("picker-instance", 0)));
         OwnerAuthoringBatchAction? sent = null;
         var refuse = false;
         var refuseWithReceipt = false;
@@ -65,6 +64,9 @@ public partial class Main
         {
             if (path != OwnerPairingEndpoints.OwnerAuthoring) return Task.FromResult<object?>(null);
             sent = envelope.GetProperty("action").Deserialize<OwnerAuthoringBatchAction>(jsonOptions)!;
+            if (sent.WorldId != snapshot.WorldId || sent.ExpectedEventId != snapshot.Authoring!.Revision ||
+                sent.RunEpoch != snapshot.Authoring.RunEpoch || sent.Timeline != host.Reconnect!.Baseline.Timeline)
+                throw new InvalidOperationException("Map edits must retain the preview's world and observation.");
             if (refuse)
             {
                 response.StatusCode = (int)HttpStatusCode.Conflict;
@@ -82,6 +84,7 @@ public partial class Main
             await WaitForWorldPreviewSmokeAsync(() => !isRefreshing && !isOwnerAction, "world-edit picker setup");
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
+            observationSession.ReplaceRegistration(registration);
             serverUrlInput.Text = host.Address;
             pendingSubmission = null;
             developerMode = true;
@@ -95,7 +98,7 @@ public partial class Main
             renderedObservationGeneration = observationSession.RequestGeneration;
             Render(snapshot, []);
             if (worldEditTool.ItemCount != 3 || worldEditPick.ItemCount != 2 || worldEditAdvancedBody.Visible ||
-                worldEditTool.GetItemText(0) != "Terrain" || worldEditPick.GetItemText(1) != "Mountains")
+                !submitWorldEditButton.Disabled || worldEditTool.GetItemText(0) != "Terrain" || worldEditPick.GetItemText(1) != "Mountains")
                 throw new InvalidOperationException("Edit world must offer only the server's named tools and kinds, with typed fields hidden.");
             worldEditPick.Select(1);
             worldEditPick.EmitSignal(OptionButton.SignalName.ItemSelected, 1);
@@ -149,6 +152,18 @@ public partial class Main
             if (PickedWorldEditTool?.Operation != "place_resource" || PickedWorldEditKind?.Value != "food" ||
                 worldEditPick.GetItemText(worldEditPick.Selected) != "Berry bush" || worldEditTiles.Count != 0)
                 throw new InvalidOperationException("Reordered server choices must retain the selected tool and kind together and clear the old preview.");
+            worldEditTool.Select(0);
+            worldEditTool.EmitSignal(OptionButton.SignalName.ItemSelected, 0);
+            if (PickedWorldEditTool?.Operation != "place_object" || PickedWorldEditKind?.Value != "shelter")
+                throw new InvalidOperationException("Object choices must use the server's kind and label.");
+            for (var x = 0; x < 70; x++) ActivateMapTile(snapshot, new(x, 0), Vector2.Zero);
+            if (worldEditTiles.Count != 64 || worldEditPreview.KindName != "Camp shelter")
+                throw new InvalidOperationException("The map preview must stop at 64 unique tiles.");
+            RenderWorldEditPicker(snapshot with { MapLayersDigest = "changed-layers" });
+            if (worldEditTiles.Count != 0 || worldEditPaint.ButtonPressed)
+                throw new InvalidOperationException("A terrain-layer change must clear the old preview even when the map manifest is unchanged.");
+            worldEditPaint.ButtonPressed = true;
+            ActivateMapTile(snapshot, new(0, 0), Vector2.Zero);
             var running = host.Reconnect! with
             {
                 Baseline = host.Reconnect.Baseline with
@@ -173,9 +188,10 @@ public partial class Main
             registration = previousRegistration;
             deviceKey = previousKey;
             serverUrlInput.Text = previousUrl;
+            observationSession.ReplaceRegistration(previousRegistration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            renderedObservationGeneration = previousRenderedGeneration;
+            renderedObservationGeneration = observationSession.RequestGeneration;
             pendingSubmission = previousPending;
             developerMode = previousDeveloperMode;
             isInWorld = previousInWorld;

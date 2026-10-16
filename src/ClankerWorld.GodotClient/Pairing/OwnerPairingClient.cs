@@ -505,7 +505,8 @@ public sealed class OwnerPairingClient
         return await ReadRequiredJsonAsync<TResponse>(response, cancellationToken).ConfigureAwait(false);
     }
 
-    private sealed record OwnerActionFailure(string? Code, string? Detail, string? Error);
+    private sealed record OwnerActionFailure(string? Code, string? Detail, string? Error,
+        Dictionary<string, string[]>? Errors = null);
 
     private async Task<TResponse> SendJsonAsync<TRequest, TResponse>(
         HttpMethod method,
@@ -532,9 +533,11 @@ public sealed class OwnerPairingClient
             {
                 var failure = await response.Content.ReadFromJsonAsync<OwnerActionFailure>(
                     JsonOptions, cancellationToken).ConfigureAwait(false);
-                reason = failure?.Detail ?? failure?.Error;
+                reason = new[] { failure?.Detail, failure?.Error }
+                    .Concat(failure?.Errors?.Values.OfType<string[]>().SelectMany(messages => messages) ?? [])
+                    .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message));
             }
-            catch (JsonException) { }
+            catch (Exception exception) when (exception is JsonException or IOException or HttpRequestException) { }
             throw new OwnerWorldEditRefusedException(string.IsNullOrWhiteSpace(reason)
                 ? "The server could not accept this edit. Refresh the world, then try again."
                 : reason);

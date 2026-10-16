@@ -1193,9 +1193,12 @@ A refused edit shows the server's reason and leaves the world unchanged.
 The typed operations are under **Advanced: typed operations**; their coordinate
 bounds follow the current map.
 
-The current alpha server has no world-edit tools available and refuses typed
-world edits too. The panel says when no choices are available; editing a
-selected agent below remains available.
+Terrain choices paint ground, water, mountains or peaks. Resource choices add
+berry bushes, timber, fallen wood, stone, fiber or clay; object choices add a
+camp shelter, storage or cooking fire after the settlement starts. Choose empty
+tiles: agents, resources, objects, roads, fields and building sites are protected.
+The server saves the whole edit and marks it **Developer edit** in the Event Log.
+If the world changed since your preview, refresh and choose the tiles again.
 
 To set up a test, pause and use **Edit selected agent**. Choose a need and its
 percentage, goods and a quantity, a skill, or another agent for a partnership,

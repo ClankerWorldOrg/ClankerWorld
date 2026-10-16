@@ -302,6 +302,7 @@ public sealed partial class OwnerWorldObservationStore
         "owner-provider-configuration.v1",
         "owner-agent-provider-configuration.v1",
         "paused-authoring.request.v1",
+        "paused-authoring.request.v2",
         "content-governance.read.v1",
         "content-governance.write.v1",
     ];
@@ -785,7 +786,14 @@ public sealed partial class OwnerWorldObservationStore
                 map.ManifestDigest,
                 anchorWeather.ToString().ToLowerInvariant(),
                 state.WorldSystems?.Climate.Season.ToString().ToLowerInvariant() ?? "spring",
-                []),
+                [])
+            {
+                EditTools = WorldMapEditRules.Choices.GroupBy(choice => choice.Operation).Select(group =>
+                    new ClankerWorld.Contracts.OwnerWorldEditTool(group.Key, group.Key switch
+                    { "set_terrain" => "Terrain", "place_resource" => "Resource", _ => "Object" },
+                    group.Select(choice => new ClankerWorld.Contracts.OwnerWorldEditKind(choice.Value,
+                        choice.DisplayName, choice.IsRenewable)).ToArray())).ToArray(),
+            },
             Instructions = visibleInstructions
                 .Select(instruction => new InstructionView(
                     instruction.InstructionId,

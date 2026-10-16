@@ -201,13 +201,19 @@ caption on hover; the client source guard rejects new plain name labels.
 
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
-protocol also retains authoring batches, which the native server currently refuses
-with `game_world_authoring_pending` without applying them. Before sending
+protocol also retains native map-authoring batches. Before sending
 any of these requests, the client may atomically retain one non-secret pending
 record. It is bound to the authority identity, device ID, public-key fingerprint,
 and canonical server
 origin, and preserves the exact instruction or cancellation idempotency key, or
 authoring batch ID.
+
+New map batches use `clankerworld.owner-authoring.v2`: the canonical signature
+covers the world ID, expected latest event ID, run epoch, observer timeline,
+batch ID and every operation field. The server holds the active-world selection lock through
+validation and saving. Legacy v1 batches have no world precondition and are
+refused with a plain reason. The client keeps all v2 fields through a lost
+reply and never rebuilds the batch against a newer observation.
 
 Instructions additionally retain the observed simulation world ID (not the
 installation's pairing identity). Unqueued instructions use the signed
@@ -270,9 +276,9 @@ not exposed or automatically submitted.
 Each exact retry obtains a new one-use challenge and signature. For an
 instruction or order cancellation, it submits the same logical request so the
 server returns the original receipt rather than creating a duplicate. The
-native server continues to refuse authoring batches without applying them.
-World
-instruction keys ignore surrounding whitespace consistently. An exact instruction
+native server returns success for an identical map batch recorded in retained
+Developer edit history; an older unrecorded batch is refused by its expected
+event and run epoch rather than applied twice. World instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the server still returns its accepted receipt after the recipient dies,
 including after saving and restarting the server. The client's stricter timeline
 guard above decides whether its retained record can be sent. A new instruction to a deceased agent or
@@ -292,8 +298,7 @@ world context cannot clear a retained request in the current world.
 
 Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
-The retained authoring-batch protocol is disabled on the native server, as described
-above. There are no viewer, operator, or multiplayer roles yet. A revoked
+Paused map editing uses the same owner scope. There are no viewer, operator, or multiplayer roles yet. A revoked
 device immediately loses access. The revocation is written to the authority
 file before it takes effect, so a failed write leaves the device active and
 reports an error instead of losing the revocation at the next restart.

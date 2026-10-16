@@ -23,7 +23,7 @@ public partial class Main
     private readonly HashSet<Vector2I> worldEditTiles = [];
     private IReadOnlyList<OwnerWorldEditTool> worldEditTools = [];
     private string? worldEditWorldId;
-    private (long? Epoch, string? Digest, int Width, int Height) worldEditMapContext;
+    private (long? Epoch, string? Digest, string? LayersDigest, int Width, int Height) worldEditMapContext;
 
     private void BuildDeveloperWorldEdit()
     {
@@ -61,11 +61,11 @@ public partial class Main
         worldEditKind.ItemSelected += _ => UpdateWorldEditHint();
         AddWorldEditKinds();
         worldEditAdvancedBody.AddChild(worldEditKind);
-        worldEditId.PlaceholderText = "ID (resource/object/draft/asset as required)";
+        worldEditId.PlaceholderText = "Resource/object ID (optional)";
         worldEditAdvancedBody.AddChild(worldEditId);
-        worldEditValue.PlaceholderText = "Value (terrain, kind, name, weather, digest...)";
+        worldEditValue.PlaceholderText = "Value (supported terrain, resource or object kind)";
         worldEditAdvancedBody.AddChild(worldEditValue);
-        worldEditSecondaryValue.PlaceholderText = "Secondary value (season for set_weather_season)";
+        worldEditSecondaryValue.PlaceholderText = "Secondary value (leave empty)";
         worldEditAdvancedBody.AddChild(worldEditSecondaryValue);
         var coordinateRow = new HBoxContainer();
         ConfigureCoordinate(worldEditX, "x");
@@ -86,7 +86,7 @@ public partial class Main
     private void RenderWorldEditPicker(OwnerWorldSnapshot snapshot)
     {
         var (width, height) = MapDimensions(snapshot);
-        var context = (snapshot.Authoring?.RunEpoch, snapshot.Authoring?.CurrentMapManifestDigest ?? snapshot.MapManifestDigest, width, height);
+        var context = (snapshot.Authoring?.RunEpoch, snapshot.Authoring?.CurrentMapManifestDigest ?? snapshot.MapManifestDigest, snapshot.MapLayersDigest, width, height);
         if (worldEditWorldId != snapshot.WorldId || worldEditMapContext != context || snapshot.Authoring?.IsPaused != true)
         {
             worldEditWorldId = snapshot.WorldId;
@@ -162,22 +162,9 @@ public partial class Main
 
     private void AddWorldEditKinds()
     {
-        AddWorldEditKind("set_terrain", "Set terrain — value: meadow, water, or mountain; x/y required");
-        AddWorldEditKind("place_resource", "Place resource — ID, value=kind, x/y, renewable required");
-        AddWorldEditKind("remove_resource", "Remove resource — ID required");
-        AddWorldEditKind("place_object", "Place object — ID, value=kind, x/y required");
-        AddWorldEditKind("remove_object", "Remove object — ID required");
-        AddWorldEditKind("place_building", "Place building — ID, value=building kind, x/y required");
-        AddWorldEditKind("remove_building", "Remove building — ID required");
-        AddWorldEditKind("place_plant", "Place plant — ID, value=plant kind, x/y required");
-        AddWorldEditKind("remove_plant", "Remove plant — ID required");
-        AddWorldEditKind("create_founder_draft", "Create founder draft — ID, value=display name, x/y required");
-        AddWorldEditKind("remove_founder_draft", "Remove founder draft — ID required");
-        AddWorldEditKind("set_weather", "Set weather — value required");
-        AddWorldEditKind("set_season", "Set season — value: spring, summer, autumn, or winter");
-        AddWorldEditKind("set_weather_season", "Set weather + season — value=weather, secondary value=season");
-        AddWorldEditKind("add_approved_asset_reference", "Add approved asset reference — ID and exact lowercase sha256 digest must already be in the world server's asset catalog");
-        AddWorldEditKind("remove_approved_asset_reference", "Remove approved asset reference — ID required");
+        AddWorldEditKind("set_terrain", "Set terrain — use a terrain value offered above and map coordinates");
+        AddWorldEditKind("place_resource", "Place resource — use an offered resource kind; leave ID empty to create one");
+        AddWorldEditKind("place_object", "Place object — shelter, storage or cooking; leave ID empty to create one");
     }
 
     private void AddWorldEditKind(string kind, string description)
