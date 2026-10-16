@@ -49,6 +49,10 @@ public sealed class ProviderUsageCancellationBoundaryTests
         private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("clankerworld-usage-cancel-boundary-");
         private readonly InlineCancellationHttpHandler handler = new();
         private readonly RecordingLogger<ProviderUsageCancellationBoundaryTests> log = new();
+        // Entry and completion can block on gates owned by the test. Starting
+        // them must not depend on spare capacity in the .NET thread pool.
+        private readonly TaskFactory workers = new(CancellationToken.None, TaskCreationOptions.LongRunning,
+            TaskContinuationOptions.None, TaskScheduler.Default);
         private Task? runningOperation;
         private readonly AwaitingDecisionProvider provider;
         private readonly ModelWorkHarness harness;
@@ -82,7 +86,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
             // Entry blocks synchronously, so start it on a controlled worker
             // after the tick has registered the request. Signal waits must not
             // steal queued work and block the test before it opens AllowReturn.
-            var startup = Task.Run(harness.RunPendingWork);
+            var startup = workers.StartNew(harness.RunPendingWork);
             runningOperation = startup;
             try
             {
@@ -113,7 +117,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
 
         private async Task<T> RunWithDeadlineAsync<T>(Func<Task<T>> operation)
         {
-            var task = Task.Run(operation);
+            var task = workers.StartNew(operation).Unwrap();
             runningOperation = task;
             await ModelWorkHarness.WaitForSignalAsync(task, Deadline);
             return await task;
