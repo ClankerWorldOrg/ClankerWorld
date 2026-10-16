@@ -329,7 +329,7 @@ public partial class Main
                         !visible.Encloses(worldSelectButton.GetGlobalRect())))
                         throw new InvalidOperationException("Load World must keep its timeline and Load button in view without outer scrolling at the default size.");
                     var evidence = OS.GetEnvironment("CLANKERWORLD_LOAD_TIMELINE_EVIDENCE");
-                    if (evidence.Length > 0)
+                    if (!string.IsNullOrEmpty(evidence))
                     {
                         using var capture = GetViewport().GetTexture().GetImage();
                         if (capture.SavePng(evidence) != Error.Ok)
