@@ -367,7 +367,7 @@ public sealed partial class ServerHttpTests
         var failure = await authoring.Content.ReadFromJsonAsync<OwnerControlFailure>();
 
         Assert.Equal(HttpStatusCode.Conflict, authoring.StatusCode);
-        Assert.Equal("game_world_authoring_pending", failure!.Code);
+        Assert.Equal("world_edit_refused", failure!.Code);
         Assert.Equal(beforeAuthoring, WorldRuntimeCodec.Encode(runtime.ExportState()));
         var queued = Assert.Single(runtime.ExportState().Instructions!);
         Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);

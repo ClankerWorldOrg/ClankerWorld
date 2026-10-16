@@ -186,6 +186,9 @@ public partial class Main
         // Developer tools draw an agent's planned path between objects and agents.
         plannedPathLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         mapStage.AddChild(plannedPathLayer);
+        worldEditPreview.Follow(terrainLayer);
+        worldEditPreview.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        mapStage.AddChild(worldEditPreview);
 
         entityLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         entityLayer.MouseFilter = Control.MouseFilterEnum.Ignore;
