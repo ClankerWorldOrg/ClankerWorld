@@ -2645,6 +2645,9 @@ stop short on a building's interior approach tiles.
 Construction-site reachability uses the same walls. Placement and expansion
 leave existing doorways outdoors and require usable ground for a new doorway;
 Developer map edits cannot cover an existing doorway.
+Strict restore also refuses a building whose explicit or default doorway is
+off buildable ground or inside another building. Older alpha layouts with
+sealed doors are not migrated; their save files remain preserved.
 
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles

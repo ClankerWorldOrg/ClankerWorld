@@ -1,1 +1,1 @@
-- Agents leave buildings through their doorways and walk outside to neighbouring buildings instead of passing through their shared walls. New buildings and expansions leave existing doorways clear, and construction routes respect the same walls.
+- Agents leave buildings through their doorways and walk outside to neighbouring buildings instead of passing through their shared walls. New buildings and expansions leave existing doorways clear, and construction routes respect the same walls. Earlier saves with blocked building doorways are refused and kept.

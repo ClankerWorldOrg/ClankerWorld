@@ -8,9 +8,10 @@ namespace ClankerWorld.Tests;
 public sealed class BuildingMovementTests
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void PaidPlacementKeepsTheExistingDoorwayClear(bool recordedEntrance)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void PaidPlacementKeepsUsableDoorways(bool recordedEntrance, bool floodedEntrance)
     {
         using var generated = NormalPathWorld.CreateGenerated("building-foot-routes", _ => new VariantActionProvider());
         var state = generated.ExportState();
@@ -31,10 +32,20 @@ public sealed class BuildingMovementTests
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "door-placement-" + cost.ResourceId, cost.ResourceId, household, cost.Amount * 3);
         using var setup = WorldRuntime.Restore(BuildingVariantTestWorld.WithInventory(state, inventory), _ => new VariantActionProvider());
+        var exit = new GridPoint(site.X, site.Y + 1);
+        if (floodedEntrance)
+        {
+            setup.Pause();
+            var painted = setup.ApplyMapEdit(WorldMapEditTests.Edit(setup, WorldMapEditTests.Operation("set_terrain", "ocean", exit)));
+            Assert.True(painted.Applied, painted.Failure);
+            var unchanged = WorldRuntimeCodec.Encode(setup.ExportState());
+            Assert.False(setup.PlaceBuilding("door-first", definition.CanonicalId, site, household).Applied);
+            Assert.Equal(unchanged, WorldRuntimeCodec.Encode(setup.ExportState()));
+            return;
+        }
         var placed = setup.PlaceBuilding("door-first", definition.CanonicalId, site, household);
         Assert.True(placed.Applied, placed.Failure);
         state = setup.ExportState();
-        var exit = new GridPoint(site.X, site.Y + 1);
         if (recordedEntrance)
             state = state with
             {
@@ -44,6 +55,15 @@ public sealed class BuildingMovementTests
                         ? item with { Entrance = exit } : item).ToArray(),
                 },
             };
+        var sealedState = state with
+        {
+            WorldSimulation = state.WorldSimulation! with
+            {
+                Buildings = state.WorldSimulation.Buildings.Append(new PlacedBuilding("door-second", definition.CanonicalId,
+                    exit, state.Society.Society.WorldTick, HouseholdId: household)).OrderBy(item => item.InstanceId, StringComparer.Ordinal).ToArray(),
+            },
+        };
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(BuildingVariantTestWorld.Strict(sealedState)));
         using var world = WorldRuntime.Restore(BuildingVariantTestWorld.Strict(state), _ => new VariantActionProvider());
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var refused = world.PlaceBuilding("door-second", definition.CanonicalId, exit, household);

@@ -160,8 +160,9 @@ public static class WorldContentSimulationRules
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid footprint.");
             }
 
-            if (building.Entrance is { } entrance &&
-                (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance)))
+            var entrance = BuildingMovementRules.EntranceFor(definition, building);
+            if (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance) ||
+                existing.Any(item => Footprint(item.Definition, item.Placement).Contains(entrance)))
             {
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid entrance.");
             }
