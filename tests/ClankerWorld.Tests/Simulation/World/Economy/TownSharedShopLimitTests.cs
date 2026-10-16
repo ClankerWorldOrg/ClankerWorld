@@ -122,6 +122,8 @@ public sealed class TownSharedShopLimitTests
         var replayHarness = ModelWorkHarness.For(replay);
         for (var tick = 0; tick < 4; tick++) await continuedHarness.AdvanceTogetherAsync(replayHarness);
         var otherHousehold = continued.Society.GetAgent(project.AgentId).HouseholdId == Alpha ? Beta : Alpha;
+        Assert.Contains(recorder.OfferedByAgent.Keys,
+            actor => continued.Society.GetAgent(actor).HouseholdId == otherHousehold);
         Assert.Empty(ShopOffers(recorder, continued, kind, otherHousehold));
         Assert.NotEqual("cancelled", continued.ExportState().Agents.Single(person => person.AgentId == project.AgentId).Project!.Stage);
     }
