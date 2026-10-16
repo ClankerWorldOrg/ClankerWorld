@@ -216,8 +216,8 @@ public partial class Main
                     throw new InvalidOperationException("Retry must retain the failed hand-off version after another selection.");
                 launcherStartFailure.Hide();
                 ChooseWorldActionSmokeRow(0);
-                if (worldSelectButton.Text != "Open World" || worldSelectButton.ThemeTypeVariation != "PrimaryButton")
-                    throw new InvalidOperationException("Other worlds keep the green Open World button.");
+                if (worldSelectButton.Text != "Load" || worldSelectButton.ThemeTypeVariation != "PrimaryButton")
+                    throw new InvalidOperationException("Other worlds keep the green Load button.");
             }
         }
         finally
@@ -519,6 +519,12 @@ public partial class Main
                         response = new { error = "Controlled catalog failure." };
                     }
                     else response = Catalog;
+                    break;
+                case "/api/v1/owner/worlds/saves":
+                    var historyWorldId = envelope.GetProperty("action").GetProperty("value").GetString()!;
+                    var historyWorld = Catalog.Worlds.Single(world => world.Id == historyWorldId);
+                    response = new WorldSaveHistory(historyWorld.WorldId, ManualSaves ?? [],
+                        new(null, null, false), null, ManualSaves?.Select(save => save.WorldTick).DefaultIfEmpty().Max() ?? 0);
                     break;
                 case OwnerPairingEndpoints.OwnerSaveList when ManualSaves is { } saves:
                     response = saves;

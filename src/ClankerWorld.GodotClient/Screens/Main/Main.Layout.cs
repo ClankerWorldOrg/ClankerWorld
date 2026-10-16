@@ -186,6 +186,9 @@ public partial class Main
         // Developer tools draw an agent's planned path between objects and agents.
         plannedPathLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         mapStage.AddChild(plannedPathLayer);
+        worldEditPreview.Follow(terrainLayer);
+        worldEditPreview.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        mapStage.AddChild(worldEditPreview);
 
         entityLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         entityLayer.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -359,6 +362,10 @@ public partial class Main
         StyleMenuChoice(menuSaveWorldButton);
         menuSaveWorldButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: false);
         menuActions.AddChild(menuSaveWorldButton);
+        menuLoadSaveButton.Text = "Load Save";
+        StyleMenuChoice(menuLoadSaveButton);
+        menuLoadSaveButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: true);
+        menuActions.AddChild(menuLoadSaveButton);
 
         settingsButton.Text = "Settings";
         StyleMenuChoice(settingsButton);

@@ -432,19 +432,29 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapPost("/api/v1/owner/authoring", (
-            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request) =>
+            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request, IServiceProvider services) =>
         {
-            if (request?.Action is null)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["An authoring batch is required."],
-                });
-            }
-
-            return Results.Conflict(new OwnerControlFailure(
-                "game_world_authoring_pending",
-                "World authoring is not migrated yet; content activation remains disabled in the alpha runtime."));
-        });
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var timeline = runtime.ExportObservation().Timeline;
+            if (action.Timeline!.InstanceId != timeline.InstanceId || action.Timeline.Generation != timeline.Generation)
+                return Results.Conflict(new OwnerControlFailure("world_edit_refused",
+                    "The world was loaded or changed. Refresh and select the tiles again."));
+            var result = services.GetRequiredService<WorldStateFile>().ApplyMapEdit(runtime,
+                new(action.WorldId!, action.ExpectedEventId, action.RunEpoch, action.BatchId,
+                    action.Operations.Select(operation => operation is null ? null! : new WorldMapEditOperation(
+                        operation.Kind, operation.Id, operation.Value, operation.SecondaryValue,
+                        operation.X, operation.Y, operation.IsRenewable)).ToArray()));
+            if (result.Failure is { } failure)
+                return Results.Conflict(new OwnerControlFailure("world_edit_refused", failure));
+            var state = runtime.ExportState();
+            return Results.Ok(new OwnerAuthoringBatchReceipt(action.BatchId, result.Applied || result.AlreadyApplied,
+                null, state.EventHistoryFloor + state.Events.Count, 0,
+                state.Map.ManifestDigest));
+        }).ForWorld<OwnerAuthoringBatchAction>(action => action.WorldId ?? "", OwnerHttpBinding.AuthoringPayload,
+            (_, _) => Results.Conflict(new OwnerControlFailure("world_edit_refused", "The active world changed. Refresh before editing.")),
+            validate: action => action.Timeline is not { IsValid: true } || action.WorldId is null || action.ExpectedEventId < 0 || action.RunEpoch < 0 ||
+                action.Operations is not { Count: > 0 and <= WorldMapEditRules.MaximumOperations }
+                ? Results.Conflict(new OwnerControlFailure("world_edit_refused", "Refresh the world, then choose between 1 and 64 tiles to edit.")) : null);
     }
 }

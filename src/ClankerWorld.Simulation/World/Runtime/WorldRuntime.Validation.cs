@@ -496,6 +496,11 @@ public sealed partial class WorldRuntime
             state.Map.HydrologyKinds is null || state.Map.SurfaceKinds is null || state.Map.VegetationKinds is null))
             throw new InvalidDataException("The current generated geography is missing required map layers.");
 
+        if (state.MapAuthoring is { } authoring && (!authoring.IsValid(state.Map) ||
+            authoring.Resources.Any(resource => !state.Map.Resources.Contains(resource)) ||
+            authoring.Objects.Any(item => !state.Map.MapObjects.Contains(item))))
+            throw new InvalidDataException("The saved Developer map edits are invalid or do not match the map.");
+
         if (!MapAcceptance.Validate(state.Map, allowEmptyStartingSite: state.FounderSetup is not null).IsValid)
         {
             throw new InvalidDataException("The world runtime contains an invalid map.");

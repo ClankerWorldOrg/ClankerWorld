@@ -457,6 +457,7 @@ public sealed partial class WorldRuntime
         (society, proposed.society) = (proposed.society, society);
         worldSeed = proposed.worldSeed;
         map = proposed.map;
+        mapAuthoring = proposed.mapAuthoring;
         farmingSystem = proposed.farmingSystem;
         handcartHitches = proposed.handcartHitches;
         boatTransport = proposed.boatTransport;
