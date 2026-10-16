@@ -119,7 +119,7 @@ public sealed partial class WorldRuntime
         long worldTick,
         Func<PendingConversationTurn, bool> providerRouteIsCurrent)
     {
-        foreach (var pending in completed.OrderBy(item => item.Request.ConversationId, StringComparer.Ordinal))
+        foreach (var pending in completed)
         {
             if (!pending.Task.IsCompleted) continue;
             ApplyConversationTurnOutcome(

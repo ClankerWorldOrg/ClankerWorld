@@ -1873,6 +1873,12 @@ The cognition queue saves unresolved decision points. External HTTP tasks are
 not save authority. Pause or shutdown cancels them; a restored still-relevant
 decision may be retried and incur another attempt.
 
+Completed reply cohorts use ordinal saved queue identities: actor IDs for
+ordinary decisions and life-moment identities, conversation IDs for turns, and
+estate IDs for wills. Dictionary insertion and removal history cannot determine
+the order of accepted events. Live tasks and their request IDs remain transient;
+no extra ordering field or schema change is needed.
+
 The post-death will path is intentionally different: it freezes personally owned
 lot IDs/kinds/quantities and their original building storage in estate escrow.
 A cancellable final choice runs outside
