@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # Saves and replay
@@ -283,6 +283,19 @@ records a transition only if the flag changes, and preserves deadlines for
 couples still held by the procedure. Historical headcount events keep their
 original explanation. Eligible-couple transitions, rejected ticks and replay
 are checked with the current save format.
+
+World schema 138 extends continuity state with each held single adult's fixed
+partnering deadline, optional chosen partner and whether they said not yet.
+The single list is required,
+ordered by adult ID and empty while the rule is off. Loading refuses unknown
+adults or chosen partners, self choices, duplicate or unordered entries, and
+deadlines beyond two world days. Choices may become unavailable before the
+next maintenance check; pairing rechecks the same eligibility used by the
+continuity couple count. The typed `continuity_partnership_formed` event keeps
+both adults. Current-format reload, refused-tick rollback and paired exact-byte
+continuation preserve choices, deadlines and the resulting native partnership
+and family records. Earlier alpha saves are refused and preserved without
+migration. This version is provisional until merge.
 
 World schema 48 adds independent saved Town governance. It records the
 current council and fallback cause, term/retry schedules, personal full-term or
@@ -1168,7 +1181,7 @@ reading Details changes no stock, permissions or agent knowledge. Earlier
 alpha schemas are refused and preserved without migration or history backfill.
 
 World schema 95 adds a required routine-helper choice, model name and
-optional OpenAI credential-slot ID. API-key bytes remain installation-owned.
+optional credential-slot ID (OpenAI for Decisions, TypeSafe for Jev). API-key bytes remain installation-owned.
 Loading rejects invalid helper/model/slot formats or inconsistent availability;
 missing installation keys cannot be invented from a save. The existing helper
 routing revision invalidates earlier requests, and switches preserve memory
@@ -1307,7 +1320,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 137. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 138. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1448,7 +1461,7 @@ current alpha cutoff.
 | Schema 84 | Required marriage consent receipts and dedicated surname conversations preserve the original surnames, admitted turns and seeded result, including across history compaction. Later player surname changes update both spouses together without rewriting the original decision. |
 | Schema 91 | Non-land mandate consent, conduct-time law context, public hearings and voluntary remedy agreements retain their sources and real physical completion receipts. Earlier alpha saves are refused and preserved without migration. |
 | Schema 94 | Market receipts use required stable sequences and an explicit retirement boundary. Open trades retain their exact deposit proof; bounded closed outcomes may refer below the retired boundary. Live borrowing, current stock, exact payments and accepted offers remain authoritative; closed offers and claims retire together. Earlier alpha saves are refused and preserved without migration. |
-| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned OpenAI key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
+| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
 | Schema 96 | Animals, held products and saddles, care trips, pregnancies, named permissions and exact animal/milk offers retain their physical custody. Current saves require the complete animal record; earlier alpha saves are refused and preserved without migration. |
 | Schema 97 | Native public-service receipts retain the usable personal carried quantity before donation separately from the actual source lot. The four-unit reserve may span carried lots; saved validation preserves source quantity, reservations and exact physical transfer evidence. Earlier alpha saves are refused and preserved without migration. |
 | Schema 98 | Existing inventory events retain exact physical storage additions/removals by building and item kind, with signed quantities. Event identities, trade receipts, rollback and bounded archival remain intact. Malformed changes and earlier alpha schemas are refused; no migration or history reconstruction is added. |
@@ -2031,7 +2044,7 @@ an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
 rotation, and every required history segment must verify. Model preflight includes
-the saved OpenAI Decisions helper's selected key as well as agent assignments.
+the saved routine helper's selected named key as well as agent assignments.
 Load World rechecks that key's availability even when its structural checkpoint
 proof is cached; a missing named key never substitutes the installation default.
 A damaged newer autosave is retained and skipped. No usable

@@ -22,9 +22,12 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         // Unrelated starting wood would fill this one-tile House while the
         // writer fetches its jug. Leave space for the actual paper inputs.
+        // Leave farming tools out so initial field work does not compete with this supply check.
         var inventory = state.Society.Society.Inventory with
         {
-            Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != household || lot.ItemKind != "wood").ToArray(),
+            Lots = state.Society.Society.Inventory.Lots.Where(lot =>
+                (lot.OwnerId != household || lot.ItemKind != "wood") &&
+                ToolProgressionRules.Find(lot.ItemKind)?.Family != ToolFamily.Hoe).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "paper-water-jug", InventoryContainerRules.WaterJug,
             household, 1, state.Society.Society.WorldTick, storageBuildingId: houseId);

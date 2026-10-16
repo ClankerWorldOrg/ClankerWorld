@@ -1,0 +1,1 @@
+- Report a problem now includes the latest game log lines and keeps the previous run's log after a forced close. Ordinary file paths stay readable while keys and secrets are blanked.

@@ -72,6 +72,8 @@ public sealed partial class WorldRuntime
         if (kind == "silo" && FarmhouseForHousehold(household) is null) return false;
         failure = "The household needs a completed House before it can build an animal yard.";
         if (kind == AnimalContent.YardTag && HouseForHousehold(household) is null) return false;
+        failure = "This building has no reachable inputs for its work.";
+        if (!WorkBuildingHasInputs(actor, household, definition)) return false;
         failure = "Another household member is already planning this building.";
         var householdId = household;
         if (agents.Values.Any(other => other.AgentId != actor &&

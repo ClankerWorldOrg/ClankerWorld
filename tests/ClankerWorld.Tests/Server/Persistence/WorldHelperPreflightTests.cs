@@ -16,6 +16,9 @@ public sealed class WorldHelperPreflightTests
     [InlineData("decisions", true, false, true)]
     [InlineData("decisions", false, true, true)]
     [InlineData("decisions", true, true, false)]
+    [InlineData("jev", false, false, true)]
+    [InlineData("jev", false, true, true)]
+    [InlineData("jev", true, true, false)]
     public void HelperPreflightUsesTheSelectedKeyWithoutChangingRouting(string provider,
         bool defaultKey, bool namedKey, bool available)
     {
@@ -23,10 +26,11 @@ public sealed class WorldHelperPreflightTests
         try
         {
             var providers = Providers(directory.FullName);
-            if (defaultKey) providers.Configure(new("planning", "openai", "default-model", "synthetic-default-key", false));
+            if (defaultKey) providers.Configure(new(provider == "jev" ? "routine" : "planning",
+                provider == "jev" ? "jev" : "openai", "default-model", "synthetic-default-key", false));
             var slotId = Guid.NewGuid().ToString("N");
-            // A slot for another provider is unavailable even with a default OpenAI key.
-            if (namedKey) providers.CreateCredentialSlot(new(slotId, defaultKey ? "anthropic" : "openai",
+            // A slot for another provider is unavailable even with a default key.
+            if (namedKey) providers.CreateCredentialSlot(new(slotId, defaultKey ? "anthropic" : provider == "jev" ? "jev" : "openai",
                 "Helper key", "synthetic-named-key"));
             var before = providers.CaptureRuntimeConfiguration();
             var helper = new RoutineHelperSettings(provider, provider == "off" ? "" : "helper-model", namedKey ? slotId : null);
@@ -37,9 +41,11 @@ public sealed class WorldHelperPreflightTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ArchivedHelperAvailabilityIsRecheckedAfterItsKeyIsDeleted(bool warmUp)
+    [InlineData(false, "decisions")]
+    [InlineData(true, "decisions")]
+    [InlineData(false, "jev")]
+    [InlineData(true, "jev")]
+    public void ArchivedHelperAvailabilityIsRecheckedAfterItsKeyIsDeleted(bool warmUp, string provider)
     {
         var directory = Directory.CreateTempSubdirectory("helper-catalog-preflight-");
         try
@@ -47,10 +53,10 @@ public sealed class WorldHelperPreflightTests
             var path = Path.Combine(directory.FullName, "world.json");
             var providers = Providers(directory.FullName);
             var slotId = Guid.NewGuid().ToString("N");
-            providers.CreateCredentialSlot(new(slotId, "openai", "Helper key", "synthetic-helper-key"));
+            providers.CreateCredentialSlot(new(slotId, provider == "jev" ? "jev" : "openai", "Helper key", "synthetic-helper-key"));
             using var archived = new WorldRuntime("archived-helper");
             archived.Pause();
-            archived.SetRoutineHelper(new("decisions", "helper-model", slotId));
+            archived.SetRoutineHelper(new(provider, "helper-model", slotId));
             using var active = new WorldRuntime("active-helper");
             active.Pause();
             var file = new WorldStateFile(path);
@@ -67,7 +73,8 @@ public sealed class WorldHelperPreflightTests
             Assert.Equal("compatible", selection.List().Worlds.Single(world => world.Id == entry.Id).Compatibility);
 
             // A different default key must not replace the helper's deleted named key.
-            providers.Configure(new("planning", "openai", "default-model", "synthetic-default-key", false));
+            providers.Configure(new(provider == "jev" ? "routine" : "planning",
+                provider == "jev" ? "jev" : "openai", "default-model", "synthetic-default-key", false));
             providers.DeleteCredentialSlot(slotId);
             var listed = selection.List().Worlds.Single(world => world.Id == entry.Id);
             Assert.Equal("incompatible", listed.Compatibility);

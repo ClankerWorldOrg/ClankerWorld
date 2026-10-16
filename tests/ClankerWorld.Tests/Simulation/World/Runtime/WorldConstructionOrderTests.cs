@@ -317,6 +317,16 @@ public sealed partial class WorldConstructionOrderTests
         };
         inventory = InventoryAuthority.AddLot(inventory, "construction-wood", "wood", Alpha, 10, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "construction-stone", "stone", Alpha, 4, storageBuildingId: House);
+        // Site discovery uses autonomous offers, which now require work for
+        // the Clinic as well as its construction materials. Keep the exact
+        // construction-cost assertions; fuel can come from the native sources.
+        inventory = InventoryAuthority.AddLot(inventory, "construction-herbs", CareContent.MedicinalHerbs, Alpha, 2, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-jug", "water_jug", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-water", "fresh_water", Alpha, 1,
+            storageBuildingId: House, containerLotId: "construction-jug");
+        inventory = InventoryAuthority.AddLot(inventory, "construction-bread", "bread", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-greens", "cultivated_greens", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-meals", "food", Alpha, 8, storageBuildingId: House);
         state = WithInventory(state, inventory) with
         {
             JevEnabled = true,
