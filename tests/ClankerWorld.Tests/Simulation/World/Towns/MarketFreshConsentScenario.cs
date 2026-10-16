@@ -160,7 +160,7 @@ internal static class MarketFreshConsentScenario
         await UntilAsync(world, () => world.ExportState().CompletedInstructionIds!.Contains(order.InstructionId), 32);
         Assert.DoesNotContain(provider.Offered, candidate => candidate.Id.StartsWith("market_", StringComparison.Ordinal));
         Assert.Equal(foodBefore - 1, CarriedFoodQuantity(world, actor));
-        Assert.Contains(order.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(order.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "instruction_applied" &&
             item.Detail == order.InstructionId + ":consume_food");
         Assert.Empty(CurrentMarket(world).StockReceipts);
@@ -207,6 +207,10 @@ internal static class MarketFreshConsentScenario
         Assert.DoesNotContain(choices.Selected, item => item.Id.StartsWith("market_leave:", StringComparison.Ordinal));
         Assert.False(MarketTradeRules.IsInside(CurrentMarket(world), Physical(world, seller).Position));
         Assert.Equal(DirectBarterState.Cancelled, world.Society.Inventory.GetOffer(offerId).State);
+        var cancelled = Assert.Single(world.ExportState().Events, item =>
+            item.Payload is MarketTradeCancelledEventPayload payload && payload.OfferId == offerId);
+        Assert.Null(cancelled.Payload.ActorId);
+        Assert.Equal(trade.Position, cancelled.Position);
         Assert.All(claims, claim => Assert.Equal(InventoryReservationState.Released,
             world.Society.Inventory.GetReservation(claim.Id).State));
         AssertLotPlacementUnchanged(beforeGoods, world.Society.Inventory.GetLot(beforeGoods.Id));
@@ -252,8 +256,8 @@ internal static class MarketFreshConsentScenario
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static async Task StepAsync(WorldRuntime world)
     {
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await Task.Delay(1);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).SettleAsync();
     }
 
     private static async Task UntilAsync(WorldRuntime world, Func<bool> reached, int maximum,
@@ -279,10 +283,10 @@ internal static class MarketFreshConsentScenario
         internal Func<bool> AtSite { get; set; } = () => false;
         internal Func<bool> Borrowed { get; set; } = () => false;
         internal Func<bool> Deposited { get; set; } = () => false;
-        internal TaskCompletionSource<long> HeldBorrow { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<long> HeldDeposit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> ReleaseBorrow { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> ReleaseDeposit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal InlineCompletionSource<long> HeldBorrow { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<long> HeldDeposit { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> ReleaseBorrow { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> ReleaseDeposit { get; } = new(TaskCreationOptions.None);
         internal ConcurrentQueue<(string Id, long Tick)> Selected { get; } = new();
 
         internal Choices CreateProvider(string id) => id != actor ? new Choices(id) : new Choices(id,

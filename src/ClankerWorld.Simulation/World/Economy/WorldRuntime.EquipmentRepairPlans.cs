@@ -30,6 +30,9 @@ public sealed partial class WorldRuntime
                 else break;
             }
             if (materials.Count + inputs.Count != PersonalEquipmentRules.RepairMaterials(target.ItemKind).Count) continue;
+            if (PlanInputCollection(actor, inputs.Select(EquipmentRepairCollectionStep).ToArray(), site.Position) is not { } ordered)
+                continue;
+            inputs = ordered.Select(step => inputs.Single(input => input.Pickup.ItemKind == step.Kind)).ToList();
             var plan = new EquipmentRepairActionPlan(actor, target.Id, target.ItemKind, household,
                 site.InstanceId, site.Position, materials.AsReadOnly(), inputs.AsReadOnly(),
                 Reach(actor, site.Position, ReachPurpose.EquipmentRepair, 0, 0, SwimmingPolicy.WhenCapable));
@@ -37,6 +40,9 @@ public sealed partial class WorldRuntime
         }
         return null;
     }
+
+    private static InputCollectionStep EquipmentRepairCollectionStep(PlannedEquipmentRepairInput input) =>
+        new(input.Pickup.ItemKind, input.Pickup.Position, input.Pickup.InteractionRange, input.Quantity);
 
     private ActionCheck CheckEquipmentRepairPlan(EquipmentRepairActionPlan plan)
     {
@@ -63,21 +69,22 @@ public sealed partial class WorldRuntime
                 match.Quantity < input.Quantity || match.Lot.ContainerLotId is not null || match.Lot.CarrierId is not null ||
                 HouseholdStockPosition(match.Lot) != pickup.Position || HouseholdStockInteractionRange(match.Lot) != pickup.InteractionRange)
                 return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected repair supplies are no longer available");
-            if (!CanPrepareSharedPickup(plan.Actor, match.Lot, plan.Destination, 0))
-                return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected supplies cannot return to the repair site");
         }
+        if (!RecheckInputCollection(plan.Actor, plan.Inputs.Select(EquipmentRepairCollectionStep).ToArray(),
+                plan.Destination, ReachPurpose.EquipmentRepair))
+            return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected repair input trip is no longer possible");
         return agents[plan.Actor].Position == plan.Destination || Reach(plan.Actor, plan.Destination,
             ReachPurpose.EquipmentRepair, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the equipment repair site is out of reach now");
     }
 
-    private void ApplyEquipmentRepairPlan(EquipmentRepairActionPlan? plan)
+    private void ApplyEquipmentRepairPlan(EquipmentRepairActionPlan? plan, string? orderInstructionId = null)
     {
         if (plan is null) return;
         if (CheckEquipmentRepairPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Inputs.Count > 0) { ApplyPlannedEquipmentPickup(plan.Actor, plan.Inputs[0].Pickup); return; }
         var person = agents[plan.Actor];
         if (person.Position != plan.Destination) { MoveToward(plan.Actor, person, plan.Destination, "repair_equipment", 0); return; }
-        StartEquipmentRepair(plan.Actor, person, plan.TargetId, plan.BuildingId, plan.Materials);
+        StartEquipmentRepair(plan.Actor, person, plan.TargetId, plan.BuildingId, plan.Materials, orderInstructionId);
     }
 }
