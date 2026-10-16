@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # How the game works
@@ -559,6 +559,20 @@ Statements and personal responses retain their submitted text and party identity
 responses still check the actor's current authority when another adult leaves.
 Observations retain the visible plot and physical description. Relays retain
 the recipient and the evidence/reopening material the source already read.
+Case-judge consent and resignation retain their exact case revision and
+consent or mandate. Case ballots retain their round, opening rosters and
+candidate while allowing current ballots to accumulate or be revised.
+A withdrawn candidate or departed voter does not invalidate other selections;
+the retained voter and candidate must remain in the original and current rosters.
+The same checks verify current standing and the native round deadline.
+Ruling plans retain the noticed revision, judge, affected permissions and
+applications, cited material and bound outcome/reasons. Property rulings
+retain the actual building/goods snapshot. Shared native refusal validation
+checks those inputs before the original ruling and property writers publish.
+Reopening plans retain the settled ruling, selected request, personal grounds
+or assessment and exact cited evidence. The same native refusal checks verify
+standing, informed independent assessment, established grounds and plot access.
+An accepted property rehearing retains its new-notice material snapshot.
 Before binding, household filing availability follows current affected plots;
 the original nearby suggestions do not restrict the exact reply selection.
 Filing plans are constructed only at the notice board.
@@ -724,6 +738,19 @@ Actual presentation changes refresh immediately, so opening a hidden list shows
 the latest accepted information. World identity, a theme change or resetting the
 displayed world invalidates reuse. This cache belongs only to client presentation;
 it changes no observation cadence, simulation state, saved data or history.
+
+## Client panel layout
+
+Resize-driven text and Profile fitting is coalesced in the next process frame.
+Changing a text panel's height can change its wrapping and the Profile's scroll
+area; those notifications must not schedule another fit in the same idle flush.
+The fresh-process Profile check opens every agent in a generated, three-day
+hard world, including a born child, and measures both the button handler and
+the following layout frames. The normal UI smoke runs separately so its earlier
+profile opens cannot hide a first-open stall.
+The real first Profile open in a rendered game logs `agent_profile_open` at `begin`,
+`controls_ready` and `first_draw`, with elapsed times and no agent data, so a
+platform-specific stall can be separated into control setup and first drawing.
 
 ## Finding goods
 
