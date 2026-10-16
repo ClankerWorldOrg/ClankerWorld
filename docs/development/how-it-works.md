@@ -554,6 +554,11 @@ Land hearing filing retains the household, governing office or Council
 revision and binds the admitted plot, requested outcome and statement once.
 Its shared check uses the native plot, filing and proposal-retry validators
 before the retained terms reach the original case or Council writer.
+Hearing inspection retains the current case file and noticed revision.
+Statements and personal responses retain their submitted text and party identity;
+responses still check the actor's current authority when another adult leaves.
+Observations retain the visible plot and physical description. Relays retain
+the recipient and the evidence/reopening material the source already read.
 Before binding, household filing availability follows current affected plots;
 the original nearby suggestions do not restrict the exact reply selection.
 Filing plans are constructed only at the notice board.

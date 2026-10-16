@@ -70,12 +70,10 @@ internal sealed partial class TownSystem
             "land-evidence:" + TownLandHearingRules.Digest(item.Id + "|" + TownLandHearingRules.CurrentRevision(item).Number +
                 "|" + item.Evidence.Count + "|" + actor + "|" + kind + "|" + source)[..32];
 
-    internal static TownLandRecords LandHearingObserve(ITownWorld world, TownLandRecords hearings, TownLandCase item,
-            string actor, TownCouncilState council)
+    internal static LandPlotObservation PlanLandPlotObservation(ITownWorld world, TownLandCase item, string actor)
     {
         var revision = TownLandHearingRules.CurrentRevision(item);
         var visible = revision.Tiles.Where(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToHashSet();
-        if (visible.Count == 0) throw new InvalidOperationException("A plot observation requires actual physical proximity.");
         var buildings = world.WorldSimulation.Buildings.Where(building => visible.Contains(building.Position)).OrderBy(building => building.InstanceId, StringComparer.Ordinal)
             .Select(building => $"{building.DefinitionId} at ({building.Position.X}, {building.Position.Y})");
         var crops = world.Fields.Where(field => visible.Contains(field.Position)).OrderBy(field => field.Position.Y).ThenBy(field => field.Position.X)
@@ -83,6 +81,16 @@ internal sealed partial class TownSystem
         var description = "Personally observed nearby plot: " + string.Join("; ", buildings.Concat(crops));
         if (description == "Personally observed nearby plot: ") description += "no building origin or cultivated field on the inspected tiles.";
         if (description.Length > TownLandHearingRules.MaximumTextLength) description = description[..TownLandHearingRules.MaximumTextLength];
+        return new(revision.Tiles.Where(visible.Contains).ToArray(), description);
+    }
+
+    internal static TownLandRecords LandHearingObserve(ITownWorld world, TownLandRecords hearings, TownLandCase item,
+            string actor, TownCouncilState council, LandPlotObservation? observation = null)
+    {
+        var revision = TownLandHearingRules.CurrentRevision(item);
+        observation ??= PlanLandPlotObservation(world, item, actor);
+        if (observation.VisibleTiles.Count == 0) throw new InvalidOperationException("A plot observation requires actual physical proximity.");
+        var description = observation.Description;
         if (item.Evidence.Any(evidence => evidence.Revision == revision.Number && evidence.Kind == "observation" &&
                 evidence.SourceAgentId == actor && evidence.Text == description)) return hearings;
         return TownLandHearingRules.AddEvidence(hearings, item.Id, revision.Number,

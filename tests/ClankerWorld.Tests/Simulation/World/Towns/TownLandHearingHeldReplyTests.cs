@@ -25,27 +25,7 @@ public sealed class TownLandHearingHeldReplyTests
             var household = world.Society.GetAgent(Actor).HouseholdId!;
             var originalRights = JsonSerializer.Serialize(initial.HouseholdLandUseRights);
             var originalBuildings = JsonSerializer.Serialize(initial.WorldSimulation!.Buildings);
-            var refreshed = false;
-            for (var attempt = 0; attempt < 20 && !provider.Started.Task.IsCompleted; attempt++)
-            {
-                var step = await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline);
-                Assert.True(step.Advanced);
-                if (!refreshed && world.Towns[0].LandRecords.Cases.Count > 0)
-                {
-                    world.SubmitInstruction(new("consider-hearing", "owner:test", Actor, OwnerInstructionKind.Suggestion,
-                        "Read the posted land hearing and consider your own response."));
-                    refreshed = true;
-                }
-                if (step.Events.Any(item => item.Kind == "hosted_decision_started" && item.Detail == Actor))
-                {
-                    var call = await ModelWorkHarness.For(world).WaitAsync(provider.Entered.Reader.ReadAsync().AsTask());
-                    // The provider cannot even select a reply until this gate opens. Waiting for
-                    // real entry keeps background scheduling from consuming the hearing window.
-                    Assert.False(ModelWorkHarness.For(world).DecisionsFinished(Actor));
-                    call.Proceed.TrySetResult(true);
-                    if (!await ModelWorkHarness.For(world).WaitAsync(call.ReplyHeld.Task)) await WaitForModelCompletionAsync(world);
-                }
-            }
+            await HoldPersonalReplyAsync(world, provider);
             Assert.True(provider.Started.Task.IsCompleted, "The actual posted notice and response were not offered within twenty hosted ticks.");
             await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             Assert.NotNull(provider.ReadCandidateId);
@@ -79,7 +59,8 @@ public sealed class TownLandHearingHeldReplyTests
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor)) completed = step;
             }
             Assert.NotNull(completed);
-            Assert.True(completed.Decisions.Any(decision => decision.AgentId == Actor && decision.Admission.FellBack) ||
+            Assert.True(completed.Decisions.Any(decision => decision.AgentId == Actor &&
+                (decision.Admission.FellBack || decision.PlanRefusal is { Reason: ActionRefusalReason.TargetUnavailable })) ||
                 completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor ||
                     item.Kind == "town_civic_action_rejected" && item.Detail == world.Towns[0].Id + "|" + Actor + "|" + action),
                 "The completed old response must be refused by admission or by the hearing's current-action preflight.");
@@ -119,6 +100,93 @@ public sealed class TownLandHearingHeldReplyTests
             Assert.Equal(originalRights, JsonSerializer.Serialize(restored.HouseholdLandUseRights));
         }
         finally { provider.Release(); }
+    }
+
+    [Theory]
+    [InlineData("hearing_answer")]
+    [InlineData("hearing_waive")]
+    public async Task ARemainingAdultsHeldResponseSurvivesAnotherHouseholdAdultsDeparture(string action)
+    {
+        var provider = new HeldReplyProvider(action);
+        using var world = NewWorld(provider);
+        try
+        {
+            await HoldPersonalReplyAsync(world, provider);
+            Assert.True(provider.Started.Task.IsCompleted);
+            var original = Assert.Single(world.Towns[0].LandRecords.Cases);
+            var revision = Assert.Single(original.Revisions);
+            var household = world.Society.GetAgent(Actor).HouseholdId!;
+            var party = Assert.Single(revision.Parties, item => item.HouseholdId == household);
+            var departing = party.AdultIds.First(id => id != Actor);
+            Assert.Contains(world.Towns[0].Council!.Knowledge,
+                receipt => receipt.AgentId == Actor && receipt.NoticeId == revision.NoticeId);
+
+            // Keep the real host request outstanding; another adult's native exit does not
+            // replace this notice or invalidate the remaining adult's personal response.
+            Assert.True(world.DisplaceAdult(departing));
+            Assert.Null(world.Society.GetAgent(departing).HouseholdId);
+            Assert.Equal(household, world.Society.GetAgent(Actor).HouseholdId);
+            await ModelWorkHarness.WaitForSignalAsync(Task.Run(provider.Release));
+            await WaitForModelCompletionAsync(world);
+            WorldStepResult? completed = null;
+            for (var attempt = 0; attempt < 10 && completed is null; attempt++)
+            {
+                var step = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
+                Assert.True(step.Advanced);
+                if (step.Decisions.Any(decision => decision.AgentId == Actor)) completed = step;
+            }
+            Assert.NotNull(completed);
+            var decision = Assert.Single(completed.Decisions, decision => decision.AgentId == Actor);
+            Assert.True(decision.Admission.Accepted);
+            Assert.False(decision.Admission.FellBack);
+            Assert.Null(decision.PlanRefusal);
+            var plan = Assert.IsType<LandHearingEvidenceActionPlan>(decision.ActionPlan);
+            Assert.Equal(provider.HeldCandidateId, plan.CandidateId);
+            Assert.Contains(departing, plan.Party!.AdultIds);
+            var current = Assert.Single(world.Towns[0].LandRecords.Cases);
+            Assert.Equal(revision, Assert.Single(current.Revisions));
+            var response = Assert.Single(current.Responses);
+            Assert.Equal((Actor, party.Id, revision.Number, action == "hearing_answer" ? "answer" : "waive"),
+                (response.AgentId, response.PartyId, response.Revision, response.Kind));
+            Assert.Equal(action == "hearing_answer" ? "I personally answer this noticed hearing." : "I choose not to respond. This speaks only for me.", response.Text);
+            Assert.DoesNotContain(current.Responses, response => response.AgentId == departing);
+            Assert.Empty(current.Rulings);
+            Assert.Empty(world.Towns[0].LandRecords.Adjustments);
+
+            world.Pause();
+            world.Validate();
+            var encoded = WorldRuntimeCodec.Encode(world.ExportState());
+            using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded), _ => new ActionCoverageRecorder(chooseIdle: true));
+            restored.Validate();
+            Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
+            Assert.Equal(response, Assert.Single(Assert.Single(restored.Towns[0].LandRecords.Cases).Responses));
+        }
+        finally { provider.Release(); }
+    }
+
+    private static async Task HoldPersonalReplyAsync(WorldRuntime world, HeldReplyProvider provider)
+    {
+        var refreshed = false;
+        for (var attempt = 0; attempt < 20 && !provider.Started.Task.IsCompleted; attempt++)
+        {
+            var step = await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline);
+            Assert.True(step.Advanced);
+            if (!refreshed && world.Towns[0].LandRecords.Cases.Count > 0)
+            {
+                world.SubmitInstruction(new("consider-hearing", "owner:test", Actor, OwnerInstructionKind.Suggestion,
+                    "Read the posted land hearing and consider your own response."));
+                refreshed = true;
+            }
+            if (step.Events.Any(item => item.Kind == "hosted_decision_started" && item.Detail == Actor))
+            {
+                var call = await ModelWorkHarness.For(world).WaitAsync(provider.Entered.Reader.ReadAsync().AsTask());
+                // The provider cannot even select a reply until this gate opens. Waiting for
+                // real entry keeps background scheduling from consuming the hearing window.
+                Assert.False(ModelWorkHarness.For(world).DecisionsFinished(Actor));
+                call.Proceed.TrySetResult(true);
+                if (!await ModelWorkHarness.For(world).WaitAsync(call.ReplyHeld.Task)) await WaitForModelCompletionAsync(world);
+            }
+        }
     }
 
     private static Task WaitForModelCompletionAsync(WorldRuntime world) =>

@@ -184,8 +184,14 @@ public sealed class TownLandHearingRulesTests
         Assert.Equal("judge", receipt.SourceAgentId);
         Assert.Equal("record:right", Assert.Single(receipt.EvidenceIds));
         Assert.DoesNotContain("later", receipt.EvidenceIds);
+        Assert.Throws<InvalidOperationException>(() => TownLandHearingRules.RelayRead(state, fixture.Id, 1, "judge", "a", 11, ["later"], []));
         Assert.Throws<InvalidOperationException>(() => TownLandHearingRules.RelayRead(state, fixture.Id, 1, "unread", "a", 11));
         Validate(state, fixture.Rights, fixture.Council, 11);
+        state = TownLandHearingRules.Inspect(state, fixture.Id, 1, "judge", 11);
+        state = TownLandHearingRules.RelayRead(state, fixture.Id, 1, "judge", "other", 12, ["record:right"], []);
+        Assert.Equal("record:right", Assert.Single(state.Cases[0].Reads[^1].EvidenceIds));
+        Assert.DoesNotContain("later", state.Cases[0].Reads[^1].EvidenceIds);
+        Validate(state, fixture.Rights, fixture.Council, 12);
     }
 
     [Fact]
