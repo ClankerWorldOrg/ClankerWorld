@@ -1,3 +1,4 @@
 - Land case inspection, observations, statements, responses and relays retain their selected revision and material through shared checks.
 - A remaining adult can answer or waive a land case after another household adult leaves, while keeping the original notice and response window.
 - Land case choices skip public-file and plot-observation planning while the actor is away from the notice board or disputed plot.
+- Land case evidence choices validate complete Town and revision, party or recipient references through the native shared bounds.
