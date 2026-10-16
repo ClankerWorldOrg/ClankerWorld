@@ -109,7 +109,9 @@ internal sealed partial class TownSystem
                     candidates.Add(new(CivicAction(world, town.Id, "request_expansion_land", building.InstanceId, TownLandClaimRules.DescribeTiles(extra)),
                         "Request household use of the extra land needed to expand your House. Council approval and every current adult's acceptance are required. Exact tiles: " +
                         TownLandClaimRules.DescribeTiles(extra) + ".", 190));
-        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id))
+        var history = CivicHistory(town);
+        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id && request.Status == "pending" &&
+                     history.Knows(actor, "land_use", request.Id)))
         {
             var terms = request.HearingResolutions.Count == 0 ? LandUseTerms(world, request) :
                 "Remaining unheard requested tiles: " + TownLandClaimRules.DescribeTiles(TownLandRightsRules.UnresolvedRequestTiles(request)) +
