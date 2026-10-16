@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # Build and test
@@ -379,6 +379,14 @@ applying, then verify that no changes remain.
 
 `verify-godot-client.sh` downloads the pinned engine archive, checks its
 SHA-256, builds the scripts and starts the scene headlessly.
+It also prepares a disposable generated world with the hard-world and
+accepted-birth fixtures, advances it for three normal game days with local
+model replies, and opens every agent's Profile in fresh Godot processes at
+1280×720 and 1920×1080. The check times selection, the first Profile button
+press and the following layout frames, checks Back and missing optional data,
+and fails on engine errors. External watchdogs also catch a stalled main thread.
+This adds a native-world run to the client check; it does not contact a model
+service or inspect an owner's saves, and does not replace a Windows playtest.
 `verify-godot-windows-export.sh` verifies the pinned editor and templates,
 creates an unsigned Windows x64 PE bundle and writes a SHA-256 manifest.
 The export stages tracked files from the checkout's current commit, so commit

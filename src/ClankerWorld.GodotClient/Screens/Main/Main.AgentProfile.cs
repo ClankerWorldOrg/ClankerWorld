@@ -476,16 +476,19 @@ public partial class Main
 
     private void QueueAgentProfileFit()
     {
-        if (agentProfileFitQueued) return;
+        // A deferred call runs in the same idle flush. Fitting can change the
+        // minimum size again, so leave that work for the next process frame.
         agentProfileFitQueued = true;
-        Callable.From(() =>
-        {
-            agentProfileFitQueued = false;
-            PositionAgentProfile();
-            // Keep the message box in view while typing, once the scroll has its new height.
-            if (instructionText.HasFocus())
-                Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
-        }).CallDeferred();
+    }
+
+    private void FitQueuedAgentProfile()
+    {
+        if (!agentProfileFitQueued) return;
+        agentProfileFitQueued = false;
+        PositionAgentProfile();
+        // Keep the message box in view once the scroll has its new height.
+        if (instructionText.HasFocus())
+            Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
     }
 
     /// <summary>The Profile's details take the room they need and scroll once the panel would pass the bottom of the screen.</summary>
