@@ -178,10 +178,9 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         await AwaitConversationRequestsAsync(world);
         NativeHearingPromptAll(world);
-        await host.Advance();
+        var (bytes, checkpoint) = await host.Advance();
         await AwaitConversationRequestsAsync(world);
-        var bytes = host.Saved();
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new NativeLandHearingChoices());
+        using var restored = WorldRuntime.Restore(checkpoint, _ => new NativeLandHearingChoices());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 

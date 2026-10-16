@@ -256,6 +256,7 @@ public partial class Main : Control
     {
         ownerApi = new OwnerWorldApi(httpClient);
         localServer = FindBundledLocalServer();
+        localServerStarting = localServer is not null;
         // A game with its own local server keeps that pairing apart from any server
         // pairing an older client saved in the same user folder.
         var prefix = localServer is null ? string.Empty : "local-";

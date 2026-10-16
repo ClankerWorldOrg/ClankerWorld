@@ -128,6 +128,10 @@ the test clock or replace the client's timeout or caller cancellation.
 The manual clock synchronizes timer state and invokes callbacks outside that
 state lock, so a returned HTTP call can dispose its deadline on another thread.
 
+Fixtures that interleave gates run blocking checkpoint and usage completion on
+dedicated workers, so a test waiting for entry cannot starve the worker it needs.
+Keep the real runtime/host gates and diagnostic deadlines in these tests.
+
 Host fixtures use `AdvanceWithModelWorkAsync(world)` to keep the real host save
 and commit path while controlling the same work queues. Use `WaitForAllAsync`
 when every pending input must finish before paired checkpoint continuations,
@@ -229,9 +233,15 @@ can change a test result. A change to one of those files, to anything under
 `tests/`, or to anything outside the client folder runs everything.
 
 Each batch the merge queue tests on top of main runs everything. The queue then
-moves main to the very commit it tested, so the push to main finds that green
-run and runs nothing more, and main's green runs on this page are the queue's.
-A push the queue didn't test runs everything. When a pull request in the queue
+moves main to the very commit it tested. The push to main reuses the latest
+queue run's completed, successful required checks on that exact commit, even
+while the workflow finishes its nonblocking work, and runs nothing more.
+Main's green runs on this page are successful queue runs whose exact commits
+are ancestors of main (or main itself). The timing downloader pins main once
+and pages past unmerged successes, including retries after a queue removal,
+until it has the requested number of runs or exhausts the history. Missing
+artifacts are left out, so fewer samples or the fixed split may be used. Without those required results,
+or if they cannot be read, the push runs everything. When a pull request in the queue
 fails, the queue rebuilds the ones behind it, and each rebuilt run cancels its
 pull request's older queue runs. A newer push to a pull request cancels its
 older run.
