@@ -2545,6 +2545,7 @@ corners are closed. Expanded footprints use their effective dimensions, and a
 changed building list invalidates the derived geometry and route searches.
 Movement within the departure or destination building remains possible; an
 unrelated building cannot supply a shortcut through its single doorway.
+Interaction-range routes also end outdoors unless the target lies in that building.
 
 Movement reads water and elevation; build eligibility also reads surface.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles

@@ -134,6 +134,31 @@ public sealed class BuildingMovementTests
         Assert.False(new UnoccupiedReachabilitySearch(map, [], new(4, 2), 0, canStep: CanStep).CanReachFrom(new(2, 2)));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AnInteractionApproachCannotEndInsideAnUnrelatedBuilding(bool swimming)
+    {
+        var map = Meadow();
+        var definition = Definition();
+        var rules = new BuildingMovementRules([
+            new("work", definition.CanonicalId, new(2, 2), 0, Entrance: new(1, 2))], [definition]);
+        bool CanStep(GridPoint from, GridPoint to) => rules.CanStep(map, from, to);
+        Func<GridPoint, IEnumerable<GridPoint>>? neighbors = swimming ? point => SwimmingRules.Neighbors(map, point) : null;
+        var destination = new GridPoint(4, 2);
+        using var search = new UnoccupiedRouteSearch(map, new(0, 2), [], map.FootStepCost, neighbors, CanStep, rules.CanStop);
+        var route = search.RouteTo(destination, 1);
+        Assert.NotEmpty(route);
+        Assert.InRange(map.FootDistance(route[^1], destination), 0, 1);
+        Assert.DoesNotContain(route, point => point.X is 2 or 3 && point.Y is 2 or 3);
+        var reverse = new UnoccupiedReachabilitySearch(map, [], destination, 1, neighbors, CanStep, rules.CanStop);
+        foreach (var tile in map.Tiles)
+        {
+            using var forward = new UnoccupiedRouteSearch(map, tile.Position, [], map.FootStepCost, neighbors, CanStep, rules.CanStop);
+            Assert.Equal(forward.RouteTo(destination, 1).Count > 0, reverse.CanReachFrom(tile.Position));
+        }
+    }
+
     [Fact]
     public void ExpandedFootprintsBlockTheirNewWallsAndOutdoorDiagonalCorners()
     {

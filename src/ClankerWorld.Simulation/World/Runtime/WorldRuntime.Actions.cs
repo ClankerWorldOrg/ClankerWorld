@@ -105,7 +105,8 @@ public sealed partial class WorldRuntime
         {
             if (priority.Cost != best[current])
                 continue;
-            if (IsWithinInteractionRange(current, destination, interactionRange))
+            if (IsWithinInteractionRange(current, destination, interactionRange) &&
+                (current == origin || buildings.CanStop(current, destination)))
             {
                 var route = new List<GridPoint> { current };
                 while (current != origin)

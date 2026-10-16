@@ -39,5 +39,9 @@ internal sealed class BuildingMovementRules
             !interiors.ContainsKey(new GridPoint(from.X, to.Y));
     }
 
+    internal bool CanStop(GridPoint point, GridPoint destination) =>
+        !interiors.TryGetValue(point, out var interior) ||
+        interiors.TryGetValue(destination, out var target) && ReferenceEquals(interior, target);
+
     private sealed record Doorway(GridPoint Entrance);
 }

@@ -17,7 +17,7 @@ internal sealed class UnoccupiedReachabilitySearch
     internal UnoccupiedReachabilitySearch(WorldMap map, HashSet<GridPoint> occupied,
         GridPoint destination, int interactionRange,
         Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
-        Func<GridPoint, GridPoint, bool>? canStep = null)
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
     {
         this.map = map;
         this.occupied = occupied;
@@ -32,7 +32,8 @@ internal sealed class UnoccupiedReachabilitySearch
             for (var x = 0; x < map.Width; x++)
             {
                 var point = new GridPoint(x, y);
-                if (map.FootDistance(point, destination) > interactionRange || occupied.Contains(point)) continue;
+                if (map.FootDistance(point, destination) > interactionRange || occupied.Contains(point) ||
+                    canStop?.Invoke(point, destination) == false) continue;
                 reached[Index(point)] = true;
                 open.Enqueue(point);
             }

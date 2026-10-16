@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
 
         UnoccupiedReachabilitySearch NewSearch() => new(map, occupied, destination, interactionRange,
             swimming ? point => SwimmingRules.Neighbors(map, point) : null,
-            (from, to) => buildings.CanStep(map, from, to));
+            (from, to) => buildings.CanStep(map, from, to), buildings.CanStop);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public sealed partial class WorldRuntime
                 RouteSearchesCreated++;
                 shared = new SharedRouteSearch(new UnoccupiedRouteSearch(map, origin, occupied, swimming ? AgentStepCost : LegalRoadStepCost,
                     swimming ? point => SwimmingRules.Neighbors(map, point) : null,
-                    (from, to) => buildings.CanStep(map, from, to)),
+                    (from, to) => buildings.CanStep(map, from, to), buildings.CanStop),
                     roadTiles, roadTiles.Count, roadBridgeDecks, swimming);
                 if (routeSearches.Count == SharedRouteSearchLimit)
                 {
