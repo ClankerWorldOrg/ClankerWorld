@@ -48,7 +48,9 @@ rollback backup. This is the approved pre-release exception described in
    signature over canonical request data. The server consumes the challenge
    once before asking the runtime to commit. Challenges are process-local:
    restarting the server invalidates both pending and consumed challenges, so an
-   old nonce cannot be replayed after a crash. Pairing and revocation remain
+   old nonce cannot be replayed after a crash. Pending challenges are capped per
+   device and overall; a new challenge expires the oldest unanswered ones to make
+   room instead of being refused. Pairing and revocation remain
    durable; idle reads do not rewrite the authority file. It
    derives the durable issuer from the active device; the runtime mints durable
    IDs, event ordering, and submission sequence. A client request ID and
@@ -94,8 +96,12 @@ are the sole plaintext exception, for an explicit local-development server.
 
 The headless server persists paired-device authority separately from the world
 runtime. The authority file contains public keys, fingerprints, state, and
-anti-replay hashes—not device private keys or raw comparison codes. The runtime
-file contains world state and never becomes credential storage. Both files are
+anti-replay hashes—not device private keys or raw comparison codes. It also
+holds the server authority ID that pairing replies and signed proofs name. Unless
+`ClankerWorld:Pairing:ServerAuthorityId` sets one, a new server picks a random
+ID and keeps the file's ID after that. Existing servers retain their stored ID,
+including IDs made from a computer name by older builds, so paired devices stay
+paired. The runtime file contains world state and never becomes credential storage. Both files are
 written atomically and use owner-only filesystem permissions on Unix servers.
 
 ## Server-origin binding
@@ -288,7 +294,16 @@ Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
 The retained authoring-batch protocol is disabled on the native server, as described
 above. There are no viewer, operator, or multiplayer roles yet. A revoked
-device immediately loses access. Authority state retains non-secret public-key
+device immediately loses access. The revocation is written to the authority
+file before it takes effect, so a failed write leaves the device active and
+reports an error instead of losing the revocation at the next restart.
+Revoking also cancels any pending or approved pairing for the same key.
+
+One key belongs to at most one active device: approving or activating a second
+pairing for a key that is already active is refused. A revoked key cannot start
+a pairing or have one approved on the public routes. The approval listener on
+the server's own computer can still deliberately start and approve its pairing,
+which gives it a new device ID beside the revoked record. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.
 
@@ -315,7 +330,8 @@ Linux CI export.
 ## Pairing volume and local recovery
 
 Public pairing creation has a shared eight-attempt, one-minute budget, including
-invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
+invalid keys. It is attached to the route itself, so every path spelling routing
+accepts for it counts. A shared budget avoids trusting proxy-supplied source addresses; a
 429 response includes Retry-After: 60. Signed challenges, reconnect and pause do
 not consume it. This is bounded ingress, not a claim that the Tailnet endpoint
 is DoS-proof.
@@ -374,9 +390,10 @@ a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_A
 so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
 
-On such a local server, every `/api/v1/approval/*` request must also carry the
-value in the `X-ClankerWorld-Launch-Secret` header, compared in constant
-time. Without it the routes return 404, exactly as on the forwarded listener.
+On such a local server, every `/api/v1/approval/*` request except the launch
+check below must also carry the value in the `X-ClankerWorld-Launch-Secret`
+header, compared in constant time. Without it the routes return 404, exactly as
+on the forwarded listener.
 The game uses it to start its own pairing with `POST /api/v1/approval/pairings` and
 approve it with the comparison code, so the player sees no code to copy and the
 public route's shared budget and pending slots do not hold it up. Status and
@@ -395,12 +412,24 @@ exit releases its handle, so a crash leaves no stale lock. A failed launch
 restores the prior secret, and cancellation finishes its own starting child's
 stop attempt before releasing the handle. An explicitly refused shutdown keeps
 the server and its paused world available for retry. A running server of the exact same version and
-source revision, started by an earlier launch, is reused only after a
-side-effect-free `GET /api/v1/approval/launch-check`
-confirms the secret already in its file on the approval listener. Anything else on
+source revision, started by an earlier launch, is reused only after it answers
+the side-effect-free launch check on the approval listener. The game sends
+`GET /api/v1/approval/launch-check` with a fresh random challenge in the
+`X-ClankerWorld-Launch-Check` header, and the server returns an HMAC-SHA256 of
+it keyed by the secret (`LocalServerLaunchCheck`). The game compares that with
+the answer for the secret already in its file, in constant time. The secret
+itself never goes over the connection for this check, and the game sends it on
+other approval requests only to a server that has answered; a child of its own
+that has not answered is stopped directly instead of over HTTP. A clean stop, one
+the server acknowledged or of the game's own child, deletes the secret file, so
+only a server still running keeps one for the next launch. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
-two-second request deadlines; an explicit build mismatch, invalid response or
+two-second request deadlines. After a discovery timeout, an exclusive bind to
+the loopback port checks whether it is free: Windows may still be retrying a
+connection to an empty port when the request deadline expires. A free port lets
+the game launch its server; a failed bind keeps the existing listener protected.
+An explicit build mismatch, invalid response or
 secret refusal ends the attempt immediately. An unresponsive existing server is
 reported as timed out, without starting a second process or replacing its secret.
 Caller cancellation also leaves that server and secret intact. The server's output goes to
