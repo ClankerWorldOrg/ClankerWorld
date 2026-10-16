@@ -1,1 +1,2 @@
 - Expansion deliveries, pickups and harvests retain their selected material lot or source through shared checks before applying.
+- Material steps emit the current typed delivery and pickup events with their retained quantities.

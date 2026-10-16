@@ -365,8 +365,7 @@ public sealed partial class WorldRuntime
                         $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor, owner,
                         delivery.LotId, delivery.Quantity, "building_expansion_material_delivered",
                         destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:stored");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, delivery.Quantity, building.InstanceId, "stored"));
                 }
                 else
                 {
@@ -375,8 +374,7 @@ public sealed partial class WorldRuntime
                         owner, delivery.LotId, delivery.Quantity,
                         "building_expansion_material_delivered", destinationGroundPosition: ExpansionGroundPosition(building),
                         holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:ground");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, delivery.Quantity, building.InstanceId, "ground"));
                 }
                 return;
             case ExpansionPickupStep pickup:
@@ -392,8 +390,7 @@ public sealed partial class WorldRuntime
                         pickup.OwnerId, actor, pickup.LotId, pickup.Quantity, "building_expansion_material_picked_up",
                         destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId,
                         holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-                    AppendEvent("building_expansion_material_picked_up",
-                        $"{actor}:{pickup.LotId}:{pickup.Quantity}:{building.InstanceId}");
+                    AppendEvent(new BuildingExpansionMaterialPickedUpEventPayload(actor, pickup.LotId, pickup.Quantity, building.InstanceId));
                 }
                 return;
             case ExpansionGatherStep gather:
