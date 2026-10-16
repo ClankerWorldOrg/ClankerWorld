@@ -53,10 +53,12 @@ public sealed class BlacksmithSupplyRefreshTests
             { Position = tree.Position, FullnessBasisPoints = 10_000, Project = null, LastDecisionContext = null } : person).ToArray(),
         };
         WorldRuntime? current = null;
+        var requests = new List<AgentObservation>();
         var sources = new List<string>();
         var stale = new List<string>();
         var provider = new SupplyChoices(request =>
         {
+            requests.Add(request.Observation);
             foreach (var candidate in request.Observation.Candidates)
             {
                 if (candidate.ActionPlan is not SmithGatherActionPlan plan) continue;
@@ -70,8 +72,10 @@ public sealed class BlacksmithSupplyRefreshTests
         var harness = ModelWorkHarness.For(world);
         for (var tick = 0; tick < 16; tick++)
             Assert.True((await harness.TickAsync()).Advanced);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "material_gathered");
-        Assert.NotEmpty(sources);
+        Assert.Contains(world.ExportState().Events, item => item.Payload is MaterialGatheredEventPayload
+            { ActorId: var actor, ItemKind: "wood" } && actor == first);
+        Assert.Equal(ResourceState.Depleted, world.ExportState().Resources.Single(item => item.ResourceId == tree.Id).State);
+        Assert.Contains(requests, request => request.AgentId == second && request.WorldTick == state.Society.Society.WorldTick + 1);
         Assert.DoesNotContain(tree.Id, sources);
         Assert.Empty(stale);
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
