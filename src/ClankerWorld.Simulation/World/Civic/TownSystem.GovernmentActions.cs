@@ -24,7 +24,7 @@ internal sealed partial class TownSystem
                 "Personally accept these proposed additional nonviolent adjudication duties for your existing term. This supplies no resident vote, and does not restart your term.", 185);
         OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.ReplaceMayor, TownArrangementRules.Key(government.Arrangement),
                 $"Ask {town.Name}'s adult residents to approve early replacement of the elected mayoral mandates. Approval requires a resident majority and a valid successor election.", 196);
-        foreach (var change in government.Changes)
+        foreach (var change in government.Changes.Where(change => change.Status is "queued" or "voting"))
         {
             OfferGovernmentProposal(world, candidates, actor, town, GovernmentProposalKind.Withdraw, change.Id,
                 "Withdraw your unfinished protected government proposal.", 197);
