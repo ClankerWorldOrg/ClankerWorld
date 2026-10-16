@@ -1001,6 +1001,13 @@ public partial class Main
     {
         try
         {
+            await VerifyProfileHistoryLayoutAsync();
+            if (OS.GetCmdlineUserArgs().Contains("--profile-history-only", StringComparer.Ordinal))
+            {
+                GD.Print("Profile history layout checks passed.");
+                GetTree().Quit();
+                return;
+            }
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
             await VerifyPanelDraftPreservationAsync();
