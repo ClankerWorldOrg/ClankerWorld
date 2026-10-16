@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using ClankerWorld.GodotClient.ClientState;
@@ -21,6 +23,7 @@ public sealed record LocalServerLayout(
     string DataDirectory)
 {
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
+    public string StartupLockPath => Path.Combine(DataDirectory, "server", "startup.lock");
     public string LogPath => Path.Combine(DataDirectory, "logs", "server.log");
     /// <summary>The log of the launch before this one, kept so a crash can still be reported.</summary>
     public string PreviousLogPath => Path.Combine(DataDirectory, "logs", "server.previous.log");
@@ -29,17 +32,16 @@ public sealed record LocalServerLayout(
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
 
     /// <summary>
-    /// Finds the world server that the package.json beside the game names. A
+    /// Finds the world server named by the game's package root. A
     /// development build or a server-only setup has none, and keeps
     /// connecting to whatever server the player chose.
     /// </summary>
     public static LocalServerLayout? FindBundled(string gameExecutablePath, string localApplicationData)
     {
-        var gameDirectory = Path.GetDirectoryName(Path.GetFullPath(gameExecutablePath));
-        if (gameDirectory is null || string.IsNullOrWhiteSpace(localApplicationData) ||
-            PackageEntryPoints.ReadInstalled(gameDirectory) is not { } entryPoints)
+        if (string.IsNullOrWhiteSpace(localApplicationData) ||
+            PackageEntryPoints.FindInstalledForGame(gameExecutablePath) is not { } package)
             return null;
-        var serverExecutable = Path.Combine(gameDirectory, entryPoints.Server);
+        var serverExecutable = Path.Combine(package.Directory, package.EntryPoints.Server);
         return File.Exists(serverExecutable)
             ? new LocalServerLayout(serverExecutable, [], Path.GetDirectoryName(serverExecutable)!,
                 Path.Combine(localApplicationData, "ClankerWorld"))
@@ -163,20 +165,25 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly int port;
     private readonly int approvalPort;
     private readonly TimeSpan readyTimeout;
+    private readonly TimeProvider timeProvider;
     private readonly bool detailedLogs;
     private Process? process;
     private StreamWriter? log;
     private string? secret;
+    // True once the listener answered the launch check for this secret. Only
+    // then does the game send the secret on approval requests.
+    private bool proven;
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null)
     {
         this.layout = layout;
         this.http = http;
         this.port = port;
         this.approvalPort = approvalPort;
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         this.detailedLogs = detailedLogs;
     }
 
@@ -189,6 +196,7 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    internal int? StartedServerProcessId => process?.Id;
 
     public LocalServerLayout Layout => layout;
 
@@ -198,8 +206,46 @@ public sealed class LocalServer : IAsyncDisposable
     public async Task<LocalServerStart> StartAsync(string expectedVersion, string expectedRevision,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        FileStream startup;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.StartupLockPath)!);
+            var options = new FileStreamOptions
+            {
+                Mode = FileMode.OpenOrCreate,
+                Access = FileAccess.ReadWrite,
+                Share = FileShare.None,
+            };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            startup = new FileStream(layout.StartupLockPath, options);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Another game may still be starting its companion. Refuse before
+            // probing or changing its secret, log or process. Keep the lock file:
+            // deleting it would let another opener lock a different file.
+            return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
+        }
+        using (startup)
+        {
+            try { return await StartExclusiveAsync(expectedVersion, expectedRevision, cancellationToken); }
+            catch (OperationCanceledException)
+            {
+                // Finish stopping our child before releasing startup ownership.
+                // It never answered the launch check, so it is stopped directly;
+                // a reused server belongs to another launch.
+                if (process is not null) await StopAsync(CancellationToken.None);
+                throw;
+            }
+        }
+    }
+
+    private async Task<LocalServerStart> StartExclusiveAsync(string expectedVersion, string expectedRevision,
+        CancellationToken cancellationToken)
+    {
         if (process is { HasExited: false }) return new LocalServerStart(LocalServerStartOutcome.Started);
-        var deadline = DateTimeOffset.UtcNow + readyTimeout;
+        var deadline = timeProvider.GetUtcNow() + readyTimeout;
         while (true)
         {
             var existing = await ProbeAsync(expectedVersion, expectedRevision, cancellationToken);
@@ -209,7 +255,7 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
-                    secret = running;
+                    (secret, proven) = (running, true);
                     return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
                 if (proof == LaunchCheck.Refused)
@@ -221,24 +267,38 @@ public sealed class LocalServer : IAsyncDisposable
             // A request deadline supplies no evidence of another build or an
             // invalid secret. Retry within the existing startup window before
             // reporting an unresponsive server, without starting a second host.
-            if (DateTimeOffset.UtcNow >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
-            await Task.Delay(250, cancellationToken);
+            if (timeProvider.GetUtcNow() >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
 
+        byte[]? previousSecret = null;
+        var secretWritten = false;
         try
         {
-            secret = WriteFreshSecret();
+            if (File.Exists(layout.SecretPath)) previousSecret = File.ReadAllBytes(layout.SecretPath);
+            (secret, proven) = (WriteFreshSecret(), false);
+            secretWritten = true;
             process = Launch();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
             System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            await StopLoggingAsync();
-            process = null;
+            if (process is { HasExited: false } running)
+            {
+                running.Kill(entireProcessTree: true);
+                await running.WaitForExitAsync(CancellationToken.None);
+            }
+            await ForgetProcessAsync();
+            if (secretWritten)
+            {
+                if (previousSecret is null) File.Delete(layout.SecretPath);
+                else WriteSecret(previousSecret);
+            }
+            secret = null;
             return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
         }
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (timeProvider.GetUtcNow() < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (process.HasExited)
@@ -251,14 +311,17 @@ public sealed class LocalServer : IAsyncDisposable
             {
                 case Probe.SameBuild:
                     if (await CheckLaunchSecretAsync(secret!, cancellationToken) == LaunchCheck.Confirmed)
+                    {
+                        proven = true;
                         return new LocalServerStart(LocalServerStartOutcome.Started);
+                    }
                     break;
                 case Probe.OtherBuild or Probe.NotClankerWorld:
                     // Something else claimed the port first; leave it, stop ours.
                     await StopAsync(cancellationToken);
                     return new LocalServerStart(LocalServerStartOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
             }
-            await Task.Delay(250, cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
         await StopAsync(cancellationToken);
         return new LocalServerStart(LocalServerStartOutcome.TimedOut);
@@ -275,7 +338,7 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public Task<OwnerPairingStart> StartPairingAsync(IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
     {
-        if (secret is null) throw new InvalidOperationException("The world server on this PC has not started yet.");
+        if (secret is null || !proven) throw new InvalidOperationException("The world server on this PC has not started yet.");
         return new OwnerPairingClient(http).StartPairingAsync(ApprovalOrigin, OwnerPairingEndpoints.ApprovalPairings,
             deviceKey, new KeyValuePair<string, string>(SecretHeader, secret), cancellationToken);
     }
@@ -286,7 +349,7 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken)
     {
-        if (secret is null) return false;
+        if (secret is null || !proven) return false;
         using var request = new HttpRequestMessage(HttpMethod.Post,
             new Uri(ApprovalOrigin, $"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve"))
         {
@@ -303,18 +366,20 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> StopAsync(CancellationToken cancellationToken)
     {
-        if (secret is not null)
+        var acknowledged = false;
+        if (secret is not null && proven)
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(ApprovalOrigin, "api/v1/approval/shutdown"));
                 request.Headers.Add(SecretHeader, secret);
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                deadline.CancelAfter(TimeSpan.FromSeconds(5));
+                using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
                 using var response = await http.SendAsync(request, deadline.Token);
                 // The host explicitly refused to exit: preserve its paused world
                 // and our process handle so the player can repair and retry.
                 if (!response.IsSuccessStatusCode) return false;
+                acknowledged = true;
             }
             catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
             {
@@ -324,8 +389,11 @@ public sealed class LocalServer : IAsyncDisposable
         }
         if (process is { HasExited: false } running)
         {
-            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            wait.CancelAfter(TimeSpan.FromSeconds(30));
+            // Our child never answered the launch check, so whatever holds the
+            // approval port was not asked over HTTP: stop the child directly.
+            if (!proven) running.Kill(entireProcessTree: true);
+            using var waitTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30), timeProvider);
+            using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitTimeout.Token);
             try
             {
                 await running.WaitForExitAsync(wait.Token);
@@ -337,29 +405,59 @@ public sealed class LocalServer : IAsyncDisposable
                 running.Kill(entireProcessTree: true);
             }
         }
+        // A host that acknowledged the request, or our own child that has now
+        // exited, no longer needs this launch's secret. A host that may still be
+        // running keeps it, so a later launch can still prove and reuse it.
+        if (acknowledged || process is not null) ForgetSecret();
         await ForgetProcessAsync();
         return true;
+    }
+
+    private void ForgetSecret()
+    {
+        if (secret is null) return;
+        try
+        {
+            if (TryReadSecret(out var saved) && saved == secret) File.Delete(layout.SecretPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The next launch writes a fresh secret before starting a host.
+        }
+        (secret, proven) = (null, false);
     }
 
     public async ValueTask DisposeAsync() { await StopAsync(CancellationToken.None); }
 
     private enum LaunchCheck { Confirmed, Refused, Unresponsive }
 
+    /// <summary>
+    /// Asks the listener to prove it holds <paramref name="value"/> by answering
+    /// a fresh challenge. The secret itself is not sent, so a listener that
+    /// cannot answer learns nothing from the check.
+    /// </summary>
     private async Task<LaunchCheck> CheckLaunchSecretAsync(string value, CancellationToken cancellationToken)
     {
+        var challenge = LocalServerLaunchCheck.NewChallenge();
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, "api/v1/approval/launch-check"));
-            request.Headers.Add(SecretHeader, value);
+            request.Headers.Add(LocalServerLaunchCheck.ChallengeHeader, challenge);
             using var response = await http.SendAsync(request, deadline.Token);
-            return response.IsSuccessStatusCode ? LaunchCheck.Confirmed : LaunchCheck.Refused;
+            if (!response.IsSuccessStatusCode) return LaunchCheck.Refused;
+            var answer = await response.Content.ReadFromJsonAsync<LocalServerLaunchCheckAnswer>(deadline.Token);
+            return LocalServerLaunchCheck.Matches(value, challenge, answer?.Answer) ? LaunchCheck.Confirmed : LaunchCheck.Refused;
         }
         catch (Exception exception) when (!cancellationToken.IsCancellationRequested &&
             exception is HttpRequestException or OperationCanceledException)
         {
             return LaunchCheck.Unresponsive;
+        }
+        catch (Exception exception) when (exception is System.Text.Json.JsonException or NotSupportedException)
+        {
+            return LaunchCheck.Refused;
         }
     }
 
@@ -369,8 +467,8 @@ public sealed class LocalServer : IAsyncDisposable
     {
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            using var deadlineTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadlineTimeout.Token);
             using var handshake = await http.GetAsync(new Uri(Origin, "api/v1/handshake"), deadline.Token);
             if (!handshake.IsSuccessStatusCode) return Probe.NotClankerWorld;
             var status = await http.GetFromJsonAsync<ServerStatus>(new Uri(Origin, "api/v1/status"), deadline.Token);
@@ -386,12 +484,34 @@ public sealed class LocalServer : IAsyncDisposable
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return Probe.Unresponsive;
+            // Windows can take longer than the request deadline to refuse a
+            // connection to an empty loopback port. A timeout alone cannot say
+            // whether a listener exists; an exclusive bind can prove it is free.
+            return CanBindPort() ? Probe.Nothing : Probe.Unresponsive;
         }
         catch (Exception exception) when (exception is HttpRequestException or System.Text.Json.JsonException or
             NotSupportedException)
         {
             return Probe.NotClankerWorld;
+        }
+    }
+
+    private bool CanBindPort()
+    {
+        try
+        {
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                ExclusiveAddressUse = true,
+            };
+            socket.Bind(new IPEndPoint(IPAddress.Loopback, port));
+            return true;
+        }
+        catch (SocketException)
+        {
+            // A listener, reserved port or denied bind is not proof of a free
+            // port. Leave its process, secret and logs alone and keep waiting.
+            return false;
         }
     }
 
@@ -413,17 +533,28 @@ public sealed class LocalServer : IAsyncDisposable
     {
         var value = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        WriteSecret(System.Text.Encoding.UTF8.GetBytes(value));
+        return value;
+    }
+
+    private void WriteSecret(byte[] bytes)
+    {
         Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
         // The player's own data folder is private to their Windows account.
         // Elsewhere, restrict the file to this user before writing the value.
-        var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+        var temporary = layout.SecretPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
         if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-        using (var file = new FileStream(layout.SecretPath, options))
-        using (var writer = new StreamWriter(file))
+        try
         {
-            writer.Write(value);
+            using (var file = new FileStream(temporary, options))
+            {
+                file.Write(bytes);
+                file.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, layout.SecretPath, overwrite: true);
         }
-        return value;
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
     private Process Launch()
@@ -448,6 +579,7 @@ public sealed class LocalServer : IAsyncDisposable
         started.OutputDataReceived += (_, line) => WriteLog(line.Data);
         started.ErrorDataReceived += (_, line) => WriteLog(line.Data);
         if (!started.Start()) throw new InvalidOperationException("The host process did not start.");
+        process = started;
         started.BeginOutputReadLine();
         started.BeginErrorReadLine();
         return started;

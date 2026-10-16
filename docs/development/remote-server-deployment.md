@@ -214,10 +214,11 @@ The approval listener, never forwarded, serves `POST /api/v1/approval/pairings`,
 `POST /api/v1/approval/pairings/{pairingId}/approve` and
 `POST /api/v1/approval/devices/{deviceId}/revoke`. Only a local server, which
 the game starts, also serves `POST /api/v1/approval/shutdown` and
-`GET /api/v1/approval/launch-check`, and needs the `X-ClankerWorld-Launch-Secret`
-header and `ClankerWorld:LocalServer:LaunchSecretPath`. All approval routes check
-the local listener and loopback host name; local-server mode also requires the
-launch secret. [Device pairing](device-pairing.md#local-server-started-by-the-game)
+`GET /api/v1/approval/launch-check`, and needs
+`ClankerWorld:LocalServer:LaunchSecretPath`. All approval routes check the local
+listener and loopback host name; in local-server mode the others also need the
+`X-ClankerWorld-Launch-Secret` header, and the launch check answers a challenge
+without it. [Device pairing](device-pairing.md#local-server-started-by-the-game)
 owns those checks and the client bootstrap flow. Route handlers live in
 `src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Pairing.cs`.
 

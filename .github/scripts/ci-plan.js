@@ -339,7 +339,7 @@ if (require.main === module) {
     }
     const { summary, warnings } = report;
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
-    else console.log(summary);
+    console.log(summary);
     for (const warning of warnings) console.log(warning);
   } else {
     const input = command === 'scope' ? fs.readFileSync(0, 'utf8') : '';
