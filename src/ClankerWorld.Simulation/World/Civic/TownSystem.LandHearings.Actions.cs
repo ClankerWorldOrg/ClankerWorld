@@ -88,22 +88,25 @@ internal sealed partial class TownSystem
                         " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167);
             if (item.Judge is { } adjudicator && adjudicator.AgentId == actor && LandHearingJudgeValid(world, town, item, adjudicator) && LandHearingReadCurrent(world, item, actor))
             {
-                var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
-                    (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
-                foreach (var kind in kinds)
+                if (item.Status == "pending" && TownLandHearingRules.CanCloseResponses(item, parties, world.WorldTick))
                 {
-                    var id = CivicAction(world, town.Id, "hearing_rule", token, kind);
-                    if (LandHearingRulingChoice.Decode(id) is { } rulingChoice && PlanLandHearingRuling(world, actor, rulingChoice) is { } ruling &&
-                        CheckLandHearingRuling(world, ruling).Allowed)
-                        candidates.Add(new(id,
-                            "Personally rule to " + kind + (item.Property is null ? " only the recorded plot permission." :
-                                " the exact noticed property transfer; accepting transfers the building, recorded shared goods and its footprint permission together.") +
-                            " Supply civic_land_hearing.statement reasons, actual evidence_ids and law_ids" +
-                            (kind == "end" ? ", and household_id from affected households" : kind is "renew" or "amend" ? ", household_id from affected households and any agreed_end_tick" : "") + ". " +
-                            (lapsed.Length == 0 ? "" : "The permission of household " + string.Join(", ", lapsed) +
-                                " on this plot is past its agreed end, so the ruling must renew, amend or end it. Renewing also renews every lapsed permission on this plot for its own household. ") +
-                            LandHearingCaseChoices(world, town, item, actor), 165)
-                        { ActionPlan = ruling });
+                    var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
+                        (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
+                    foreach (var kind in kinds)
+                    {
+                        var id = CivicAction(world, town.Id, "hearing_rule", token, kind);
+                        if (LandHearingRulingChoice.Decode(id) is { } rulingChoice && PlanLandHearingRuling(world, actor, rulingChoice) is { } ruling &&
+                            CheckLandHearingRuling(world, ruling).Allowed)
+                            candidates.Add(new(id,
+                                "Personally rule to " + kind + (item.Property is null ? " only the recorded plot permission." :
+                                    " the exact noticed property transfer; accepting transfers the building, recorded shared goods and its footprint permission together.") +
+                                " Supply civic_land_hearing.statement reasons, actual evidence_ids and law_ids" +
+                                (kind == "end" ? ", and household_id from affected households" : kind is "renew" or "amend" ? ", household_id from affected households and any agreed_end_tick" : "") + ". " +
+                                (lapsed.Length == 0 ? "" : "The permission of household " + string.Join(", ", lapsed) +
+                                    " on this plot is past its agreed end, so the ruling must renew, amend or end it. Renewing also renews every lapsed permission on this plot for its own household. ") +
+                                LandHearingCaseChoices(world, town, item, actor), 165)
+                            { ActionPlan = ruling });
+                    }
                 }
                 // Grounds are assessed only on a settled case; a rehearing already under way decides before any other request.
                 foreach (var request in item.ReopenRequests.Where(request => item.Status == "settled" && request.Status == "pending" &&
