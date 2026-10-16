@@ -10,6 +10,34 @@ namespace ClankerWorld.Tests;
 public sealed partial class WorldConstructionOrderTests
 {
     [Fact]
+    public async Task ConstructionOrderWaitsForTownShopRoomWithoutSpendingMaterials()
+    {
+        var setup = await Baseline.Value;
+        var state = Decode(setup);
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            "other-clinic-wood", "wood", Beta, 10);
+        inventory = InventoryAuthority.AddLot(inventory, "other-clinic-stone", "stone", Beta, 4);
+        using var world = Restore(WithInventory(state, inventory));
+        var town = world.Towns.Single();
+        Assert.Contains(state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, town.OriginSite!.Value)),
+            tile => world.PlaceBuilding("other-clinic", setup.DefinitionId, tile.Position, Beta).Applied);
+        var receipt = Submit(world, setup.Actor, "town-full-clinic", BuildClinic(setup.Site));
+        await Tick(world);
+        Assert.Equal(("blocked", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
+        Assert.Equal("The Town already has enough shops of this kind for its residents.", Order(world, receipt).BlockedReason);
+        AssertInputs(world, 10, 4);
+        Assert.Null(Person(world, setup.Actor).Project);
+        using var replay = Reload(world);
+        await TickTogether(world, replay);
+        AssertInputs(world, 10, 4);
+        var clinic = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "other-clinic");
+        Assert.True(world.RemoveBuilding(clinic.InstanceId, clinic.TownId, Beta).Applied);
+        using var reopened = Reload(world);
+        await FinishTogether(world, reopened, receipt);
+        Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
+    }
+
+    [Fact]
     public async Task CancellingPartlyBuiltWorkPreservesMaterialsAndOnlyTheQueuedProjectsPlacementEarnsCredit()
     {
         var setup = await Baseline.Value;

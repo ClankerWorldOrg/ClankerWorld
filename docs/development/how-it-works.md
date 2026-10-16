@@ -159,6 +159,12 @@ choices reaches its typed refusal; current order/context exclusions still
 refuse it, while unplanned identities and request/epoch checks retain their
 existing scheduler gates. An accepted fallback keeps its own plan and never
 receives the refused provider choice's plan metadata.
+Before dispatching a queued observation, the host checks every planned choice
+against the current world with `CheckActionPlan`. Choices invalidated by earlier
+actions are removed from the request and its digest is rebuilt; other choices
+can still proceed. A reply already in flight retains its original plan; refusal
+clears the intention so the agent can make a fresh choice. A finished order's
+undelivered acknowledgement retains its original message.
 
 Town communal-stock choices use `TownStockActionPlan`. Warehouse donations keep
 their selected lot, load and Warehouse; salvage keeps the selected communal
@@ -3625,6 +3631,16 @@ Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
 
+For Stores, Tailor Shops, Restaurants, Clinics and Blacksmiths, household plans
+also share a Town limit: one of each kind per eight recorded residents, rounded
+up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
+provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
+assigned to the Town and other residents' live construction projects, across
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+and Council-approved Town projects keep their separate rules.
+
 `WorkBuildingHasInputs` also filters autonomous plans and material preparation
 by work the building can actually do. Farmhouses and Silos need reachable
 household fields or planting stock, including an available seed site within
@@ -3884,13 +3900,30 @@ Resuming an accepted or postponed plan preserves its original initiating
 parent, request tick, selected caregiver and intended home. Birth still follows
 the caregiver's current household, including after a move or when its House
 is full. A plan past its deadline does not expire: it waits for the usual food,
-shelter and readiness checks. The rule only reads accepted partnerships and
-never proposes or accepts one.
+shelter and readiness checks.
+
+Single adults who meet the same parent eligibility check also receive a saved
+`ContinuitySingle` deadline, optional chosen partner and postponement choice. `partner_choose` and
+`partner_postpone` use the existing partnership action plans, including checks
+at offer, admission and application. Choosing or postponing never resets the
+deadline. Already recorded choices are not offered again unchanged; ordinary
+work keeps precedence in built-in decisions. Once both adults' deadlines pass, mutual choices take precedence;
+otherwise combined directed trust selects the strongest eligible pair, with
+ordinal IDs breaking ties. Availability is checked again after every pair,
+so a taken, deceased, elder or close-relative choice cannot force that pair.
+The rule uses the native partnership proposal and acceptance operations,
+including exclusive partnership and domestic-family records; its deadline
+replaces voluntary trust and retry requirements. Outstanding proposals for
+newly paired adults are withdrawn. `continuity_partnership_formed` records both
+adults and explains the pairing in the Event Log. Ending a partnership starts
+a fresh single deadline while the rule remains on.
 
 Each partner's self context carries a `continuity` note saying the rule and
-the hours left; a single agent's stays empty. Loading checks the flag and
-couples: known partner IDs in order, no couples while the rule is off, and no
-deadline more than two world days ahead. These events are logged as
+the hours left; held single adults receive the partnering rule instead.
+Loading checks ordered, known adults and chosen partner references, unique
+single entries and couples, no held entries while the rule is off, and no
+deadline more than two world days ahead. Turning off clears both sets of
+deadlines and all partner choices. These events are logged as
 `family_activity`; the two transitions are also Event Log lines.
 
 A recipe project that finds its work site busy waits with the blocker "Waiting

@@ -49,6 +49,8 @@ public static class EventVocabulary
         {
             return normalized.StartsWith("partner_propose:", StringComparison.Ordinal) ? "propose a partnership"
                 : normalized.StartsWith("partner_accept:", StringComparison.Ordinal) ? "accept a partnership"
+                : normalized.StartsWith("partner_choose:", StringComparison.Ordinal) ? "choose a partner"
+                : normalized.StartsWith("partner_postpone:", StringComparison.Ordinal) ? "put off choosing a partner"
                 : normalized.StartsWith("partner_refuse:", StringComparison.Ordinal) ? "refuse a partnership" : "leave a partnership";
         }
         if (normalized.StartsWith("learn:", StringComparison.Ordinal))
@@ -253,7 +255,7 @@ public static class EventVocabulary
             "partnership_accepted" or "partnership_ended" or "caregiver_assigned" or
             "guardian_needed" or "guardian_assigned" or "guardian_placement_pending" or
             "guardian_placement_completed" or "guardian_placement_cancelled" or
-            "continuity_rule_on" or "continuity_rule_off" or
+            "continuity_rule_on" or "continuity_rule_off" or "continuity_partnership_formed" or
             "medical_care_allowed" or "medical_care_revoked" or
             "medical_treatment_started" or "medical_treatment_completed" or "medical_treatment_interrupted" or
             "child_collected_household" or "child_delivered_household" or
