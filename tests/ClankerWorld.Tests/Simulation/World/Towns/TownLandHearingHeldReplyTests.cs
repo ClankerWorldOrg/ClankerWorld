@@ -126,12 +126,12 @@ public sealed class TownLandHearingHeldReplyTests
             Assert.True(world.DisplaceAdult(departing));
             Assert.Null(world.Society.GetAgent(departing).HouseholdId);
             Assert.Equal(household, world.Society.GetAgent(Actor).HouseholdId);
-            await Task.Run(provider.Release).WaitAsync(Deadline);
+            await ModelWorkHarness.WaitForSignalAsync(Task.Run(provider.Release));
             await WaitForModelCompletionAsync(world);
             WorldStepResult? completed = null;
             for (var attempt = 0; attempt < 10 && completed is null; attempt++)
             {
-                var step = await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline);
+                var step = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(step.Advanced);
                 if (step.Decisions.Any(decision => decision.AgentId == Actor)) completed = step;
             }
