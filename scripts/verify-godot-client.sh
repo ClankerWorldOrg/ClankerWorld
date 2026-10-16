@@ -33,6 +33,13 @@ export XDG_CACHE_HOME="${scratch_root}/cache"
 printf 'Building Godot C# scripts and starting the scene headlessly\n'
 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --build-solutions --quit
 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --quit-after 120
+# Use fresh processes before the ordinary smoke: it has already opened profiles.
+# The external watchdog also detects a main thread that stops delivering frames.
+bash "${repo_root}/scripts/prepare-agent-profile-check-world.sh" "${scratch_root}/profile-world.json"
+for profile_window in 1280x720 1920x1080; do
+    timeout 120 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- \
+        --profile-open-smoke-test "--profile-snapshot=${scratch_root}/profile-world.json" "--profile-window=${profile_window}"
+done
 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --ui-smoke-test
 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --launcher-options-smoke-test --developer-mode --test-data --detailed-logs
 printf 'Starting the launcher scene headlessly\n'

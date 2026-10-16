@@ -80,14 +80,10 @@ public partial class Main
             OpenWorldMenu(create: false);
             await RefreshWorldListAsync();
             ChooseWorldActionSmokeRow(0);
-            if (worldSavesButton.Disabled)
-                throw new InvalidOperationException("A fresh title must offer its active catalog world's saves.");
-            worldSavesButton.EmitSignal(BaseButton.SignalName.Pressed);
-            var started = System.Diagnostics.Stopwatch.GetTimestamp();
-            while (listedManualSaves.Length != 2 && System.Diagnostics.Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(5))
-                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (observationSession.Current is not null || listedManualSaves.Length != 2 || !manualSaveOverlay.Visible)
-                throw new InvalidOperationException("A fresh title must list the current world's saves without entering it.");
+            await worldSaveHistoryRead;
+            if (observationSession.Current is not null || listedManualSaves.Length != 2 || !WorldHistoryEmbedded ||
+                !manualSaveTimeline.IsVisibleInTree() || manualSaveOverlay.Visible || worldHistoryLoading)
+                throw new InvalidOperationException("Selecting a world must show its timeline directly without entering it.");
             for (var row = 0; row < listedManualSaves.Length; row++)
             {
                 manualSaveList.Select(row);
@@ -104,28 +100,46 @@ public partial class Main
             }
             if (host.DeleteCount != 0)
                 throw new InvalidOperationException("Opening and dismissing confirmation must not delete any save.");
-            manualSaveOverlay.Hide();
-            host.ManualSaves = null;
-            var staleTitleSaves = new TaskCompletionSource<ManualWorldSave[]>();
-            var oldTitleOpening = OpenManualSavesAsync(true, _ => staleTitleSaves.Task);
-            host.Catalog = new("B", WorldActionSmokeCatalog(["A", "B"]).Worlds);
-            await RefreshWorldListAsync();
-            staleTitleSaves.SetResult([new("stale-title", "Earlier world save", DateTimeOffset.UnixEpoch, 0)]);
-            await oldTitleOpening;
-            if (listedManualSaves.Length != 0 || !manualSaveDeleteButton.Disabled || observationSession.Current is not null)
-                throw new InvalidOperationException("A late title-screen save list must not publish after its catalog world changes.");
-            manualSaveOverlay.Hide();
-            await worldListRequest.RefreshAsync(_ => Task.FromException<WorldCatalogSnapshot>(
-                new IOException("Controlled unavailable catalog.")));
-            await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>(
-                [new("unbound", "Unbound save", DateTimeOffset.UnixEpoch, 0)]));
-            manualSaveList.Select(0);
-            manualSaveList.EmitSignal(SlotList.SignalName.ItemSelected, 0L);
-            if (!manualSaveDeleteButton.Disabled || listedSaveWorldId is not null)
-                throw new InvalidOperationException("Delete Save must stay disabled without a known active world identity.");
-            manualSaveOverlay.Hide();
+            foreach (var fail in new[] { false, true })
+            {
+                var stale = new TaskCompletionSource<WorldSaveHistory>();
+                CancellationToken token = default;
+                var previousWorld = SelectedListedWorld()!;
+                var oldRead = ReadListedWorldSavesAsync(previousWorld, value => { token = value; return stale.Task; });
+                ChooseWorldActionSmokeRow(1);
+                await worldSaveHistoryRead;
+                if (!token.IsCancellationRequested || listedSaveWorldId != "world-B" || !WorldHistoryEmbedded)
+                    throw new InvalidOperationException("Choosing another world must cancel the old history and show the chosen world's saves.");
+                ChooseTimelineSave(listedManualSaves[0].Id);
+                if (!manualSaveDeleteButton.Disabled)
+                    throw new InvalidOperationException("Deleting a save of an inactive world must wait until that world is open.");
+                manualSaveDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
+                if (deletionConfirmation.Visible || pendingDeletion is not null)
+                    throw new InvalidOperationException("An inactive world's save must refuse deletion even if the old button signal arrives.");
+                var chosenId = SelectedManualSave()?.Id;
+                var status = worldMenuStatus.Text;
+                if (fail) stale.SetException(new IOException("Controlled stale history failure."));
+                else stale.SetResult(new(previousWorld.WorldId, [], new(null, null, false), null, 0));
+                await oldRead;
+                if (listedSaveWorldId != "world-B" || SelectedManualSave()?.Id != chosenId || worldMenuStatus.Text != status)
+                    throw new InvalidOperationException("A late history reply or failure must not replace the new world's timeline or selection.");
+            }
+            await ReadListedWorldSavesAsync(SelectedListedWorld()!, _ => Task.FromException<WorldSaveHistory>(
+                new IOException("Controlled unavailable history.")));
+            if (!worldSelectButton.Disabled || !worldMenuStatus.Text.StartsWith("Could not list saves:", StringComparison.Ordinal))
+                throw new InvalidOperationException("A failed history read must explain the failure and keep Load unavailable until a retry.");
+            var hiddenReply = new TaskCompletionSource<WorldSaveHistory>();
+            CancellationToken hiddenToken = default;
+            var hiddenRead = ReadListedWorldSavesAsync(SelectedListedWorld()!, token => { hiddenToken = token; return hiddenReply.Task; });
+            var hiddenWorldId = SelectedListedWorld()!.WorldId;
+            worldBackButton.EmitSignal(BaseButton.SignalName.Pressed);
+            if (!hiddenToken.IsCancellationRequested) throw new InvalidOperationException("Back must cancel the history read.");
+            hiddenReply.SetResult(new(hiddenWorldId, [], new(null, null, false), null, 0));
+            await hiddenRead;
+            if (worldMenuOverlay.Visible || manualSaveHistory.IsVisibleInTree())
+                throw new InvalidOperationException("Back must close Load World and its embedded history together.");
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             void AcceptWorld(string id)
             {
@@ -143,31 +157,20 @@ public partial class Main
             host.Catalog = WorldActionSmokeCatalog(["A", "B"]);
             OpenWorldMenu(create: false);
             await RefreshWorldListAsync();
-            ChooseWorldActionSmokeRow(1);
-            if (!worldSavesButton.Visible || !worldSavesButton.Disabled)
-                throw new InvalidOperationException("Another world's saves must wait until that world is opened.");
             ChooseWorldActionSmokeRow(0);
-            if (worldSavesButton.Disabled)
-                throw new InvalidOperationException("Load World must offer the current world's saves.");
-            // Use the real button path. Escape must close the upper panel even
-            // while its signed save-list read is pending, keeping Load World below.
-            worldSavesButton.GrabFocus();
-            worldSavesButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!manualSaveOverlay.Visible || !manualSaveLoadMode || !worldMenuOverlay.Visible)
-                throw new InvalidOperationException("Load a save must open Load Save above Load World.");
-            if (!HandleEscape() || manualSaveOverlay.Visible || !worldMenuOverlay.Visible ||
-                worldSelectionList.GetSelectedItems() is not [0])
-                throw new InvalidOperationException("Escape from Load Save must return to the same Load World selection.");
-            worldSavesButton.GrabFocus();
-            worldSavesButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!manualSaveOverlay.Visible || manualSaveBackButton.TooltipText != "Back to Load World")
-                throw new InvalidOperationException("The save chooser must reopen with its Load World back action.");
-            manualSaveBackButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (manualSaveOverlay.Visible || !worldMenuOverlay.Visible ||
-                worldSelectionList.GetSelectedItems() is not [0])
-                throw new InvalidOperationException("Back from a reopened Load Save must retain Load World and its selection.");
+            await worldSaveHistoryRead;
             if (!HandleEscape() || worldMenuOverlay.Visible)
-                throw new InvalidOperationException("Escape from Load World must then close that parent panel.");
+                throw new InvalidOperationException("Escape from Load World closes the timeline with its parent panel.");
+            host.ManualSaves = currentSaves;
+            menuLoadSaveButton.EmitSignal(BaseButton.SignalName.Pressed);
+            var loadDeadline = System.Diagnostics.Stopwatch.StartNew();
+            while (listedManualSaves.Length != currentSaves.Length && loadDeadline.Elapsed < TimeSpan.FromSeconds(5))
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            if (!manualSaveOverlay.Visible || WorldHistoryEmbedded || !manualSaveLoadMode ||
+                manualSaveBackButton.TooltipText != "Back to the Pause Menu" || listedManualSaves.Length != 2)
+                throw new InvalidOperationException("The in-world Load Save button must open the same timeline directly.");
+            manualSaveBackButton.EmitSignal(BaseButton.SignalName.Pressed);
+            host.ManualSaves = null;
             foreach (var scenario in new[] { "create", "back", "late-failure" })
             {
                 AcceptWorld("save-world-A");
@@ -251,6 +254,111 @@ public partial class Main
             deviceKey = previousKey;
             serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
+            if (previousObservation is not null)
+                observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
+            System.Environment.SetEnvironmentVariable("CI", previousCi);
+        }
+    }
+
+    private async Task VerifyLoadWorldTimelineAsync()
+    {
+        var previousRegistration = registration;
+        var previousKey = deviceKey;
+        var previousUrl = serverUrlInput.Text;
+        var previousObservation = observationSession.Current;
+        var previousInWorld = isInWorld;
+        var previousCi = System.Environment.GetEnvironmentVariable("CI");
+        System.Environment.SetEnvironmentVariable("CI", "true");
+        using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
+        try
+        {
+            foreach (var chooseOlder in new[] { true, false })
+            {
+                using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
+                registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
+                deviceKey = signer;
+                serverUrlInput.Text = host.Address;
+                observationSession.ReplaceRegistration(registration);
+                host.Catalog = WorldActionSmokeCatalog(["A", "B"]);
+                var branch = new SaveBranch("first", 1);
+                var fork = new SaveBranch("fork", 2, "old", "Before the flood", 10);
+                host.ManualSaves =
+                [new("old", "Before the flood", DateTimeOffset.UnixEpoch, 10, false, branch, BranchPosition: 1),
+                 new("later", "First future", DateTimeOffset.UnixEpoch.AddMinutes(1), 90, false, branch, BranchPosition: 2),
+                 new("forked", "Another future", DateTimeOffset.UnixEpoch.AddMinutes(2), 50, false, fork, BranchPosition: 1)];
+                host.ReleasePause.SetResult();
+                host.ReleaseSelect.SetResult();
+                host.SelectedWorld = host.Catalog.Worlds.Single(world => world.Id == "B");
+                host.LoadReceipt = new(chooseOlder ? "old" : "forked", "backup", chooseOlder ? 10 : 50);
+                var handshake = new OwnerWorldHandshake(new(1, 1),
+                    ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+                     "owner-control.request.v1", "paused-authoring.request.v1"], []);
+                var snapshot = new OwnerWorldSnapshot("world-B", host.LoadReceipt.WorldTick, "load-world-map",
+                    [new(0, 0, "meadow")], [], [], null, 0)
+                {
+                    FounderSetup = new(4, 4, true),
+                    Authoring = new(true, 0, 0, 0, "load-world-map", "load-world-map", "clear", "spring", []),
+                };
+                host.Reconnect = new(handshake, new(snapshot, new(snapshot.WorldTick, 0, [])));
+                ShowMainMenu();
+                OpenWorldMenu(create: false);
+                await RefreshWorldListAsync();
+                ChooseWorldActionSmokeRow(1);
+                await worldSaveHistoryRead;
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (!manualSaveTimeline.IsVisibleInTree() || manualSaveTimeline.Lanes.Count != 2 ||
+                    !manualSaveViewChoice.IsVisibleInTree() || !manualSaveDetails.IsVisibleInTree() ||
+                    worldSelectButton.Disabled || observationSession.Current is not null || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("Load World must draw every branch and the shared controls without activating the selected world.");
+                if (chooseOlder)
+                {
+                    // Click the older branch's point through the real timeline input handler.
+                    var rows = manualSaveTimeline.Rows;
+                    rows._GuiInput(new InputEventMouseButton
+                    {
+                        ButtonIndex = MouseButton.Left,
+                        Pressed = true,
+                        Position = rows.PointPosition("old") ?? throw new InvalidOperationException("The older save must be drawn."),
+                    });
+                    if (SelectedManualSave()?.Id != "old" || !manualSaveDetails.FindChildren("*", nameof(Label), true, false)
+                        .OfType<Label>().Any(label => label is FittedLabel fitted && fitted.FullText == "Before the flood"))
+                        throw new InvalidOperationException("Choosing another branch's older save must update the shared description card.");
+                    for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    var visible = worldMenuScroll.GetGlobalRect().Grow(2);
+                    if (menuLayer.Size.X >= 920 && (!visible.Encloses(manualSaveTimeline.GetGlobalRect()) ||
+                        !visible.Encloses(worldSelectButton.GetGlobalRect())))
+                        throw new InvalidOperationException("Load World must keep its timeline and Load button in view without outer scrolling at the default size.");
+                    var evidence = OS.GetEnvironment("CLANKERWORLD_LOAD_TIMELINE_EVIDENCE");
+                    if (!string.IsNullOrEmpty(evidence))
+                    {
+                        using var capture = GetViewport().GetTexture().GetImage();
+                        if (capture.SavePng(evidence) != Error.Ok)
+                            throw new InvalidOperationException("Load World timeline evidence could not be saved.");
+                    }
+                    manualSaveViewChoice.Select(1);
+                    manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
+                    if (!manualSaveList.IsVisibleInTree() || SelectedManualSave()?.Id != "old")
+                        throw new InvalidOperationException("The shared List switch must keep the timeline's selected save.");
+                }
+                await SelectListedWorldAsync();
+                if (await host.SelectReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != "B" ||
+                    await host.LoadReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != (chooseOlder ? "old" : "forked") ||
+                    !isInWorld || worldMenuOverlay.Visible || mainMenuOverlay.Visible ||
+                    observationSession.Current?.Baseline.Snapshot is not { WorldId: "world-B", Authoring.IsPaused: true })
+                    throw new InvalidOperationException("Load must select the chosen world, load the chosen save (or newest), and enter it paused.");
+                manualSaveShowsList = false;
+            }
+            GD.Print("NATIVE_LOAD_WORLD_TIMELINE selectionBranchesListChosenAndNewestPausedLoad=passed");
+        }
+        finally
+        {
+            worldMenuOverlay.Hide();
+            manualSaveOverlay.Hide();
+            registration = previousRegistration;
+            deviceKey = previousKey;
+            serverUrlInput.Text = previousUrl;
+            isInWorld = previousInWorld;
+            observationSession.ReplaceRegistration(previousRegistration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             System.Environment.SetEnvironmentVariable("CI", previousCi);

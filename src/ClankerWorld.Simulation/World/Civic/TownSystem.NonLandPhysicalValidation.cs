@@ -21,24 +21,24 @@ internal sealed partial class TownSystem
         {
             var state = town.NonLandHearings;
             if (state is null || state.ConductRecords is null || state.Acquisitions is null || state.NativeReceipts is null ||
-                state.ConductRecords.Any(record => record is null || !TownHearingProcedure.DerivedIdentity(record.Id) ||
+                state.ConductRecords.Any(record => record is null || !IdentityRules.Reference(record.Id, DerivedId.MaximumLength, requireTrimmed: true) ||
                     !agents.Contains(record.ActorId) || record.ActorTownId is not null && !townIds.Contains(record.ActorTownId) ||
                     record.ConductKind is not ("travel" or "gather_food" or "gather_material" or "fell_tree" or
                         "repair_equipment" or "return_goods" or "public_service_goods") ||
                     !map.Contains(record.Position) || record.Tick < 0 || record.Tick > tick || record.Quantity <= 0 ||
-                    record.TargetId is not null && !TownHearingProcedure.Id(record.TargetId) ||
-                    record.ItemKind is not null && !TownHearingProcedure.Id(record.ItemKind) ||
+                    record.TargetId is not null && !IdentityRules.Reference(record.TargetId, int.MaxValue, requireTrimmed: true) ||
+                    record.ItemKind is not null && !IdentityRules.Reference(record.ItemKind, int.MaxValue, requireTrimmed: true) ||
                     record.Laws is not { Count: > 0 } || record.Laws.Any(law => law is null ||
-                        !TownHearingProcedure.Id(law.LawId) || law.Version <= 0 || law.TitleIds is null || law.PriorNoticeIds is null ||
-                        !law.TitleIds.All(TownHearingProcedure.Id) || !law.PriorNoticeIds.All(TownHearingProcedure.Id)) ||
+                        !IdentityRules.Reference(law.LawId, int.MaxValue, requireTrimmed: true) || law.Version <= 0 || law.TitleIds is null || law.PriorNoticeIds is null ||
+                        !law.TitleIds.All(id => IdentityRules.Reference(id, requireTrimmed: true)) || !law.PriorNoticeIds.All(id => IdentityRules.Reference(id, requireTrimmed: true))) ||
                     record.Version != NonLandDigest(record with { Version = "" })) ||
                 state.ConductRecords.Select(record => record.Id).Distinct(StringComparer.Ordinal).Count() != state.ConductRecords.Count ||
-                state.Acquisitions.Any(item => item is null || !TownHearingProcedure.DerivedIdentity(item.Id) || !TownHearingProcedure.Id(item.ConductId) ||
+                state.Acquisitions.Any(item => item is null || !IdentityRules.Reference(item.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(item.ConductId, int.MaxValue, requireTrimmed: true) ||
                     !agents.Contains(item.AgentId) || item.Kind is not ("firsthand" or "relay" or "record_inspection") ||
                     item.Tick < 0 || item.Tick > tick || !map.Contains(item.Position) ||
                     item.ObserverHouseholdId is not null && !households.Contains(item.ObserverHouseholdId) ||
                     item.PrivateSiteHouseholdId is not null && !households.Contains(item.PrivateSiteHouseholdId) ||
-                    !TownHearingProcedure.Text(item.Text)) ||
+                    !BoundedText.IsValid(item.Text, 1024, requireTrimmed: true)) ||
                 state.Acquisitions.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != state.Acquisitions.Count)
                 throw new InvalidDataException("Saved physical conduct and personal acquisition history is invalid.");
 
@@ -143,7 +143,7 @@ internal sealed partial class TownSystem
                         var text = "Applicable law at the alleged act: " + TownLawRules.Text(wording.Subject, wording.Rule);
                         if (evidence.Kind != "record" || evidence.Acquisition != "record_inspection" ||
                             evidence.SourceAgentId != evidence.SubmittedByAgentId || evidence.SourceVersion != TownLandHearingRules.LawVersion(wording) ||
-                            evidence.ObservedTick != file.Allegation.ConductTick || evidence.Text != NonLandExcerpt(text, 256) ||
+                            evidence.ObservedTick != file.Allegation.ConductTick || evidence.Text != BoundedText.Excerpt(text, 256) ||
                             !file.Reads.Any(read => read.AgentId == evidence.SubmittedByAgentId && read.ReadTick == evidence.SubmittedTick &&
                                 read.EvidenceIds.Contains(evidence.Id, StringComparer.Ordinal)))
                             throw new InvalidDataException("A cited law record requires its exact historical wording and actual public file inspection.");
@@ -167,11 +167,11 @@ internal sealed partial class TownSystem
             }
             foreach (var receipt in state.NativeReceipts)
             {
-                if (receipt is null || !TownHearingProcedure.DerivedIdentity(receipt.Id) || !nativeReceipts.Add(receipt.Id) ||
+                if (receipt is null || !IdentityRules.Reference(receipt.Id, DerivedId.MaximumLength, requireTrimmed: true) || !nativeReceipts.Add(receipt.Id) ||
                     receipt.Kind is not ("return_goods" or "repair_equipment" or "public_service_goods") ||
                     !agents.Contains(receipt.ActorId) || receipt.Tick < 0 || receipt.Tick > tick || receipt.Quantity <= 0 ||
-                    !TownHearingProcedure.Id(receipt.ItemKind) || !TownHearingProcedure.Id(receipt.SourceLotId) ||
-                    !TownHearingProcedure.Id(receipt.ResultLotId) || !map.Contains(receipt.Position) ||
+                    !IdentityRules.Reference(receipt.ItemKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(receipt.SourceLotId, int.MaxValue, requireTrimmed: true) ||
+                    !IdentityRules.Reference(receipt.ResultLotId, int.MaxValue, requireTrimmed: true) || !map.Contains(receipt.Position) ||
                     receipt.ActorHouseholdId is not null && !households.Contains(receipt.ActorHouseholdId) ||
                     receipt.ActorTownId is not null && !townIds.Contains(receipt.ActorTownId) ||
                     receipt.SourceQuantityBefore <= 0 || receipt.AvailableQuantityBefore <= 0 ||
@@ -193,7 +193,7 @@ internal sealed partial class TownSystem
                         !WorldRuntime.CivicSharedRules.WarehouseResourceKinds.Contains(receipt.ItemKind) || receipt.Quantity > WorldRuntime.CivicSharedRules.WarehouseLoadQuantity ||
                         receipt.CarriedAvailableQuantityBefore is not { } carriedAvailable ||
                         carriedAvailable < receipt.AvailableQuantityBefore || carriedAvailable - receipt.Quantity < WorldRuntime.CivicSharedRules.WarehouseLoadQuantity ||
-                        !TownHearingProcedure.Id(receipt.TargetId)) ||
+                        !IdentityRules.Reference(receipt.TargetId, int.MaxValue, requireTrimmed: true)) ||
                     receipt.Kind != "public_service_goods" && receipt.CarriedAvailableQuantityBefore is not null)
                     throw new InvalidDataException("A saved native remedy receipt is inconsistent with a supported physical effect.");
                 if (receipt.Kind == "repair_equipment")
@@ -201,7 +201,7 @@ internal sealed partial class TownSystem
                     var materials = NonLandRepairMaterials(receipt.ItemKind);
                     if (materials.Count == 0 || receipt.RepairInputs.Count != materials.Count ||
                         receipt.RepairInputs.Any(input => input is null || input.Reservation is null) ||
-                        receipt.RepairInputs.Select(input => input.Reservation.Id).Distinct(StringComparer.Ordinal).Count() != receipt.RepairInputs.Count ||
+                        receipt.RepairInputs.Select(input => (string?)input.Reservation.Id).Distinct(StringComparer.Ordinal).Count() != receipt.RepairInputs.Count ||
                         receipt.RepairInputs.Any(input => input.Reservation.State != InventoryReservationState.Completed ||
                             !consumedRepairInputs.Add(input.Reservation.Id) ||
                             input.Reservation.Purpose != "equipment_repair" || input.Reservation.OwnerId != receipt.PreviousOwnerId ||

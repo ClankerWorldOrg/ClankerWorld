@@ -21,7 +21,7 @@ internal sealed partial class TownSystem
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
             (plan.SelectedTiles is { } selected ? !TownLandClaimRules.CanClaim(world.Map, town, selected, world.TownLandTitles) :
-                !plan.OfferedTiles.Any(tile => TownLandClaimRules.CanClaim(world.Map, town, [tile], world.TownLandTitles))))
+                TownLandClaimRules.ClaimableNear(world.Map, town, world.TownLandTitles, world.Agents[plan.Actor].Position, 1).Length == 0))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected plot is no longer connected unclaimed Town land");
         return new();
     }

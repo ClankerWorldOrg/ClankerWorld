@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
@@ -90,7 +91,7 @@ public partial class Main
         try
         {
             var status = await ownerApi.GetStartupRecoveryAsync(ResolveWorldUri(), owner.Authority, owner.DeviceId,
-                deviceKey, CancellationToken.None);
+                deviceKey, OwnerRequestToken);
             if (read != startupRecoveryReadRevision || navigation != mainMenuNavigationRevision || registration != owner) return true;
             if (status.Pending) { ShowStartupRecovery(status); return true; }
             startupRecovery = null;
@@ -124,42 +125,43 @@ public partial class Main
         var server = ResolveWorldUri();
         await ownerActionGate.RunAsync(async () =>
         {
-            startupRecoveryBusy = true;
-            startupRecoveryReadRevision++;
-            isOwnerAction = true;
-            refreshCancellation?.Cancel();
-            startupRecoveryButton.Disabled = true;
-            startupRecoveryRetry.Disabled = true;
             try
             {
-                await RefreshSaveDiskSpaceAsync(force: true);
-                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (!ReferenceEquals(owner, registration) || registeredEndpointInvalid)
-                    throw new ObsoleteWorldRequestException();
-                observationSession.ResetAfterLoad();
-                await ownerApi.RecoverAutosaveAsync(server, owner.Authority, owner.DeviceId, save.Id,
-                    signer, CancellationToken.None);
-                startupRecovery = null;
-                ShowMainMenu();
-                var previousRefreshCount = successfulRefreshCount;
-                await RefreshAsync();
-                if (successfulRefreshCount != previousRefreshCount && !observationSession.AwaitingFreshBaseline)
+                await RunOwnerLifecycleAsync(async () =>
                 {
-                    mainMenuOverlay.Hide();
-                    isInWorld = true;
-                    SetStatus("Recovered the autosave. The world is paused, and the damaged file is kept.", good: true);
-                }
+                    await RefreshSaveDiskSpaceAsync(force: true);
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    ownerRequestContext.Value!.EnsureCurrent();
+                    if (!ReferenceEquals(owner, registration) || registeredEndpointInvalid)
+                        throw new ObsoleteOwnerRequestException();
+                    observationSession.ResetAfterLoad();
+                    await AwaitCurrentWorldResultAsync(ownerApi.RecoverAutosaveAsync(server, owner.Authority, owner.DeviceId, save.Id,
+                        signer, OwnerRequestToken));
+                    startupRecovery = null;
+                    ShowMainMenu();
+                    var previousRefreshCount = successfulRefreshCount;
+                    await AwaitCurrentWorldResultAsync(RefreshAsync());
+                    if (successfulRefreshCount != previousRefreshCount && !observationSession.AwaitingFreshBaseline)
+                    {
+                        mainMenuOverlay.Hide();
+                        isInWorld = true;
+                        SetStatus("Recovered the autosave. The world is paused, and the damaged file is kept.", good: true);
+                    }
+                    return true;
+                }, busy =>
+                {
+                    startupRecoveryBusy = busy;
+                    if (busy) startupRecoveryReadRevision++;
+                    if (busy) startupRecoveryButton.Disabled = true;
+                    startupRecoveryRetry.Disabled = busy;
+                    SetOwnerRequestBusy(busy);
+                }, bindPanel: false, bindWorld: false);
             }
+            catch (ObsoleteOwnerRequestException) { }
             catch (Exception)
             {
                 startupRecovery = null;
                 startupRecoverySave.Text = "Could not confirm recovery. Choose Check again before trying recovery once more. Your saved files are kept.";
-            }
-            finally
-            {
-                startupRecoveryBusy = false;
-                isOwnerAction = false;
-                startupRecoveryRetry.Disabled = false;
                 RefreshControlAvailability();
             }
         });
