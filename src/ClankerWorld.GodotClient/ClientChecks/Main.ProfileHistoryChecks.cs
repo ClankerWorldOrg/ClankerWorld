@@ -41,6 +41,10 @@ public partial class Main
         void CheckLayout()
         {
             var content = selectedAgentOverview.GetGlobalRect();
+            var partnerName = profilePeople.FindChildren("*", nameof(Label), true, false).OfType<Label>()
+                .Single(label => label.Text == partner.DisplayName);
+            if (partnerName.GetLineCount() < 2 || partnerName.GetGlobalRect().End.X > content.End.X + 1)
+                throw new InvalidOperationException("The complete relationship name must wrap inside its Profile row.");
             var notes = profilePeople.GetChildren().OfType<Label>().ToArray();
             if (notes.Length != adult.SocialNotes.Count || !notes.Any(label => label.Text.Contains("Bought 1 of Store", StringComparison.Ordinal)))
                 throw new InvalidOperationException("The history check must render all recent trades in the real Profile.");
