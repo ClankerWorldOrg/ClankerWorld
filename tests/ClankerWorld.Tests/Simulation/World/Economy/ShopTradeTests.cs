@@ -86,8 +86,14 @@ public sealed partial class ShopTradeTests
         }
         var buyerProvider = new ShopProvider("shop_buy:");
         using var offering = WorldRuntime.Restore(state, id => id == buyer ? buyerProvider : new ShopProvider("safe_idle"));
+        var buyPlans = new List<ShopBuyActionPlan>();
         for (var step = 0; step < 40 && offering.ShopTrades.Count == 0; step++)
-            Assert.True((await offering.AdvanceOneTickAsync()).Advanced);
+        {
+            var result = await offering.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            buyPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is ShopBuyActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<ShopBuyActionPlan>(decision.ActionPlan)));
+        }
         var binding = Assert.Single(offering.ShopTrades);
         var offer = offering.Society.Inventory.GetOffer(binding.OfferId);
         Assert.Equal(DirectBarterState.Open, offer.State);
@@ -95,6 +101,15 @@ public sealed partial class ShopTradeTests
         Assert.Equal(paymentUnits, offer.SecondQuantity);
         Assert.Equal("shop-axe", offer.FirstLotId);
         Assert.Equal("buyer-payment", offer.SecondLotId);
+        Assert.NotEmpty(buyPlans);
+        Assert.All(buyPlans, plan =>
+        {
+            Assert.Equal(ShopBuyKind.Quote, plan.Kind);
+            Assert.Equal(shopId, plan.BuildingId);
+            Assert.Equal((offer.FirstLotId, offer.FirstQuantity, offer.SecondLotId, offer.SecondQuantity),
+                (plan.Quote!.Goods.Id, plan.Quote.GoodsQuantity, plan.Quote.Payment.Id, plan.Quote.PaymentQuantity));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, offering.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.Equal(shopId, offering.Society.Inventory.GetLot(offer.FirstLotId).StorageBuildingId);
         Assert.Equal(2, offering.Society.Inventory.GetLot("shop-axe").Quantity);
         Assert.Equal(6, offering.Society.Inventory.GetLot("buyer-payment").Quantity);
