@@ -71,7 +71,7 @@ public partial class Main
                     // OK has an invalid receipt, modelling loss of a usable success response.
                     host.SubmissionStatus = HttpStatusCode.BadRequest;
                     await RetryPendingSubmissionAsync();
-                    RequireCleared();
+                    RequireCleared(request.IsAuthoring);
                 }
             }
         }
@@ -91,11 +91,13 @@ public partial class Main
             System.Environment.SetEnvironmentVariable("CI", previousCi);
         }
 
-        void RequireCleared()
+        void RequireCleared(bool worldEdit = false)
         {
+            var prefix = worldEdit ? "World edit refused; nothing changed." : "The server did not accept your request";
             if (pendingSubmission is not null || TryCreatePendingSubmissionBinding(out var currentBinding) && pendingSubmissionStore.TryLoad(currentBinding) is not null ||
                 saveApiKeyButton.Disabled || buildingRemoveButton.Disabled || isOwnerAction ||
-                !statusLabel.Text.StartsWith("The server did not accept your request", StringComparison.Ordinal))
+                !statusLabel.Text.StartsWith(prefix, StringComparison.Ordinal) ||
+                worldEdit && !statusLabel.Text.Contains("Controlled owner request refusal.", StringComparison.Ordinal))
                 throw new InvalidOperationException("#1533: a definitive refusal must clear the disk retry and restore owner controls.");
         }
     }
