@@ -3,11 +3,13 @@ name: Nightly
 # Publishes a nightly build of main as a GitHub pre-release tagged
 # v<version>-nightly.<date>.<run>, which the launcher offers only in Developer
 # mode (#1566; the owner's choice in chat, October 10). It skips a day when main
-# hasn't changed or main's CI hasn't passed on its newest commit, and keeps the
+# hasn't changed or main's CI hasn't passed on the triggering commit, and keeps the
 # seven newest nightly releases. See docs/development/releasing.md#nightly-builds.
 on:
   schedule:
-    - cron: "17 3 * * *"
+    # 21:17 UTC: 23:17 in Amsterdam in summer and 22:17 in winter, so the build
+    # is ready by the owner's usual evening playtest (owner's choice, October 15).
+    - cron: "17 21 * * *"
   workflow_dispatch:
 
 permissions:
@@ -21,9 +23,8 @@ concurrency:
   group: nightly
   cancel-in-progress: false
 
-# The job's token can write releases, so only the steps that call gh get it as
-# GH_TOKEN, and checkout keeps no credentials: the steps that restore, build and
-# package the repository's code never see it.
+# Only the publish job can write releases. Only steps that call gh get GH_TOKEN,
+# and checkout keeps no credentials: restore, build and packaging never see it.
 env:
   GH_REPO: ${{ github.repository }}
   KEEP_NIGHTLIES: 7
@@ -63,15 +64,18 @@ jobs:
           if-no-files-found: ignore
 
   nightly:
-    if: github.repository == 'ClankerWorldOrg/ClankerWorld'
+    if: github.repository == 'ClankerWorldOrg/ClankerWorld' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       actions: read
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+      sha: ${{ steps.decide.outputs.sha }}
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Decide whether main needs a new nightly build
         id: decide
@@ -113,8 +117,72 @@ jobs:
           export VersionSuffix="nightly.$(date -u +%Y%m%d).${GITHUB_RUN_NUMBER}"
           bash scripts/verify-godot-windows-export.sh
           bash scripts/package-windows.sh
-      - name: Publish the nightly pre-release
+          bash scripts/verify-godot-windows-export.sh --launcher
+          bash scripts/package-windows.sh --launcher export/launcher-windows-x64 export/launcher-package
+      - name: Upload the nightly game package
         if: steps.decide.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-game
+          path: export/package
+          compression-level: 0
+          if-no-files-found: error
+      - name: Upload the nightly launcher package
+        if: steps.decide.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-launcher
+          path: export/launcher-package
+          compression-level: 0
+          if-no-files-found: error
+
+  windows-installer:
+    needs: nightly
+    if: needs.nightly.outputs.build == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-game
+          path: ${{ runner.temp }}/installer-game
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-launcher
+          path: ${{ runner.temp }}/installer-launcher
+      - name: Build the unsigned per-user setup with pinned Inno Setup
+        run: |
+          stage_root="$(cygpath -u "$RUNNER_TEMP")"
+          game_zip="$(find "$stage_root/installer-game" -maxdepth 1 -name 'ClankerWorld-*-windows-x64.zip' -print -quit)"
+          launcher_zip="$(find "$stage_root/installer-launcher" -maxdepth 1 -name 'ClankerWorld-Launcher-*-windows-x64.zip' -print -quit)"
+          bash scripts/package-windows-installer.sh "$game_zip" "$launcher_zip" "$stage_root/installer-setup"
+      - name: Upload the nightly setup and its SHA-256
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-setup
+          path: ${{ runner.temp }}/installer-setup
+          compression-level: 0
+          if-no-files-found: error
+
+  publish:
+    needs: [nightly, windows-installer]
+    if: needs.nightly.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-game
+          path: export/package
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-setup
+          path: export/setup
+      - name: Publish the nightly pre-release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -122,12 +190,16 @@ jobs:
           name="$(basename "${zip}" .zip)"
           version="${name#ClankerWorld-}"
           version="${version%-windows-x64}"
-          sha="${{ steps.decide.outputs.sha }}"
+          setup="export/setup/ClankerWorld-Setup-${version}-windows-x64.exe"
+          for asset in "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256"; do
+            test -f "${asset}"
+          done
+          sha="${{ needs.nightly.outputs.sha }}"
           notes="Nightly build of main at ${sha}, for Developer mode in the launcher. It is not a release: it may not open worlds other versions saved, and it is removed after ${KEEP_NIGHTLIES} newer nightly builds."
           gh release create "v${version}" --prerelease --latest=false --target "${sha}" \
-            --title "Nightly ${version}" --notes "${notes}" "${zip}" "${zip}.sha256"
+            --title "Nightly ${version}" --notes "${notes}" \
+            "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256"
       - name: Remove older nightly builds
-        if: steps.decide.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

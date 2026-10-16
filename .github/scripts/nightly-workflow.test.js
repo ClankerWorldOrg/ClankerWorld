@@ -21,7 +21,7 @@ function script(name) {
     if (line && !line.startsWith('          ')) break;
     body.push(line.slice(10));
   }
-  return body.join('\n').replaceAll('${{ steps.decide.outputs.sha }}', sha);
+  return body.join('\n').replaceAll('${{ needs.nightly.outputs.sha }}', sha);
 }
 
 function sandbox(t, pages = []) {
@@ -106,19 +106,41 @@ test('only a green push run for the exact checked-out commit allows a new nightl
   }
 });
 
-test('publication targets the checked commit and uploads both versioned assets as a pre-release', t => {
+const releaseAssets = [
+  'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip',
+  'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip.sha256',
+  'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe',
+  'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe.sha256',
+];
+
+function writeReleaseAssets(root, missing) {
+  for (const asset of releaseAssets.filter(asset => asset !== missing)) {
+    const file = path.join(root, asset);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, 'synthetic release asset');
+  }
+}
+
+test('publication targets the checked commit and uploads the game, setup and both hashes as a pre-release', t => {
   const fixture = sandbox(t);
-  fs.mkdirSync(path.join(fixture.root, 'export/package'), { recursive: true });
-  const zip = 'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip';
-  fs.writeFileSync(path.join(fixture.root, zip), 'synthetic package');
-  fs.writeFileSync(path.join(fixture.root, `${zip}.sha256`), 'synthetic hash');
+  writeReleaseAssets(fixture.root);
   const result = fixture.run('Publish the nightly pre-release');
   assert.equal(result.status, 0, result.stderr);
   const call = fixture.calls().find(call => call[0] === 'release');
   assert.deepEqual(call.slice(0, 3), ['release', 'create', 'v0.1.0-nightly.20261011.42']);
   assert.ok(call.includes('--prerelease') && call.includes('--latest=false'));
   assert.equal(call[call.indexOf('--target') + 1], sha);
-  assert.deepEqual(call.slice(-2), [zip, `${zip}.sha256`]);
+  assert.deepEqual(call.slice(-4), releaseAssets);
+});
+
+test('a missing game, setup or checksum prevents publication', t => {
+  for (const missing of releaseAssets) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root, missing);
+    const result = fixture.run('Publish the nightly pre-release');
+    assert.notEqual(result.status, 0, missing);
+    assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, missing);
+  }
 });
 
 test('retention finds later API pages and removes only nightlies older than the newest seven', t => {
@@ -145,6 +167,10 @@ test('API errors fail both decision and cleanup without attempting a deletion', 
 test('only the steps that call gh get the token, and checkout keeps no credentials', () => {
   const [head, jobs] = workflow.split('\njobs:\n');
   assert.doesNotMatch(head, /^\s*GH_TOKEN:/m);
+  const writers = jobs.split(/\n(?=  [\w-]+:\n)/)
+    .filter(job => /^      contents: write$/m.test(job))
+    .map(job => job.match(/^  ([\w-]+):$/m)?.[1]);
+  assert.deepEqual(writers, ['publish']);
   const steps = jobs.split(/\n(?=  [\w-]+:\n)/).flatMap(job => {
     const [settings, body] = job.split('\n    steps:\n');
     assert.doesNotMatch(settings, /^\s*GH_TOKEN:/m);
