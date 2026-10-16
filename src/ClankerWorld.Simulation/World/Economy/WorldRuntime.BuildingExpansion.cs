@@ -362,7 +362,7 @@ public sealed partial class WorldRuntime
                 if (delivery.Store)
                 {
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor, owner,
+                        IdentityRules.PrefixedReference("expansion-delivery:", $"{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}"), actor, owner,
                         delivery.LotId, delivery.Quantity, "building_expansion_material_delivered",
                         destinationStorageBuildingId: building.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
                     AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, delivery.Quantity, building.InstanceId, "stored"));
@@ -370,7 +370,7 @@ public sealed partial class WorldRuntime
                 else
                 {
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-ground-delivery:{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}", actor,
+                        IdentityRules.PrefixedReference("expansion-ground-delivery:", $"{WorldTick}:{actor}:{building.InstanceId}:{delivery.LotId}"), actor,
                         owner, delivery.LotId, delivery.Quantity,
                         "building_expansion_material_delivered", destinationGroundPosition: ExpansionGroundPosition(building),
                         holdAccess: InventoryHoldRules.DeliveryFor(actor, building.InstanceId)));
@@ -386,7 +386,7 @@ public sealed partial class WorldRuntime
                 if (pickup.Quantity > 0)
                 {
                     ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                        $"expansion-pickup:{WorldTick}:{actor}:{building.InstanceId}:{pickup.LotId}",
+                        IdentityRules.PrefixedReference("expansion-pickup:", $"{WorldTick}:{actor}:{building.InstanceId}:{pickup.LotId}"),
                         pickup.OwnerId, actor, pickup.LotId, pickup.Quantity, "building_expansion_material_picked_up",
                         destinationDeliveryBuildingId: building.HouseholdId is null ? null : building.InstanceId,
                         holdAccess: InventoryHoldRules.BorrowedBy(actor)));
