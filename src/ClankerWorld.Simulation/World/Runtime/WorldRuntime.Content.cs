@@ -267,7 +267,8 @@ public sealed partial class WorldRuntime
                 return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
                     "A Warehouse must join a Town that does not already have one.");
 
-            if (!CanPlaceBuilding(definition, position, out var placementFailure))
+            if (!CanPlaceBuilding(definition, position, out var placementFailure, out var entrance,
+                    mayFaceRoad: assignedTownId is not null))
             {
                 return BuildingPlacementResult.Rejected(
                     normalizedInstanceId,
@@ -287,7 +288,8 @@ public sealed partial class WorldRuntime
                 position,
                 WorldTick,
                 assignedTownId,
-                householdId);
+                householdId,
+                Entrance: assignedTownId is not null ? entrance : null);
             worldSimulation = worldSimulation with
             {
                 Buildings = worldSimulation.Buildings.Append(placed).OrderBy(item => item.InstanceId, StringComparer.Ordinal).ToArray(),

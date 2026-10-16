@@ -273,6 +273,8 @@ public sealed class TownProjectRuntimeTests
     public async Task RejectedPreparedProjectTicksLeaveAuthorityGoodsAndCompletionUnchanged(string phase)
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
+        // One native worker exposes the exact final work tick regardless of travel timing.
+        if (phase == "completion") scenario.Policy.WorkActor = TownProjectScenario.Author;
         scenario.Policy.Supply = true;
         if (phase == "delivery")
             await scenario.UntilAsync(() => scenario.Project.Deliveries.Any(d => d.DeliveredTick is null &&
@@ -746,6 +748,7 @@ internal sealed class TownProjectPolicy
     internal bool Proposed { get; set; }
     internal bool OrdinaryLaw { get; init; }
     internal bool Supply { get; set; }
+    internal string? WorkActor { get; set; }
     internal bool PersonalSupply { get; set; } = true;
     internal bool CollectTools { get; set; }
     internal bool LawAfterHall { get; set; }
@@ -830,6 +833,7 @@ internal sealed class TownProjectPolicy
                 {
                     if (selected is not null) break;
                     if (!policy.PersonalSupply && prefix is "town_project_donate:" or "town_project_gather:") continue;
+                    if (prefix == "town_project_work:" && policy.WorkActor is { } worker && actor != worker) continue;
                     // Keep the wood worker from acquiring a pickaxe merely because stone sorts first.
                     selected = prefix == "town_project_gather:" && policy.CollectTools
                         ? candidates.FirstOrDefault(c => workerMaterial is not null && c.Id.StartsWith(prefix, StringComparison.Ordinal) &&

@@ -542,6 +542,9 @@ public sealed partial class ParenthoodTests
             $"Expected the existing project to continue, but it is {progressed.Stage}.");
         Assert.Contains($"care:{childId}", careProvider.SelectedCandidateIds);
         Assert.DoesNotContain($"guardian_tend:{childId}", careProvider.SelectedCandidateIds);
+        // The unrelated project may have moved the guardian beyond care range.
+        for (var tick = 0; tick < 8 && !working.ExportState().Events.Any(item => item.Kind == "child_cared_for" && item.Detail == childId); tick++)
+            Assert.True((await working.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(working.ExportState().Events, item => item.Kind == "child_cared_for" && item.Detail == childId);
 
         stateToTend = stateToTend with

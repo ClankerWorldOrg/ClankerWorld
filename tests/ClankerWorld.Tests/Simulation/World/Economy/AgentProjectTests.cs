@@ -347,11 +347,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
         var actor = state.Agents[0];
-        var position = state.Map.Tiles.Last(tile => state.Map.IsBuildable(tile.Position) &&
-            !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-            !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
+        var position = MovementTestWorld.BuildingSite(state, definition, actor.AgentId);
         state = state with
         {
             Society = state.Society with
@@ -463,7 +460,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
         }, _ => provider);
         var storedBelongings = new Dictionary<string, (string Owner, string House, string Kind)>();
-        for (var tick = 0; tick < 1000; tick++)
+        // Doorway travel changes when the independent milestones occur.
+        for (var tick = 0; tick < 1600; tick++)
         {
             await world.AdvanceOneTickAsync();
             provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
@@ -471,6 +469,14 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId is not null &&
                          world.Society.Agents.Any(person => person.Id == lot.OwnerId)))
                 storedBelongings.TryAdd(lot.Id, (lot.OwnerId, lot.StorageBuildingId!, lot.ItemKind));
+            if (tick >= 999)
+            {
+                var observed = world.ExportState();
+                if (observed.Events.Any(item => item.Kind == "household_food_collected") &&
+                    observed.Events.Any(item => item.Kind == "project_request_fulfilled") &&
+                    observed.Events.Where(item => item.Kind == "material_gathered").Select(item => item.Detail.Split(':')[^2]).Distinct().Count() >= 3)
+                    break;
+            }
         }
         Assert.Contains(storedBelongings.Values, stored => stored.Kind is "field_map" or "field_record");
         var state = world.ExportState();

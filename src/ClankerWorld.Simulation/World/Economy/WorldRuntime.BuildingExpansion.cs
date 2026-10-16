@@ -275,6 +275,12 @@ public sealed partial class WorldRuntime
                     worldContent.Buildings.Single(value => value.CanonicalId == item.DefinitionId), item))), target, position))
             return false;
         var tiles = WorldContentSimulationRules.Footprint(target, position).ToHashSet();
+        if (Ground.BuildingEntrances(building.InstanceId).Any(tiles.Contains)) return false;
+        var entrance = BuildingMovementRules.EntranceFor(target, building with { Position = position });
+        if (!map.IsBuildable(entrance) || Ground.BuildingFootprintsExcept(building.InstanceId).Contains(entrance) ||
+            (worldSimulation.BuildingExpansions ?? []).Any(job => job.JobId != ownJobId &&
+                job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused && ExpansionTiles(job).Contains(entrance)))
+            return false;
         var original = WorldContentSimulationRules.Footprint(definition, building);
         if (!original.All(tiles.Contains) || tiles.Any(RoadAndBridgeTiles().Contains) || TownProjectProtectedSites().Any(tiles.Contains) ||
             MarketSiteTiles().Any(tiles.Contains) ||
@@ -288,7 +294,7 @@ public sealed partial class WorldRuntime
             failure = "The expansion does not fit the building's Town boundary or overlaps another Town.";
             return false;
         }
-        if (building.Entrance is { } entrance && !WorldContentSimulationRules.IsEntrance(target, position, entrance))
+        if (building.Entrance is { } recordedEntrance && !WorldContentSimulationRules.IsEntrance(target, position, recordedEntrance))
         {
             failure = "The expansion would obstruct the building's entrance.";
             return false;

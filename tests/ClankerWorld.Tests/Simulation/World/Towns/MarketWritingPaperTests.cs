@@ -35,7 +35,7 @@ public sealed class MarketWritingPaperTests
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(leaving).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await leaving.AdvanceOneTickAsync()).Advanced);
             Assert.DoesNotContain(PaidMarketWorld.Market(leaving).Occupancies, item => item.EndedTick is null);
-            state = FreshDecisions(leaving.ExportState());
+            state = PaidMarketWorld.Waiting(FreshDecisions(leaving.ExportState()), seller);
         }
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var recipeCandidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);

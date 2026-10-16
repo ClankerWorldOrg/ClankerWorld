@@ -138,7 +138,8 @@ public sealed partial class WorldDeliveryOrderTests
         using var world = Restore(state);
         var repeating = Submit(world, actor, "repeat-delivery", "keep hauling cloth to my House");
         var queued = Submit(world, actor, "after-repeat", "haul one cloth to my House", queue: true);
-        for (var tick = 0; tick < 20 && Order(world, repeating).CompletedUnits < 2; tick++) await Tick(world);
+        // Two full loads include returning around the House walls to its door.
+        for (var tick = 0; tick < 48 && Order(world, repeating).CompletedUnits < 2; tick++) await Tick(world);
         Assert.Equal(("delivery_loads", 2, true),
             (Order(world, repeating).ProgressUnit, Order(world, repeating).CompletedUnits, Order(world, repeating).RepeatUntilCancelled));
         Assert.NotEqual("finished", Order(world, repeating).Status);

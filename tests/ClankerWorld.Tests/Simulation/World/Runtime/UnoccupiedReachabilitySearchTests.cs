@@ -28,7 +28,7 @@ public sealed class UnoccupiedReachabilitySearchTests
         foreach (var destination in new GridPoint[] { new(0, 0), new(width / 2, 3), new(width - 1, 6), new(0, 1) })
             foreach (var range in new[] { 0, 1, 2 })
             {
-                var shared = new UnoccupiedReachabilitySearch(map, occupied, destination, range, neighbors);
+                var shared = new UnoccupiedReachabilitySearch(map, occupied, destination, range, swimming);
                 foreach (var tile in map.Tiles.Reverse())
                 {
                     using var forward = new UnoccupiedRouteSearch(map, tile.Position, occupied, (_, _) => 1, neighbors);

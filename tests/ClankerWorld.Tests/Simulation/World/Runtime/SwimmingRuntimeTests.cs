@@ -208,7 +208,8 @@ public sealed class SwimmingRuntimeTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.True(provider.ChoseWarmth, "The real personal decision must choose the offered native warmth action.");
-        Assert.Equal(shore, Position(world, actor));
+        // The shelter's south doorway is dry ground; its east wall faces the water.
+        Assert.Equal(new GridPoint(shore.X, shore.Y + 1), Position(world, actor));
         var warmth = world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints;
         for (var tick = 0; tick < 3; tick++)
         {
