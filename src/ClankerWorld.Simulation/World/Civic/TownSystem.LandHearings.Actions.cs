@@ -59,12 +59,15 @@ internal sealed partial class TownSystem
                         property.Request.BuildingId + " and its shared goods " +
                         (property.Request.TargetHouseholdId is { } recipient ? "to household " + recipient : "to the Town") +
                         ". This records only your own property consent; other living owners must choose for themselves.", 174));
-            OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Statement, "",
-                "Submit your own statement to the current land-case file via civic_land_hearing.statement. It remains an allegation with your identity, not a verified fact.", 182);
-            if (revision.Tiles.Any(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+            if (open && (isParty || TownAdults(world, town).Contains(actor, StringComparer.Ordinal)))
+                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Statement, "",
+                    "Submit your own statement to the current land-case file via civic_land_hearing.statement. It remains an allegation with your identity, not a verified fact.", 182);
+            if ((open && TownAdults(world, town).Contains(actor, StringComparer.Ordinal) || isParty) &&
+                revision.Tiles.Any(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Observe, "",
                     "Record what you can physically see on the nearby disputed plot. This supplies no unseen events, building access or permission.", 181);
-            foreach (var party in parties)
+            foreach (var party in parties.Where(party => item.Status == "pending" &&
+                         (party.AdultIds.Contains(actor, StringComparer.Ordinal) || party.RepresentativeId == actor)))
             {
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Answer, party.Id,
                     "Personally answer for " + party.Kind + " " + (party.HouseholdId ?? party.TownId) + " in this hearing via civic_land_hearing.statement. Your answer supplies neither another party's response nor permission to surrender rights.", 165);
@@ -118,10 +121,11 @@ internal sealed partial class TownSystem
                 foreach (var grounds in new[] { "material_evidence", "procedural_error" })
                     candidates.Add(new(CivicAction(world, town.Id, "hearing_reopen", token, grounds),
                         "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184));
-            foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor &&
+            foreach (var recipient in world.Agents.Values.Where(person => open && person.AgentId != actor &&
                          world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
-                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Relay, recipient.AgentId,
-                    "Tell " + world.Society.GetAgent(recipient.AgentId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181);
+                if (LandHearingReadCurrent(world, item, actor) && LandHearingMayInspect(world, town, item, recipient.AgentId) && !LandHearingReadCurrent(world, item, recipient.AgentId))
+                    OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Relay, recipient.AgentId,
+                        "Tell " + world.Society.GetAgent(recipient.AgentId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181);
         }
     }
 
