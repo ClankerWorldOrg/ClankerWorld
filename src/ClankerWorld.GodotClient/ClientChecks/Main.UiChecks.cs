@@ -511,10 +511,12 @@ public partial class Main
         if (quitToLauncherButton.Visible)
             throw new InvalidOperationException("Quit to Launcher must appear only when the launcher started the game.");
         Button[] choices = [mainMenuContinueButton, mainMenuNewButton, mainMenuLoadButton, mainMenuSettingsButton, quitGameButton,
-            quitToLauncherButton, menuResumeButton, menuSaveWorldButton, settingsButton, modLibraryButton, menuQuitToMainButton];
+            quitToLauncherButton, menuResumeButton, menuSaveWorldButton, menuLoadSaveButton, settingsButton, modLibraryButton, menuQuitToMainButton];
         if (choices.Any(button => button.GetThemeFont("font") != UiFonts.Headings || button.GetThemeFontSize("font_size") != UiFonts.Heading ||
-                button.Alignment != HorizontalAlignment.Left))
-            throw new InvalidOperationException("The Main Menu and Pause Menu choices must share one button style.");
+                button.Alignment != HorizontalAlignment.Left || button.Icon is null))
+            throw new InvalidOperationException("The Main Menu and Pause Menu choices must share one button style with icons.");
+        if (quitToLauncherButton.Icon != quitGameButton.Icon)
+            throw new InvalidOperationException("Quit to Launcher must share the neighbouring quit button's icon.");
         if (deletionConfirmation.GetOkButton().ThemeTypeVariation != "DangerButton" ||
             quitGameConfirmation.GetOkButton().ThemeTypeVariation != "PrimaryButton")
             throw new InvalidOperationException("Permanent deletion must be the red action; other confirmations stay green.");
@@ -1001,6 +1003,21 @@ public partial class Main
     {
         try
         {
+            await VerifyProfileHistoryLayoutAsync();
+            if (OS.GetCmdlineUserArgs().Contains("--profile-history-only", StringComparer.Ordinal))
+            {
+                GD.Print("Profile history layout checks passed.");
+                GetTree().Quit();
+                return;
+            }
+            if (OS.GetCmdlineUserArgs().Contains("--load-world-timeline-only", StringComparer.Ordinal))
+            {
+                GetWindow().Size = new Vector2I(1280, 720);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                await VerifyLoadWorldTimelineAsync();
+                Callable.From(() => FinishUiSmoke(0)).CallDeferred();
+                return;
+            }
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
             await VerifyPanelDraftPreservationAsync();
@@ -1247,6 +1264,7 @@ public partial class Main
                 await VerifyAutosaveSettingsOwnershipAsync();
                 await VerifyUiScaleAt1440pAsync(displayWindow);
                 await VerifyManualSaveListOwnershipAsync();
+                await VerifyLoadWorldTimelineAsync();
                 await VerifyRecoveryCleanupAsync();
                 await VerifySameWorldTimelineUiRecoveryAsync();
                 VerifySaveBranchList();
@@ -1283,10 +1301,10 @@ public partial class Main
             pauseMenuPanel.Show();
             var pauseActions = menuQuitToMainButton.GetParent<VBoxContainer>().GetChildren()
                 .OfType<Button>().Where(button => button.Visible).Select(button => button.Text).ToArray();
-            if (!pauseActions.SequenceEqual(new[] { "Save World", "Settings", "Mod Library", "Quit to Menu" }) ||
+            if (!pauseActions.SequenceEqual(new[] { "Save World", "Load Save", "Settings", "Mod Library", "Quit to Menu" }) ||
                 pauseMenuPanel.FindChildren("*", nameof(Button), recursive: true, owned: false)
                     .OfType<Button>().Any(button => button.Visible && button.Text == "Create"))
-                throw new InvalidOperationException("Pause Menu must have only the four ordered actions and no player Create workbench.");
+                throw new InvalidOperationException("Pause Menu must have only the five ordered actions and no player Create workbench.");
             modLibraryButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!modLibraryPanel.Visible || settingsPanel.Visible)
                 throw new InvalidOperationException("Mod Library action must open the in-world package view.");
@@ -1366,6 +1384,7 @@ public partial class Main
             manualSaveList.Clear();
             manualSaveList.AddItem("Selected snapshot");
             manualSaveList.Select(0);
+            manualSaveList.EmitSignal(SlotList.SignalName.ItemSelected, 0L);
             manualSaveDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!deletionConfirmation.Visible || pendingDeletion?.Id != "smoke-save" ||
                 !deletionConfirmation.DialogText.Contains("Selected snapshot", StringComparison.Ordinal) ||

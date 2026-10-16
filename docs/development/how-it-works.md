@@ -798,6 +798,12 @@ it changes no observation cadence, simulation state, saved data or history.
 Resize-driven text and Profile fitting is coalesced in the next process frame.
 Changing a text panel's height can change its wrapping and the Profile's scroll
 area; those notifications must not schedule another fit in the same idle flush.
+Profile activity, orders, details, People notes and messages share one outer
+scroll. `AddProfileText` gives text its container's width and wrapped height;
+People stacks rows vertically instead of flowing independently sized labels.
+The history layout check renders long trade and message histories at 1280×720
+and 1920×1080, checks text widths and section bounds, and reaches the controls
+and final message through the scroll.
 The fresh-process Profile check opens every agent in a generated, three-day
 hard world, including a born child, and measures both the button handler and
 the following layout frames. The normal UI smoke runs separately so its earlier
@@ -5300,6 +5306,9 @@ but cannot enter play or resume time behind another menu. A fresh Continue
 after returning still enters normally.
 
 The manual Save World and Load Save dialog owns one list read per opening.
+Load World embeds those same history controls when a world is selected, using
+the [catalog save-history read](saves-and-replay.md#browsing-saves-from-load-world)
+without activating the world.
 Closing it, creating, overwriting or deleting a save, or starting another opening
 cancels the previous read. Late success and failure replies cannot replace current rows,
 selection or status, including across a world or pairing change. Clearing or
