@@ -95,7 +95,7 @@ public sealed partial class WorldRuntime
     {
         if (!(IsTownProjectCandidate(action.CandidateId)))
             return false;
-        runtime.ApplyTownProjectCandidate(action.AgentId, action.State, action.CandidateId, action.Plan as TownProjectLoadActionPlan);
+        runtime.ApplyTownProjectCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "IsMarketCandidate", [], [], static (runtime, action) =>

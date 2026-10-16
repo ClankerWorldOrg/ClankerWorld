@@ -33,7 +33,26 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.Supply = true;
         scenario.Policy.CollectTools = true;
         scenario.Policy.LawAfterHall = true;
-        await scenario.UntilAsync(() => scenario.DonationTraveler() is not null, 180);
+        var gatheringPlans = new List<TownProjectWorkActionPlan>();
+        var pendingGathering = new Dictionary<string, TownProjectWorkActionPlan>(StringComparer.Ordinal);
+        void ObserveGathering(WorldStepResult result)
+        {
+            foreach (var decision in result.Decisions)
+            {
+                pendingGathering.Remove(decision.AgentId);
+                if (decision.Admission.Accepted && !decision.Admission.FellBack && decision.PlanRefusal is null &&
+                    decision.ActionPlan is TownProjectWorkActionPlan { Choice.ItemKind: not null, Harvest: not null } plan)
+                    pendingGathering[plan.Actor] = plan;
+            }
+            foreach (var plan in pendingGathering.Values.ToArray())
+                if (result.Events.Any(item => item.Kind == "material_gathered" &&
+                    item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + plan.Harvest!.Quantity))
+                {
+                    gatheringPlans.Add(plan);
+                    pendingGathering.Remove(plan.Actor);
+                }
+        }
+        await scenario.UntilAsync(() => scenario.DonationTraveler() is not null, 180, ObserveGathering);
         var traveler = scenario.DonationTraveler()!.Value;
         var carried = scenario.World.Society.Inventory.GetLot(traveler.LotId);
         Assert.Equal(traveler.Actor, carried.OwnerId);
@@ -47,13 +66,13 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.HoldDonationForActor = traveler.Actor;
         for (var tick = 0; tick < 100 && !scenario.Policy.DonationStarted.Task.IsCompleted; tick++)
         {
-            await scenario.World.TickModelWorkAsync();
+            ObserveGathering(await scenario.World.TickModelWorkAsync());
         }
         await ModelWorkHarness.For(scenario.World).WaitAsync(scenario.Policy.DonationStarted.Task);
         Assert.Equal(scenario.Project.Plan.Site, scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         for (var tick = 0; tick < 3; tick++)
         {
-            await scenario.World.TickModelWorkAsync();
+            ObserveGathering(await scenario.World.TickModelWorkAsync());
             Assert.Equal(traveler.Actor, scenario.World.Society.Inventory.GetLot(carried.Id).OwnerId);
             Assert.DoesNotContain(scenario.Project.Deliveries, delivery => delivery.SourceLotId == carried.Id);
         }
@@ -62,8 +81,15 @@ public sealed class TownProjectRuntimeTests
         // The generated world's loose-wood trips, seed storage and final forest load
         // need real travel time before the residents can perform the paid work.
         var donationPlans = new List<TownProjectDonationActionPlan>();
+        var workPlans = new List<TownProjectWorkActionPlan>();
         await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 420, result =>
         {
+            ObserveGathering(result);
+            workPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectWorkActionPlan plan &&
+                    decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => plan.Choice.ItemKind is null
+                        ? item.Kind == "town_project_worked" && item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)
+                        : plan.Harvest is { } harvest && item.Kind == "material_gathered" && item.Detail == plan.Actor + ":" + plan.Choice.ItemKind + ":" + harvest.Quantity))
+                .Select(decision => Assert.IsType<TownProjectWorkActionPlan>(decision.ActionPlan)));
             donationPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectDonationActionPlan plan && plan.Choice.AtSite &&
                     decision.Admission.Accepted && decision.PlanRefusal is null && result.Events.Any(item => item.Kind == "town_project_donated" &&
                         item.Detail.StartsWith(plan.Actor + ":" + plan.Choice.ProjectId + ":", StringComparison.Ordinal)))
@@ -71,6 +97,15 @@ public sealed class TownProjectRuntimeTests
         });
         AssertPaidHall(scenario);
         Assert.NotEmpty(donationPlans);
+        Assert.Contains(workPlans, plan => plan.Choice.ItemKind is null);
+        Assert.NotEmpty(gatheringPlans);
+        Assert.All(gatheringPlans, plan => Assert.NotNull(plan.Source));
+        Assert.All(workPlans.Concat(gatheringPlans), plan =>
+        {
+            Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
+            Assert.Equal(TownHearingProcedure.Digest(scenario.Project.Plan), TownHearingProcedure.Digest(plan.Project));
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, scenario.World.CheckActionPlan(plan).Refusal!.Reason);
+        });
         Assert.All(donationPlans, plan =>
         {
             Assert.Equal(plan.Choice.Encode(), plan.CandidateId);
