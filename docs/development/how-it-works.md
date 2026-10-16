@@ -3609,6 +3609,16 @@ Town shares, including a new Warehouse, are never offered to a household. The
 kinds are listed in `HouseholdBuildingKinds`. The optional Store uses the same
 household planning and ownership rules, with 1×1 and 1×2 footprints.
 
+For Stores, Tailor Shops, Restaurants, Clinics and Blacksmiths, household plans
+also share a Town limit: one of each kind per eight recorded residents, rounded
+up. `ResidentsPerSharedShop` in `WorldRuntime.HouseholdPlanning.cs` is the
+provisional tuning value. `TownHasRoomForSharedShop` counts placed buildings
+assigned to the Town and other residents' live construction projects, across
+all designs of the kind. Offers and plan admission, including construction
+orders, use that same check. Admitted construction keeps its slot and may finish
+if the population falls. Existing buildings above the limit remain; Houses, Silos, the Warehouse
+and Council-approved Town projects keep their separate rules.
+
 `WorkBuildingHasInputs` also filters autonomous plans and material preparation
 by work the building can actually do. Farmhouses and Silos need reachable
 household fields or planting stock, including an available seed site within
