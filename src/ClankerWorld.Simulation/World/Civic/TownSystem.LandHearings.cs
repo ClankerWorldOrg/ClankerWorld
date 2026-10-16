@@ -81,13 +81,13 @@ internal sealed partial class TownSystem
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) OpenLandHearing(ITownWorld world, TownRuntimeState town,
             TownCouncilState council, TownLandRecords hearings, TownLandCaseFiling filing, IReadOnlyList<GridPoint> tiles,
-            string? filingHousehold = null, string? townRepresentative = null, TownPropertyRequest? propertyRequest = null)
+            string? filingHousehold = null, string? townRepresentative = null, TownPropertyRequest? propertyRequest = null, TownPropertySnapshot? propertySnapshot = null)
     {
         if (!TownLandRightsRules.IsValidPlot(world.Map, tiles, world.WorldTick, world.WorldTick) ||
             tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles)))
             throw new InvalidOperationException("A land case needs one connected plot under this Town's existing title.");
         var before = hearings.Cases.Count;
-        var property = propertyRequest is null ? null : new TownPropertyCase(propertyRequest, [world.CaptureProperty(town, propertyRequest, 1)], []);
+        var property = propertyRequest is null ? null : new TownPropertyCase(propertyRequest, [propertySnapshot ?? world.CaptureProperty(town, propertyRequest, 1)], []);
         var parties = LandHearingParties(world, town, tiles, filingHousehold: filingHousehold, townRepresentative: townRepresentative);
         if (property is not null) parties = TownPropertyRules.Parties(parties, property, town.Id, world.Society.Agents);
         hearings = TownLandHearingRules.File(hearings, town.Id, filing, tiles, householdLandUseRights,

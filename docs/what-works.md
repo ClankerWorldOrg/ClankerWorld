@@ -2,7 +2,7 @@
 title: What works today
 type: product-status
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # What works today
@@ -160,7 +160,11 @@ it is set back to Model default. The server checks the chosen key with the
 provider and greys out listed models it can't use. That check, the listed model
 names, the Claude requests and the thinking setting have been tested against
 recorded sample replies, not yet against live provider accounts. A paused world's routine
-helper can be Off, Jev or OpenAI Decisions, with its own model picker. Decisions
+helper can be Off, Jev or OpenAI Decisions, with its own model and key pickers.
+**Settings → Game → API keys** saves named TypeSafe keys for Jev alongside
+OpenAI, Ollama Cloud and Anthropic keys. Jev starts on **jev-1.14.0**; an
+explicitly saved **jev-1.13.0** selection is retained. Unused keys can be
+deleted from API keys; a key used by the active helper is protected from deletion. Decisions
 uses a saved OpenAI key and handles the same routine choices and scoring of each
 agent's private memories as Jev. Both helpers serve adults and elders, including people
 born in the world. Children keep their own model; conversations, identity,
@@ -168,6 +172,8 @@ wills and planning use the agent's personal model throughout life. Switching
 cancels pending work and preserves memories.
 The Decisions integration is checked against the published API contract and
 sample replies; the live-account Windows check is still [pending](../playtest/alpha-1.md).
+The saved TypeSafe-key path is covered by automated checks; its live-account
+Windows check is also [pending](../playtest/2337-typesafe-helper.md).
 When a personal model names a new agent, it gets a stable first-letter hint to
 encourage varied names. Each chosen first name is unique across the world,
 including deceased agents. Different surnames, capitalization or spacing do

@@ -37,6 +37,22 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (NonLandFilingChoice.Decode(candidate.Id) is { } nonLandFilingChoice)
+            {
+                if ((candidate.ActionPlan as NonLandFilingActionPlan ?? PlanNonLandFiling(world, actor, nonLandFilingChoice)) is { } nonLandFiling &&
+                    CheckNonLandFiling(world, nonLandFiling).Allowed)
+                    candidates[index] = candidate with { ActionPlan = nonLandFiling };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingPropertyChoice.Decode(candidate.Id) is { } hearingPropertyChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingPropertyActionPlan ?? PlanLandHearingProperty(world, actor, hearingPropertyChoice)) is { } hearingProperty &&
+                    CheckLandHearingProperty(world, hearingProperty).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingProperty };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (LandHearingReopeningChoice.Decode(candidate.Id) is { } hearingReopeningChoice)
             {
                 if ((candidate.ActionPlan as LandHearingReopeningActionPlan ?? PlanLandHearingReopening(world, actor, hearingReopeningChoice)) is { } hearingReopening &&

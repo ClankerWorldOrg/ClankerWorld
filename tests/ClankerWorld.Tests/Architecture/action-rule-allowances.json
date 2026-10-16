@@ -12,9 +12,6 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs": [
-    "world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs": [
     "world.Society.GetAgent(actor).AgeBand != SocietyAgeBand.Infant"
   ],
@@ -182,9 +179,6 @@
     "people[judge.AgentId].AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
   "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownPropertyRules.cs": [
     "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ],
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": [
