@@ -30,7 +30,7 @@ public partial class Main
         var snapshot = new OwnerWorldSnapshot("profile-history", 24_000, "profile-history-map", [new(0, 0, "meadow")], [], [], null, 0)
         {
             Agents = [adult, partner],
-            Instructions = [.. Enumerable.Range(1, 12).Select(index => new OwnerWorldInstruction($"history-order-{index}", adult.Id,
+            Instructions = [.. Enumerable.Range(1, 12).Select(index => new OwnerWorldInstruction(Guid.NewGuid().ToString("D"), adult.Id,
                 "order", $"Carry wood from the river bank to the household Store before dusk, trip {index}.", "completed", 0, 0, index, index,
                 "I brought the wood home and stored it.", Task: new("gather", "finished", 1, 1, "items", false)))],
         };
