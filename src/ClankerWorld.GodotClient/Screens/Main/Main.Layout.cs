@@ -186,6 +186,9 @@ public partial class Main
         // Developer tools draw an agent's planned path between objects and agents.
         plannedPathLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         mapStage.AddChild(plannedPathLayer);
+        worldEditPreview.Follow(terrainLayer);
+        worldEditPreview.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        mapStage.AddChild(worldEditPreview);
 
         entityLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         entityLayer.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -359,6 +362,10 @@ public partial class Main
         StyleMenuChoice(menuSaveWorldButton);
         menuSaveWorldButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: false);
         menuActions.AddChild(menuSaveWorldButton);
+        menuLoadSaveButton.Text = "Load Save";
+        StyleMenuChoice(menuLoadSaveButton);
+        menuLoadSaveButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: true);
+        menuActions.AddChild(menuLoadSaveButton);
 
         settingsButton.Text = "Settings";
         StyleMenuChoice(settingsButton);
@@ -547,6 +554,7 @@ public partial class Main
     }
 
     private const string TextPanelLimit = "text_panel_limit";
+    private readonly HashSet<RichTextLabel> queuedTextPanelFits = [];
 
     /// <summary>A text panel as tall as its text, up to <paramref name="maximumHeight"/>; longer text scrolls.</summary>
     private void ConfigureTextPanel(RichTextLabel label, float maximumHeight)
@@ -558,9 +566,18 @@ public partial class Main
         // Long readers need ordinary Tab/arrow navigation as well.
         ConfigureKeyboardScrollBar(label.GetVScrollBar());
         label.SetMeta(TextPanelLimit, maximumHeight);
-        // A new width rewraps the text, but only after the resized signal, so
-        // measure it once this frame's layout is done.
-        label.Resized += () => Callable.From(() => FitTextPanel(label)).CallDeferred();
+        // A new width rewraps text. Coalesce its height measurements in the
+        // next process frame, so a resize cannot refit itself in an idle loop.
+        label.Resized += () => queuedTextPanelFits.Add(label);
+    }
+
+    private void FitQueuedTextPanels()
+    {
+        if (queuedTextPanelFits.Count == 0) return;
+        var labels = queuedTextPanelFits.ToArray();
+        queuedTextPanelFits.Clear();
+        foreach (var label in labels)
+            if (GodotObject.IsInstanceValid(label)) FitTextPanel(label);
     }
 
     /// <summary>
@@ -648,7 +665,7 @@ public partial class Main
         if (!string.IsNullOrWhiteSpace(title) && closable)
         {
             var headingRow = new HBoxContainer();
-            var heading = new Label { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            var heading = new FittedLabel { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             heading.ThemeTypeVariation = "HeadingLabel";
             headingRow.AddChild(heading);
             var close = CloseButton($"Close {title}");
@@ -665,7 +682,7 @@ public partial class Main
         {
             // A box inside a menu, such as API keys, takes a small section label
             // so several fit on screen together.
-            var heading = new Label { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
+            var heading = new FittedLabel { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
             body.AddChild(heading);
         }
 

@@ -12,7 +12,7 @@ public sealed class FarmFoodReserveTests
     [InlineData("absent", true)]
     [InlineData("loose", false)]
     [InlineData("reserved", true)]
-    public async Task PlantingDemandIgnoresFoodInBrokenPotsAndPreservesUsableFoodReserves(string pot, bool shouldPlant)
+    public async Task ReplantingDemandIgnoresFoodInBrokenPotsAndPreservesUsableFoodReserves(string pot, bool shouldPlant)
     {
         var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("broken-pot-farm-audit");
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
@@ -57,6 +57,8 @@ public sealed class FarmFoodReserveTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Fields = [new(point, household, FarmFieldStage.Harvested, FarmFieldRules.Grain,
+                ReadyTick: 1, Tended: true, Cycle: 1)],
         };
         var candidate = $"farm:Plant:{point.X}:{point.Y}:grain";
         var choice = new PlantingChoice(actor, candidate);
@@ -78,8 +80,8 @@ public sealed class FarmFoodReserveTests
             (baselineFood.OwnerId, baselineFood.Quantity, baselineFood.StorageBuildingId));
         var field = Assert.Single(world.Fields);
         Assert.Equal(shouldPlant, choice.Offered);
-        Assert.Equal(shouldPlant ? FarmFieldStage.Growing : FarmFieldStage.Prepared, field.Stage);
-        Assert.Equal(shouldPlant ? "grain" : null, field.Crop);
+        Assert.Equal(shouldPlant ? FarmFieldStage.Growing : FarmFieldStage.Harvested, field.Stage);
+        Assert.Equal("grain", field.Crop);
         Assert.Equal(shouldPlant ? 0 : 1, world.Society.Inventory.Lots.Where(lot => lot.Id == "reserve-planting-seed").Sum(lot => lot.Quantity));
         Assert.Equal(shouldPlant ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "field_planted"));
         if (pot != "absent")

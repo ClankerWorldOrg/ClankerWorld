@@ -52,7 +52,7 @@ public sealed partial class WorldConstructionOrderTests
         var proof = Assert.Single(world.WorldSimulation.ConstructionReceipts!);
         Assert.Equal((Alpha, setup.Actor), (proof.OwnerId, proof.MaterialOwnerId));
         var payment = Assert.Single(world.Society.Inventory.Reservations,
-            reservation => proof.InputReservationIds.Contains(reservation.Id, StringComparer.Ordinal));
+            reservation => proof.InputReservationIds.Contains(reservation.Id));
         Assert.Equal(("z-unpromised-house-wood", 8, InventoryReservationState.Completed),
             (payment.LotId, payment.Quantity, payment.State));
         using var restored = Reload(world);

@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House or expansion plot has changed");
         var tiles = plan.SelectedTiles;
         if (tiles is null) return new();
-        var failure = HouseholdLandFilingFailure(world, TownRecordIds.LandRequest(town.Id, town.Council.Notices.Count + 1),
+        var failure = HouseholdLandFilingFailure(world, TownRecordIds.LandRequest(town.Id, TownCouncilRules.NextNoticeSequence(town.Council)),
             plan.Actor, town.Id, tiles, null);
         return failure is null ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, failure);
     }

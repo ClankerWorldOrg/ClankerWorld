@@ -15,9 +15,14 @@ public sealed partial class WorldConstructionOrderTests
         var state = Decode(setup);
         var actor = setup.Actor;
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
-        var approaches = state.Map.FootNeighbors(warehouse.Position).Where(state.Map.IsPassable)
-            .OrderBy(point => point.X == warehouse.Position.X + 1 && point.Y == warehouse.Position.Y ? 0 : 1)
-            .ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
+        var footprint = state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+            state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)).ToHashSet();
+        // One occupant blocks the actual entrance. The remaining residents and
+        // animals stay clear so removing that occupant really opens the route.
+        var approaches = new[] { warehouse.Entrance!.Value }.Concat(state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => state.Map.IsBuildable(point) && !footprint.Contains(point) &&
+                state.Map.FootDistance(point, warehouse.Position) > 3 && state.Map.FootDistance(point, setup.Site) > 3))
+            .Take(8).ToArray();
         Assert.Equal(8, approaches.Length);
         Assert.DoesNotContain(setup.Site, approaches);
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "construction-drain", Alpha,
@@ -48,7 +53,7 @@ public sealed partial class WorldConstructionOrderTests
             }).ToArray()
         };
         var occupied = positions.Values.Concat(horses.Select(animal => animal.Position)).ToHashSet();
-        using (var routes = new UnoccupiedRouteSearch(state.Map, setup.Site, occupied, state.Map.FootStepCost))
+        using (var routes = MovementTestWorld.Routes(state, setup.Site, occupied))
             Assert.Equal(openApproach, routes.RouteTo(warehouse.Position, 0).Count > 0);
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = Restore(WorldRuntimeCodec.Decode(bytes));

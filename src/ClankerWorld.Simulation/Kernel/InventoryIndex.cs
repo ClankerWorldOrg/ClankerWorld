@@ -43,6 +43,20 @@ public sealed class InventoryIndex
         return Cache.GetValue(checkpoint, static inventory => new(inventory));
     }
 
+    /// <summary>Keeps the complete original source identity, including a source no longer in live stock.</summary>
+    public (InventoryLot Lot, string Id) ProvenanceOrigin(InventoryLot lot)
+    {
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var originId = lot.Id;
+        while (lot.ProvenanceLotId is { } parent && visited.Add(lot.Id))
+        {
+            originId = parent;
+            if (Find(parent) is not { } source) break;
+            lot = source;
+        }
+        return (lot, originId);
+    }
+
     public InventoryLot? Find(string id) => byId.GetValueOrDefault(id);
     public InventoryLot Root(InventoryLot lot) => lot.ContainerLotId is { } id ? byId[id] : lot;
     public IReadOnlyList<InventoryLot> OwnedBy(string id) => byOwner.GetValueOrDefault(id) ?? [];

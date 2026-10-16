@@ -1,1 +1,2 @@
 - Voluntary knowledge reading and sharing retain the selected artifact contents and recipient through shared checks.
+- Reading and sharing use the shared reference constructor and typed sharing events on current main (#2389, #2390).
