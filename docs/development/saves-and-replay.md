@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # Saves and replay
@@ -283,6 +283,18 @@ records a transition only if the flag changes, and preserves deadlines for
 couples still held by the procedure. Historical headcount events keep their
 original explanation. Eligible-couple transitions, rejected ticks and replay
 are checked with the current save format.
+
+World schema 138 extends continuity state with each held single adult's fixed
+partnering deadline and optional chosen partner. The single list is required,
+ordered by adult ID and empty while the rule is off. Loading refuses unknown
+adults or chosen partners, self choices, duplicate or unordered entries, and
+deadlines beyond two world days. Choices may become unavailable before the
+next maintenance check; pairing rechecks the same eligibility used by the
+continuity couple count. The typed `continuity_partnership_formed` event keeps
+both adults. Current-format reload, refused-tick rollback and paired exact-byte
+continuation preserve choices, deadlines and the resulting native partnership
+and family records. Earlier alpha saves are refused and preserved without
+migration. This version is provisional until merge.
 
 World schema 48 adds independent saved Town governance. It records the
 current council and fallback cause, term/retry schedules, personal full-term or
@@ -1307,7 +1319,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 137. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 138. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

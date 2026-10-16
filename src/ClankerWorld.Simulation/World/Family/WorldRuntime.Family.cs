@@ -76,6 +76,7 @@ public sealed partial class WorldRuntime
         {
             return;
         }
+        AddContinuityPartnerCandidates(candidates, actor);
         foreach (var relationship in Partnerships(actor).Where(item => item.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted))
         {
             var other = relationship.ProposerId == actor ? relationship.TargetId : relationship.ProposerId;
@@ -109,16 +110,20 @@ public sealed partial class WorldRuntime
         var target = plan.Choice.TargetId;
         switch (plan.Choice.Kind)
         {
+            case PartnershipChoiceKind.Choose:
+            case PartnershipChoiceKind.Postpone:
+                continuity = continuity with
+                {
+                    Singles = continuity.Singles.Select(single => single.AgentId == actor
+                    ? single with { ChosenPartnerId = plan.Choice.Kind == PartnershipChoiceKind.Choose ? plan.PartnerId : null }
+                    : single).ToArray()
+                };
+                break;
             case PartnershipChoiceKind.Propose:
-                var id = NewPartnershipId(actor, plan.PartnerId, WorldTick);
-                society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
-                    new(id, 1, SocietyRelationshipType.Partnership, actor, plan.PartnerId, WorldTick, PrivacyClass: "public")));
-                AppendEvent(new PartnershipProposedEventPayload(actor));
+                ProposePartnership(actor, plan.PartnerId);
                 break;
             case PartnershipChoiceKind.Accept:
-                society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, target, plan.Original!.Revision, actor));
-                if (society.Checkpoint.GetRelationship(target).State == SocietyRelationshipState.Accepted)
-                    AppendEvent(new PartnershipAcceptedEventPayload(actor));
+                AcceptPartnership(plan.Original!);
                 break;
             case PartnershipChoiceKind.Refuse:
                 society.Apply(checkpoint => SocietyRules.RefuseRelationship(checkpoint, target, plan.Original!.Revision, actor));
@@ -130,5 +135,21 @@ public sealed partial class WorldRuntime
                 AppendEvent(new PartnershipEndedEventPayload(actor));
                 break;
         }
+    }
+
+    private SocietyRelationship ProposePartnership(string actor, string partner)
+    {
+        var id = NewPartnershipId(actor, partner, WorldTick);
+        society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
+            new(id, 1, SocietyRelationshipType.Partnership, actor, partner, WorldTick, PrivacyClass: "public")));
+        AppendEvent(new PartnershipProposedEventPayload(actor));
+        return society.Checkpoint.GetRelationship(id);
+    }
+
+    private void AcceptPartnership(SocietyRelationship proposal)
+    {
+        society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, proposal.Id, proposal.Revision, proposal.TargetId));
+        if (society.Checkpoint.GetRelationship(proposal.Id).State == SocietyRelationshipState.Accepted)
+            AppendEvent(new PartnershipAcceptedEventPayload(proposal.TargetId));
     }
 }

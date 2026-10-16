@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-14
+updated: 2026-10-16
 ---
 
 # How the game works
@@ -3793,13 +3793,29 @@ Resuming an accepted or postponed plan preserves its original initiating
 parent, request tick, selected caregiver and intended home. Birth still follows
 the caregiver's current household, including after a move or when its House
 is full. A plan past its deadline does not expire: it waits for the usual food,
-shelter and readiness checks. The rule only reads accepted partnerships and
-never proposes or accepts one.
+shelter and readiness checks.
+
+Single adults who meet the same parent eligibility check also receive a saved
+`ContinuitySingle` deadline and optional chosen partner. `partner_choose` and
+`partner_postpone` use the existing partnership action plans, including checks
+at offer, admission and application. Choosing or postponing never resets the
+deadline. Once both adults' deadlines pass, mutual choices take precedence;
+otherwise combined directed trust selects the strongest eligible pair, with
+ordinal IDs breaking ties. Availability is checked again after every pair,
+so a taken, deceased, elder or close-relative choice cannot force that pair.
+The rule uses the native partnership proposal and acceptance operations,
+including exclusive partnership and domestic-family records; its deadline
+replaces voluntary trust and retry requirements. Outstanding proposals for
+newly paired adults are withdrawn. `continuity_partnership_formed` records both
+adults and explains the pairing in the Event Log. Ending a partnership starts
+a fresh single deadline while the rule remains on.
 
 Each partner's self context carries a `continuity` note saying the rule and
-the hours left; a single agent's stays empty. Loading checks the flag and
-couples: known partner IDs in order, no couples while the rule is off, and no
-deadline more than two world days ahead. These events are logged as
+the hours left; held single adults receive the partnering rule instead.
+Loading checks ordered, known adults and chosen partner references, unique
+single entries and couples, no held entries while the rule is off, and no
+deadline more than two world days ahead. Turning off clears both sets of
+deadlines and all partner choices. These events are logged as
 `family_activity`; the two transitions are also Event Log lines.
 
 A recipe project that finds its work site busy waits with the blocker "Waiting
