@@ -218,7 +218,12 @@ public sealed class TownNonLandRuntimeTests
                 ? new(Statement: "The nearby witness told me about the earlier passage; I did not see it myself.") : null
         };
         using var world = NonLandRuntimeFixture.Create(state, provider);
-        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases.Count > 0, 10);
+        var relayPlans = new List<NonLandReportRelayActionPlan>();
+        await NonLandRuntimeFixture.UntilAsync(world, () => world.Towns[0].NonLandHearings.Cases.Count > 0, 10, result =>
+        {
+            relayPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is NonLandReportRelayActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<NonLandReportRelayActionPlan>(decision.ActionPlan)));
+        });
         var views = provider.Observations.Where(observation => observation.AgentId == NonLandRuntimeFixture.Stranger).ToArray();
         Assert.DoesNotContain(views[0].Candidates, candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal));
         Assert.Contains(views.Skip(1).SelectMany(observation => observation.Candidates), candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal));
@@ -226,6 +231,10 @@ public sealed class TownNonLandRuntimeTests
         Assert.Equal("relay", acquired.Kind);
         Assert.Equal(NonLandRuntimeFixture.Witness, acquired.SourceAgentId);
         Assert.NotNull(acquired.ParentId);
+        var relayPlan = Assert.Single(relayPlans);
+        Assert.Equal((acquired.AgentId, acquired.ConductId, acquired.ParentId, acquired.Text),
+            (relayPlan.Choice.Recipient, relayPlan.Conduct.Id, relayPlan.Source.Id, relayPlan.Statement));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(relayPlan).Refusal!.Reason);
         var item = Assert.Single(world.Towns[0].NonLandHearings.Cases);
         Assert.Equal(NonLandRuntimeFixture.Stranger, Assert.Single(item.Filings).AgentId);
         Assert.Equal("relay", Assert.Single(item.Evidence).Acquisition);

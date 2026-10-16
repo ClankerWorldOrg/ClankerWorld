@@ -562,6 +562,12 @@ Sale travel retains the notice place and household role. Payment retains its
 exact personal goods lots and quantities and the actual seller at that place;
 arrival or a newly arrived seller requires a fresh personal payment choice.
 The native exchange publishes its goods and permission changes together.
+Physical non-land work retains its agreement, exact remaining term, selected
+return lot or service load and destination. Repair uses the retained native
+cart, tool or equipment plan, then continues its existing reserved work.
+Return stock uses the transfer's inventory access rule, so another task's
+promise prevents both a new return choice and an already selected return.
+Known-act relays retain their listener, personal statement and source chain.
 Voluntary non-land terms retain their named contributor, beneficiary, target,
 quantity, duration and reasons. Personal responses retain the exact noticed
 offer and allow other contributors to accept. Shared native feasibility and
