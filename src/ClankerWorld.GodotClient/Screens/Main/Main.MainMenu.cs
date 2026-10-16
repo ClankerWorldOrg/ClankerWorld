@@ -1086,6 +1086,7 @@ public partial class Main
         modLibraryButton.Icon = PixelIcons.Themed(PixelGlyph.Box, wood, scale);
         var door = PixelIcons.Themed(PixelGlyph.Door, palette.Bad, scale);
         menuQuitToMainButton.Icon = door;
+        quitToLauncherButton.Icon = door;
         quitGameButton.Icon = door;
     }
 }
