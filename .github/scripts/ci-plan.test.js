@@ -328,6 +328,25 @@ test('without main timings the comparison says so and warns about nothing', () =
   assert.deepEqual(report.warnings, []);
 });
 
+test('CI prints timing reports in the log as well as the job summary', t => {
+  const dir = tempDir(t);
+  const mainDir = path.join(dir, 'main');
+  const runDir = path.join(dir, 'run');
+  writeRun(mainDir, '101', [['a', 'Ns.ATests', 'One', '00:00:10']]);
+  writeRun(runDir, '102', [['a', 'Ns.ATests', 'One', '00:00:12']]);
+  for (const command of ['slow', 'compare']) {
+    const summaryPath = path.join(dir, `${command}.md`);
+    const args = command === 'slow' ? [command, runDir] : [command, mainDir, runDir];
+    const result = spawnSync(process.execPath, [path.join(__dirname, 'ci-plan.js'), ...args], {
+      encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: summaryPath },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const summary = fs.readFileSync(summaryPath, 'utf8');
+    assert.match(summary, /Ns\.ATests\.One/);
+    assert.equal(result.stdout, summary);
+  }
+});
+
 test('the workflow compares test times after the test jobs, without blocking a merge', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'ci.yml'), 'utf8');
   const job = workflow.slice(workflow.indexOf('\n  test-times:'), workflow.indexOf('\n  verify:'));
