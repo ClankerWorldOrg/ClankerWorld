@@ -1,0 +1,1 @@
+- Dismounting can put down its authorized animal-trip cargo and release that trip before splitting the load. Dropping other cargo keeps the trip; ownership and unrelated reservations stay protected.

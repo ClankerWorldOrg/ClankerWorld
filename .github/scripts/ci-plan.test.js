@@ -346,7 +346,7 @@ test('a change to client files the tests do not compile skips only the test suit
   assert.deepEqual(planScope(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs'], null), { code: true, tests: true });
 });
 
-test('the compiled client files come from the test project', () => {
+test('the linked production files come from the test project', () => {
   const project = `<Project><ItemGroup>
     <Compile Include="..\\..\\src\\ClankerWorld.GodotClient\\UI\\Text\\GameUiText.cs" Link="GodotClient\\UI\\Text\\GameUiText.cs" />
   </ItemGroup></Project>`;
@@ -359,7 +359,7 @@ test('the compiled client files come from the test project', () => {
     path.join(root, 'tests', 'ClankerWorld.Tests', 'ClankerWorld.Tests.csproj'), 'utf8'));
   assert.ok(real.size > 0);
   for (const file of real) {
-    assert.ok(file.startsWith('src/ClankerWorld.GodotClient/'), file);
+    assert.ok(file.startsWith('src/'), file);
     assert.ok(fs.existsSync(path.join(root, file)), file);
   }
 });
@@ -368,7 +368,7 @@ test('scope prints whether to run the code checks and the test suite', () => {
   assert.equal(main(['scope'], 'docs/playing.md\nCONTRIBUTING.md\n'), 'code=false\ntests=false');
   assert.equal(main(['scope'], 'docs/playing.md\nglobal.json\n'), 'code=true\ntests=true');
   assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/Screens/Main/Main.tscn\n'), 'code=true\ntests=false');
-  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs\n'), 'code=true\ntests=true');
+  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.Client.cs\n'), 'code=true\ntests=true');
 });
 
 test('the workflow also runs on merge-queue batches, which run everything', () => {
@@ -394,6 +394,16 @@ test('a push of a commit the merge queue already passed runs nothing but scope a
   }
   assert.match(job('windows-documentation'), /^    needs: scope$/m);
   assert.match(job('verify'), /test "\$SCOPE" = success\n\s+if \[ -n "\$QUEUE_RUN" \]; then [^\n]*exit 0; fi/);
+});
+
+test('Windows source boundaries run for all code and retain the base allowance history', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'ci.yml'), 'utf8');
+  const job = workflow.slice(workflow.indexOf('\n  windows-documentation:')).split('\n  windows-provider-storage:')[0];
+  assert.match(job, /actions\/checkout@v5\n        with:\n          fetch-depth: 2/);
+  assert.match(job, /SOURCE_CODE: \$\{\{ needs\.scope\.outputs\.code \}\}/);
+  assert.match(job, /\$filter = 'FullyQualifiedName~DocumentationTests'/);
+  assert.match(job, /if \(\$env:SOURCE_CODE -ne 'false'\) \{ \$filter \+= '\|FullyQualifiedName~IdentityTextBoundaryTests' \}/);
+  assert.match(job, /dotnet test [^\n]*--filter \$filter/);
 });
 
 test('a merge-queue run cancels only older runs of the same pull request', () => {

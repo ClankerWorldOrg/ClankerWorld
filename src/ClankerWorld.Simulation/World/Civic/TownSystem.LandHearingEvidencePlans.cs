@@ -29,7 +29,7 @@ internal sealed partial class TownSystem
         {
             StatementBound = true,
             Statement = raw?.Trim(),
-            InvalidStatement = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
+            InvalidStatement = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
         };
     }
 
