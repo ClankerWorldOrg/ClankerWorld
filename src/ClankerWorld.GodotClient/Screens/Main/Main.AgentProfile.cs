@@ -88,8 +88,7 @@ public partial class Main
         nameRow.AddChild(renameToggleButton);
         identity.AddChild(nameRow);
         selectedActorSummaryLabel.ThemeTypeVariation = "DimLabel";
-        selectedActorSummaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        identity.AddChild(selectedActorSummaryLabel);
+        AddProfileText(identity, selectedActorSummaryLabel);
         header.AddChild(identity);
         var tools = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkBegin };
         tools.AddThemeConstantOverride("separation", 4);
@@ -105,10 +104,9 @@ public partial class Main
         header.MinimumSizeChanged += QueueAgentProfileFit;
         body.AddChild(header);
         // Full width under the portrait, so what they are doing rarely wraps.
-        profileActivityLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        body.AddChild(profileActivityLabel);
+        AddProfileText(selectedAgentOverview, profileActivityLabel);
         ConfigureOrderLabel(profileOrderLabel);
-        body.AddChild(profileOrderLabel);
+        AddProfileText(selectedAgentOverview, profileOrderLabel);
 
         renameAgentInput.PlaceholderText = "Agent name";
         renameAgentInput.TooltipText = "Changing a married agent's surname also updates their spouse.";
@@ -126,15 +124,13 @@ public partial class Main
 
         selectedAgentOverview.AddThemeConstantOverride("separation", 5);
         selectedActorConditionLabel.ThemeTypeVariation = "DimLabel";
-        selectedActorConditionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        selectedAgentOverview.AddChild(selectedActorConditionLabel);
+        AddProfileText(selectedAgentOverview, selectedActorConditionLabel);
         profileMeters.AddThemeConstantOverride("h_separation", 14);
         profileMeters.AddThemeConstantOverride("v_separation", 4);
         foreach (var meter in new[] { profileFullnessMeter, profileWarmthMeter, profileDietMeter, profileIllnessMeter })
             profileMeters.AddChild(meter);
         selectedAgentOverview.AddChild(profileMeters);
-        ConfigureTextPanel(agentDetails, 90);
-        selectedAgentOverview.AddChild(agentDetails);
+        AddProfileText(selectedAgentOverview, agentDetails);
 
         // The Profile shows the latest thoughts; clicking them, or Read all,
         // opens every recent one in a larger reader beside it.
@@ -167,7 +163,7 @@ public partial class Main
         thoughtsInset.AddChild(privateThoughtHistory);
         selectedAgentOverview.AddChild(thoughtsInset);
 
-        selectedAgentOverview.AddChild(new Label { Text = "PEOPLE", ThemeTypeVariation = "SectionLabel" });
+        AddProfileText(selectedAgentOverview, new Label { Text = "PEOPLE", ThemeTypeVariation = "SectionLabel" });
         BuildProfilePeople(selectedAgentOverview);
 
         var profileActions = new HBoxContainer();
@@ -264,8 +260,7 @@ public partial class Main
         allOrdersButton.Hide();
         messagesRow.AddChild(allOrdersButton);
         speakSection.AddChild(messagesRow);
-        ConfigureTextPanel(instructionHistory, 105);
-        speakSection.AddChild(instructionHistory);
+        AddProfileText(speakSection, instructionHistory);
         selectedAgentOverview.AddChild(speakSection);
         // The details scroll once the Profile would pass the bottom of the screen.
         selectedAgentOverview.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -286,6 +281,22 @@ public partial class Main
         // Top-bar panels such as Filters open over the Profile while in use.
         agentProfilePanel.ZIndex = 75;
         agentProfilePanel.Hide();
+    }
+
+    /// <summary>Profile text takes its container's width and contributes its wrapped height to the single outer scroll.</summary>
+    private static void AddProfileText(Container parent, Control text)
+    {
+        text.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        if (text is Label label)
+            label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        else if (text is RichTextLabel rich)
+        {
+            rich.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            rich.BbcodeEnabled = false;
+            rich.FitContent = true;
+            rich.ScrollActive = false;
+        }
+        parent.AddChild(text);
     }
 
     /// <summary>Whether a decision came from an agent's own model rather than a routine helper or the built-in rules.</summary>

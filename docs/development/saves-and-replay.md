@@ -11,6 +11,16 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Browsing saves from Load World
+
+The signed `POST /api/v1/owner/worlds/saves` read takes a catalog world ID and
+returns its saves, timeline position, calendar and world time. It does not
+activate or write that world. The client uses the same timeline, list and
+save-description controls as Save World. A changed world selection cancels the
+read and discards late replies. Loading first uses the existing world selection
+and manual-save load operations, preserving the current world and keeping the
+loaded world paused. No checkpoint format or branch-creation rules change.
+
 ## Stock holds
 
 World schema 132 introduced optional typed holds to inventory lots and matching
