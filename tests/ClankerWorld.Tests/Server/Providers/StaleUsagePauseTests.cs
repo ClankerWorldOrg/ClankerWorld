@@ -18,6 +18,10 @@ public sealed class StaleUsagePauseTests
         var directory = Directory.CreateTempSubdirectory("clankerworld-stale-usage-");
         Task? completion = null;
         Task? checkpoint = null;
+        // These workers block on gates held by the test. They must start even
+        // when the test itself occupies the last available thread-pool worker.
+        var workers = new TaskFactory(CancellationToken.None, TaskCreationOptions.LongRunning,
+            TaskContinuationOptions.None, TaskScheduler.Default);
         using var signalled = new ManualResetEventSlim();
         using var runtimeEntered = new ManualResetEventSlim();
         using var runtimeRelease = new ManualResetEventSlim();
@@ -46,14 +50,14 @@ public sealed class StaleUsagePauseTests
             }
             if (holdRuntimeGate)
             {
-                checkpoint = Task.Run(() => world.PersistCheckpoint(state =>
+                checkpoint = workers.StartNew(() => world.PersistCheckpoint(state =>
                 {
                     runtimeEntered.Set();
                     Assert.True(runtimeRelease.Wait(TimeSpan.FromSeconds(10)));
                     return state;
                 }));
                 Assert.True(runtimeEntered.Wait(TimeSpan.FromSeconds(10)));
-                completion = Task.Run(() => usage.Finish(ticket, "completed", 7, 3));
+                completion = workers.StartNew(() => usage.Finish(ticket, "completed", 7, 3));
                 Assert.True(signalled.Wait(TimeSpan.FromSeconds(10)));
                 // The effect has acquired the host gate and is waiting for the
                 // native checkpoint operation, so checking only the host gate
@@ -73,7 +77,7 @@ public sealed class StaleUsagePauseTests
             {
                 lock (gate)
                 {
-                    completion = Task.Run(() => usage.Finish(ticket, "completed", 7, 3));
+                    completion = workers.StartNew(() => usage.Finish(ticket, "completed", 7, 3));
                     Assert.True(signalled.Wait(TimeSpan.FromSeconds(10)));
                     Assert.False(completion.IsCompleted);
                     if (grantMore)
