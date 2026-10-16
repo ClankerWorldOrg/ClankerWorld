@@ -11,10 +11,10 @@ public static class TownLandCaseJudgeRules
     private static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
     private static bool Willing(TownLandCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
-    private static bool Eligible(TownLandCase item, string actor, IReadOnlyList<string> adults,
-        IReadOnlyDictionary<string, string?> households, IReadOnlyList<TownLandCaseParty> parties) =>
+    public static bool Eligible(TownLandCase item, string actor, IReadOnlyList<string> adults,
+        IReadOnlyDictionary<string, string?> households, IReadOnlyList<TownLandCaseParty> parties, IReadOnlySet<string>? currentStakes = null) =>
         adults.Contains(actor, StringComparer.Ordinal) && !TownLandHearingRules.JudgeConflict(actor,
-            households.GetValueOrDefault(actor), parties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal));
+            households.GetValueOrDefault(actor), parties, currentStakes ?? item.DirectStakeIds.ToHashSet(StringComparer.Ordinal));
 
     public static TownLandRecords Register(TownLandRecords state, string caseId, string actor,
         IReadOnlyList<string> adultResidents, IReadOnlyDictionary<string, string?> households, long tick,

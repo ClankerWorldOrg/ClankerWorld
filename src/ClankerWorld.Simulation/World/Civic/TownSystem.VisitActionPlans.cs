@@ -37,6 +37,30 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (LandHearingRulingChoice.Decode(candidate.Id) is { } hearingRulingChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingRulingActionPlan ?? PlanLandHearingRuling(world, actor, hearingRulingChoice)) is { } hearingRuling &&
+                    CheckLandHearingRuling(world, hearingRuling).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingRuling };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingJudgeChoice.Decode(candidate.Id) is { } hearingJudgeChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingJudgeActionPlan ?? PlanLandHearingJudge(world, actor, hearingJudgeChoice)) is { } hearingJudge &&
+                    CheckLandHearingJudge(world, hearingJudge).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingJudge };
+                else candidates.RemoveAt(index);
+                continue;
+            }
+            if (LandHearingEvidenceChoice.Decode(candidate.Id) is { } hearingEvidenceChoice)
+            {
+                if ((candidate.ActionPlan as LandHearingEvidenceActionPlan ?? PlanLandHearingEvidence(world, actor, hearingEvidenceChoice)) is { } hearingEvidence &&
+                    CheckLandHearingEvidence(world, hearingEvidence).Allowed)
+                    candidates[index] = candidate with { ActionPlan = hearingEvidence };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (LandHearingFilingChoice.Decode(candidate.Id) is { } hearingFilingChoice)
             {
                 if ((candidate.ActionPlan as LandHearingFilingActionPlan ?? PlanLandHearingFiling(world, actor, hearingFilingChoice)) is { } hearingFiling &&
