@@ -53,7 +53,7 @@ internal sealed partial class TownSystem
                 (!LandHearingReadCurrent(world, item, plan.Actor) || item.Status == "settled" &&
                     (!LandHearingReadRuling(world, item, plan.Actor) || item.ReopenRequests.Any(request => request.Status == "pending" &&
                         !item.Reads.Any(read => read.AgentId == plan.Actor && read.Revision == revision.Number && read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal))) ||
-                        LandHearingUnreadRecords(world, town, item).Length > 0)) ? new()
+                        LandHearingUnreadRecords(world, town, item).Any())) ? new()
                 : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected public case file is unavailable or already read");
         if (!TownLandHearingRules.HasNoticeReceipt(revision, plan.Actor, world.WorldTick, town.Council.Knowledge))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they have not learned that selected case notice");
