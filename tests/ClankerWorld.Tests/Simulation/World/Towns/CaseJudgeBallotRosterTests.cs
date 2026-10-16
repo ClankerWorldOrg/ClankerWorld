@@ -29,17 +29,20 @@ public sealed partial class TownLandHearingRuntimeTests
             Prompt(world, Judge, "Read the actual case-election notice and consider your ballot.");
             for (var step = 0; step < 20 && !provider.Started.Task.IsCompleted; step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.WaitForSignalAsync(world.AdvanceOneTickNonBlockingAsync().AsTask(), CaseBallotDeadline);
                 Assert.True(result.Advanced);
+                if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Waiver))
+                    await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Waiver);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Judge))
                 {
-                    var call = await provider.Entered.Reader.ReadAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                    var call = await ModelWorkHarness.WaitForSignalAsync(provider.Entered.Reader.ReadAsync().AsTask(), CaseBallotDeadline);
                     call.Proceed.TrySetResult(true);
-                    if (!await call.Held.Task.WaitAsync(CaseBallotDeadline)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Judge);
+                    if (!await ModelWorkHarness.WaitForSignalAsync(call.Held.Task, CaseBallotDeadline)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Judge);
                 }
             }
             Assert.True(provider.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
-            Assert.False(world.ModelDecisionsFinished(Judge));
+            Assert.Contains(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
+                item.Transition.ActorId == Judge && !item.Completion.IsCompleted);
             var originalCase = Assert.Single(world.Towns[0].LandRecords.Cases);
             var original = Assert.IsType<TownLandCaseJudgeContest>(originalCase.Contest);
             var token = TownLandCaseJudgeRules.RoundToken(original);
@@ -47,15 +50,17 @@ public sealed partial class TownLandHearingRuntimeTests
             Assert.Contains(Filer, original.Candidates);
             Assert.Contains(Waiver, original.Candidates);
             Assert.Contains("|hearing_judge_vote|", provider.HeldId!, StringComparison.Ordinal);
-            Assert.EndsWith("|" + Filer, provider.HeldId!, StringComparison.Ordinal);
+            Assert.Equal(Filer, Assert.IsType<LandHearingJudgeActionPlan>(provider.HeldPlan).Candidate);
 
             provider.WithdrawOther = true;
             Prompt(world, Waiver, "Consider withdrawing your own willingness for this case mandate.");
             LandHearingJudgeActionPlan? withdrawal = null;
             for (var step = 0; step < 10 && world.Towns[0].LandRecords.Cases[0].Contest!.Candidates.Contains(Waiver); step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.WaitForSignalAsync(world.AdvanceOneTickNonBlockingAsync().AsTask(), CaseBallotDeadline);
                 Assert.True(result.Advanced);
+                if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Waiver))
+                    await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Waiver);
                 foreach (var decision in result.Decisions.Where(decision => decision.AgentId == Waiver &&
                     decision.ActionPlan is LandHearingJudgeActionPlan { Choice.Kind: LandHearingJudgeKind.Withdraw }))
                 {
@@ -76,7 +81,8 @@ public sealed partial class TownLandHearingRuntimeTests
             Assert.Contains(Judge, current.Voters);
             Assert.Contains(Filer, current.Candidates);
             Assert.True(world.WorldTick < current.RoundDeadlineTick);
-            Assert.False(world.ModelDecisionsFinished(Judge));
+            Assert.Contains(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
+                item.Transition.ActorId == Judge && !item.Completion.IsCompleted);
             var rights = JsonSerializer.Serialize(world.HouseholdLandUseRights);
             var buildings = JsonSerializer.Serialize(world.WorldSimulation.Buildings);
 
@@ -85,7 +91,7 @@ public sealed partial class TownLandHearingRuntimeTests
             LandHearingJudgeActionPlan? admitted = null;
             for (var step = 0; step < 10 && admitted is null; step++)
             {
-                var result = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(CaseBallotDeadline);
+                var result = await ModelWorkHarness.WaitForSignalAsync(world.AdvanceOneTickNonBlockingAsync().AsTask(), CaseBallotDeadline);
                 Assert.True(result.Advanced);
                 foreach (var decision in result.Decisions.Where(decision => decision.AgentId == Judge &&
                     decision.ActionPlan is LandHearingJudgeActionPlan { Choice.Kind: LandHearingJudgeKind.Vote }))
@@ -123,13 +129,13 @@ public sealed partial class TownLandHearingRuntimeTests
 
     private sealed class CaseBallotCall
     {
-        public TaskCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Held { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Held { get; } = new(TaskCreationOptions.None);
     }
 
     private sealed class HeldCaseBallotProvider(HearingProvider choices) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> held = new();
+        private readonly InlineCompletionSource<CognitionDecisionResponse> held = new();
         private CognitionDecisionResponse? response;
         private bool released;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
@@ -137,8 +143,9 @@ public sealed partial class TownLandHearingRuntimeTests
         public bool Armed { get; set; }
         public bool WithdrawOther { get; set; }
         public Channel<CaseBallotCall> Entered { get; } = Channel.CreateUnbounded<CaseBallotCall>();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public string? HeldId { get; private set; }
+        public LandHearingJudgeActionPlan? HeldPlan { get; private set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
@@ -172,6 +179,7 @@ public sealed partial class TownLandHearingRuntimeTests
             {
                 response = value;
                 HeldId = selected.Id;
+                HeldPlan = Assert.IsType<LandHearingJudgeActionPlan>(selected.ActionPlan);
                 Started.TrySetResult(true);
                 call.Held.TrySetResult(true);
                 return await held.Task.WaitAsync(cancellationToken);

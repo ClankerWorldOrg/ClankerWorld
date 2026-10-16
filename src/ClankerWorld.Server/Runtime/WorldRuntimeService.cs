@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Providers;
@@ -25,7 +26,7 @@ public sealed partial class WorldRuntimeService(
     private bool recoveryWritePending;
     private bool invalidStateHalt;
     private bool writingCheckpoint;
-    private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
         Message = "world_action_refused tick={WorldTick} agent={AgentId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
@@ -116,7 +117,7 @@ public sealed partial class WorldRuntimeService(
     private static partial void LogShutdownSave(ILogger logger, string outcome, long worldTick);
 
     /// <summary>
-    /// Cancels model work and writes the checkpoint. Local server shutdown pauses
+    /// Cancels model work, completes pending child bindings and writes the checkpoint. Local server shutdown pauses
     /// first, so a prepared tick cannot commit after this save. A failed write
     /// leaves the local server alive and paused; a halted world stays untouched.
     /// </summary>
@@ -134,6 +135,11 @@ public sealed partial class WorldRuntimeService(
             {
                 if (pauseWorld) runtime.Pause();
                 runtime.CancelPendingModelCalls();
+                if (!TryBindPendingChildModels(out _))
+                {
+                    if (logger is not null) LogShutdownSave(logger, "save_failed", runtime.WorldTick);
+                    return ShutdownSaveOutcome.WriteFailed;
+                }
                 _ = stateFile.Save(runtime);
             }
             recoveryWritePending = false;
@@ -247,7 +253,12 @@ public sealed partial class WorldRuntimeService(
         IReadOnlyList<PreparedChildModelSelection> PrepareModels(WorldRuntime proposed, IReadOnlyList<WorldEventEntry> worldEvents)
         {
             preparedChildBindings.Clear();
-            return PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+            var selections = PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+            // Keep each frozen key before its prepared birth can become visible.
+            // Shutdown can run before this tick handler resumes after the commit.
+            foreach (var (childId, binding) in preparedChildBindings)
+                pendingChildModelBindings[childId] = binding;
+            return selections;
         }
         Action PrepareCheckpoint(WorldRuntime proposed)
         {
@@ -255,15 +266,7 @@ public sealed partial class WorldRuntimeService(
             return () =>
             {
                 writingCheckpoint = true;
-                try { write(); }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                {
-                    // This admitted birth remains in memory for the paused write
-                    // retry. Its copied default key cannot be rebuilt from its slot ID.
-                    foreach (var (childId, binding) in preparedChildBindings)
-                        pendingChildModelBindings[childId] = binding;
-                    throw;
-                }
+                write();
                 writingCheckpoint = false;
                 checkpointCompacted = compacted;
             };
@@ -297,8 +300,6 @@ public sealed partial class WorldRuntimeService(
                     LogActionRefused(logger, worldEvent.WorldTick, refusal.AgentId,
                         RefusedChoiceKind(refusal.CandidateId), refusal.Check);
                 }
-            foreach (var (childId, binding) in preparedChildBindings)
-                pendingChildModelBindings[childId] = binding;
             var bornChildren = result.Events.Where(item => item.Kind == "child_born").Select(item => item.Detail)
                 .Distinct(StringComparer.Ordinal).ToArray();
             if (bornChildren.Length > 0)
@@ -535,7 +536,7 @@ public sealed partial class WorldRuntimeService(
                 {
                     if (!people.TryGetValue(childId, out var child))
                     {
-                        pendingChildModelBindings.Remove(childId);
+                        pendingChildModelBindings.TryRemove(childId, out _);
                         continue;
                     }
                     if (child.ChildModelSelection is null)
@@ -567,12 +568,12 @@ public sealed partial class WorldRuntimeService(
                             .All(role => childRows.Any(item => item.Role == role));
                         if (bothRolesConfigured)
                         {
-                            pendingChildModelBindings.Remove(child.AgentId);
+                            pendingChildModelBindings.TryRemove(child.AgentId, out _);
                             continue;
                         }
                     }
                     if (!pendingChildModelBindings.ContainsKey(child.AgentId))
-                        pendingChildModelBindings.Add(child.AgentId, new FrozenChildModelBinding(selection, null));
+                        pendingChildModelBindings.TryAdd(child.AgentId, new FrozenChildModelBinding(selection, null));
                 }
 
                 foreach (var childId in pendingChildModelBindings.Keys.Order(StringComparer.Ordinal).ToArray())
@@ -583,7 +584,7 @@ public sealed partial class WorldRuntimeService(
                         throw new InvalidDataException("The pending child model choice no longer matches the saved birth descriptor.");
                     providers.ConfigureChildModelSelectionWithCommit(childId, binding,
                         boundSelection => runtime.ApplyChildModelSelection(childId, boundSelection));
-                    pendingChildModelBindings.Remove(childId);
+                    pendingChildModelBindings.TryRemove(childId, out _);
                     changed = true;
                 }
             }

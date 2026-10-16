@@ -70,13 +70,13 @@ public sealed class GameUiTextTests
             new TaskCanceledException(secret)];
         foreach (var failure in failures)
         {
-            var message = GameUiText.FriendlyFailure(failure);
+            var message = ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure);
             Assert.DoesNotContain(secret, message, StringComparison.Ordinal);
             Assert.DoesNotContain(failure.GetType().Name, message, StringComparison.Ordinal);
             Assert.NotEmpty(message);
         }
-        Assert.Contains("connecting", GameUiText.FriendlyFailure(failures[6]), StringComparison.Ordinal);
-        Assert.Contains("storage", GameUiText.FriendlyFailure(failures[1]), StringComparison.Ordinal);
+        Assert.Contains("connecting", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failures[6]), StringComparison.Ordinal);
+        Assert.Contains("storage", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failures[1]), StringComparison.Ordinal);
     }
 
     [Theory]

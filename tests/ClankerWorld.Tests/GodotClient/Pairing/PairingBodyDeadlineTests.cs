@@ -15,11 +15,12 @@ public sealed class PairingBodyDeadlineTests
     [InlineData("activate", true)]
     public async Task StalledPairingBodyHonorsTimeoutAndCancellationAndAllowsRetry(string operation, bool callerCancels)
     {
+        var clock = new ManualTimeProvider();
         using var handler = new HeldBodyHandler();
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromMilliseconds(500) };
+        using var http = new HttpClient(handler) { Timeout = callerCancels ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(500) };
         using var signer = new Signer();
         using var cancellation = new CancellationTokenSource();
-        var client = new OwnerPairingClient(http);
+        var client = new OwnerPairingClient(http, timeProvider: clock);
         var origin = new Uri("http://127.0.0.1:5188");
         var first = operation switch
         {
@@ -28,13 +29,13 @@ public sealed class PairingBodyDeadlineTests
             "activate" => client.ActivatePairingAsync(origin, CreatePairing(), signer, cancellation.Token),
             _ => throw new ArgumentOutOfRangeException(nameof(operation)),
         };
-        await handler.Body.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await ModelWorkHarness.WaitForSignalAsync(handler.Body.Started.Task);
         if (callerCancels) cancellation.Cancel();
+        else clock.Advance(TimeSpan.FromMilliseconds(500));
         try
         {
-            // The 500 ms client timeout or the caller's cancellation must end the stalled read; the
-            // generous outer limit only stops a hang, and leaves room for a busy parallel test run.
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(10)));
+            // Advance the client's own deadline after the stalled read has entered.
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(first));
         }
         finally { cancellation.Cancel(); }
         Assert.True(handler.Body.Cancelled);
@@ -70,7 +71,7 @@ public sealed class PairingBodyDeadlineTests
 
     private sealed class HeldBody : Stream
     {
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public bool Cancelled { get; private set; }
         private bool began;
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)

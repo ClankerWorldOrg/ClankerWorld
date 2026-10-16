@@ -25,7 +25,7 @@ internal sealed partial class TownSystem
             Bound = true,
             EvidenceIds = terms?.EvidenceIds?.ToArray() ?? [],
             Reasons = raw?.Trim(),
-            InvalidTerms = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
+            InvalidTerms = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
         };
     }
 

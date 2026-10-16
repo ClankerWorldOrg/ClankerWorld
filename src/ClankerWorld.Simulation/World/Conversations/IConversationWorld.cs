@@ -19,7 +19,7 @@ public interface IConversationWorld
     bool HasExplicitConversationProvider(string agentId);
     bool ActiveTalkOrderUses(string conversationId);
     void IncreaseTrust(string from, string subject, int amount, string reason);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
     SocietyOperationResult Apply(Func<SocietyCheckpoint, SocietyOperationResult> operation);
     SocietyOperationResult RenameFromPlayer(SocietyCheckpoint checkpoint, string agentId, string name);
 }
