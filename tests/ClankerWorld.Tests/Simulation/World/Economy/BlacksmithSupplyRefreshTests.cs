@@ -73,7 +73,7 @@ public sealed class BlacksmithSupplyRefreshTests
         for (var tick = 0; tick < 16; tick++)
             Assert.True((await harness.TickAsync()).Advanced);
         Assert.Contains(world.ExportState().Events, item => item.Payload is MaterialGatheredEventPayload
-            { ActorId: var actor, ItemKind: "wood" } && actor == first);
+        { ActorId: var actor, ItemKind: "wood" } && actor == first);
         Assert.Equal(ResourceState.Depleted, world.ExportState().Resources.Single(item => item.ResourceId == tree.Id).State);
         Assert.Contains(requests, request => request.AgentId == second && request.WorldTick == state.Society.Society.WorldTick + 1);
         Assert.DoesNotContain(tree.Id, sources);
