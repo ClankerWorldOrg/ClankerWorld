@@ -85,7 +85,7 @@ public partial class Main
                 if (GetViewportRect().Size != size || uiLayer.Factor != (size.X == 1920 ? 2 : 1))
                     throw new InvalidOperationException($"The history check must use the requested window and automatic scale: requested={size}, viewport={GetViewportRect()}, factor={uiLayer.Factor}.");
                 CheckLayout();
-                if (System.Environment.GetEnvironmentVariable("CLANKERWORLD_PROFILE_HISTORY_EVIDENCE") is { Length: > 0 } evidence)
+                if (System.Environment.GetEnvironmentVariable("CLANKERWORLD_PROFILE_HISTORY_EVIDENCE") is { } evidence && !string.IsNullOrWhiteSpace(evidence))
                 {
                     agentOverviewScroll.EnsureControlVisible(profilePeople.GetChild<Control>(2));
                     await Settle();
