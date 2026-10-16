@@ -14,6 +14,7 @@ public sealed partial class WorldRuntime
 {
     private sealed partial class CivicWorldAdapter
     {
+        public bool HasCommunalBoatPort(string townId) => runtime.HasCommunalBoatPort(townId);
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
         public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
         public void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,

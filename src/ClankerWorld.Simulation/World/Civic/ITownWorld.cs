@@ -12,6 +12,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
 {
+    bool HasCommunalBoatPort(string townId);
     void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person);
     void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,

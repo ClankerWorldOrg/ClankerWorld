@@ -37,6 +37,14 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
+            if (TownPolicyChoice.Decode(candidate.Id) is { } policy)
+            {
+                if ((candidate.ActionPlan as TownPolicyActionPlan ?? PlanTownPolicy(world, actor, policy)) is { } selected &&
+                    CheckTownPolicyPlan(world, selected).Allowed)
+                    candidates[index] = candidate with { ActionPlan = selected };
+                else candidates.RemoveAt(index);
+                continue;
+            }
             if (TownLawChoice.Decode(candidate.Id) is { } law)
             {
                 if ((candidate.ActionPlan as TownLawActionPlan ?? PlanTownLaw(world, actor, law)) is { } changing &&

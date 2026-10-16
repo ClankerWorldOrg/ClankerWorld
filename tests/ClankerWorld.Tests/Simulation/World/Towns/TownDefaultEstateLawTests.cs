@@ -125,8 +125,26 @@ public sealed class TownDefaultEstateLawTests
         {
             Agents = initial.Agents.Select(person => person with { Position = noticeTile, FullnessBasisPoints = 8_000 }).ToArray(),
         }, Provider);
+        var initialBytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(initialBytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        var plans = new List<TownPolicyActionPlan>();
         for (var tick = 0; tick < 100 && world.Towns[0].Government!.Laws.Count == 0; tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        {
+            var step = await world.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
+            foreach (var decision in step.Decisions.Where(decision => decision.ActionPlan is TownPolicyActionPlan && decision.Admission.Accepted))
+            {
+                var plan = Assert.IsType<TownPolicyActionPlan>(decision.ActionPlan);
+                Assert.Equal(plan.Choice, TownPolicyChoice.Decode(plan.CandidateId));
+                Assert.Equal(50, plan.TownShare);
+                Assert.Null(plan.Version);
+                Assert.Equal(plan.TownShare, world.Towns[0].Government!.LawDrafts[^1].EstateDefault!.TownSharePercent);
+                plans.Add(plan);
+            }
+        }
+        var selectedPlan = Assert.Single(plans);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(selectedPlan).Refusal!.Reason);
         var law = Assert.Single(world.Towns[0].Government!.Laws);
         Assert.Equal(50, Assert.Single(law.Versions).EstateDefault!.TownSharePercent);
         Assert.Contains(providers[Author].Seen, id => id == "civic|town:first|estate_default|adopt|50");

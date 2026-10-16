@@ -431,6 +431,11 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Empty(scenario.World.BoatRequests);
         policy.GrantAll = true;
         await scenario.UntilAsync(() => TownBoatAccessRules.Allows(scenario.World.Towns[0], Visitor, scenario.World.WorldTick), 100);
+        var accessPlan = Assert.Single(policy.PolicyPlans);
+        Assert.Equal(TownPolicyKind.BoatAccess, accessPlan.Choice.Kind);
+        Assert.Null(accessPlan.Visitor);
+        Assert.Equal(accessPlan.Choice, TownPolicyChoice.Decode(accessPlan.CandidateId));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, scenario.World.CheckActionPlan(accessPlan).Refusal!.Reason);
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey?.PassengerId == Visitor, 120);
         Assert.DoesNotContain(Visitor, scenario.World.Towns[0].ResidentIds);
         Assert.Equal(TownBorderRules.FirstTownId, scenario.World.Boats[0].TownId);
@@ -664,6 +669,7 @@ public sealed partial class PortBoatRuntimeTests
         internal HashSet<string> IdleActors { get; } = new(StringComparer.Ordinal);
         internal ConcurrentQueue<string> Choices { get; } = new();
         internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
+        internal ConcurrentQueue<TownPolicyActionPlan> PolicyPlans { get; } = new();
         internal IDecisionProvider CreateProvider(string actor) => new Provider(this, actor);
         private sealed class Provider(BoatPolicy policy, string actor) : IDecisionProvider
         {
@@ -733,6 +739,7 @@ public sealed partial class PortBoatRuntimeTests
                             ? candidates.Single(candidate => candidate.Id == "safe_idle") : null);
                 selected ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal));
                 selected ??= candidates.Single(candidate => candidate.Id == "safe_idle");
+                if (selected.ActionPlan is TownPolicyActionPlan policyPlan) policy.PolicyPlans.Enqueue(policyPlan);
                 policy.Choices.Enqueue(actor + ":" + selected.Id);
                 return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, actor, Kind, ProviderEpoch,
                     request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
