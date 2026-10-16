@@ -44,7 +44,7 @@ public partial class Main
         try
         {
             var list = await ownerApi.ListProviderModelsAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerProviderModelListAction(provider, credentialSlotId, apiKey, checkKey), signer, CancellationToken.None);
+                new OwnerProviderModelListAction(provider, credentialSlotId, apiKey, checkKey), signer, OwnerRequestToken);
             if (!IsCurrentWorldRequest(generation) || !picker.IsLatest(lookup)) return;
             if (checkKey) picker.ShowList(list.Models, list.DefaultModel, list.Error);
             else picker.ShowList(list.Models, list.DefaultModel, PasteKeyNote, canRetry: false);
@@ -142,13 +142,14 @@ public partial class Main
         {
             var provider = SelectedRoutineHelper();
             routineHelperModelPicker.SetModel(DefaultProviderModel(provider));
+            RefreshRoutineHelperKeys();
             RequestRoutineHelperModels();
             RefreshControlAvailability();
         };
         routineHelperKeyChoice.FitToLongestItem = false;
         routineHelperKeyChoice.ClipText = true;
         routineHelperKeyChoice.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        routineHelperKeyChoice.TooltipText = "Choose an existing OpenAI key for this world's helper.";
+        routineHelperKeyChoice.TooltipText = "Choose a saved TypeSafe key for Jev or an OpenAI key for Decisions.";
         routineHelperKeyChoice.ItemSelected += _ => { RequestRoutineHelperModels(); RefreshControlAvailability(); };
         routineHelperModelPicker.ModelChanged += RefreshControlAvailability;
         routineHelperModelPicker.RetryRequested += RequestRoutineHelperModels;
@@ -167,13 +168,13 @@ public partial class Main
     {
         var provider = SelectedRoutineHelper();
         routineHelperModelPicker.Visible = provider != "off";
-        routineHelperKeyChoice.Visible = provider == "decisions";
+        routineHelperKeyChoice.Visible = provider != "off";
         if (provider == "off")
         {
             _ = routineHelperModelPicker.BeginLoading(string.Empty); // Invalidate a previous provider's lookup.
             return;
         }
-        _ = LoadModelListAsync(routineHelperModelPicker, provider, provider == "decisions" ? SelectedRoutineHelperKey() : null, null);
+        _ = LoadModelListAsync(routineHelperModelPicker, provider, SelectedRoutineHelperKey(), null);
     }
 
     private void RenderRoutineHelperSettings(OwnerWorldSnapshot snapshot)
@@ -199,11 +200,12 @@ public partial class Main
     private void RefreshRoutineHelperKeys(string? selectedSlotId = null)
     {
         routineHelperKeyChoice.Clear();
-        routineHelperKeyChoice.AddItem("Default OpenAI key");
+        var provider = SelectedRoutineHelper() == "decisions" ? "openai" : "jev";
+        routineHelperKeyChoice.AddItem($"Default {CredentialProviderDisplayName(provider)} key");
         routineHelperKeyChoice.SetItemMetadata(0, "");
         foreach (var slot in providerConfiguration?.CredentialSlots ?? [])
         {
-            if (slot.Provider != "openai") continue;
+            if (slot.Provider != provider) continue;
             routineHelperKeyChoice.AddItem(slot.Label);
             routineHelperKeyChoice.SetItemMetadata(routineHelperKeyChoice.ItemCount - 1, slot.Id);
         }
@@ -228,11 +230,11 @@ public partial class Main
             SetStatus("Choose a model name of 128 characters or fewer.", good: false);
             return;
         }
-        var action = new OwnerRoutineHelperAction(snapshot.WorldId, provider, model, provider == "decisions" ? SelectedRoutineHelperKey() : null);
+        var action = new OwnerRoutineHelperAction(snapshot.WorldId, provider, model, provider == "off" ? null : SelectedRoutineHelperKey());
         await RunOwnerActionAsync(async () =>
         {
             _ = await AwaitCurrentWorldResultAsync(ownerApi.SetRoutineHelperAsync(ResolveWorldUri(), authority, deviceId,
-                action, signer, CancellationToken.None));
+                action, signer, OwnerRequestToken));
             return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} will help in this world";
         });
     }

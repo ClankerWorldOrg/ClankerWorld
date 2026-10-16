@@ -8,7 +8,7 @@ public sealed record PersonalEquipment(string? ClothingLotId = null, string? Car
     EquipmentRepairWork? Repair = null, string? OrnamentLotId = null);
 
 public sealed record EquipmentRepairWork(string LotId, string BuildingId, long StartedTick,
-    int WorkDone, IReadOnlyList<string> MaterialReservationIds,
+    int WorkDone, IReadOnlyList<Identity> MaterialReservationIds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? OrderInstructionId = null);
 
 /// <summary>Provisional protection and capacity from real, singly equipped inventory units.</summary>

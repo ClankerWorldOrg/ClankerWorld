@@ -13,6 +13,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string GatherBuildingMaterialPrefix = BuildingMaterialChoice.Prefix;
+    // Provisional balance: tune the shared offer/admission limit here.
+    private const int ResidentsPerSharedShop = 8;
 
     private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyAgent agent,
         AgentState state, string householdId, List<string> buildingsWithoutSites)
@@ -26,7 +28,8 @@ public sealed partial class WorldRuntime
             // synchronous query; compute it once rather than for every building.
             var instanceId = BuildInstanceId(agent.Id, definition);
             if (worldSimulation.Buildings.Any(item => item.InstanceId == instanceId) ||
-                !HouseholdHasMaterialsInHand(householdId, definition.BuildCosts))
+                !HouseholdHasMaterialsInHand(householdId, definition.BuildCosts) ||
+                !WorkBuildingHasInputs(agent.Id, householdId, definition))
                 continue;
 
             var layout = HouseholdBuildingKind(definition) == "silo"
@@ -60,9 +63,31 @@ public sealed partial class WorldRuntime
 
     private bool HouseholdMayPlan(string householdId, string kind, string actor) =>
         HouseholdBuildingWithTag(householdId, kind) is null &&
+        TownHasRoomForSharedShop(actor, kind) &&
         (kind != "silo" || FarmhouseForHousehold(householdId) is not null) &&
         (kind != AnimalContent.YardTag || HouseForHousehold(householdId) is not null) &&
         !HouseholdBuildingProjectInProgress(householdId, kind, actor);
+
+    /// <summary>Placed shops and other residents' live construction plans hold a Town slot.</summary>
+    private bool TownHasRoomForSharedShop(string actor, string? kind)
+    {
+        if (kind is not ("store" or "tailor" or "restaurant" or "clinic" or "blacksmith"))
+            return true;
+        if (TownForResident(actor) is not { } townId)
+            return false;
+        var town = towns.Single(item => item.Id == townId);
+        var limit = (town.ResidentIds.Count + ResidentsPerSharedShop - 1) / ResidentsPerSharedShop;
+        var placed = worldSimulation.Buildings.Count(building => building.TownId == townId &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
+                HouseholdBuildingKind(definition) == kind));
+        var planned = agents.Values.Count(person => person.AgentId != actor &&
+            TownForResident(person.AgentId) == townId &&
+            person.Project is { Stage: not ("completed" or "cancelled") } project &&
+            TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection) && selection.IsBuilding &&
+            worldContent.Buildings.Any(definition => definition.CanonicalId == selection.DefinitionId &&
+                HouseholdBuildingKind(definition) == kind));
+        return placed + planned < limit;
+    }
 
     /// <summary>Whether a member already has a live plan for this kind, so the household plans at most one.</summary>
     private bool HouseholdBuildingProjectInProgress(string householdId, string? kind = null,
@@ -77,15 +102,13 @@ public sealed partial class WorldRuntime
                 (project.RequiresFreshChoice || project.Stage == "blocked" &&
                     WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks)));
 
-    /// <summary>Materials the household owns, wherever it stores them, plus what its members carry.</summary>
+    /// <summary>Usable materials the household or its members own, wherever they store them.</summary>
     private bool HouseholdHasMaterialsInHand(string householdId, IReadOnlyList<ContentQuantity> costs) =>
         costs.All(cost => HouseholdMaterialInHand(householdId, cost.ResourceId) >= cost.Amount);
 
     private long HouseholdMaterialInHand(string householdId, string itemKind) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == itemKind &&
-                (lot.OwnerId == householdId ||
-                 agents.ContainsKey(lot.OwnerId) && HouseholdFor(lot.OwnerId) == householdId))
-            .Sum(lot => (long)AvailableLotQuantity(lot));
+        HoldingsTotal(agents.Keys.Where(actor => HouseholdFor(actor) == householdId).Prepend(householdId),
+            GoodsKinds.One(itemKind));
 
     /// <summary>
     /// The first material missing for the first building the household still
@@ -100,7 +123,7 @@ public sealed partial class WorldRuntime
         {
             var missing = definition.BuildCosts.FirstOrDefault(cost =>
                 HouseholdMaterialInHand(householdId, cost.ResourceId) < cost.Amount);
-            if (missing.Amount == 0)
+            if (missing.Amount == 0 || !WorkBuildingHasInputs(actor, householdId, definition))
                 continue;
             if (MaterialSource(missing.ResourceId, actor, HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
                 HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is { } source)

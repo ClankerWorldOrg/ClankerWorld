@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -158,7 +159,7 @@ public sealed class DirectBarterTests
         var society = state.Society.Society;
         var before = SocietyCheckpointCodec.Encode(society);
         Assert.Throws<InvalidOperationException>(() => SocietyRules.CreateBarterOffer(society,
-            new("young-offer", 1, first, second, "trade-food", 1, "trade-clothes", 1, 120)));
+            new(Identity.Parse("young-offer"), 1, first, second, "trade-food", 1, "trade-clothes", 1, 120)));
         Assert.Equal(before, SocietyCheckpointCodec.Encode(society));
         Assert.Empty(society.Inventory.Offers);
         Assert.Empty(society.Inventory.Reservations);
@@ -179,7 +180,7 @@ public sealed class DirectBarterTests
                 "household-first-goods", "tool", first, 2), "household-second-goods", "clothing", second, 2),
         };
         var offered = SocietyRules.CreateBarterOffer(checkpoint,
-            new("household-offer", 1, first, second, "household-first-goods", 1, "household-second-goods", 1, 120)).Checkpoint;
+            new(Identity.Parse("household-offer"), 1, first, second, "household-first-goods", 1, "household-second-goods", 1, 120)).Checkpoint;
         var accepted = SocietyRules.AcceptBarterOffer(offered, "household-offer", 1, first).Checkpoint;
         var settled = SocietyRules.AcceptBarterOffer(accepted, "household-offer", 1, second).Checkpoint;
         Assert.Equal(DirectBarterState.Settled, settled.Inventory.GetOffer("household-offer").State);

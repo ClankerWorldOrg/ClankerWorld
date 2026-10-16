@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -28,7 +29,7 @@ public sealed partial class WorldConstructionOrderTests
             (order.Action, order.ProgressUnit, order.RequestedUnits, order.CompletedUnits, order.TargetBuildingKind));
         Assert.Equal((Alpha, setup.Site, project.StartedTick),
             (order.ConstructionOwnerId, order.ConstructionPosition, order.ConstructionStartedTick));
-        Assert.Equal(receipt.InstructionId, project.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, project.OrderInstructionId);
         Assert.Equal(setup.CandidateId, project.CandidateId);
         Assert.NotNull(order.ConstructionInstanceId);
         Assert.Null(order.LastEffectId);
@@ -67,7 +68,7 @@ public sealed partial class WorldConstructionOrderTests
             (proof.InstructionId, proof.ActorId, proof.BuildingInstanceId, proof.DefinitionId, proof.OwnerId, proof.MaterialOwnerId, proof.Position));
         Assert.Equal(building.PlacedTick, proof.CompletedTick);
         Assert.Equal(order.ConstructionStartedTick, proof.StartedTick);
-        Assert.Equal(paid.Select(item => item.Id).Order(StringComparer.Ordinal), proof.InputReservationIds.Order(StringComparer.Ordinal));
+        Assert.Equal(paid.Select(item => item.Id).Order(), proof.InputReservationIds.Order());
         Assert.Single(world.ExportState().Events, item => item.Kind == "build_completed");
         AssertUnrelatedPaidPlacementPreservesReceipt(world, proof);
         var removed = world.RemoveBuilding(building.InstanceId, building.TownId, Alpha);
@@ -90,6 +91,21 @@ public sealed partial class WorldConstructionOrderTests
             {
                 WorldSimulation = saved.WorldSimulation! with { ConstructionReceipts = receipts },
             }));
+        AssertInputs(world, 0, 0);
+
+        world.Pause();
+        var paidInventory = JsonSerializer.Serialize(world.Society.Inventory);
+        for (var index = 0; index < OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent + 1; index++)
+            Submit(world, setup.Actor, $"retire-construction-{index}", "dance");
+        Assert.DoesNotContain(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
+        Assert.Empty(world.WorldSimulation.ConstructionReceipts!);
+        Assert.Null(Person(world, setup.Actor).Project?.OrderInstructionId);
+        Assert.Equal(paidInventory, JsonSerializer.Serialize(world.Society.Inventory));
+        AssertRemovedOrderedBuildingIdCannotBeReused(world, proof);
+        using var retiredReplay = Reload(world);
+        world.Resume();
+        retiredReplay.Resume();
+        await TickTogether(world, retiredReplay);
         AssertInputs(world, 0, 0);
     }
 
@@ -238,7 +254,7 @@ public sealed partial class WorldConstructionOrderTests
         Assert.Equal(ordinary.CandidateId, remaining.CandidateId);
         Assert.True(remaining.StartedTick > ordinary.StartedTick);
         Assert.Equal(0, remaining.WorkDone);
-        Assert.Equal(receipt.InstructionId, remaining.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, remaining.OrderInstructionId);
         Assert.NotEqual("cancelled", remaining.Stage);
         AssertInputs(world, 10, 4);
         using var replay = Reload(world);
@@ -301,6 +317,16 @@ public sealed partial class WorldConstructionOrderTests
         };
         inventory = InventoryAuthority.AddLot(inventory, "construction-wood", "wood", Alpha, 10, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "construction-stone", "stone", Alpha, 4, storageBuildingId: House);
+        // Site discovery uses autonomous offers, which now require work for
+        // the Clinic as well as its construction materials. Keep the exact
+        // construction-cost assertions; fuel can come from the native sources.
+        inventory = InventoryAuthority.AddLot(inventory, "construction-herbs", CareContent.MedicinalHerbs, Alpha, 2, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-jug", "water_jug", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-water", "fresh_water", Alpha, 1,
+            storageBuildingId: House, containerLotId: "construction-jug");
+        inventory = InventoryAuthority.AddLot(inventory, "construction-bread", "bread", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-greens", "cultivated_greens", Alpha, 1, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, "construction-meals", "food", Alpha, 8, storageBuildingId: House);
         state = WithInventory(state, inventory) with
         {
             JevEnabled = true,

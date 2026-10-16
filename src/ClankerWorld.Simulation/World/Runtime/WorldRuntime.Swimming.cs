@@ -56,12 +56,12 @@ public sealed partial class WorldRuntime
         if (PickupPosition(actor, source, sourceRange) is not { } origin) return 0;
         var capacity = FreeCarryCapacity(actor);
         if ((destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false).Count > 0)
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false))
             return capacity;
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment));
-        return swimmingRoom > 0 && FindUnoccupiedRoute(actor, origin, destination, destinationRange,
-            additionalCarriedUnits: 1).Count > 0 ? Math.Min(capacity, swimmingRoom) : 0;
+        return swimmingRoom > 0 && HasUnoccupiedRoute(actor, origin, destination, destinationRange,
+            additionalCarriedUnits: 1) ? Math.Min(capacity, swimmingRoom) : 0;
     }
 
     private int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock,
@@ -77,17 +77,17 @@ public sealed partial class WorldRuntime
         // Foot preparation may store spare cargo before taking an ingredient.
         // Its existing caller still makes and checks the actual carrying room.
         return (destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false).Count > 0 ||
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false) ||
             PickupCarryCapacity(actor, stock, destination, destinationRange) >= 1;
     }
 
-    private bool CanReturnWithHarvest(string actor, string itemKind, ClankerWorld.Simulation.World.MapResource source,
+    internal bool CanReturnWithHarvest(string actor, string itemKind, ClankerWorld.Simulation.World.MapResource source,
         GridPoint destination, int destinationRange = 0, bool useHarvestBonus = true)
     {
         if (PickupPosition(actor, source.Position, ResourceInteractionRange) is not { } origin) return false;
         // Existing foot gathering may first make room. Keep that behavior.
         if ((destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false).Count > 0)
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false))
             return true;
         var required = ProjectMaterialCarryUnits(actor, itemKind, source, useHarvestBonus);
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -

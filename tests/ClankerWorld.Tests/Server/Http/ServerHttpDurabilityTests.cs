@@ -46,7 +46,7 @@ public sealed partial class ServerHttpTests
             catch (UnauthorizedAccessException) { }
             Assert.True(runtime.Society.IsPaused);
             Assert.False(runtime.FounderSetup!.Started);
-            Assert.False((await runtime.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await runtime.TickModelWorkAsync()).Advanced);
             Assert.Equal(0, runtime.WorldTick);
             Directory.Delete(file.Path);
             File.Move(file.Path + ".prior", file.Path);
