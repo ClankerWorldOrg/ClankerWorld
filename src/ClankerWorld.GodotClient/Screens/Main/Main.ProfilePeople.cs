@@ -42,7 +42,7 @@ public partial class Main
             row.AddThemeConstantOverride("separation", 6);
             row.AddChild(new TextureRect { Texture = icon, StretchMode = TextureRect.StretchModeEnum.KeepCentered, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             row.AddChild(new Label { Text = relation, ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
-            AddProfileText(row, new Label { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+            AddProfileText(row, new FittedLabel { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             if (extra is not null) row.AddChild(extra);
             profilePeople.AddChild(row);
         }
