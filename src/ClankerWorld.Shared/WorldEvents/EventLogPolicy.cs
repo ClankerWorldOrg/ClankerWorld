@@ -40,6 +40,7 @@ public static class EventLogPolicy
         "barter_completed" or "borrowed_goods_returned" or "bridge_built" or
         "build_completed" or "build_started" or "building_expanded" or
         "building_expansion_started" or "building_placed" or "caregiver_assigned" or
+        "continuity_partnership_formed" or
         "child_born" or "continuity_rule_off" or "continuity_rule_on" or
         "crop_moisture_effect" or "crop_weather_loss" or "developer_edit" or
         "estate_will_accepted" or "estate_will_default" or "expansion_order_paused" or

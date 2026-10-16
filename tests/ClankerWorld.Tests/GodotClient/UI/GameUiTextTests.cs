@@ -46,6 +46,7 @@ public sealed class GameUiTextTests
     [InlineData("housing_answer_recorded", false)]
     [InlineData("housing_request_cancelled", false)]
     [InlineData("model_call_warning", true)]
+    [InlineData("continuity_partnership_formed", true)]
     public void EventLogSelectsKnownPlayerEventsInsteadOfPublishingUnknownDiagnostics(string kind, bool visible)
     {
         Assert.Equal(visible, GameUiText.IsPlayerFacingEvent(kind));
