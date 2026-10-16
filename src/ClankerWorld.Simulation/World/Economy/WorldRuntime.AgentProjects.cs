@@ -434,6 +434,15 @@ public sealed partial class WorldRuntime
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
 
+        if (selected.IsBuilding &&
+            worldContent.BuildingDefinitions.TryGetValue(selected.DefinitionId, out var workBuilding) &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, workBuilding))
+        {
+            AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "work_inputs_unavailable"));
+            return;
+        }
+
         if (state.Project is { Stage: not ("completed" or "cancelled") } existing &&
             TownConstructionCandidateIds.TryParse(existing.CandidateId, out var current) &&
             current.IsBuilding == selected.IsBuilding && current.DefinitionId == selected.DefinitionId)
@@ -527,6 +536,13 @@ public sealed partial class WorldRuntime
         if (building is null && recipe is null)
         {
             SetProject(agentId, project with { Stage = "cancelled", Blocker = "This building or recipe is no longer available" });
+            return;
+        }
+        if (building is not null && project.OrderInstructionId is null &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } workHousehold &&
+            !WorkBuildingHasInputs(agentId, workHousehold, building))
+        {
+            SetProject(agentId, project with { Stage = "blocked", Blocker = "This building has no reachable inputs for its work." });
             return;
         }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)

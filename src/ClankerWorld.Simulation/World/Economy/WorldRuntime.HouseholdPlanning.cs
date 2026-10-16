@@ -52,7 +52,8 @@ public sealed partial class WorldRuntime
     /// <summary>Active building designs this household may plan now, in a stable order.</summary>
     private IEnumerable<BuildingDefinition> PlannableHouseholdBuildings(string householdId, string actor) => worldContent.Buildings
         .Where(definition => !RetiredBuildings.Contains(definition) &&
-            HouseholdBuildingKind(definition) is { } kind && HouseholdMayPlan(householdId, kind, actor))
+            HouseholdBuildingKind(definition) is { } kind && HouseholdMayPlan(householdId, kind, actor) &&
+            WorkBuildingHasInputs(actor, householdId, definition))
         .OrderBy(definition => HouseholdBuildingKinds.PlanOrder(HouseholdBuildingKind(definition)))
         .ThenBy(definition => definition.CanonicalId, StringComparer.Ordinal);
 
