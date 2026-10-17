@@ -128,8 +128,7 @@ public sealed partial class WorldRuntime
             new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == plan.Building.InstanceId) is not { } current ||
-            current.DefinitionId != plan.Building.DefinitionId || current.Position != plan.Building.Position || current.Footprint != plan.Building.Footprint ||
-            current.HouseholdId != plan.Building.HouseholdId || current.TownId != plan.Building.TownId || ExpansionOwner(current) != plan.OwnerId ||
+            current != plan.Building || ExpansionOwner(current) != plan.OwnerId ||
             !MayExpandBuilding(plan.Actor, current, out _) || !CanFitExpansion(current, plan.TargetPosition, plan.TargetFootprint, out _))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected expansion building, need or footprint has changed");
         if (plan.Inputs is not null && plan.Inputs.GroupBy(input => (input.LotId, input.OwnerId, input.ItemKind)).Any(group =>

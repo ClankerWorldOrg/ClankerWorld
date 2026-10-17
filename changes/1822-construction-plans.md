@@ -1,2 +1,3 @@
 - Construction choices retain their design, site, building identity and available material lots through shared checks and native payment.
 - When selected materials become unavailable, the original builder can choose again using current stock without allowing duplicate household projects.
+- Retained construction plans recheck the selected building's reachable work inputs when other work reserves them (#2411).
