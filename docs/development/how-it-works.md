@@ -172,8 +172,9 @@ uses the selected quantities and existing reservation identities; supplies
 acquired later are selected once when the payment inputs become available.
 A builder whose selected materials become unavailable gets fresh construction
 choices. The paused goal still prevents another member from duplicating that kind.
-Expansion choices retain the selected building revision, ownership, target
-position and footprint. Available payment lots and quantities are retained
+Expansion choices retain the selected building's placement identity, entrance,
+revision, ownership, target position and footprint. Available payment lots and
+quantities are retained
 through native job reservation; later deliveries are selected by their own
 physical step. Reservation identities and completion retain their native order.
 
