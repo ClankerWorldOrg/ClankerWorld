@@ -25,11 +25,11 @@ public sealed partial class WorldRuntime
 
     private readonly record struct ActionContext(string AgentId, AgentState State, string CandidateId, bool ReportIdle, ActionPlan? Plan = null);
     private readonly record struct ChoiceContext(List<CognitionCandidate> Candidates, string AgentId, AgentState State, bool HasConversation, SocietyAgent? Agent = null, Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>? ReachableTools = null, Lazy<PlacedBuilding[]>? AccessibleWarehouses = null, List<string>? BuildingsWithoutSites = null);
-    private sealed record ActionRegistration(ActionPhase Phase, string Name, string[] Prefixes, string[] ExactIds, Func<WorldRuntime, ActionContext, bool> Apply);
+    private sealed record ActionRegistration(ActionPhase Phase, string Name, string[] Prefixes, string[] ExactIds, Func<WorldRuntime, ActionContext, bool>? Apply = null, ActionDefinition? Definition = null);
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
-        new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], static (runtime, action) => runtime.ApplyWaiting(action, beforeAge: true)),
+        new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
         new(ActionPhase.BeforeAge, "IsOrnamentCandidate", [], [], static (runtime, action) =>
     {
         return IsOrnamentCandidate(action.CandidateId);
@@ -51,7 +51,7 @@ public sealed partial class WorldRuntime
         runtime.ApplyDependentCareCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "safe_idle", [], [WaitingChoice.Candidate], static (runtime, action) => runtime.ApplyWaiting(action, beforeAge: false)),
+        new(ActionPhase.Ordinary, "safe_idle", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
     {
         runtime.ApplyMedicalCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
@@ -415,7 +415,8 @@ public sealed partial class WorldRuntime
                     continue;
             }
 
-            if (registration.Apply(this, action))
+            if (registration.Definition is { } definition
+                ? definition.Apply(this, action, phase) : registration.Apply!(this, action))
                 return true;
         }
 
