@@ -267,10 +267,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], static (runtime, action) =>
     {
-        var invited = action.CandidateId.StartsWith(InviteHouseGuestPrefix, StringComparison.Ordinal);
-        var household = runtime.society.Checkpoint.GetAgent(action.AgentId).HouseholdId;
-        if (household is not null && runtime.HouseForHousehold(household)is { } house)
-            runtime.SetHouseGuestInvitationCore(action.AgentId, house.InstanceId, action.CandidateId[(invited ? InviteHouseGuestPrefix.Length : RevokeHouseGuestPrefix.Length)..], invited);
+        runtime.ApplyHouseGuest(action.AgentId, action.CandidateId, action.Plan as HouseGuestActionPlan);
         return true;
     }),
         new(ActionPhase.Ordinary, "build:", ["build:"], [], static (runtime, action) =>

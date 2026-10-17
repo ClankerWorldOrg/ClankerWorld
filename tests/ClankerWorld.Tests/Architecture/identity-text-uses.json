@@ -281,8 +281,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022cart-gift:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022load:{WorldTick}:{actor}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs|id|$\u0022unload:{WorldTick}:{actor}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseGuests.cs|id|InviteHouseGuestPrefix \u002B guest.AgentId": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseGuests.cs|id|RevokeHouseGuestPrefix \u002B invitation.GuestId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs|id|$\u0022spare-cargo:{WorldTick}:{actor}:{lot.Id}\u0022": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs|id|$\u0022build-site:{site.Position.X},{site.Position.Y}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs|id|$\u0022knowledge-collect:{WorldTick}:{actor}:{artifact.Id}\u0022": 2,
