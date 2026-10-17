@@ -331,28 +331,38 @@ public sealed partial class WorldRuntime
                 // Knowledge safely stored at home is not a recovery errand.
                 // Keep collection available to a deliberate choice without
                 // making the built-in chooser undo its own storage next tick.
-                candidates.Add(new("household_collect:" + lot.Id,
-                    $"Physically collect your own {lot.ItemKind.Replace('_', ' ')}; other household stock remains private.",
-                    knowledgeAtHome ? lot.ItemKind == "book" ? 190 : 110 : 20));
+                var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Collect, lot.Id));
+                if (plan is not null && CheckPersonalGoods(plan).Allowed)
+                    candidates.Add(new(plan.CandidateId,
+                        $"Physically collect your own {lot.ItemKind.Replace('_', ' ')}; other household stock remains private.",
+                        knowledgeAtHome ? lot.ItemKind == "book" ? 190 : 110 : 20)
+                    { ActionPlan = plan });
             }
         }
         foreach (var lot in BorrowedGoods(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal))
-            if (lot.OwnerId != society.Checkpoint.GetAgent(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
-                DestinationRoom(ownerHouse.InstanceId) > 0 &&
-                VesselFits(lot, DestinationRoom(ownerHouse.InstanceId)))
-                candidates.Add(new("household_return:" + lot.Id, $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household.", 22));
-            // Goods carried to or from the Market stay household property and can only be used again from the House.
-            else if (lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
-                     PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse &&
-                     DestinationRoom(ownHouse.InstanceId) > 0)
-                candidates.Add(new("household_return:" + lot.Id, $"Carry your household's {lot.ItemKind.Replace('_', ' ')} back to its House.", 22));
+        {
+            var foreign = lot.OwnerId != society.Checkpoint.GetAgent(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
+                DestinationRoom(ownerHouse.InstanceId) > 0 && VesselFits(lot, DestinationRoom(ownerHouse.InstanceId));
+            var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
+                PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse && DestinationRoom(ownHouse.InstanceId) > 0;
+            if (!foreign && !own) continue;
+            var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Return, lot.Id));
+            if (plan is not null && CheckPersonalGoods(plan).Allowed)
+                candidates.Add(new(plan.CandidateId, foreign
+                    ? $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household."
+                    : $"Carry your household's {lot.ItemKind.Replace('_', ' ')} back to its House.", 22)
+                { ActionPlan = plan });
+        }
         if (home is not null && HouseForHousehold(home) is { } house && DestinationRoom(house.InstanceId) > 0)
         {
             foreach (var lot in PersonalStorageLots(actor, house.InstanceId))
-                candidates.Add(new("household_store_personal:" + lot.Id, $"Store your own {lot.ItemKind.Replace('_', ' ')} in your House while keeping personal ownership.",
-                    // The built-in chooser collects other stored belongings at once,
-                    // so it puts away only what it then leaves at home.
-                    KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110));
+            {
+                var plan = PlanPersonalGoods(actor, new(PersonalGoodsKind.Store, lot.Id));
+                if (plan is not null && CheckPersonalGoods(plan).Allowed)
+                    candidates.Add(new(plan.CandidateId, $"Store your own {lot.ItemKind.Replace('_', ' ')} in your House while keeping personal ownership.",
+                        KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110)
+                    { ActionPlan = plan });
+            }
         }
         foreach (var child in society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                      LifeStageRules.IsDependent(person.AgeBand) &&
@@ -450,18 +460,8 @@ public sealed partial class WorldRuntime
             if (plan is not null) ApplyReplacementCarePlan(plan);
             return;
         }
-        if (candidate.StartsWith("household_store_personal:", StringComparison.Ordinal))
-        {
-            StorePersonalGoods(actor, candidate["household_store_personal:".Length..]);
-            return;
-        }
-        if (candidate.StartsWith("household_collect:", StringComparison.Ordinal))
-        {
-            CollectPersonalGoods(actor, candidate["household_collect:".Length..]);
-            return;
-        }
-        if (candidate.StartsWith("household_return:", StringComparison.Ordinal))
-            ReturnBorrowedGoods(actor, candidate["household_return:".Length..]);
+        if (PersonalGoodsChoice.Decode(candidate) is { } goodsChoice)
+            _ = ApplyPersonalGoods(originalPlan as PersonalGoodsActionPlan ?? PlanPersonalGoods(actor, goodsChoice));
     }
 
     private static void ValidateDepartures(IEnumerable<AgentState> physical, SocietyCheckpoint society, int schemaVersion)
