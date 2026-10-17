@@ -188,8 +188,11 @@ public sealed class WorkBuildingPlanningTests
         Assert.True(held.IsEntered);
         var choice = held.Request.Observation.Candidates.First(item => TownConstructionCandidateIds.TryParse(item.Id, out var selected) &&
             selected.IsBuilding && selected.DefinitionId == building.CanonicalId);
+        var plan = Assert.IsType<ConstructionActionPlan>(choice.ActionPlan);
+        Assert.True(world.CheckActionPlan(plan).Allowed);
         var bandage = world.WorldContent.Recipes.Single(recipe => recipe.LocalId == "house-bandages");
         Assert.True(world.StartProduction(bandage.CanonicalId, house.InstanceId, actor).Applied);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal?.Reason);
         held.Reply(choice.Id);
         await harness.WaitForDecisionAsync(actor);
         var step = await harness.TickUntilAdmittedAsync(actor, 4);

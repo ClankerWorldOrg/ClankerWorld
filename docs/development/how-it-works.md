@@ -165,7 +165,8 @@ availability and inventory order; transfers use that selected lot and quantity.
 Its hold-access check leaves stock promised to another task with that task.
 Construction preparation and assistance share one harvest and tool check.
 Construction choices retain their selected design, site, building identity,
-ownership and available material lots. Matching project/order plans are copied
+ownership and available material lots. Their shared check also rechecks the
+selected building's reachable work inputs. Matching project/order plans are copied
 through tick preparation and commit without entering saves. Material payment
 uses the selected quantities and existing reservation identities; supplies
 acquired later are selected once when the payment inputs become available.
