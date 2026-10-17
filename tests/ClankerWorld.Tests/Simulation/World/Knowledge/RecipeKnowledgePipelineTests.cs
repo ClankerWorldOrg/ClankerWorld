@@ -213,7 +213,19 @@ public sealed class RecipeKnowledgePipelineTests
             ? person with { Position = adjacent } : person).ToArray()
         };
         using var sharing = Restore(nearby, author, "knowledge_share:" + artifact.Id + "|" + reader);
-        await Until(sharing, () => sharing.ExportState().Knowledge!.Recipes.Any(item => item.OwnerId == reader));
+        var sharePlans = new List<KnowledgeReadingActionPlan>();
+        for (var tick = 0; tick < 64 && !sharing.ExportState().Knowledge!.Recipes.Any(item => item.OwnerId == reader); tick++)
+        {
+            var result = await sharing.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            sharePlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is KnowledgeReadingActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<KnowledgeReadingActionPlan>(decision.ActionPlan)));
+        }
+        var sharePlan = Assert.Single(sharePlans);
+        Assert.True(sharePlan.Share);
+        Assert.Equal(reader, sharePlan.RecipientId);
+        Assert.Equal(TownHearingProcedure.Digest(artifact), TownHearingProcedure.Digest(sharePlan.Artifact));
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, sharing.CheckActionPlan(sharePlan).Refusal!.Reason);
         var shared = sharing.ExportState();
         var learned = Assert.Single(shared.Knowledge!.Recipes, item => item.OwnerId == reader);
         Assert.Equal((recipeId, author, artifact.Id, "shared"),
