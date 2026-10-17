@@ -202,6 +202,10 @@ Exploration plans retain the original trail and purpose and select only the
 next visible neighbor or a recorded return waypoint. The same check validates
 that origin, trail, need and step; application uses the selected target while
 keeping native start, discovery, completion and interrupted-movement events.
+Waiting choices carry a server-only plan through the same capability check.
+Their native idle or age-rejection outcome stays unchanged, including fallback
+and boat text. Permitted waiting still follows existing repair cancellation
+and farm-work continuation before it records an idle event.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
