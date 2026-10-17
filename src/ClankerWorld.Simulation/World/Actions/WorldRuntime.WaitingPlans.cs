@@ -30,8 +30,8 @@ public sealed partial class WorldRuntime
         if (plan is null) return true;
         if (CheckWaiting(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return true; }
         if (beforeAge && plan.LegacyAgePermitted) return false;
-        if (!plan.LegacyAgePermitted) AppendEvent("age_action_rejected", $"{plan.Actor}:{plan.CandidateId}");
-        else if (action.ReportIdle) AppendEvent("agent_idle", plan.Actor);
+        if (!plan.LegacyAgePermitted) AppendEvent(new AgeActionRejectedEventPayload(plan.Actor, plan.CandidateId));
+        else if (action.ReportIdle) AppendEvent(new AgentIdleEventPayload(plan.Actor));
         return true;
     }
 }
