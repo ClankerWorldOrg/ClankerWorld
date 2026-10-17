@@ -280,7 +280,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "assist:", ["assist:"], [], static (runtime, action) =>
     {
-        runtime.AssistProject(action.AgentId, action.State, action.CandidateId[7..]);
+        runtime.AssistProject(action.AgentId, action.State, action.CandidateId[ProjectAssistanceChoice.Prefix.Length..], action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "replant_tree", [], ["replant_tree"], static (runtime, action) =>

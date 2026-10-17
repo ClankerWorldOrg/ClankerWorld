@@ -159,6 +159,11 @@ tool, harvest quantity and household return destination. The same check
 rechecks the selected building's reachable work inputs, load and route before
 the native harvest; changed work inputs or tree seed yield refuse that stale
 selection.
+Project assistance retains the requesting project, recipient and exact personal
+lot or material harvest. Its shared contribution query keeps physical stock
+availability and inventory order; transfers use that selected lot and quantity.
+Its hold-access check leaves stock promised to another task with that task.
+Construction preparation and assistance share one harvest and tool check.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same

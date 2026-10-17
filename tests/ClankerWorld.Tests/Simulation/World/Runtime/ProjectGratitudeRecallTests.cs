@@ -122,6 +122,12 @@ public sealed partial class GrownAgentHelperMemoryTests
             for (var tick = 0; tick < 40 && !world.Society.Memories.Any(Gratitude); tick++) await Step();
             var memory = Assert.Single(world.Society.Memories, Gratitude);
             Assert.Equal(1, choices.AssistChosen);
+            var plan = Assert.Single(choices.Observations.Where(observation => observation.AgentId == helper)
+                .SelectMany(observation => observation.Candidates).Where(candidate => candidate.Id == "assist:fiber")
+                .Select(candidate => Assert.IsType<ProjectAssistanceActionPlan>(candidate.ActionPlan)));
+            Assert.Equal((requester, household, house.InstanceId, fiber, 3),
+                (plan.RequesterId, plan.RecipientId, plan.HouseId, plan.LotId, plan.Quantity));
+            Assert.False(world.CheckActionPlan(plan).Allowed);
             var delivered = world.Society.Inventory.GetLot(fiber);
             Assert.Equal((household, house.InstanceId, 3), (delivered.OwnerId, delivered.StorageBuildingId, delivered.Quantity));
             Assert.Null(delivered.ContainerLotId);

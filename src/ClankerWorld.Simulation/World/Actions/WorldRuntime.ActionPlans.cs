@@ -6,6 +6,7 @@ public sealed partial class WorldRuntime
 {
     public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
     {
+        ProjectAssistanceActionPlan assistance => CheckProjectAssistance(assistance),
         BuildingMaterialActionPlan buildingMaterial => CheckBuildingMaterial(buildingMaterial),
         RecipeProjectActionPlan recipeProject => CheckRecipeProject(recipeProject),
         KnowledgeStorageActionPlan knowledgeStorage => CheckKnowledgeStorage(knowledgeStorage),

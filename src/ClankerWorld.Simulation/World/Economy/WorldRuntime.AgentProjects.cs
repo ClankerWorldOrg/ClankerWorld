@@ -1087,20 +1087,13 @@ public sealed partial class WorldRuntime
     {
         foreach (var request in ProjectRequests(helperId))
         {
-            var itemKind = request.Input.ResourceId;
-            if (candidates.Any(candidate => candidate.Id == "assist:" + itemKind)) continue;
-            if (!CanReceiveProjectAssistance(request)) continue;
-            var hasCarriedMaterial = society.Checkpoint.Inventory.Lots.Any(lot =>
-                    lot.OwnerId == helperId && PersonalEquipmentRules.IsCarried(lot, helperId) && lot.ContainerLotId is null &&
-                    lot.ItemKind == itemKind && lot.DeliveryBuildingId is null &&
-                    AvailableLotQuantity(lot) > 0);
-            if (hasCarriedMaterial || MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position,
-                HouseForHousehold(request.OwnerId) is not null && HouseholdFor(helperId) == request.OwnerId ? 0 : ResourceInteractionRange) is { } source &&
-                FreeCarryCapacity(helperId) >= ProjectMaterialCarryUnits(helperId, itemKind, source))
-            {
-                candidates.Add(new CognitionCandidate("assist:" + itemKind,
-                    $"Help {society.Checkpoint.GetAgent(request.Requester).Name}: gather and share {itemKind} for their project.", 15));
-            }
+            var choice = new ProjectAssistanceChoice(request.Input.ResourceId);
+            if (candidates.Any(candidate => candidate.Id == choice.Encode())) continue;
+            var plan = PlanProjectAssistance(helperId, request);
+            if (plan is not null && CheckProjectAssistance(plan).Allowed)
+                candidates.Add(new CognitionCandidate(plan.CandidateId,
+                    $"Help {society.Checkpoint.GetAgent(request.Requester).Name}: gather and share {request.Input.ResourceId} for their project.", 15)
+                { ActionPlan = plan });
         }
     }
 
@@ -1112,62 +1105,42 @@ public sealed partial class WorldRuntime
             : DestinationRoom(house.InstanceId) > 0;
     }
 
-    private void AssistProject(string helperId, AgentState state, string itemKind)
+    private void AssistProject(string helperId, AgentState state, string itemKind, ActionPlan? originalPlan = null)
     {
-        var request = ProjectRequests(helperId).FirstOrDefault(request =>
-            request.Input.ResourceId == itemKind && CanReceiveProjectAssistance(request));
-        if (request.Requester is null)
+        var plan = originalPlan as ProjectAssistanceActionPlan;
+        if (plan is null)
+            foreach (var candidate in ProjectRequests(helperId).Where(request => request.Input.ResourceId == itemKind))
+                if (PlanProjectAssistance(helperId, candidate) is { } selected && CheckProjectAssistance(selected).Allowed)
+                { plan = selected; break; }
+        if (plan is null) return;
+        if (CheckProjectAssistance(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (plan.LotId is null)
         {
+            GatherPlannedProjectMaterial(helperId, state, itemKind, plan.Source!, plan.Harvest!);
             return;
         }
-        // A load already on its way into a household building is not spare.
-        var carried = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.OwnerId == helperId &&
-            PersonalEquipmentRules.IsCarried(lot, helperId) &&
-            lot.ContainerLotId is null && lot.ItemKind == itemKind && lot.DeliveryBuildingId is null &&
-            AvailableLotQuantity(lot) > 0);
-        if (carried is null)
+        if (!IsWithinInteractionRange(state.Position, plan.Destination, plan.Range))
         {
-            var returnRange = HouseForHousehold(request.OwnerId) is not null && HouseholdFor(helperId) == request.OwnerId ? 0 : ResourceInteractionRange;
-            if (MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position, returnRange) is { } source)
-            {
-                GatherProjectMaterial(helperId, state, itemKind, source,
-                    returnTo: HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position,
-                    returnRange: returnRange);
-            }
+            MoveToward(helperId, state, plan.Destination, "share_materials", plan.Range);
             return;
         }
-        var house = HouseForHousehold(request.OwnerId);
-        // A helper can hand supplies to the requesting adult without gaining access to the
-        // recipient household's stock. Before a House exists, that handoff needs real carry room.
-        if (house is null && FreeCarryCapacity(request.Requester) == 0) return;
-        var recipient = house is null ? request.Requester : request.OwnerId;
-        var store = house?.Position ?? agents[request.Requester].Position;
-        var interactionRange = house is not null && society.Checkpoint.GetAgent(helperId).HouseholdId == request.OwnerId
-            ? 0 : ResourceInteractionRange;
-        if (!IsWithinInteractionRange(state.Position, store, interactionRange))
-        {
-            MoveToward(helperId, state, store, "share_materials", interactionRange);
-            return;
-        }
-        var quantity = Math.Min(request.Input.Amount, AvailableLotQuantity(carried));
-        if (house is not null) quantity = Math.Min(quantity, DestinationRoom(house.InstanceId));
-        else quantity = Math.Min(quantity, FreeCarryCapacity(request.Requester));
-        if (quantity == 0) return;
+        var recipient = plan.RecipientId;
+        var quantity = plan.Quantity;
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"project-share:{WorldTick}:{helperId}",
-            helperId, recipient, carried.Id, quantity, "project_request_fulfilled",
-            house?.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(helperId, house?.InstanceId)));
-        IncreaseTrust(request.Requester, helperId, 2, "material_help");
+            helperId, recipient, plan.LotId, quantity, "project_request_fulfilled",
+            plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(helperId, plan.HouseId)));
+        IncreaseTrust(plan.RequesterId, helperId, 2, "material_help");
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.
-        var memoryId = ProjectGratitudeMemoryId(request.Requester, helperId);
+        var memoryId = ProjectGratitudeMemoryId(plan.RequesterId, helperId);
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
-                Identity.Parse(memoryId), request.Requester, helperId,
+                Identity.Parse(memoryId), plan.RequesterId, helperId,
                 $"Grateful for {society.Checkpoint.GetAgent(helperId).Name}'s help with project materials.", "public", WorldTick)
             { Kind = SocietyMemoryKind.Relationship }));
         }
-        AppendEvent(new ProjectRequestFulfilledEventPayload(helperId, request.Requester, itemKind, quantity));
+        AppendEvent(new ProjectRequestFulfilledEventPayload(helperId, plan.RequesterId, itemKind, quantity));
     }
 
     private int AvailableLotQuantity(InventoryLot lot) => AvailableLotQuantity(society.Checkpoint.Inventory, lot);
