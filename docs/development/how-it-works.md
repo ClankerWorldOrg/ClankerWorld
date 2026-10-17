@@ -156,8 +156,9 @@ copies those entries back without replacing the live cache or saving it.
 
 Household construction preparation retains the selected building need, source,
 tool, harvest quantity and household return destination. The same check
-validates the load and route before the native harvest; a changed tree seed
-yield refuses that stale selection.
+rechecks the selected building's reachable work inputs, load and route before
+the native harvest; changed work inputs or tree seed yield refuse that stale
+selection.
 Project assistance retains the requesting project, recipient and exact personal
 lot or material harvest. Its shared contribution query keeps physical stock
 availability and inventory order; transfers use that selected lot and quantity.
