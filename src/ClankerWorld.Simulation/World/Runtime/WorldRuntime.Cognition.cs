@@ -857,6 +857,9 @@ public sealed partial class WorldRuntime
 
         if (selection.IsBuilding)
         {
+            var buildingPlan = state.Project is { } constructionProject ? RetainedConstruction(agentId, constructionProject) : null;
+            if (buildingPlan is not null && CheckConstruction(buildingPlan).Refusal is { } refusal)
+            { RefuseChoice(buildingPlan, refusal); return; }
             var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == selection.DefinitionId);
             var layout = CreateTownLayoutContext(agentId, selection.SitePosition, definition);
             TownConstructionSiteCandidate? rankedSite = null;
@@ -908,16 +911,16 @@ public sealed partial class WorldRuntime
                 AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "ordered_project_changed"));
                 return;
             }
-            var materialOwner = BuildingConstructionOwner(agentId, definition);
+            var materialOwner = buildingPlan?.MaterialOwnerId ?? BuildingConstructionOwner(agentId, definition);
             var placement = PlaceBuildingCore(
-                constructionOrder?.Task!.ConstructionInstanceId ?? BuildInstanceId(agentId, definition),
+                buildingPlan?.InstanceId ?? constructionOrder?.Task!.ConstructionInstanceId ?? BuildInstanceId(agentId, definition),
                 definition.CanonicalId,
                 position,
                 "build_completed",
                 TownForResident(agentId),
                 houseOwner,
                 materialOwner,
-                constructionOrder?.InstructionId);
+                constructionOrder?.InstructionId, buildingPlan?.Inputs);
             if (!placement.Applied)
             {
                 AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, placement.Failure));

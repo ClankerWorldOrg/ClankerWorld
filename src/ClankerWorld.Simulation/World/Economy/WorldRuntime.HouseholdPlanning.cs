@@ -41,11 +41,13 @@ public sealed partial class WorldRuntime
             {
                 var site = sites[rank];
                 var description = string.Join(" ", site.Reasons.Select(reason => reason.Description));
-                candidates.Add(new CognitionCandidate(
-                    TownConstructionCandidateIds.Building(definition.CanonicalId, site.Position),
+                var plan = PlanConstruction(agent.Id, definition, site.Position, instanceId);
+                if (CheckConstruction(plan).Allowed) candidates.Add(new CognitionCandidate(
+                    plan.CandidateId,
                     $"Plan {definition.DisplayName} at ({site.Position.X}, {site.Position.Y}): {description}",
                     20 + rank + HouseholdBuildingKinds.PlanOrder(HouseholdBuildingKind(definition)),
-                    $"build-site:{site.Position.X},{site.Position.Y}"));
+                    $"build-site:{site.Position.X},{site.Position.Y}")
+                { ActionPlan = plan });
             }
         }
 
@@ -96,8 +98,9 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(person.AgentId).HouseholdId == householdId &&
             worldContent.Buildings.FirstOrDefault(definition => definition.CanonicalId == selection.DefinitionId) is { } planned &&
             HouseholdBuildingKind(planned) is { } plannedKind && (kind is null || plannedKind == kind) &&
-            !(person.AgentId == retryingActor && project.Stage == "blocked" &&
-                WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks));
+            !(person.AgentId == retryingActor &&
+                (project.RequiresFreshChoice || project.Stage == "blocked" &&
+                    WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks)));
 
     /// <summary>Usable materials the household or its members own, wherever they store them.</summary>
     private bool HouseholdHasMaterialsInHand(string householdId, IReadOnlyList<ContentQuantity> costs) =>

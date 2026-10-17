@@ -405,55 +405,17 @@ public sealed partial class WorldRuntime
         });
     }
 
-    private InventoryCheckpoint ConsumeQuantities(
-        InventoryCheckpoint inventory,
-        IReadOnlyList<ContentQuantity> quantities,
-        string purpose,
-        string ownerId)
+    private static InventoryCheckpoint ConsumeConstructionInputs(InventoryCheckpoint inventory,
+        IReadOnlyList<ConstructionMaterialInput> inputs, string purpose, string owner)
     {
         var current = inventory;
-        for (var quantityIndex = 0; quantityIndex < quantities.Count; quantityIndex++)
+        foreach (var input in inputs)
         {
-            var requested = quantities[quantityIndex];
-            var remaining = requested.Amount;
-            var request = new GoodsRequest(GoodsUse.Holdings, null,
-                GoodsOwners.One(ownerId), GoodsKinds.One(requested.ResourceId));
-            var matches = ProductionGoods(current, request).ToArray();
-            foreach (var match in matches)
-            {
-                if (remaining == 0)
-                {
-                    break;
-                }
-
-                var lot = match.Lot;
-                var available = RecheckGoods(current, request, lot.Id)?.Quantity ?? 0;
-                if (available <= 0)
-                {
-                    continue;
-                }
-
-                var amount = Math.Min(remaining, available);
-                var reservationId = ProductionInputReservationId(purpose, quantityIndex, lot.Id);
-                current = InventoryAuthority.Reserve(
-                    current,
-                    reservationId,
-                    ownerId,
-                    lot.Id,
-                    amount,
-                    purpose,
-                    current.WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(ownerId));
-                current = InventoryAuthority.ConsumeReservation(current, reservationId);
-                remaining -= amount;
-            }
-
-            if (remaining > 0)
-            {
-                throw new InvalidOperationException(
-                    $"Insufficient '{requested.ResourceId}' for {purpose}; missing {remaining.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
-            }
+            var reservationId = ProductionInputReservationId(purpose, input.QuantityIndex, input.LotId);
+            current = InventoryAuthority.Reserve(current, reservationId, owner, input.LotId, input.Quantity,
+                purpose, current.WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(owner));
+            current = InventoryAuthority.ConsumeReservation(current, reservationId);
         }
-
         return current;
     }
 

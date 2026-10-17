@@ -203,7 +203,8 @@ public sealed partial class WorldRuntime
         string? assignedTownId = null,
         string? householdId = null,
         string? constructionOwnerId = null,
-        string? constructionInstructionId = null)
+        string? constructionInstructionId = null,
+        IReadOnlyList<ConstructionMaterialInput>? selectedMaterials = null)
     {
         try
         {
@@ -277,11 +278,20 @@ public sealed partial class WorldRuntime
                     placementFailure);
             }
 
-            ApplyInventoryTransition(inventory => ConsumeQuantities(
-                inventory,
-                definition.BuildCosts,
-                $"building:{normalizedInstanceId}",
-                constructionOwnerId ?? householdId ?? HouseholdId));
+            var materialOwner = constructionOwnerId ?? householdId ?? HouseholdId;
+            selectedMaterials ??= PlanConstructionInputs(definition.BuildCosts, materialOwner);
+            if (selectedMaterials is null)
+            {
+                var missing = definition.BuildCosts.First(cost => ProductionGoods(society.Checkpoint.Inventory,
+                    new(GoodsUse.Holdings, null, GoodsOwners.One(materialOwner), GoodsKinds.One(cost.ResourceId))).Sum(match => (long)match.Quantity) < cost.Amount);
+                var available = ProductionGoods(society.Checkpoint.Inventory,
+                    new(GoodsUse.Holdings, null, GoodsOwners.One(materialOwner), GoodsKinds.One(missing.ResourceId))).Sum(match => (long)match.Quantity);
+                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
+                    $"Insufficient '{missing.ResourceId}' for building:{normalizedInstanceId}; missing {(missing.Amount - available).ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+            }
+            if (CheckConstructionInputs(materialOwner, selectedMaterials).Refusal is { } materialRefusal)
+                return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position, materialRefusal.Explanation);
+            ApplyInventoryTransition(inventory => ConsumeConstructionInputs(inventory, selectedMaterials, $"building:{normalizedInstanceId}", materialOwner));
             var placed = new PlacedBuilding(
                 normalizedInstanceId,
                 definition.CanonicalId,

@@ -460,10 +460,13 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
         }, _ => provider);
         var storedBelongings = new Dictionary<string, (string Owner, string House, string Kind)>();
+        var constructionPlans = new List<ConstructionActionPlan>();
         // Doorway travel changes when the independent milestones occur.
         for (var tick = 0; tick < 1600; tick++)
         {
-            await world.AdvanceOneTickAsync();
+            var result = await world.AdvanceOneTickAsync();
+            constructionPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is ConstructionActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<ConstructionActionPlan>(decision.ActionPlan)));
             provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
             AssertBelongingsStayStored(world, storedBelongings);
             foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId is not null &&
@@ -497,6 +500,20 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             recipe => recipe.Outputs.Any(output => output.ResourceId == "bedding"));
         Assert.NotEmpty(world.WorldSimulation.Buildings);
         Assert.Contains(state.Events, item => item.Kind == "build_completed");
+        var builtPlans = constructionPlans.Where(plan => world.WorldSimulation.Buildings.Any(building => building.InstanceId == plan.InstanceId && building.Position == plan.Site))
+            .GroupBy(plan => plan.InstanceId).Select(group => group.Last()).ToArray();
+        Assert.NotEmpty(builtPlans);
+        foreach (var plan in builtPlans)
+        {
+            var building = Assert.Single(world.WorldSimulation.Buildings, building => building.InstanceId == plan.InstanceId);
+            Assert.Equal((plan.Definition.CanonicalId, plan.Site, plan.HouseholdId, plan.TownId),
+                (building.DefinitionId, building.Position, building.HouseholdId, building.TownId));
+            var paid = world.Society.Inventory.Reservations.Where(reservation => reservation.Purpose == "building:" + plan.InstanceId).ToArray();
+            if (plan.Inputs is not null)
+                Assert.Equal(plan.Inputs.OrderBy(input => input.LotId).Select(input => (input.LotId, input.Quantity)),
+                    paid.OrderBy(input => input.LotId).Select(input => (input.LotId, input.Quantity)));
+            Assert.False(world.CheckActionPlan(plan).Allowed);
+        }
         Assert.Contains(state.Events, item => item.Kind == "household_food_collected");
         var gathered = state.Events.Where(item => item.Kind == "material_gathered")
             .Select(item => item.Detail.Split(':')[^2]).ToHashSet(StringComparer.Ordinal);

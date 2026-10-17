@@ -164,6 +164,14 @@ lot or material harvest. Its shared contribution query keeps physical stock
 availability and inventory order; transfers use that selected lot and quantity.
 Its hold-access check leaves stock promised to another task with that task.
 Construction preparation and assistance share one harvest and tool check.
+Construction choices retain their selected design, site, building identity,
+ownership and available material lots. Their shared check also rechecks the
+selected building's reachable work inputs. Matching project/order plans are copied
+through tick preparation and commit without entering saves. Material payment
+uses the selected quantities and existing reservation identities; supplies
+acquired later are selected once when the payment inputs become available.
+A builder whose selected materials become unavailable gets fresh construction
+choices. The paused goal still prevents another member from duplicating that kind.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
