@@ -11,7 +11,7 @@ public sealed partial class BuildingExpansionTests
     public async Task AnOfferedExpansionKeepsTheOriginalBuildingAfterPaidRebuilding(bool rebuild)
     {
         using var prepared = PreparedWorld("first-town-house-a", out var actor, out var house, householdWood: 10);
-        Assert.Equal(house.HouseholdId, prepared.AddAgent("agent:expansion-rebuild-resident", house.Position));
+        Assert.Equal(house.HouseholdId, prepared.AddAgent("agent:" + Guid.NewGuid().ToString("N"), house.Position));
         var state = prepared.ExportState();
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with
