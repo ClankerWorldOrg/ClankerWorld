@@ -174,7 +174,7 @@ cancels pending work and preserves memories.
 The Decisions integration is checked against the published API contract and
 sample replies; the live-account Windows check is still [pending](../playtest/alpha-1.md).
 The saved TypeSafe-key path is covered by automated checks; its live-account
-Windows check is also [pending](../playtest/2337-typesafe-helper.md).
+Windows check is also [pending](../playtest/alpha-1.md#agents-models-and-conversations).
 When a personal model names a new agent, it gets a stable first-letter hint to
 encourage varied names. Each chosen first name is unique across the world,
 including deceased agents. Different surnames, capitalization or spacing do

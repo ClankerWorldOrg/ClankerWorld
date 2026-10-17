@@ -1,1 +1,0 @@
-- Land-use sale prices show readable goods names while keeping the agreed goods and quantity unchanged.

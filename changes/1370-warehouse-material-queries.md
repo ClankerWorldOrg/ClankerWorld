@@ -1,1 +1,0 @@
-- Warehouse and handcart material collection now share stock and route checks, and recheck the selected goods before pickup.

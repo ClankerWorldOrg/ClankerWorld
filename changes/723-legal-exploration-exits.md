@@ -1,1 +1,0 @@
-- Explorers choose another legal exit when an agent blocks a diagonal corner, instead of repeatedly trying the same blocked step.

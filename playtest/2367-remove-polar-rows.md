@@ -1,1 +1,0 @@
-- Create a new world and inspect its north and south map edges. Land, sea and ice should follow the surrounding terrain, with no forced straight strip of sea across the map. Try moving an agent beyond either edge: they should stop at the edge. East/west wrapping should still follow the world setting. ([#2367](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2367))

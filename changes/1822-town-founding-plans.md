@@ -1,2 +1,0 @@
-- Founding and resettlement keep their chosen site or Town and dependent group when checked before they apply.
-- Founding after a delayed personal choice keeps saves valid when the Town adopts an owned building.

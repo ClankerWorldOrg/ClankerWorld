@@ -1,1 +1,0 @@
-- Event Log descriptions now come from the world server. Update remote servers alongside the game; an older server prompts for an update and keeps the last confirmed view.

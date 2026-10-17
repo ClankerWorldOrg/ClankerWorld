@@ -1,3 +1,0 @@
-- Project assistance retains the requesting project, recipient and selected material lot or harvest through shared checks.
-- Project helpers leave stock promised to an animal supply trip with that trip.
-- Assistance preserves complete candidate references and current typed gratitude memory and fulfillment events (#2394, #2395).

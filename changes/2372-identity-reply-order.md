@@ -1,1 +1,0 @@
-- Life reviews completed together now keep the same event order when continuing after a save and reload.

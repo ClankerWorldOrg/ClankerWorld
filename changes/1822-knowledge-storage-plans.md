@@ -1,2 +1,0 @@
-- Knowledge collection and storage retain their exact artifact, custody and House destination through shared checks.
-- Storage and collection construct their complete candidate references through the shared identity boundary (#2391).

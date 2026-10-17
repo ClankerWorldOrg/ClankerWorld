@@ -23,7 +23,9 @@ already identify exact builds.
 The current .NET version metadata comes from
 [`Directory.Build.props`](../../Directory.Build.props), not a second hand-maintained
 constant. See the [build reference](build-and-test.md) for the selected toolchain.
-Untagged development builds use `0.1.0-dev`; they do not claim an alpha release.
+The default version is `0.1.0-alpha.1` while preparing alpha 1. Development
+builds can set `VersionSuffix=dev`; a version label alone does not make a
+build a published release.
 The SDK includes the checked-out source revision in the assembly's informational
 version. Settings and Developer tools show that version with seven commit
 characters, and the tooltip gives the full commit. The server's `/api/v1/status`

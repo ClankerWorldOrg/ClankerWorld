@@ -1,1 +1,0 @@
-- Starter clay is placed on a freshwater bank reachable from the chosen first Town. An island without a usable bank records the existing clay blocker instead of placing clay on another landmass.

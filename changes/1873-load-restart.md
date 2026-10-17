@@ -1,1 +1,0 @@
-- Restarting after an interrupted Load Save now restores matching model choices, autosave settings and save history before the world becomes available. Its recovery copies stay protected until recovery finishes.

@@ -1,2 +1,0 @@
-- Housing choices now explain when the selected House, request or adult membership changes before an answer can act.
-- Rebuilding a House with the same ID requires a fresh housing choice before a member can answer.

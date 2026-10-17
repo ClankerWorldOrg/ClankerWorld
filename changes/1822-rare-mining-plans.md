@@ -1,1 +1,0 @@
-- Keep rare mining tied to its chosen deposit, pickaxe and load, and explain when that work is no longer possible.

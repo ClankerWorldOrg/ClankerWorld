@@ -1,1 +1,0 @@
-- Animal permissions and trades retain exact recipients, offers, yards, payments and riding preparation; changed choices receive a reasoned refusal.

@@ -1,1 +1,0 @@
-- Agents refresh their choices when another agent takes the last supplies or exhausts a material source before their model call starts, avoiding repeated Blacksmith trips for unavailable materials.

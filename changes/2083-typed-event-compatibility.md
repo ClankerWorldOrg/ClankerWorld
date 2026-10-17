@@ -1,1 +1,0 @@
-- The game checks that the world server uses the same Event Log format before refreshing. Update remote servers alongside the game.
