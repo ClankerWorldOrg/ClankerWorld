@@ -28,6 +28,10 @@ public sealed partial class WorldRuntime
                 building.InstanceId == lot.StorageBuildingId && building.HouseholdId == householdId)) ? lot : null;
     }
 
+    private InventoryLot? HeldKnowledgeArtifactLot(string actor, AgentKnowledgeArtifact artifact) =>
+        HeldKnowledgeArtifacts(actor).Any(item => item.Id == artifact.Id)
+            ? RecheckGoods(new(GoodsUse.CarriedInputs, actor, GoodsOwners.One(actor), GoodsKinds.One(artifact.Kind)), artifact.LotId)?.Lot : null;
+
     private void AddKnowledgeStorageCandidates(List<CognitionCandidate> candidates,
         string actor, AgentState person)
     {
@@ -40,26 +44,30 @@ public sealed partial class WorldRuntime
                     continue;
                 var position = HouseholdStockPosition(lot);
                 var range = KnowledgeCollectionRange(actor, lot);
-                if (!IsWithinInteractionRange(person.Position, position, range) &&
-                    FindUnoccupiedRoute(actor, person.Position, position, range).Count == 0)
-                    continue;
+                var plan = PlanKnowledgeStorage(actor, artifact, true);
+                if (plan is null || !CheckKnowledgeStorage(plan).Allowed) continue;
                 // Explicit access stays available without an automatic
                 // collect/store cycle when the owner has no current use.
-                candidates.Add(new(KnowledgeCollectPrefix + artifact.Id,
-                    $"Collect {artifact.Title} to carry, read, copy or trade it.", 190));
+                candidates.Add(new(plan.CandidateId,
+                    $"Collect {artifact.Title} to carry, read, copy or trade it.", 190)
+                { ActionPlan = plan });
             }
         }
         if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             DestinationRoom(house.InstanceId) < 1 ||
-            person.Position != house.Position && FindUnoccupiedRoute(actor, person.Position, house.Position, 0).Count == 0)
+            person.Position != house.Position && Reach(actor, house.Position, ReachPurpose.KnowledgeStorage, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return;
         foreach (var artifact in HeldKnowledgeArtifacts(actor))
-            candidates.Add(new(KnowledgeStorePrefix + artifact.Id,
-                $"Store {artifact.Title} in your House while keeping personal ownership.", 190));
+        {
+            var plan = PlanKnowledgeStorage(actor, artifact, false);
+            if (plan is not null && CheckKnowledgeStorage(plan).Allowed) candidates.Add(new(plan.CandidateId,
+                $"Store {artifact.Title} in your House while keeping personal ownership.", 190)
+            { ActionPlan = plan });
+        }
     }
 
-    private bool ApplyKnowledgeStorageCandidate(string actor, AgentState person, string candidateId)
+    private bool ApplyKnowledgeStorageCandidate(string actor, AgentState person, string candidateId, ActionPlan? originalPlan = null)
     {
         var collect = candidateId.StartsWith(KnowledgeCollectPrefix, StringComparison.Ordinal);
         var store = candidateId.StartsWith(KnowledgeStorePrefix, StringComparison.Ordinal);
@@ -68,6 +76,10 @@ public sealed partial class WorldRuntime
         var artifactId = candidateId[(collect ? KnowledgeCollectPrefix.Length : KnowledgeStorePrefix.Length)..];
         var artifact = knowledge.Artifacts.FirstOrDefault(item => item.Id == artifactId);
         if (artifact is null) return true;
+        var plan = originalPlan as KnowledgeStorageActionPlan ?? PlanKnowledgeStorage(actor, artifact, collect);
+        if (plan is null) return true;
+        if (CheckKnowledgeStorage(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return true; }
+        artifact = plan.Artifact;
         if (collect)
         {
             if (FreeCarryCapacity(actor) < 1 || KnowledgeArtifactForCollection(actor, artifact) is not { } lot)

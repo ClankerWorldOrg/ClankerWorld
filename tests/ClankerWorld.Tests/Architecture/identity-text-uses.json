@@ -295,8 +295,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs|id|GatherBuildingMaterialPrefix \u002B need.Material.ResourceId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs|id|$\u0022knowledge-collect:{WorldTick}:{actor}:{artifact.Id}\u0022": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs|id|$\u0022knowledge-store:{WorldTick}:{actor}:{artifact.Id}\u0022": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs|id|KnowledgeCollectPrefix \u002B artifact.Id": 1,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs|id|KnowledgeStorePrefix \u002B artifact.Id": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs|id|\u0022build:recipe:\u0022 \u002B request.RecipeId": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs|length|\u003E 160": 1,
   "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs|id|$\u0022death:{id}:{lot.Id}\u0022": 1,

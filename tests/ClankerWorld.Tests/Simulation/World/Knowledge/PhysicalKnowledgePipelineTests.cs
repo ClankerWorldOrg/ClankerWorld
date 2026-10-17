@@ -166,7 +166,22 @@ public sealed partial class PhysicalKnowledgePipelineTests
         provider.Prefixes = ["knowledge_store:" + written.Id];
         _ = world.SubmitInstruction(new OwnerInstructionRequest("store-written-artifact", "owner:test", actor,
             OwnerInstructionKind.Suggestion, "Store your written discoveries in your House."));
-        await AdvanceUntil(world, () => world.Society.Inventory.GetLot(written.LotId).StorageBuildingId == houseId, 64);
+        var storagePlans = new List<KnowledgeStorageActionPlan>();
+        async Task MoveArtifact(Func<bool> reached)
+        {
+            for (var tick = 0; tick < 64 && !reached(); tick++)
+            {
+                var result = await world.AdvanceOneTickAsync();
+                Assert.True(result.Advanced);
+                storagePlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is KnowledgeStorageActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                    .Select(decision => Assert.IsType<KnowledgeStorageActionPlan>(decision.ActionPlan)));
+            }
+            Assert.True(reached());
+        }
+        await MoveArtifact(() => world.Society.Inventory.GetLot(written.LotId).StorageBuildingId == houseId);
+        Assert.Contains(storagePlans, plan => !plan.Collect && plan.HouseId == houseId && plan.Artifact.LotId == written.LotId);
+        Assert.All(storagePlans, plan => Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
+        storagePlans.Clear();
         var stored = world.ExportState();
         Assert.Equal(actor, stored.Society.Society.Inventory.GetLot(written.LotId).OwnerId);
         Assert.Contains(stored.Events, item => item.Kind == "agent_knowledge_artifact_stored" &&
@@ -185,7 +200,9 @@ public sealed partial class PhysicalKnowledgePipelineTests
         provider.Prefixes = ["knowledge_collect:" + written.Id];
         _ = world.SubmitInstruction(new OwnerInstructionRequest("retrieve-written-artifact", "owner:test", actor,
             OwnerInstructionKind.Suggestion, "Carry your written discoveries again."));
-        await AdvanceUntil(world, () => world.Society.Inventory.GetLot(written.LotId).StorageBuildingId is null, 64);
+        await MoveArtifact(() => world.Society.Inventory.GetLot(written.LotId).StorageBuildingId is null);
+        Assert.Contains(storagePlans, plan => plan.Collect && plan.StorageBuildingId == houseId && plan.Artifact.LotId == written.LotId);
+        Assert.All(storagePlans, plan => Assert.Equal(ActionRefusalReason.StockUnavailable, world.CheckActionPlan(plan).Refusal!.Reason));
         Assert.Equal((actor, 1), (world.Society.Inventory.GetLot(written.LotId).OwnerId,
             world.Society.Inventory.GetLot(written.LotId).Quantity));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_knowledge_artifact_collected" &&
