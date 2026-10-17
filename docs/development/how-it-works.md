@@ -154,6 +154,12 @@ Recipe plan references have a live lifetime. Tick preparation copies entries
 for the same project and order into the trial runtime; successful commit
 copies those entries back without replacing the live cache or saving it.
 
+Household construction preparation retains the selected building need, source,
+tool, harvest quantity and household return destination. The same check
+rechecks the selected building's reachable work inputs, load and route before
+the native harvest; changed work inputs or tree seed yield refuse that stale
+selection.
+
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
 `CheckActionPlan` validates it when offered, after reply admission and again

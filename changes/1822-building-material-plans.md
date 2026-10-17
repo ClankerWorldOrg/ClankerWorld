@@ -1,0 +1,3 @@
+- Household construction preparation retains its building need, material source, tool, harvest and return destination through shared checks.
+- Building material candidates retain their complete spelling through the shared reference constructor (#2393).
+- Retained construction-material choices recheck the selected work building's reachable inputs after other work reserves them (#2410).

@@ -54,10 +54,25 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         {
             var sawStoneDeliveryAtTheCapacityBoundary = false;
             var sawToolStoredAfterStoneDelivery = false;
+            var plans = new List<BuildingMaterialActionPlan>();
+            var sawPlannedHarvest = false;
             for (var tick = 0; tick < 160 && !world.ExportState().Events.Any(item => item.Kind == "material_gathered" &&
                      item.Detail.StartsWith(actor + ":wood:", StringComparison.Ordinal)); tick++)
             {
-                Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+                var ecologyBefore = world.WorldSystems.Ecology;
+                var result = await world.AdvanceOneTickAsync();
+                Assert.True(result.Advanced);
+                plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is BuildingMaterialActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                    .Select(decision => Assert.IsType<BuildingMaterialActionPlan>(decision.ActionPlan)));
+                foreach (var plan in plans.Where(plan => ecologyBefore.Resources.FirstOrDefault(resource => resource.Id == plan.Source.Id) is { } before &&
+                             before.Quantity == world.WorldSystems.Ecology.GetResource(plan.Source.Id).Quantity + 1))
+                {
+                    Assert.Equal((Household, house.InstanceId), (plan.HouseholdId, plan.HouseId));
+                    Assert.Contains(result.Events, item => item.Kind == "material_gathered" && item.Detail == $"{actor}:{plan.Choice.ItemKind}:{plan.Harvest.Quantity}");
+                    Assert.Contains(world.Society.Inventory.Lots, lot => lot.OwnerId == actor && lot.ItemKind == plan.Choice.ItemKind &&
+                        lot.Quantity == plan.Harvest.Quantity && lot.DeliveryBuildingId == plan.HouseId);
+                    sawPlannedHarvest = true;
+                }
                 var state = world.ExportState();
                 var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
                 var carried = PersonalEquipmentRules.CarriedQuantity(state.Society.Society.Inventory, actor, equipment);
@@ -94,6 +109,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             Assert.Contains(chooser.ChosenCandidates, id => id == "gather_building_material:stone");
             Assert.True(sawStoneDeliveryAtTheCapacityBoundary);
             Assert.True(sawToolStoredAfterStoneDelivery);
+            Assert.True(sawPlannedHarvest);
             Assert.Contains(world.ExportState().Events, item => item.Kind == "household_preparation_tool_stored" &&
                 item.Detail.StartsWith(actor + ":tool:", StringComparison.Ordinal));
 

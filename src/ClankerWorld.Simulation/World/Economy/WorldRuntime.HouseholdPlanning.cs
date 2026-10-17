@@ -12,7 +12,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime
 {
-    private const string GatherBuildingMaterialPrefix = "gather_building_material:";
+    private const string GatherBuildingMaterialPrefix = BuildingMaterialChoice.Prefix;
     // Provisional balance: tune the shared offer/admission limit here.
     private const int ResidentsPerSharedShop = 8;
 
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
     /// needs, when it can be gathered from a reachable source. One such offer
     /// at a time keeps the choice list short.
     /// </summary>
-    private (BuildingDefinition Building, ContentQuantity Material)? NeededBuildingMaterial(string actor, string householdId)
+    private (BuildingDefinition Building, ContentQuantity Material, MapResource Source)? NeededBuildingMaterial(string actor, string householdId)
     {
         if (HouseholdBuildingProjectInProgress(householdId, retryingActor: actor))
             return null;
@@ -123,27 +123,21 @@ public sealed partial class WorldRuntime
             if (missing.Amount == 0 || !WorkBuildingHasInputs(actor, householdId, definition))
                 continue;
             if (MaterialSource(missing.ResourceId, actor, HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-                HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is not null)
-                return (definition, missing);
+                HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is { } source)
+                return (definition, missing, source);
         }
         return null;
     }
 
     private void AddBuildingMaterialCandidate(List<CognitionCandidate> candidates, string actor, string householdId)
     {
-        if (NeededBuildingMaterial(actor, householdId) is not { } need ||
-            MaterialSource(need.Material.ResourceId, actor, HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-                HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is not { } source)
-            return;
-        var useHarvestBonus = UseHarvestBonusForBuildingMaterial(actor, need.Material.ResourceId, source,
-            HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-            HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0);
-        if (FreeCarryCapacity(actor) < ProjectMaterialCarryUnits(actor, need.Material.ResourceId, source, useHarvestBonus))
-            return;
-        var load = useHarvestBonus ? "using its faster whole load" : "as a smaller whole load that fits your carrying space";
-        candidates.Add(new CognitionCandidate(GatherBuildingMaterialPrefix + need.Material.ResourceId,
-            $"Gather {need.Material.ResourceId} {load} so the household has what it needs to build its own {need.Building.DisplayName}.",
-            34));
+        var plan = PlanBuildingMaterial(actor, householdId);
+        if (plan is null || !CheckBuildingMaterial(plan).Allowed) return;
+        var load = plan.Harvest.Quantity > 4 ? "using its faster whole load" : "as a smaller whole load that fits your carrying space";
+        candidates.Add(new CognitionCandidate(plan.CandidateId,
+            $"Gather {plan.Material.ResourceId} {load} so the household has what it needs to build its own {plan.Building.DisplayName}.",
+            34)
+        { ActionPlan = plan });
     }
 
     /// <summary>Use the faster harvest only when its complete output fits the current carry space.</summary>
@@ -183,19 +177,11 @@ public sealed partial class WorldRuntime
         return tool is not null && free + Math.Min(1, AvailableLotQuantity(tool)) >= required ? tool : null;
     }
 
-    private void GatherBuildingMaterial(string actor, AgentState state, string itemKind)
+    private void GatherBuildingMaterial(string actor, AgentState state, string itemKind, ActionPlan? originalPlan = null)
     {
-        if (!IsAdult(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
-            NeededBuildingMaterial(actor, householdId) is not { } need || need.Material.ResourceId != itemKind ||
-            MaterialSource(itemKind, actor, HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-                HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is not { } source)
-            return;
-        var useHarvestBonus = UseHarvestBonusForBuildingMaterial(actor, itemKind, source,
-            HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-            HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0);
-        var deliveryBuildingId = HouseForHousehold(householdId)?.InstanceId;
-        GatherProjectMaterial(actor, state, itemKind, source, useHarvestBonus, deliveryBuildingId,
-            HouseForHousehold(householdId)?.Position ?? SharedStoragePosition,
-            HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0);
+        var plan = originalPlan as BuildingMaterialActionPlan;
+        if (plan is null && HouseholdFor(actor) is { } household)
+            plan = PlanBuildingMaterial(actor, household);
+        if (plan is not null && plan.Choice.ItemKind == itemKind) ApplyBuildingMaterial(plan);
     }
 }
