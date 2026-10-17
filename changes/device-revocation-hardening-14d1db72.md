@@ -1,1 +1,0 @@
-- Revoking a paired device is saved before it takes effect and also cancels any unfinished pairing for the same key. One key can belong to only one active device, and a revoked key can be paired again only from the world server's own computer.

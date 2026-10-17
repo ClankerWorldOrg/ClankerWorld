@@ -1,1 +1,0 @@
-- The family tree panel now grows to fit shorter trees and keeps longer trees inside a scrollable area on screen.

@@ -1,1 +1,0 @@
-- Fixed the game waiting without starting its world server on Windows. The Main Menu now says the world server is starting while it gets ready.

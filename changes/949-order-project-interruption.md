@@ -1,1 +1,0 @@
-- Construction and Store-stocking orders can progress after pausing ordinary work. Construction starts a fresh paid project; Store stocking lets the earlier project continue afterward. Existing reserved production finishes first.

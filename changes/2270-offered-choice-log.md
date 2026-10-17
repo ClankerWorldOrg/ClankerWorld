@@ -1,1 +1,0 @@
-- The world server's log names a model's chosen action only when it is one of the choices the agent was offered, and writes a fixed placeholder otherwise.

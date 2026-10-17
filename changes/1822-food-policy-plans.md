@@ -1,1 +1,0 @@
-- Shared-food policy proposals and votes retain the original authority and ballot through shared checks. Proposal references use the shared identity helper and civic capabilities have one shared declaration.

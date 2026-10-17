@@ -1,3 +1,0 @@
-- Knowledge writing and copying retain their selected contents, source, material lots and original work project through shared checks.
-- Original writing refuses an unrecorded fact version before reserving materials, keeping its resulting save valid.
-- Writing preserves shared typed reservations and complete candidate references; the delayed-observation regression uses controlled model work.

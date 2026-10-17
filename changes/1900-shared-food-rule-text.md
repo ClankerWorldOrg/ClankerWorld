@@ -1,1 +1,0 @@
-- The Event Log explains changes to shared household food access without attributing them to a Town council.

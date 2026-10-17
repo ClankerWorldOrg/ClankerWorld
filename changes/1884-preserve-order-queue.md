@@ -1,1 +1,0 @@
-- Replacing an agent's current order keeps queued orders, their targets and remaining amounts, and runs the replacement first.

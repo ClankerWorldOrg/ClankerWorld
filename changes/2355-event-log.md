@@ -1,1 +1,0 @@
-- The Event Log leaves out routine storage, stocking, hauling and automatic source changes. Important refusals appear at most once per agent and target each world day, player order problems remain visible, and long lines wrap in full.

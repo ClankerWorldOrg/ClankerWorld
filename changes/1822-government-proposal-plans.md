@@ -1,1 +1,0 @@
-- Protected government proposals and responses retain their selected arrangement or voting window through shared checks. Authors can still withdraw queued proposals when an earlier withdrawal opens their vote, and accepting added duties preserves other residents' selected votes.

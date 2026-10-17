@@ -1,2 +1,0 @@
-- Tool-request consent choices now explain when the selected Blacksmith, recipe or request changes before they can act.
-- A pending personal withdrawal can still stop the same request after ordinary production progress without replacing its current job or exchange details.

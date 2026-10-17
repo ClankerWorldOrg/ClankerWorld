@@ -1,1 +1,0 @@
-- Start a new four-agent world and let the households build as they gather materials. Including shops still under construction, the Town should have at most one Store, one Tailor Shop, one Restaurant, one Clinic and one Blacksmith, even when both households want the same shop. ([#2342](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2342))

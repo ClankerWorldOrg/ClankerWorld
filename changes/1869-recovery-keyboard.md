@@ -1,1 +1,0 @@
-- Tab and Shift+Tab reach the controls for a lost request from Profile and Main Menu; Enter retries or discards it, then focus returns to the screen underneath.

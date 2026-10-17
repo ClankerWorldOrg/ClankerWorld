@@ -1,1 +1,0 @@
-- After a connection loss leaves **Your last request** visible, keep the agent's Profile open and use Tab and Shift+Tab to reach both recovery buttons, then Enter to retry; on another lost request, check Discard it. Repeat from Main Menu and check that focus returns to a usable control afterward. [#1869](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1869)
