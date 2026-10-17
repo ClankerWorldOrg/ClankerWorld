@@ -65,7 +65,7 @@ public static class BuildingStorageRules
 
 public sealed partial class WorldRuntime
 {
-    private const string ExpandBuildingPrefix = "expand_building:";
+    private const string ExpandBuildingPrefix = ExpansionChoice.Prefix;
     // Provisional duration; paid model calls do not advance construction.
     private const int BuildingExpansionTicks = 20;
 
@@ -176,26 +176,16 @@ public sealed partial class WorldRuntime
         return missing.All(cost => CanAcquireExpansionMaterial(actor, building, cost));
     }
 
-    private InventoryCheckpoint ReserveExpansionMaterials(InventoryCheckpoint inventory, string actor,
-        PlacedBuilding building, IReadOnlyList<ContentQuantity> costs, string jobId, long completion,
-        out IReadOnlyList<string> reservationIds)
+    private static InventoryCheckpoint ReserveExpansionInputs(InventoryCheckpoint inventory, IReadOnlyList<ExpansionMaterialInput> inputs,
+        string actor, string jobId, long completion, out IReadOnlyList<string> reservationIds)
     {
         var ids = new List<string>();
-        foreach (var cost in costs)
+        foreach (var input in inputs)
         {
-            var remaining = cost.Amount;
-            foreach (var lot in ExpansionMaterialLots(actor, building).Where(lot => lot.ItemKind == cost.ResourceId)
-                         .OrderBy(lot => lot.Id, StringComparer.Ordinal))
-            {
-                var quantity = Math.Min(remaining, AvailableLotQuantity(lot));
-                if (quantity <= 0) continue;
-                var id = ExpansionMaterialReservationId(jobId, ids.Count);
-                inventory = InventoryAuthority.Reserve(inventory, id, lot.OwnerId, lot.Id, quantity, jobId, completion, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                ids.Add(id);
-                remaining -= quantity;
-                if (remaining == 0) break;
-            }
-            if (remaining != 0) throw new InvalidOperationException("The expansion materials are no longer available.");
+            var id = ExpansionMaterialReservationId(jobId, ids.Count);
+            inventory = InventoryAuthority.Reserve(inventory, id, input.OwnerId, input.LotId, input.Quantity,
+                jobId, completion, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+            ids.Add(id);
         }
         reservationIds = ids;
         return inventory;
@@ -343,20 +333,24 @@ public sealed partial class WorldRuntime
                 HouseResidentCapacity(householdId) is { } capacity && capacity.ResidentCount >= capacity.Limit
                     ? "to make more resident places"
                     : "to add storage";
-            candidates.Add(new(ExpandBuildingPrefix + building.InstanceId,
+            var plan = PlanExpansion(actor, building);
+            if (plan is not null && CheckExpansion(plan).Allowed) candidates.Add(new(plan.CandidateId,
                 $"Bring the missing materials to the {definition.DisplayName}, then expand it {reason} without moving its stock.",
-                24, building.InstanceId));
+                24, building.InstanceId)
+            { ActionPlan = plan });
         }
     }
 
     private void ApplyBuildingExpansionCandidate(string actor, AgentState state, string buildingId,
-        OwnerQueuedInstruction? orderInstruction = null)
+        OwnerQueuedInstruction? orderInstruction = null, ActionPlan? originalPlan = null)
     {
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == buildingId);
         if (building is null || !MayExpandBuilding(actor, building, out _)) return;
+        var plan = originalPlan as ExpansionActionPlan ?? PlanExpansion(actor, building, orderInstruction);
+        if (plan is null) return;
+        if (CheckExpansion(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (orderInstruction is not null && ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId) return;
-        var shape = ExpansionShapeForOrder(building, orderInstruction);
-        if (shape.Footprint is null) return;
+        var shape = (Position: plan.TargetPosition, Footprint: plan.TargetFootprint);
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         var costs = BuildingStorageRules.ExpansionCosts(definition, building, shape.Footprint);
         var missing = costs.FirstOrDefault(cost => !HasExpansionMaterials(actor, building, [cost]) &&
@@ -425,7 +419,7 @@ public sealed partial class WorldRuntime
             return;
         }
         if (state.Position != building.Position) MoveToward(actor, state, building.Position, "building_expansion", 0);
-        else StartBuildingExpansionCore(actor, buildingId, orderInstruction);
+        else StartBuildingExpansionCore(actor, buildingId, orderInstruction, plan);
     }
 
     public ProductionStartResult StartBuildingExpansion(string actor, string buildingId)
@@ -436,7 +430,7 @@ public sealed partial class WorldRuntime
     }
 
     private ProductionStartResult StartBuildingExpansionCore(string actor, string buildingId,
-        OwnerQueuedInstruction? orderInstruction = null)
+        OwnerQueuedInstruction? orderInstruction = null, ExpansionActionPlan? originalPlan = null)
     {
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == buildingId);
         if (building is null) return ProductionStartResult.Rejected(buildingId, "The building is not placed.");
@@ -447,9 +441,12 @@ public sealed partial class WorldRuntime
         if (!MayExpandBuilding(actor, building, out var failure)) return ProductionStartResult.Rejected(buildingId, failure);
         if (agents[actor].Position != building.Position)
             return ProductionStartResult.Rejected(buildingId, "The worker must be at the building before expansion starts.");
-        var shape = ExpansionShapeForOrder(building, orderInstruction);
-        if (shape.Footprint is null)
+        var plan = originalPlan ?? PlanExpansion(actor, building, orderInstruction);
+        if (plan is null)
             return ProductionStartResult.Rejected(buildingId, "There is no legal space for this building's next footprint.");
+        if (CheckExpansion(plan).Refusal is { } refusal)
+            return ProductionStartResult.Rejected(buildingId, refusal.Explanation);
+        var shape = (Position: plan.TargetPosition, Footprint: plan.TargetFootprint);
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         var owner = building.HouseholdId ?? building.TownId!;
         var costs = BuildingStorageRules.ExpansionCosts(definition, building, shape.Footprint);
@@ -458,7 +455,9 @@ public sealed partial class WorldRuntime
         var jobId = $"expansion-{worldSimulation.NextProductionJobSequence:D8}";
         var completion = WorldTick + SkilledWorkTicks(actor, SkillKind.Building, BuildingExpansionTicks);
         IReadOnlyList<string> reservations = [];
-        ApplyInventoryTransition(inventory => ReserveExpansionMaterials(inventory, actor, building, costs, jobId, completion, out reservations));
+        var selectedInputs = plan.Inputs ?? PlanExpansionInputs(actor, building, costs);
+        if (selectedInputs is null) return ProductionStartResult.Rejected(buildingId, "The expansion materials are no longer available.");
+        ApplyInventoryTransition(inventory => ReserveExpansionInputs(inventory, selectedInputs, actor, jobId, completion, out reservations));
         var job = new BuildingExpansionJob(jobId, buildingId, actor, owner, building.Footprint?.Revision ?? 0,
             building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, (reservations).Select(Identity.Parse).ToArray(),
             DefinitionId: building.DefinitionId)

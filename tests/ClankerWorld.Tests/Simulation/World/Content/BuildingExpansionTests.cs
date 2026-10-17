@@ -13,6 +13,31 @@ namespace ClankerWorld.Tests;
 public sealed partial class BuildingExpansionTests
 {
     [Fact]
+    public async Task AnOfferedExpansionRetainsItsActualFootprintAndPaymentLots()
+    {
+        using var prepared = PreparedWorld("first-town-house-a", out var actor, out var house);
+        var provider = new IdleProvider("expand_building:" + house.InstanceId);
+        using var world = WorldRuntime.Restore(prepared.ExportState(), id => id == actor ? provider : new IdleProvider());
+        var plans = new List<ExpansionActionPlan>();
+        for (var tick = 0; tick < 40 && !(world.WorldSimulation.BuildingExpansions ?? []).Any(); tick++)
+        {
+            var result = await world.AdvanceOneTickAsync();
+            Assert.True(result.Advanced);
+            plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is ExpansionActionPlan { Inputs: not null } && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<ExpansionActionPlan>(decision.ActionPlan)));
+        }
+        var job = Assert.Single(world.WorldSimulation.BuildingExpansions!);
+        var plan = Assert.Single(plans);
+        Assert.Equal((plan.Building.InstanceId, plan.Building.Position, plan.TargetPosition, plan.TargetFootprint, plan.OwnerId),
+            (job.BuildingInstanceId, job.ExpectedPosition, job.TargetPosition, job.TargetFootprint, job.OwnerId));
+        Assert.Equal(plan.Inputs!.Select(input => (input.LotId, input.OwnerId, input.Quantity)),
+            job.InputReservationIds.Select(world.Society.Inventory.GetReservation).Select(input => (input.LotId, input.OwnerId, input.Quantity)));
+        Assert.False(world.CheckActionPlan(plan).Allowed);
+        using var restored = Reload(world);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
+    }
+
+    [Fact]
     public async Task AStaleExpansionRequestCannotSilentlySelectADifferentPlot()
     {
         using var prepared = PreparedWorld("first-town-house-a", out var actor, out var house);
