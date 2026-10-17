@@ -156,15 +156,17 @@ copies those entries back without replacing the live cache or saving it.
 
 Household construction preparation retains the selected building need, source,
 tool, harvest quantity and household return destination. The same check
-validates the load and route before the native harvest; a changed tree seed
-yield refuses that stale selection.
+rechecks the selected building's reachable work inputs, load and route before
+the native harvest; changed work inputs or tree seed yield refuse that stale
+selection.
 Project assistance retains the requesting project, recipient and exact personal
 lot or material harvest. Its shared contribution query keeps physical stock
 availability and inventory order; transfers use that selected lot and quantity.
 Its hold-access check leaves stock promised to another task with that task.
 Construction preparation and assistance share one harvest and tool check.
 Construction choices retain their selected design, site, building identity,
-ownership and available material lots. Matching project/order plans are copied
+ownership and available material lots. Their shared check also rechecks the
+selected building's reachable work inputs. Matching project/order plans are copied
 through tick preparation and commit without entering saves. Material payment
 uses the selected quantities and existing reservation identities; supplies
 acquired later are selected once when the payment inputs become available.

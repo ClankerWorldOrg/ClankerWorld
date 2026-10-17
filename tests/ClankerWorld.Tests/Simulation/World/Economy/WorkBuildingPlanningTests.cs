@@ -188,8 +188,11 @@ public sealed class WorkBuildingPlanningTests
         Assert.True(held.IsEntered);
         var choice = held.Request.Observation.Candidates.First(item => TownConstructionCandidateIds.TryParse(item.Id, out var selected) &&
             selected.IsBuilding && selected.DefinitionId == building.CanonicalId);
+        var plan = Assert.IsType<ConstructionActionPlan>(choice.ActionPlan);
+        Assert.True(world.CheckActionPlan(plan).Allowed);
         var bandage = world.WorldContent.Recipes.Single(recipe => recipe.LocalId == "house-bandages");
         Assert.True(world.StartProduction(bandage.CanonicalId, house.InstanceId, actor).Applied);
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal?.Reason);
         held.Reply(choice.Id);
         await harness.WaitForDecisionAsync(actor);
         var step = await harness.TickUntilAdmittedAsync(actor, 4);
@@ -198,6 +201,81 @@ public sealed class WorkBuildingPlanningTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.True(step.Advanced);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DelayedMaterialChoiceRechecksWorkInputs(bool reserveInputs)
+    {
+        var (state, actor, household, building) = await Fixture("tailor");
+        var worker = state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != actor).Id;
+        var house = state.WorldSimulation!.Buildings.Single(item => item.HouseholdId == household && item.InstanceId.Contains("house-", StringComparison.Ordinal));
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cloth-for-material-planning", "cloth", household, 1, storageBuildingId: house.InstanceId);
+        inventory = InventoryAuthority.AddLot(inventory, "material-planning-axe", "wooden_axe", actor, 1);
+        var wood = inventory.GetLot("work-cost-wood");
+        Assert.True(wood.Quantity > 1);
+        inventory = inventory with { Lots = inventory.Lots.Select(lot => lot.Id == wood.Id ? lot with { Quantity = lot.Quantity - 1 } : lot).ToArray() };
+        var source = state.Map.Resources.Where(item => item.Kind == "construction" && TreeGrowthRules.IsWoodTree(item.TreeKind) && state.Map.IsReachableOnFoot(house.Position, item.Position))
+            .OrderBy(item => state.Map.FootDistance(house.Position, item.Position)).First();
+        state = WithInventory(state, inventory) with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor || person.AgentId == worker ? person with { Position = house.Position, TravelCooldownTicks = 0 } : person).ToArray(),
+            Resources = state.Resources.Select(item => item.ResourceId == source.Id ? item with { State = ResourceState.Available } : item).ToArray(),
+            WorldSystems = state.WorldSystems! with
+            {
+                Ecology = state.WorldSystems.Ecology with
+                {
+                    Resources = state.WorldSystems.Ecology.Resources.Select(item => item.Id == source.Id
+                        ? item with { Quantity = 1, State = EcologyResourceState.Available } : item).ToArray(),
+                },
+            },
+        };
+        var provider = new ScriptedProvider();
+        var held = provider.Hold();
+        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new ActionCoverageRecorder(chooseIdle: true));
+        var harness = ModelWorkHarness.For(world);
+        Assert.True((await harness.TickAsync()).Advanced);
+        Assert.True(held.IsEntered);
+        var choice = Assert.Single(held.Request.Observation.Candidates, item => item.ActionPlan is BuildingMaterialActionPlan);
+        var plan = Assert.IsType<BuildingMaterialActionPlan>(choice.ActionPlan);
+        Assert.Equal((building.CanonicalId, household, house.InstanceId, source.Id, "wood"),
+            (plan.Building.CanonicalId, plan.HouseholdId, plan.HouseId, plan.Source.Id, plan.Choice.ItemKind));
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+        if (reserveInputs)
+        {
+            var bandage = world.WorldContent.Recipes.Single(recipe => recipe.LocalId == "house-bandages");
+            var started = world.StartProduction(bandage.CanonicalId, house.InstanceId, worker);
+            Assert.True(started.Applied, started.Failure);
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal?.Reason);
+        }
+        var beforePosition = world.Agents.Single(person => person.AgentId == actor).Position;
+        var beforeQuantity = world.WorldSystems.Ecology.GetResource(source.Id).Quantity;
+        held.Reply(choice.Id);
+        await harness.WaitForDecisionAsync(actor);
+        var step = await harness.TickUntilAdmittedAsync(actor, 4);
+        Assert.True(step.Advanced);
+        var decision = Assert.Single(step.Decisions, item => item.AgentId == actor);
+        Assert.True(decision.Admission.Accepted);
+        Assert.False(decision.Admission.FellBack);
+        Assert.Same(plan, decision.ActionPlan);
+        if (reserveInputs)
+        {
+            Assert.Equal(ActionRefusalReason.TargetUnavailable, decision.PlanRefusal?.Reason);
+            Assert.Equal(beforePosition, world.Agents.Single(person => person.AgentId == actor).Position);
+            Assert.Equal(beforeQuantity, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
+            Assert.DoesNotContain(step.Events, item => item.Kind == "material_gathered" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
+            Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == actor && lot.ItemKind == "wood");
+        }
+        else
+        {
+            Assert.Null(decision.PlanRefusal);
+            Assert.True(world.Agents.Single(person => person.AgentId == actor).Position != beforePosition ||
+                step.Events.Any(item => item.Kind == "material_gathered" && item.Detail.StartsWith(actor + ":wood:", StringComparison.Ordinal)));
+        }
+        var frame = WorldRuntimeCodec.Encode(world.ExportState());
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(frame));
+        Assert.Equal(frame, WorldRuntimeCodec.Encode(reloaded.ExportState()));
     }
 
     [Fact]
