@@ -1,1 +1,2 @@
 - Non-land filing retains the selected known act, historical law, source and governing authority through shared native checks.
+- Filing choice decoding uses the shared bounded identity rules for its Town and report references.

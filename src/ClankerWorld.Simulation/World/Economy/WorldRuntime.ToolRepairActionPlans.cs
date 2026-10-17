@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
             if (input.StockId is { } stockId)
             {
                 if (RecheckGoods(new(GoodsUse.ReachableHoldings, plan.Actor, GoodsOwners.One(input.OwnerId!), GoodsKinds.One(input.ItemKind)),
-                        stockId) is not { } match || match.Quantity < input.NeededQuantity ||
+                        stockId) is not { } match || match.Quantity < input.NeededQuantity || !MayCollectGoodsAt(plan.Actor, match.Root) ||
                     match.Lot.ContainerLotId is not null || match.Lot.CarrierId is not null ||
                     HouseholdStockPosition(match.Lot) != input.Target || HouseholdStockInteractionRange(match.Lot) != input.InteractionRange)
                     return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected repair supplies are no longer available");

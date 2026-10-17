@@ -16,8 +16,13 @@ public sealed partial class AnimalPipelineTests
     {
         var (state, actor, home, yard) = CreateYard("animal-led-product-" + species);
         var day = state.WorldSystems!.Config.TicksPerDay;
-        var position = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
-            state.Map.FootDistance(point, yard.Position) == 3 && !state.Agents.Any(person => person.Position == point));
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
+        var position = MovementTestWorld.OpenGround(state, actor, yard.Position, 3, allowed: point =>
+        {
+            if (state.Map.FootDistance(point, yard.Position) != 3) return false;
+            using var routes = MovementTestWorld.Routes(state, point, occupied);
+            return routes.RouteTo(yard.Position, 0).Count > 1;
+        });
         var definition = AnimalRules.Definition(species);
         var animal = new AnimalState("led", "Moss", species, "female", -(long)definition.AdultDays * day,
             position, "household:" + home, home, yard.InstanceId, CareUntilTick: day,

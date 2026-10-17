@@ -207,10 +207,16 @@ public interface IAgentConversationProvider
 /// <summary>Applies one bounded deadline to a personal conversation request.</summary>
 public static class AgentConversationProviderExecution
 {
+    public static Task<AgentConversationTurnResponse> SpeakAsync(
+        IAgentConversationProvider provider, AgentConversationTurnRequest request,
+        TimeSpan timeout, CancellationToken cancellationToken = default) =>
+        SpeakAsync(provider, request, timeout, TimeProvider.System, cancellationToken);
+
     public static async Task<AgentConversationTurnResponse> SpeakAsync(
         IAgentConversationProvider provider,
         AgentConversationTurnRequest request,
         TimeSpan timeout,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(provider);
@@ -218,8 +224,8 @@ public static class AgentConversationProviderExecution
         if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromMinutes(5))
             throw new ArgumentOutOfRangeException(nameof(timeout));
 
-        using var requestCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        requestCancellation.CancelAfter(timeout);
+        using var deadline = new CancellationTokenSource(timeout, timeProvider);
+        using var requestCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         try
         {
             return await provider.SpeakAsync(request, requestCancellation.Token).AsTask()

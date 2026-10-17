@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         {
             agents[actor] = person with { Proficiency = next };
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("work_practice_earned", actor);
+            AppendEvent(new WorkPracticeEarnedEventPayload(actor));
         }
         GainSkill(actor, skill ?? domain switch
         {
