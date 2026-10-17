@@ -1,0 +1,2 @@
+- Scouting and return choices retain their selected visible step or recorded waypoint through shared checks.
+- Scouting keeps shared doorway movement checks, complete purpose references and typed native events.

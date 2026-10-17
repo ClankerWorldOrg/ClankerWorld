@@ -65,12 +65,12 @@ public sealed partial class WorldRuntime
         if (exploration?.OutingPath.Count > 0)
         {
             if (exploration.Returning || HasWarmthForOuting(person))
-                candidates.Add(new(exploration.Goal is { OrderInstructionId: null } goal && !exploration.Returning
+                AddPlannedExplorationCandidate(candidates, actor, exploration.Goal is { OrderInstructionId: null } goal && !exploration.Returning
                     ? ExplorationGoalCandidateId(goal) : "explore", exploration.Returning
                     ? "Keep returning to where your scouting trip started."
                     : exploration.Goal is { } purpose ? $"Keep looking for {purpose.Target.Replace('_', ' ')}; return when you choose."
-                    : "Continue scouting nearby terrain and resources; return when you choose.", 75));
-            candidates.Add(new("explore_return", "Return to where your scouting trip started.", 76));
+                    : "Continue scouting nearby terrain and resources; return when you choose.", 75);
+            AddPlannedExplorationCandidate(candidates, actor, "explore_return", "Return to where your scouting trip started.", 76);
             return;
         }
 
@@ -82,15 +82,15 @@ public sealed partial class WorldRuntime
         if (NeededExplorationResource(actor, person) is { } needed)
         {
             var goal = new ExplorationGoal("resource", needed);
-            candidates.Add(new(ExplorationGoalCandidateId(goal), $"Look for {needed.Replace('_', ' ')} needed for food or current work.", 74));
+            AddPlannedExplorationCandidate(candidates, actor, ExplorationGoalCandidateId(goal), $"Look for {needed.Replace('_', ' ')} needed for food or current work.", 74);
             if (needed is "wood" or "iron_ore" or "gold_ore" or "diamond")
             {
                 var terrain = new ExplorationGoal("terrain", needed == "wood" ? "Forest" : "Mountain");
-                candidates.Add(new(ExplorationGoalCandidateId(terrain), $"Look for {terrain.Target.ToLowerInvariant()} terrain for current material needs.", 75));
+                AddPlannedExplorationCandidate(candidates, actor, ExplorationGoalCandidateId(terrain), $"Look for {terrain.Target.ToLowerInvariant()} terrain for current material needs.", 75);
             }
         }
         if (person.Project is not { Stage: not ("completed" or "cancelled") })
-            candidates.Add(new("explore", "Scout nearby terrain and resources out of curiosity; choose when to return.", 75));
+            AddPlannedExplorationCandidate(candidates, actor, "explore", "Scout nearby terrain and resources out of curiosity; choose when to return.", 75);
     }
 
     private bool HasWarmthForOuting(AgentState person)
@@ -108,77 +108,43 @@ public sealed partial class WorldRuntime
         });
     }
 
-    private void Explore(string actor, AgentState person, ExplorationGoal? goal = null, bool replaceGoal = false)
+    private void Explore(string actor, AgentState person, ExplorationGoal? goal = null, bool replaceGoal = false,
+        ExplorationActionPlan? originalPlan = null)
     {
-        var exploration = person.Exploration ?? new ExplorationState([], [], WorldTick, false);
-        // A return path holds remaining waypoints, not each intermediate detour.
-        // Only the outward path must end at the actor's current position.
-        if (!exploration.Returning && exploration.OutingPath.Count > 0 && exploration.OutingPath[^1] != person.Position)
-        {
-            // Another legal intention moved the actor. Never splice that move
-            // into a stale scouting path or pretend its intermediate tiles were visited.
-            exploration = exploration with { OutingPath = [], OutingDiscoveries = [], Returning = false, Goal = null };
-            AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
-        }
-        // An order can supply a purpose to an already running curiosity outing.
-        // Replacement/cancellation never makes its old purpose authoritative.
-        if (replaceGoal || goal is not null || exploration.Goal?.OrderInstructionId is { } orderId &&
-            PendingInstructionFor(actor)?.InstructionId != orderId)
-            exploration = exploration with { Goal = goal };
-        if (exploration.OutingPath.Count == 0)
+        var plan = originalPlan ?? PlanExploration(actor, new(false, goal), native: true, replaceGoal);
+        if (plan is null) return;
+        if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        var exploration = plan.Prepared;
+        if (plan.Interrupted) AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
+        if (plan.Starting)
         {
             var learnedStartingTile = RecordKnowledgeFact(actor, person.Position);
             exploration = exploration with
             {
-                VisitedTiles = exploration.VisitedTiles.Contains(person.Position)
-                    ? exploration.VisitedTiles
-                    : exploration.VisitedTiles.Append(person.Position).TakeLast(ExplorationMemoryLimit).ToArray(),
-                OutingPath = [person.Position],
                 LastOutingTick = WorldTick,
-                Returning = false,
                 OutingDiscoveries = learnedStartingTile ? [person.Position] : [],
-                Goal = goal,
             };
             AppendEvent(new ExplorationStartedEventPayload(actor, person.Position.X, person.Position.Y));
         }
 
         if (exploration.Returning)
         {
-            ReturnFromExploration(actor, person, exploration with { Returning = true });
+            ReturnFromExploration(actor, person, exploration with { Returning = true }, plan);
             return;
         }
 
-        if (exploration.Goal is { } currentGoal && ExplorationGoalReached(actor, person, currentGoal))
+        if (plan.Step == ExplorationStep.CompleteGoal)
         {
             CompleteExplorationGoal(actor, person with { Exploration = exploration });
             return;
         }
 
-        var occupied = agents.Values.Where(item => item.AgentId != actor)
-            .Select(item => item.Position).ToHashSet();
-        var pullingCart = AttachedHandcart(actor) is not null;
-        var next = FootMovementNeighbors(person.Position)
-            .Where(point => map.IsPassable(point) && !occupied.Contains(point) &&
-                !exploration.OutingPath.Contains(point))
-            .Where(point => !pullingCart || LegalHandcartStep(person.Position, point))
-            // Match movement's corner occupancy rules before ranking exits.
-            .Where(point => !map.IsDiagonalFootStep(person.Position, point) ||
-                !occupied.Contains(new GridPoint(point.X, person.Position.Y)) &&
-                !occupied.Contains(new GridPoint(person.Position.X, point.Y)))
-            .OrderBy(point => exploration.VisitedTiles.Contains(point) ? 1 : 0)
-            .ThenByDescending(point => map.FootDistance(point, exploration.OutingPath[0]))
-            .ThenBy(point => point.Y).ThenBy(point => point.X)
-            .Select(point => (GridPoint?)point).FirstOrDefault();
-        if (next is null)
-        {
-            ReturnFromExploration(actor, person, exploration with { Returning = true });
-            return;
-        }
+        var next = plan.Target!.Value;
 
         // Movement still obeys the ordinary travel delay, weather, occupancy,
         // river-wading and mountain rules. Only a completed step joins memory.
         agents[actor] = person with { Exploration = exploration };
-        MoveToward(actor, agents[actor], next.Value, "explore");
+        MoveToward(actor, agents[actor], next, "explore");
         var moved = agents[actor];
         if (moved.Position == person.Position)
             return;
@@ -208,17 +174,20 @@ public sealed partial class WorldRuntime
             CompleteExplorationGoal(actor, agents[actor]);
     }
 
-    private void ChooseExplorationReturn(string actor, AgentState person)
+    private void ChooseExplorationReturn(string actor, AgentState person, ExplorationActionPlan? originalPlan = null)
     {
         if (person.Exploration is not { OutingPath.Count: > 0 } exploration) return;
-        if (!exploration.Returning)
+        var plan = originalPlan ?? PlanExploration(actor, new(true), native: true);
+        if (plan is null) return;
+        if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (plan.Original is { Returning: false })
             AppendEvent(new ExplorationReturnStartedEventPayload(actor));
-        ReturnFromExploration(actor, person, exploration with { Returning = true });
+        ReturnFromExploration(actor, person, plan.Prepared, plan);
     }
 
-    private void ReturnFromExploration(string actor, AgentState person, ExplorationState exploration)
+    private void ReturnFromExploration(string actor, AgentState person, ExplorationState exploration, ExplorationActionPlan plan)
     {
-        if (exploration.OutingPath.Count == 1 && person.Position == exploration.OutingPath[0])
+        if (plan.Step == ExplorationStep.CompleteReturn)
         {
             agents[actor] = person with
             {
@@ -234,7 +203,7 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        var destination = exploration.OutingPath.Count == 1 ? exploration.OutingPath[0] : exploration.OutingPath[^2];
+        var destination = plan.Target!.Value;
         agents[actor] = person with { Exploration = exploration };
         MoveToward(actor, agents[actor], destination, "explore_return");
         var moved = agents[actor];

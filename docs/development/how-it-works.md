@@ -198,6 +198,10 @@ requires a fresh choice. Vessel plans retain their
 contents too. Model choices and native custody operations share the same check
 and mover; explicit orders keep their extra gear and delivery protections and
 interrupt ordinary field work before moving its tool.
+Exploration plans retain the original trail and purpose and select only the
+next visible neighbor or a recorded return waypoint. The same check validates
+that origin, trail, need and step; application uses the selected target while
+keeping native start, discovery, completion and interrupted-movement events.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same

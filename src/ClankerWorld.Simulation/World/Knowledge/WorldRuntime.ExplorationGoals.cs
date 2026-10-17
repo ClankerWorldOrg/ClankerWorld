@@ -4,10 +4,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string ExplorationGoalPrefix = "explore_for:";
+    private const string ExplorationGoalPrefix = ExplorationChoice.GoalPrefix;
 
     private static string ExplorationGoalCandidateId(ExplorationGoal goal) =>
-        $"{ExplorationGoalPrefix}{goal.Kind}:{goal.Target}";
+        new ExplorationChoice(false, goal).Encode();
 
     private static bool ValidExplorationGoal(ExplorationGoal? goal) => goal is null ||
         (goal.Kind == "resource" && (OrderTaskParser.IsMaterialKind(goal.Target) ||

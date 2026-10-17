@@ -31,17 +31,31 @@ public sealed class LongerExplorationTests
             id => id == actor ? scout : new ScoutProvider("safe_idle"));
         var start = Person(scouting, actor).Position;
         var reached = new HashSet<GridPoint> { start };
+        ExplorationActionPlan? firstPlan = null;
         for (var tick = 0; tick < 80 && (Person(scouting, actor).Exploration?.OutingPath.Count ?? 0) < 13; tick++)
         {
             var before = Person(scouting, actor).Position;
-            Assert.True((await scouting.AdvanceOneTickAsync()).Advanced);
+            var step = await scouting.AdvanceOneTickAsync();
+            Assert.True(step.Advanced);
             var after = Person(scouting, actor).Position;
+            var plan = step.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => decision.ActionPlan).OfType<ExplorationActionPlan>()
+                .FirstOrDefault(plan => plan.Actor == actor && plan.Step == ExplorationStep.Outward);
+            if (plan is not null)
+            {
+                firstPlan ??= plan;
+                Assert.Equal(before, plan.Origin);
+                Assert.Contains(plan.Target!.Value, state.Map.FootNeighbors(before));
+                if (before != after) Assert.Contains(after, plan.Route);
+            }
             if (before != after) Assert.True(state.Map.CanFootStep(before, after));
             reached.Add(after);
         }
         var outing = Assert.IsType<ExplorationState>(Person(scouting, actor).Exploration);
         Assert.True(outing.OutingPath.Count >= 13, "The real outward trip must continue beyond the prototype's eight steps.");
         Assert.False(outing.Returning);
+        Assert.NotNull(firstPlan);
+        Assert.False(scouting.CheckActionPlan(firstPlan).Allowed);
         Assert.True(scout.Calls < outing.OutingPath.Count - 1, "Continuing the outing must not request a model decision for each step.");
         Assert.All(scouting.ExportState().Knowledge!.Facts.Where(fact => fact.OwnerId == actor),
             fact => Assert.Contains(fact.Position, reached));

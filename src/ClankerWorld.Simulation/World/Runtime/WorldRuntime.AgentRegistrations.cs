@@ -292,19 +292,18 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], static (runtime, action) =>
     {
-        var parts = action.CandidateId[ExplorationGoalPrefix.Length..].Split(':');
-        if (parts.Length == 2 && ValidExplorationGoal(new(parts[0], parts[1])))
-            runtime.Explore(action.AgentId, action.State, new(parts[0], parts[1]));
+        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ??
+            (ExplorationChoice.Decode(action.CandidateId) is { } choice ? runtime.PlanExploration(action.AgentId, choice) : null));
         return true;
     }),
         new(ActionPhase.Ordinary, "explore", [], ["explore"], static (runtime, action) =>
     {
-        runtime.Explore(action.AgentId, action.State);
+        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ?? runtime.PlanExploration(action.AgentId, new(false)));
         return true;
     }),
         new(ActionPhase.Ordinary, "explore_return", [], ["explore_return"], static (runtime, action) =>
     {
-        runtime.ChooseExplorationReturn(action.AgentId, action.State);
+        runtime.ApplyExploration(action.Plan as ExplorationActionPlan ?? runtime.PlanExploration(action.AgentId, new(true)));
         return true;
     }),
         new(ActionPhase.Ordinary, "wear_clothing", [], ["wear_clothing"], static (runtime, action) =>
