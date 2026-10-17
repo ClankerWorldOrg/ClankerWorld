@@ -177,6 +177,9 @@ revision, ownership, target position and footprint. Available payment lots and
 quantities are retained
 through native job reservation; later deliveries are selected by their own
 physical step. Reservation identities and completion retain their native order.
+Each expansion material step retains its delivery or pickup lot, quantity and
+physical destination, or its harvest source and tool. The shared expansion
+check validates that selection before the native transfer or harvest applies.
 
 Child choices carry a server-only `ChildActionPlan` with their selected person,
 resource or lot, household, House, route purpose and quantity. The same
