@@ -44,6 +44,11 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var world = WorldRuntime.Restore(initial, _ => new IdleProvider());
         try
         {
+            var contribution = new GoodsRequest(GoodsUse.ProjectMaterialContribution, actor,
+                GoodsOwners.One(actor), GoodsKinds.One("wood"));
+            var delivery = Assert.Single(world.FindGoods(contribution).Matches);
+            Assert.Equal("first-house-load", delivery.Lot.Id);
+            var deliveryDestination = initial.Map.GetObject("storage").Position;
             var restartedAfterDelivery = false;
             for (var tick = 0; tick < 200 && !world.WorldSimulation.Buildings.Any(item => item.HouseholdId == "household:first"); tick++)
             {
@@ -58,6 +63,9 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                     Assert.Equal("household:first", staged.OwnerId);
                     Assert.Equal(new InventoryGroundPosition(startingSite.X, startingSite.Y), staged.GroundPosition);
                     Assert.Equal(4, staged.Quantity);
+                    Assert.Equal((delivery.Lot.Id, delivery.Quantity), (staged.Id, staged.Quantity));
+                    Assert.Equal(new InventoryGroundPosition(deliveryDestination.X, deliveryDestination.Y), staged.GroundPosition);
+                    Assert.Null(world.RecheckGoods(contribution, delivery.Lot.Id));
                     world.Dispose();
                     world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
                         _ => new IdleProvider());

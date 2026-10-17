@@ -829,85 +829,8 @@ public sealed partial class WorldRuntime
     private void AcquireProjectInput(string agentId, AgentState state,
         ContentQuantity input, string constructionOwner, GridPoint? personalWorkSite)
     {
-        var project = state.Project!;
-        // Only the agent's own goods; borrowed household goods are not theirs to give.
-        var carried = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.OwnerId == agentId &&
-            PersonalEquipmentRules.IsCarried(lot, agentId) &&
-            lot.ContainerLotId is null && lot.ItemKind == input.ResourceId && lot.DeliveryBuildingId is null &&
-            AvailableLotQuantity(lot) > 0);
-        if (carried is not null && constructionOwner != agentId)
-        {
-            var house = society.Checkpoint.GetAgent(agentId).HouseholdId == constructionOwner
-                ? HouseForHousehold(constructionOwner) : null;
-            var store = house?.Position ?? SharedStoragePosition;
-            var interactionRange = house is null ? ResourceInteractionRange : 0;
-            SetProject(agentId, project with { Stage = "delivering", Blocker = $"Taking {input.ResourceId.Replace('_', ' ')} to household storage" });
-            if (!IsWithinInteractionRange(state.Position, store, interactionRange))
-            {
-                MoveToward(agentId, agents[agentId], store, "deliver", interactionRange);
-                return;
-            }
-            var deliveryQuantity = Math.Min(input.Amount, AvailableLotQuantity(carried));
-            if (house is not null) deliveryQuantity = Math.Min(deliveryQuantity, DestinationRoom(house.InstanceId));
-            if (deliveryQuantity == 0)
-            {
-                SetProject(agentId, project with { Stage = "blocked", Blocker = "House storage is full; expand it before delivering more." });
-                return;
-            }
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"project-delivery:{WorldTick}:{agentId}", agentId, constructionOwner, carried.Id,
-                deliveryQuantity, "project_contribution", house?.InstanceId,
-                destinationGroundPosition: house is null ? new InventoryGroundPosition(store.X, store.Y) : null, holdAccess: InventoryHoldRules.DeliveryFor(agentId, house?.InstanceId)));
-            AppendEvent(new ProjectMaterialDeliveredEventPayload(agentId, input.ResourceId));
-            return;
-        }
-
-        var returnHouse = HouseForHousehold(constructionOwner);
-        var returnTo = constructionOwner == agentId ? personalWorkSite : returnHouse?.Position ?? SharedStoragePosition;
-        var returnRange = constructionOwner == agentId || returnHouse is not null ? 0 : ResourceInteractionRange;
-        if (returnTo is null)
-        {
-            SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
-            return;
-        }
-        if (WarehouseMaterialSource(agentId, input.ResourceId, returnTo.Value, returnRange) is { } warehouseSource)
-        {
-            var warehouse = warehouseSource.Warehouse;
-            SetProject(agentId, project with { Stage = "gathering", Blocker = $"Collecting {input.ResourceId.Replace('_', ' ')} from the Town Warehouse" });
-            if (state.Position != warehouse.Position)
-            {
-                MoveToward(agentId, agents[agentId], warehouse.Position, "warehouse_materials", 0);
-                return;
-            }
-            if (!MayCollectWarehouseStock(agentId, warehouse))
-            {
-                SetProject(agentId, project with { Stage = "blocked", Blocker = "This Town Warehouse is no longer available to you." });
-                return;
-            }
-            var request = new GoodsRequest(GoodsUse.Collect, agentId, GoodsOwners.One(warehouse.TownId!),
-                GoodsKinds.One(input.ResourceId), AtBuilding: warehouse.InstanceId);
-            if (RecheckGoods(request, warehouseSource.Source.Lot.Id) is not { } match) return;
-            var communal = match.Lot;
-            var quantity = Math.Min(WarehouseLoadQuantity,
-                Math.Min(input.Amount, match.Quantity));
-            quantity = Math.Min(quantity, PickupCarryCapacity(agentId, communal, returnTo.Value, returnRange));
-            if (quantity == 0) return;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"warehouse-pickup:{WorldTick}:{agentId}", warehouse.TownId!, agentId,
-                communal.Id, quantity, "town_resource_collected", holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
-            AppendEvent(new TownResourceCollectedEventPayload(agentId, communal.Id, quantity, warehouse.InstanceId));
-            return;
-        }
-
-        var source = MaterialSource(input.ResourceId, agentId, returnTo, returnRange, useHarvestBonus: false);
-        if (source is null)
-        {
-            SetProject(agentId, project with { Stage = "blocked", Blocker = $"No available source of {input.ResourceId.Replace('_', ' ')}" });
-            return;
-        }
-        SetProject(agentId, project with { Stage = "gathering", Blocker = $"Need {input.Amount} {input.ResourceId.Replace('_', ' ')}" });
-        var useHarvestBonus = UseHarvestBonusForBuildingMaterial(agentId, input.ResourceId, source, returnTo, returnRange);
-        GatherProjectMaterial(agentId, state, input.ResourceId, source, useHarvestBonus, returnTo: returnTo, returnRange: returnRange);
+        var plan = PlanProjectInput(agentId, input, constructionOwner, personalWorkSite);
+        ApplyProjectInput(plan);
     }
 
     private ToolGatheringPlan? ProjectMaterialHarvest(string actor, string itemKind, MapResource source,
