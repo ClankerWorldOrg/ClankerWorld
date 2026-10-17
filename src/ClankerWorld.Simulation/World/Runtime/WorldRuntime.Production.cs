@@ -199,7 +199,7 @@ public sealed partial class WorldRuntime
             var activeJobs = worldSimulation.ProductionJobs.Count(item =>
                 item.BuildingInstanceId == placed.InstanceId && item.State is WorldProductionJobState.Running or WorldProductionJobState.Paused);
             if (activeJobs < definition.Capacity &&
-                (actorId is null || FindUnoccupiedRoute(actorId, agents[actorId].Position, placed.Position, 0).Count > 0))
+                (actorId is null || Reach(actorId, placed.Position, ReachPurpose.RecipeProduction, 0, 0, SwimmingPolicy.WhenCapable).Count > 0))
             {
                 siteId = placed.InstanceId;
                 position = placed.Position;
@@ -484,59 +484,18 @@ public sealed partial class WorldRuntime
         !IsHandcartCargo(inventory, match.Lot) && !OnBorrowedMarketStall(match.Lot) &&
         (!requireCarried || ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, match.Lot.OwnerId)));
 
-    private InventoryCheckpoint ReserveQuantities(
-        InventoryCheckpoint inventory,
-        IReadOnlyList<ContentQuantity> quantities,
-        string purpose,
-        long expiryTick,
-        string ownerId,
-        out IReadOnlyList<string> reservationIds,
-        string? requiredStorageBuildingId = null,
-        bool requireCarried = false)
+    private static InventoryCheckpoint ReserveRecipeInputs(InventoryCheckpoint inventory, RecipeProjectActionPlan plan,
+        string purpose, long expiryTick, out IReadOnlyList<string> reservationIds)
     {
         var current = inventory;
         var created = new List<string>();
-        for (var quantityIndex = 0; quantityIndex < quantities.Count; quantityIndex++)
+        foreach (var input in plan.Inputs!)
         {
-            var requested = quantities[quantityIndex];
-            var remaining = requested.Amount;
-            var request = ProductionGoodsRequest(ownerId, requested.ResourceId, requiredStorageBuildingId);
-            var matches = ProductionGoods(current, request, requireCarried).ToArray();
-            foreach (var match in matches)
-            {
-                if (remaining == 0)
-                {
-                    break;
-                }
-
-                var lot = match.Lot;
-                var available = RecheckGoods(current, request, lot.Id)?.Quantity ?? 0;
-                if (available <= 0)
-                {
-                    continue;
-                }
-
-                var amount = Math.Min(remaining, available);
-                var reservationId = ProductionInputReservationId(purpose, quantityIndex, lot.Id);
-                current = InventoryAuthority.Reserve(
-                    current,
-                    reservationId,
-                    ownerId,
-                    lot.Id,
-                    amount,
-                    purpose,
-                    expiryTick, holdAccess: InventoryHoldRules.BorrowedBy(ownerId));
-                created.Add(reservationId);
-                remaining -= amount;
-            }
-
-            if (remaining > 0)
-            {
-                throw new InvalidOperationException(
-                    $"Insufficient '{requested.ResourceId}' for production; missing {remaining.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
-            }
+            var reservationId = ProductionInputReservationId(purpose, input.QuantityIndex, input.LotId);
+            current = InventoryAuthority.Reserve(current, reservationId, plan.OwnerId, input.LotId,
+                input.Quantity, purpose, expiryTick, holdAccess: InventoryHoldRules.BorrowedBy(plan.OwnerId));
+            created.Add(reservationId);
         }
-
         reservationIds = created.ToArray();
         return current;
     }

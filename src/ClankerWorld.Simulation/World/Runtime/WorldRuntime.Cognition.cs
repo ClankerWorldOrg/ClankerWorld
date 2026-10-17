@@ -934,7 +934,10 @@ public sealed partial class WorldRuntime
 
         var recipeId = selection.DefinitionId;
         var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == recipeId);
-        if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out var sitePosition, agentId))
+        var plan = state.Project is { } recipeProject ? RetainedRecipeProject(agentId, recipeProject) : null;
+        var siteId = plan?.Workstation.InstanceId;
+        var sitePosition = plan?.Workstation.Position ?? default;
+        if (recipe is null || plan is null && !TryFindRecipeSite(recipe, out siteId, out sitePosition, agentId))
         {
             AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, "no_valid_site"));
             return;
@@ -951,7 +954,7 @@ public sealed partial class WorldRuntime
             IsProductionOrderProject(productionInstruction, state.Project) &&
             state.Project?.WorkDone == ProjectWorkTicks && productionInstruction.Task!.ProductionBuildingId == siteId
                 ? productionInstruction.InstructionId : null;
-        var started = StartProductionCore(recipe.CanonicalId, siteId, agentId, "build_started", orderInstructionId);
+        var started = StartProductionCore(recipe.CanonicalId, siteId!, agentId, "build_started", orderInstructionId, plan);
         if (!started.Applied)
         {
             AppendEvent(new BuildRejectedEventPayload(agentId, candidateId, started.Failure));
@@ -1092,13 +1095,15 @@ public sealed partial class WorldRuntime
                 continue;
             }
 
-            candidates.Add(new CognitionCandidate(
-                $"build:recipe:{recipe.CanonicalId}",
+            var plan = PlanRecipeProject(agent.Id, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == siteId));
+            if (CheckRecipeProject(plan).Allowed) candidates.Add(new CognitionCandidate(
+                plan.CandidateId,
                 $"{recipe.DisplayName} at the household work site.",
                 recipe.Tags.Contains("named-meal", StringComparer.Ordinal) ? 20 : recipe.IsCrop ? 20 :
                     HouseToolsContent.IsCrudeToolRecipe(recipe) ? 23 :
                     OutdoorExposure(state.Position) > 0 && recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId)) ? 25 : 30,
-                $"build-site:{position.X},{position.Y}"));
+                $"build-site:{position.X},{position.Y}")
+            { ActionPlan = plan });
         }
     }
 

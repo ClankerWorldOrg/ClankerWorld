@@ -58,6 +58,7 @@
     "pendingWillCancellationReasons",
     "pendingWills",
     "providerFactory",
+    "recipeProjectPlans",
     "agentWorld",
     "tickGate",
     "farmingWorld",

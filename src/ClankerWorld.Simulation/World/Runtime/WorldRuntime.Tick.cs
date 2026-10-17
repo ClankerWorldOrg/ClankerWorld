@@ -150,6 +150,7 @@ public sealed partial class WorldRuntime
                     trustedPreparedState: true, preparedConversations: baselineConversations,
                     preparedCivic: baselineCivic, preparedFarming: baselineFarming);
                 proposed.previousPlannedRoutes = routesBefore;
+                proposed.CopyRecipeProjectPlansFrom(this);
                 proposed.withheldActions = withheld;
                 proposed.attemptedActions = recorder is null && replayRefusal is null ? null : new(StringComparer.Ordinal);
                 if (withheld is null) originalActions = proposed.attemptedActions;
@@ -494,6 +495,7 @@ public sealed partial class WorldRuntime
         nextInstructionSequence = proposed.nextInstructionSequence;
         actionRefusals = proposed.actionRefusals;
         refusedActionCount = proposed.refusedActionCount;
+        CopyRecipeProjectPlansFrom(proposed);
     }
 
     /// <summary>Rewind this paused world to a validated checkpoint of the same world.</summary>

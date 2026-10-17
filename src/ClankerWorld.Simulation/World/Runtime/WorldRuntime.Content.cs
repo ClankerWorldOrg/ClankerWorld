@@ -330,7 +330,8 @@ public sealed partial class WorldRuntime
         string buildingInstanceId,
         string workerId,
         string eventKind,
-        string? orderInstructionId = null)
+        string? orderInstructionId = null,
+        RecipeProjectActionPlan? originalPlan = null)
     {
         try
         {
@@ -402,28 +403,33 @@ public sealed partial class WorldRuntime
                 Math.Max(0, recipe.Outputs.Sum(item => item.Amount) - recipe.Inputs.Sum(item => item.Amount)) > DestinationRoom(placed.InstanceId))
                 return ProductionStartResult.Rejected(normalizedRecipeId, "There is no storage room for this recipe's finished output.");
 
-            var knife = ToolProgressionRules.UsesKnife(recipe)
-                ? ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, normalizedWorkerId, ToolFamily.Knife)
-                : null;
+            var plan = originalPlan ?? PlanRecipeProject(normalizedWorkerId, recipe, placed!);
+            if (plan.Inputs is null)
+                plan = plan with { Inputs = PlanRecipeInputs(recipe, plan.OwnerId, plan.RequiredStorageBuildingId, plan.RequireCarried) };
+            if (plan.Inputs is null)
+            {
+                var missing = recipe.Inputs.First(input => ProductionGoods(society.Checkpoint.Inventory,
+                    ProductionGoodsRequest(plan.OwnerId, input.ResourceId, plan.RequiredStorageBuildingId), plan.RequireCarried)
+                    .Sum(match => (long)match.Quantity) < input.Amount);
+                var available = ProductionGoods(society.Checkpoint.Inventory,
+                    ProductionGoodsRequest(plan.OwnerId, missing.ResourceId, plan.RequiredStorageBuildingId), plan.RequireCarried).Sum(match => (long)match.Quantity);
+                return ProductionStartResult.Rejected(normalizedRecipeId,
+                    $"Insufficient '{missing.ResourceId}' for production; missing {(missing.Amount - available).ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+            }
+            if (CheckRecipeInputs(plan).Refusal is { } refusal)
+                return ProductionStartResult.Rejected(normalizedRecipeId, refusal.Explanation);
+            var knife = plan.Knife;
             var workDuration = knife is null ? recipe.DurationTicks :
                 ToolProgressionRules.WorkDuration(recipe.DurationTicks, knife.WorkUnits);
             workDuration = SkilledWorkTicks(normalizedWorkerId, SkillForRecipe(recipe), workDuration);
             var jobId = $"production-{worldSimulation.NextProductionJobSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}";
             var completionTick = checked(WorldTick + workDuration);
             // A handcart belongs to the adult who builds it, not to the Blacksmith's household.
-            var productionOwner = personalCartRecipe ? normalizedWorkerId : ProductionOwnerFor(placed, normalizedWorkerId);
+            var productionOwner = plan.OwnerId;
             IReadOnlyList<string> reservationIds = [];
             ApplyInventoryTransition(inventory =>
             {
-                var reserved = ReserveQuantities(
-                    inventory,
-                    recipe.Inputs,
-                    $"{jobId}:input",
-                    completionTick,
-                    productionOwner,
-                    out reservationIds,
-                    onSiteHouseholdRecipe ? placed!.InstanceId : null,
-                    requireCarried: personalCartRecipe);
+                var reserved = ReserveRecipeInputs(inventory, plan, $"{jobId}:input", completionTick, out reservationIds);
                 return reserved;
             });
 
