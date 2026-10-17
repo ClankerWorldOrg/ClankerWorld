@@ -31,6 +31,7 @@ public sealed partial class WorldRuntime
             HouseholdBuildingProjectInProgress(plan.HouseholdId, retryingActor: plan.Actor) ||
             !PlannableHouseholdBuildings(plan.HouseholdId, plan.Actor).Any(definition => definition.CanonicalId == plan.Building.CanonicalId &&
                 definition.PayloadDigest == plan.Building.PayloadDigest) ||
+            !WorkBuildingHasInputs(plan.Actor, plan.HouseholdId, plan.Building) ||
             HouseholdMaterialInHand(plan.HouseholdId, plan.Material.ResourceId) >= plan.Material.Amount)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected household building need or storage destination has changed");
         if (!map.Resources.Contains(plan.Source) || resources.GetValueOrDefault(plan.Source.Id) != ResourceState.Available ||
