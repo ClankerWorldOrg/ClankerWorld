@@ -143,6 +143,9 @@ plan checks from the compatibility dispatcher into their rows in later slices.
 Child social and household-helping actions also use one typed definition. Their
 existing selected person, resource or load reaches the same native effect after
 the definition rechecks it; legacy entry points share that check and effect.
+Town Warehouse surplus and abandoned-stock salvage each own a definition with
+their existing capability policy. Both retain the resolved Town, stock, family
+and load in the plan; hashed salvage requests keep their original identity.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

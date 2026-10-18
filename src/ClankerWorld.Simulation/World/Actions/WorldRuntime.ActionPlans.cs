@@ -116,7 +116,6 @@ public sealed partial class WorldRuntime
         WorkstationSupplyActionPlan workstation => CheckWorkstationSupplyPlan(workstation),
         FarmStockActionPlan farmStock => CheckFarmStockAction(farmStock),
         FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
-        TownStockActionPlan town => CheckTownStockPlan(town),
         HouseholdStockActionPlan household => CheckHouseholdStockPlan(household),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
