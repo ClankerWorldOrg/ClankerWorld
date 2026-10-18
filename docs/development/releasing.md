@@ -220,9 +220,10 @@ at any time. It is not a release and needs no release gate:
   `ClankerWorld-Setup-<version>-windows-x64.exe` and its `.sha256` beside the
   portable zip. The [per-user setup](build-and-test.md#windows-installer)
   bundles the launcher and game from the same commit, using the same package
-  scripts as CI. Linux builds both packages; Windows builds the setup before
-  the publish job verifies the downloaded game and setup against their SHA-256
-  files before attaching all four files. Only that job can write releases; it
+  scripts as CI. Linux also builds the server-only `linux-x64.tar.gz`; Windows
+  builds the setup before the publish job verifies the downloaded game, setup
+  and Linux server against their SHA-256 files and attaches all six files.
+  Only that job can write releases; it
   runs only on main and does not check out or execute repository code.
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain

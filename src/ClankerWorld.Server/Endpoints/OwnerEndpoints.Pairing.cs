@@ -110,6 +110,7 @@ internal static partial class OwnerEndpoints
             if (!options.IsApprovalRequest(context)) return Results.NotFound();
             var result = authority.ApprovePendingPairingLocally(request?.PairingCode ?? string.Empty);
             stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "approved" : "refused");
             return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
         });
 

@@ -12,6 +12,9 @@ Windows computer is off. The server saves and waits when nobody is playing;
 it does not advance the world or call models without a connected game.
 You need a terminal, administrator access and systemd. The download includes
 its own .NET runtime. It contains no Linux desktop game.
+Use an x64 distribution supported by [.NET 10 on Linux](https://learn.microsoft.com/dotnet/core/install/linux),
+such as Ubuntu 24.04, with that distribution's native .NET dependencies installed.
+You do not need the .NET SDK or managed runtime package.
 
 Keep this server on a private network. The steps below use Tailscale Serve
 for trusted HTTPS inside your own Tailnet. Do not use Tailscale Funnel, expose
