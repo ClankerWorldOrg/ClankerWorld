@@ -22,8 +22,9 @@ public static class MapLayerManifestCodec
             vegetation.Length != expectedLength)
             throw new InvalidDataException("The world map layers do not match their dimensions.");
 
-        using var buffer = new MemoryStream();
-        using (var writer = new BinaryWriter(buffer, Encoding.UTF8, leaveOpen: true))
+        using var hash = SHA256.Create();
+        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        using (var writer = new BinaryWriter(digestStream, Encoding.UTF8, leaveOpen: true))
         {
             writer.Write(Header);
             writer.Write(map.Width);
@@ -34,8 +35,8 @@ public static class MapLayerManifestCodec
                 writer.Write(layer);
             }
         }
-        return Convert.ToHexString(SHA256.HashData(buffer.GetBuffer().AsSpan(0, checked((int)buffer.Length))))
-            .ToLowerInvariant();
+        digestStream.FlushFinalBlock();
+        return Convert.ToHexStringLower(hash.Hash!);
     }
 }
 
@@ -47,7 +48,22 @@ public static class MapManifestCodec
 {
     private const string Header = "clankerworld.seeded-map/v1";
 
-    public static byte[] Encode(WorldMap map)
+    public static byte[] Encode(WorldMap map) =>
+        Encoding.UTF8.GetBytes(BuildManifest(map).ToString());
+
+    public static string Digest(WorldMap map)
+    {
+        using var hash = SHA256.Create();
+        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        using (var writer = new StreamWriter(digestStream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true))
+            foreach (var chunk in BuildManifest(map).GetChunks())
+                writer.Write(chunk.Span);
+        digestStream.FlushFinalBlock();
+        return Convert.ToHexStringLower(hash.Hash!);
+    }
+
+    private static StringBuilder BuildManifest(WorldMap map)
     {
         ArgumentNullException.ThrowIfNull(map);
         var builder = new StringBuilder();
@@ -56,7 +72,7 @@ public static class MapManifestCodec
         builder.Append("generation_attempt=").Append(map.GenerationAttempt).Append('\n');
         if (map.ClimateZones is not null)
             builder.Append("climate-zones=").Append(Convert.ToBase64String(map.ClimateZones)).Append('\n');
-        foreach (var tile in map.Tiles.OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X))
+        foreach (var tile in OrderedTiles(map.Tiles))
         {
             builder.Append("tile=")
                 .Append(tile.Position.X).Append(',').Append(tile.Position.Y).Append('|')
@@ -83,13 +99,23 @@ public static class MapManifestCodec
             builder.Append('\n');
         }
 
-        return Encoding.UTF8.GetBytes(builder.ToString());
+        return builder;
     }
 
-    public static string Digest(WorldMap map) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encode(map)));
+    private static IEnumerable<TerrainTile> OrderedTiles(IReadOnlyList<TerrainTile> tiles)
+    {
+        ArgumentNullException.ThrowIfNull(tiles);
+        for (var index = 1; index < tiles.Count; index++)
+        {
+            var previous = tiles[index - 1].Position;
+            var current = tiles[index].Position;
+            if (previous.Y > current.Y || previous.Y == current.Y && previous.X > current.X)
+                return tiles.OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X);
+        }
+        return tiles;
+    }
 
-    private static string ToWireValue(TerrainKind terrain) => terrain switch
+    public static string ToWireValue(TerrainKind terrain) => terrain switch
     {
         TerrainKind.Meadow => "meadow",
         TerrainKind.Water => "water",

@@ -35,6 +35,9 @@ public sealed partial class PortBoatRuntimeTests
             var proposal = town.Council!.Proposals.Single(proposal => proposal.Id == project.ProposalId);
             Assert.Equal("passed", proposal.Status);
             Assert.True(proposal.Votes.Count(vote => vote.Yes) >= proposal.RequiredYes);
+            Assert.All(project.Plan.Budget, input => Assert.Equal(input.Amount,
+                project.Deliveries.Where(delivery => delivery.ItemKind == input.ResourceId)
+                    .Sum(delivery => delivery.Quantity)));
             Assert.All(project.Deliveries, delivery => Assert.Equal(InventoryReservationState.Completed,
                 world.Society.Inventory.GetReservation(delivery.ReservationId!).State));
         });
@@ -534,7 +537,7 @@ public sealed partial class PortBoatRuntimeTests
         scenario.World.Resume();
     }
 
-    private static async Task<byte[]> BuildPaidBoatAsync(bool stopBeforeFirstPort = false, int ticksPerDay = 24, bool freshwater = false)
+    private static async Task<byte[]> BuildPaidBoatAsync(bool stopBeforeFirstPort = false, int ticksPerDay = 12, bool freshwater = false)
     {
         var policy = new BoatPolicy
         {

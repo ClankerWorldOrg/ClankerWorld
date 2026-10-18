@@ -40,6 +40,7 @@ public partial class Launcher : Control
     private readonly Control playPage = new VBoxContainer();
     private readonly Control versionsPage = new VBoxContainer();
     private readonly Control settingsPage = new VBoxContainer();
+    private readonly HBoxContainer navigationTabs = new();
     private LauncherLayout layout = null!;
     private GameVersionStore store = null!;
     private GameReleaseFeed feed = null!;
@@ -98,7 +99,9 @@ public partial class Launcher : Control
             _ = RunSmokeTestAsync();
             return;
         }
-        _ = CheckForUpdatesAsync();
+        if (OS.GetCmdlineUserArgs().Contains("--resume-hosting", StringComparer.Ordinal))
+            _ = ResumeHostingAsync();
+        else _ = CheckForUpdatesAsync();
     }
 
     public override void _ExitTree()
@@ -106,6 +109,8 @@ public partial class Launcher : Control
         joinLifetime.Cancel();
         joinKey?.Dispose();
         joinLifetime.Dispose();
+        hostingLifetime.Cancel();
+        hostingLifetime.Dispose();
         http.Dispose();
     }
 
@@ -141,7 +146,7 @@ public partial class Launcher : Control
         body.AddThemeConstantOverride("separation", 10);
         card.AddChild(body);
 
-        var tabs = new HBoxContainer();
+        var tabs = navigationTabs;
         tabs.AddThemeConstantOverride("separation", 6);
         foreach (var (tab, page) in new[] { (playTab, playPage), (versionsTab, versionsPage), (settingsTab, settingsPage) })
         {
@@ -158,10 +163,11 @@ public partial class Launcher : Control
         body.AddChild(launcherUpdate);
 
         BuildJoinPage();
+        BuildHostPage();
         BuildPlayPage();
         BuildVersionsPage();
         BuildSettingsPage();
-        foreach (var page in new[] { playPage, versionsPage, settingsPage, joinPage }) body.AddChild(page);
+        foreach (var page in new[] { playPage, versionsPage, settingsPage, joinPage, hostingPage }) body.AddChild(page);
 
         status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         status.CustomMinimumSize = new Vector2(0, 24);
@@ -192,6 +198,10 @@ public partial class Launcher : Control
         StyleButton(join);
         join.Pressed += OpenJoinPage;
         playPage.AddChild(join);
+        var host = new Button { Text = "Host a world for other devices" };
+        StyleButton(host);
+        host.Pressed += OpenHostPage;
+        playPage.AddChild(host);
         var local = new Button { Text = "Play on this PC" };
         StyleButton(local);
         local.Pressed += () =>
@@ -353,10 +363,12 @@ public partial class Launcher : Control
 
     private void ShowPage(Control page)
     {
+        if (hostingRunning && page != hostingPage) return;
         playPage.Visible = page == playPage;
         versionsPage.Visible = page == versionsPage;
         settingsPage.Visible = page == settingsPage;
         joinPage.Visible = page == joinPage;
+        hostingPage.Visible = page == hostingPage;
         playTab.SetPressedNoSignal(page == playPage);
         versionsTab.SetPressedNoSignal(page == versionsPage);
         settingsTab.SetPressedNoSignal(page == settingsPage);
@@ -520,6 +532,7 @@ public partial class Launcher : Control
 
     private async Task PlayAsync()
     {
+        if (hostingRunning) { OpenHostPage(); return; }
         var chosen = Chosen();
         if (chosen is null || busy) return;
         if (IsWithdrawn(chosen))
@@ -754,6 +767,39 @@ public partial class Launcher : Control
                 SaveSettings();
                 System.Environment.SetEnvironmentVariable("CI", previousCi);
             }
+            OpenHostPage();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(hostingPage.IsVisibleInTree() && startHosting.IsVisibleInTree() && resumeHosting.IsVisibleInTree() &&
+                stopWithGame.IsVisibleInTree(), "Hosting has its own start and restart controls");
+            Expect(startHosting.Disabled && !stopHosting.Visible, "Hosting waits for a selected version");
+            Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Host controls fit the launcher window");
+            hostingRunning = true;
+            hostingAddress.Text = "Address for the joining computer: https://hosting-computer.private-network.ts.net/";
+            hostingState.Text = "Hosting · one device connected.";
+            hostingData.Text = "Using this PC's existing worlds, saved keys and model-call count.";
+            AddHostRequest(new("pending", "123456", "synthetic-fingerprint", DateTimeOffset.UtcNow.AddMinutes(1)));
+            AddHostRequest(new("restored", null, "synthetic-fingerprint", DateTimeOffset.UtcNow.AddMinutes(1)));
+            RefreshHostControls();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Active hosting and pending requests fit the launcher window");
+            Expect(!navigationTabs.Visible && stopHosting.Visible && stopWithGame.Disabled && hostingBack.Disabled,
+                "Running hosting keeps its controls available and prevents changing modes");
+            var approvalButtons = pendingDevices.FindChildren("*", "Button", recursive: true, owned: false).OfType<Button>().ToArray();
+            Expect(approvalButtons.Length == 4 && !approvalButtons[0].Disabled && approvalButtons[2].Disabled,
+                "Only a current comparison code can be approved; restored requests can be declined");
+            resumeHosting.ButtonPressed = false;
+            Expect(!LauncherSettings.Load(layout).ResumeHostingAtSignIn && hostingRunning,
+                "Disabling sign-in restart is remembered without stopping the host");
+            resumeHosting.ButtonPressed = true;
+            Expect(LauncherSettings.Load(layout).ResumeHostingAtSignIn, "Sign-in restart can be enabled again");
+            hostingRunning = false;
+            ClearHostRequests();
+            RefreshHostControls();
+            stopWithGame.ButtonPressed = true;
+            Expect(LauncherSettings.Load(layout).StopHostingWhenGameQuits, "Stop-on-quit is remembered");
+            stopWithGame.ButtonPressed = false;
             ShowPage(playPage);
             releases = GameReleaseFeed.Read(
             [
@@ -883,6 +929,15 @@ public partial class Launcher : Control
             await RepairAsync(installed.Single(version => version.Directory == withdrawnDirectory));
             Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal) && File.ReadAllText(withdrawnExecutable) == "kept installed game",
                 "Repair cannot reinstall a withdrawn release and keeps the installed copy");
+            OpenHostPage();
+            Expect(startHosting.Disabled, "A withdrawn version cannot be hosted outside Developer mode");
+            await StartHostingAsync();
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal), "Hosting explains withdrawal before starting a server or private route");
+            developerMode.ButtonPressed = true;
+            RefreshHostControls();
+            Expect(!startHosting.Disabled, "Developer mode keeps the explicit withdrawn hosting choice subject to release approval");
+            developerMode.ButtonPressed = false;
+            ShowPage(playPage);
         }
         catch (Exception exception)
         {
