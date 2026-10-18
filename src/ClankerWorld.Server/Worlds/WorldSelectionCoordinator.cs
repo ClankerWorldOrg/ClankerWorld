@@ -359,10 +359,10 @@ public sealed class WorldSelectionCoordinator(
         {
             var entry = catalog.Capture().Worlds.SingleOrDefault(world => world.Id == id)
                 ?? throw new FileNotFoundException("The selected world does not exist.");
-            return WorldModelSettings.Preview("world:" + id,
+            return WorldModelSettings.Preview(id,
                 entry.Id == catalog.Active().Id ? runtime.ExportState() : catalog.Read(id),
                 entry.Id == catalog.Active().Id ? providers.CaptureRuntimeConfiguration().Assignments ?? [] : entry.Assignments,
-                runtime, providers);
+                runtime, providers, targetKind: "world");
         }
     }
 

@@ -10,7 +10,8 @@ namespace ClankerWorld.Server.Saves;
 public static class WorldModelSettings
 {
     public static OwnerModelSettingsPreview Preview(string targetId, WorldRuntimeState target,
-        IReadOnlyList<AgentProviderAssignment> assignments, WorldRuntime current, ProviderConfigurationStore providers)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldRuntime current, ProviderConfigurationStore providers,
+        string targetKind = "save")
     {
         static AgentProviderAssignment[] Ordered(IReadOnlyList<AgentProviderAssignment> items) =>
             items.OrderBy(item => item.AgentId, StringComparer.Ordinal).ThenBy(item => item.Role, StringComparer.Ordinal).ToArray();
@@ -19,6 +20,7 @@ public static class WorldModelSettings
         var changed = !selected.SequenceEqual(previous) || target.RoutineHelper != current.RoutineHelper;
         var approval = Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new
         {
+            targetKind,
             targetId,
             worldId = target.Society.Society.WorldId,
             assignments = selected,

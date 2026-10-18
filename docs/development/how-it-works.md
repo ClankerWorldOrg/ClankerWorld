@@ -4950,8 +4950,8 @@ blanks the launch secret, values after names such as `api_key`,
 addresses, common provider key formats and any token of 32 or more characters
 mixing upper case, lower case and digits outside file paths. Known secrets,
 named credential values and provider key formats are removed even inside paths;
-ordinary paths stay readable. Standalone hex tokens of 32 or more characters
-and unlabelled six-digit comparison codes are removed as well.
+ordinary paths stay readable. Hex tokens of 32 or more characters and unlabelled
+six-digit comparison codes are removed as well, including inside paths.
 The rule against logging secrets still applies; this pass is a safety net,
 not permission. Reports go to `reports/` in the player's
 data folder (or `user://reports` without a local server), keeping the five

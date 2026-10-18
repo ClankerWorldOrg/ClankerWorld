@@ -225,7 +225,7 @@ internal static partial class OwnerEndpoints
                     var checkpoint = committed.Checkpoint;
                     stateFile.VerifyRequiredHistory(checkpoint);
                     var current = runtime.ExportState();
-                    var modelPreview = WorldModelSettings.Preview("save:" + action.Value, checkpoint,
+                    var modelPreview = WorldModelSettings.Preview(action.Value, checkpoint,
                         committed.Assignments, runtime, providers);
                     if (action.Operation == "inspect-save-models") return Results.Ok(modelPreview);
                     WorldModelSettings.RequireApproval(modelPreview, action.ModelSettingsApproval);

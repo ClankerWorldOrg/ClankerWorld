@@ -90,6 +90,7 @@ public static partial class ProblemReport
         line = AddressPassword().Replace(line, match => match.Groups["scheme"].Value + Removed + "@");
         line = ProviderKey().Replace(line, Removed);
         line = PairingCode().Replace(line, Removed);
+        line = HexToken().Replace(line, Removed);
         // Named, known and provider secrets have already been removed, even inside paths.
         // Match paths as a whole so the generic token rule cannot eat their fragments.
         return PathOrLongToken().Replace(line, match =>
@@ -97,7 +98,6 @@ public static partial class ProblemReport
     }
 
     private static bool LooksRandom(string token) =>
-        token.All(char.IsAsciiHexDigit) ||
         token.Any(char.IsAsciiLetterUpper) && token.Any(char.IsAsciiLetterLower) && token.Any(char.IsAsciiDigit);
 
     private static string SummaryText(IReadOnlyList<KeyValuePair<string, string>> summary, DateTimeOffset now,
@@ -193,6 +193,9 @@ public static partial class ProblemReport
     [GeneratedRegex("""\b(?:sk-[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,})""",
         RegexOptions.CultureInvariant)]
     private static partial Regex ProviderKey();
+
+    [GeneratedRegex(@"(?<![A-Za-z0-9])[A-Fa-f0-9]{32,}(?![A-Za-z0-9])", RegexOptions.CultureInvariant)]
+    private static partial Regex HexToken();
 
     [GeneratedRegex(@"(?<![A-Za-z0-9])\d{6}(?![A-Za-z0-9])", RegexOptions.CultureInvariant)]
     private static partial Regex PairingCode();

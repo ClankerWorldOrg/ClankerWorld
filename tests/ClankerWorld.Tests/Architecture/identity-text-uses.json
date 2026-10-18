@@ -172,7 +172,6 @@
   "src/ClankerWorld.Simulation/Cognition/CognitionRuntime.cs|id|$\u0022cognition-{nextRequestSequence.ToString(\u0022D10\u0022, CultureInfo.InvariantCulture)}\u0022": 2,
   "src/ClankerWorld.Simulation/Cognition/ConversationProviderContracts.cs|length|surname.Length \u003E 128": 1,
   "src/ClankerWorld.Simulation/Cognition/DecisionProviderContracts.cs|id|$\u0022memory_salience_{index:D2}\u0022": 1,
-  "src/ClankerWorld.Simulation/Cognition/DecisionProviderContracts.cs|length|\u003E 0": 4,
   "src/ClankerWorld.Simulation/Cognition/DecisionProviderContracts.cs|length|\u003E 512": 1,
   "src/ClankerWorld.Simulation/Cognition/DecisionProviderContracts.cs|length|builder.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/Cognition/DecisionProviderContracts.cs|length|candidate.Summary.Length \u003E 160": 1,

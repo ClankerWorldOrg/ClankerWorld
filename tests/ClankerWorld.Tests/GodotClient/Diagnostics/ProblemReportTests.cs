@@ -135,6 +135,13 @@ public sealed class ProblemReportTests : IDisposable
     }
 
     [Fact]
+    public void APathDoesNotProtectAnUnlabelledHexToken()
+    {
+        const string fakeHex = "abcdef0123456789abcdef0123456789";
+        Assert.Equal("/logs/[removed]/server.log", ProblemReport.Redact("/logs/" + fakeHex + "/server.log"));
+    }
+
+    [Fact]
     public void OnlyTheNewestReportsAreKept()
     {
         var reports = Path.Combine(root, "reports");
