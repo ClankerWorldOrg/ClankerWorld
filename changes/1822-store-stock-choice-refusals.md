@@ -1,1 +1,0 @@
-- Store stocking keeps its selected goods and load. The Event Log explains when those goods or the Store shelf become unavailable.

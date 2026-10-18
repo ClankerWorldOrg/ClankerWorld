@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
                 job.State is not (WorldProductionJobState.Running or WorldProductionJobState.Completed or WorldProductionJobState.Cancelled or WorldProductionJobState.Paused) ||
                 job.State == WorldProductionJobState.Running && job.CompletionTick <= society.WorldTick ||
                 job.InputReservationIds is null || job.InputReservationIds.Count == 0 ||
-                job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() != job.InputReservationIds.Count ||
+                job.InputReservationIds.Distinct().Count() != job.InputReservationIds.Count ||
                 !map.Contains(job.TargetPosition))
                 throw new InvalidDataException("The saved building expansion is malformed.");
             if (job.State is not (WorldProductionJobState.Running or WorldProductionJobState.Paused)) continue;

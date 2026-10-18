@@ -76,7 +76,8 @@ public sealed partial class WorldRuntime
         if (lantern && (!StreetLanternContent.IsRoadEdge(plan.Site, plan.Entrance) ||
             !roadTiles.Contains(plan.Entrance) || !legal.Contains(plan.Entrance)))
             return "The lantern must stand beside a Road, on undisputed Town land.";
-        if (!CanPlaceBuilding(definition, plan.Site, out var failure, projectId, world.Placement)) return failure;
+        if (!CanPlaceBuilding(definition, plan.Site, out var failure, out _, projectId, world.Placement,
+                requiredEntrance: plan.Entrance)) return failure;
         var occupied = world.Occupied.Value;
         if (footprint.Any(point => !map.IsBuildable(point) || occupied.Contains(point)))
             return "The approved building and its plaza need clear buildable ground.";
@@ -158,6 +159,13 @@ public sealed partial class WorldRuntime
             !(town.Council?.Proposals ?? []).Any(proposal => proposal is { Kind: "project", Status: "pending", Project: not null } &&
                 proposal.Project.DefinitionId == stallId && slots.Contains(proposal.Project.Site));
     }
+
+    private static bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) =>
+        plan.BoatPortId is { } port
+            ? !town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port) &&
+                !(town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port)
+            : plan.DefinitionId != MarketContent.Stall1x1().CanonicalId ||
+                MarketForStallPlan(town, plan) is { } selected && MarketNeedsMoreStalls(town, selected.Market);
 
     private bool AddTownProjectProposalCandidate(List<CognitionCandidate> candidates, string actor, TownRuntimeState town,
         ClankerWorld.Simulation.Content.BuildingDefinition definition, GridPoint site, TownProjectPayload selected)

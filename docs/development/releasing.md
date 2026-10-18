@@ -2,7 +2,7 @@
 title: Releasing
 type: release-policy
 status: active
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Releasing
@@ -23,7 +23,9 @@ already identify exact builds.
 The current .NET version metadata comes from
 [`Directory.Build.props`](../../Directory.Build.props), not a second hand-maintained
 constant. See the [build reference](build-and-test.md) for the selected toolchain.
-Untagged development builds use `0.1.0-dev`; they do not claim an alpha release.
+The default version is `0.1.0-alpha.1` while preparing alpha 1. Development
+builds can set `VersionSuffix=dev`; a version label alone does not make a
+build a published release.
 The SDK includes the checked-out source revision in the assembly's informational
 version. Settings and Developer tools show that version with seven commit
 characters, and the tooltip gives the full commit. The server's `/api/v1/status`
@@ -78,13 +80,17 @@ may stop loading, but it is refused with a reason and kept.
 
 ## Release scope and merge day
 
-The owner decides when a release is being prepared and what it needs. A
-release label in [`.github/labels.json`](../../.github/labels.json) marks its
-issues ([Release scope](../../CONTRIBUTING.md#release-scope)); `release:alpha-1`
-marks those for `v0.1.0-alpha.1`, the first playtest release.
+The owner decides when a release is being prepared and what it needs. When
+more is open than one release can take, release labels in
+[`.github/labels.json`](../../.github/labels.json) split the open issues
+([Release scope](../../CONTRIBUTING.md#release-scope)): `release:alpha-1`
+marks those for `v0.1.0-alpha.1`, the first playtest release, and
+`release:alpha-2` those that wait for `v0.1.0-alpha.2`.
 
-1. Fixers take labelled issues first. Only new P0 or P1 bugs and work the
-   owner adds join the release; everything else waits for the next one.
+1. Fixers take current-release issues first, then issues with no release
+   label, and never start a next-release issue before the current release is
+   published. Only new P0 or P1 bugs and work the owner adds join the current
+   release; every other new issue gets the next release's label.
 2. A merge day is a day the owner spends getting the repository as clean as
    possible before a playtest, and they say so in chat. Fixers finish the
    open issues and reviewers merge what is ready, until nothing is left open.
@@ -92,8 +98,11 @@ marks those for `v0.1.0-alpha.1`, the first playtest release.
    the code, goes in last.
 3. The session the owner asks to prepare the release follows the
    [release gate](#release-gate) below.
-4. After publishing, move the label to `retired` in `labels.json`, and add the
-   next release's label when the owner names it.
+4. After publishing, move the release's label to `retired` in `labels.json`.
+   The next release's label becomes the current one: update the label names in
+   CONTRIBUTING's [Release scope](../../CONTRIBUTING.md#release-scope), the
+   fix-issue and find-bugs skills and this page. Add a new next label only when
+   the owner names that release.
 
 ## Release gate
 
@@ -189,18 +198,29 @@ does not claim that the release checklist's remaining checks were performed.
 ## Nightly builds
 
 The [Nightly workflow](../../.github/workflows/nightly.yml) publishes a build of
-main every night as a GitHub pre-release, so Developer mode can try main
-without a release (the owner's choice, October 10). It is not a release and
-needs no release gate:
+main every evening as a GitHub pre-release, so Developer mode can try main
+without a release (the owner's choice, October 10). It starts at 21:17 UTC,
+which is 23:17 in Amsterdam in summer and 22:17 in winter, so the build is
+ready by the owner's usual evening playtest (the owner's choice, October 15).
+GitHub can start a scheduled run late, and **Run workflow** on main starts one
+at any time. It is not a release and needs no release gate:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
-  the same two assets as an alpha, so the launcher installs and checks it the
-  same way. New nightly installs are offered in Developer mode. Installed
+  the portable game zip and its `.sha256`, so the launcher installs and checks
+  it the same way as an alpha. Every nightly also includes
+  `ClankerWorld-Setup-<version>-windows-x64.exe` and its `.sha256` beside the
+  portable zip. The [per-user setup](build-and-test.md#windows-installer)
+  bundles the launcher and game from the same commit, using the same package
+  scripts as CI. Linux builds both packages; Windows builds the setup before
+  the publish job attaches all four files. Only that job can write releases.
+  New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.
-- It runs only when main has a commit the newest nightly doesn't have and
-  main's CI passed on that commit. Run it by hand from Actions to publish one
+- Both build jobs use the commit on main that triggered the workflow, even
+  when main advances before either job starts. It runs only when the newest
+  nightly has a different commit and main's CI passed on the selected commit.
+  Run it by hand from Actions with the main branch selected to publish one
   sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
   tags, the one exception to never deleting a pushed tag. Never use a nightly

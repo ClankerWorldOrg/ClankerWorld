@@ -1,1 +1,0 @@
-- Orchard planting waits for room to collect a household seed, while a seed already carried can still be planted with a full load.
