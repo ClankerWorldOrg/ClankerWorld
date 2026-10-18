@@ -29,24 +29,65 @@ game versions, worlds, keys and model-call count. Running setup again, or a
 newer setup, keeps those files too. An existing copy of the bundled game
 version is reused.
 
+## Host a world for other devices
+
+On the Windows computer that will run the world, install Tailscale, join your
+private network and enable its HTTPS certificates. Use Tailscale on the playing
+computer too. Hosting is for your private network; do not enable public Funnel.
+
+In the launcher, choose an installed game version and **Host a world for other
+devices**, then **Start hosting**. Older builds need an update before they can
+host this way. The launcher becomes a host app and shows the address to use on
+the playing computer. It keeps the same worlds, saved keys and model-call count
+as this installation. Developer mode's test-data choice stays isolated and is
+remembered for automatic restart.
+
+When a device asks to join, compare its code with the one on the host screen.
+Choose **Approve** only when they match, or **Decline** to refuse it. A request
+that was pending when the server restarted needs to be declined and started
+again so both computers can show the same code.
+
+When the last game leaves, the world saves and pauses. The host waits without
+advancing time or calling models. **Stop hosting when the game quits** stops it
+instead; choose this option before starting the host. By default the host
+starts again when you sign in to Windows after a restart. Turn off **Start
+hosting again when I sign in to Windows** to disable that.
+
+Closing the host window minimizes it and keeps hosting in the background.
+**Stop hosting** saves the world, stops the server and turns off the private
+forwarding address without removing worlds or approved devices. A failed save
+keeps the host alive and paused so you can free space and retry. If stopping
+cannot be confirmed, the hosting controls stay available for retry. Playing on
+the hosting PC is separate work; for now use another computer to join, or stop
+hosting before playing locally.
+
 ## Connect your device
 
-Start the game through the launcher, or start `ClankerWorld.exe` from the
-extracted portable bundle. For an approved remote server, use the connection
-and pairing screen to connect to the world server you have been given. Your
-device must be able to reach it through its private network.
+To run the world on an always-on Linux x64 machine, follow the
+[Linux hosting guide](hosting-linux.md). It covers the server download,
+private HTTPS access, service installation and local device approval.
 
-A new device needs approval. Compare the game's code with the person approving
-the device on the server, then complete pairing. Do not post the code, keys or
-private save data in an issue. Once paired, reconnecting uses the saved
-connection; normal play does not need approval every time.
+For a world on another computer, open the launcher and choose **Join a world
+on another computer**. Enter the host's HTTPS address. Both devices must be on
+its private network. Compare the displayed code with the person approving the
+device on the hosting computer; approve only when they match. The launcher
+checks approval automatically, and **Check approval** checks again immediately.
+Do not post the code, keys or private save data in an issue.
 
-After pairing, choose **Continue** from the Main Menu to enter your world.
-If the server's last pairing reply was lost, the next pairing check can still
-finish pairing and return you to the same menu.
+Once approved, choose a game version and **Play**. The launcher checks the saved
+connection with this device's key and starts the game already connected. Choose
+**Continue** from the game's Main Menu to enter the world. Later launches reuse
+the saved connection without pairing again. The game has no address-entry or
+pairing screen.
 
-For an already paired device, **Connect** checks the saved server connection
-and shows the result below the address. It does not start a new pairing.
+If the host cannot be reached, the launcher explains how to start it if it is
+stopped: **Start hosting** on a launcher host, or the service command on a
+terminal host. A connection failure can also mean the private network is
+unavailable. Approval and certificate failures have their own messages.
+
+Choose **Play on this PC** to return to your local worlds. To join another host,
+open the joining screen and choose **Forget this connection** first; the
+private device key stays in your Windows account's key store.
 
 A game folder that carries its own `server` folder runs the world on your PC
 instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
@@ -84,12 +125,19 @@ have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
 which saves, closes the game and reopens the launcher with that version chosen.
 After **Play**, choose **Load World** on the Main Menu: the previous world is
 already selected. It opens only when you choose **Load**. The launcher checks each download against the
-release's published SHA-256 before unpacking it, never installs anything
-without your click, and never updates itself: it tells you when a newer
+release's signed approval before unpacking it and checks installed files before
+Play. It never installs anything without your click, and never updates itself:
+it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
 installed version. Until the first alpha release, it is the
 `clankerworld-launcher-windows-11-x64` build from CI
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
+
+If the publisher withdraws a release, the launcher hides it from normal install
+and Play choices. A world asking for that version gets an explanation; the
+launcher keeps its installed files and your saves. Developer mode shows
+withdrawn games with a warning. Downloading them still needs a valid release
+approval.
 
 ### If a request loses its reply
 
@@ -118,9 +166,9 @@ a log that looks like a key is blanked. Reports go in a `reports` folder (in
 `%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
 five newest are kept. Nothing is uploaded; you choose where to send the file.
 
-If the server changes, choose **Pair again** in **Settings → Game → World
-connection**: it forgets this device's saved connection so you can pair with
-the new server.
+If the server changes, open the launcher's joining screen and choose **Forget
+this connection**, then enter and approve the new host. To return to an
+already approved host after local play, choose **Use this world**, then **Play**.
 [Device pairing](development/device-pairing.md) has the operator instructions.
 
 If New World asks for matching updates, update the game and have the server
@@ -255,6 +303,15 @@ memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
+
+The helper answers only when every available action is about food, clothing,
+warmth, care or waiting. An agent doing everyday work can still have bigger
+choices available, so its personal model may answer instead. Applying a helper
+selects it without checking its connection. **Test helper · 1 paid call** checks
+the selected model and saved key immediately, without waiting for routine work.
+The result explains a usable reply or a connection, key or model problem; each
+sent test counts toward the model-call limit. A successful test leaves the
+world's helper choice and its agents unchanged.
 
 To save keys before placing any agents, open **Settings → Game → API keys**.
 Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
@@ -1233,6 +1290,11 @@ after you leave the field. Changing to another server clears the previous
 server's displayed information and unfinished edit.
 
 ## Save and return
+
+When a save or another world changes model or key assignments, the game shows
+those settings before loading. Check the model names and key labels, then
+confirm to use them, or cancel to keep your current world and settings. A load
+never supplies a new API key from the save.
 
 If the server's save disk is low on space, a warning stays visible while you
 play and appears in Save World before saving or overwriting. Make room soon;

@@ -134,7 +134,7 @@ public static class MapManifestCodec
         return tiles;
     }
 
-    private static string ToWireValue(TerrainKind terrain) => terrain switch
+    public static string ToWireValue(TerrainKind terrain) => terrain switch
     {
         TerrainKind.Meadow => "meadow",
         TerrainKind.Water => "water",

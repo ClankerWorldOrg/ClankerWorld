@@ -86,8 +86,10 @@ public sealed partial class ServerHttpTests
     /// listener checks the host name, and the listener's small default limit is
     /// raised only for signed owner routes, also for bodies without a length.
     /// </summary>
-    [Fact]
-    public async Task KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies(bool approveByCode)
     {
         var publicPort = FreeLoopbackPort();
         var approvalPort = FreeLoopbackPort();
@@ -108,7 +110,8 @@ public sealed partial class ServerHttpTests
         using var start = await client.PostAsJsonAsync("/api/v1/pairings",
             new StartOwnerPairingHttpRequest(Convert.ToBase64String(key.ExportSubjectPublicKeyInfo())));
         var pairing = (await start.Content.ReadFromJsonAsync<OwnerPairingStart>())!;
-        var approvePath = new Uri(approvalOrigin, $"api/v1/approval/pairings/{pairing.PairingId}/approve");
+        var approvePath = new Uri(approvalOrigin, approveByCode
+            ? "api/v1/approval/pairings/approve" : $"api/v1/approval/pairings/{pairing.PairingId}/approve");
 
         using (var foreignName = new HttpRequestMessage(HttpMethod.Post, approvePath)
         {
@@ -156,7 +159,7 @@ public sealed partial class ServerHttpTests
         };
         approval.Headers.Add(ApprovalListenerOptions.ApprovalSecretHeader, approvalSecret);
         using var approved = await client.SendAsync(approval);
-        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+        Assert.Equal(approveByCode ? HttpStatusCode.NoContent : HttpStatusCode.OK, approved.StatusCode);
         using var activated = await client.PostAsJsonAsync("/api/v1/pairings/activate", new ActivateOwnerPairingHttpRequest(
             pairing.PairingId, pairing.ActivationCanonicalProof, Sign(key, pairing.ActivationCanonicalProof)));
         var device = (await activated.Content.ReadFromJsonAsync<OwnerDevice>())!;

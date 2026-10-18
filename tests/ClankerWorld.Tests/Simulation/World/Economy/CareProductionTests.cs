@@ -217,6 +217,13 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         Assert.Contains(jugInputs, item => item.LotId == "care-pottery-fuel" && item.Quantity == 1 &&
             item.OwnerId == Alpha && item.State == InventoryReservationState.Completed);
         state = pottery.ExportState();
+        // The supply chooser replaces pottery's idle policy. Start its first
+        // decision now instead of waiting for the cached idle context to expire.
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { LastDecisionContext = null } : person).ToArray(),
+        };
         var herbs = Assert.Single(state.Map.Resources, item => item.Kind == CareContent.MedicinalHerbs);
         var initialHerbs = state.WorldSystems!.Ecology.GetResource(herbs.Id).Quantity;
         Assert.True(initialHerbs > 0);
@@ -236,6 +243,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
             {
                 var step = await world.AdvanceOneTickAsync();
                 Assert.True(step.Advanced);
+                if (tick == 0) Assert.NotEmpty(choices.Decisions);
                 var currentHerbStock = world.ExportState().WorldSystems!.Ecology.GetResource(herbs.Id).Quantity;
                 if (step.Events.Any(item => item.Kind == "material_gathered" &&
                         item.Detail.StartsWith(actor + ":" + CareContent.MedicinalHerbs + ":", StringComparison.Ordinal)))

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
@@ -1247,6 +1248,7 @@ public sealed partial class ConfigurableDecisionProvider(
                 {
                     ["model"] = route.Credential.Model,
                     ["response_format"] = new JsonObject { ["type"] = "json_object" },
+                    ["max_completion_tokens"] = ModelOutputLimits.MaximumCompletionTokens,
                     ["messages"] = new JsonArray(
                         new JsonObject { ["role"] = "system", ["content"] = instructions },
                         new JsonObject { ["role"] = "user", ["content"] = input }),
@@ -1448,7 +1450,7 @@ public sealed partial class ConfigurableDecisionProvider(
                 request.Revision,
                 request.RunEpoch,
                 request.SpeakerId,
-                utterance.GetString()!,
+                BoundedText.NormalizeModelText(utterance.GetString(), AgentConversationText.MaximumUtteranceCharacters) ?? string.Empty,
                 outcome,
                 proposedEffect,
                 inputTokens,

@@ -20,6 +20,7 @@ public partial class Launcher : Control
     private readonly System.Net.Http.HttpClient http = new() { Timeout = TimeSpan.FromMinutes(30) };
     private readonly MenuBackdrop backdrop = new();
     private readonly Label status = new();
+    private readonly Label playTarget = new();
     private readonly Label launcherUpdate = new();
     private readonly OptionButton versionChoice = new();
     private readonly Button playButton = new();
@@ -39,6 +40,7 @@ public partial class Launcher : Control
     private readonly Control playPage = new VBoxContainer();
     private readonly Control versionsPage = new VBoxContainer();
     private readonly Control settingsPage = new VBoxContainer();
+    private readonly HBoxContainer navigationTabs = new();
     private LauncherLayout layout = null!;
     private GameVersionStore store = null!;
     private GameReleaseFeed feed = null!;
@@ -97,10 +99,20 @@ public partial class Launcher : Control
             _ = RunSmokeTestAsync();
             return;
         }
-        _ = CheckForUpdatesAsync();
+        if (OS.GetCmdlineUserArgs().Contains("--resume-hosting", StringComparer.Ordinal))
+            _ = ResumeHostingAsync();
+        else _ = CheckForUpdatesAsync();
     }
 
-    public override void _ExitTree() => http.Dispose();
+    public override void _ExitTree()
+    {
+        joinLifetime.Cancel();
+        joinKey?.Dispose();
+        joinLifetime.Dispose();
+        hostingLifetime.Cancel();
+        hostingLifetime.Dispose();
+        http.Dispose();
+    }
 
     private void Build()
     {
@@ -134,7 +146,7 @@ public partial class Launcher : Control
         body.AddThemeConstantOverride("separation", 10);
         card.AddChild(body);
 
-        var tabs = new HBoxContainer();
+        var tabs = navigationTabs;
         tabs.AddThemeConstantOverride("separation", 6);
         foreach (var (tab, page) in new[] { (playTab, playPage), (versionsTab, versionsPage), (settingsTab, settingsPage) })
         {
@@ -150,10 +162,12 @@ public partial class Launcher : Control
         launcherUpdate.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(launcherUpdate);
 
+        BuildJoinPage();
+        BuildHostPage();
         BuildPlayPage();
         BuildVersionsPage();
         BuildSettingsPage();
-        foreach (var page in new[] { playPage, versionsPage, settingsPage }) body.AddChild(page);
+        foreach (var page in new[] { playPage, versionsPage, settingsPage, joinPage, hostingPage }) body.AddChild(page);
 
         status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         status.CustomMinimumSize = new Vector2(0, 24);
@@ -177,7 +191,28 @@ public partial class Launcher : Control
         playButton.AddThemeFontOverride("font", UiFonts.Headings);
         playButton.AddThemeFontSizeOverride("font_size", UiFonts.Heading);
         playButton.Pressed += () => _ = PlayAsync();
+        playPage.AddChild(playTarget);
+        playTarget.Text = settings.JoinRemoteWorld ? "Play opens the world you joined." : "Play opens your worlds on this PC.";
         playPage.AddChild(playButton);
+        var join = new Button { Text = "Join a world on another computer" };
+        StyleButton(join);
+        join.Pressed += OpenJoinPage;
+        playPage.AddChild(join);
+        var host = new Button { Text = "Host a world for other devices" };
+        StyleButton(host);
+        host.Pressed += OpenHostPage;
+        playPage.AddChild(host);
+        var local = new Button { Text = "Play on this PC" };
+        StyleButton(local);
+        local.Pressed += () =>
+        {
+            if (busy || joining) return;
+            joinSession?.CancelPending();
+            settings = settings with { JoinRemoteWorld = false };
+            SaveSettings();
+            SetStatus("Play will open your worlds on this PC.");
+        };
+        playPage.AddChild(local);
     }
 
     private void BuildVersionsPage()
@@ -328,9 +363,12 @@ public partial class Launcher : Control
 
     private void ShowPage(Control page)
     {
+        if (hostingRunning && page != hostingPage) return;
         playPage.Visible = page == playPage;
         versionsPage.Visible = page == versionsPage;
         settingsPage.Visible = page == settingsPage;
+        joinPage.Visible = page == joinPage;
+        hostingPage.Visible = page == hostingPage;
         playTab.SetPressedNoSignal(page == playPage);
         versionsTab.SetPressedNoSignal(page == versionsPage);
         settingsTab.SetPressedNoSignal(page == settingsPage);
@@ -380,7 +418,8 @@ public partial class Launcher : Control
         if (versionChoice.Selected < 0 && versionChoice.ItemCount > 0) versionChoice.Select(0);
         UpdatePlayButton();
         RebuildVersionRows();
-        if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested) &&
+        if (Chosen() is { } chosen && IsWithdrawn(chosen)) SetStatus(WithdrawnMessage(chosen));
+        else if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested) &&
             releases.Games.All(release => release.Version.ToString() != requested))
             SetStatus(releasesReached
                 ? $"ClankerWorld {requested} isn't installed and that version isn't published. Your save is safe."
@@ -388,6 +427,12 @@ public partial class Launcher : Control
     }
 
     private IReadOnlyList<GameRelease> Offered() => GameReleaseFeed.Offered(releases.Games, settings.DeveloperMode);
+
+    private bool IsWithdrawn(GameVersionName version) => !settings.DeveloperMode &&
+        releases.Games.Any(release => release.Version == version && release.Withdrawn);
+
+    private static string WithdrawnMessage(GameVersionName version) =>
+        $"ClankerWorld {version} was withdrawn by its publisher. Choose another version. Your installed files and saves are kept.";
 
     /// <summary>
     /// Installed versions first, newest first; the newest release if it isn't
@@ -399,25 +444,27 @@ public partial class Launcher : Control
         var newest = offered.FirstOrDefault(release => !release.PreRelease) ??
             offered.FirstOrDefault(release => !release.Version.IsNightly) ??
             (offered.Count > 0 ? offered[0] : null);
-        if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested))
+        if (requestedVersion is { } requested && !installed.Any(version => version.Version.ToString() == requested && !IsWithdrawn(version.Version)))
             yield return requested;
         if (newest is not null && newest.Version.ToString() != requestedVersion && installed.All(version => version.Version != newest.Version))
             yield return newest.Version.ToString();
         // A version the game asked for, to open a world it saved, can be installed from here too.
         var wanted = releases.Games.FirstOrDefault(release => release.Version.ToString() == (requestedVersion ?? settings.LastPlayedVersion));
-        if (wanted is not null && wanted != newest && wanted.Version.ToString() != requestedVersion &&
+        if (wanted is not null && !IsWithdrawn(wanted.Version) && wanted != newest && wanted.Version.ToString() != requestedVersion &&
             installed.All(version => version.Version != wanted.Version))
             yield return wanted.Version.ToString();
-        foreach (var version in installed) yield return version.Version.ToString();
+        foreach (var version in installed.Where(version => !IsWithdrawn(version.Version))) yield return version.Version.ToString();
     }
 
     private void UpdatePlayButton()
     {
         var chosen = Chosen();
-        var unavailable = chosen is not null && installed.All(version => version.Version != chosen) &&
+        var withdrawn = chosen is not null && IsWithdrawn(chosen);
+        var unavailable = withdrawn || chosen is not null && installed.All(version => version.Version != chosen) &&
             releases.Games.All(release => release.Version != chosen);
         playButton.Disabled = busy || chosen is null || unavailable;
         playButton.Text = chosen is null ? "Play"
+            : withdrawn ? $"ClankerWorld {chosen} was withdrawn"
             : unavailable ? $"ClankerWorld {chosen} isn't available"
             : installed.Any(version => version.Version == chosen) ? $"Play {chosen}" : $"Install and Play {chosen}";
     }
@@ -439,6 +486,7 @@ public partial class Launcher : Control
         {
             var needing = worlds.Where(world => world.SavedBy == version.Version).Select(world => world.Name).ToArray();
             var detail = $"{FormatSize(version.SizeBytes)}" +
+                (releases.Games.Any(release => release.Version == version.Version && release.Withdrawn) ? " · Withdrawn release" : "") +
                 (needing.Length == 0 ? "" : $" · Last saved: {string.Join(", ", needing)}");
             installedRows.AddChild(VersionRow(version.Version.ToString(), detail,
                 ("Repair", () => _ = RepairAsync(version)), ("Remove", () => Remove(version, needing.Length))));
@@ -448,6 +496,7 @@ public partial class Launcher : Control
         foreach (var release in available)
             availableRows.AddChild(VersionRow(release.Version.ToString(),
                 FormatSize(release.Package.Size) +
+                (release.Withdrawn ? " · Withdrawn release" : "") +
                 (release.Version.IsNightly ? " · Nightly build of main" : release.PreRelease ? " · Pre-release" : ""),
                 ("Install", () => _ = InstallAsync(release, playAfter: false))));
         if (available.Length == 0)
@@ -483,8 +532,14 @@ public partial class Launcher : Control
 
     private async Task PlayAsync()
     {
+        if (hostingRunning) { OpenHostPage(); return; }
         var chosen = Chosen();
         if (chosen is null || busy) return;
+        if (IsWithdrawn(chosen))
+        {
+            SetStatus(WithdrawnMessage(chosen));
+            return;
+        }
         var version = installed.FirstOrDefault(candidate => candidate.Version == chosen);
         if (version is null)
         {
@@ -493,9 +548,29 @@ public partial class Launcher : Control
             version = await InstallAsync(release, playAfter: true);
             if (version is null) return;
         }
+        SetBusy(true);
         try
         {
-            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld);
+            await Task.Run(() => GameVersionStore.RequireSigned(version));
+            string? serverUrl = null;
+            if (settings.JoinRemoteWorld)
+            {
+                EnsureJoinSession();
+                if (joinSession!.Registration is not { } joined)
+                {
+                    SetBusy(false);
+                    OpenJoinPage();
+                    return;
+                }
+                try { await joinSession.CheckConnectionAsync(joinLifetime.Token); }
+                catch (Exception exception) when (exception is not OutOfMemoryException)
+                {
+                    SetStatus(joinSession.FailureMessage(exception));
+                    return;
+                }
+                serverUrl = joined.WorldUrl;
+            }
+            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld, serverUrl);
         }
         catch (GameInstallException exception)
         {
@@ -507,6 +582,7 @@ public partial class Launcher : Control
             SetStatus($"ClankerWorld {version.Version} didn't start. Try Repair on the Versions page.");
             return;
         }
+        finally { SetBusy(false); }
         settings = settings with { LastPlayedVersion = version.Version.ToString() };
         SaveSettings();
         // The launcher closes while the game runs.
@@ -528,6 +604,11 @@ public partial class Launcher : Control
     // Called only while the install or repair operation holds the busy state.
     private async Task<InstalledVersion?> DownloadInstallAsync(GameRelease release, bool playAfter)
     {
+        if (IsWithdrawn(release.Version) || release.Withdrawn && !settings.DeveloperMode)
+        {
+            SetStatus(WithdrawnMessage(release.Version));
+            return null;
+        }
         SetStatus($"Downloading ClankerWorld {release.Version}…");
         var progress = new Progress<double>(fraction => progressBar.Value = fraction);
         try
@@ -556,8 +637,7 @@ public partial class Launcher : Control
         try
         {
             SetStatus($"Checking ClankerWorld {version.Version}…");
-            var problems = await Task.Run(() => GameVersionStore.Verify(version));
-            if (problems.Count == 0)
+            if (!await Task.Run(() => store.NeedsRepair(version)))
             {
                 SetStatus($"ClankerWorld {version.Version} is fine. Every file matches its release.");
                 return;
@@ -630,6 +710,7 @@ public partial class Launcher : Control
 
     private void SaveSettings()
     {
+        playTarget.Text = settings.JoinRemoteWorld ? "Play opens the world you joined." : "Play opens your worlds on this PC.";
         try { settings.Save(layout); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -650,6 +731,76 @@ public partial class Launcher : Control
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Expect(playPage.Visible && !versionsPage.Visible, "Play is the first page");
             Expect(playButton.Disabled && playButton.Text == "Play", "Play waits for a version");
+            ShowPage(joinPage);
+            RefreshJoinPage();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(joinPage.IsVisibleInTree() && hostAddress.IsVisibleInTree() && joinHost.IsVisibleInTree() &&
+                !checkApproval.Visible && !playPage.Visible, "Joining has its own address and approval screen");
+            Expect(GetViewportRect().Encloses(joinPage.GetGlobalRect()), "Join controls fit the launcher window");
+            var previousCi = System.Environment.GetEnvironmentVariable("CI");
+            System.Environment.SetEnvironmentVariable("CI", "true");
+            try
+            {
+                using var signer = Pairing.OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
+                var registrationStore = new ClientState.OwnerDeviceRegistrationStore(Path.Combine(layout.Root, "join-check.json"));
+                var approved = new ClientState.OwnerDeviceRegistration(new("join-check-host", "join-check-world"),
+                    "join-check-device", signer.PublicKeyFingerprint, "https://joined-world.test/");
+                registrationStore.Save(approved);
+                joinSession = new DeviceJoinSession(new Networking.OwnerWorldApi(http), signer, registrationStore);
+                settings = settings with { JoinRemoteWorld = true };
+                SaveSettings();
+                playPage.GetChildren().OfType<Button>().Single(button => button.Text == "Play on this PC")
+                    .EmitSignal(BaseButton.SignalName.Pressed);
+                Expect(!settings.JoinRemoteWorld, "Local Play leaves the saved remote connection unselected");
+                RefreshJoinPage();
+                Expect(!joinHost.Disabled && joinHost.Text == "Use this world", "The saved remote world can be selected again");
+                await JoinHostAsync();
+                Expect(settings.JoinRemoteWorld && LauncherSettings.Load(layout).JoinRemoteWorld && playPage.Visible &&
+                    joinSession.Registration == approved && joinSession.Pending is null &&
+                    registrationStore.TryLoad(signer.PublicKeyFingerprint) == approved,
+                    "Returning to the saved remote world retains its approval without pairing again");
+            }
+            finally
+            {
+                joinSession = null;
+                settings = settings with { JoinRemoteWorld = false };
+                SaveSettings();
+                System.Environment.SetEnvironmentVariable("CI", previousCi);
+            }
+            OpenHostPage();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(hostingPage.IsVisibleInTree() && startHosting.IsVisibleInTree() && resumeHosting.IsVisibleInTree() &&
+                stopWithGame.IsVisibleInTree(), "Hosting has its own start and restart controls");
+            Expect(startHosting.Disabled && !stopHosting.Visible, "Hosting waits for a selected version");
+            Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Host controls fit the launcher window");
+            hostingRunning = true;
+            hostingAddress.Text = "Address for the joining computer: https://hosting-computer.private-network.ts.net/";
+            hostingState.Text = "Hosting · one device connected.";
+            hostingData.Text = "Using this PC's existing worlds, saved keys and model-call count.";
+            AddHostRequest(new("pending", "123456", "synthetic-fingerprint", DateTimeOffset.UtcNow.AddMinutes(1)));
+            AddHostRequest(new("restored", null, "synthetic-fingerprint", DateTimeOffset.UtcNow.AddMinutes(1)));
+            RefreshHostControls();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Active hosting and pending requests fit the launcher window");
+            Expect(!navigationTabs.Visible && stopHosting.Visible && stopWithGame.Disabled && hostingBack.Disabled,
+                "Running hosting keeps its controls available and prevents changing modes");
+            var approvalButtons = pendingDevices.FindChildren("*", "Button", recursive: true, owned: false).OfType<Button>().ToArray();
+            Expect(approvalButtons.Length == 4 && !approvalButtons[0].Disabled && approvalButtons[2].Disabled,
+                "Only a current comparison code can be approved; restored requests can be declined");
+            resumeHosting.ButtonPressed = false;
+            Expect(!LauncherSettings.Load(layout).ResumeHostingAtSignIn && hostingRunning,
+                "Disabling sign-in restart is remembered without stopping the host");
+            resumeHosting.ButtonPressed = true;
+            Expect(LauncherSettings.Load(layout).ResumeHostingAtSignIn, "Sign-in restart can be enabled again");
+            hostingRunning = false;
+            ClearHostRequests();
+            RefreshHostControls();
+            stopWithGame.ButtonPressed = true;
+            Expect(LauncherSettings.Load(layout).StopHostingWhenGameQuits, "Stop-on-quit is remembered");
+            stopWithGame.ButtonPressed = false;
+            ShowPage(playPage);
             releases = GameReleaseFeed.Read(
             [
                 SmokeRelease("v0.1.0-nightly.20261011.1", prerelease: true),
@@ -685,9 +836,17 @@ public partial class Launcher : Control
             var testDirectory = layout.VersionDirectory(testVersion);
             Directory.CreateDirectory(testDirectory);
             File.WriteAllText(Path.Combine(testDirectory, LauncherLayout.GameExecutable), "smoke game");
-            File.WriteAllText(Path.Combine(testDirectory, LauncherLayout.PackageManifest), "# smoke manifest");
+            Directory.CreateDirectory(Path.Combine(testDirectory, "host"));
+            File.WriteAllText(Path.Combine(testDirectory, "host", "ClankerWorld.Viewer.exe"), "smoke server");
+            File.WriteAllLines(Path.Combine(testDirectory, LauncherLayout.PackageManifest),
+                new[] { LauncherLayout.GameExecutable, "host/ClankerWorld.Viewer.exe" }.Select(relative =>
+                    $"{Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(Path.Combine(testDirectory, relative))))} *./{relative}"));
             RefreshInstalled();
             var testInstalled = installed.Single(version => version.Version == testVersion);
+            Expect(GameVersionStore.Verify(testInstalled).Count == 0, "The unsigned repair fixture has intact game files");
+            await RepairAsync(testInstalled);
+            Expect(status.Text.Contains("needs repair", StringComparison.Ordinal),
+                "Repair must not report an installation with missing approval as fine");
             if (OperatingSystem.IsLinux())
             {
                 const string worldId = "0123456789abcdef0123456789abcdef";
@@ -744,6 +903,41 @@ public partial class Launcher : Control
             RefreshInstalled();
             Expect(Chosen()?.ToString() == requestedVersion && !playButton.Disabled,
                 "An explicit saved-world nightly target keeps the version handoff available");
+
+            releases = GameReleaseFeed.Read([
+                SmokeRelease("v0.1.0-alpha.2", true) with { Body = GameReleaseFeed.WithdrawnMarker },
+                SmokeRelease("v0.1.0-alpha.1", true),
+            ]);
+            requestedVersion = "0.1.0-alpha.2";
+            RefreshInstalled();
+            Expect(Chosen()?.ToString() == requestedVersion && playButton.Disabled && availableRows.GetChildCount() == 1 &&
+                status.Text.Contains("withdrawn", StringComparison.Ordinal),
+                "A withdrawn requested version stays chosen with an explanation and no install offer");
+            developerMode.ButtonPressed = true;
+            Expect(!playButton.Disabled && availableRows.GetChildCount() == 2,
+                "Developer mode explicitly offers withdrawn versions");
+            var withdrawnDirectory = layout.VersionDirectory(GameVersionName.Parse(requestedVersion)!);
+            Directory.CreateDirectory(withdrawnDirectory);
+            var withdrawnExecutable = Path.Combine(withdrawnDirectory, LauncherLayout.GameExecutable);
+            File.WriteAllText(withdrawnExecutable, "kept installed game");
+            developerMode.ButtonPressed = false;
+            RefreshInstalled();
+            Expect(Chosen()?.ToString() == requestedVersion && playButton.Disabled,
+                "An installed withdrawn version cannot bypass normal Play restrictions");
+            await PlayAsync();
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal), "Play explains withdrawal before checking or starting files");
+            await RepairAsync(installed.Single(version => version.Directory == withdrawnDirectory));
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal) && File.ReadAllText(withdrawnExecutable) == "kept installed game",
+                "Repair cannot reinstall a withdrawn release and keeps the installed copy");
+            OpenHostPage();
+            Expect(startHosting.Disabled, "A withdrawn version cannot be hosted outside Developer mode");
+            await StartHostingAsync();
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal), "Hosting explains withdrawal before starting a server or private route");
+            developerMode.ButtonPressed = true;
+            RefreshHostControls();
+            Expect(!startHosting.Disabled, "Developer mode keeps the explicit withdrawn hosting choice subject to release approval");
+            developerMode.ButtonPressed = false;
+            ShowPage(playPage);
         }
         catch (Exception exception)
         {

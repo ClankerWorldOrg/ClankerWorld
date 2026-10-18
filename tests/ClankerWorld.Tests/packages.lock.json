@@ -421,7 +421,7 @@
         "type": "Project",
         "dependencies": {
           "Anthropic": "[12.55.0, )",
-          "ClankerWorld.Simulation": "[0.1.0-dev, )"
+          "ClankerWorld.Simulation": "[0.1.0-alpha.1, )"
         }
       },
       "clankerworld.simulation": {

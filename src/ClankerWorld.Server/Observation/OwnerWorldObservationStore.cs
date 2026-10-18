@@ -558,7 +558,7 @@ public sealed partial class OwnerWorldObservationStore
             (state.Geography is null ? map.Tiles : [])
                 .OrderBy(tile => tile.Position.Y)
                 .ThenBy(tile => tile.Position.X)
-                .Select(tile => new TileView(tile.Position.X, tile.Position.Y, ToWireValue(tile.Terrain)))
+                .Select(tile => new TileView(tile.Position.X, tile.Position.Y, MapManifestCodec.ToWireValue(tile.Terrain)))
                 .ToArray(),
             map.MapObjects
                 .Where(mapObject => mapObject.Kind != "bedroll")
@@ -1975,21 +1975,6 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     private static PositionView ToPosition(GridPoint point) => new(point.X, point.Y);
-
-    private static string ToWireValue(TerrainKind terrain) => terrain switch
-    {
-        TerrainKind.Meadow => "meadow",
-        TerrainKind.Water => "water",
-        TerrainKind.Mountain => "mountain",
-        TerrainKind.River => "river",
-        TerrainKind.Lake => "lake",
-        TerrainKind.Ocean => "ocean",
-        TerrainKind.Peak => "peak",
-        TerrainKind.Sand => "sand",
-        TerrainKind.Forest => "forest",
-        TerrainKind.Snow => "snow",
-        _ => throw new ArgumentOutOfRangeException(nameof(terrain)),
-    };
 
     private static string ToWireValue(ResourceState state) => state switch
     {
