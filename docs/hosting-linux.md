@@ -66,8 +66,6 @@ hidden and the command keeps it out of command arguments and shell history.
 Approve only the device you are joining. If pairing expires, start it again.
 If two requests share a code, neither is approved; start pairing again.
 The device then proves ownership of its own key before it can play.
-For builds whose pairing screen is still in the game, use
-[Connect your device](playing.md#connect-your-device) there.
 
 Choose models and keys in the game on Windows. Keys stay in this installation's
 private storage, outside world saves. Do not put them in a terminal command,

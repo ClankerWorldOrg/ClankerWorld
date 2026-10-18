@@ -27,13 +27,13 @@ contents, private thoughts or raw model replies.
    window. Record the running commit and the proposed commit. Inspect the actual
    service configuration privately; the checked-in
    [systemd template](../../deploy/clankerworld-server.service) is a starting
-   point, not evidence of what is running. Its historical fresh-install comment
-   is not permission to replace existing state or pairing authority.
+   point, not evidence of what is running. Updating binaries does not authorize
+   replacing existing state or pairing authority.
 2. Build from a clean checkout at the proposed commit. Run the applicable
    [build and test checks](build-and-test.md#which-checks-to-run), including
    locked restore, formatting, Release tests, Godot checks and Windows export
    when distributing a matching client. Publish the server from that same
-   checkout with `dotnet publish src/ClankerWorld.Server/ClankerWorld.Server.csproj --configuration Release --no-restore --output /path/to/staged-server`.
+   checkout with `dotnet publish src/ClankerWorld.Server/ClankerWorld.Server.csproj --configuration Release --runtime linux-x64 --self-contained -p:RestoreLockedMode=true --output /path/to/staged-server`.
    Record the publish directory, game version and SHA-256 hashes of the exact artifacts.
 3. Check save, generator and signed-action compatibility against the current
    server. During alpha an older save may be refused, but must be preserved.

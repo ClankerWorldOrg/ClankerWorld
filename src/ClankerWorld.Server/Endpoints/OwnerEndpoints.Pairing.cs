@@ -42,17 +42,18 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/approval/pairings", (
             StartOwnerPairingHttpRequest request, HttpContext context, ApprovalListenerOptions options,
-            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile, OwnerHostInformation host) =>
         {
             if (!options.IsApprovalRequest(context)) return Results.NotFound();
             var result = authority.StartPairingLocally(new OwnerPairingRequest(request?.PublicKeySpkiBase64 ?? string.Empty));
             stateFile.Save(authority);
             PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "created" : "refused");
-            return result.IsSuccess ? Results.Ok(result.Value) : OwnerFailures.ToHttpResult(result.Failure);
+            return result.IsSuccess ? Results.Ok(result.Value! with { Host = host }) : OwnerFailures.ToHttpResult(result.Failure);
         });
 
         app.MapPost("/api/v1/pairings", (
             StartOwnerPairingHttpRequest request,
+            OwnerHostInformation host,
             OwnerAuthorityStore authority,
             OwnerAuthorityStateFile stateFile) =>
         {
@@ -66,7 +67,7 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(result.Failure);
             }
 
-            return Results.Ok(result.Value);
+            return Results.Ok(result.Value! with { Host = host });
         }).WithMetadata(PairingRequestBudget.Route.Instance);
 
         app.MapGet("/api/v1/pairings/{pairingId}", (
