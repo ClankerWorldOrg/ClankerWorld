@@ -7,9 +7,13 @@ namespace ClankerWorld.GodotClient.Launcher;
 /// <summary>Offline approval binds the download and the installed file manifest.</summary>
 public sealed record ReleasePackageSignature(string Package, string PackageSha256, string ManifestSha256, string Signature)
 {
-    // Owner task before this draft can ship: pin the offline release key's PUBLIC PEM.
-    // An empty pin deliberately accepts no release. Never put a private key here.
-    public const string PublicKeyPem = "";
+    // The owner keeps the matching private key offline. Only its public half belongs here.
+    public const string PublicKeyPem = """
+        -----BEGIN PUBLIC KEY-----
+        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDRHm8smRgf2aXh8z57t9Qm8LpOOT
+        XSr3MMenIA33y1or3PJdHIau3QRh+reAwUsNifC0z+Wa7EblRhuNBjkGHA==
+        -----END PUBLIC KEY-----
+        """;
     public const string InstalledFile = ".release-signature.json";
     public const int MaximumBytes = 4096;
 
