@@ -521,6 +521,8 @@ public sealed partial class RestaurantShopPipelineTests
             fixture = fixture with { State = WithForeignTownResident(fixture.State, fixture.Cook) };
         using var world = Restore(fixture);
         var mayVisit = !householdOwnsPayment && paymentQuantity > 2;
+        AgentObservation? reserveObservation = null;
+        long? completedPipelineTick = null;
         for (var tick = 0; tick < 200; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -532,6 +534,24 @@ public sealed partial class RestaurantShopPipelineTests
                 Assert.DoesNotContain(world.Society.Inventory.Reservations, reservation =>
                     reservation.Purpose.StartsWith("barter:", StringComparison.Ordinal));
             }
+            if (expectedPurchases > 0 && world.ShopTrades.Count(trade => trade.BuyerId == fixture.Cook &&
+                    world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Settled) == expectedPurchases &&
+                !world.Society.Inventory.Lots.Any(lot => lot.Id == "restaurant-mill-grain" && lot.Quantity > 0))
+            {
+                var jobs = world.WorldSimulation.ProductionJobs.Where(job => job.RecipeId == fixture.MillRecipe.CanonicalId).ToArray();
+                if (jobs.Length > 0 && jobs.All(job => job.State == WorldProductionJobState.Completed))
+                {
+                    completedPipelineTick ??= world.WorldTick;
+                    reserveObservation = fixture.CookProvider.SeenObservations.LastOrDefault(observation =>
+                        observation.WorldTick > completedPipelineTick.Value);
+                    if (reserveObservation is not null) break;
+                }
+            }
+        }
+        if (expectedPurchases > 0)
+        {
+            Assert.NotNull(reserveObservation);
+            Assert.DoesNotContain(reserveObservation.Candidates, candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId);
         }
         var visits = fixture.CookProvider.SeenObservations.SelectMany(observation => observation.Candidates)
             .Where(candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId &&
