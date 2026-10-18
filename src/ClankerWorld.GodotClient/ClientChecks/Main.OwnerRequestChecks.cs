@@ -92,6 +92,55 @@ public partial class Main
                         });
                 });
             }
+            foreach (var helper in new[] { "jev", "decisions" })
+            {
+                foreach (var refuse in new[] { false, true })
+                    await CheckAsync($"replaced helper check / {helper} / refusal={refuse}", async host =>
+                    {
+                        ShowSettingsForCheck(worldSpecific: true);
+                        host.SupportedActionPayloads = [OwnerWorldActionPayload.HelperSetupCheckPayloadDomain];
+                        routineHelperChoice.Select(helper == "jev" ? 1 : 2);
+                        routineHelperModelPicker.SetModel("helper-lifecycle-model");
+                        routineHelperSetupCheckButton.Show();
+                        routineHelperSetupCheckButton.Disabled = false;
+                        routineHelperSetupCheckButton.GrabFocus();
+                        if (routineHelperSetupCheckButton.GetParent() != routineHelperChoice.GetParent() ||
+                            routineHelperSetupCheckButton.Text != "Test helper · 1 paid call" ||
+                            !routineHelperSetupCheckButton.TooltipText.Contains("model-call limit", StringComparison.Ordinal))
+                            throw new InvalidOperationException("The helper check must sit beside its settings and disclose the paid call.");
+                        await HeldAsync(host, OwnerPairingEndpoints.OwnerProviderSetupCheck,
+                            new OwnerProviderSetupCheckResult("ready", "Old helper succeeded", true), refuse,
+                            RunRoutineHelperSetupCheckAsync,
+                            () =>
+                            {
+                                routineHelperChoice.Select(0);
+                                routineHelperChoice.EmitSignal(OptionButton.SignalName.ItemSelected, 0);
+                                if (routineHelperSetupCheckStatus.Text.Length != 0)
+                                    throw new InvalidOperationException("Changing helper must clear its old check result.");
+                                routineHelperSetupCheckStatus.Text = "Replacement helper result";
+                                SetStatus("Replacement helper choice", good: true);
+                            },
+                            () =>
+                            {
+                                if (routineHelperSetupCheckStatus.Text != "Replacement helper result" ||
+                                    statusLabel.Text != "Replacement helper choice")
+                                    throw new InvalidOperationException("A replaced helper check must discard both old success and refusal feedback.");
+                            });
+                    });
+                await CheckAsync($"older host helper check / {helper}", async host =>
+                {
+                    ShowSettingsForCheck(worldSpecific: true);
+                    routineHelperChoice.Select(helper == "jev" ? 1 : 2);
+                    routineHelperModelPicker.SetModel("helper-lifecycle-model");
+                    routineHelperSetupCheckButton.Show();
+                    routineHelperSetupCheckButton.Disabled = false;
+                    routineHelperSetupCheckButton.GrabFocus();
+                    await RunRoutineHelperSetupCheckAsync();
+                    if (!routineHelperSetupCheckStatus.Text.Contains("Nothing was sent", StringComparison.Ordinal) ||
+                        host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck))
+                        throw new InvalidOperationException("An older host must explain the update without sending a paid helper request.");
+                });
+            }
             await CheckAsync("model settings refresh retains provider controls", async host =>
             {
                 ShowSettingsForCheck(worldSpecific: true);

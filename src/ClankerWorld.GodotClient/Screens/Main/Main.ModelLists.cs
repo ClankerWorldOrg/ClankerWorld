@@ -9,6 +9,10 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    private readonly Button routineHelperSetupCheckButton = new();
+    private readonly Label routineHelperSetupCheckStatus = new();
+    private int routineHelperSetupCheckRevision;
+
     private const double PastedKeyPause = 0.8;
     private int founderKeyEdits;
     private int agentModelKeyEdits;
@@ -140,6 +144,7 @@ public partial class Main
         routineHelperChoice.TooltipText = "Choose an optional helper for small everyday actions and memory scoring.";
         routineHelperChoice.ItemSelected += _ =>
         {
+            ClearRoutineHelperSetupCheck();
             var provider = SelectedRoutineHelper();
             routineHelperModelPicker.SetModel(DefaultProviderModel(provider));
             RefreshRoutineHelperKeys();
@@ -150,23 +155,30 @@ public partial class Main
         routineHelperKeyChoice.ClipText = true;
         routineHelperKeyChoice.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         routineHelperKeyChoice.TooltipText = "Choose a saved TypeSafe key for Jev or an OpenAI key for Decisions.";
-        routineHelperKeyChoice.ItemSelected += _ => { RequestRoutineHelperModels(); RefreshControlAvailability(); };
-        routineHelperModelPicker.ModelChanged += RefreshControlAvailability;
+        routineHelperKeyChoice.ItemSelected += _ => { ClearRoutineHelperSetupCheck(); RequestRoutineHelperModels(); RefreshControlAvailability(); };
+        routineHelperModelPicker.ModelChanged += () => { ClearRoutineHelperSetupCheck(); RefreshControlAvailability(); };
         routineHelperModelPicker.RetryRequested += RequestRoutineHelperModels;
         applyRoutineHelperButton.Text = "Apply helper";
         StyleButton(applyRoutineHelperButton);
         applyRoutineHelperButton.Pressed += () => _ = SaveRoutineHelperAsync();
+        routineHelperSetupCheckButton.Text = "Test helper · 1 paid call";
+        routineHelperSetupCheckButton.TooltipText = "Tests the selected helper, model and saved key. It counts toward your model-call limit.";
+        StyleButton(routineHelperSetupCheckButton);
+        routineHelperSetupCheckButton.Pressed += () => _ = RunRoutineHelperSetupCheckAsync();
+        routineHelperSetupCheckStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        routineHelperSetupCheckStatus.Hide();
         var hint = new Label
         {
-            Text = "Pause the world to change its helper. Jev uses your saved TypeSafe key; OpenAI Decisions uses your saved OpenAI key, and switching keeps memories.",
+            Text = "Adults and elders use the helper only when all available actions concern food, clothing, warmth, care or waiting. Planning, naming, guidance and children's choices use personal models.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
-        worldSettingsContent.AddChild(SettingsBox("Routine helper", routineHelperChoice, routineHelperKeyChoice, routineHelperModelPicker, applyRoutineHelperButton, hint));
+        worldSettingsContent.AddChild(SettingsBox("Routine helper", routineHelperChoice, routineHelperKeyChoice, routineHelperModelPicker, applyRoutineHelperButton, routineHelperSetupCheckButton, routineHelperSetupCheckStatus, hint));
     }
 
     private void RequestRoutineHelperModels()
     {
         var provider = SelectedRoutineHelper();
+        routineHelperSetupCheckButton.Visible = provider != "off";
         routineHelperModelPicker.Visible = provider != "off";
         routineHelperKeyChoice.Visible = provider != "off";
         if (provider == "off")
@@ -184,10 +196,27 @@ public partial class Main
         var context = $"{snapshot.WorldId}|{observationSession.RequestGeneration}|{provider}|{model}|{snapshot.RoutineHelperCredentialSlotId}";
         if (context == observedRoutineHelperContext) return;
         observedRoutineHelperContext = context;
+        ClearRoutineHelperSetupCheck();
         routineHelperChoice.Select(provider switch { "off" => 0, "decisions" => 2, _ => 1 });
         routineHelperModelPicker.SetModel(model);
         RefreshRoutineHelperKeys(snapshot.RoutineHelperCredentialSlotId);
         RequestRoutineHelperModels();
+    }
+
+    private async Task RunRoutineHelperSetupCheckAsync()
+    {
+        var provider = SelectedRoutineHelper();
+        var model = routineHelperModelPicker.Model;
+        if (provider == "off" || model.Length is < 1 or > 128 || model.Any(char.IsControl)) return;
+        await RunModelSetupCheckAsync(routineHelperSetupCheckButton, routineHelperSetupCheckStatus,
+            provider, model, new(provider, model, SelectedRoutineHelperKey()), () => routineHelperSetupCheckRevision);
+    }
+
+    private void ClearRoutineHelperSetupCheck()
+    {
+        ++routineHelperSetupCheckRevision;
+        routineHelperSetupCheckStatus.Text = string.Empty;
+        routineHelperSetupCheckStatus.Hide();
     }
 
     private string? SelectedRoutineHelperKey()
@@ -235,7 +264,7 @@ public partial class Main
         {
             _ = await AwaitCurrentWorldResultAsync(ownerApi.SetRoutineHelperAsync(ResolveWorldUri(), authority, deviceId,
                 action, signer, OwnerRequestToken));
-            return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} will help in this world";
+            return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} selected for this world. Use Test helper to check the saved key and model.";
         });
     }
 }

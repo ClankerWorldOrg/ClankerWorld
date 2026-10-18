@@ -68,7 +68,7 @@ internal static partial class OwnerEndpoints
         });
 
         // A setup check is an explicit paid call through the game's actual
-        // personal-model adapter. It never stores the supplied key or changes
+        // model or helper adapter. It never stores the supplied key or changes
         // provider configuration, and never retries with different options.
         app.MapPost("/api/v1/owner/providers/setup-check", async (
             OwnerSignedHttpRequest<OwnerProviderSetupCheckAction> request,

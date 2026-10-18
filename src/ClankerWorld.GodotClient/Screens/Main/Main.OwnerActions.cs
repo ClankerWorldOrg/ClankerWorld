@@ -261,6 +261,8 @@ public partial class Main
         applyRoutineHelperButton.Disabled = routineHelperChoice.Disabled ||
             helper != "off" && (helperModel.Length is < 1 or > 128 || helperModel.Any(char.IsControl));
         routineHelperKeyChoice.Disabled = routineHelperChoice.Disabled;
+        routineHelperSetupCheckButton.Disabled = actionDisabled || !supportsRoutineHelper || helper == "off" ||
+            helperModel.Length is < 1 or > 128 || helperModel.Any(char.IsControl);
         applyAgingOverrideButton.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         agingOverrideChoice.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         applyAgingOverrideButton.TooltipText = !supportsAgingOverride ? "This world server can't use the aging override." :

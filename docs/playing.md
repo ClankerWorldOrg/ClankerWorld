@@ -256,6 +256,15 @@ people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
 
+The helper answers only when every available action is about food, clothing,
+warmth, care or waiting. An agent doing everyday work can still have bigger
+choices available, so its personal model may answer instead. Applying a helper
+selects it without checking its connection. **Test helper · 1 paid call** checks
+the selected model and saved key immediately, without waiting for routine work.
+The result explains a usable reply or a connection, key or model problem; each
+sent test counts toward the model-call limit. A successful test leaves the
+world's helper choice and its agents unchanged.
+
 To save keys before placing any agents, open **Settings → Game → API keys**.
 Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
 **Save API key**. You can save each provider's keys from Main Menu Settings once this device is
