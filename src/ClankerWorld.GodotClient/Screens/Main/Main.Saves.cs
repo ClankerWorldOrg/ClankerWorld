@@ -515,6 +515,11 @@ public partial class Main
         }
         row.AddChild(text);
         manualSaveDetails.AddChild(row);
+        // Container minimum-size updates propagate later. Drop the loading
+        // list's cached height before the first frame of the finished timeline.
+        for (Control? control = manualSaveDetails; control is not null; control = control.GetParent() as Control)
+            control.UpdateMinimumSize();
+        if (!WorldHistoryEmbedded) manualSaveCard.ResetSize();
         if (manualSaveTimeline.IsVisibleInTree()) Callable.From(FitManualSaveTimeline).CallDeferred();
     }
 
