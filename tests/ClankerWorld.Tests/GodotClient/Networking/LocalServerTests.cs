@@ -106,6 +106,10 @@ public sealed partial class LocalServerTests
         {
             ["OPENAI_API_KEY"] = "one",
             ["ANTHROPIC_API_KEY"] = "two",
+            ["ANTHROPIC_BASE_URL"] = "https://example.invalid/",
+            ["ANTHROPIC_AUTH_TOKEN"] = "fake-auth-token",
+            ["ASPNETCORE_ENVIRONMENT"] = "Development",
+            ["dotnet_environment"] = "Development",
             ["OLLAMA_API_KEY"] = "three",
             ["typesafe_api_key"] = "four",
             ["ClankerWorld__Providers__DecisionProvider"] = "openai",
@@ -119,8 +123,10 @@ public sealed partial class LocalServerTests
             ["OPENAI_API_KEY_BACKUP"] = "kept",
         };
         LocalServerLayout.WithholdServerSettings(environment);
-        Assert.Equal("ClankerWorld_Notes,DOTNET_ROOT,OPENAI_API_KEY_BACKUP,PATH",
+        Assert.Equal("ASPNETCORE_ENVIRONMENT,ClankerWorld_Notes,DOTNET_ENVIRONMENT,DOTNET_ROOT,OPENAI_API_KEY_BACKUP,PATH",
             string.Join(',', environment.Keys.Order(StringComparer.Ordinal)));
+        Assert.Equal("Production", environment["ASPNETCORE_ENVIRONMENT"]);
+        Assert.Equal("Production", environment["DOTNET_ENVIRONMENT"]);
 
         // The start the game uses applies this to the environment it inherits.
         const string Probe = "ClankerWorld__Tests__LocalServerEnvironmentProbe";

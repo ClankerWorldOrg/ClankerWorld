@@ -1,4 +1,5 @@
 using System.Net;
+using ClankerWorld.Server;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
@@ -8,6 +9,31 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ProviderConfigurationStoreTests
 {
+    [Fact]
+    public void CredentialTemporaryHandleProtectsPublicationFromStartupCleanup()
+    {
+        var directory = Directory.CreateTempSubdirectory("credential-publication-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "providers.json");
+            var store = new ProviderConfigurationStore(path, EmptySeed());
+            var saved = File.ReadAllBytes(path);
+            var temporary = Path.Combine(directory.FullName, $".providers.json.{Guid.NewGuid():N}.tmp");
+            using (var writer = PrivateStorage.CreateNew(temporary, FileShare.Delete))
+            {
+                writer.Write(saved);
+                writer.Flush(flushToDisk: true);
+                Assert.Equal((0, 1), ProviderConfigurationStore.RemoveTemporaryFiles(path));
+                File.Move(temporary, path, overwrite: true);
+                Assert.Equal((0, 0), ProviderConfigurationStore.RemoveTemporaryFiles(path));
+            }
+            Assert.Equal(saved, File.ReadAllBytes(path));
+            var restored = new ProviderConfigurationStore(path, EmptySeed());
+            Assert.Equal(store.CaptureRuntimeConfiguration().Revision, restored.CaptureRuntimeConfiguration().Revision);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task UntouchedWorldUsesTheConfiguredJevModel()
     {

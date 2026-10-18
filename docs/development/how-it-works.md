@@ -2003,6 +2003,15 @@ construction or replay rule changes.
 
 ## Model inputs, usage and memories
 
+The named `model` and `typesafe` HTTP clients refuse automatic redirects and
+limit buffered bodies to the shared 256 KiB response bound. Streaming adapters
+also use `ProviderResponseBody` before parsing. Credential-bearing records omit
+their fields when printed. Startup removes matching leftover temporary provider
+configuration files without reading their contents; busy or linked files are
+retained, with only removed/retained counts logged. Credential writers keep
+their handle open through atomic publication so cleanup cannot take a live
+temporary file between its final write and rename.
+
 The per-world routine helper is Off, Jev or OpenAI Decisions. Decisions uses
 `POST https://api.openai.com/v1/decisions`, sharing Jev's bounded actor context
 and existing owner-private memory scoring. Its `input` is serialized context;
@@ -4874,6 +4883,13 @@ never reconstructs a historical location from a current lot. The records
 follow ordinary rollback and event compaction, not a second growing ledger.
 
 ## Runtime logging
+
+Unexpected HTTP failures return a plain problem response. `SafeServerErrors`
+logs `server_request outcome=failed error_type=... route=...`, using the route
+pattern rather than request text and suppressing the
+middleware's detailed exception diagnostics. `PrivateStorage` creates private
+installation files with owner-only permissions before writing; its folders
+also exclude other accounts while preserving an owner's read-only setting.
 
 Changed gameplay loops, provider adapters, persistence boundaries and lifecycle
 gates need low-noise structured logs at meaningful outcomes. An operator should

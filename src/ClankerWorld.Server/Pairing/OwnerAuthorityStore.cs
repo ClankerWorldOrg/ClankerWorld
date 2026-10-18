@@ -127,7 +127,16 @@ public sealed record OwnerDevice(
     string PublicKeyFingerprint,
     OwnerDeviceState State,
     DateTimeOffset ActivatedAtUtc,
-    DateTimeOffset? RevokedAtUtc);
+    DateTimeOffset? RevokedAtUtc,
+    string? ApprovedBy = null)
+{
+    public string ApprovalDescription => ApprovedBy switch
+    {
+        OwnerAuthorityStore.LocalApproval => "Approved on the server's computer",
+        null => "Approval not recorded",
+        _ => $"Approved by device {ApprovedBy}",
+    };
+}
 
 /// <summary>
 /// A signed request to mint a short-lived one-use challenge. RequestId is
@@ -195,7 +204,8 @@ public sealed record OwnerStoredPairing(
     DateTimeOffset ExpiresAtUtc,
     string ActivationCanonicalProof,
     OwnerPairingState State,
-    int WrongVisibleCodeAttempts = 0);
+    int WrongVisibleCodeAttempts = 0,
+    string? ApprovedBy = null);
 
 public sealed record OwnerStoredDevice(
     string DeviceId,
@@ -203,7 +213,8 @@ public sealed record OwnerStoredDevice(
     string PublicKeyFingerprint,
     OwnerDeviceState State,
     DateTimeOffset ActivatedAtUtc,
-    DateTimeOffset? RevokedAtUtc);
+    DateTimeOffset? RevokedAtUtc,
+    string? ApprovedBy = null);
 
 public enum OwnerStoredChallengeState
 {
@@ -282,6 +293,7 @@ public sealed record OwnerAuthorityResult<T>(OwnerAuthorityFailure Failure, T? V
 /// </summary>
 public sealed class OwnerAuthorityStore
 {
+    internal const string LocalApproval = "server-local";
     public const string SignatureAlgorithm = "ecdsa-p256-sha256-p1363.v1";
     public const string PairingActivationProofDomain = "clankerworld.owner-pairing.activate.v1";
     public const string ChallengeIssueProofDomain = "clankerworld.owner-challenge.issue.v1";
@@ -377,7 +389,8 @@ public sealed class OwnerAuthorityStore
                     pairing.ExpiresAtUtc,
                     pairing.ActivationCanonicalProof,
                     pairing.State,
-                    pairing.WrongVisibleCodeAttempts))
+                    pairing.WrongVisibleCodeAttempts,
+                    pairing.ApprovedBy))
                 .ToArray(),
             Devices: devices.Values
                 .OrderBy(device => device.DeviceId, StringComparer.Ordinal)
@@ -387,7 +400,8 @@ public sealed class OwnerAuthorityStore
                     device.PublicKeyFingerprint,
                     device.State,
                     device.ActivatedAtUtc,
-                    device.RevokedAtUtc))
+                    device.RevokedAtUtc,
+                    device.ApprovedBy))
                 .ToArray(),
             Challenges: challenges.Values
                 .OrderBy(challenge => challenge.ChallengeId, StringComparer.Ordinal)
@@ -537,7 +551,7 @@ public sealed class OwnerAuthorityStore
     /// </summary>
     public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairingLocally(
         string pairingId,
-        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, allowRevokedKey: true);
+        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, LocalApproval, allowRevokedKey: true);
 
     /// <summary>
     /// Applies confirmation by an already paired owner device. Deliberate
@@ -545,14 +559,17 @@ public sealed class OwnerAuthorityStore
     /// </summary>
     public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairing(
         string pairingId,
-        string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, allowRevokedKey: false);
+        string visibleCode,
+        string approvingDeviceId) => ApprovePendingPairing(pairingId, visibleCode, approvingDeviceId, allowRevokedKey: false);
 
     private OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairing(
         string pairingId,
         string visibleCode,
+        string approvedBy,
         bool allowRevokedKey)
     {
-        if (!IsReasonableIdentifier(pairingId) || !IsVisibleCode(visibleCode))
+        if (!IsReasonableIdentifier(pairingId) || !IsVisibleCode(visibleCode) ||
+            (!allowRevokedKey && !IsReasonableIdentifier(approvedBy)))
         {
             return OwnerAuthorityResult<OwnerPairingApproval>.Fail(OwnerAuthorityFailure.InvalidRequest);
         }
@@ -582,6 +599,10 @@ public sealed class OwnerAuthorityStore
                 return OwnerAuthorityResult<OwnerPairingApproval>.Fail(keyFailure);
             }
 
+            if (!allowRevokedKey && (!devices.TryGetValue(approvedBy, out var approver) ||
+                approver.State != OwnerDeviceState.Active))
+                return OwnerAuthorityResult<OwnerPairingApproval>.Fail(OwnerAuthorityFailure.DeviceNotFound);
+
             if (!CryptographicOperations.FixedTimeEquals(pairing.VisibleCodeHash, presentedCodeHash))
             {
                 pairing.WrongVisibleCodeAttempts++;
@@ -597,6 +618,7 @@ public sealed class OwnerAuthorityStore
             }
 
             pairing.WrongVisibleCodeAttempts = 0;
+            pairing.ApprovedBy = approvedBy;
             pairing.State = OwnerPairingState.Approved;
             return OwnerAuthorityResult<OwnerPairingApproval>.Success(
                 new OwnerPairingApproval(
@@ -668,7 +690,8 @@ public sealed class OwnerAuthorityStore
                 pairing.DeviceId,
                 pairing.PublicKeySpki,
                 pairing.PublicKeyFingerprint,
-                UtcNow());
+                UtcNow())
+            { ApprovedBy = pairing.ApprovedBy };
             devices.Add(registeredDevice.DeviceId, registeredDevice);
             pairing.State = OwnerPairingState.Active;
 
@@ -1045,6 +1068,7 @@ public sealed class OwnerAuthorityStore
                             stored.WrongVisibleCodeAttempts)
                         {
                             State = stored.State,
+                            ApprovedBy = stored.ApprovedBy,
                         }))
                 {
                     throw new InvalidDataException("The owner-authority pairing state is invalid.");
@@ -1070,13 +1094,16 @@ public sealed class OwnerAuthorityStore
                         {
                             State = stored.State,
                             RevokedAtUtc = stored.RevokedAtUtc?.ToUniversalTime(),
+                            ApprovedBy = stored.ApprovedBy,
                         }))
                 {
                     throw new InvalidDataException("The owner-authority device state is invalid.");
                 }
             }
 
-            if (devices.Values
+            if (pairings.Values.Any(pairing => !IsKnownApprover(pairing.ApprovedBy)) ||
+                devices.Values.Any(device => !IsKnownApprover(device.ApprovedBy)) ||
+                devices.Values
                 .Where(device => device.State == OwnerDeviceState.Active)
                 .GroupBy(device => device.PublicKeyFingerprint, StringComparer.Ordinal)
                 .Any(group => group.Count() > 1) ||
@@ -1086,6 +1113,7 @@ public sealed class OwnerAuthorityStore
                     pairings.Values.SingleOrDefault(pairing =>
                         string.Equals(pairing.DeviceId, device.DeviceId, StringComparison.Ordinal)) is not { } pairing ||
                     pairing.State != OwnerPairingState.Active ||
+                    !string.Equals(pairing.ApprovedBy, device.ApprovedBy, StringComparison.Ordinal) ||
                     !string.Equals(
                         pairing.PublicKeyFingerprint,
                         device.PublicKeyFingerprint,
@@ -1333,7 +1361,11 @@ public sealed class OwnerAuthorityStore
         device.PublicKeyFingerprint,
         device.State,
         device.ActivatedAtUtc,
-        device.RevokedAtUtc);
+        device.RevokedAtUtc,
+        device.ApprovedBy);
+
+    private bool IsKnownApprover(string? approvedBy) =>
+        approvedBy is null or LocalApproval || devices.ContainsKey(approvedBy);
 
     private static bool TryImportP256PublicKey(string? publicKeySpkiBase64, out byte[] publicKeySpki)
     {
@@ -1499,6 +1531,7 @@ public sealed class OwnerAuthorityStore
         public string ActivationCanonicalProof { get; } = activationCanonicalProof;
 
         public int WrongVisibleCodeAttempts { get; set; } = wrongVisibleCodeAttempts;
+        public string? ApprovedBy { get; set; }
 
         public OwnerPairingState State { get; set; } = OwnerPairingState.Pending;
     }
@@ -1520,6 +1553,7 @@ public sealed class OwnerAuthorityStore
         public OwnerDeviceState State { get; set; } = OwnerDeviceState.Active;
 
         public DateTimeOffset? RevokedAtUtc { get; set; }
+        public string? ApprovedBy { get; set; }
     }
 
     private enum OwnerChallengeState

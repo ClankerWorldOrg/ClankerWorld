@@ -91,7 +91,9 @@ public sealed record OwnerDevice(
     string PublicKeyFingerprint,
     OwnerDeviceState State,
     DateTimeOffset ActivatedAtUtc,
-    DateTimeOffset? RevokedAtUtc);
+    DateTimeOffset? RevokedAtUtc,
+    string? ApprovedBy = null,
+    string? ApprovalDescription = null);
 
 /// <summary>
 /// Signed request to mint a short-lived, one-use challenge.
