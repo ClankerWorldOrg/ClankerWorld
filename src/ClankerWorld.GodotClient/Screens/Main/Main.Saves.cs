@@ -433,13 +433,22 @@ public partial class Main
         text.AddThemeConstantOverride("separation", 2);
         var chosen = SelectedManualSave();
         var lane = chosen is null ? null : manualSaveTimeline.Lanes.FirstOrDefault(item => item.Points.Contains(chosen));
-        Label Line(string value, string variation = "") => new()
+        Label Line(string value, string variation = "")
         {
-            Text = value,
-            ThemeTypeVariation = variation,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            CustomMinimumSize = new Vector2(360, 0),
-        };
+            var line = new Label
+            {
+                Text = value,
+                ThemeTypeVariation = variation,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                CustomMinimumSize = new Vector2(360, 0),
+            };
+            // Measure wrapping at the same width the card will give this text,
+            // rather than briefly measuring the new label at its minimum width.
+            var width = ManualSaveTimelineWidth() - ManualSaveCardFrame() -
+                manualSaveDetails.GetThemeStylebox("panel").GetMinimumSize().X - row.GetThemeConstant("separation") - 4;
+            line.Size = new Vector2(Math.Max(360, width), 0);
+            return line;
+        }
         if (chosen is null || lane is null)
         {
             var readout = TimelineReadout();

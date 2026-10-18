@@ -170,15 +170,7 @@ public partial class Main
             // A short world fits without sideways scrolling from its first frame.
             await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([firstSave, harvest]),
                 _ => Task.FromResult<SaveTimelinePosition?>(new("harvest", "a", false)));
-            // Headless runs do not draw. Observe the completed container sort;
-            // graphical runs measure the first actual drawn frame instead.
-            if (DisplayServer.GetName() == "headless")
-            {
-                var center = (Container)manualSaveCard.GetParent();
-                center.QueueSort();
-                await ToSignal(center, Container.SignalName.SortChildren);
-            }
-            else await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             var openingSize = manualSaveCard.Size;
             if (openingSize.X < 850)
                 throw new InvalidOperationException($"Save World must open wide enough for its short timeline: {openingSize}.");
