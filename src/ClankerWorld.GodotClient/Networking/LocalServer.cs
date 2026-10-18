@@ -456,6 +456,8 @@ public sealed class LocalServer : IAsyncDisposable
                 // Already gone, or not answering: handled below for a host we started.
             }
         }
+        // A reused host has no child handle. A timeout is not proof it stopped.
+        if (proven && !acknowledged && process is null && !CanBindPort()) return false;
         if (process is { HasExited: false } running)
         {
             // Our child never answered the launch check, so whatever holds the

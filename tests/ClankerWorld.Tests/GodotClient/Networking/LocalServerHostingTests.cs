@@ -8,6 +8,48 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class LocalServerTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReusedHostShutdownTimeoutPreservesALiveHostAndRecognizesAnAlreadyGoneHost(bool alreadyGone)
+    {
+        var directory = Directory.CreateTempSubdirectory("launcher-host-stop-timeout-");
+        var (port, approval) = FreePorts();
+        var assembly = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(assembly);
+        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        { HostKind = "launcher" };
+        using var http = new HttpClient();
+        var owner = new LocalServer(layout, http, port, approval);
+        try
+        {
+            Assert.Equal(LocalServerStartOutcome.Started, (await owner.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            var proofDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
+            using var handler = new TimeoutOnceHandler("/api/v1/approval/shutdown");
+            using var delayedHttp = new HttpClient(handler);
+            var clock = new ManualTimeProvider();
+            var reused = new LocalServer(layout, delayedHttp, port, approval, timeProvider: clock);
+            Assert.Equal(LocalServerStartOutcome.Reused, (await reused.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            if (alreadyGone) Assert.True(await owner.StopAsync(CancellationToken.None));
+            var stopping = reused.StopAsync(CancellationToken.None);
+            await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+            clock.Advance(TimeSpan.FromSeconds(5));
+            Assert.Equal(alreadyGone, await ModelWorkHarness.WaitForSignalAsync(stopping));
+            if (!alreadyGone)
+            {
+                Assert.Equal(proofDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
+                Assert.True((await http.GetAsync(new Uri(owner.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
+                Assert.True(await ModelWorkHarness.WaitForSignalAsync(reused.StopAsync(CancellationToken.None)));
+            }
+        }
+        finally
+        {
+            await owner.StopAsync(CancellationToken.None);
+            directory.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public async Task HostedServerKeepsModeApprovalAndDeclineBoundToThePrivateListener()
     {

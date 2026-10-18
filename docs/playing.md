@@ -56,8 +56,9 @@ hosting again when I sign in to Windows** to disable that.
 Closing the host window minimizes it and keeps hosting in the background.
 **Stop hosting** saves the world, stops the server and turns off the private
 forwarding address without removing worlds or approved devices. A failed save
-keeps the host alive and paused so you can free space and retry. Playing on the
-hosting PC is separate work; for now use another computer to join, or stop
+keeps the host alive and paused so you can free space and retry. If stopping
+cannot be confirmed, the hosting controls stay available for retry. Playing on
+the hosting PC is separate work; for now use another computer to join, or stop
 hosting before playing locally.
 
 ## Connect your device

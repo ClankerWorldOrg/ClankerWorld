@@ -219,7 +219,7 @@ public partial class Launcher
         {
             if (!await host.StopAsync(hostingLifetime.Token))
             {
-                SetStatus("The world could not be saved. Hosting is still running and paused; try Stop hosting again.");
+                SetStatus("Hosting could not be stopped safely. Your world is kept; try Stop hosting again.");
                 return;
             }
             var networkStopped = await TurnOffHostingAddressAsync(host);
