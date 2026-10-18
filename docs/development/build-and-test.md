@@ -294,6 +294,11 @@ The first command records each test's duration in
 `tests/ClankerWorld.Tests/TestResults/timings.trx`; the second lists
 the tests job 1 would run without timings.
 
+Launcher log-handoff checks hold a real native command child at an asynchronous
+named pipe. Its connection proves entry and closing the pipe releases it,
+without cold PowerShell startup or a blocking thread-pool waiter. The inherited
+log control and repeated production shell handoffs keep their real handles.
+
 The native Windows storage job also runs the repeated checkpoint-compaction
 test and checks that a refused overwrite preserves the previous checkpoint.
 It uploads the test report as `windows-storage-evidence`. If the repeated-save
