@@ -33,6 +33,7 @@ public partial class Main
     private sealed record PendingModelLoad(string WorldId, string? SaveId, string? WorldApproval, string? SaveApproval);
     private PendingModelLoad? pendingWorldModelLoad;
     private (string Id, string Approval)? pendingSaveModelLoad;
+    private Task manualSaveLoadPreparation = Task.CompletedTask;
     private readonly Button manualSaveDeleteButton = new();
     private readonly ConfirmationDialog deletionConfirmation = new();
     private OwnerDeletionAction? pendingDeletion;
@@ -915,7 +916,7 @@ public partial class Main
 
     private ManualWorldSave? NewestListedSave() => allListedManualSaves.OrderByDescending(save => save.CreatedUtc).FirstOrDefault();
 
-    private void ConfirmManualSaveLoad() => _ = PrepareManualSaveLoadAsync();
+    private void ConfirmManualSaveLoad() => manualSaveLoadPreparation = PrepareManualSaveLoadAsync();
 
     private async Task PrepareManualSaveLoadAsync()
     {

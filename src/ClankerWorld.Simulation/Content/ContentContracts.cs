@@ -534,12 +534,20 @@ public sealed class ContentPackageRegistry
 
         if (state.Events.Any(item => item is null))
             throw new InvalidDataException("The content governance event stream contains an empty record.");
-        var lastByPackage = state.Events.GroupBy(item => item.PackageId, StringComparer.Ordinal)
-            .ToDictionary(group => group.Key, group => group.Last(), StringComparer.Ordinal);
-        var removed = lastByPackage.Where(pair => pair.Value.Kind == "package_removed")
+        var historyByPackage = state.Events.GroupBy(item => item.PackageId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
+        var removed = historyByPackage.Where(pair => pair.Value[^1].Kind == "package_removed")
             .Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal);
         if (removed.Any(registry.packages.ContainsKey))
             throw new InvalidDataException("Removed content still has a package record.");
+        foreach (var packageId in removed)
+        {
+            var history = historyByPackage[packageId];
+            ContentPackageRules.ValidateDigest(history[^1].Detail, nameof(ContentGovernanceEvent.Detail));
+            if (history.Length < 3 || history[0].Kind != "package_proposed" ||
+                history[^2].Kind != "package_rolled_back" || history[^1].Detail != history[0].Detail)
+                throw new InvalidDataException("Removed content has no matching proposal and quarantine receipts.");
+        }
         var expectedEventId = 1L;
         var previousTick = 0L;
         foreach (var governanceEvent in state.Events)
@@ -554,7 +562,7 @@ public sealed class ContentPackageRegistry
 
             ContentPackageRules.ValidatePackageId(governanceEvent.PackageId);
             if (governanceEvent.Kind == "package_removed" &&
-                lastByPackage[governanceEvent.PackageId].EventId != governanceEvent.EventId)
+                historyByPackage[governanceEvent.PackageId][^1].EventId != governanceEvent.EventId)
                 throw new InvalidDataException("Removed content has later lifecycle events.");
             expectedEventId = checked(expectedEventId + 1);
             previousTick = governanceEvent.WorldTick;

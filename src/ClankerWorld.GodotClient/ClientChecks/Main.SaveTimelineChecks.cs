@@ -134,6 +134,7 @@ public partial class Main
                 !Details().Contains("Another branch grew from here. Playing on from it starts a new branch", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Clicking a save must choose it and describe it: {Details()}.");
             Click("harvest", twice: true);
+            await manualSaveLoadPreparation;
             if (Chosen() != "harvest" || !manualSaveLoadConfirmation.Visible ||
                 !manualSaveLoadConfirmation.DialogText.Contains("Big harvest", StringComparison.Ordinal) ||
                 manualSaveLoadConfirmation.DialogText.Contains("new branch", StringComparison.Ordinal) ||

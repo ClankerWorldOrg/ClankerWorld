@@ -38,6 +38,10 @@ public sealed class WorldModelSettingsTests
             })
                 Assert.Throws<ModelSettingsConfirmationRequiredException>(() => WorldModelSettings.RequireApproval(changed, preview.Approval));
             var unchanged = WorldModelSettings.Preview("save:unchanged", target, [], world, providers);
+            var inherited = WorldModelSettings.Preview("save:inherited", target,
+                [assignment with { Provider = "inherit", Model = null, CredentialSlotId = null }], world, providers);
+            Assert.Contains(inherited.Details, line => line.Contains("current model settings", StringComparison.Ordinal));
+            Assert.DoesNotContain(inherited.Details, line => line.Contains("local rules", StringComparison.Ordinal));
             Assert.False(unchanged.RequiresConfirmation);
             WorldModelSettings.RequireApproval(unchanged, null);
         }

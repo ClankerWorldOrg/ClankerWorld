@@ -32,7 +32,11 @@ public static class WorldModelSettings
         var details = selected.Select(item =>
         {
             var name = target.Society.Society.Agents.FirstOrDefault(person => person.Id == item.AgentId)?.Name ?? "Saved agent";
-            return $"{name}: {item.Provider}, {item.Model ?? "local rules"}, {Key(item.CredentialSlotId)}" +
+            if (item.Provider == PlayerDecisionProviders.Inherit)
+                return $"{name}: this installation's current model settings";
+            if (item.Provider == PlayerDecisionProviders.Deterministic)
+                return $"{name}: built-in rules";
+            return $"{name}: {item.Provider}, {item.Model ?? "installation model default"}, {Key(item.CredentialSlotId)}" +
                 (item.Thinking is null ? string.Empty : $", thinking {item.Thinking}");
         }).ToList();
         var helper = target.RoutineHelper;

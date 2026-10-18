@@ -498,12 +498,12 @@ public sealed partial class ServerHttpTests
             Assert.Equal(5, restoredRuntime.WorldSimulation.Buildings.Count);
             Assert.NotEmpty(restoredRuntime.RoadTiles);
             var selectedOld = restarted.Services.GetRequiredService<WorldSelectionCoordinator>()
-                .Select(firstId);
+                .SelectApprovedModels(firstId);
             Assert.Equal(firstId, selectedOld.Id);
             Assert.Null(restoredRuntime.ExportState().Geography);
             Assert.False(restarted.Services.GetRequiredService<WorldAutosaveStore>().Capture().Enabled);
             var restoredEntry = restarted.Services.GetRequiredService<WorldSelectionCoordinator>()
-                .Select(generatedId);
+                .SelectApprovedModels(generatedId);
             Assert.Equal("Riverland", restoredEntry.Name);
             Assert.Equal(WorldSizePreset.Small, restoredRuntime.ExportState().Geography?.Size);
             Assert.True(restoredRuntime.Society.IsPaused);

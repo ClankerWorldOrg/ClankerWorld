@@ -56,15 +56,35 @@ public sealed class ContentStorageLimitTests
         Assert.Equal(before, JsonSerializer.SerializeToUtf8Bytes(registry.ExportState()));
         registry.RemoveQuarantined(first.PackageId, 0);
         registry = ContentPackageRegistry.Restore(registry.ExportState());
+        Assert.Throws<InvalidOperationException>(() => registry.Propose(first));
         registry.Propose(Package("replacement"));
         Assert.Equal(ContentPackageRules.MaximumPackages, registry.ExportState().Packages.Count);
         Assert.Contains(registry.ExportState().Events, item => item.PackageId == first.PackageId && item.Kind == "package_removed");
         Assert.DoesNotContain(registry.ExportState().Packages, item => item.Manifest.PackageId == first.PackageId);
-        Assert.Throws<InvalidOperationException>(() => registry.Propose(first));
     }
 
     [Fact]
-    public void RemovingQuarantinedContentPersistsBeforeChangingTheLiveWorld()
+    public void RemovalReceiptsCannotInventAMissingPackageOrReplaceItsProposalDigest()
+    {
+        var package = Package();
+        var registry = new ContentPackageRegistry();
+        registry.Propose(package);
+        registry.Validate(package.PackageId, ContentPackageResolver.Resolve([package], [package.PackageId]), 0);
+        registry.Approve(package.PackageId, 0);
+        registry.Stage(package.PackageId, 0);
+        registry.Rollback(package.PackageId, 0, "owner quarantine");
+        registry.RemoveQuarantined(package.PackageId, 0);
+        var removed = registry.ExportState();
+        Assert.Empty(ContentPackageRegistry.Restore(removed).ExportState().Packages);
+        var wrongDigest = removed.Events.ToArray();
+        wrongDigest[^1] = wrongDigest[^1] with { Detail = "sha256:" + new string('b', 64) };
+        Assert.Throws<InvalidDataException>(() => ContentPackageRegistry.Restore(removed with { Events = wrongDigest }));
+        Assert.Throws<InvalidDataException>(() => ContentPackageRegistry.Restore(new([], [
+            new(1, 0, package.PackageId, "package_removed", package.PackageDigest)])));
+    }
+
+    [Fact]
+    public async Task RemovingQuarantinedContentPersistsBeforeChangingTheLiveWorld()
     {
         using var world = new WorldRuntime("bounded-content");
         world.Pause();
@@ -83,5 +103,11 @@ public sealed class ContentStorageLimitTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(persisted!));
         Assert.Equal(persisted, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.DoesNotContain(restored.Content.Packages, item => item.Manifest.PackageId == package.PackageId);
+        world.Resume();
+        restored.Resume();
+        var (originalStep, restoredStep) = await ModelWorkHarness.For(world).AdvanceTogetherAsync(ModelWorkHarness.For(restored));
+        Assert.True(originalStep.Advanced);
+        Assert.True(restoredStep.Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 }
