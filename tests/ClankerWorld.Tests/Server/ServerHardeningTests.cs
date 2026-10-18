@@ -132,8 +132,12 @@ public sealed class ServerHardeningTests
         finally { await app.StopAsync(); }
     }
 
-    [Fact]
-    public async Task UnexpectedRequestErrorsExposeOnlyTheirTypeInLogsAndAPlainProblem()
+    [Theory]
+    [InlineData(400)]
+    [InlineData(404)]
+    [InlineData(413)]
+    [InlineData(500)]
+    public async Task RequestErrorsKeepTheirStatusAndPrivateDetails(int status)
     {
         const string detail = "synthetic-private-exception-detail";
         var builder = WebApplication.CreateBuilder();
@@ -143,17 +147,22 @@ public sealed class ServerHardeningTests
         builder.Logging.AddProvider(log);
         await using var app = builder.Build();
         SafeServerErrors.Configure(app, app.Logger);
-        app.MapGet("/failure/{id}", IResult (string id) => throw new InvalidOperationException(detail));
+        Exception failure = status == 500 ? new InvalidOperationException(detail) : new BadHttpRequestException(detail, status);
+        app.MapGet("/failure/{id}", IResult (string id) => throw failure);
         await app.StartAsync();
         using var client = app.GetTestClient();
         using var response = await client.GetAsync("/failure/public-device");
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(status, (int)response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
         Assert.DoesNotContain(detail, await response.Content.ReadAsStringAsync());
         Assert.DoesNotContain(log.Messages, message => message.Contains(detail, StringComparison.Ordinal));
-        Assert.Contains(log.Messages, message => message.Contains("server_request outcome=failed error_type=InvalidOperationException", StringComparison.Ordinal));
-        Assert.Contains(log.Messages, message => message.Contains("route=/failure/{id}", StringComparison.Ordinal) &&
-            !message.Contains("public-device", StringComparison.Ordinal));
+        if (status == 500)
+        {
+            Assert.Contains(log.Messages, message => message.Contains("server_request outcome=failed error_type=InvalidOperationException", StringComparison.Ordinal));
+            Assert.Contains(log.Messages, message => message.Contains("route=/failure/{id}", StringComparison.Ordinal) &&
+                !message.Contains("public-device", StringComparison.Ordinal));
+        }
+        else Assert.DoesNotContain(log.Messages, message => message.Contains("server_request outcome=failed", StringComparison.Ordinal));
         await app.StopAsync();
     }
 
