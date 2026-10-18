@@ -76,7 +76,8 @@ public sealed record OwnerPairingStart(
     string PairingCode,
     string PublicKeyFingerprint,
     DateTimeOffset ExpiresAtUtc,
-    string ActivationCanonicalProof);
+    string ActivationCanonicalProof,
+    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
 
 /// <summary>
 /// Safe to expose to pairing status polling: it contains no code, private key,
@@ -100,7 +101,8 @@ public sealed record OwnerPairingApproval(
     string PairingId,
     string DeviceId,
     string PublicKeyFingerprint,
-    string ActivationCanonicalProof);
+    string ActivationCanonicalProof,
+    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
 
 /// <summary>
 /// The device sends back the exact canonical proof it signed. The store
