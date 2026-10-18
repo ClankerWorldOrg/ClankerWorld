@@ -134,6 +134,7 @@ public partial class Main
                 !Details().Contains("Another branch grew from here. Playing on from it starts a new branch", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Clicking a save must choose it and describe it: {Details()}.");
             Click("harvest", twice: true);
+            await manualSaveLoadPreparation;
             if (Chosen() != "harvest" || !manualSaveLoadConfirmation.Visible ||
                 !manualSaveLoadConfirmation.DialogText.Contains("Big harvest", StringComparison.Ordinal) ||
                 manualSaveLoadConfirmation.DialogText.Contains("new branch", StringComparison.Ordinal) ||
@@ -171,6 +172,11 @@ public partial class Main
                 _ => Task.FromResult<SaveTimelinePosition?>(new("harvest", "a", false)));
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             var openingSize = manualSaveCard.Size;
+            var openingWarning = manualSaveDiskWarning.Visible ? manualSaveDiskWarning.Text : "none";
+            var openingDetails = manualSaveDetails.Size;
+            string Geometry() => string.Join("; ", new Control[] { manualSaveCard, manualSaveBody, manualSaveHistory, manualSaveTimeline, manualSaveDetails, manualSaveNewBox }
+                .Select(c => $"{c.GetType().Name}={c.Size}/{c.GetCombinedMinimumSize()}"));
+            var openingGeometry = Geometry();
             if (openingSize.X < 850)
                 throw new InvalidOperationException($"Save World must open wide enough for its short timeline: {openingSize}.");
             // The disk-space reply arrives after opening and runs responsive layout.
@@ -180,7 +186,7 @@ public partial class Main
             {
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 if (!manualSaveCard.Size.IsEqualApprox(openingSize))
-                    throw new InvalidOperationException($"Save World must keep its first-frame size after the disk-space reply: {openingSize} -> {manualSaveCard.Size}.");
+                    throw new InvalidOperationException($"Save World must keep its first-frame size after the disk-space reply: {openingSize} -> {manualSaveCard.Size}; warning={openingWarning} -> {manualSaveDiskWarning.Visible}; details={openingDetails} -> {manualSaveDetails.Size}; {openingGeometry} -> {Geometry()}.");
             }
             var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
                 .OfType<ScrollContainer>().Single();

@@ -750,7 +750,9 @@ public sealed record OwnerReconnectAction(long AfterEventId,
     string? KnownMapLayersDigest = null);
 
 public sealed record OwnerControlAction(string Operation);
-public sealed record OwnerManualSaveAction(string Operation, string Value);
+public sealed record OwnerManualSaveAction(string Operation, string Value,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ModelSettingsApproval = null);
+public sealed record OwnerModelSettingsPreview(string Approval, bool RequiresConfirmation, IReadOnlyList<string> Details);
 public sealed record StartupRecoveryStatus(bool Pending, string? WorldId, ManualWorldSave? Autosave, string? Reason = null,
     string? SavedByVersion = null);
 public sealed record StartupRecoveryReceipt(string LoadedId, long WorldTick);

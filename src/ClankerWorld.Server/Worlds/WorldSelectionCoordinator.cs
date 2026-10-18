@@ -222,6 +222,8 @@ public sealed class WorldSelectionCoordinator(
                 };
             return world with { Compatibility = "compatible", CompatibilityReason = null };
         }
+        catch (SavedFileLimitException exception)
+        { return world with { Compatibility = "incompatible", CompatibilityReason = exception.Message }; }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             FileNotFoundException or System.Text.Json.JsonException or FormatException or InvalidOperationException)
         {
@@ -351,7 +353,20 @@ public sealed class WorldSelectionCoordinator(
         }
     }
 
-    public CatalogWorld Select(string id)
+    public OwnerModelSettingsPreview PreviewModels(string id)
+    {
+        lock (gate)
+        {
+            var entry = catalog.Capture().Worlds.SingleOrDefault(world => world.Id == id)
+                ?? throw new FileNotFoundException("The selected world does not exist.");
+            return WorldModelSettings.Preview(id,
+                entry.Id == catalog.Active().Id ? runtime.ExportState() : catalog.Read(id),
+                entry.Id == catalog.Active().Id ? providers.CaptureRuntimeConfiguration().Assignments ?? [] : entry.Assignments,
+                runtime, providers, targetKind: "world");
+        }
+    }
+
+    public CatalogWorld Select(string id, string? modelSettingsApproval = null)
     {
         lock (gate)
         {
@@ -365,6 +380,7 @@ public sealed class WorldSelectionCoordinator(
                 WorldSelectionTelemetry.Failed(logger, entry.Id, "incompatible_checkpoint");
                 throw new InvalidDataException(assessed.CompatibilityReason);
             }
+            WorldModelSettings.RequireApproval(PreviewModels(id), modelSettingsApproval);
             SelectCore(entry, catalog.Read(id));
             WorldSelectionTelemetry.Selected(logger, entry.Id);
             return entry;

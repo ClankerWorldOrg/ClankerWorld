@@ -1,0 +1,1 @@
+- World Settings explains when routine helpers are used and offers **Test helper · 1 paid call** to check the selected helper, model and saved key immediately. Applying a helper now confirms its selection without claiming it has answered.

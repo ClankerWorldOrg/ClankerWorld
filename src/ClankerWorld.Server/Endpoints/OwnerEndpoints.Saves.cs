@@ -205,7 +205,7 @@ internal static partial class OwnerEndpoints
             IHostApplicationLifetime lifetime,
             ILogger<WorldRuntimeService> logger) =>
         {
-            if (request?.Action is not { Operation: "load" } action)
+            if (request?.Action is not { Operation: "load" or "inspect-save-models" } action)
                 return Results.BadRequest(new { error = "A save-load action is required." });
             string payload;
             try { payload = OwnerHttpBinding.ManualSavePayload(action); }
@@ -214,7 +214,7 @@ internal static partial class OwnerEndpoints
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
             lock (providers.WorldMutationGate)
             {
-                if (!runtime.Society.IsPaused)
+                if (action.Operation == "load" && !runtime.Society.IsPaused)
                 {
                     ManualWorldSaveTelemetry.Rejected(logger, "load", "not_paused");
                     return Results.Conflict(new { error = "Pause the world before loading." });
@@ -225,6 +225,10 @@ internal static partial class OwnerEndpoints
                     var checkpoint = committed.Checkpoint;
                     stateFile.VerifyRequiredHistory(checkpoint);
                     var current = runtime.ExportState();
+                    var modelPreview = WorldModelSettings.Preview(action.Value, checkpoint,
+                        committed.Assignments, runtime, providers);
+                    if (action.Operation == "inspect-save-models") return Results.Ok(modelPreview);
+                    WorldModelSettings.RequireApproval(modelPreview, action.ModelSettingsApproval);
                     if (!string.Equals(checkpoint.WorldSeed, current.WorldSeed, StringComparison.Ordinal) ||
                         !string.Equals(checkpoint.Society.Society.WorldId, current.Society.Society.WorldId, StringComparison.Ordinal))
                     {
@@ -250,6 +254,8 @@ internal static partial class OwnerEndpoints
                     ManualWorldSaveTelemetry.Loaded(logger, action.Value, backup.Id, runtime.WorldTick);
                     return Results.Ok(new { loadedId = action.Value, backupId = backup.Id, worldTick = runtime.WorldTick });
                 }
+                catch (ModelSettingsConfirmationRequiredException exception)
+                { return Results.Conflict(new OwnerControlFailure("model_settings_confirmation_required", exception.Message)); }
                 catch (FileNotFoundException)
                 {
                     ManualWorldSaveTelemetry.Rejected(logger, "load", "missing");

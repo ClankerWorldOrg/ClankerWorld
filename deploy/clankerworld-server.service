@@ -7,12 +7,11 @@ Wants=network-online.target
 Type=simple
 User=clanker
 Group=clanker
-# Fresh pre-release installation. The previous world and pairing authority
-# remain in an operator backup; provider credentials can be copied separately.
 WorkingDirectory=/opt/clankerworld-server
 EnvironmentFile=-/etc/clankerworld-server/provider.env
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ClankerWorld__World__Mode=game
+Environment=ClankerWorld__Hosting__Kind=terminal
 Environment=ClankerWorld__Clock__Run=true
 Environment=ClankerWorld__Clock__ClientPresenceTimeoutSeconds=5
 Environment=ClankerWorld__Http__Port=5188
@@ -21,11 +20,12 @@ Environment=ClankerWorld__Pairing__ApprovalSecretPath=/var/lib/clankerworld-serv
 Environment=ClankerWorld__Pairing__AuthorityPath=/var/lib/clankerworld-server/private-owner-authority.json
 Environment=ClankerWorld__World__SavePath=/var/lib/clankerworld-server/world.json
 Environment=ClankerWorld__Providers__ConfigurationPath=/var/lib/clankerworld-server/provider-configuration.json
+Environment=ClankerWorld__Providers__UsagePath=/var/lib/clankerworld-server/provider-usage.json
 Environment=ClankerWorld__Assets__CatalogPath=/etc/clankerworld-server/approved-assets.json
 Environment=DOTNET_NOLOGO=1
 StateDirectory=clankerworld-server
 StateDirectoryMode=0700
-ExecStart=/home/clanker/.local/bin/dotnet /opt/clankerworld-server/ClankerWorld.Server.dll
+ExecStart=/opt/clankerworld-server/ClankerWorld.Server
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

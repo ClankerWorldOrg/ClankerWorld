@@ -115,6 +115,11 @@ jobs:
       - name: Verify Godot client project
         if: needs.scope.outputs.code == 'true'
         run: bash scripts/verify-godot-client.sh
+      - name: Verify automatic release signatures offline
+        if: needs.scope.outputs.code == 'true'
+        run: |
+          bash scripts/build-release-verifier.sh "$RUNNER_TEMP/release-verifier" linux
+          python3 -m unittest discover -s scripts -p 'test_release_signing.py'
       - if: needs.scope.outputs.code == 'true'
         run: dotnet format --verify-no-changes --no-restore
       - name: Verify documentation (the test suite is skipped)
@@ -153,6 +158,18 @@ jobs:
         with:
           name: clankerworld-launcher-windows-11-x64
           path: export/launcher-package
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Package the self-contained Linux x64 server
+        if: needs.scope.outputs.code == 'true'
+        run: bash scripts/package-linux-server.sh
+      - name: Upload the Linux x64 server
+        if: needs.scope.outputs.code == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clankerworld-server-linux-x64
+          path: export/linux-server
           compression-level: 0
           if-no-files-found: error
 

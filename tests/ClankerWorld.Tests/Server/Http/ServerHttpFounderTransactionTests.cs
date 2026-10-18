@@ -114,7 +114,7 @@ public sealed partial class ServerHttpTests
                 try
                 {
                     await ModelWorkHarness.WaitForSignalAsync(entered.Task);
-                    selection = Task.Run(() => host.Services.GetRequiredService<WorldSelectionCoordinator>().Select(entry.Id));
+                    selection = Task.Run(() => host.Services.GetRequiredService<WorldSelectionCoordinator>().SelectApprovedModels(entry.Id));
                     observation = WaitForSelectedWorldAsync();
                     await ModelWorkHarness.WaitForSignalAsync(observation);
                     placement = Task.Run(() => client.PostAsJsonAsync("/api/v1/owner/founders/place", envelope));
