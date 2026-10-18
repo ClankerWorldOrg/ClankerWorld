@@ -155,6 +155,52 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         Assert.Equal(original, WorldRuntimeCodec.Encode(baseline.ExportState()));
     }
 
+    [Fact]
+    public async Task ToolRequestPlacementAndWithdrawalCountAsProgressBeyondAnAdmittedIdleControl()
+    {
+        var (state, requester, _, shop) = ToolMakingRequestTests.Prepared();
+        foreach (var kind in new[] { ToolRequestConsentKind.Place, ToolRequestConsentKind.Withdraw })
+        {
+            using var baseline = WorldRuntime.Restore(state, _ => new SweepChoiceProvider());
+            baseline.SubmitInstruction(new("tool-progress-" + kind, "owner:choice-test", requester,
+                OwnerInstructionKind.Suggestion, "Consider the choices available here."));
+            var observation = Assert.Single(baseline.PrepareChoiceTrialOffers(), offered => offered.AgentId == requester);
+            var candidate = Assert.Single(observation.Candidates, offered =>
+                offered.ActionPlan is ToolRequestConsentActionPlan plan && plan.Choice.Kind == kind &&
+                plan.Recipe.Outputs[0].ResourceId == "wooden_axe");
+            var plan = Assert.IsType<ToolRequestConsentActionPlan>(candidate.ActionPlan);
+            var original = WorldRuntimeCodec.Encode(baseline.ExportState());
+            using var control = baseline.CopyForChoiceTrial(_ => new SweepChoiceProvider());
+            var idle = Assert.Single(await control.ApplyChoiceTrialAsync(), decision => decision.AgentId == requester);
+            Assert.True(idle.Admission.Accepted);
+            Assert.False(idle.Admission.FellBack);
+            Assert.Equal("safe_idle", idle.Admission.Intention!.CandidateId);
+            StrictCheckpoint(control);
+            var controlState = control.ExportState();
+            Assert.Equal(JsonSerializer.Serialize(state.ToolMakingRequests), JsonSerializer.Serialize(controlState.ToolMakingRequests));
+            using var trial = baseline.CopyForChoiceTrial(_ => new SweepChoiceProvider(requester, candidate.Id));
+            var admitted = Assert.Single(await trial.ApplyChoiceTrialAsync(), decision => decision.AgentId == requester);
+            Assert.True(admitted.Admission.Accepted);
+            Assert.False(admitted.Admission.FellBack);
+            Assert.Equal(candidate.Id, admitted.Admission.Intention!.CandidateId);
+            StrictCheckpoint(trial);
+            var after = trial.ExportState();
+            var request = Assert.Single(after.ToolMakingRequests!);
+            Assert.Equal((requester, shop.InstanceId, plan.Recipe.CanonicalId),
+                (request.RequesterId, request.BuildingInstanceId, request.RecipeId));
+            Assert.Equal(kind == ToolRequestConsentKind.Place ? ToolMakingRequestStatus.Requested : ToolMakingRequestStatus.Withdrawn,
+                request.Status);
+            if (kind == ToolRequestConsentKind.Withdraw)
+                Assert.Equal(Assert.Single(state.ToolMakingRequests!).Id, request.Id);
+            // Only the authoritative request change supplies progress, not admission or event metadata.
+            Assert.Equal(ActionState(controlState), ActionState(after with { ToolMakingRequests = controlState.ToolMakingRequests }));
+            output.WriteLine($"{kind}: native request={request.Id}, status={request.Status}; idle requests={controlState.ToolMakingRequests!.Count}.");
+            Assert.NotEqual(ActionState(controlState), ActionState(after));
+            Assert.Equal(original, WorldRuntimeCodec.Encode(baseline.ExportState()));
+            state = after;
+        }
+    }
+
     private static int Setting(string name, int fallback)
     {
         var value = int.Parse(Environment.GetEnvironmentVariable(name) ?? fallback.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
@@ -194,6 +240,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         state.Society.Society.Births,
         state.Society.Society.Memories,
         state.WorldSimulation,
+        state.ToolMakingRequests,
         state.Towns,
         state.Knowledge,
         state.AnimalWorld,

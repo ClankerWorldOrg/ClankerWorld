@@ -34,7 +34,8 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Join a world on another computer | Available in the launcher | HTTPS on a private network, comparison-code approval, saved device connection and signed access check before Play. Host startup hints depend on the host kind reported during pairing; older hosts get a general network/host check. Launcher hosting remains separate work; the server-only Linux download has its [own guide](hosting-linux.md). Windows playtesting is pending. |
+| Join a world on another computer | Available in the launcher | HTTPS on a private network, comparison-code approval, saved device connection and signed access check before Play. Host startup hints depend on the host kind reported during pairing; older hosts get a general network/host check. The server-only Linux download has its [own guide](hosting-linux.md). Windows playtesting is pending. |
+| Host a world for other devices | Available in the launcher | Uses private Tailscale Serve HTTPS and the installed world's existing saves, keys and model-call count. The host screen shows the address, comparison-code requests, Approve, Decline and Stop hosting. Closing minimizes it. The last game leaving saves and pauses; an option stops the server instead. Automatic restart at Windows sign-in can be turned off. Developer test data stays separate. Playing on the host PC remains #2289; Windows hosting/reboot playtests are pending. |
 | Create, select, save and load worlds | Available in the game | Loads show changed model and key assignments for confirmation before applying them. Oversized save files are refused and preserved. Small/Medium maps; larger playable worlds are unfinished. The earlier manually signed Windows installer, normal Play, Repair check, save and reopening a saved Town were checked on October 18; the automatic signing workflow still needs its first release check ([details](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2422)). Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Starting supplies are fixed; New World offers no extra supplies or survival grace period. |
@@ -171,7 +172,11 @@ uses a saved OpenAI key and handles the same routine choices and scoring of each
 agent's private memories as Jev. Both helpers serve adults and elders, including people
 born in the world. Children keep their own model; conversations, identity,
 wills and planning use the agent's personal model throughout life. Switching
-cancels pending work and preserves memories.
+cancels pending work and preserves memories. **Test helper · 1 paid call**
+checks the selected helper and saved key immediately; applying a helper only
+selects it. Settings explain why choices with planning options still use the
+personal model. Helper checks use the same signed, metered and bounded path as
+personal-model tests, with sample replies covered automatically.
 The Decisions integration is checked against the published API contract and
 sample replies; the live-account Windows check is still [pending](../playtest/alpha-1.md).
 The saved TypeSafe-key path is covered by automated checks; its live-account

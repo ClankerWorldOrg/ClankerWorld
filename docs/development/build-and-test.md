@@ -465,6 +465,14 @@ redirects against GitHub's download hosts. The package stays open exclusively
 from download and hashing through extraction; extraction never reopens its path.
 The portable README directs players to unpack inside their own Windows user folder.
 
+The portable game's manifest includes `# Launcher options: host-app-v1` when
+it supports the launcher host app. Hosting refuses a version without that
+marker, authenticated release approval or original installed files, then reuses
+the bundled
+`LocalServer` startup proof. The host screen and sign-in behavior are described
+in [Playing](../playing.md#host-a-world-for-other-devices); its pending
+Windows/Tailscale checks are in the playtest list.
+
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
 is the same Godot project exported with the `launcher` feature, which makes
 `run/main_scene.launcher` open `res://Launcher/Launcher.tscn` instead of the
@@ -715,6 +723,11 @@ refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals
 including food consumption, parentage, care and household membership, then adds
 the physical agent and Town residency. It retains the production-generated child ID.
 
+The autonomous field expansion and replanting fixture chooses a 144-tick day
+before Start World. Crops still grow through native ticks, with real field work,
+food consumption and reserved planting stock. The staged crop-cycle fixtures
+keep the normal day and their full growth and work durations.
+
 ### Every offered choice
 
 `OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
@@ -726,7 +739,8 @@ runs in its own trusted server trial copy, through normal admission, action
 application and post-action reconciliation. The test requires a strict save
 round-trip, acceptance of the exact offered choice without fallback, and progress
 or a native refusal reason. It does not recover or skip a throwing action.
-Progress includes medical consent, treatment and supply trips; model admission metadata alone does not count.
+Progress includes native tool-request creation and transitions, medical consent,
+treatment and supply trips; model admission metadata alone does not count.
 
 The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
 with:

@@ -144,6 +144,7 @@ printf 'Writing the package manifest\n'
     cd "${stage}"
     {
         printf '# %s\n' "${package_name}"
+        if [[ "${launcher}" != true ]]; then printf '# Launcher options: host-app-v1\n'; fi
         printf '# Source commit: %s\n' "${revision}"
         if [[ "${launcher}" == false ]]; then printf '# Launcher options: developer-data-v1\n'; fi
         while IFS= read -r -d '' artifact; do

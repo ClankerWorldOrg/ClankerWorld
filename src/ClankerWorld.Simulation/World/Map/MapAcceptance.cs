@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace ClankerWorld.Simulation.World;
@@ -15,6 +17,13 @@ public sealed record MapValidationResult(bool IsValid, string? Failure)
 public static class MapAcceptance
 {
     private static readonly ConditionalWeakTable<WorldMap, StartingSiteTraversalCache> StartingSiteTraversals = new();
+    private static readonly SearchValues<byte> ClimateValues = DefinedBytes<ClimateZone>();
+    private static readonly SearchValues<byte> WaterValues = DefinedBytes<WaterKind>();
+    private static readonly SearchValues<byte> SurfaceValues = DefinedBytes<SurfaceKind>();
+    private static readonly SearchValues<byte> VegetationValues = DefinedBytes<VegetationCover>();
+
+    private static SearchValues<byte> DefinedBytes<T>() where T : struct, Enum =>
+        SearchValues.Create(Enum.GetValues<T>().Select(value => Convert.ToByte(value, CultureInfo.InvariantCulture)).ToArray());
 
     private sealed class StartingSiteTraversalCache
     {
@@ -74,6 +83,24 @@ public static class MapAcceptance
     private static bool SameLayer(byte[]? current, byte[]? snapshot) =>
         current is null ? snapshot is null : snapshot is not null && current.AsSpan().SequenceEqual(snapshot);
 
+    private static bool HasMisplacedCactus(WorldMap map, byte[] vegetation)
+    {
+        // The complete rectangle and layer length are checked before this scan.
+        var offset = 0;
+        while (offset < vegetation.Length)
+        {
+            var next = vegetation.AsSpan(offset).IndexOf((byte)VegetationCover.Cactus);
+            if (next < 0) break;
+            offset += next;
+            var point = new GridPoint(offset % map.Width, offset / map.Width);
+            if (map.SurfaceAt(point) != SurfaceKind.Sand || map.ClimateAt(point) != ClimateZone.Dry ||
+                map.HydrologyAt(point) != WaterKind.Land || map.ElevationAt(point) >= WorldMap.MountainElevationThreshold)
+                return true;
+            offset++;
+        }
+        return false;
+    }
+
     public static MapValidationResult Validate(WorldMap map, bool allowEmptyStartingSite = false)
     {
         ArgumentNullException.ThrowIfNull(map);
@@ -83,23 +110,21 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("The map dimensions or generation attempt are invalid.");
         }
 
-        if (map.Tiles.Count != map.Width * map.Height ||
-            map.Tiles.Select(tile => tile.Position).Distinct().Count() != map.Tiles.Count ||
-            map.Tiles.Any(tile => !map.Contains(tile.Position)))
+        if (!HasCompleteGrid(map))
         {
             return MapValidationResult.Invalid("The logical grid is not a complete bounded rectangle.");
         }
 
         if (map.ClimateZones is { } zones &&
-            (zones.Length != map.Width * map.Height || zones.Any(zone => !Enum.IsDefined((ClimateZone)zone))))
+            (zones.Length != map.Width * map.Height || zones.AsSpan().ContainsAnyExcept(ClimateValues)))
             return MapValidationResult.Invalid("The climate layer is invalid.");
         if (map.ElevationLevels is { } elevation && elevation.Length != map.Width * map.Height ||
             map.HydrologyKinds is { } hydrology &&
-                (hydrology.Length != map.Width * map.Height || hydrology.Any(value => !Enum.IsDefined((WaterKind)value))) ||
+                (hydrology.Length != map.Width * map.Height || hydrology.AsSpan().ContainsAnyExcept(WaterValues)) ||
             map.SurfaceKinds is { } surfaces &&
-                (surfaces.Length != map.Width * map.Height || surfaces.Any(value => !Enum.IsDefined((SurfaceKind)value))) ||
+                (surfaces.Length != map.Width * map.Height || surfaces.AsSpan().ContainsAnyExcept(SurfaceValues)) ||
             map.VegetationKinds is { } vegetation &&
-                (vegetation.Length != map.Width * map.Height || vegetation.Any(value => !Enum.IsDefined((VegetationCover)value))))
+                (vegetation.Length != map.Width * map.Height || vegetation.AsSpan().ContainsAnyExcept(VegetationValues)))
             return MapValidationResult.Invalid("A generated geography layer is invalid.");
 
         var founder = map.MapObjects.SingleOrDefault(mapObject =>
@@ -149,10 +174,7 @@ public static class MapAcceptance
                 !TerrainPlacementRules.CanHoldOrdinaryVegetation(surface)))
             return MapValidationResult.Invalid("A tree or plant stands on sand or other ground that cannot hold it.");
 
-        if (map.VegetationKinds is not null && map.Tiles.Any(tile =>
-                map.VegetationAt(tile.Position) == VegetationCover.Cactus &&
-                (map.SurfaceAt(tile.Position) != SurfaceKind.Sand || map.ClimateAt(tile.Position) != ClimateZone.Dry ||
-                    map.HydrologyAt(tile.Position) != WaterKind.Land || map.ElevationAt(tile.Position) >= WorldMap.MountainElevationThreshold)))
+        if (map.VegetationKinds is { } cover && HasMisplacedCactus(map, cover))
             return MapValidationResult.Invalid("Cacti must stand on desert sand.");
 
         if (!map.Resources.Any(resource => resource.IsRenewable &&
@@ -183,6 +205,20 @@ public static class MapAcceptance
         }
 
         return MapValidationResult.Valid;
+    }
+
+    private static bool HasCompleteGrid(WorldMap map)
+    {
+        if (map.Tiles.Count != (long)map.Width * map.Height) return false;
+        var occupied = new bool[map.Tiles.Count];
+        foreach (var tile in map.Tiles)
+        {
+            if (!map.Contains(tile.Position)) return false;
+            var index = tile.Position.Y * map.Width + tile.Position.X;
+            if (occupied[index]) return false;
+            occupied[index] = true;
+        }
+        return true;
     }
 
     internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>

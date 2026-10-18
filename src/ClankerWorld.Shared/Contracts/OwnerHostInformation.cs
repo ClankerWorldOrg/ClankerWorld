@@ -3,6 +3,7 @@ namespace ClankerWorld.Contracts;
 /// <summary>Installation metadata, separate from saved worlds and pairing authority.</summary>
 public sealed record OwnerHostInformation(string Kind)
 {
+    public const string Unspecified = "unspecified";
     public const string Launcher = "launcher";
     public const string Terminal = "terminal";
     public const string TerminalStartCommand = "sudo systemctl start clankerworld-server.service";

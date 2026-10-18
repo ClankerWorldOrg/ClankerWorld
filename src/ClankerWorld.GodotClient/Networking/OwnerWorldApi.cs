@@ -795,6 +795,7 @@ public sealed class OwnerWorldApi
             action,
             deviceKey,
             cancellationToken,
+            action.Provider?.Trim().ToLowerInvariant() is "jev" or "decisions" ? OwnerWorldActionPayload.HelperSetupCheckPayloadDomain :
             OwnerWorldActionPayload.NeedsModelThinkingHost(action.Provider, action.Thinking)
                 ? OwnerWorldActionPayload.ModelThinkingPayloadDomain : null);
 }

@@ -58,6 +58,31 @@ public sealed class OwnerAuthorityStoreTests
         Assert.All(store.ExportState().Pairings, pairing => Assert.Equal(OwnerPairingState.Pending, pairing.State));
     }
 
+    [Fact]
+    public void HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var key = CreateP256Key();
+        var pending = StartPairing(store, key);
+        var shown = Assert.Single(store.GetPendingPairingsLocally());
+        Assert.Equal(pending.PairingId, shown.PairingId);
+        Assert.Equal(pending.PairingCode, shown.PairingCode);
+        var state = store.ExportState();
+        var saved = JsonSerializer.Serialize(state);
+        Assert.DoesNotContain("\"PairingCode\"", saved, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"ComparisonCode\"", saved, StringComparison.Ordinal);
+        var restored = OwnerAuthorityStore.Restore(state, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.Null(Assert.Single(restored.GetPendingPairingsLocally()).PairingCode);
+        Assert.True(restored.DeclinePendingPairingLocally(pending.PairingId).IsSuccess);
+        restored = OwnerAuthorityStore.Restore(restored.ExportState(), clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.Empty(restored.GetPendingPairingsLocally());
+        Assert.False(restored.ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
+        Assert.False(restored.ActivatePairing(new(pending.PairingId, pending.ActivationCanonicalProof,
+            Sign(key, pending.ActivationCanonicalProof))).IsSuccess);
+        Assert.Empty(restored.GetDevices());
+    }
+
     private static readonly JsonSerializerOptions LegacyJson = new()
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,

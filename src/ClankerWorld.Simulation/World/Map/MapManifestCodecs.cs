@@ -22,8 +22,9 @@ public static class MapLayerManifestCodec
             vegetation.Length != expectedLength)
             throw new InvalidDataException("The world map layers do not match their dimensions.");
 
-        using var buffer = new MemoryStream();
-        using (var writer = new BinaryWriter(buffer, Encoding.UTF8, leaveOpen: true))
+        using var hash = SHA256.Create();
+        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        using (var writer = new BinaryWriter(digestStream, Encoding.UTF8, leaveOpen: true))
         {
             writer.Write(Header);
             writer.Write(map.Width);
@@ -34,8 +35,8 @@ public static class MapLayerManifestCodec
                 writer.Write(layer);
             }
         }
-        return Convert.ToHexString(SHA256.HashData(buffer.GetBuffer().AsSpan(0, checked((int)buffer.Length))))
-            .ToLowerInvariant();
+        digestStream.FlushFinalBlock();
+        return Convert.ToHexStringLower(hash.Hash!);
     }
 }
 
@@ -46,21 +47,46 @@ public static class MapLayerManifestCodec
 public static class MapManifestCodec
 {
     private const string Header = "clankerworld.seeded-map/v1";
+    private const int BatchCharacters = 4096;
 
     public static byte[] Encode(WorldMap map)
     {
+        using var stream = new MemoryStream();
+        WriteManifest(map, stream);
+        return stream.ToArray();
+    }
+
+    public static string Digest(WorldMap map)
+    {
+        using var hash = SHA256.Create();
+        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        WriteManifest(map, digestStream);
+        digestStream.FlushFinalBlock();
+        return Convert.ToHexStringLower(hash.Hash!);
+    }
+
+    private static void WriteManifest(WorldMap map, Stream stream)
+    {
         ArgumentNullException.ThrowIfNull(map);
+        using var writer = new StreamWriter(stream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true);
         var builder = new StringBuilder();
         builder.Append(Header).Append('\n');
         builder.Append("dimensions=").Append(map.Width).Append('x').Append(map.Height).Append('\n');
         builder.Append("generation_attempt=").Append(map.GenerationAttempt).Append('\n');
+        WriteAndClear(builder, writer, force: true);
         if (map.ClimateZones is not null)
-            builder.Append("climate-zones=").Append(Convert.ToBase64String(map.ClimateZones)).Append('\n');
-        foreach (var tile in map.Tiles.OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X))
+        {
+            writer.Write("climate-zones=");
+            writer.Write(Convert.ToBase64String(map.ClimateZones));
+            writer.Write('\n');
+        }
+        foreach (var tile in OrderedTiles(map.Tiles))
         {
             builder.Append("tile=")
                 .Append(tile.Position.X).Append(',').Append(tile.Position.Y).Append('|')
                 .Append(ToWireValue(tile.Terrain)).Append('\n');
+            WriteAndClear(builder, writer);
         }
 
         foreach (var mapObject in map.MapObjects.OrderBy(mapObject => mapObject.Id, StringComparer.Ordinal))
@@ -68,6 +94,7 @@ public static class MapManifestCodec
             builder.Append("object=")
                 .Append(mapObject.Id).Append('|').Append(mapObject.Kind).Append('|')
                 .Append(mapObject.Position.X).Append(',').Append(mapObject.Position.Y).Append('\n');
+            WriteAndClear(builder, writer);
         }
 
         foreach (var resource in map.Resources.OrderBy(resource => resource.Id, StringComparer.Ordinal))
@@ -81,15 +108,33 @@ public static class MapManifestCodec
             if (resource.NaturalObjectKind is { } naturalObjectKind)
                 builder.Append("|natural:").Append(naturalObjectKind);
             builder.Append('\n');
+            WriteAndClear(builder, writer);
         }
-
-        return Encoding.UTF8.GetBytes(builder.ToString());
+        WriteAndClear(builder, writer, force: true);
     }
 
-    public static string Digest(WorldMap map) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encode(map)));
+    private static void WriteAndClear(StringBuilder builder, TextWriter writer, bool force = false)
+    {
+        // Batch ordinary rows without retaining the complete manifest text.
+        if (!force && builder.Length < BatchCharacters) return;
+        foreach (var chunk in builder.GetChunks()) writer.Write(chunk.Span);
+        builder.Clear();
+    }
 
-    private static string ToWireValue(TerrainKind terrain) => terrain switch
+    private static IEnumerable<TerrainTile> OrderedTiles(IReadOnlyList<TerrainTile> tiles)
+    {
+        ArgumentNullException.ThrowIfNull(tiles);
+        for (var index = 1; index < tiles.Count; index++)
+        {
+            var previous = tiles[index - 1].Position;
+            var current = tiles[index].Position;
+            if (previous.Y > current.Y || previous.Y == current.Y && previous.X > current.X)
+                return tiles.OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X);
+        }
+        return tiles;
+    }
+
+    public static string ToWireValue(TerrainKind terrain) => terrain switch
     {
         TerrainKind.Meadow => "meadow",
         TerrainKind.Water => "water",

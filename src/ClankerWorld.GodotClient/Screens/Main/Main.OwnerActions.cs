@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
@@ -259,8 +260,10 @@ public partial class Main
         var helper = SelectedRoutineHelper();
         var helperModel = helper == "off" ? string.Empty : routineHelperModelPicker.Model;
         applyRoutineHelperButton.Disabled = routineHelperChoice.Disabled ||
-            helper != "off" && (helperModel.Length is < 1 or > 128 || helperModel.Any(char.IsControl));
+            helper != "off" && (!BoundedText.IsValid(helperModel, 128, requireTrimmed: true));
         routineHelperKeyChoice.Disabled = routineHelperChoice.Disabled;
+        routineHelperSetupCheckButton.Disabled = actionDisabled || !supportsRoutineHelper || helper == "off" ||
+            !BoundedText.IsValid(helperModel, 128, requireTrimmed: true);
         applyAgingOverrideButton.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         agingOverrideChoice.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         applyAgingOverrideButton.TooltipText = !supportsAgingOverride ? "This world server can't use the aging override." :

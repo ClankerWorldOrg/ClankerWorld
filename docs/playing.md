@@ -29,6 +29,38 @@ game versions, worlds, keys and model-call count. Running setup again, or a
 newer setup, keeps those files too. An existing copy of the bundled game
 version is reused.
 
+## Host a world for other devices
+
+On the Windows computer that will run the world, install Tailscale, join your
+private network and enable its HTTPS certificates. Use Tailscale on the playing
+computer too. Hosting is for your private network; do not enable public Funnel.
+
+In the launcher, choose an installed game version and **Host a world for other
+devices**, then **Start hosting**. Older builds need an update before they can
+host this way. The launcher becomes a host app and shows the address to use on
+the playing computer. It keeps the same worlds, saved keys and model-call count
+as this installation. Developer mode's test-data choice stays isolated and is
+remembered for automatic restart.
+
+When a device asks to join, compare its code with the one on the host screen.
+Choose **Approve** only when they match, or **Decline** to refuse it. A request
+that was pending when the server restarted needs to be declined and started
+again so both computers can show the same code.
+
+When the last game leaves, the world saves and pauses. The host waits without
+advancing time or calling models. **Stop hosting when the game quits** stops it
+instead; choose this option before starting the host. By default the host
+starts again when you sign in to Windows after a restart. Turn off **Start
+hosting again when I sign in to Windows** to disable that.
+
+Closing the host window minimizes it and keeps hosting in the background.
+**Stop hosting** saves the world, stops the server and turns off the private
+forwarding address without removing worlds or approved devices. A failed save
+keeps the host alive and paused so you can free space and retry. If stopping
+cannot be confirmed, the hosting controls stay available for retry. Playing on
+the hosting PC is separate work; for now use another computer to join, or stop
+hosting before playing locally.
+
 ## Connect your device
 
 To run the world on an always-on Linux x64 machine, follow the
@@ -271,6 +303,15 @@ memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
+
+The helper answers only when every available action is about food, clothing,
+warmth, care or waiting. An agent doing everyday work can still have bigger
+choices available, so its personal model may answer instead. Applying a helper
+selects it without checking its connection. **Test helper · 1 paid call** checks
+the selected model and saved key immediately, without waiting for routine work.
+The result explains a usable reply or a connection, key or model problem; each
+sent test counts toward the model-call limit. A successful test leaves the
+world's helper choice and its agents unchanged.
 
 To save keys before placing any agents, open **Settings → Game → API keys**.
 Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press

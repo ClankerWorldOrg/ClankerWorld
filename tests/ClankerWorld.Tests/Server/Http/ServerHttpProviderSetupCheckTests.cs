@@ -118,6 +118,76 @@ public sealed partial class ServerHttpTests
         }
     }
 
+    [Theory]
+    [InlineData("jev", "jev", "https://api.typesafe.ai/v1/systemone")]
+    [InlineData("decisions", "openai", "https://api.openai.com/v1/decisions")]
+    public async Task SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld(
+        string helper, string credentialProvider, string endpoint)
+    {
+        var directory = Directory.CreateTempSubdirectory("helper-check-");
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        const string apiKey = "synthetic-helper-check-key";
+        var invalidReply = false;
+        using var handler = new ControlledSetupCheckHandler((_, _) => Task.FromResult(JsonResponse(HttpStatusCode.OK,
+            invalidReply ? "private unusable reply" : helper == "jev"
+                ? """{"answers":{"selected_candidate":{"type":"choice","choice":"safe_idle","confidence":1,"probabilities":{"safe_idle":1}}}}"""
+                : """{"answers":[{"name":"selected_candidate","type":"choice","choice":"safe_idle","confidence":1,"probabilities":[{"value":"safe_idle","probability":1}]}]}""")));
+        using var baseHost = new ServerWebApplicationFactory(directory.FullName, legacyPace: false);
+        using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IHttpClientFactory>();
+            services.AddSingleton<IHttpClientFactory>(new SetupCheckHttpClientFactory(handler));
+        }));
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("http://127.0.0.1/") });
+        try
+        {
+            var device = await StartAndActivateAsync(host, client, key);
+            var providers = host.Services.GetRequiredService<ProviderConfigurationStore>();
+            var usage = host.Services.GetRequiredService<ProviderUsageStore>();
+            var world = host.Services.GetRequiredService<WorldRuntime>();
+            var before = WorldRuntimeCodec.Encode(world.ExportState());
+            var slot = Guid.NewGuid().ToString("N");
+            var action = new ServerSetupCheckAction(helper, "helper-test-model", slot);
+            Assert.Equal(OwnerHttpBinding.ProviderSetupCheckPayload(action), OwnerWorldActionPayload.ProviderSetupCheck(action));
+            var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
+            using var signer = new SettingsKeySigner(key);
+            var api = new OwnerWorldApi(client);
+            Task<ServerSetupCheckResult> CheckAsync() => api.CheckProviderSetupAsync(client.BaseAddress!,
+                new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId, action, signer, CancellationToken.None);
+            Assert.Equal("missing_key", (await CheckAsync()).Outcome);
+            Assert.Equal(0, handler.RequestCount);
+            Assert.Equal(0, usage.Capture().Attempts);
+            _ = providers.CreateCredentialSlot(new(slot, credentialProvider, "Helper", apiKey));
+            var providerBefore = File.ReadAllBytes(providers.Path);
+            var result = await CheckAsync();
+            Assert.True(result.IsReady);
+            Assert.Equal("ready", result.Outcome);
+            Assert.Equal(new Uri(endpoint), handler.LastUri);
+            Assert.Equal("Bearer " + apiKey, handler.LastAuthorization);
+            Assert.DoesNotContain(apiKey, handler.LastBody, StringComparison.Ordinal);
+            using (var body = JsonDocument.Parse(handler.LastBody!))
+                Assert.Equal(action.Model, body.RootElement.GetProperty("model").GetString());
+            Assert.Equal(1, handler.RequestCount);
+            Assert.Equal(1, usage.Capture().Completed);
+            invalidReply = true;
+            result = await CheckAsync();
+            Assert.False(result.IsReady);
+            Assert.Equal("unusable", result.Outcome);
+            Assert.DoesNotContain("private unusable reply", result.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(apiKey, result.Message, StringComparison.Ordinal);
+            Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+            _ = usage.Configure(new(2));
+            Assert.Equal("usage_limit", (await CheckAsync()).Outcome);
+            Assert.Equal(2, handler.RequestCount);
+            var row = Assert.Single(usage.Capture().Rows);
+            Assert.Equal((helper, action.Model, "setup", 2L, 1L, 1L),
+                (row.Provider, row.Model, row.Role, row.Attempts, row.Completed, row.Failed));
+            Assert.Equal(providerBefore, File.ReadAllBytes(providers.Path));
+            Assert.True(usage.Capture().LimitReached);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task MissingKeyAndUsageLimitDoNotSendTheModelRequest()
     {
