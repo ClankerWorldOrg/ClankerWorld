@@ -11,11 +11,11 @@ public sealed class SmithGatherActionPlanTests
     [InlineData(true)]
     public async Task UnplannedToolCollectionKeepsRoomForThePendingSmithHarvest(bool tightCargo)
     {
-        var (state, actor, tree) = await Fixture();
+        var (state, actor, tree) = await Fixture(basket: true);
         var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collection-plan-pickaxe", "wooden_pickaxe",
             household, 1, groundPosition: new(tree.Position.X, tree.Position.Y));
-        if (tightCargo) inventory = InventoryAuthority.AddLot(inventory, "collection-plan-ballast", "stone", actor, 6);
+        if (tightCargo) inventory = InventoryAuthority.AddLot(inventory, "collection-plan-ballast", "stone", actor, 14);
         using var world = WorldRuntime.Restore(FoodCapacityTestFixture.WithInventory(state, inventory));
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());
 
