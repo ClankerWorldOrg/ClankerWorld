@@ -295,7 +295,7 @@ The first command records each test's duration in
 the tests job 1 would run without timings.
 
 Launcher log-handoff checks hold a real native command child at an asynchronous
-named pipe. Its connection proves entry and closing the pipe releases it,
+named pipe. Its connection proves entry and a release line lets it exit,
 without cold PowerShell startup or a blocking thread-pool waiter. The inherited
 log control and repeated production shell handoffs keep their real handles.
 

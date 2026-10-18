@@ -44,8 +44,8 @@ public sealed class LauncherHandoffTests
         var start = GameStarter.LauncherStartInfo(shell);
         if (forceDirect) start.UseShellExecute = false;
         start.WindowStyle = ProcessWindowStyle.Hidden;
-        // Native type opens the pipe, then holds the child until the writer closes.
-        foreach (var argument in new[] { "/D", "/C", $@"type \\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
+        // Native line input holds the child until the parent sends its release.
+        foreach (var argument in new[] { "/D", "/C", $@"set /p held=<\\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
         using var child = Process.Start(start) ?? throw new IOException("The native launcher fixture did not start.");
         var ready = pipe.WaitForConnectionAsync(connection.Token);
         try
@@ -72,11 +72,16 @@ public sealed class LauncherHandoffTests
         }
         finally
         {
-            connection.Cancel();
-            await pipe.DisposeAsync();
-            try { await ModelWorkHarness.WaitForSignalAsync(child.WaitForExitAsync()); }
+            try
+            {
+                connection.Cancel();
+                if (pipe.IsConnected && !child.HasExited)
+                    await ModelWorkHarness.WaitForSignalAsync(pipe.WriteAsync("release\r\n"u8.ToArray()).AsTask());
+                await ModelWorkHarness.WaitForSignalAsync(child.WaitForExitAsync());
+            }
             finally
             {
+                await pipe.DisposeAsync();
                 if (!child.HasExited) child.Kill(entireProcessTree: true);
                 try { await ModelWorkHarness.WaitForSignalAsync(ready); }
                 catch (OperationCanceledException) when (connection.IsCancellationRequested) { }
