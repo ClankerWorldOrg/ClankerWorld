@@ -725,8 +725,10 @@ the physical agent and Town residency. It retains the production-generated child
 
 The autonomous field expansion and replanting fixture chooses a 144-tick day
 before Start World. Crops still grow through native ticks, with real field work,
-food consumption and reserved planting stock. The staged crop-cycle fixtures
-keep the normal day and their full growth and work durations.
+food consumption and reserved planting stock. The Silo crop-overflow scenario
+uses the same calendar while retaining actual full-storage grain and flour
+deliveries. Other Silo scenarios and the staged crop-cycle fixtures keep the
+normal day and their full work durations and protection windows.
 
 ### Every offered choice
 

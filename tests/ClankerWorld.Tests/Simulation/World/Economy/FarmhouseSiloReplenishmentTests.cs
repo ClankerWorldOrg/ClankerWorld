@@ -52,13 +52,18 @@ public sealed class FarmhouseSiloReplenishmentTests
     public async Task ActualFieldOverflowReplenishesTheFarmhouseOnlyAfterItsRealFlourDeliveryFreesRoom()
     {
         var setup = await Prepare("field-full-stores", growField: true);
+        Assert.Equal(144, setup.State.WorldSystems!.Config.TicksPerDay);
         var inventory = setup.State.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "onsite-grain", FarmFieldRules.Grain,
             setup.Household, 1, storageBuildingId: setup.Farmhouse);
         inventory = InventoryAuthority.AddLot(inventory, "full-farm-seeds", FarmFieldRules.GrainSeed,
             setup.Household, 95, storageBuildingId: setup.Farmhouse);
         using var crop = FarmFieldTests.Restore(FarmFieldTests.WithInventory(setup.State, inventory));
+        var growing = Assert.Single(crop.Fields);
+        Assert.True(growing.Tended);
+        Assert.True(growing.ReadyTick > crop.WorldTick);
         await Advance(crop, checked((int)Math.Max(0, Assert.Single(crop.Fields).ReadyTick - crop.WorldTick)));
+        Assert.Equal(growing.ReadyTick, crop.WorldTick);
         Assert.Equal(FarmFieldStage.Ready, Assert.Single(crop.Fields).Stage);
         Assert.True(crop.StartFieldWork(setup.Actor, setup.Point, FarmWorkKind.Harvest).Accepted);
         await Advance(crop, 4);
@@ -272,7 +277,8 @@ public sealed class FarmhouseSiloReplenishmentTests
 
     private static async Task<Setup> Prepare(string seed, bool growField, bool isolateStoredGrain = false)
     {
-        var (state, actor, household, point) = FarmFieldTests.PreparedFarmer(seed);
+        // Only crop overflow needs growth; keep the other Silo scenarios on their normal calendar.
+        var (state, actor, household, point) = FarmFieldTests.PreparedFarmer(seed, ticksPerDay: growField ? 144 : null);
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
