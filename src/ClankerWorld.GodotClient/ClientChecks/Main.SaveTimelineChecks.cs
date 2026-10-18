@@ -170,7 +170,9 @@ public partial class Main
             // A short world fits without sideways scrolling from its first frame.
             await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([firstSave, harvest]),
                 _ => Task.FromResult<SaveTimelinePosition?>(new("harvest", "a", false)));
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            // ProcessFrame fires before Godot sorts the changed containers.
+            // Measure the first drawn frame, then retain the same size assertion.
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
             var openingSize = manualSaveCard.Size;
             if (openingSize.X < 850)
                 throw new InvalidOperationException($"Save World must open wide enough for its short timeline: {openingSize}.");
