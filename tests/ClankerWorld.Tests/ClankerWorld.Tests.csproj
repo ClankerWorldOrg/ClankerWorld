@@ -51,6 +51,8 @@
     <Compile Include="../../src/ClankerWorld.GodotClient/Launcher/DeviceJoinSession.cs" Link="GodotClient/Launcher/DeviceJoinSession.cs" />
     <Compile Include="../../src/ClankerWorld.GodotClient/ClientState/OwnerDeviceRegistrationStore.cs" Link="GodotClient/ClientState/OwnerDeviceRegistrationStore.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\LauncherSettings.cs" Link="GodotClient\Launcher\LauncherSettings.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\TailscaleHost.cs" Link="GodotClient\Launcher\TailscaleHost.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\HostingStartup.cs" Link="GodotClient\Launcher\HostingStartup.cs" />
     <Compile Include="..\..\src\ClankerWorld.Server\Contracts\ContractNames.cs" Link="Contracts\ContractNames.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldObservationSession.cs" Link="GodotClient\Protocol\OwnerWorldObservationSession.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldActionPayload.cs" Link="GodotClient\Protocol\OwnerWorldActionPayload.cs" />

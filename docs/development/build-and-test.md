@@ -465,6 +465,14 @@ redirects against GitHub's download hosts. The package stays open exclusively
 from download and hashing through extraction; extraction never reopens its path.
 The portable README directs players to unpack inside their own Windows user folder.
 
+The portable game's manifest includes `# Launcher options: host-app-v1` when
+it supports the launcher host app. Hosting refuses a version without that
+marker, authenticated release approval or original installed files, then reuses
+the bundled
+`LocalServer` startup proof. The host screen and sign-in behavior are described
+in [Playing](../playing.md#host-a-world-for-other-devices); its pending
+Windows/Tailscale checks are in the playtest list.
+
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
 is the same Godot project exported with the `launcher` feature, which makes
 `run/main_scene.launcher` open `res://Launcher/Launcher.tscn` instead of the

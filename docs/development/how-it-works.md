@@ -5457,6 +5457,39 @@ The owner observation keeps its existing JSON `role` field for the lesson's
 skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
 
+## Launcher hosting
+
+`Launcher.Hosting.cs` runs the installed version's existing `LocalServer`
+startup proof, approval and save/stop paths without opening the game. Hosting
+requires authenticated release approval and a verified package with the
+`host-app-v1` manifest marker. It uses the
+same installation data root, including provider credentials and lifetime usage;
+Developer test data remains separate. Reuse checks the protected host status
+for the same mode and stop option, so another game or host cannot silently
+take over its lifecycle.
+
+`TailscaleHost` checks the installed helper's private-network status and exact
+Serve configuration. It sets up only one HTTPS route to the ordinary loopback
+listener, refuses public Funnel or another service's setup, and removes only
+that checked route when hosting stops or setup confirmation fails. Changed
+external routes are preserved; failed cleanup asks the player to check Tailscale.
+Helper output is bounded and never
+logged or shown as an error. The approval listener is never forwarded.
+
+`LauncherSettings` records the hosted version and data choice. The optional
+current-user Windows Run entry starts the launcher with `--resume-hosting`;
+it resumes that saved choice minimized. The host window otherwise minimizes
+on close; Stop hosting saves before exit. Raw comparison codes remain only in
+process memory for host-local display, outside authority exports and world
+state. [Device pairing](device-pairing.md) owns the approval protocol.
+
+The runtime uses an authenticated-presence signal while idle rather than a
+polling timer. A launcher host saves a paused checkpoint after its last client
+leaves, then waits or stops according to its option. Failed writes leave a
+paused running host and retry before any optional exit. Normal active tick
+cadence and explicit Resume are unchanged. Hands-on Windows/Tailscale checks
+are in the playtest list.
+
 ## Launcher developer runs
 
 The launcher also owns remote joining through `Launcher.Join.cs` and

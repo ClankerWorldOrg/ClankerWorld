@@ -195,10 +195,13 @@ var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
         ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
             authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
-var hostKind = builder.Configuration["ClankerWorld:Hosting:Kind"] ?? "unspecified";
-if (hostKind is not ("unspecified" or OwnerHostInformation.Launcher or OwnerHostInformation.Terminal))
+var hostKind = builder.Configuration["ClankerWorld:Hosting:Kind"] ?? OwnerHostInformation.Unspecified;
+if (hostKind is not (OwnerHostInformation.Unspecified or OwnerHostInformation.Launcher or OwnerHostInformation.Terminal))
     throw new InvalidOperationException("ClankerWorld:Hosting:Kind must be unspecified, launcher or terminal.");
 builder.Services.AddSingleton(new OwnerHostInformation(hostKind));
+if (hostKind == OwnerHostInformation.Launcher)
+    builder.Services.AddSingleton(new LauncherHostOptions(
+        builder.Configuration.GetValue("ClankerWorld:Hosting:StopWhenGameQuits", false)));
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
@@ -245,6 +248,17 @@ providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
 providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
 
 SafeServerErrors.Configure(app, app.Logger);
+app.Use(async (context, next) =>
+{
+    if (launchSecretPath is not null && hostKind != OwnerHostInformation.Launcher &&
+        !ApprovalListenerOptions.IsLoopbackHostName(context.Request.Host))
+    {
+        app.Services.GetRequiredService<RequestRefusals>().LocalGameHostNameRefused();
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next(context);
+});
 app.UseRequestBodyLimits();
 app.UseDefaultFiles();
 app.UseStaticFiles();

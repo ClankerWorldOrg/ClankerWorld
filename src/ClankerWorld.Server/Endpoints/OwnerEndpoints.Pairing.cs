@@ -104,6 +104,35 @@ internal static partial class OwnerEndpoints
             return Results.Ok(result.Value);
         });
 
+        app.MapGet("/api/v1/approval/pairings", (HttpContext context, ApprovalListenerOptions options,
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var pending = authority.GetPendingPairingsLocally();
+            stateFile.Save(authority);
+            return Results.Ok(pending);
+        });
+
+        app.MapGet("/api/v1/approval/hosting", (HttpContext context, ApprovalListenerOptions options,
+            OwnerClientPresenceLease presence, WorldStartupRecovery recovery, OwnerHostInformation host) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            return Results.Ok(new HostStatus(presence.ActiveClientCount, !recovery.Pending &&
+                context.RequestServices.GetRequiredService<WorldRuntimeService>().HostIdleSaveFailed, recovery.Pending,
+                host.Kind, context.RequestServices.GetService<LauncherHostOptions>()?.StopWhenGameQuits ?? false));
+        });
+
+        app.MapPost("/api/v1/approval/pairings/{pairingId}/decline", (string pairingId,
+            HttpContext context, ApprovalListenerOptions options, OwnerAuthorityStore authority,
+            OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var result = authority.DeclinePendingPairingLocally(pairingId);
+            stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "declined" : "refused");
+            return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
+        });
+
         app.MapPost("/api/v1/approval/pairings/approve", (
             PairingApprovalHttpRequest request, HttpContext context, ApprovalListenerOptions options,
             OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
@@ -135,6 +164,7 @@ internal static partial class OwnerEndpoints
             // A mismatch increments the durable bounded-attempt counter, so a restart
             // must not erase unsuccessful approval attempts.
             stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "approved" : "refused");
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);
