@@ -86,6 +86,7 @@ public sealed class HouseholdBuildingUseCoverageTests
 
         // Pottery also uses supply trips. Every offered destination must still
         // belong to the supplying adult's household, whatever recipe needs it.
+        Assert.NotEmpty(recorder.WorkstationSupplyOffers);
         Assert.All(recorder.WorkstationSupplyOffers.Keys, offer =>
         {
             var building = Assert.Single(world.WorldSimulation.Buildings,
