@@ -723,6 +723,11 @@ refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals
 including food consumption, parentage, care and household membership, then adds
 the physical agent and Town residency. It retains the production-generated child ID.
 
+The autonomous field expansion and replanting fixture chooses a 144-tick day
+before Start World. Crops still grow through native ticks, with real field work,
+food consumption and reserved planting stock. The staged crop-cycle fixtures
+keep the normal day and their full growth and work durations.
+
 ### Every offered choice
 
 `OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
