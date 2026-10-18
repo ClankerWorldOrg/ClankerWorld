@@ -47,6 +47,7 @@ public static class MapLayerManifestCodec
 public static class MapManifestCodec
 {
     private const string Header = "clankerworld.seeded-map/v1";
+    private const int BatchCharacters = 4096;
 
     public static byte[] Encode(WorldMap map)
     {
@@ -115,7 +116,7 @@ public static class MapManifestCodec
     private static void WriteAndClear(StringBuilder builder, TextWriter writer, bool force = false)
     {
         // Batch ordinary rows without retaining the complete manifest text.
-        if (!force && builder.Length < 4096) return;
+        if (!force && builder.Length < BatchCharacters) return;
         foreach (var chunk in builder.GetChunks()) writer.Write(chunk.Span);
         builder.Clear();
     }
