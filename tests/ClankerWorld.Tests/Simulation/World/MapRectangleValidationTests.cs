@@ -24,6 +24,7 @@ public sealed class MapRectangleValidationTests
     [InlineData("outside-y")]
     [InlineData("negative-x")]
     [InlineData("negative-y")]
+    [InlineData("overflowing-area")]
     public void IncompleteOrUnboundedRectanglesRetainTheirGridRefusal(string damage)
     {
         var map = SmallTemperateMapGenerator.Generate("rectangle-validation");
@@ -37,6 +38,10 @@ public sealed class MapRectangleValidationTests
             case "outside-y": tiles[0] = tiles[0] with { Position = new(0, map.Height) }; break;
             case "negative-x": tiles[0] = tiles[0] with { Position = new(-1, 0) }; break;
             case "negative-y": tiles[0] = tiles[0] with { Position = new(0, -1) }; break;
+            case "overflowing-area":
+                map = map with { Width = int.MaxValue, Height = int.MaxValue };
+                tiles = [tiles[0] with { Position = new(1, 0) }];
+                break;
         }
         var result = MapAcceptance.Validate(map with { Tiles = tiles });
         Assert.False(result.IsValid);

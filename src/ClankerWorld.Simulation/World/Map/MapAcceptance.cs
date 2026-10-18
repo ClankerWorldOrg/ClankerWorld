@@ -185,7 +185,7 @@ public static class MapAcceptance
 
     private static bool HasCompleteGrid(WorldMap map)
     {
-        if (map.Tiles.Count != map.Width * map.Height) return false;
+        if (map.Tiles.Count != (long)map.Width * map.Height) return false;
         var occupied = new bool[map.Tiles.Count];
         foreach (var tile in map.Tiles)
         {
