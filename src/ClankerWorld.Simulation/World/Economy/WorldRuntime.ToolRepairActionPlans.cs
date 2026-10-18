@@ -70,9 +70,9 @@ public sealed partial class WorldRuntime
         input.InteractionRange, input.CarryUnits, input.StockId is { } stock ? society.Checkpoint.Inventory.GetLot(stock) : null,
         input.Source, input.Harvest?.ToolLotId);
 
-    private ActionCheck CheckToolRepairPlan(ToolRepairActionPlan plan)
+    private ActionCheck CheckToolRepairPlan(ToolRepairActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, SmithDeliveryPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination)
@@ -131,7 +131,12 @@ public sealed partial class WorldRuntime
     private void ApplyToolRepairPlan(ToolRepairActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckToolRepairPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedToolRepairPlan(plan);
+    }
+
+    private void ApplyCheckedToolRepairPlan(ToolRepairActionPlan plan)
+    {
         if (plan.CargoPreparation is { } cargo) { ApplyCargoStorage(cargo); return; }
         var state = agents[plan.Actor];
         if (plan.Inputs.Count > 0)
