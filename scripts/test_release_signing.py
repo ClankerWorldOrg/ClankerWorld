@@ -27,8 +27,8 @@ class ReleaseSigningTests(unittest.TestCase):
                             GITHUB_REF="refs/heads/main", GITHUB_EVENT_NAME="workflow_dispatch",
                             GITHUB_WORKFLOW_REF="ClankerWorldOrg/ClankerWorld/.github/workflows/nightly.yml@refs/heads/main")
 
-    def call(self, operation):
-        with mock.patch.object(sys, "argv", ["sign-release-package.py", operation, str(self.package)]):
+    def call(self, operation, *options):
+        with mock.patch.object(sys, "argv", ["sign-release-package.py", operation, str(self.package), *options]):
             signing.main()
 
     def fake_cosign(self, arguments, check):
@@ -74,6 +74,22 @@ class ReleaseSigningTests(unittest.TestCase):
             with self.subTest(operation=failed_operation), mock.patch.dict(os.environ, self.context), mock.patch.object(signing.subprocess, "run", side_effect=fail):
                 with self.assertRaises(subprocess.CalledProcessError): self.call("sign")
                 self.assertFalse(pathlib.Path(str(self.package) + ".sig").exists())
+
+    def test_installer_verification_checks_the_same_payload_and_propagates_refusal(self):
+        with mock.patch.dict(os.environ, self.context), mock.patch.object(signing.subprocess, "run", side_effect=self.fake_cosign):
+            self.call("sign")
+        verifier = pathlib.Path(self.temporary.name) / "ClankerWorld.ReleaseVerifier.exe"
+
+        def verify(arguments, check):
+            self.assertTrue(check)
+            self.assertEqual(arguments[0], str(verifier.resolve()))
+            message, bundle = map(pathlib.Path, arguments[1:])
+            self.assertEqual(hashlib.sha256(message.read_bytes()).hexdigest(), json.loads(bundle.read_text())["payload"])
+
+        with mock.patch.object(signing.subprocess, "run", side_effect=verify):
+            self.call("verify", "--verifier", str(verifier))
+        with mock.patch.object(signing.subprocess, "run", side_effect=subprocess.CalledProcessError(1, [str(verifier)])):
+            with self.assertRaises(subprocess.CalledProcessError): self.call("verify", "--verifier", str(verifier))
 
 
 if __name__ == "__main__":

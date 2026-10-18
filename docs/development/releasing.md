@@ -225,7 +225,9 @@ saves. Explicitly selected local builds retain their Developer mode path.
 
 The build automatically approves the game and launcher ZIPs, builds the final
 installer with the game's approval inside it, then approves the finished
-installer. All ZIPs, the installer, their checksums and approvals are attached to
+installer. Before building the setup, Windows checks both package approvals
+with the bundled launcher verifier, so a real workflow proof must pass the
+player's verifier before publication. All ZIPs, the installer, their checksums and approvals are attached to
 a temporary draft before the workflow publishes it. Only the separate publisher
 has release-write permission; it executes no checked-out repository code. Only
 the signing jobs get identity-token permission, and they run only on main in

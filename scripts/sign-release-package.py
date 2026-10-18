@@ -59,6 +59,7 @@ def main():
     parser.add_argument("operation", choices=("sign", "verify"))
     parser.add_argument("package", type=pathlib.Path)
     parser.add_argument("--cosign", default="cosign")
+    parser.add_argument("--verifier", type=pathlib.Path, help="Use the bundled launcher verifier for verification")
     args = parser.parse_args()
     sidecar = args.package.with_name(args.package.name + ".sig")
     if args.operation == "sign" and sidecar.exists():
@@ -87,6 +88,9 @@ def main():
             if any(recorded.get(field) != value for field, value in proof.items()):
                 raise ValueError("The signature does not describe this package")
             bundle.write_text(recorded["Signature"], encoding="utf-8")
+            if args.verifier:
+                subprocess.run([str(args.verifier.resolve()), str(message), str(bundle)], check=True)
+                return
             # Exactly the pinned workflows are accepted, never an arbitrary GitHub identity.
             for identity in WORKFLOWS:
                 try:
