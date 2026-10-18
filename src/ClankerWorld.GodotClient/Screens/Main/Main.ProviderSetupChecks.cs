@@ -106,7 +106,7 @@ public partial class Main
                 try
                 {
                     var result = await AwaitCurrentWorldResultAsync(ownerApi.CheckProviderSetupAsync(
-                        ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                        ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
                     if (currentRevision() == testedRevision)
                         resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: {result.Message}";
                     return $"{ProviderDisplayName(provider)} / {model}: {result.Message}";
@@ -119,7 +119,7 @@ public partial class Main
                     return message;
                 }
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
-                    exception is not ObsoleteWorldRequestException)
+                    exception is not ObsoleteOwnerRequestException)
                 {
                     if (currentRevision() == testedRevision)
                         resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result arrived. Check your model-call count before trying again.";
