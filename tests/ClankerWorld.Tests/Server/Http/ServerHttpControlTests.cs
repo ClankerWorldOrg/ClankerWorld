@@ -48,16 +48,16 @@ public sealed partial class ServerHttpTests
             var actionA = Action(runtime.Society.WorldId);
             // Obtain real authorization while A is active; delay only delivery.
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             var activeBytes = File.ReadAllBytes(file.Path);
             var runtimeBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             using var refused = await client.PostAsJsonAsync(path, held);
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
             Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
 
             // Changing just the target world cannot retarget an already signed proof.
@@ -78,9 +78,9 @@ public sealed partial class ServerHttpTests
             var current = Action(runtime.Society.WorldId);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, current, Payload(current));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal(jev ? (1, false) : (365, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
         }
         finally { directory.Delete(recursive: true); }

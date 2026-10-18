@@ -99,7 +99,7 @@ public sealed partial class ParenthoodTests
             Assert.NotNull(switchPreview.MapLayersDigest);
             _ = selection.Create("Child binding check", switchOptions, switchPreview.Coverage!.Attempt,
                 switchPreview.ManifestDigest, switchPreview.MapLayersDigest, acceptUnmetTargets: true);
-            _ = selection.Select(originalWorldId);
+            _ = selection.SelectApprovedModels(originalWorldId);
 
             _ = providers.Configure(new("personal", "ollama-cloud", "later-parent-model", "later-parent-secret",
                 false, initiatorId));

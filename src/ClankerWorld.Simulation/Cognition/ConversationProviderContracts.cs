@@ -190,7 +190,11 @@ public sealed record AgentConversationTurnResponse(
     int InputTokens = 0,
     int OutputTokens = 0,
     string? ModelId = null,
-    string? SurnameChoice = null);
+    string? SurnameChoice = null)
+{
+    private string? modelId = ModelOutputLimits.ReportedModelName(ModelId);
+    public string? ModelId { get => modelId; init => modelId = ModelOutputLimits.ReportedModelName(value); }
+}
 
 public interface IAgentConversationProvider
 {

@@ -289,6 +289,32 @@ internal static partial class OwnerEndpoints
             }
         });
 
+        app.MapPost("/api/v1/owner/content/remove", (
+            OwnerSignedHttpRequest<OwnerContentPackageIdAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services,
+            ILogger<WorldRuntimeService> logger) =>
+        {
+            if (request?.Action is null) return Results.BadRequest(new { error = "A package ID is required." });
+            string payload;
+            try { payload = OwnerContentBinding.PackageIdPayload("remove", request.Action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A valid package ID is required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/remove", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try
+            {
+                var runtime = services.GetRequiredService<WorldRuntime>();
+                services.GetRequiredService<WorldStateFile>().RemoveQuarantinedContent(runtime, request.Action.PackageId);
+                OwnerContentTelemetry.Rollback(logger, runtime.WorldTick,
+                    request.Action.PackageId, "removed");
+                return Results.Ok(new { removed = request.Action.PackageId });
+            }
+            catch (InvalidOperationException exception)
+            { return Results.Conflict(new OwnerControlFailure("content_rejected", exception.Message)); }
+            catch (KeyNotFoundException)
+            { return Results.NotFound(new OwnerControlFailure("content_not_found", "The package no longer exists.")); }
+        });
+
         app.MapPost("/api/v1/owner/buildings/place", (
             OwnerSignedHttpRequest<OwnerBuildingPlacementAction> request,
             OwnerRequestAuthorizer authorizer,

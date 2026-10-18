@@ -50,7 +50,7 @@ public sealed class WorldSelectionFailureTests
             CatalogWorld SelectTarget() => create
                 ? selection.Create("Retried creation", options, preview!.Coverage!.Attempt,
                     preview.ManifestDigest, preview.MapLayersDigest!, true)
-                : selection.Select(existing.Id);
+                : selection.Select(existing.Id, selection.PreviewModels(existing.Id).Approval);
 
             // Obstruct one actual atomic replacement without blocking catalog
             // publication. Autosave failure happens after the target checkpoint
