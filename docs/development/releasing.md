@@ -293,7 +293,7 @@ it still needs the offline approval above before publication:
 - Both build jobs use the commit on main that triggered the workflow, even
   when main advances before either job starts. It runs only when the newest
   nightly has a different commit and main's CI passed on the selected commit.
-  Run it by hand from Actions with the main branch selected to publish one
+  Run it by hand from Actions with the main branch selected to stage a draft
   sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
   tags, the one exception to never deleting a pushed tag. New drafts from this
