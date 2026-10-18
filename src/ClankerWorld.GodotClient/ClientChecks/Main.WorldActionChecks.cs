@@ -61,6 +61,31 @@ public partial class Main
                 launcherPath = originalLauncher;
                 launcherPathRead = originalLauncherRead;
             }
+            using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
+            {
+                registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
+                serverUrlInput.Text = host.Address;
+                ShowWorldActionSmokeMenu();
+                host.Catalog = WorldActionSmokeCatalog(["A", "B"]);
+                host.ModelSettingsPreview = new("approved-model-settings", true,
+                    ["Ada: openai, test-model, Test planning key", "Routine helper: Off"]);
+                await RefreshWorldListAsync();
+                ChooseWorldActionSmokeRow(1);
+                await SelectListedWorldAsync();
+                if (!worldModelLoadConfirmation.Visible ||
+                    !worldModelLoadConfirmation.DialogText.Contains("Test planning key", StringComparison.Ordinal) ||
+                    !worldModelLoadConfirmation.DialogText.Contains("test-model", StringComparison.Ordinal) ||
+                    host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("Changed model settings must be shown for consent before world selection.");
+                var approved = pendingWorldModelLoad;
+                worldModelLoadConfirmation.Hide();
+                worldModelLoadConfirmation.EmitSignal(ConfirmationDialog.SignalName.Canceled);
+                ChooseWorldActionSmokeRow(0);
+                await SelectListedWorldAsync(approved);
+                if (host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("A cancelled or obsolete model-settings confirmation cannot open another world.");
+                pendingWorldModelLoad = null;
+            }
             foreach (var compatibility in new[] { "compatible", "incompatible", OtherVersion })
             {
                 using var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64);
@@ -335,6 +360,7 @@ public partial class Main
         public IReadOnlyList<string>? SupportedActionPayloads { get; set; }
         public OwnerWorldPreview? Preview { get; set; }
         public CatalogWorld? SelectedWorld { get; set; }
+        public OwnerModelSettingsPreview? ModelSettingsPreview { get; set; }
         public CatalogWorld? CreatedWorld { get; set; }
         public OwnerWorldReconnect? CreatedObservation { get; set; }
         public System.Collections.Concurrent.ConcurrentQueue<string> Requests { get; } = new();
@@ -555,6 +581,10 @@ public partial class Main
                         response = new { error = "Controlled disk advisory failure." };
                     }
                     else response = DiskSpace;
+                    break;
+                case OwnerPairingEndpoints.OwnerWorldSelect when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-world-models":
+                case OwnerPairingEndpoints.OwnerSaveLoad when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-save-models":
+                    response = ModelSettingsPreview ?? new OwnerModelSettingsPreview("smoke-model-settings", false, ["Routine helper: Off"]);
                     break;
                 case OwnerPairingEndpoints.OwnerSaveLoad when LoadReceipt is { } loadReceipt:
                     LoadReceived.TrySetResult(envelope.GetProperty("action").GetProperty("value").GetString()!);

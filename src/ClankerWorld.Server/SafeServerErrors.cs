@@ -1,3 +1,5 @@
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace ClankerWorld.Server;
@@ -11,6 +13,8 @@ internal static partial class SafeServerErrors
         ExceptionHandler = context =>
         {
             var failure = context.Features.Get<IExceptionHandlerFeature>();
+            if (failure?.Error is SavedFileLimitException limit)
+                return Results.Conflict(new OwnerControlFailure("save_too_large", limit.Message)).ExecuteAsync(context);
             var status = failure?.Error is BadHttpRequestException requestError
                 ? requestError.StatusCode : StatusCodes.Status500InternalServerError;
             if (status >= StatusCodes.Status500InternalServerError)

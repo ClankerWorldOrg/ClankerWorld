@@ -19,7 +19,7 @@ public partial class Main
         {
             if (!ProjectSettings.GetSetting("application/run/flush_stdout_on_print").AsBool())
                 throw new InvalidOperationException("Release builds must flush game logs on every print.");
-            var marker = "problem_report_live_log_check " + Guid.NewGuid().ToString("N");
+            var marker = "problem_report_live_log_check " + Guid.NewGuid().ToString("D");
             GD.Print(marker);
             var path = WriteProblemReport(directory);
             using var archive = ZipFile.OpenRead(path);
