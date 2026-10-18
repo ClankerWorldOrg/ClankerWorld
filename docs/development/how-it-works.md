@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # How the game works
@@ -2606,7 +2606,13 @@ the saved key, a named key slot, or a key pasted for that check only, which is
 not stored. Keys never return to the client. Listed models the key's route
 doesn't include are marked unavailable; names are compared without Ollama's
 `:cloud`, `-cloud` or `:latest` endings. If the key can't be checked, the whole
-list stays usable and the reason is shown. A new agent starts on the provider's
+list stays usable and the reason is shown. OpenAI list and personal-model test errors
+share bounded categories for authentication, permissions, model access, credits,
+spending or usage limits, rate limits and service failures, following
+[OpenAI's error guide](https://developers.openai.com/api/docs/guides/error-codes).
+Only known error codes and types are classified; remote messages never enter
+results or logs. Unreadable or oversized error bodies retain the HTTP category.
+A new agent starts on the provider's
 default model when the key can use it. If the key can't use a new agent's
 starting model, the picker selects nothing and asks the owner to choose, so no
 other model, possibly a costlier one, is chosen for them. An existing or
@@ -2628,7 +2634,8 @@ paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
 The response contains only a bounded result such as ready, missing key, usage
-limit, unsupported format, timed out, unavailable, or unusable reply. It does
+limit, authentication or access failure, exhausted allowance, rate limit,
+unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
 An installation-local usage file reserves every model attempt before HTTP work.

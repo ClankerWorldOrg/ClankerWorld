@@ -1,0 +1,1 @@
+- Model lists and model tests now explain authentication, access, credit, spending-limit, rate-limit and service failures, with a useful next step instead of blaming the key for a permission problem.
