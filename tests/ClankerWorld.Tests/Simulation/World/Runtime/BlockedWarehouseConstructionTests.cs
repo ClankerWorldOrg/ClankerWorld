@@ -25,8 +25,10 @@ public sealed partial class WorldConstructionOrderTests
             .Take(8).ToArray();
         Assert.Equal(8, approaches.Length);
         Assert.DoesNotContain(setup.Site, approaches);
+        // Leave one native harvest's worth missing. This still requires actual
+        // acquisition past the blocked Warehouse, without repeating supply trips.
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "construction-drain", Alpha,
-            "construction-wood", 10, "fixture_work", long.MaxValue);
+            "construction-wood", 2, "fixture_work", long.MaxValue);
         inventory = InventoryAuthority.ConsumeReservation(inventory, "construction-drain");
         inventory = InventoryAuthority.AddLot(inventory, "construction-gather-axe", "crude_wooden_axe", actor, 1);
         if (townStock) inventory = InventoryAuthority.AddLot(inventory, "blocked-town-wood", "wood", warehouse.TownId!, 10,
@@ -68,6 +70,10 @@ public sealed partial class WorldConstructionOrderTests
         var clinic = Assert.Single(world.WorldSimulation.Buildings, building => building.DefinitionId == setup.DefinitionId);
         Assert.Equal((Alpha, setup.Site), (clinic.HouseholdId, clinic.Position));
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "construction-stone");
+        var proof = Assert.Single(world.WorldSimulation.ConstructionReceipts!);
+        var payment = proof.InputReservationIds.Select(world.Society.Inventory.GetReservation).ToArray();
+        Assert.All(payment, input => Assert.Equal((Alpha, InventoryReservationState.Completed), (input.OwnerId, input.State)));
+        Assert.Equal(10, payment.Where(input => input.LotId != "construction-stone").Sum(input => input.Quantity));
         Assert.Equal(townStock && !openApproach ? 10 : 0, world.Society.Inventory.Lots
             .Where(lot => lot.OwnerId == warehouse.TownId && lot.ItemKind == "wood" && lot.StorageBuildingId == warehouse.InstanceId)
             .Sum(lot => lot.Quantity));
