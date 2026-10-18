@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.channel == 'release' && inputs.release_tag || github.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Decide whether main needs a new nightly build
@@ -101,7 +101,6 @@ jobs:
             [[ "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
             [[ "$(git cat-file -t "refs/tags/${RELEASE_TAG}")" == tag ]]
             [[ "$(git rev-parse "refs/tags/${RELEASE_TAG}^{}")" == "${sha}" ]]
-            git merge-base --is-ancestor "${sha}" origin/main
           fi
           releases="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate)"
           last="$(jq -sr '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""' <<<"${releases}")"
@@ -167,7 +166,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.nightly.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
         with:
@@ -208,7 +207,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.nightly.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
@@ -243,7 +242,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.nightly.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
         with:

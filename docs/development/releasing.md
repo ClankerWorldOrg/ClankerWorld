@@ -245,14 +245,16 @@ embedded public trust root through review when Sigstore rotates its public keys;
 the file's source is `sigstore/root-signing/targets/trusted_root.json`.
 
 For a prepared alpha release, finish the release gates above and push its
-annotated tag at the reviewed main commit. From a local or cloud session, run:
+annotated tag at the reviewed current main commit. From a local or cloud session, run:
 
 ```bash
 gh workflow run nightly.yml --ref main -f channel=release -f release_tag=v<version>
 ```
 
-This builds the prepared tag's commit on main, checks its green CI and tag target,
-and publishes that version; it does not prepare a version,
+This builds the triggering main commit, requires the tag to name that exact
+commit, and checks its green CI. If main has advanced since preparing the tag,
+prepare and review a release on current main first. The workflow
+publishes that version; it does not prepare a version,
 collect changes or authorize skipping review or the release playtest. The normal
 nightly channel remains automatic and needs no manual signing or password.
 

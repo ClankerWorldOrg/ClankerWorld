@@ -36,7 +36,6 @@ case "$*" in
   'rev-parse HEAD') printf '%s\\n' "$NIGHTLY_TEST_SHA" ;;
   'cat-file -t refs/tags/'*) printf '%s\\n' "${'$'}{NIGHTLY_TEST_TAG_TYPE:-tag}" ;;
   'rev-parse refs/tags/'*) printf '%s\\n' "${'$'}{NIGHTLY_TEST_TAG_SHA:-$NIGHTLY_TEST_SHA}" ;;
-  'merge-base --is-ancestor '*) [[ "${'$'}{NIGHTLY_TEST_ON_MAIN:-true}" == true ]] ;;
   *) exit 2 ;;
 esac
 `, { mode: 0o755 });
@@ -185,7 +184,7 @@ test('a failed draft upload cannot publish a partial release', t => {
 
 test('prepared releases require an annotated tag at the exact green main commit', t => {
   for (const overrides of [{}, { NIGHTLY_TEST_TAG_TYPE: 'commit' }, { NIGHTLY_TEST_TAG_SHA: 'different' },
-    { NIGHTLY_TEST_ON_MAIN: 'false' }, { RELEASE_TAG: 'main' }, { NIGHTLY_TEST_CI: 'failure' }]) {
+    { RELEASE_TAG: 'main' }, { NIGHTLY_TEST_CI: 'failure' }]) {
     const fixture = sandbox(t);
     Object.assign(fixture.env, { RELEASE_CHANNEL: 'release', RELEASE_TAG: 'v0.1.0-alpha.2' }, overrides);
     const result = fixture.run('Decide whether main needs a new nightly build');
@@ -216,7 +215,7 @@ test('only main signing jobs obtain an identity token and the installer waits fo
   assert.deepEqual(signers.map(job => job.match(/^  ([\w-]+):/)[1]), ['sign-game', 'sign-setup']);
   for (const signer of signers) {
     assert.match(signer, /github\.repository == 'ClankerWorldOrg\/ClankerWorld' && github\.ref == 'refs\/heads\/main'/);
-    assert.match(signer, /ref: \$\{\{ needs\.nightly\.outputs\.sha \}\}/);
+    assert.match(signer, /ref: \$\{\{ github\.sha \}\}/);
     assert.ok(signer.indexOf('scripts/sign-release-package.py sign') < signer.indexOf('actions/upload-artifact@'));
   }
   const installer = jobs.find(job => job.startsWith('  windows-installer:'));
