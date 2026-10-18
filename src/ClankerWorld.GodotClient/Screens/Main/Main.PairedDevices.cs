@@ -95,7 +95,8 @@ public partial class Main
             var self = string.Equals(device.DeviceId, registration?.DeviceId, StringComparison.Ordinal)
                 ? " · this device"
                 : string.Empty;
-            pairedDeviceList.AddItem($"{device.State.ToString().ToLowerInvariant()} · {device.DeviceId}{self}");
+            pairedDeviceList.AddItem($"{device.State.ToString().ToLowerInvariant()} · {device.DeviceId}{self} · {device.ApprovalDescription ?? "Approval not recorded"}");
+            pairedDeviceList.SetItemTooltip(pairedDeviceList.ItemCount - 1, device.ApprovalDescription ?? "Approval not recorded");
             pairedDeviceList.SetItemMetadata(pairedDeviceList.ItemCount - 1, device.DeviceId);
         }
     }

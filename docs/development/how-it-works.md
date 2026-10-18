@@ -140,6 +140,34 @@ check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
 retained plan through the same definition. Remaining areas move their existing
 plan checks from the compatibility dispatcher into their rows in later slices.
+Child social and household-helping actions also use one typed definition. Their
+existing selected person, resource or load reaches the same native effect after
+the definition rechecks it; legacy entry points share that check and effect.
+Town Warehouse surplus and abandoned-stock salvage each own a definition with
+their existing capability policy. Both retain the resolved Town, stock, family
+and load in the plan; hashed salvage requests keep their original identity.
+Household recovery, hauling and spare-food storage also own separate
+definitions. Their existing urgency policies and selected physical steps share
+one codec, plan check and native effect with legacy entry points.
+Field work, tree planting and farm-stock hauling bind their existing shared
+capability policies and plan checks to typed definitions. Field and tree rows
+call the Farming system's native effects directly after those checks.
+Food consumption, shared-food collection, food gathering, fire and warmth also
+bind their codecs and existing capability policies to typed definitions. Their
+offer, admission and apply paths check the same selected serving, source,
+fuel or protection; legacy entry points share the native effects.
+Garments, carry aids, equipment repairs and each household-vessel action also
+own definitions. Their selected item, repair inputs or vessel family reaches
+the same native effect after its shared check; each vessel keeps its existing
+urgency policy.
+Smith delivery and gathering, tool collection and repair, rare mining,
+workstation supplies and Store stocking also own typed definitions. Their
+selected source, tool, stock, family and load pass the same check before the
+native effect; Store stocking has its own row beside the other shop actions.
+Recipe projects also own a typed definition. The capability policy is resolved
+from the retained recipe, preserving the garment exception during urgent cold.
+A codec-matched recipe row precedes the construction row; invalid legacy
+targets retain their existing project rejection through the fallback handler.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
@@ -1993,6 +2021,15 @@ zoom and wrapped copies, and hides at overview. No state, event, protocol,
 construction or replay rule changes.
 
 ## Model inputs, usage and memories
+
+The named `model` and `typesafe` HTTP clients refuse automatic redirects and
+limit buffered bodies to the shared 256 KiB response bound. Streaming adapters
+also use `ProviderResponseBody` before parsing. Credential-bearing records omit
+their fields when printed. Startup removes matching leftover temporary provider
+configuration files without reading their contents; busy or linked files are
+retained, with only removed/retained counts logged. Credential writers keep
+their handle open through atomic publication so cleanup cannot take a live
+temporary file between its final write and rename.
 
 The per-world routine helper is Off, Jev or OpenAI Decisions. Decisions uses
 `POST https://api.openai.com/v1/decisions`, sharing Jev's bounded actor context
@@ -4865,6 +4902,13 @@ never reconstructs a historical location from a current lot. The records
 follow ordinary rollback and event compaction, not a second growing ledger.
 
 ## Runtime logging
+
+Unexpected HTTP failures return a plain problem response. `SafeServerErrors`
+logs `server_request outcome=failed error_type=... route=...`, using the route
+pattern rather than request text and suppressing the
+middleware's detailed exception diagnostics. `PrivateStorage` creates private
+installation files with owner-only permissions before writing; its folders
+also exclude other accounts while preserving an owner's read-only setting.
 
 Changed gameplay loops, provider adapters, persistence boundaries and lifecycle
 gates need low-noise structured logs at meaningful outcomes. An operator should

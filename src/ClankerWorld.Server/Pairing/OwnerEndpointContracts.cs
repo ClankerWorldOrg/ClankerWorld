@@ -21,20 +21,21 @@ public sealed record OwnerControlFailure(string Code, string Detail);
 /// request addressed to a literal loopback host name.
 /// </summary>
 /// <remarks>
-/// A local server also has a launch secret.
-/// The game wrote it to a file in the player's own data folder before starting
+/// A remote server uses its account's approval secret; a local server uses a launch secret.
+/// For a local server, the game wrote it to a file in the player's data folder before starting
 /// the host, so every program on the PC can reach the loopback listener but only
 /// the game that started it can approve its pairing or stop it.
 /// </remarks>
-public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSecret = null)
+public sealed class ApprovalListenerOptions(int approvalPort, string? launchSecret = null, string? approvalSecret = null)
 {
     public const string LaunchSecretHeader = "X-ClankerWorld-Launch-Secret";
+    public const string ApprovalSecretHeader = "X-ClankerWorld-Approval-Secret";
     public const int MinimumLaunchSecretLength = 32;
 
-    public bool IsLocalServer => LaunchSecret is not null;
+    public bool IsLocalServer => launchSecret is not null;
 
     public bool IsApprovalRequest(HttpContext context) =>
-        IsApprovalListener(context) && (LaunchSecret is null || HasLaunchSecret(context));
+        IsApprovalListener(context) && HasSecret(context);
 
     /// <summary>
     /// A local server's answer to the game's launch check, or null when this is
@@ -45,12 +46,12 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
     {
         if (!IsLocalServer || !IsApprovalListener(context)) return null;
         var challenge = context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader].ToString();
-        return LocalServerLaunchCheck.IsChallenge(challenge) ? LocalServerLaunchCheck.Answer(LaunchSecret!, challenge) : null;
+        return LocalServerLaunchCheck.IsChallenge(challenge) ? LocalServerLaunchCheck.Answer(launchSecret!, challenge) : null;
     }
 
     private bool IsApprovalListener(HttpContext context)
     {
-        if (ApprovalPort <= 0 || context.Connection.LocalPort != ApprovalPort ||
+        if (approvalPort <= 0 || context.Connection.LocalPort != approvalPort ||
             context.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))
             return false;
         // A loopback connection is not enough on its own: the caller must also
@@ -74,11 +75,14 @@ public sealed record ApprovalListenerOptions(int ApprovalPort, string? LaunchSec
     /// <summary>Only a local server can be stopped over HTTP, and only by the game that started it.</summary>
     public bool IsLocalServerShutdownRequest(HttpContext context) => IsLocalServer && IsApprovalRequest(context);
 
-    private bool HasLaunchSecret(HttpContext context)
+    private bool HasSecret(HttpContext context)
     {
-        var supplied = context.Request.Headers[LaunchSecretHeader].ToString();
-        return CryptographicOperations.FixedTimeEquals(
-            Encoding.UTF8.GetBytes(supplied), Encoding.UTF8.GetBytes(LaunchSecret!));
+        var expected = launchSecret ?? approvalSecret;
+        var supplied = context.Request.Headers[IsLocalServer ? LaunchSecretHeader : ApprovalSecretHeader].ToString();
+        var accepted = expected is not null && CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(supplied), Encoding.UTF8.GetBytes(expected));
+        if (!accepted) context.RequestServices?.GetService<RequestRefusals>()?.ApprovalProofRefused();
+        return accepted;
     }
 
     /// <summary>

@@ -178,6 +178,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, activate.StatusCode);
             Assert.NotNull(secondDevice);
             Assert.Equal(OwnerDeviceState.Active, secondDevice.State);
+            Assert.Equal(firstDevice.DeviceId, secondDevice.ApprovedBy);
 
             var listAction = new OwnerDeviceListAction();
             var activeListEnvelope = await CreateSignedRequestAsync(
@@ -203,6 +204,9 @@ public sealed partial class ServerHttpTests
             Assert.All(activeDevices, device => Assert.Equal(OwnerDeviceState.Active, device.State));
             var listedFirstDevice = Assert.Single(activeDevices, device => device.DeviceId == firstDevice.DeviceId);
             var listedSecondDevice = Assert.Single(activeDevices, device => device.DeviceId == secondDevice.DeviceId);
+            Assert.Equal(firstDevice.DeviceId, listedSecondDevice.ApprovedBy);
+            Assert.Equal($"Approved by device {firstDevice.DeviceId}", listedSecondDevice.ApprovalDescription);
+            Assert.Equal("Approved on the server's computer", listedFirstDevice.ApprovalDescription);
             Assert.Equal(firstDevice.PublicKeyFingerprint, listedFirstDevice.PublicKeyFingerprint);
             Assert.Equal(secondDevice.PublicKeyFingerprint, listedSecondDevice.PublicKeyFingerprint);
             Assert.Equal(firstDevice.PublicKeySpkiBase64, listedFirstDevice.PublicKeySpkiBase64);

@@ -41,7 +41,8 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(authorization.Failure);
             }
 
-            var approved = authority.ApprovePendingPairing(request.Action.PairingId, request.Action.PairingCode);
+            var approved = authority.ApprovePendingPairing(request.Action.PairingId, request.Action.PairingCode,
+                authorization.Value!.DeviceId);
             // Treat paired-device approval exactly like local bootstrap approval: a
             // failed comparison changes the bounded durable attempt count.
             stateFile.Save(authority);

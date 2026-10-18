@@ -78,6 +78,10 @@ fresh state before adding its own ingredients, payment, cargo and visitor
 positions, then uses independent runtime and providers. Real milling, cooking,
 travel, trade, order survival, refusal and exact checkpoint replay stay checked.
 
+Boat-history fixtures stop after 44 native cancellations: 40 recent records
+and four older records for compaction and corruption checks. Paid construction,
+queuing, cancellation, failed writes and exact checkpoint replay stay checked.
+
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
 clocks are rescaled together. Later-generation family growth keeps its forty-tick test

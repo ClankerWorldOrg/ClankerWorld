@@ -4,7 +4,31 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private HouseholdStockActionPlan? PlanHouseholdStock(string actor, string candidate)
+    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdRecoveryDefinition => HouseholdStockActions.Recovery;
+    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdHaulingDefinition => HouseholdStockActions.Hauling;
+    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdFoodStorageDefinition => HouseholdStockActions.Food;
+
+    private static class HouseholdStockActions
+    {
+        internal static readonly ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> Recovery = Create(HouseholdStockRequestKind.RecoverDelivery);
+        internal static readonly ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> Hauling = Create(HouseholdStockRequestKind.Haul);
+        internal static readonly ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> Food = Create(HouseholdStockRequestKind.StoreFood);
+
+        private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> Create(HouseholdStockRequestKind kind) => new(
+            (string candidate, out HouseholdStockRequest choice) => HouseholdStockRequest.TryDecode(candidate, out choice) && choice.Kind == kind,
+            static choice => choice.Encode(),
+            new(ActionLifeStages.Adults, AllowUrgentFood: kind == HouseholdStockRequestKind.RecoverDelivery,
+                AllowUrgentWarmth: true, AllowActiveOrder: true),
+            static (world, actor, choice, _) => world.PlanHouseholdStock(actor, choice),
+            static (world, plan, policy) => world.CheckHouseholdStockPlan(plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.ApplyCheckedHouseholdStockPlan(plan);
+                return true;
+            });
+    }
+
+    private HouseholdStockActionPlan? PlanHouseholdStock(string actor, HouseholdStockRequest choice)
     {
         if (!agents.TryGetValue(actor, out var state) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } household)
             return null;
@@ -14,7 +38,7 @@ public sealed partial class WorldRuntime
         GridPoint destination;
         var range = 0;
         int quantity;
-        if (candidate == "recover_household_delivery")
+        if (choice.Kind == HouseholdStockRequestKind.RecoverDelivery)
         {
             stock = RecoverableHouseholdDelivery(actor, state);
             if (stock is null) return null;
@@ -24,7 +48,7 @@ public sealed partial class WorldRuntime
             range = ResourceInteractionRange;
             quantity = InventoryContainerRules.IsContainer(stock.ItemKind) ? 1 : stock.Quantity;
         }
-        else if (candidate == "store_household_food")
+        else if (choice.Kind == HouseholdStockRequestKind.StoreFood)
         {
             stock = PersonalSpareFood(actor);
             house = HouseForHousehold(household);
@@ -77,11 +101,9 @@ public sealed partial class WorldRuntime
             InventoryContainerRules.IsContainer(stock.ItemKind) ? GoodsPlanFamily.Capture(society.Checkpoint.Inventory, stock) : null);
     }
 
-    private ActionCheck CheckHouseholdStockPlan(HouseholdStockActionPlan plan)
+    private ActionCheck CheckHouseholdStockPlan(HouseholdStockActionPlan plan, ActorCapabilityPolicy policy)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: plan.Kind == HouseholdStockActionKind.RecoverDelivery,
-                AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy);
         if (!capability.Allowed) return capability;
         if (society.Checkpoint.GetAgent(plan.Actor).HouseholdId != plan.HouseholdId)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household has changed");
@@ -158,6 +180,11 @@ public sealed partial class WorldRuntime
     {
         if (plan is null) return;
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHouseholdStockPlan(plan);
+    }
+
+    private void ApplyCheckedHouseholdStockPlan(HouseholdStockActionPlan plan)
+    {
         var state = agents[plan.Actor];
         if (!IsWithinInteractionRange(state.Position, plan.Destination, plan.InteractionRange))
         {

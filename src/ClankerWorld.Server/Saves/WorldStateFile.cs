@@ -172,20 +172,19 @@ public sealed class WorldStateFile
     {
         var directory = System.IO.Path.GetDirectoryName(destination) ??
             throw new InvalidOperationException("The world state path has no directory.");
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(destination)}.{Guid.NewGuid():N}.tmp");
         try
         {
-            using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = PrivateStorage.CreateNew(temporaryPath))
             {
                 stream.Write(checkpointBytes);
                 stream.Flush(flushToDisk: true);
             }
-            RestrictPermissions(temporaryPath);
             File.Move(temporaryPath, destination, overwrite);
-            RestrictPermissions(destination);
+            PrivateStorage.RestrictFile(destination);
         }
         finally
         {
@@ -208,11 +207,7 @@ public sealed class WorldStateFile
     private void WriteHistorySegment(string digest, byte[] bytes)
     {
         var destination = HistoryPath(digest);
-        Directory.CreateDirectory(Path + ".history");
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(Path + ".history", UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-        }
+        PrivateStorage.EnsureDirectory(Path + ".history");
         if (File.Exists(destination))
         {
             if (!File.ReadAllBytes(destination).AsSpan().SequenceEqual(bytes))
@@ -224,12 +219,12 @@ public sealed class WorldStateFile
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = PrivateStorage.CreateNew(temporary))
             {
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
             }
-            RestrictPermissions(temporary);
+            PrivateStorage.RestrictFile(temporary);
             File.Move(temporary, destination);
         }
         finally
@@ -358,13 +353,5 @@ public sealed class WorldStateFile
         }
         if (archived.MoveNext())
             throw new InvalidDataException("The history archive contains boat requests that this checkpoint has not retired.");
-    }
-
-    private static void RestrictPermissions(string path)
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
     }
 }

@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Device pairing
@@ -32,11 +32,14 @@ rollback backup. This is the approved pre-release exception described in
 3. A server-local bootstrap administrator approves the matching pairing ID and
    code through a separate loopback-only listener. There is no bootstrap
    password or reusable approval secret in the client, a URL, or deployment
-   configuration. The local server, which the game starts on the player's own PC, also needs a
+   configuration. A remote Unix server generates an owner-only approval header file;
+   its account reads that file for local approval and recovery. The local server,
+   which the game starts on the player's own PC, instead needs a
    launch secret ([local server](#local-server-started-by-the-game)). Once an owner device exists, it may approve or revoke further
    devices through signed owner-device-management requests. It may also request
    the signed registry of paired-device lifecycle records. The registry exposes
-   only public device IDs, public-key fingerprints, and lifecycle state; it
+   only public device IDs, public-key fingerprints, lifecycle state and approval
+   origin; it
    never exposes private keys, comparison codes, or reusable challenges. The
    same separate server-local listener supports recovery revocation when every
    paired Windows device has been lost or revoked.
@@ -296,6 +299,13 @@ world context cannot clear a retained request in the current world.
 
 ## Current scope
 
+The device registry records which paired device approved a new pairing, or that
+approval happened on the server's own computer. The origin survives approval,
+activation, revocation and restart; **Paired-device management** in F12 shows the server's
+description. Older authority records without that information display
+**Approval not recorded**. This is installation authority metadata, outside
+world saves and replay.
+
 Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
 Paused map editing uses the same owner scope. There are no viewer, operator, or multiplayer roles yet. A revoked
@@ -367,6 +377,21 @@ and one `approval_listener outcome=refused reason=host_name` line at most once a
 minute. The public listener has no such check, because Tailscale Serve reaches
 it under its own name.
 
+On a remote Unix server, approval and recovery also require the server account's
+`X-ClankerWorld-Approval-Secret` header (the owner's choice, October 18). Startup
+generates a private header file at `ClankerWorld:Pairing:ApprovalSecretPath`, or
+beside the authority file with `.approval-header` appended. It uses owner-only
+permissions from creation, keeps the same value across restarts and refuses
+shared permissions, symbolic links and damaged files without replacing them.
+The containing directory must not be writable by other accounts. Keep this
+installation file out of saves, logs and reports. Missing or incorrect proof
+receives the same 404; it never authorizes shutdown or the local-game launch check.
+Proof refusals log only `approval_listener outcome=refused reason=proof`, at most
+once a minute with a skipped count, never the supplied or expected value.
+The [deployment guide](remote-server-deployment.md#local-approval-and-recovery)
+shows commands that read the header from disk without putting its value in process
+arguments. The game-started local server keeps its launch-secret flow below.
+
 This is an operator recovery path, not automatic queue eviction on behalf of an
 untrusted remote client. The game's own server also uses it for the game's first
 pairing ([Local server started by the game](#local-server-started-by-the-game)). Keep the
@@ -394,6 +419,9 @@ a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_A
 `OLLAMA_API_KEY`, `TYPESAFE_API_KEY`) or any `ClankerWorld__` setting override,
 so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
+The child process uses `Production` for both `ASPNETCORE_ENVIRONMENT` and
+`DOTNET_ENVIRONMENT`, and does not inherit `ANTHROPIC_BASE_URL` or
+`ANTHROPIC_AUTH_TOKEN`.
 
 On such a local server, every `/api/v1/approval/*` request except the launch
 check below must also carry the value in the `X-ClankerWorld-Launch-Secret`
@@ -449,7 +477,8 @@ provider storage and writes its checkpoint before returning 202. The response
 completion callback requests process exit, so server teardown follows the
 acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
-returns 409 without rewriting the refused checkpoint. Whenever a world
+also returns 202 and exits, preserving the refused checkpoint and its build record;
+there is no loaded world to save. Whenever a loaded world
 server stops, it waits for the tick loop to finish and writes a final checkpoint
 (`server_shutdown` in the log). Ctrl+C or a service stop also pauses a local
 server's world; a failed final write is logged and sets a nonzero process exit status.

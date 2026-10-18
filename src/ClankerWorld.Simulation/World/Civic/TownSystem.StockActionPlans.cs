@@ -4,6 +4,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static readonly ActorCapabilityPolicy SalvageCapabilities = new(ActionLifeStages.NonInfants, AllowActiveOrder: true);
+
     internal IEnumerable<TownStockActionPlan> PlanTownSalvages(ITownWorld world, string actor)
     {
         var abandoned = towns.Where(town => town.IsAbandoned).Select(town => town.Id).ToArray();
@@ -25,10 +27,12 @@ internal sealed partial class TownSystem
     internal TownStockActionPlan? PlanTownSalvage(ITownWorld world, string actor, string candidate) =>
         PlanTownSalvages(world, actor).FirstOrDefault(plan => plan.CandidateId == candidate);
 
-    internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan)
+    internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan) =>
+        CheckTownSalvagePlan(world, plan, SalvageCapabilities);
+
+    internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan, ActorCapabilityPolicy policy)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.NonInfants, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId, policy);
         if (!capability.Allowed) return capability;
         if (!world.IsWithinInteractionRange(world.Agents[plan.Actor].Position, plan.Destination, plan.InteractionRange))
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "it's out of reach now");

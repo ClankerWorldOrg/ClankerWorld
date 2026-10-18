@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Net;
+using ClankerWorld.Server;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Content;
@@ -72,6 +73,7 @@ var providerConfigurationPath = builder.Configuration["ClankerWorld:Providers:Co
     Path.Combine(builder.Environment.ContentRootPath, "saves", "provider-configuration.json");
 var providerUsagePath = builder.Configuration["ClankerWorld:Providers:UsagePath"] ??
     Path.Combine(Path.GetDirectoryName(Path.GetFullPath(providerConfigurationPath))!, "provider-usage.json");
+var credentialTempCleanup = ProviderConfigurationStore.RemoveTemporaryFiles(providerConfigurationPath);
 var approvedAssetCatalogPath = builder.Configuration["ClankerWorld:Assets:CatalogPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "approved-assets.json");
 // Unset, the authority file's own ID is kept, or a new server gets a random one.
@@ -83,8 +85,7 @@ var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAu
 var approvedAssetCatalog = ApprovedAssetCatalog.LoadOrDeny(approvedAssetCatalogPath);
 builder.Services.AddSingleton<IOwnerApprovedAssetReferencePolicy>(approvedAssetCatalog);
 builder.Services.AddSingleton(approvedAssetCatalog);
-builder.Services.AddHttpClient("typesafe");
-builder.Services.AddHttpClient("model");
+ProviderHttpClients.Configure(builder.Services);
 builder.Services.AddSingleton<WorldJevPolicy>();
 builder.Services.AddSingleton(new ProviderUsageStore(providerUsagePath));
 builder.Services.AddSingleton(new ProviderConfigurationStore(
@@ -189,7 +190,10 @@ if (launchSecretPath is not null && approvalPort == 0)
         "ClankerWorld:LocalServer:LaunchSecretPath needs ClankerWorld:Pairing:ApprovalPort.");
 }
 var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
-    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath));
+    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath),
+    launchSecretPath is null && approvalPort > 0
+        ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
+            authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
@@ -223,6 +227,8 @@ if (!app.Services.GetRequiredService<WorldStartupRecovery>().Pending)
 if (app.Services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is not null)
     ProviderUsageTelemetry.AccountingBlocked(app.Logger);
 ProviderCredentialTelemetry.Ready(app.Logger, OperatingSystem.IsWindows() ? "windows_current_user" : "private_file_permissions");
+if (credentialTempCleanup.Removed + credentialTempCleanup.Retained > 0)
+    ProviderCredentialTelemetry.TemporaryFiles(app.Logger, credentialTempCleanup.Removed, credentialTempCleanup.Retained);
 var providerUsage = app.Services.GetRequiredService<ProviderUsageStore>();
 
 var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWorldEffects(
@@ -234,6 +240,7 @@ var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWo
 providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
 providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
 
+SafeServerErrors.Configure(app, app.Logger);
 app.UseRequestBodyLimits();
 app.UseDefaultFiles();
 app.UseStaticFiles();
