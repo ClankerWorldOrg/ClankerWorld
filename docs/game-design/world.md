@@ -155,7 +155,12 @@ everything that is available in the current build. See [what works today](../wha
     developer page.
   - **Private networks only.** A hosted world server is meant for a home
     network or a private connection such as a VPN. It is not built to face the
-    open internet.
+    open internet. **Agreed on October 18, by the owner in chat:** the
+    first launcher-hosting version uses Tailscale Serve for private HTTPS,
+    forwarding only the ordinary loopback listener. Both devices join that
+    private network; the local approval listener is never forwarded. A home
+    LAN without Tailscale needs a separate certificate-trust setup and comes
+    later.
 - **Agreed on October 1
   ([#638](https://github.com/compoodment/ClankerWorld/issues/638)):** a new
   world starts only when every founder has a personal model and a working key.

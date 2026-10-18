@@ -760,6 +760,8 @@ the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+Offering, planning and native lookup share the bounded token of the complete
+case-revision and ballot-round pair, including long references from founded Towns.
 A withdrawn candidate or departed voter does not invalidate other selections;
 the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
@@ -5450,6 +5452,14 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## Launcher developer runs
 
+The launcher also owns remote joining through `Launcher.Join.cs` and
+`DeviceJoinSession`. Device registration storage has no Godot dependency and
+keeps only public metadata; the current-user signer remains in the key store.
+The normal and test-data folders use distinct registrations and key names.
+[Device pairing](device-pairing.md#pairing-flow) owns the protocol, host-kind
+metadata and reconnect contract.
+
+
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
 `%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; server saves, provider settings,
@@ -5466,6 +5476,9 @@ Godot's `--log-file` points at `logs/game.log` in the selected data root.
 Because that option disables Godot's own rotation, `GameStarter.PrepareGameLog`
 moves the last run to `logs/game.previous.log` before starting the game,
 replacing the older backup. A retry with no new log preserves that backup.
+On Windows, Quit to Launcher uses shell launch so the returned launcher does
+not inherit the game's open log handle and block the next Play's rotation.
+Unix handoffs retain direct execution and separate arguments.
 Standalone runs keep Godot's normal timestamped rotation. The project enables
 `application/run/flush_stdout_on_print` in release builds too, so reports and
 logs left by a forced close include the latest printed line.

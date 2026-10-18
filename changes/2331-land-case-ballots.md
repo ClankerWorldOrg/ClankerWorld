@@ -1,0 +1,1 @@
+- Agents can vote for independent case judges in newly founded Towns when the case references are long.

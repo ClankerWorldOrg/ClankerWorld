@@ -20,6 +20,7 @@ public partial class Launcher : Control
     private readonly System.Net.Http.HttpClient http = new() { Timeout = TimeSpan.FromMinutes(30) };
     private readonly MenuBackdrop backdrop = new();
     private readonly Label status = new();
+    private readonly Label playTarget = new();
     private readonly Label launcherUpdate = new();
     private readonly OptionButton versionChoice = new();
     private readonly Button playButton = new();
@@ -100,7 +101,13 @@ public partial class Launcher : Control
         _ = CheckForUpdatesAsync();
     }
 
-    public override void _ExitTree() => http.Dispose();
+    public override void _ExitTree()
+    {
+        joinLifetime.Cancel();
+        joinKey?.Dispose();
+        joinLifetime.Dispose();
+        http.Dispose();
+    }
 
     private void Build()
     {
@@ -150,10 +157,11 @@ public partial class Launcher : Control
         launcherUpdate.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(launcherUpdate);
 
+        BuildJoinPage();
         BuildPlayPage();
         BuildVersionsPage();
         BuildSettingsPage();
-        foreach (var page in new[] { playPage, versionsPage, settingsPage }) body.AddChild(page);
+        foreach (var page in new[] { playPage, versionsPage, settingsPage, joinPage }) body.AddChild(page);
 
         status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         status.CustomMinimumSize = new Vector2(0, 24);
@@ -177,7 +185,24 @@ public partial class Launcher : Control
         playButton.AddThemeFontOverride("font", UiFonts.Headings);
         playButton.AddThemeFontSizeOverride("font_size", UiFonts.Heading);
         playButton.Pressed += () => _ = PlayAsync();
+        playPage.AddChild(playTarget);
+        playTarget.Text = settings.JoinRemoteWorld ? "Play opens the world you joined." : "Play opens your worlds on this PC.";
         playPage.AddChild(playButton);
+        var join = new Button { Text = "Join a world on another computer" };
+        StyleButton(join);
+        join.Pressed += OpenJoinPage;
+        playPage.AddChild(join);
+        var local = new Button { Text = "Play on this PC" };
+        StyleButton(local);
+        local.Pressed += () =>
+        {
+            if (busy || joining) return;
+            joinSession?.CancelPending();
+            settings = settings with { JoinRemoteWorld = false };
+            SaveSettings();
+            SetStatus("Play will open your worlds on this PC.");
+        };
+        playPage.AddChild(local);
     }
 
     private void BuildVersionsPage()
@@ -331,6 +356,7 @@ public partial class Launcher : Control
         playPage.Visible = page == playPage;
         versionsPage.Visible = page == versionsPage;
         settingsPage.Visible = page == settingsPage;
+        joinPage.Visible = page == joinPage;
         playTab.SetPressedNoSignal(page == playPage);
         versionsTab.SetPressedNoSignal(page == versionsPage);
         settingsTab.SetPressedNoSignal(page == settingsPage);
@@ -497,7 +523,25 @@ public partial class Launcher : Control
         try
         {
             await Task.Run(() => GameVersionStore.RequireSigned(version));
-            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld);
+            string? serverUrl = null;
+            if (settings.JoinRemoteWorld)
+            {
+                EnsureJoinSession();
+                if (joinSession!.Registration is not { } joined)
+                {
+                    SetBusy(false);
+                    OpenJoinPage();
+                    return;
+                }
+                try { await joinSession.CheckConnectionAsync(joinLifetime.Token); }
+                catch (Exception exception) when (exception is not OutOfMemoryException)
+                {
+                    SetStatus(joinSession.FailureMessage(exception));
+                    return;
+                }
+                serverUrl = joined.WorldUrl;
+            }
+            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld, serverUrl);
         }
         catch (GameInstallException exception)
         {
@@ -632,6 +676,7 @@ public partial class Launcher : Control
 
     private void SaveSettings()
     {
+        playTarget.Text = settings.JoinRemoteWorld ? "Play opens the world you joined." : "Play opens your worlds on this PC.";
         try { settings.Save(layout); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -652,6 +697,43 @@ public partial class Launcher : Control
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Expect(playPage.Visible && !versionsPage.Visible, "Play is the first page");
             Expect(playButton.Disabled && playButton.Text == "Play", "Play waits for a version");
+            ShowPage(joinPage);
+            RefreshJoinPage();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(joinPage.IsVisibleInTree() && hostAddress.IsVisibleInTree() && joinHost.IsVisibleInTree() &&
+                !checkApproval.Visible && !playPage.Visible, "Joining has its own address and approval screen");
+            Expect(GetViewportRect().Encloses(joinPage.GetGlobalRect()), "Join controls fit the launcher window");
+            var previousCi = System.Environment.GetEnvironmentVariable("CI");
+            System.Environment.SetEnvironmentVariable("CI", "true");
+            try
+            {
+                using var signer = Pairing.OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
+                var registrationStore = new ClientState.OwnerDeviceRegistrationStore(Path.Combine(layout.Root, "join-check.json"));
+                var approved = new ClientState.OwnerDeviceRegistration(new("join-check-host", "join-check-world"),
+                    "join-check-device", signer.PublicKeyFingerprint, "https://joined-world.test/");
+                registrationStore.Save(approved);
+                joinSession = new DeviceJoinSession(new Networking.OwnerWorldApi(http), signer, registrationStore);
+                settings = settings with { JoinRemoteWorld = true };
+                SaveSettings();
+                playPage.GetChildren().OfType<Button>().Single(button => button.Text == "Play on this PC")
+                    .EmitSignal(BaseButton.SignalName.Pressed);
+                Expect(!settings.JoinRemoteWorld, "Local Play leaves the saved remote connection unselected");
+                RefreshJoinPage();
+                Expect(!joinHost.Disabled && joinHost.Text == "Use this world", "The saved remote world can be selected again");
+                await JoinHostAsync();
+                Expect(settings.JoinRemoteWorld && LauncherSettings.Load(layout).JoinRemoteWorld && playPage.Visible &&
+                    joinSession.Registration == approved && joinSession.Pending is null &&
+                    registrationStore.TryLoad(signer.PublicKeyFingerprint) == approved,
+                    "Returning to the saved remote world retains its approval without pairing again");
+            }
+            finally
+            {
+                joinSession = null;
+                settings = settings with { JoinRemoteWorld = false };
+                SaveSettings();
+                System.Environment.SetEnvironmentVariable("CI", previousCi);
+            }
+            ShowPage(playPage);
             releases = GameReleaseFeed.Read(
             [
                 SmokeRelease("v0.1.0-nightly.20261011.1", prerelease: true),

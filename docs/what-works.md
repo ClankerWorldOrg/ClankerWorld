@@ -2,7 +2,7 @@
 title: What works today
 type: product-status
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # What works today
@@ -34,7 +34,8 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The earlier manually signed Windows installer, normal Play, Repair check, save and reopening a saved Town were checked on October 18; the automatic signing workflow still needs its first release check ([details](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2422)). After Quit to Launcher, close and reopen the launcher before Play while [the log-lock bug](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2435) remains. Open in another version keeps the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
+| Join a world on another computer | Available in the launcher | HTTPS on a private network, comparison-code approval, saved device connection and signed access check before Play. Host startup hints depend on the host kind reported during pairing; older hosts get a general network/host check. Launcher hosting and the server-only Linux download remain separate work. Windows playtesting is pending. |
+| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The earlier manually signed Windows installer, normal Play, Repair check, save and reopening a saved Town were checked on October 18; the automatic signing workflow still needs its first release check ([details](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2422)). Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Starting supplies are fixed; New World offers no extra supplies or survival grace period. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |

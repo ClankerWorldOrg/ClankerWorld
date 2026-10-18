@@ -3,13 +3,14 @@ using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
 using Godot;
-using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
     private long renderedObservationGeneration = -1;
+    private DeviceJoinSession? localJoin;
+    private bool settingUpLocalDevice;
 
     private async Task InitializeAsync()
     {
@@ -18,267 +19,74 @@ public partial class Main
             deviceKey = OwnerDeviceKey.OpenOrCreate(GameStarter.UsesTestData(OS.GetCmdlineUserArgs())
                 ? new OwnerDeviceKeyOptions(OwnerDeviceKey.DefaultKeyName + ".TestData") : null);
             registration = registrationStore.TryLoad(deviceKey.PublicKeyFingerprint);
-            if (registration is null)
+            if (registration is not null)
             {
-                RefreshMainMenuAvailability();
-                return;
+                if (!ServerOrigin.TryResolve(registration.WorldUrl, out var stored) ||
+                    (TryGetCommandLineServerUrl(out var requested) &&
+                     (!ServerOrigin.TryResolve(requested, out var target) || !ServerOrigin.Same(stored, target))))
+                {
+                    registeredEndpointInvalid = true;
+                    SetMainMenuStatus("Open the launcher and join the intended host again.");
+                    return;
+                }
+                serverUrlInput.Text = stored.AbsoluteUri;
+                LoadPendingSubmission();
             }
-
-            // Once paired, this device is pinned to the server origin that
-            // issued the registration. A command-line URL is useful only for
-            // a first pairing; it must never silently retarget an owner key.
-            if (!ServerOrigin.TryResolve(registration.WorldUrl, out var storedWorldUri))
-            {
-                registeredEndpointInvalid = true;
-                pairingPanel.Show();
-                OpenMenuForSetup();
-                pairingInstructionLabel.Text = "This PC's saved connection has no valid world server address. Choose Forget saved connection, then pair again with the right world server.";
-                SetStatus("This PC's saved connection is not valid. Pair this device again.", good: false);
-                RefreshControlAvailability();
-                return;
-            }
-
-            serverUrlInput.Text = storedWorldUri.AbsoluteUri;
-            LoadPendingSubmission();
-
-            pairingPanel.Hide();
-            settingsPanel.Hide();
-            ClosePauseMenu();
             RefreshMainMenuAvailability();
-            SetStatus("This device is paired. Choose Continue to enter your world.", good: true);
-            await CheckStartupRecoveryAsync();
+            if (registration is not null) await CheckStartupRecoveryAsync();
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            pairingPanel.Show();
-            OpenMenuForSetup();
-            SetStatus($"Could not open this PC's device key · {FriendlyFailure(exception)}", good: false);
-            pairingInstructionLabel.Text = "Pairing needs the key store for your Windows account on this PC. The game never saves the device key as a file that could be copied.";
-            pairButton.Disabled = true;
+            SetMainMenuStatus("This PC's device key could not be opened. Start ClankerWorld through the launcher and try again.");
         }
     }
 
     private async Task PulseAsync()
     {
         ExpireStatusToast(refreshSucceeded: false);
-        if (registration is not null && !registeredEndpointInvalid)
-            _ = RefreshSaveDiskSpaceAsync();
+        if (registration is not null && !registeredEndpointInvalid) _ = RefreshSaveDiskSpaceAsync();
         else saveDiskWarningPanel.Hide();
-        if (pendingPairing is not null)
+        if (localJoin?.Pending is not null)
         {
-            await PollPairingAsync();
+            await FinishLocalDeviceSetupAsync();
             return;
         }
-
-        if (isInWorld && registration is not null && !registeredEndpointInvalid)
-        {
-            await RefreshAsync();
-        }
+        if (isInWorld && registration is not null && !registeredEndpointInvalid) await RefreshAsync();
     }
 
     private async Task StartPairingAsync()
     {
-        if (isPairingOperation || pendingPairing is not null || deviceKey is null)
-        {
-            return;
-        }
-
-        isPairingOperation = true;
-        RefreshControlAvailability();
+        if (localServer is null || deviceKey is null || registration is not null || settingUpLocalDevice) return;
+        localJoin ??= new DeviceJoinSession(ownerApi, deviceKey, registrationStore);
         try
         {
-            var origin = ResolveWorldUri();
-            // The game's own host pairs on its local listener with this
-            // launch's secret; any other server keeps the public route.
-            var ownServer = localServer is not null && localServer.Serves(origin);
-            pendingPairing = ownServer
-                ? await localServer!.StartPairingAsync(deviceKey, CancellationToken.None)
-                : await ownerApi.StartPairingAsync(origin, deviceKey, CancellationToken.None);
-            pendingPairingOrigin = origin;
-            if (ownServer && await ApproveLocalPairingAsync(pendingPairing))
-            {
-                await ActivatePendingPairingAsync();
-                return;
-            }
-            pairingPanel.Show();
-            pairingInstructionLabel.Text = "Give the person who runs the world server the pairing ID and comparison code below. They approve this device on the server's own computer. The code is not a password.";
-            pairingCodeLabel.Text = pendingPairing.PairingCode;
-            pairingIdLabel.Text = pendingPairing.PairingId;
-            pairingExpiryLabel.Text = $"Expires {pendingPairing.ExpiresAtUtc.LocalDateTime:yyyy-MM-dd HH:mm:ss}";
-            pairButton.Text = "Start fresh pairing";
-            SetStatus("Waiting for the person who runs the world server to approve this device.", good: true);
-            _ = RevealPairingPanelAsync();
+            if (localJoin.Pending is null)
+                await localJoin.StartAsync(localServer.Origin, OwnerRequestToken,
+                    () => localServer.StartPairingAsync(deviceKey, OwnerRequestToken));
+            if (localJoin.Pending is { } pending && await ApproveLocalPairingAsync(pending))
+                await FinishLocalDeviceSetupAsync();
         }
-        catch (Exception exception)
-        {
-            SetStatus($"Could not start pairing · {FriendlyFailure(exception)}", good: false);
-        }
-        finally
-        {
-            isPairingOperation = false;
-            RefreshControlAvailability();
-        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        { SetMainMenuStatus("This PC could not set up its world. Close the game and try again."); }
     }
 
-    // The comparison code sits below the display settings; scroll it into
-    // view once the settings page has laid out the newly shown panel.
-    private async Task RevealPairingPanelAsync()
+    private async Task FinishLocalDeviceSetupAsync()
     {
-        for (var frame = 0; frame < 2; frame++)
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (pairingPanel.IsVisibleInTree()) settingsScroll.EnsureControlVisible(pairingPanel);
-    }
-
-    private async Task PollPairingAsync()
-    {
-        if (isPairingOperation || pendingPairing is null || deviceKey is null)
-        {
-            return;
-        }
-
-        isPairingOperation = true;
+        if (localJoin is null || settingUpLocalDevice) return;
+        settingUpLocalDevice = true;
         try
         {
-            var status = await ownerApi.GetPairingStatusAsync(
-                ResolveWorldUri(),
-                pendingPairing.PairingId,
-                CancellationToken.None);
-            if (!Equals(status.Authority, pendingPairing.Authority) ||
-                !string.Equals(status.DeviceId, pendingPairing.DeviceId, StringComparison.Ordinal) ||
-                !string.Equals(status.PublicKeyFingerprint, deviceKey.PublicKeyFingerprint, StringComparison.Ordinal))
+            if (await localJoin.PollAsync(OwnerRequestToken))
             {
-                pendingPairingOrigin = null;
-                pendingPairing = null;
-                SetStatus("The pairing reply did not match this device and world server. Start a fresh pairing.", good: false);
-                return;
-            }
-
-            switch (status.State)
-            {
-                case OwnerPairingState.Pending:
-                    pairingInstructionLabel.Text = "Waiting for approval. Give the person who runs the world server the pairing ID and comparison code exactly as shown.";
-                    break;
-                case OwnerPairingState.Approved:
-                    pairingInstructionLabel.Text = "Approved. Checking this PC's device key...";
-                    await ActivatePendingPairingAsync();
-                    break;
-                case OwnerPairingState.Active:
-                    // The process can be interrupted after a successful
-                    // server activation but before its non-secret local
-                    // registration is flushed. Recover only when the active
-                    // record remains bound to this exact Windows key.
-                    if (string.Equals(status.DeviceId, pendingPairing.DeviceId, StringComparison.Ordinal) &&
-                        string.Equals(status.PublicKeyFingerprint, deviceKey.PublicKeyFingerprint, StringComparison.Ordinal) &&
-                        Equals(status.Authority, pendingPairing.Authority))
-                    {
-                        registration = new OwnerDeviceRegistration(
-                            status.Authority,
-                            status.DeviceId,
-                            deviceKey.PublicKeyFingerprint,
-                            ResolveWorldUri().AbsoluteUri);
-                        registrationStore.Save(registration);
-                        LoadPendingSubmission();
-                        pendingPairing = null;
-                        pendingPairingOrigin = null;
-                        pairingPanel.Hide();
-                        settingsPanel.Hide();
-                        ClosePauseMenu();
-                        ShowMainMenu();
-                        SetStatus("Device paired. Choose Continue to enter your world.", good: true);
-                        await CheckStartupRecoveryAsync();
-                    }
-                    else
-                    {
-                        pairingInstructionLabel.Text = "This pairing is already active for a different device key. Ask the person who runs the world server to remove it, then pair again.";
-                        SetStatus("That active pairing belongs to a different device key.", good: false);
-                    }
-
-                    break;
-                case OwnerPairingState.Expired:
-                    pairingInstructionLabel.Text = "The comparison code expired. Start a fresh pairing to get a new short code.";
-                    pendingPairing = null;
-                    pendingPairingOrigin = null;
-                    SetStatus("Pairing expired.", good: false);
-                    break;
-                default:
-                    SetStatus("The world server sent a pairing status this game doesn't know. Check that the game and server are up to date.", good: false);
-                    break;
+                registration = localJoin.Registration;
+                LoadPendingSubmission();
+                RefreshMainMenuAvailability();
+                await CheckStartupRecoveryAsync();
             }
         }
-        catch (Exception exception)
-        {
-            SetStatus($"Could not check the pairing · {FriendlyFailure(exception)}", good: false);
-        }
-        finally
-        {
-            isPairingOperation = false;
-            RefreshControlAvailability();
-        }
-    }
-
-    private async Task ActivatePendingPairingAsync()
-    {
-        if (pendingPairing is null || deviceKey is null)
-        {
-            return;
-        }
-
-        var pairing = pendingPairing;
-        try
-        {
-            var device = await ownerApi.ActivatePairingAsync(
-                ResolveWorldUri(),
-                pairing,
-                deviceKey,
-                CancellationToken.None);
-            registration = new OwnerDeviceRegistration(
-                pairing.Authority,
-                device.DeviceId,
-                deviceKey.PublicKeyFingerprint,
-                ResolveWorldUri().AbsoluteUri);
-            registrationStore.Save(registration);
-            LoadPendingSubmission();
-            pendingPairing = null;
-            pendingPairingOrigin = null;
-            pairingPanel.Hide();
-            settingsPanel.Hide();
-            ClosePauseMenu();
-            ShowMainMenu();
-            SetStatus("Device paired. Choose Continue to enter your world.", good: true);
-            await CheckStartupRecoveryAsync();
-        }
-        catch (Exception exception)
-        {
-            SetStatus($"Pairing was approved, but this PC could not finish it · {FriendlyFailure(exception)}", good: false);
-        }
-    }
-
-    private void ForgetLocalRegistration()
-    {
-        refreshCancellation?.Cancel();
-        registrationStore.Forget();
-        registration = null;
-        registeredEndpointInvalid = false;
-        pendingPairing = null;
-        pendingPairingOrigin = null;
-        pairedDevices = [];
-        providerConfiguration = null;
-        pairedDeviceList.Clear();
-        pendingSubmission = null;
-        _ = pendingSubmissionStore.TryForget();
-        unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
-        RenderPendingSubmission();
-        knownEvents.Clear();
-        eventLogRefusals.Clear();
-        pairingPanel.Show();
-        connectionPanel.Show();
-        OpenMenuForSetup();
-        pairingCodeLabel.Text = "—";
-        pairingIdLabel.Text = "—";
-        pairingExpiryLabel.Text = string.Empty;
-        pairingInstructionLabel.Text = "This PC's saved connection was forgotten. Its device key stays saved on this PC for your Windows account. Pair again only if the person who runs the world server allows this device.";
-        SetStatus("Saved connection forgotten.", good: false);
-        RefreshControlAvailability();
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        { SetMainMenuStatus("This PC could not finish setting up its world. Close the game and try again."); }
+        finally { settingUpLocalDevice = false; }
     }
 
     private async Task RefreshAsync()
@@ -398,95 +206,14 @@ public partial class Main
         return new OwnerRequestContext(() => IsCurrentWorldRequest(generation), OwnerRequestToken);
     }
 
-    private async Task ConnectUsingCurrentUrlAsync()
-    {
-        if (registeredEndpointInvalid)
-        {
-            connectionStatusLabel.Text = "This device's saved connection is not valid. Ask the person who runs the world server before pairing again.";
-            connectionStatusLabel.Show();
-            SetStatus("This device's saved connection is not valid. Choose Forget saved connection before pairing again.", good: false);
-            return;
-        }
-
-        try
-        {
-            _ = ResolveWorldUri();
-        }
-        catch (Exception exception)
-        {
-            var failure = FriendlyFailure(exception);
-            connectionStatusLabel.Text = $"That world server address can't be used · {failure}";
-            connectionStatusLabel.Show();
-            SetStatus($"That world server address can't be used · {failure}", good: false);
-            return;
-        }
-
-        if (registration is not null)
-        {
-            if (isRefreshing || isOwnerAction)
-            {
-                connectionStatusLabel.Text = "A connection check is already in progress.";
-                connectionStatusLabel.Show();
-                return;
-            }
-
-            var previousRefreshCount = successfulRefreshCount;
-            var previousToastTime = statusToastShownAtMsec;
-            connectionStatusLabel.Text = "Checking connection...";
-            connectionStatusLabel.Show();
-            connectButton.Disabled = true;
-            await RefreshAsync();
-            connectionStatusLabel.Text = successfulRefreshCount > previousRefreshCount
-                ? "Connected. Go back to open your world."
-                : statusToastKind == StatusToastKind.Connection && statusToastShownAtMsec != previousToastTime
-                    ? statusLabel.Text
-                    : "Could not confirm the connection. Try again.";
-            return;
-        }
-
-        await StartPairingAsync();
-    }
-
-    private async Task PairAgainAsync()
-    {
-        if (isPairingOperation || isOwnerAction || isRefreshing)
-        {
-            return;
-        }
-
-        ForgetLocalRegistration();
-        await StartPairingAsync();
-    }
-
     private Uri ResolveWorldUri()
     {
-        if (!ServerOrigin.TryResolve(serverUrlInput.Text, out var configuredWorldUri))
-        {
-            throw new InvalidOperationException("World URL must be an absolute HTTPS origin (or loopback HTTP for local development).");
-        }
-
-        if (registration is null)
-        {
-            if (pendingPairingOrigin is not null)
-            {
-                if (!ServerOrigin.Same(configuredWorldUri, pendingPairingOrigin))
-                {
-                    throw new InvalidOperationException("This pending pairing is pinned to the server that created it. Wait for it to expire or forget the local registration before changing servers.");
-                }
-
-                return pendingPairingOrigin;
-            }
-
-            return configuredWorldUri;
-        }
-
-        if (!ServerOrigin.TryResolve(registration.WorldUrl, out var pinnedWorldUri) ||
-            !ServerOrigin.Same(configuredWorldUri, pinnedWorldUri))
-        {
-            throw new InvalidOperationException("This paired device is pinned to its original server origin. Forget the local registration before pairing it with a different server.");
-        }
-
-        return pinnedWorldUri;
+        if (!ServerOrigin.TryResolve(serverUrlInput.Text, out var configured))
+            throw new InvalidOperationException("The host address is invalid. Join it through the launcher.");
+        if (registration is not null && (!ServerOrigin.TryResolve(registration.WorldUrl, out var pinned) ||
+            !ServerOrigin.Same(configured, pinned)))
+            throw new InvalidOperationException("This device is approved for another host. Join through the launcher.");
+        return configured;
     }
 
     private static string ConfiguredServerUrl() => ProjectSettings

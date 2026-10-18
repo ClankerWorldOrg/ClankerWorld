@@ -48,6 +48,8 @@
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\SigstoreReleaseVerifier.cs" Link="GodotClient\Launcher\SigstoreReleaseVerifier.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\ReleasePackageSignature.cs" Link="GodotClient\Launcher\ReleasePackageSignature.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\GameVersionStore.cs" Link="GodotClient\Launcher\GameVersionStore.cs" />
+    <Compile Include="../../src/ClankerWorld.GodotClient/Launcher/DeviceJoinSession.cs" Link="GodotClient/Launcher/DeviceJoinSession.cs" />
+    <Compile Include="../../src/ClankerWorld.GodotClient/ClientState/OwnerDeviceRegistrationStore.cs" Link="GodotClient/ClientState/OwnerDeviceRegistrationStore.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Launcher\LauncherSettings.cs" Link="GodotClient\Launcher\LauncherSettings.cs" />
     <Compile Include="..\..\src\ClankerWorld.Server\Contracts\ContractNames.cs" Link="Contracts\ContractNames.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\OwnerWorldObservationSession.cs" Link="GodotClient\Protocol\OwnerWorldObservationSession.cs" />
