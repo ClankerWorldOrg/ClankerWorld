@@ -100,7 +100,7 @@ public partial class Main
             SetMainMenuStatus(status);
     }
 
-    /// <summary>False leaves the ordinary comparison-code flow on screen.</summary>
+    /// <summary>False keeps automatic local setup pending, without a pairing screen.</summary>
     private async Task<bool> ApproveLocalPairingAsync(OwnerPairingStart pairing)
     {
         try

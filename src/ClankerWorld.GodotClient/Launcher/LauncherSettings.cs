@@ -5,7 +5,7 @@ namespace ClankerWorld.GodotClient.Launcher;
 
 /// <summary>The launcher's own choices. Developer mode is off until the player turns it on.</summary>
 public sealed record LauncherSettings(bool DeveloperMode = false, string? LastPlayedVersion = null,
-    bool UseTestData = true, bool DetailedLogs = false)
+    bool UseTestData = true, bool DetailedLogs = false, bool JoinRemoteWorld = false)
 {
     public static LauncherSettings Load(LauncherLayout layout)
     {
@@ -99,7 +99,7 @@ public static class GameStarter
     /// offer Quit to Launcher, and whether Developer mode is on.
     /// </summary>
     public static IReadOnlyList<string> Arguments(string launcherExecutable, bool developerMode, string? worldId = null,
-        bool useTestData = false, bool detailedLogs = false, string? logPath = null)
+        bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null)
     {
         List<string> arguments = [];
         if (developerMode && detailedLogs) arguments.Add("--verbose");
@@ -109,6 +109,12 @@ public static class GameStarter
         if (developerMode && useTestData) arguments.Add("--test-data");
         if (developerMode && detailedLogs) arguments.Add("--detailed-logs");
         if (WorldId(worldId) is { } id) arguments.Add(WorldOption + id);
+        if (serverUrl is not null)
+        {
+            if (!ClientState.ServerOrigin.TryResolve(serverUrl, out var origin))
+                throw new GameInstallException("The saved host address is invalid. Join the world again.");
+            arguments.Add("--server-url=" + origin.AbsoluteUri);
+        }
         return arguments;
     }
 
@@ -116,7 +122,7 @@ public static class GameStarter
         => StartProcess(version.Executable, launcherExecutable, developerMode, worldId);
 
     public static Process Start(string executable, string launcherExecutable, LauncherSettings settings,
-        LauncherLayout layout, string? worldId = null)
+        LauncherLayout layout, string? worldId = null, string? serverUrl = null)
     {
         if (settings.DeveloperMode && (settings.UseTestData || settings.DetailedLogs))
         {
@@ -127,7 +133,7 @@ public static class GameStarter
         }
         var logs = Path.Combine(layout.GameDataDirectory(settings), "logs");
         return StartProcess(executable, launcherExecutable, settings.DeveloperMode, worldId,
-            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs));
+            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs), serverUrl);
     }
 
     /// <summary>Godot disables rotation with --log-file; keep the last run before it opens the new log.</summary>
@@ -149,14 +155,14 @@ public static class GameStarter
     }
 
     private static Process StartProcess(string executable, string launcherExecutable, bool developerMode,
-        string? worldId, bool useTestData = false, bool detailedLogs = false, string? logPath = null)
+        string? worldId, bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null)
     {
         var start = new ProcessStartInfo(executable)
         {
             WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(executable)),
             UseShellExecute = false,
         };
-        foreach (var argument in Arguments(launcherExecutable, developerMode, worldId, useTestData, detailedLogs, logPath))
+        foreach (var argument in Arguments(launcherExecutable, developerMode, worldId, useTestData, detailedLogs, logPath, serverUrl))
             start.ArgumentList.Add(argument);
         return Process.Start(start) ?? throw new GameInstallException("ClankerWorld didn't start.");
     }

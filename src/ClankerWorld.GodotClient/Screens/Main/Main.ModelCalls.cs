@@ -26,7 +26,7 @@ public partial class Main
         var owner = registration;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            usageMeterStatus.Text = "Connect this device to see model-call usage.";
+            usageMeterStatus.Text = "Start the game through the launcher to see model-call usage.";
             return;
         }
         try

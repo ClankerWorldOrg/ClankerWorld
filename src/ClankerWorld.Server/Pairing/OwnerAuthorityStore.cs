@@ -76,7 +76,8 @@ public sealed record OwnerPairingStart(
     string PairingCode,
     string PublicKeyFingerprint,
     DateTimeOffset ExpiresAtUtc,
-    string ActivationCanonicalProof);
+    string ActivationCanonicalProof,
+    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
 
 /// <summary>
 /// Safe to expose to pairing status polling: it contains no code, private key,
