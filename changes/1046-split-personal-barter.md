@@ -1,1 +1,0 @@
-- Agents can barter spare personal goods held in separate stacks while keeping their usual reserve and protecting worn, reserved and uncarried items.

@@ -1,2 +1,0 @@
-- Household departure choices now explain when their care group or selected food allowance changes before they can act.
-- Food held for an active Market stall stays protected from departure allowances, including a hold added while a choice waits.

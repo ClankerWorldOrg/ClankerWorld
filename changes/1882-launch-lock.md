@@ -1,1 +1,0 @@
-- Overlapping game launches now protect the local server's startup files, so a surviving server can still be reused after the owning game closes unexpectedly.

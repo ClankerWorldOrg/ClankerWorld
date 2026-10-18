@@ -1,1 +1,0 @@
-- Animal care and saddle supply trips check the loaded route before picking up goods, so a jug or saddle cannot leave the carrier too heavily loaded to swim back to the animal.

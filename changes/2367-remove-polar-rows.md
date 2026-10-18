@@ -1,1 +1,0 @@
-- New worlds no longer force straight strips of polar sea along the north and south edges. Ordinary terrain reaches the edges, and agents still stop there. Earlier generated worlds whose maps differ from regeneration cannot load in this build; their save files are kept.

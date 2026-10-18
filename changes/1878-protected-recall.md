@@ -1,2 +1,0 @@
-- Heirs keep recalling final words after many newer experiences. Other protected social memories use the same recall protection as permanent name changes.
-- The routine helper avoids repeating importance assessments that cannot fit in its saved scoring index.

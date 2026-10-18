@@ -1,1 +1,0 @@
-- Leaving a household takes a food allowance from available household supplies and preserves food still on sale at a housemate's borrowed Market stall.

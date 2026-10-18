@@ -1,1 +1,0 @@
-- Storing the remainder of a personal load no longer fails because an earlier partial move already created a split lot.

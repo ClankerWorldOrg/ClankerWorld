@@ -1,1 +1,0 @@
-- Farmhouse households establish their first crop while starter food is still available, instead of waiting for the Town's ready food to run low before preparing and planting a field.

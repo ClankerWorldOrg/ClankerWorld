@@ -1,1 +1,0 @@
-- A proposal for another Market stall stops if a resident frees a standing stall before it is submitted.

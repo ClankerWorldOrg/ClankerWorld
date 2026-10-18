@@ -1,1 +1,0 @@
-- Quit to Launcher now shows the same pixel door icon as the other quit buttons.

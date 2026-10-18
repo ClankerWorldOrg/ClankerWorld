@@ -1,1 +1,0 @@
-- Load World can load an older save directly from the selected world’s timeline. Playing on from an older save starts a new branch, so the saves from the first version of events stay as they were. The save list groups saves by branch and marks each branch's latest save.

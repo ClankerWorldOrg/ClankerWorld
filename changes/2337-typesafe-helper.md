@@ -1,1 +1,0 @@
-- Save a TypeSafe key in API keys and choose it for the Jev routine helper. Keys used by the helper are protected from deletion. New Jev selections use 1.14.0; saved older model names are kept.

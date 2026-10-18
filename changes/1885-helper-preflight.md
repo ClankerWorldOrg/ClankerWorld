@@ -1,1 +1,0 @@
-- Load World and startup recovery now check a saved OpenAI Decisions helper's key, so a world with missing helper setup is no longer advertised as usable.

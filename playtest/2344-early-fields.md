@@ -1,1 +1,0 @@
-- Start a new world with a grain seed site near the Town and let it run without giving farming Orders. Within the first few world days, a Farmhouse household should prepare and plant a field while still doing its own gathering, carrying and other work. ([#2344](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2344))

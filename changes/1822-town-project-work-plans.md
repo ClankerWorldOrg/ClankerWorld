@@ -1,2 +1,0 @@
-- Town project work and personal material gathering retain their tools, delivered budget, source and harvest through shared checks.
-- Residents can keep using a still-borrowed carried tool for Town projects after leaving its household, without changing its ownership.

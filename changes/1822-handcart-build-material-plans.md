@@ -1,1 +1,0 @@
-- Cart build-material collection retains its recipe, Blacksmith, stock and quantity, with the same full-set and physical pickup checks at every action boundary. Cart material transfers use the bounded identity factory while preserving ordinary IDs.

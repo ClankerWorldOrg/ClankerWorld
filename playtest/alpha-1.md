@@ -1,8 +1,8 @@
 # Alpha 1 playtest checklist
 
-Pending hands-on checks for alpha 1, in 100 checks. Nothing here has been checked by hand yet.
+Pending hands-on checks for alpha 1, in 101 checks. Nothing here has been checked by hand yet.
 
-This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are agreed changes required for these checks. Use a build that includes them for those checks; earlier builds keep the previous rules.
+This checklist targets v0.1.0-alpha.1. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are included in this build; earlier builds keep the previous rules.
 
 Each check is one short play session. Its steps say what to do, then, after the arrow, what you should see. Do the **Start here** checks first: they cover what has to work in your first hour. Try the rest as you reach that part of the game, and tell any agent what you found ([how results are recorded](README.md#keeping-the-list-current)).
 
@@ -22,6 +22,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Start the launcher with the network off. → It says it couldn't check for updates, but **Play** still works.
   - In the launcher's **Settings**, use **Open saves folder** and **Open logs folder**. → Each opens Explorer.
   - In the launcher's **Settings**, turn on **Developer mode** and reopen the launcher. → Developer mode stays on and only then lists "Nightly build of main", while **Play** still suggests the newest alpha.
+  - Start the game from the launcher and open the Main Menu. Quit to Launcher should show the same pixel door icon as Quit Game, with matching size and alignment in both Light and Dark themes. ([#2335](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2335))
+
 - [ ] **On a remote server: pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
   - Pair the device with the host. → The Main Menu shows the logo with Continue, Settings and Quit Game.
   - Open Settings, then leave it. → Settings returns you to the Main Menu.
@@ -35,13 +37,14 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Open Settings or go Back while a slow Continue is still waiting. → The Main Menu stays up and the world stays paused.
   - Press Continue again. → A fresh Continue enters normally.
 - [ ] **Save, quit and continue.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1683))
-  - Unzip the portable Windows package into two folders and start `ClankerWorld.exe`. → The Main Menu opens without asking for a server address or comparison code.
+  - On a fresh Windows account, unzip the portable package into two folders and start `ClankerWorld.exe`. → The Main Menu says **Starting your world server…**, then enables world choices within seconds without a server address or pairing code. Create or open a disposable world, quit and confirm the server closes; restart and check that the saved connection works. ([#2281](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2281))
   - Add a key, create and start a world, and make a visible change. → Saves, settings and `logs\server.log` live in `%LOCALAPPDATA%\ClankerWorld`, not the game folder.
   - Start the game from the other folder. → Both copies open the same worlds.
   - While playing, search `logs\server.log` and the game folder for your key. → Your key appears nowhere.
   - While playing, run `netstat -ano | findstr 5188`. → The world server listens only on 127.0.0.1.
   - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Server is left in Task Manager.
   - Start again and press **Continue**, once with the PC offline. → The same local world reopens at the saved point, fullscreen stays as you chose it, and the interface fits the window or screen.
+
 - [ ] **New World screen and preview.** ([#409](https://github.com/compoodment/ClankerWorld/issues/409), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#719](https://github.com/compoodment/ClankerWorld/issues/719), [#900](https://github.com/compoodment/ClankerWorld/issues/900), [#1023](https://github.com/compoodment/ClankerWorld/issues/1023))
   - Open New World, also straight after changing a Main Menu setting such as the model-call limit. → Name, seed and size sit in one box.
   - Change the seed and size, and press **Reset these options**. → Each updates the preview; changing only the name keeps the same map.
@@ -77,7 +80,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Compare the founders' ages, also with the same seed again. → They all differ, and repeat in placement order for the same seed.
   - Start time and play on. → The world keeps running and autosaving instead of pausing at its first save.
   - Find the starter clay. → It sits on a reachable dry freshwater bank outside mountain rock.
-  - Save and reload the unfinished setup and the running world. → The clock, ages and layout are unchanged after every reload.
+  - Save and reload the unfinished setup and the running world. → The clock, ages and layout are unchanged after every reload. Town membership, starting buildings and household goods also remain correct after placing and undoing a founder. ([#1386](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1386))
   - Reload a saved Town near the east–west wrap. → The first view still shows dry land, not open sea.
 - [ ] **Big worlds keep their pace.** ([#580](https://github.com/compoodment/ClankerWorld/issues/580), [#781](https://github.com/compoodment/ClankerWorld/issues/781), [#832](https://github.com/compoodment/ClankerWorld/issues/832))
   - Load a Small world with thousands of trees and play for a few minutes while agents build and gather. → World time keeps its normal pace instead of stalling.
@@ -157,6 +160,10 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - While playing, watch for extra buildings. → Nobody builds a second House, a second building of a kind, its own Warehouse or a Weaving frame.
   - While playing, watch hunger during building work. → Building work never leaves agents dangerously hungry.
   - Save and load, then look in the buildings again. → Stock survives save and load.
+  - Start a disposable new world near grain seeds. Watch households establish fields using the starter Farmhouse before spending wood on more farm buildings; a further Farmhouse or Silo should have reachable fields or seeds to use. Save and load, then check that planning continues sensibly. ([#2341](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2341))
+  - Start a disposable new world on an island without wild animals. Let households gather construction materials: no Animal Yard should appear. In a world with reachable wild animals, check that a yard can be planned, and that another household waits while the first yard has room. ([#2341](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2341))
+  - Start a new four-agent world and let the households build as they gather materials. Including shops still under construction, the Town should have at most one Store, one Tailor Shop, one Restaurant, one Clinic and one Blacksmith, even when both households want the same shop. ([#2342](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2342))
+
 - [ ] **Add Agent and joining a household.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#463](https://github.com/compoodment/ClankerWorld/issues/463), [#464](https://github.com/compoodment/ClankerWorld/issues/464), [#465](https://github.com/compoodment/ClankerWorld/issues/465), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#593](https://github.com/compoodment/ClankerWorld/issues/593))
   - Use Add Agent on a House, including a newly expanded part. → The preview matches the result, and the adult joins that household at once.
   - Use Add Agent on Town land away from houses. → They join the Town only, their card says they have no home, and they don't take that House's food.
@@ -209,6 +216,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Compare a field worked at least once each season. → It stays a field.
   - Save mid-planting, then reload. → The seed stays held, and only that one seed is used when planting finishes.
   - Cancel planting work, and save and reload mid-carrying. → Cancelled work leaves the seed as real goods, and nothing duplicates after reload.
+  - Start a new world with a grain seed site near the Town and let it run without giving farming Orders. Within the first few world days, a Farmhouse household should prepare and plant a field while still doing its own gathering, carrying and other work. ([#2344](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2344))
+
 - [ ] **Births need food at home.** ([#755](https://github.com/compoodment/ClankerWorld/issues/755), [#938](https://github.com/compoodment/ClankerWorld/issues/938), [#974](https://github.com/compoodment/ClankerWorld/issues/974), [#1345](https://github.com/compoodment/ClankerWorld/issues/1345))
   - Have a couple in a two-adult household agree on a child, once on personal models and once on built-in rules in a world with a very long seed. → The birth waits.
   - Check the parents' cards before adding food. → The birth needs a ready-to-eat reserve of two portions per household member plus four, so eight here; four aren't enough.
@@ -259,6 +268,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Cancel it. → Nothing is removed.
   - Confirm a fresh preview. → Only the copies it listed are removed, and the named save and latest recovery copy still load.
   - Repeat the preview at the smallest window size and with larger text. → The lists and the Cancel and Delete buttons stay usable at every size.
+  - In a disposable world with several autosaves, pause, open World Settings and reduce rotation, then turn it off. Confirm that Load Save still opens the newest usable copy and other worlds and save branches keep their own copies. ([#1868](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1868))
+
 - [ ] **Recovering after a crash or a damaged save.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1319](https://github.com/compoodment/ClankerWorld/issues/1319), [#1321](https://github.com/compoodment/ClankerWorld/issues/1321), [PR #1725](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1725))
   - Back up the save folder, then use a disposable test world with a rotating autosave. Stop the host, damage only that test world's current save and restart. → Recover world appears before you enter the world.
   - Read the Recover world screen. → It explains what is kept and lost, and offers the last good autosave.
@@ -267,7 +278,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Restore an autosave and choose Check again. → Recovery becomes available.
   - Drop the connection after choosing. → It offers Check again instead of repeating the choice.
   - While playing, end the ClankerWorld.Server process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
-  - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
+  - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running. ([#1882](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1882))
   - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
   - Start a different game build while that server is still running. → It refuses the server that doesn't match, without stopping or replacing that server.
   - Let the host's save disk get nearly full. → A readable warning shows during play and in Save World, in both themes.
@@ -275,6 +286,10 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Watch for a save that fails. → It says so instead of claiming success.
   - Free space. → The warning clears.
   - If the free space can't be checked, read the message. → It says so.
+  - **On a remote server:** with Developer mode off, use a disposable world. Send an order and briefly disconnect the game while the server stays running; reconnect and check that the order appears only once and other owner controls become available. If the reply is still lost, use the normal Your last request controls to check and send again or discard it. ([#1812](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1812))
+  - With an unresolved request in a disposable world, restart its server or load a save. Check that the game offers Check and send again and Discard it outside Developer tools, sends no old request automatically, and restores other controls after your choice. Check an instruction in the agent's Orders before sending its restored draft; discarding must not undo an order the server already accepted. ([#1812](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1812))
+  - On Windows, launch the same build twice while its local server is starting. → The second copy refuses startup or reuses the first server when ready, and the first game stays usable. ([#1882](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1882))
+
 - [ ] **Pause Menu.** ([#1028](https://github.com/compoodment/ClankerWorld/issues/1028))
   - With time running, open the Pause Menu, close it and quickly reopen it a few times. → Once it settles and you close the menu, time runs again.
   - Pause the world yourself, then do the same. → The world stays paused.
@@ -286,6 +301,14 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Restart the host and load an older save. → The count never goes down, and the warning doesn't repeat.
   - With the game running its own world server, choose **Settings → Game → Build → Report a problem**. → File Explorer opens on a new zip in `%LOCALAPPDATA%\ClankerWorld\reports`.
   - Open the zip. → It holds a summary (game version, Windows version, graphics card and open world) and the game and host logs, with no API key you entered anywhere in it.
+  - On Windows, start the updated launcher and game, open a disposable world and play for a few minutes. Choose **Settings → Game → Build → Report a problem**: `logs/game.log` in the zip should reach your current run rather than stop during startup, and ordinary file paths should remain readable. Close the game by force in Task Manager, start it again through the launcher and make another report: `logs/game.previous.log` should contain the earlier run through its last logged activity, and `logs/game.log` should contain the new run. Keys and pairing codes should still be blanked; never send an unreviewed zip containing a secret. ([#2334](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2334))
+
+- [ ] **Install, uninstall and reinstall on Windows.** ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
+  - On Windows 11 x64 as a standard user, run setup without administrator approval; the Start-menu shortcut opens the launcher and its bundled game plays a disposable world. ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
+  - Try the optional desktop shortcut, and confirm Windows Installed apps lists ClankerWorld Launcher. ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
+  - Run setup again, then a newer setup; installed game versions, a saved world, keys and model-call count remain available. ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
+  - Uninstall through Windows Settings; its confirmation explains that data is kept, and launcher files/shortcuts disappear while game versions and player data remain. ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
+  - Install again and play the retained disposable world with its original version. ([#1567](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1567))
 
 ## Install, launch and pairing
 
@@ -324,6 +347,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Keep panning into new stretches. → The range is already drawn as it comes into view, and fades in smoothly if you see it being drawn at all.
   - Start a middle-button drag and let go over the pause menu or another app. → The camera stays still until you drag again.
   - Drag again across the east–west edge. → It still pans across the edge.
+  - Create a new world and inspect its north and south map edges. Land, sea and ice should follow the surrounding terrain, with no forced straight strip of sea across the map. Try moving an agent beyond either edge: they should stop at the edge. East/west wrapping should still follow the world setting. ([#2367](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2367))
+
 - [ ] **Day, night and seasons.** ([#580](https://github.com/compoodment/ClankerWorld/issues/580), [#673](https://github.com/compoodment/ClankerWorld/issues/673), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#891](https://github.com/compoodment/ClankerWorld/issues/891), [#896](https://github.com/compoodment/ClankerWorld/pull/896), [#1224](https://github.com/compoodment/ClankerWorld/issues/1224), [#1465](https://github.com/compoodment/ClankerWorld/issues/1465); `1464-autumn-leaves.md`, no link)
   - Watch the first evening. → Dark falls at 19:12 with a fade of about 15 seconds.
   - Watch the first night. → Midnight starts Spring 2, and dawn comes at about 04:41 to 04:48.
@@ -419,6 +444,12 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Watch the infant. → It makes no paid calls as an infant.
   - Set the newborn to **No personal model (built-in choices)** and reopen. → The setting survives, and later uses built-in choices even with a paid world default.
   - Remove the key, or open the save on another install. → The child keeps its choice, makes safe choices and never uses a different paid model.
+  - After a child is born to parents using a personal model, quit and reopen the world. Confirm that the child's chosen model remains available and changing the provider's default key does not replace that child's saved key choice. ([#1767](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1767))
+  - In a paused world, save a named OpenAI key and select it for the OpenAI Decisions routine helper without assigning it to an agent. Try Delete this key in World Settings' Agent model box. It refuses and explains how to release the key; the saved key and helper selection remain. ([#1876](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1876))
+  - Give that helper another saved key, choose Jev, or turn it off, then delete the old key. Deletion succeeds. Restart the game and load the world: the old key stays deleted and the new helper selection remains. ([#1876](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1876))
+  - On Windows, save a **TypeSafe (Jev)** key in **Settings → Game → API keys**. Pause a disposable world, choose **Jev**, the saved key and **jev-1.14.0** under **Settings → World → Routine helper**, and press **Apply helper**. Resume with an adult present and check that their routine choices show Jev as the provider. Restart the game and check that the saved key and helper selection remain. ([#2337](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2337))
+  - With Jev using the saved TypeSafe key, try **Delete saved key** in **API keys**: it should explain how to release the key and keep it. Turn the helper Off, delete the key, and restart: the key should stay deleted. If you have a world set to **jev-1.13.0**, check that loading it keeps that model and Jev still makes routine choices with its selected key. ([#2337](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2337))
+
 - [ ] **Memories, personality and life moments.** ([#442](https://github.com/compoodment/ClankerWorld/issues/442), [#472](https://github.com/compoodment/ClankerWorld/issues/472), [#970](https://github.com/compoodment/ClankerWorld/issues/970), [#1311](https://github.com/compoodment/ClankerWorld/issues/1311), [#1312](https://github.com/compoodment/ClankerWorld/issues/1312), [#1524](https://github.com/compoodment/ClankerWorld/issues/1524), [#1690](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1690), [#1694](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1694), [#1704](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1704))
   - Let agents live more than three world days with the routine helper off. → Old, unimportant memories leave the recent list, while life, relationship, skill and family records stay.
   - Watch memories tied to an unfinished task or an active child plan. → They stay until it ends; a postponed child plan doesn't keep them.
@@ -612,6 +643,10 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Zoom out at night. → Lit buildings show as warm specks.
   - Look at an abandoned Town's Warehouse and Port lanterns, then again after an empty season. → They look faded, and more so after the empty season.
   - Resettle the abandoned Town. → Its lanterns are bright again.
+  - On Windows, select a 2×2 Blacksmith and hover over the clipped name on its quick card and Details; the full name appears on each. ([#1792](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1792))
+  - Select another building; each heading shows the newly selected building's full name on hover, and Find/Close still work. ([#1792](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1792))
+  - In a disposable world, place two buildings directly next to each other with both doorways clear, and order an agent inside one to travel to the other. Watch them emerge through the first doorway, walk outside, and enter through the second doorway. Try a trip past a third building too: its roof should never hide the passing agent. ([#2339](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2339))
+
 - [ ] **Full Houses and move-out notices.** ([#598](https://github.com/compoodment/ClankerWorld/issues/598), [#599](https://github.com/compoodment/ClankerWorld/issues/599), [#816](https://github.com/compoodment/ClankerWorld/issues/816), Refs #940)
   - Fill a 1×1 House with three unrelated residents. → It gets no join requests, and Add Agent on that household's other property refuses.
   - Try a family group instead. → It gets four places only while it is a clear majority.
@@ -740,6 +775,9 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Take the ornament off. → It stays carried.
   - Compare the wearer with and without it. → It changes neither warmth, carrying room, fighting nor map appearance.
   - Save and reopen while a tool or the ornament is being made, during field work and during a repair. → Tools, wear and work match after reopening.
+  - In a normal Windows game, let a founder without a basket or sack make and use a stone axe. Check that they can gather wood and a tree seed, then deliver wood to their Blacksmith without repeatedly reporting a full load. ([#1800](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1800))
+  - Give a founder a usable basket or sack and a stone or iron axe. Check that gathering still produces the larger tool harvest when the whole load fits, and that saving and loading during delivery keeps their goods and progress. ([#1800](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1800))
+
 - [ ] **Repairs, clothing and carrying aids.** ([#563](https://github.com/compoodment/ClankerWorld/issues/563), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#725](https://github.com/compoodment/ClankerWorld/issues/725), [#1062](https://github.com/compoodment/ClankerWorld/issues/1062), [#1173](https://github.com/compoodment/ClankerWorld/issues/1173), [#1592](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1592))
   - Follow fiber into a Tailor Shop for cloth, then wear its padded coat and rain cloak. → The coat helps in cold and the cloak in wet weather, without changing the map sprite.
   - Follow rope and baskets at a House and sacks at the Tailor Shop. → Carrying aids raise the limit on the card, and real pickups respect it.
@@ -850,6 +888,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Have them leave the household, then Order them to collect the tool for work. → They walk to collect the actual tool, which keeps its owner and condition.
   - Move the far goods within reach. → Crafting and pickups work normally and finish once.
   - Save and reopen before and after each pickup. → The world keeps running and saving throughout, and every item keeps its owner and condition.
+  - Run a normal four-agent world with a household Blacksmith and let it advance for a few in-game days while agents collect supplies and gather materials. When a pile runs out or another agent takes the last supplies, the affected agent should choose another source or task; the same Blacksmith-supply or material-source refusal should not repeat over and over in the Event Log. ([#2356](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2356))
+
 - [ ] **Skills, writing and reading.** ([#207](https://github.com/compoodment/ClankerWorld/issues/207), [#1187](https://github.com/compoodment/ClankerWorld/issues/1187), [#1189](https://github.com/compoodment/ClankerWorld/issues/1189), [#1223](https://github.com/compoodment/ClankerWorld/issues/1223), [#1310](https://github.com/compoodment/ClankerWorld/issues/1310), [#1313](https://github.com/compoodment/ClankerWorld/issues/1313), [#1425](https://github.com/compoodment/ClankerWorld/pull/1425))
   - Compare a skilled and an unskilled adult doing the same paid building and field work, with the same tools (the paused developer editor can give the skill). → The skilled adult finishes sooner.
   - Compare them on the same production and repair with the same materials, and reload partway. → The skilled adult still finishes sooner, also after reload.
@@ -1017,7 +1057,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Have an adult haul a pot of potatoes. → The whole pot goes to the Silo if it has room, otherwise to the Farmhouse, or stays put if neither has room.
   - Order **Haul two potatoes to my Farmhouse**. → The named haul goes only to the Farmhouse.
   - Have an adult haul flour in sound and broken pots. → Flour in a sound pot travels home with its pot; flour in a broken pot stays at the Farmhouse.
-  - Save mid-work and mid-trip, then reload. → Finished orders stay done, no seed is spent twice and amounts are right.
+  - With a Farmhouse, tools and seeds, prepare, plant, tend and harvest a household field; save mid-work and mid-trip, then reload. → Work keeps the same tools and stock, finished orders stay done, no seed is spent twice and amounts are right. ([#1384](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1384))
+
 - [ ] **Planting trees.** ([#462](https://github.com/compoodment/ClankerWorld/issues/462), [#972](https://github.com/compoodment/ClankerWorld/issues/972), [#1166](https://github.com/compoodment/ClankerWorld/issues/1166), [#1200](https://github.com/compoodment/ClankerWorld/issues/1200), [#1293](https://github.com/compoodment/ClankerWorld/issues/1293), [#1334](https://github.com/compoodment/ClankerWorld/issues/1334), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370))
   - Watch an agent fell a tree. → It gives a tree seed that may be planted on grass or forest outside the Town, and the Event Log says so.
   - Watch an agent pick autumn orchard fruit. → They get real tree seeds.
@@ -1031,7 +1072,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Plant an orchard sapling, then zoom and reload. → It appears at once with no fruit, and stays through zooming and reload.
   - Follow a mature orchard tree through the year. → It shows leaves until autumn, fruit in autumn, a picked look after picking, and leaves only again in winter.
   - Harvest its fruit. → The fruit is taken, but the tree stays.
-  - Save and reopen with planted trees growing. → They keep growing, once.
+  - Save and reopen with planted trees growing outside the Town. → Each planting used one seed and the trees keep growing, once. ([#1384](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1384))
   - View the order card in a small window and full screen. → It reads well at both window sizes.
 
 ## Families, children, death and wills
@@ -1051,9 +1092,9 @@ The portable game starts its own world server on your PC; it needs no manual pai
 - [ ] **Continuity rule and newcomers.** ([#561](https://github.com/compoodment/ClankerWorld/issues/561), [#666](https://github.com/compoodment/ClankerWorld/issues/666), [#676](https://github.com/compoodment/ClankerWorld/issues/676), [#861](https://github.com/compoodment/ClankerWorld/pull/861), [#1329](https://github.com/compoodment/ClankerWorld/issues/1329))
   - Start a world with four founders. → The Event Log says just once that the continuity rule is on, with a warning and an **Add a newcomer** offer.
   - Choose **Add a newcomer** in the Event Log. → It opens the usual Add Agent controls, adding nobody and spending no paid calls until you choose a paid action.
-  - Let two founders become partners and ask for a child. → Partnered adults' choices explain the rule, and a partner may say "not yet" but can't refuse.
-  - Wait about two days. → The plan goes ahead, and the birth follows once there is food at home.
-  - Reopen the world once while the rule is on. → The rule message doesn't appear again, and the child plan keeps the same deadline.
+  - Let a new four-founder world run without Developer edits. → Two couples form within about two world days, and the Event Log says the continuity rule paired them. Partnered adults' choices explain the rule; a partner may say "not yet" but can't refuse. ([#2353](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2353))
+  - Keep enough food at home and wait about two more world days. → A child plan goes ahead, and the birth follows once there is food at home. ([#2353](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2353))
+  - Save and reopen during the first two world days, then again with a child plan. → Pairing still happens on time, the rule message doesn't appear again, and the child plan keeps the same deadline. ([#2353](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2353))
   - Add single adults until there are eight people, and let couples form. → Couples form only by their own choices; a couple already caring for an infant counts but gets no second deadline.
   - Let couples form until there are four unrelated couples who can have children. → One Event Log line says the rule is off, the offer disappears and partners can decline again.
   - Let a partner die or become an elder. → The rule and the **Add a newcomer** offer both come back.
@@ -1094,6 +1135,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Wait a year on the world's calendar, pausing partway through its fade. → It fades over a day, holding still while paused.
   - At 1024×768, open a relative's Family Tree (several generations, a partner and the dead relative) and scroll. → Names and links stay visible on screen as you scroll.
   - Click a person in the tree. → Their profile opens.
+  - After an agent has saved summaries of their experiences, turn the routine helper off, save and reload, then let that agent die owning belongings with a personal model assigned. Their final will can draw on their own summarized experiences; other agents do not learn those private summaries. ([#1872](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1872))
+
 - [ ] **Inheritance and the Town's share.** ([#566](https://github.com/compoodment/ClankerWorld/issues/566), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#963](https://github.com/compoodment/ClankerWorld/issues/963), [#1035](https://github.com/compoodment/ClankerWorld/issues/1035), [#1100](https://github.com/compoodment/ClankerWorld/issues/1100), [#1328](https://github.com/compoodment/ClankerWorld/issues/1328), [#1406](https://github.com/compoodment/ClankerWorld/issues/1406), [#1641](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1641))
   - Have the Town adopt a default estate law with a 50% Town share, then let a resident die without a valid will. → After the seven-day hold, the estate is shared out.
   - Check the Town Warehouse. → Half of each lot that can be split (rounded down) goes there while there is room.
@@ -1110,6 +1153,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Watch the heir at the House. → They don't join the household or take shared stock.
   - Let a caregiver die whose child inherited an axe left in the House, and order the grown child to collect. → They collect one wooden axe, waiting with full hands or a reserved axe.
   - Save and reopen before and after each estate settles, and during the trips. → Trips finish after reloading, and reopening gives the same result with nothing duplicated.
+  - After an heir receives final words with an inheritance, let them accumulate many new experiences, save and reload, then ask them about those words. They can still recall the original words; agents who did not inherit have not learned them. ([#1878](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1878))
 
 ## Towns and government
 
@@ -1141,6 +1185,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Open the newcomer's Profile and the Event Log. → Both explain the expiry, and no acceptance choice is left.
   - Then make a fresh request. → It can be accepted once, while the old one stays expired.
   - Check the Event Log after each admission. → It names the Town each newcomer joins, and nobody is admitted twice.
+  - Follow a household land request through Council approval and each adult's acceptance, then save and reload. Its plot, accepted terms, use right and public notices should stay the same. ([#1386](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1386))
+
 - [ ] **Laws and reported conduct.** ([#631](https://github.com/compoodment/ClankerWorld/issues/631), [#635](https://github.com/compoodment/ClankerWorld/issues/635), [#813](https://github.com/compoodment/ClankerWorld/pull/813), [#1328](https://github.com/compoodment/ClankerWorld/issues/1328), [#1397](https://github.com/compoodment/ClankerWorld/issues/1397), [#1597](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1597))
   - Have residents propose a default estate law with a 50% Town share, and read it in Towns. → Towns shows the law's scope, dates and full wording.
   - Save and load mid-proposal. → The draft still shows the full wording.
@@ -1260,6 +1306,10 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Try overwriting an autosave and a named save. → Autosaves can't be overwritten, while named saves ask first.
   - Look at long names, and scroll the timeline. → Long names stay inside their controls with the full name on hover; the timeline fits and scrolls with names and seasons in view.
   - Judge Save World's layout overall. → Say if it feels cramped.
+  - At the default window size, pause a short world and open **Save World**. Its panel should open wide and stay that size after the first half second, with the short timeline visible without a horizontal scroll bar. Resize the window, close the panel and reopen it; it should fit the new window and stay steady. ([#2358](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2358))
+  - In Load World, select a world with saves on several branches. Its timeline should appear immediately, with the same points, branch rows, Timeline / List switch and description card as Save World. Load an older save on another branch directly; it should open paused and keep the world you left safe. Repeat with another world, then try Load with no save chosen and check that it opens the newest save. ([#2359](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2359))
+  - While playing, open the Pause Menu and choose Load Save. Pick an older save on the current world’s timeline and load it, then check that Save World still offers its usual timeline and overwrite controls. ([#2359](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2359))
+
 - [ ] **Load World and saves from other versions.** ([#445](https://github.com/compoodment/ClankerWorld/issues/445), [#487](https://github.com/compoodment/ClankerWorld/issues/487), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#565](https://github.com/compoodment/ClankerWorld/issues/565), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#584](https://github.com/compoodment/ClankerWorld/issues/584), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#595](https://github.com/compoodment/ClankerWorld/pull/595), [#625](https://github.com/compoodment/ClankerWorld/issues/625), [#683](https://github.com/compoodment/ClankerWorld/issues/683), [#767](https://github.com/compoodment/ClankerWorld/issues/767), [#971](https://github.com/compoodment/ClankerWorld/issues/971), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1534](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1534), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566), [#1771](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1771))
   - Restart the server and press **Continue**, then use **Quit to Menu → Load World** with several worlds. → Play and saving work before opening the list; the world stays paused while the list is checked.
   - Wait for the first check. → It may be slow, but it lists every world.
@@ -1319,6 +1369,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Use F, I, E, M, F1 and F12 to open panels, and Escape to close them. → At 1280×720 the F1 controls list stays on screen.
   - Press K, move the tile cursor across the map edge with the arrow keys and Shift+arrow keys, and press Enter on an agent, a building and an empty tile. → Focus stays visible throughout.
   - Move the mouse. → It switches back to pointer browsing.
+  - After a connection loss leaves **Your last request** visible, keep the agent's Profile open and use Tab and Shift+Tab to reach both recovery buttons, then Enter to retry; on another lost request, check Discard it. Repeat from Main Menu and check that focus returns to a usable control afterward. [#1869](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1869)
+
 - [ ] **Settings, interface size and dates.** ([#281](https://github.com/compoodment/ClankerWorld/issues/281), [#285](https://github.com/compoodment/ClankerWorld/issues/285), [#582](https://github.com/compoodment/ClankerWorld/pull/582), [#585](https://github.com/compoodment/ClankerWorld/pull/585), [#674](https://github.com/compoodment/ClankerWorld/issues/674), [#700](https://github.com/compoodment/ClankerWorld/pull/700))
   - Open Settings from the Main Menu and from the Pause Menu. → Interface, Display, Weather and Date and time each sit in a box, with no UI Scale or Render Resolution.
   - Use the drop-downs and click around. → The scrollbar stays clear of the drop-downs, and mouse clicks work.
@@ -1344,9 +1396,13 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - At 200% interface size, expand a long conversation. → It scrolls within the screen without selecting an agent or showing it to another agent.
   - Press Escape. → Only the reader closes.
   - Rename an adult to a 48-character name, and to one with wide characters such as 界, pressing Tab away mid-rename and waiting. → Your typing stays until you submit or cancel.
-  - Look at the renamed heading. → It fits on two lines with the full name on hover, and Rename and Back stay visible.
+  - Look at the renamed headings on the quick card and Profile, then rename again and select another agent. → Each shows the current full name on hover; the Profile heading fits on two lines, and Rename and Back stay visible. ([#1779](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1779))
   - With that long name, open Read all, All orders and a conversation they're in, at 1280×720 and 1920×1080. → Each reader and its Close button stay on screen, hovering shows the full heading, and Close works with the mouse and the keyboard.
   - Pan the map. → The portrait frame and Speak controls follow the theme.
+  - Restart the Windows game and continue a world that has run for a few in-game days. Select an agent on the map, then press **Profile** on their small card. The first Profile should open without a long freeze, and **Back** should respond. ([#2333](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2333))
+  - Open several more agents' Profiles, including a child born in the world and agents with thoughts, belongings and family relationships. Their information should remain readable, the panel should fit the window and the game should keep responding while you open and close it. ([#2333](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2333))
+  - After a world has run for a few in-game days, open the Profile of an adult who has worked and traded. At the default window size, scroll from their activity and last order through People to Speak and Your messages: text should wrap across the panel, every section should follow the previous one without overlap, and Send should remain reachable. Repeat after resizing the window and selecting another adult. ([#2350](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2350))
+
 - [ ] **Orders and messages.** ([#589](https://github.com/compoodment/ClankerWorld/issues/589), [#1533](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1533))
   - In a small window at 100% interface size, order an adult who isn't hungry to "eat 3 berries". → The card and Profile read "Order: Blocked · Eating food · 0/3 food items · Waiting until hungry enough to eat."
   - Queue two more orders. → The card adds "2 more orders queued" without widening.
@@ -1383,14 +1439,16 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Drag and keyboard-pan during a glide. → Both stay instant and cancel the glide.
   - Zoom at a tile away from the centre. → Each zoom step eases quickly and keeps that tile under the cursor, without jumps.
   - Open another world. → Any old camera motion is dropped.
+  - At 1280×720 and 1920×1080, inspect ground with many different goods, such as a tile where an agent unloaded several cart loads; check that the card stays inside the window, the mouse wheel and keyboard reach the last goods row, Close stays visible, and an empty tile makes the card short again. [#1875](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1875)
+
 - [ ] **World Info and the Event Log.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#448](https://github.com/compoodment/ClankerWorld/issues/448), [#695](https://github.com/compoodment/ClankerWorld/pull/695), [#704](https://github.com/compoodment/ClankerWorld/pull/704), [#777](https://github.com/compoodment/ClankerWorld/issues/777), [#1289](https://github.com/compoodment/ClankerWorld/issues/1289), [#1408](https://github.com/compoodment/ClankerWorld/issues/1408), [#1710](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1710), event-log-wording.md, no link)
-  - Play a few days in a busy world, watching the Event Log. → Meals, foraging, cart loading and project shifts don't flood it.
+  - Run a four-agent world for a few days, including a household Blacksmith and Store if available. → The Event Log stays short, without personal storage, stocking, hauling or repeated unavailable-source refusals; births, partnerships and completed buildings still appear. ([#2355](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2355))
   - Leave World Info closed on its Towns page, then open its World page. → It shows the date, season, local weather and moisture, calendar and all eight counts at once.
   - Pan to other weather, and change the theme and scale. → The page follows the camera and stays current and readable.
   - Open the Towns page. → Each Town shows resident portraits (names on hover), council, Show button, household stores as item slots, and projects with worker, progress and any blocker in red.
   - Scroll the Towns page. → It scrolls inside the panel.
   - Pause, and reselect an agent. → The Towns text, the Event Log's scroll and the agent's relationships, thoughts and memories hold while paused.
-  - Read the Event Log. → It has a heading per day, icons, a dot on new rows and long descriptions that fit.
+  - Read the Event Log and resize with a long line visible. → It has a heading per day, icons and a dot on new rows; whole sentences wrap and remain reachable by scrolling. ([#2355](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2355))
   - Press a Find button in the Event Log. → The camera moves without touching the scrollbar.
   - Scroll to the end, and resize the window. → The log stops above the bottom of the screen, scrolls to its last row and resizes promptly.
   - Open a world at risk of dying out. → The dying-out warning with **Add a newcomer** shows above the first day, opening Add Agent without placing anyone.
@@ -1400,6 +1458,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - In a Town, watch a law decision, a government vote or handover, and a mayor's election or change of office. → Each gets a readable Event Log line naming the Town, and Towns shows its wording or result.
   - Save and reopen the world, then read those lines again. → They still show, without raw record or agent IDs.
   - Save and reload, then read the Event Log. → The names, headings and Find are kept, and weather lines are unchanged.
+  - Give an agent an order that becomes blocked, and check their Orders and the Event Log. The problem should remain visible without repeating more than once per agent and target per world day. ([#2355](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2355))
 
 ## Developer tools
 
@@ -1440,5 +1499,8 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Leave the waiting request in the recovery list. → It stays kept until you forget it.
   - Reconnect. → The waiting request is never sent into the loaded world.
   - Lose a reply without loading a save. → An exact retry is still allowed.
+  - With Developer mode on in a disposable paused world, open F12 → Edit world. Choose Terrain and a kind, click or drag across several empty tiles, check the gold preview, then Apply; repeat with a resource and a camp object after starting the settlement. Confirm the map changes only after Apply and each accepted batch appears as Developer edit. Try an occupied tile: its refusal should explain why and change nothing. Save and reload to check the edits remain. Close the tools or resume to check the preview clears. ([#2346](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2346))
 
 Folded on October 11, 2026 from 404 per-change files with 1,122 checks. Each check keeps the links of the changes it came from, and the original files are in git history at commit `afbc35e8`. Later the same day, 21 more per-change files were folded in; they are in git history at commit `10e9d3d3`.
+
+Folded on October 17, 2026 from 32 more per-change files, retained in Git history at commit `0242f7b2`. Overlapping startup, recovery, continuity and Event Log checks are merged into their existing sessions. All checks remain pending.

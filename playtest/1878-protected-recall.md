@@ -1,1 +1,0 @@
-- After an heir receives final words with an inheritance, let them accumulate many new experiences, save and reload, then ask them about those words. They can still recall the original words; agents who did not inherit have not learned them. ([#1878](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1878))

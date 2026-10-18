@@ -1,2 +1,0 @@
-- Voluntary remedy work retains its agreement, selected goods, service destination and native repair plan; known-act relays retain their exact source and listener.
-- Voluntary goods returns refuse stock promised to another task before transferring it.

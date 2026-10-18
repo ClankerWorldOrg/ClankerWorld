@@ -1,1 +1,0 @@
-- CI timing reports also appear in job logs, so reviewers can read the comparison with main without manually copying web summaries.
