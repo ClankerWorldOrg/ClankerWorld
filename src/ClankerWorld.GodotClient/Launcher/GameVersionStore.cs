@@ -169,11 +169,19 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
     /// <summary>Rechecks the pinned approval and every manifested file before Play.</summary>
     public static void RequireSigned(InstalledVersion version, string publicKey = ReleasePackageSignature.PublicKeyPem)
     {
+        ReleasePackageSignature signature;
         try
         {
-            var signature = ReleasePackageSignature.ReadFile(Path.Combine(version.Directory, ReleasePackageSignature.InstalledFile));
-            if (!signature.Verify(GameReleaseFeed.PackageName(version.Version) + ".zip", publicKey))
-                throw ReleasePackageSignature.Refused();
+            signature = ReleasePackageSignature.ReadFile(Path.Combine(version.Directory, ReleasePackageSignature.InstalledFile));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw ReleasePackageSignature.Refused();
+        }
+        if (!signature.Verify(GameReleaseFeed.PackageName(version.Version) + ".zip", publicKey))
+            throw ReleasePackageSignature.Refused();
+        try
+        {
             if (!HashFile(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Equals(signature.ManifestSha256, StringComparison.OrdinalIgnoreCase) ||
                 Verify(version).Count != 0)
                 throw NeedsRepair();

@@ -644,6 +644,8 @@ public sealed class LauncherTests
 
     [Theory]
     [InlineData("missing-proof")]
+    [InlineData("missing-manifest")]
+    [InlineData("missing-program")]
     [InlineData("manifest")]
     [InlineData("program")]
     public async Task PlayRequiresTheSignedManifestAndItsOriginalFiles(string damage)
@@ -663,9 +665,11 @@ public sealed class LauncherTests
             // The production pin must never trust this throwaway test key.
             Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
             if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
+            else if (damage.StartsWith("missing-", StringComparison.Ordinal))
+                File.Delete(damage == "missing-manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable);
             else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
             var refused = Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, publicKey));
-            Assert.Contains("Repair", refused.Message, StringComparison.Ordinal);
+            Assert.Contains(damage == "missing-proof" ? "signature" : "Repair", refused.Message, StringComparison.Ordinal);
         }
         finally { root.Delete(recursive: true); }
     }
