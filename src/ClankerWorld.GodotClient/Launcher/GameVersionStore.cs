@@ -21,7 +21,7 @@ public sealed class GameInstallException(string message, Exception? inner = null
 /// <c>manifest.sha256</c> lets Repair find files that changed since.
 /// Nothing here ever touches the saves, logs or settings folders.
 /// </summary>
-public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, string signingPublicKey = ReleasePackageSignature.PublicKeyPem)
+public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, IReleaseSignatureVerifier? signatureVerifier = null)
 {
     private const long MaximumPackageBytes = 2L * 1024 * 1024 * 1024;
 
@@ -98,7 +98,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
         using var signatureResponse = await http.GetAsync(signatureAsset.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         if (!signatureResponse.IsSuccessStatusCode) throw ReleasePackageSignature.Refused();
         var signature = await ReleasePackageSignature.ReadAsync(signatureResponse.Content, cancellationToken);
-        if (!signature.Verify(release.Package.Name, signingPublicKey)) throw ReleasePackageSignature.Refused();
+        if (!signature.Verify(release.Package.Name, signatureVerifier)) throw ReleasePackageSignature.Refused();
         Directory.CreateDirectory(layout.DownloadsDirectory);
         var zip = Path.Combine(layout.DownloadsDirectory, release.Package.Name + ".part");
         try
@@ -159,12 +159,12 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
     }
 
     /// <summary>Rechecks the pinned approval and every manifested file before Play.</summary>
-    public static void RequireSigned(InstalledVersion version, string publicKey = ReleasePackageSignature.PublicKeyPem)
+    public static void RequireSigned(InstalledVersion version, IReleaseSignatureVerifier? verifier = null)
     {
         try
         {
             var signature = ReleasePackageSignature.ReadFile(Path.Combine(version.Directory, ReleasePackageSignature.InstalledFile));
-            if (!signature.Verify(GameReleaseFeed.PackageName(version.Version) + ".zip", publicKey) ||
+            if (!signature.Verify(GameReleaseFeed.PackageName(version.Version) + ".zip", verifier) ||
                 !HashFile(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Equals(signature.ManifestSha256, StringComparison.OrdinalIgnoreCase) ||
                 Verify(version).Count != 0)
                 throw ReleasePackageSignature.Refused();
@@ -178,7 +178,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
     /// <summary>Repair uses the same approval and file checks as Play.</summary>
     public bool NeedsRepair(InstalledVersion version)
     {
-        try { RequireSigned(version, signingPublicKey); return false; }
+        try { RequireSigned(version, signatureVerifier); return false; }
         catch (GameInstallException) { return true; }
     }
 

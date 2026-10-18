@@ -115,6 +115,11 @@ jobs:
       - name: Verify Godot client project
         if: needs.scope.outputs.code == 'true'
         run: bash scripts/verify-godot-client.sh
+      - name: Verify automatic release signatures offline
+        if: needs.scope.outputs.code == 'true'
+        run: |
+          bash scripts/build-release-verifier.sh "$RUNNER_TEMP/release-verifier" linux
+          python3 -m unittest discover -s scripts -p 'test_release_signing.py'
       - if: needs.scope.outputs.code == 'true'
         run: dotnet format --verify-no-changes --no-restore
       - name: Verify documentation (the test suite is skipped)

@@ -241,7 +241,7 @@ public sealed class LauncherTests
             var server = new FakeReleases();
             var release = server.Publish(version, package);
             using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
 
             // A download that doesn't match its published hash is never unpacked.
             server.Tamper = true;
@@ -365,7 +365,7 @@ public sealed class LauncherTests
             var server = new FakeReleases();
             var release = server.Publish(version, Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host")));
             using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
             var installed = await store.InstallAsync(release, null, CancellationToken.None);
             var manifestPath = Path.Combine(installed.Directory, LauncherLayout.PackageManifest);
             var manifest = File.ReadAllText(manifestPath);
@@ -421,7 +421,7 @@ public sealed class LauncherTests
             var zip = Path.Combine(root.FullName, "package.zip");
             File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "old host")));
             using var http = new HttpClient();
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
             var old = store.InstallPackage(zip, version);
             // The actual directory-move boundary after retiring the old copy.
             var retired = Path.Combine(layout.VersionsDirectory, $".{(removal ? "removed" : "old")}-{version}-{Guid.NewGuid():N}");
@@ -462,7 +462,7 @@ public sealed class LauncherTests
             var package = Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host"));
             var server = new FakeReleases();
             using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
             var installed = await store.InstallAsync(server.Publish(version, package), null, CancellationToken.None);
             using var damaged = new MemoryStream();
             damaged.Write(package);
@@ -512,10 +512,10 @@ public sealed class LauncherTests
             var version = GameVersionName.Parse("0.1.0-alpha.2")!;
             using var server = new FakeReleases();
             using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
             var old = await store.InstallAsync(server.Publish(version, Package(version,
                 ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
-            GameVersionStore.RequireSigned(old, SigningKey.ExportSubjectPublicKeyInfoPem());
+            GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
             var before = File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile));
             server.SignatureFailure = failure;
             var release = server.Publish(version, Package(version,
@@ -523,7 +523,7 @@ public sealed class LauncherTests
             await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
             Assert.Equal("old game", File.ReadAllText(old.Executable));
             Assert.Equal(before, File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile)));
-            GameVersionStore.RequireSigned(old, SigningKey.ExportSubjectPublicKeyInfoPem());
+            GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
             Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
             Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
         }
@@ -547,22 +547,22 @@ public sealed class LauncherTests
             var version = GameVersionName.Parse("0.1.0-alpha.2")!;
             using var server = new FakeReleases();
             using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
             var release = server.Publish(version, Package(version,
                 ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
             var installed = await store.InstallAsync(release, null, CancellationToken.None);
-            var publicKey = SigningKey.ExportSubjectPublicKeyInfoPem();
-            GameVersionStore.RequireSigned(installed, publicKey);
+            var verifier = new TestReleaseSignatureVerifier(SigningKey);
+            GameVersionStore.RequireSigned(installed, verifier);
             Assert.False(store.NeedsRepair(installed));
-            // The production pin must never trust this throwaway test key.
+            // The production workflow verifier must never trust this ECDSA-only fixture.
             Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
             if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
             else if (damage == "bad-proof") File.WriteAllText(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile), "not json");
             else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
-            Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, publicKey));
+            Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, verifier));
             Assert.True(store.NeedsRepair(installed));
             var repaired = await store.InstallAsync(release, null, CancellationToken.None);
-            GameVersionStore.RequireSigned(repaired, publicKey);
+            GameVersionStore.RequireSigned(repaired, verifier);
             Assert.False(store.NeedsRepair(repaired));
             Assert.Equal("world", File.ReadAllText(save));
         }

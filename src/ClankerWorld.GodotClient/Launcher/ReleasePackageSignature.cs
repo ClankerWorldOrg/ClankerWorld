@@ -1,39 +1,21 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace ClankerWorld.GodotClient.Launcher;
 
-/// <summary>Offline approval binds the download and the installed file manifest.</summary>
+/// <summary>A workflow approval binds the download and the installed file manifest.</summary>
 public sealed record ReleasePackageSignature(string Package, string PackageSha256, string ManifestSha256, string Signature)
 {
-    // The owner keeps the matching private key offline. Only its public half belongs here.
-    public const string PublicKeyPem = """
-        -----BEGIN PUBLIC KEY-----
-        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDRHm8smRgf2aXh8z57t9Qm8LpOOT
-        XSr3MMenIA33y1or3PJdHIau3QRh+reAwUsNifC0z+Wa7EblRhuNBjkGHA==
-        -----END PUBLIC KEY-----
-        """;
     public const string InstalledFile = ".release-signature.json";
-    public const int MaximumBytes = 4096;
+    public const int MaximumBytes = 262144;
 
     public byte[] Payload() => Encoding.UTF8.GetBytes(
-        $"clankerworld.release-package.v1\npackage={Package}\nsha256={PackageSha256.ToLowerInvariant()}\nmanifest_sha256={ManifestSha256.ToLowerInvariant()}\n");
+        $"clankerworld.release-package.v2\npackage={Package}\nsha256={PackageSha256.ToLowerInvariant()}\nmanifest_sha256={ManifestSha256.ToLowerInvariant()}\n");
 
-    public bool Verify(string package, string publicKeyPem)
+    public bool Verify(string package, IReleaseSignatureVerifier? verifier = null)
     {
         if (Package != package || !IsHash(PackageSha256) || !IsHash(ManifestSha256) || string.IsNullOrEmpty(Signature)) return false;
-        try
-        {
-            using var key = ECDsa.Create();
-            key.ImportFromPem(publicKeyPem);
-            return key.KeySize == 256 && key.VerifyData(Payload(), Convert.FromBase64String(Signature),
-                HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
-        }
-        catch (Exception exception) when (exception is ArgumentException or CryptographicException or FormatException)
-        {
-            return false;
-        }
+        return (verifier ?? new SigstoreReleaseVerifier()).Verify(Payload(), Signature);
     }
 
     public static async Task<ReleasePackageSignature> ReadAsync(HttpContent content, CancellationToken cancellationToken)

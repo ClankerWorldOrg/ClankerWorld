@@ -71,8 +71,9 @@ everything that is available in the current build. See [what works today](../wha
   the game process.
 - **The first local package is an unsigned portable zip.** Nightly builds also
   include the unsigned per-user launcher setup and its SHA-256 beside the
-  portable zip (the owner's choice in chat, October 15). Detached owner
-  signatures approve release packages and their file manifests; the launcher
+  portable zip (the owner's choice in chat, October 15). Automatic GitHub workflow
+  signatures approve release packages and their file manifests (the owner's
+  revised choice, October 18); the launcher
   requires that approval before installing or starting a release
   ([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)).
   Windows Authenticode publisher signing is separate and comes later.
