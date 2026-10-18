@@ -30,7 +30,7 @@ if (clientPresenceTimeoutSeconds is < 2 or > 60)
         "ClankerWorld:Clock:ClientPresenceTimeoutSeconds must be between 2 and 60 seconds.");
 }
 var configuredDecisionProvider = builder.Configuration["ClankerWorld:Providers:DecisionProvider"] ?? "deterministic";
-var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? "jev-1.13.0";
+var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? PlayerDecisionProviders.DefaultJevModel;
 var configuredModel = builder.Configuration["ClankerWorld:Providers:Model"];
 var configuredOpenAiModel = builder.Configuration["ClankerWorld:Providers:OpenAiModel"] ??
     (configuredDecisionProvider.StartsWith("openai", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);
@@ -74,8 +74,8 @@ var providerUsagePath = builder.Configuration["ClankerWorld:Providers:UsagePath"
     Path.Combine(Path.GetDirectoryName(Path.GetFullPath(providerConfigurationPath))!, "provider-usage.json");
 var approvedAssetCatalogPath = builder.Configuration["ClankerWorld:Assets:CatalogPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "approved-assets.json");
-var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"] ??
-    $"clankerworld-host:{Environment.MachineName}";
+// Unset, the authority file's own ID is kept, or a new server gets a random one.
+var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"];
 
 // The catalog is loaded only from a host-owned path at startup. Its absence
 // intentionally yields an empty, deny-all allow-list; malformed existing
@@ -175,7 +175,8 @@ builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSe
     services.GetRequiredService<WorldAutosaveStore>(),
     services.GetRequiredService<WorldJevPolicy>(),
     services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
-    _ => services.GetRequiredService<IDecisionProvider>()));
+    _ => services.GetRequiredService<IDecisionProvider>(),
+    services.GetRequiredService<ManualWorldSaveStore>()));
 
 builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
     new OwnerWorldObservationStore(services.GetRequiredService<WorldRuntime>()));
@@ -188,7 +189,10 @@ if (launchSecretPath is not null && approvalPort == 0)
         "ClankerWorld:LocalServer:LaunchSecretPath needs ClankerWorld:Pairing:ApprovalPort.");
 }
 var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
-    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath));
+    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath),
+    launchSecretPath is null && approvalPort > 0
+        ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
+            authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
@@ -197,8 +201,9 @@ builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
     var worldId = services.GetRequiredService<WorldStartupRecovery>().Pending
         ? services.GetRequiredService<WorldStartupRecovery>().WorldId
         : services.GetRequiredService<WorldRuntime>().Society.WorldId;
-    return services.GetRequiredService<OwnerAuthorityStateFile>().LoadOrCreate(
-        new OwnerAuthorityIdentity(configuredAuthorityId, worldId),
+    var stateFile = services.GetRequiredService<OwnerAuthorityStateFile>();
+    return stateFile.LoadOrCreate(
+        new OwnerAuthorityIdentity(configuredAuthorityId ?? stateFile.StoredOrNewServerAuthorityId(), worldId),
         allowWorldSwitch: true);
 });
 builder.Services.AddSingleton<OwnerRequestAuthorizer>();

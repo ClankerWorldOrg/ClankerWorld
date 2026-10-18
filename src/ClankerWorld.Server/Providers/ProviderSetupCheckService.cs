@@ -87,6 +87,8 @@ public sealed class ProviderSetupCheckService(
         catch (HttpRequestException exception)
         {
             usage.Finish(ticket, "failed");
+            if (exception is ProviderHttpException failure && ProviderFailureMessages.Describe(failure.Failure) is { } message)
+                return Result(failure.Failure!, $"{message} This test still counts as a model call.");
             return exception.StatusCode switch
             {
                 HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity when thinking is not null =>

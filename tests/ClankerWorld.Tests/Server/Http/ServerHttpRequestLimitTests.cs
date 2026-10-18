@@ -8,6 +8,7 @@ using ClankerWorld.Server.Pairing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ClankerWorld.Tests;
@@ -124,8 +125,37 @@ public sealed partial class ServerHttpTests
         Assert.Equal("approval_listener outcome=refused reason=host_name skipped=0",
             Assert.Single(log.Messages, message => message.StartsWith("approval_listener", StringComparison.Ordinal)));
 
-        // The game's own call: HttpClient names the listener 127.0.0.1:<port>.
-        using var approved = await client.PostAsJsonAsync(approvePath, new PairingApprovalHttpRequest(pairing.PairingCode));
+        var approvalSecret = ApprovalSecretFile.LoadOrCreate(host.Services.GetRequiredService<IConfiguration>()
+            ["ClankerWorld:Pairing:AuthorityPath"]! + ".approval-header");
+        using var recoveryKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var recoveryBody = new StartOwnerPairingHttpRequest(Convert.ToBase64String(recoveryKey.ExportSubjectPublicKeyInfo()));
+        var recoveryPath = new Uri(approvalOrigin, "api/v1/approval/pairings");
+        using var refusedRecovery = await client.PostAsJsonAsync(recoveryPath, recoveryBody);
+        Assert.Equal(HttpStatusCode.NotFound, refusedRecovery.StatusCode);
+        using var recoveryRequest = new HttpRequestMessage(HttpMethod.Post, recoveryPath)
+        {
+            Content = JsonContent.Create(recoveryBody),
+        };
+        recoveryRequest.Headers.Add(ApprovalListenerOptions.ApprovalSecretHeader, approvalSecret);
+        using var recoveredPairing = await client.SendAsync(recoveryRequest);
+        Assert.Equal(HttpStatusCode.OK, recoveredPairing.StatusCode);
+        foreach (var supplied in new[] { null, "wrong-secret" })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, approvePath)
+            {
+                Content = JsonContent.Create(new PairingApprovalHttpRequest(pairing.PairingCode)),
+            };
+            if (supplied is not null) request.Headers.Add(ApprovalListenerOptions.ApprovalSecretHeader, supplied);
+            using var refused = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.NotFound, refused.StatusCode);
+            Assert.Equal(OwnerPairingState.Pending, authority.GetPairingStatus(pairing.PairingId).Value!.State);
+        }
+        using var approval = new HttpRequestMessage(HttpMethod.Post, approvePath)
+        {
+            Content = JsonContent.Create(new PairingApprovalHttpRequest(pairing.PairingCode)),
+        };
+        approval.Headers.Add(ApprovalListenerOptions.ApprovalSecretHeader, approvalSecret);
+        using var approved = await client.SendAsync(approval);
         Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
         using var activated = await client.PostAsJsonAsync("/api/v1/pairings/activate", new ActivateOwnerPairingHttpRequest(
             pairing.PairingId, pairing.ActivationCanonicalProof, Sign(key, pairing.ActivationCanonicalProof)));
@@ -141,6 +171,22 @@ public sealed partial class ServerHttpTests
         };
         using var large = await client.SendAsync(streamed);
         Assert.Equal(HttpStatusCode.OK, large.StatusCode);
+
+        var revokePath = new Uri(approvalOrigin, $"api/v1/approval/devices/{device.DeviceId}/revoke");
+        using var refusedRevocation = await client.PostAsJsonAsync(revokePath, new DeviceRevokeHttpRequest(null));
+        Assert.Equal(HttpStatusCode.NotFound, refusedRevocation.StatusCode);
+        Assert.Equal(OwnerDeviceState.Active, authority.GetDevice(device.DeviceId).Value!.State);
+        using var revoke = new HttpRequestMessage(HttpMethod.Post, revokePath)
+        {
+            Content = JsonContent.Create(new DeviceRevokeHttpRequest(null)),
+        };
+        revoke.Headers.Add(ApprovalListenerOptions.ApprovalSecretHeader, approvalSecret);
+        using var revoked = await client.SendAsync(revoke);
+        Assert.Equal(HttpStatusCode.OK, revoked.StatusCode);
+        Assert.Equal(OwnerDeviceState.Revoked, authority.GetDevice(device.DeviceId).Value!.State);
+        Assert.Equal("approval_listener outcome=refused reason=proof skipped=0",
+            Assert.Single(log.Messages, message => message.Contains("reason=proof", StringComparison.Ordinal)));
+        Assert.DoesNotContain(log.Messages, message => message.Contains(approvalSecret, StringComparison.Ordinal));
 
         // Valid JSON must be read through the body limit; an invalid prefix
         // can be rejected with 400 before the later oversized chunk arrives.

@@ -7,7 +7,7 @@ public enum PersonalGoodsMode { Choice, Native, BoundOrder }
 
 public sealed record PersonalGoodsChoice(PersonalGoodsKind Kind, string LotId)
 {
-    public string Encode() => (Kind switch { PersonalGoodsKind.Collect => "household_collect:", PersonalGoodsKind.Store => "household_store_personal:", _ => "household_return:" }) + LotId;
+    public string Encode() => IdentityRules.PrefixedReference(Kind switch { PersonalGoodsKind.Collect => "household_collect:", PersonalGoodsKind.Store => "household_store_personal:", _ => "household_return:" }, LotId);
     public static PersonalGoodsChoice? Decode(string candidate) => candidate.StartsWith("household_collect:", StringComparison.Ordinal)
         ? new(PersonalGoodsKind.Collect, candidate["household_collect:".Length..]) : candidate.StartsWith("household_store_personal:", StringComparison.Ordinal)
             ? new(PersonalGoodsKind.Store, candidate["household_store_personal:".Length..]) : candidate.StartsWith("household_return:", StringComparison.Ordinal)
@@ -16,7 +16,8 @@ public sealed record PersonalGoodsChoice(PersonalGoodsKind Kind, string LotId)
 
 public sealed record PersonalGoodsActionPlan(string ActorId, PersonalGoodsChoice Choice, PersonalGoodsMode Mode,
     string OwnerId, string ItemKind, int Quantity, int PhysicalQuantity, string? SourceCarrierId, string? SourceStorageId,
-    InventoryGroundPosition? SourceGround, string? HouseId, string? HouseOwnerId, GridPoint Target, int Range,
+    InventoryGroundPosition? SourceGround, string? HouseId, string? HouseOwnerId, string? HouseDefinitionId, long? HousePlacedTick,
+    GridPoint Target, int Range,
     IReadOnlyList<GridPoint> Route, IReadOnlyList<PlannedStockMember>? Family) : ActionPlan(ActorId, Choice.Encode())
 {
     public override string Activity => (Choice.Kind switch { PersonalGoodsKind.Collect => "collect", PersonalGoodsKind.Store => "store", _ => "return" }) +
