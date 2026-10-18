@@ -35,7 +35,8 @@ public partial class Main
             DataDirectory = GameStarter.DataDirectory(
             System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), OS.GetCmdlineUserArgs())
         };
-        return new LocalServer(layout, httpClient, detailedLogs: GameStarter.UsesDetailedLogs(OS.GetCmdlineUserArgs()));
+        return new LocalServer(layout, httpClient, detailedLogs: GameStarter.UsesDetailedLogs(OS.GetCmdlineUserArgs()),
+            joinHostedWorld: OS.GetCmdlineUserArgs().Contains(GameStarter.HostedWorldOption, StringComparer.Ordinal));
     }
 
     private async Task StartLocalServerAsync()
@@ -144,7 +145,7 @@ public partial class Main
             }
             if (localServer is not null)
             {
-                SetStatus("Saving your world…", good: true);
+                SetStatus(localServer.JoinedHostedServer ? "Leaving your hosted world…" : "Saving your world…", good: true);
                 if (!await localServer.StopAsync(OwnerRequestToken))
                 {
                     ShowLocalServerStopFailure(requestedVersion, launcherWorld);

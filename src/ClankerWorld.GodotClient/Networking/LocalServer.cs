@@ -156,6 +156,7 @@ public enum LocalServerStartOutcome
     /// <summary>Something that is not this build's host holds the port.</summary>
     PortInUse,
     ModeInUse,
+    HostedWorldUnavailable,
     /// <summary>The host exited before it was ready.</summary>
     Exited,
     /// <summary>The host did not answer in time.</summary>
@@ -176,6 +177,8 @@ public sealed record LocalServerStart(LocalServerStartOutcome Outcome, string? D
             $"Another program is using the port the world server needs ({Detail}). Close it, or another copy of ClankerWorld, then try again. Your saves are safe.",
         LocalServerStartOutcome.ModeInUse =>
             "The server on this PC is already being used by the game or another host window. Close the game or stop hosting there, then try again. Your world is kept.",
+        LocalServerStartOutcome.HostedWorldUnavailable =>
+            "Your hosted world is not running on this PC. Return to the host screen and choose Start hosting, then try Play again. Your world is kept.",
         LocalServerStartOutcome.Exited =>
             "The world server closed while starting. Your saves are safe. Try again, and if it keeps happening, choose Report a problem and send the report.",
         LocalServerStartOutcome.TimedOut =>
@@ -202,6 +205,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly TimeSpan readyTimeout;
     private readonly TimeProvider timeProvider;
     private readonly bool detailedLogs;
+    private readonly bool joinHostedWorld;
     private Process? process;
     private StreamWriter? log;
     private string? secret;
@@ -211,7 +215,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null, bool joinHostedWorld = false)
     {
         this.layout = layout;
         this.http = http;
@@ -220,6 +224,7 @@ public sealed class LocalServer : IAsyncDisposable
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.detailedLogs = detailedLogs;
+        this.joinHostedWorld = joinHostedWorld;
     }
 
     /// <summary>
@@ -231,6 +236,7 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    public bool JoinedHostedServer { get; private set; }
     public bool StartedProcessHasExited => process is { HasExited: true };
     internal int? StartedServerProcessId => process?.Id;
 
@@ -291,14 +297,19 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
-                    (secret, proven) = (running, true);
-                    var status = await HostStatusAsync(cancellationToken);
-                    if (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
-                        status.StopWhenGameQuits != layout.StopWhenGameQuits)
-                    {
-                        (secret, proven) = (null, false);
+                    // Read with the proven credential without granting this client
+                    // shutdown authority while the mode check is still pending.
+                    var status = await HostReadAsync<ClankerWorld.Contracts.HostStatus>(
+                        "api/v1/approval/hosting", running, cancellationToken);
+                    var joiningHost = layout.HostKind is null &&
+                        status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
+                    if (joinHostedWorld && !joiningHost)
+                        return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
+                    if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
+                        status.StopWhenGameQuits != layout.StopWhenGameQuits))
                         return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
-                    }
+                    JoinedHostedServer = joiningHost;
+                    (secret, proven) = (running, true);
                     return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
                 if (proof == LaunchCheck.Refused)
@@ -313,6 +324,8 @@ public sealed class LocalServer : IAsyncDisposable
             if (timeProvider.GetUtcNow() >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
             await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
+
+        if (joinHostedWorld) return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
 
         byte[]? previousSecret = null;
         var secretWritten = false;
@@ -402,13 +415,18 @@ public sealed class LocalServer : IAsyncDisposable
     public Task<ClankerWorld.Contracts.HostStatus> HostStatusAsync(CancellationToken cancellationToken) =>
         HostReadAsync<ClankerWorld.Contracts.HostStatus>("api/v1/approval/hosting", cancellationToken);
 
-    private async Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
+    private Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
     {
         if (secret is null || !proven) throw new InvalidOperationException("The host has not started.");
+        return HostReadAsync<T>(path, secret, cancellationToken);
+    }
+
+    private async Task<T> HostReadAsync<T>(string path, string credential, CancellationToken cancellationToken) where T : class
+    {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, path));
-        request.Headers.Add(SecretHeader, secret);
+        request.Headers.Add(SecretHeader, credential);
         using var response = await http.SendAsync(request, deadline.Token);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(deadline.Token) ??
@@ -435,6 +453,14 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> StopAsync(CancellationToken cancellationToken)
     {
+        if (JoinedHostedServer)
+        {
+            // This game joined the launcher's process; only the host app stops it.
+            (secret, proven) = (null, false);
+            JoinedHostedServer = false;
+            await ForgetProcessAsync();
+            return true;
+        }
         var acknowledged = false;
         if (secret is not null && proven)
         {

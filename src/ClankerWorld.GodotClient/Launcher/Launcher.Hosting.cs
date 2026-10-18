@@ -12,6 +12,7 @@ public partial class Launcher
     private readonly Label hostingData = new() { AutowrapMode = TextServer.AutowrapMode.WordSmart };
     private readonly VBoxContainer pendingDevices = new();
     private readonly Button startHosting = new() { Text = "Start hosting" };
+    private readonly Button playHosted = new() { Text = "Play on this PC" };
     private readonly Button stopHosting = new() { Text = "Stop hosting" };
     private readonly Button hostingBack = new() { Text = "Back" };
     private readonly CheckButton resumeHosting = new() { Text = "Start hosting again when I sign in to Windows" };
@@ -65,12 +66,14 @@ public partial class Launcher
         hostingPage.AddChild(stopWithGame);
         StyleButton(startHosting, primary: true);
         startHosting.Pressed += () => _ = StartHostingAsync();
+        StyleButton(playHosted, primary: true);
+        playHosted.Pressed += () => _ = PlayAsync();
         StyleButton(stopHosting);
         stopHosting.Pressed += () => _ = StopHostingAsync();
         StyleButton(hostingBack);
         hostingBack.Pressed += () => { if (!hostingRunning && !busy) ShowPage(playPage); };
         var controls = new HBoxContainer();
-        foreach (var button in new[] { startHosting, stopHosting, hostingBack })
+        foreach (var button in new[] { startHosting, playHosted, stopHosting, hostingBack })
         {
             button.SizeFlagsHorizontal = SizeFlags.ExpandFill;
             controls.AddChild(button);
@@ -113,6 +116,9 @@ public partial class Launcher
     private void RefreshHostControls()
     {
         startHosting.Disabled = busy || hostingRunning || Chosen() is not { } chosen || IsWithdrawn(chosen);
+        startHosting.Visible = !hostingRunning;
+        playHosted.Visible = hostingRunning;
+        playHosted.Disabled = busy || PlayVersion() is not { } version || IsWithdrawn(version);
         stopHosting.Visible = hostingRunning;
         stopHosting.Disabled = busy;
         stopWithGame.Disabled = busy || hostingRunning;
@@ -161,13 +167,14 @@ public partial class Launcher
             var result = await host.StartAsync(version.Version.ToString(), version.SourceRevision!, hostingLifetime.Token);
             if (!result.IsReady) throw new GameInstallException(result.PlayerMessage);
             startedHere = result.Outcome == LocalServerStartOutcome.Started;
+            settings = settings with { HostedVersion = version.Version.ToString(), HostedUseTestData = useTestData };
             hostingRunning = true;
             var tailscale = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles), "Tailscale", "tailscale.exe");
             hostingNetwork = new TailscaleHost(new HostCommandRunner(), File.Exists(tailscale) ? tailscale : "tailscale");
             var address = await hostingNetwork.ConnectAsync(host.Origin, hostingLifetime.Token);
             hostedOrigin = address;
             if (!IsInsideTree()) return;
-            settings = settings with { HostingEnabled = true, HostedVersion = version.Version.ToString(), HostedUseTestData = useTestData };
+            settings = settings with { HostingEnabled = true };
             settings.Save(layout);
             var startupSaved = true;
             try { HostingStartup.SetEnabled(OS.GetExecutablePath(), settings.ResumeHostingAtSignIn); }
