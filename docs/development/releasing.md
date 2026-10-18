@@ -248,21 +248,26 @@ all assets must be attached before that point. This setting requires a repositor
 administrator. No repository setting was changed by the signing tool.
 
 Nightlies need the same offline approval to be installable by this launcher.
-The publication workflow must wait as a draft for that approval, or a separate
-owner-approved automated signing design must replace that step. The existing
-automatic publication policy below must be reconciled before shipping this
-change; [#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)
-records the pending public key and nightly decision.
+The owner chose draft nightlies for offline signing in chat on October 18
+([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)).
+Download the game and launcher artifacts from the nightly run, sign the game
+zip, and rebuild the installer from that exact commit with the game's sidecar
+beside the zip. Sign the final installer, replace the draft's preliminary setup
+and checksum, attach both `.sig` files, verify them, then publish the draft.
+The preliminary installer is not the final signed distribution: rebuilding it
+includes the game's retained approval without putting a private key in CI.
 
 ## Nightly builds
 
-The [Nightly workflow](../../.github/workflows/nightly.yml) publishes a build of
-main every evening as a GitHub pre-release, so Developer mode can try main
+The [Nightly workflow](../../.github/workflows/nightly.yml) stages a build of
+main every evening as a draft GitHub pre-release. After the owner signs and
+publishes it, Developer mode can try main
 without a release (the owner's choice, October 10). It starts at 21:17 UTC,
 which is 23:17 in Amsterdam in summer and 22:17 in winter, so the build is
 ready by the owner's usual evening playtest (the owner's choice, October 15).
 GitHub can start a scheduled run late, and **Run workflow** on main starts one
-at any time. It is not a release and needs no release gate:
+at any time. A nightly is not an alpha release and needs no alpha release gate;
+it still needs the offline approval above before publication:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
@@ -272,7 +277,8 @@ at any time. It is not a release and needs no release gate:
   portable zip. The [per-user setup](build-and-test.md#windows-installer)
   bundles the launcher and game from the same commit, using the same package
   scripts as CI. Linux builds both packages; Windows builds the setup before
-  the publish job attaches all four files. Only that job can write releases.
+  the staging job attaches all four files to a draft. Only that job can write
+  releases automatically; it never publishes the unsigned draft.
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.

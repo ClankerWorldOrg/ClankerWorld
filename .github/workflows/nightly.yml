@@ -1,6 +1,6 @@
 name: Nightly
 
-# Publishes a nightly build of main as a GitHub pre-release tagged
+# Stages a nightly build of main as a draft GitHub pre-release tagged
 # v<version>-nightly.<date>.<run>, which the launcher offers only in Developer
 # mode (#1566; the owner's choice in chat, October 10). It skips a day when main
 # hasn't changed or main's CI hasn't passed on the triggering commit, and keeps the
@@ -182,7 +182,7 @@ jobs:
         with:
           name: nightly-setup
           path: export/setup
-      - name: Publish the nightly pre-release
+      - name: Stage the nightly draft for offline signing
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -195,8 +195,8 @@ jobs:
             test -f "${asset}"
           done
           sha="${{ needs.nightly.outputs.sha }}"
-          notes="Nightly build of main at ${sha}, for Developer mode in the launcher. It is not a release: it may not open worlds other versions saved, and it is removed after ${KEEP_NIGHTLIES} newer nightly builds."
-          gh release create "v${version}" --prerelease --latest=false --target "${sha}" \
+          notes="Draft nightly build of main at ${sha}. Before publication, the owner signs the portable zip offline, rebuilds the setup with its approval, signs the final setup, and attaches both .sig files. Once published, this build is for Developer mode in the launcher; it may not open worlds other versions saved and is removed after ${KEEP_NIGHTLIES} newer nightly builds."
+          gh release create "v${version}" --draft --prerelease --latest=false --target "${sha}" \
             --title "Nightly ${version}" --notes "${notes}" \
             "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256"
       - name: Remove older nightly builds

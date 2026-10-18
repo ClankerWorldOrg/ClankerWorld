@@ -85,8 +85,8 @@ process.exit(2);
 const alphaPage = Array.from({ length: 100 }, (_, index) => ({ tag_name: `v0.1.0-alpha.${index}`, created_at: '2026-10-11T01:00:00Z', target_commitish: sha }));
 const nightlies = Array.from({ length: 9 }, (_, index) => ({ tag_name: `v0.1.0-nightly.20261010.${index}`, created_at: `2026-10-10T0${index}:00:00Z`, target_commitish: index === 8 ? sha : 'older' }));
 
-test('the newest nightly on a later API page prevents publishing the same commit again', t => {
-  const fixture = sandbox(t, [alphaPage, nightlies]);
+test('the newest nightly draft on a later API page prevents rebuilding the same commit', t => {
+  const fixture = sandbox(t, [alphaPage, nightlies.map(release => ({ ...release, draft: release.target_commitish === sha }))]);
   const result = fixture.run('Decide whether main needs a new nightly build');
   assert.equal(result.status, 0, result.stderr);
   assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=false/);
@@ -121,23 +121,25 @@ function writeReleaseAssets(root, missing) {
   }
 }
 
-test('publication targets the checked commit and uploads the game, setup and both hashes as a pre-release', t => {
+test('staging targets the checked commit and leaves the game, setup and hashes in an unpublished pre-release', t => {
   const fixture = sandbox(t);
   writeReleaseAssets(fixture.root);
-  const result = fixture.run('Publish the nightly pre-release');
+  const result = fixture.run('Stage the nightly draft for offline signing');
   assert.equal(result.status, 0, result.stderr);
   const call = fixture.calls().find(call => call[0] === 'release');
   assert.deepEqual(call.slice(0, 3), ['release', 'create', 'v0.1.0-nightly.20261011.42']);
   assert.ok(call.includes('--prerelease') && call.includes('--latest=false'));
+  assert.ok(call.includes('--draft'), 'unsigned nightlies must wait for offline approval');
+  assert.match(call[call.indexOf('--notes') + 1], /owner signs.*offline/);
   assert.equal(call[call.indexOf('--target') + 1], sha);
   assert.deepEqual(call.slice(-4), releaseAssets);
 });
 
-test('a missing game, setup or checksum prevents publication', t => {
+test('a missing game, setup or checksum prevents staging', t => {
   for (const missing of releaseAssets) {
     const fixture = sandbox(t);
     writeReleaseAssets(fixture.root, missing);
-    const result = fixture.run('Publish the nightly pre-release');
+    const result = fixture.run('Stage the nightly draft for offline signing');
     assert.notEqual(result.status, 0, missing);
     assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, missing);
   }
@@ -178,7 +180,7 @@ test('only the steps that call gh get the token, and checkout keeps no credentia
     return body.split(/\n(?=      - )/);
   });
   const withToken = steps.filter(step => /^\s*GH_TOKEN:/m.test(step)).map(step => step.match(/^      - name: (.+)$/m)?.[1]);
-  assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Publish the nightly pre-release', 'Remove older nightly builds']);
+  assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Stage the nightly draft for offline signing', 'Remove older nightly builds']);
   for (const step of steps.filter(step => /\bgh (api|run|release) /.test(step))) assert.match(step, /\n        env:\n          GH_TOKEN: \$\{\{ github\.token \}\}\n/);
   for (const step of steps.filter(step => step.includes('actions/checkout@')))
     assert.match(step, /\n          persist-credentials: false(\n|$)/);
