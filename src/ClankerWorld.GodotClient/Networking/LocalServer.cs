@@ -22,6 +22,8 @@ public sealed record LocalServerLayout(
     string ServerDirectory,
     string DataDirectory)
 {
+    public string? HostKind { get; init; }
+    public bool StopWhenGameQuits { get; init; }
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
     public string StartupLockPath => Path.Combine(DataDirectory, "server", "startup.lock");
     public string LogPath => Path.Combine(DataDirectory, "logs", "server.log");
@@ -63,6 +65,11 @@ public sealed record LocalServerLayout(
         $"--ClankerWorld:World:SavePath={Path.Combine(SaveDirectory, "world.json")}",
         $"--ClankerWorld:Providers:ConfigurationPath={Path.Combine(SettingsDirectory, "provider-configuration.json")}",
         $"--ClankerWorld:Providers:UsagePath={Path.Combine(SettingsDirectory, "provider-usage.json")}",
+        .. HostKind is null ? [] : new[]
+        {
+            "--ClankerWorld:Hosting:Kind=" + HostKind,
+            "--ClankerWorld:Hosting:StopWhenGameQuits=" + StopWhenGameQuits,
+        },
         .. detailedLogs ? new[] { "--Logging:LogLevel:ClankerWorld=Debug" } : [],
     ];
 
@@ -353,16 +360,42 @@ public sealed class LocalServer : IAsyncDisposable
     /// Approves this game's own pending pairing on the host's approval
     /// listener, using the comparison code the host returned to it.
     /// </summary>
-    public async Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken)
+    public Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken) =>
+        HostActionAsync($"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve", new { pairingCode }, cancellationToken);
+
+    public Task<bool> DeclinePairingAsync(string pairingId, CancellationToken cancellationToken) =>
+        HostActionAsync($"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/decline", new { }, cancellationToken);
+
+    public Task<ClankerWorld.Contracts.HostDeviceRequest[]> PendingPairingsAsync(CancellationToken cancellationToken) =>
+        HostReadAsync<ClankerWorld.Contracts.HostDeviceRequest[]>("api/v1/approval/pairings", cancellationToken);
+
+    public Task<ClankerWorld.Contracts.HostStatus> HostStatusAsync(CancellationToken cancellationToken) =>
+        HostReadAsync<ClankerWorld.Contracts.HostStatus>("api/v1/approval/hosting", cancellationToken);
+
+    private async Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
+    {
+        if (secret is null || !proven) throw new InvalidOperationException("The host has not started.");
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, path));
+        request.Headers.Add(SecretHeader, secret);
+        using var response = await http.SendAsync(request, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>(deadline.Token) ??
+            throw new InvalidDataException("The host response could not be read.");
+    }
+
+    private async Task<bool> HostActionAsync(string path, object body, CancellationToken cancellationToken)
     {
         if (secret is null || !proven) return false;
-        using var request = new HttpRequestMessage(HttpMethod.Post,
-            new Uri(ApprovalOrigin, $"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve"))
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(ApprovalOrigin, path))
         {
-            Content = JsonContent.Create(new { pairingCode }),
+            Content = JsonContent.Create(body),
         };
         request.Headers.Add(SecretHeader, secret);
-        using var response = await http.SendAsync(request, cancellationToken);
+        using var response = await http.SendAsync(request, deadline.Token);
         return response.IsSuccessStatusCode;
     }
 

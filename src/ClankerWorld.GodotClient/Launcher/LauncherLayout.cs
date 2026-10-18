@@ -21,6 +21,7 @@ public sealed record LauncherLayout(string Root)
     public string DownloadsDirectory => Path.Combine(LauncherDirectory, "downloads");
     public string SettingsPath => Path.Combine(LauncherDirectory, "settings.json");
     public string TestDataDirectory => Path.Combine(LauncherDirectory, "test-data");
+    public string HostDataDirectory => Path.Combine(Root, "hosted-world");
     public string GameDataDirectory(LauncherSettings settings) =>
         settings.DeveloperMode && settings.UseTestData ? TestDataDirectory : Root;
 

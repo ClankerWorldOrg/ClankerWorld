@@ -513,7 +513,8 @@ public sealed class OwnerAuthorityStore
                     publicKeyFingerprint,
                     HashUtf8(pairingCode),
                     expiresAtUtc,
-                    activationCanonicalProof));
+                    activationCanonicalProof)
+                { ComparisonCode = pairingCode });
 
             return OwnerAuthorityResult<OwnerPairingStart>.Success(
                 new OwnerPairingStart(
@@ -553,6 +554,30 @@ public sealed class OwnerAuthorityStore
     public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairingLocally(
         string pairingId,
         string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, LocalApproval, allowRevokedKey: true);
+
+    public IReadOnlyList<ClankerWorld.Contracts.HostDeviceRequest> GetPendingPairingsLocally()
+    {
+        lock (gate)
+        {
+            ExpireOperationalStateUnsafe(UtcNow());
+            return pairings.Values.Where(pairing => pairing.State == OwnerPairingState.Pending)
+                .Select(pairing => new ClankerWorld.Contracts.HostDeviceRequest(pairing.PairingId,
+                    pairing.ComparisonCode, pairing.PublicKeyFingerprint, pairing.ExpiresAtUtc)).ToArray();
+        }
+    }
+
+    public OwnerAuthorityResult<OwnerPairingStatus> DeclinePendingPairingLocally(string pairingId)
+    {
+        lock (gate)
+        {
+            ExpireOperationalStateUnsafe(UtcNow());
+            if (!pairings.TryGetValue(pairingId, out var pairing) || pairing.State != OwnerPairingState.Pending)
+                return OwnerAuthorityResult<OwnerPairingStatus>.Fail(OwnerAuthorityFailure.PairingNotPending);
+            pairing.State = OwnerPairingState.Expired;
+            pairing.ComparisonCode = null;
+            return OwnerAuthorityResult<OwnerPairingStatus>.Success(ToPairingStatus(pairing));
+        }
+    }
 
     /// <summary>
     /// Applies confirmation by an already paired owner device. Deliberate
@@ -619,6 +644,7 @@ public sealed class OwnerAuthorityStore
             }
 
             pairing.WrongVisibleCodeAttempts = 0;
+            pairing.ComparisonCode = null;
             pairing.ApprovedBy = approvedBy;
             pairing.State = OwnerPairingState.Approved;
             return OwnerAuthorityResult<OwnerPairingApproval>.Success(
@@ -1198,6 +1224,7 @@ public sealed class OwnerAuthorityStore
                 now >= pairing.ExpiresAtUtc)
             {
                 pairing.State = OwnerPairingState.Expired;
+                pairing.ComparisonCode = null;
             }
         }
 
@@ -1526,6 +1553,9 @@ public sealed class OwnerAuthorityStore
         public string PublicKeyFingerprint { get; } = publicKeyFingerprint;
 
         public byte[] VisibleCodeHash { get; } = visibleCodeHash;
+
+        // ExportState deliberately has no field for this process-local value.
+        public string? ComparisonCode { get; set; }
 
         public DateTimeOffset ExpiresAtUtc { get; } = expiresAtUtc;
 

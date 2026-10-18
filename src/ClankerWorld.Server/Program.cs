@@ -199,6 +199,9 @@ var hostKind = builder.Configuration["ClankerWorld:Hosting:Kind"] ?? "unspecifie
 if (hostKind is not ("unspecified" or OwnerHostInformation.Launcher or OwnerHostInformation.Terminal))
     throw new InvalidOperationException("ClankerWorld:Hosting:Kind must be unspecified, launcher or terminal.");
 builder.Services.AddSingleton(new OwnerHostInformation(hostKind));
+if (hostKind == OwnerHostInformation.Launcher)
+    builder.Services.AddSingleton(new LauncherHostOptions(
+        builder.Configuration.GetValue("ClankerWorld:Hosting:StopWhenGameQuits", false)));
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
