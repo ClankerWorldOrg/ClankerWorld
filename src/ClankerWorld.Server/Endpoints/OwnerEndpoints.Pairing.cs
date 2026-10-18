@@ -167,10 +167,9 @@ internal static partial class OwnerEndpoints
             if (!options.IsLocalServerShutdownRequest(context)) return Results.NotFound();
             var recovery = context.RequestServices.GetService<WorldStartupRecovery>();
             if (recovery is null) return Results.NotFound();
-            if (recovery.Pending) return Results.Conflict(new { message = "Choose world recovery before saving." });
-            var advancing = context.RequestServices.GetRequiredService<WorldRuntimeService>();
-            var outcome = advancing.SaveBeforeShutdown(pauseWorld: true);
-            if (outcome == ShutdownSaveOutcome.WriteFailed)
+            // A refused startup checkpoint has no loaded world to save.
+            if (!recovery.Pending && context.RequestServices.GetRequiredService<WorldRuntimeService>()
+                .SaveBeforeShutdown(pauseWorld: true) == ShutdownSaveOutcome.WriteFailed)
                 return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "The world could not be saved",
                     detail: "The host is still running and the world is paused. Try again.");
