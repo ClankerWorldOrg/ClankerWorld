@@ -4,6 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFile, spawnSync } = require('node:child_process');
 const { createServer } = require('node:http');
+const { createHash } = require('node:crypto');
 const { promisify } = require('node:util');
 const { test } = require('node:test');
 
@@ -117,7 +118,10 @@ function writeReleaseAssets(root, missing) {
   for (const asset of releaseAssets.filter(asset => asset !== missing)) {
     const file = path.join(root, asset);
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, 'synthetic release asset');
+    const contents = 'synthetic release asset';
+    fs.writeFileSync(file, asset.endsWith('.sha256')
+      ? `${createHash('sha256').update(contents).digest('hex')} *${path.basename(asset, '.sha256')}\n`
+      : contents);
   }
 }
 
@@ -143,6 +147,38 @@ test('a missing game, setup or checksum prevents staging', t => {
     assert.notEqual(result.status, 0, missing);
     assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, missing);
   }
+});
+
+test('changed package bytes or checksums prevent publication', t => {
+  for (const asset of releaseAssets) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root);
+    fs.appendFileSync(path.join(fixture.root, asset), 'changed after building');
+    assert.notEqual(fixture.run('Publish the nightly pre-release').status, 0, asset);
+    assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, asset);
+  }
+});
+
+test('publication preserves the built asset bytes and their matching checksums', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root);
+  const before = releaseAssets.map(asset => fs.readFileSync(path.join(fixture.root, asset)));
+  assert.equal(fixture.run('Publish the nightly pre-release').status, 0);
+  const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-4);
+  assert.deepEqual(uploaded.map(asset => fs.readFileSync(path.join(fixture.root, asset))), before);
+});
+
+test('read-only builds hand artifacts to a main-only publisher without repository execution', () => {
+  const jobs = workflow.split('\njobs:\n')[1].split(/\n(?=  [\w-]+:\n)/);
+  const publisher = jobs.find(job => job.startsWith('  publish:\n'));
+  assert.match(publisher, /needs: \[nightly, windows-installer\]/);
+  assert.match(publisher, /if: github\.ref == 'refs\/heads\/main' && needs\.nightly\.outputs\.build == 'true'/);
+  assert.doesNotMatch(publisher, /actions\/checkout@|\b(?:bash|node|python|dotnet)\b|scripts\//);
+  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 2);
+  for (const job of jobs.filter(job => !job.startsWith('  publish:\n'))) {
+    assert.doesNotMatch(job, /\b(?:contents|actions): write\b/);
+  }
+  assert.match(workflow.split('\njobs:\n')[0], /permissions:\n  contents: read/);
 });
 
 test('retention finds later API pages and removes only nightlies older than the newest seven', t => {

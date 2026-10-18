@@ -283,8 +283,10 @@ it still needs the offline approval above before publication:
   portable zip. The [per-user setup](build-and-test.md#windows-installer)
   bundles the launcher and game from the same commit, using the same package
   scripts as CI. Linux builds both packages; Windows builds the setup before
-  the staging job attaches all four files to a draft. Only that job can write
-  releases automatically; it never publishes the unsigned draft.
+  the staging job verifies the downloaded game and setup against their SHA-256
+  files before attaching all four files to a draft. Only that job can write
+  releases; it runs only on main and does not check out or execute repository
+  code. It never publishes the unsigned draft.
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.

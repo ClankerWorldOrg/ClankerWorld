@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # How the game works
@@ -134,6 +134,12 @@ forwarders. Every binding receives the current coordinator per call; no entry
 captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
+
+Typed action definitions bind a choice codec, plan, capability policy, shared
+check and application to those ordered rows. Waiting uses one definition in
+both phases. Offering checks its new plan; admission and application check the
+retained plan through the same definition. Remaining areas move their existing
+plan checks from the compatibility dispatcher into their rows in later slices.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
@@ -2600,7 +2606,13 @@ the saved key, a named key slot, or a key pasted for that check only, which is
 not stored. Keys never return to the client. Listed models the key's route
 doesn't include are marked unavailable; names are compared without Ollama's
 `:cloud`, `-cloud` or `:latest` endings. If the key can't be checked, the whole
-list stays usable and the reason is shown. A new agent starts on the provider's
+list stays usable and the reason is shown. OpenAI list and personal-model test errors
+share bounded categories for authentication, permissions, model access, credits,
+spending or usage limits, rate limits and service failures, following
+[OpenAI's error guide](https://developers.openai.com/api/docs/guides/error-codes).
+Only known error codes and types are classified; remote messages never enter
+results or logs. Unreadable or oversized error bodies retain the HTTP category.
+A new agent starts on the provider's
 default model when the key can use it. If the key can't use a new agent's
 starting model, the picker selects nothing and asks the owner to choose, so no
 other model, possibly a costlier one, is chosen for them. An existing or
@@ -2622,7 +2634,8 @@ paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
 The response contains only a bounded result such as ready, missing key, usage
-limit, unsupported format, timed out, unavailable, or unusable reply. It does
+limit, authentication or access failure, exhausted allowance, rate limit,
+unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
 An installation-local usage file reserves every model attempt before HTTP work.

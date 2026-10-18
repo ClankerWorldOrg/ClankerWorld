@@ -169,7 +169,7 @@ jobs:
 
   publish:
     needs: [nightly, windows-installer]
-    if: needs.nightly.outputs.build == 'true'
+    if: github.ref == 'refs/heads/main' && needs.nightly.outputs.build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -191,8 +191,9 @@ jobs:
           version="${name#ClankerWorld-}"
           version="${version%-windows-x64}"
           setup="export/setup/ClankerWorld-Setup-${version}-windows-x64.exe"
-          for asset in "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256"; do
+          for asset in "${zip}" "${setup}"; do
             test -f "${asset}"
+            (cd "${asset%/*}" && sha256sum --check --quiet --strict "${asset##*/}.sha256")
           done
           sha="${{ needs.nightly.outputs.sha }}"
           notes="Draft nightly build of main at ${sha}. Before publication, the owner signs the portable zip offline, rebuilds the setup with its approval, signs the final setup, and attaches both .sig files. Once published, this build is for Developer mode in the launcher; it may not open worlds other versions saved and is removed after ${KEEP_NIGHTLIES} newer nightly builds."
