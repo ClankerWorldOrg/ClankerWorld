@@ -74,6 +74,8 @@ public sealed partial class ServerHttpTests
                 var failingSaves = failingHost.Services.GetRequiredService<ManualWorldSaveStore>();
                 using var failingKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
                 var failingDevice = await StartAndActivateAsync(failingHost, failingClient, failingKey);
+                var action = await ApprovedModelLoadAsync(failingHost, failingClient, failingKey,
+                    failingDevice.DeviceId, "load", saved.Id);
                 var blocked = boundary switch
                 {
                     "failure-checkpoint" => path,
@@ -82,7 +84,6 @@ public sealed partial class ServerHttpTests
                 };
                 File.Move(blocked, blocked + ".backup");
                 Directory.CreateDirectory(blocked);
-                var action = new OwnerManualSaveAction("load", saved.Id);
                 var error = await Record.ExceptionAsync(async () =>
                 {
                     using var response = await SendSignedAsync(failingHost, failingClient, failingKey, failingDevice.DeviceId,
