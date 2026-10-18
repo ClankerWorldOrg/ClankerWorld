@@ -175,6 +175,13 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
         }
     }
 
+    /// <summary>Repair uses the same approval and file checks as Play.</summary>
+    public bool NeedsRepair(InstalledVersion version)
+    {
+        try { RequireSigned(version, signingPublicKey); return false; }
+        catch (GameInstallException) { return true; }
+    }
+
     /// <summary>Removes one version's program files. Worlds, keys and logs stay where they are.</summary>
     public void Remove(InstalledVersion version)
     {

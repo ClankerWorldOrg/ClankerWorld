@@ -149,21 +149,21 @@ test('a missing game, setup or checksum prevents staging', t => {
   }
 });
 
-test('changed package bytes or checksums prevent publication', t => {
+test('changed package bytes or checksums prevent draft staging', t => {
   for (const asset of releaseAssets) {
     const fixture = sandbox(t);
     writeReleaseAssets(fixture.root);
     fs.appendFileSync(path.join(fixture.root, asset), 'changed after building');
-    assert.notEqual(fixture.run('Publish the nightly pre-release').status, 0, asset);
+    assert.notEqual(fixture.run('Stage the nightly draft for offline signing').status, 0, asset);
     assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, asset);
   }
 });
 
-test('publication preserves the built asset bytes and their matching checksums', t => {
+test('draft staging preserves the built asset bytes and their matching checksums', t => {
   const fixture = sandbox(t);
   writeReleaseAssets(fixture.root);
   const before = releaseAssets.map(asset => fs.readFileSync(path.join(fixture.root, asset)));
-  assert.equal(fixture.run('Publish the nightly pre-release').status, 0);
+  assert.equal(fixture.run('Stage the nightly draft for offline signing').status, 0);
   const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-4);
   assert.deepEqual(uploaded.map(asset => fs.readFileSync(path.join(fixture.root, asset))), before);
 });

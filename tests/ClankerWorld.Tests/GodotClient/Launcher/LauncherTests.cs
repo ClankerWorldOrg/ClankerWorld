@@ -532,27 +532,39 @@ public sealed class LauncherTests
 
     [Theory]
     [InlineData("missing-proof")]
+    [InlineData("bad-proof")]
     [InlineData("manifest")]
     [InlineData("program")]
-    public async Task PlayRequiresTheSignedManifestAndItsOriginalFiles(string damage)
+    public async Task PlayAndRepairRequireTheSignedManifestAndItsOriginalFiles(string damage)
     {
         var root = Directory.CreateTempSubdirectory("launcher-signed-play-");
         try
         {
             var layout = new LauncherLayout(root.FullName);
+            Directory.CreateDirectory(layout.SavesDirectory);
+            var save = Path.Combine(layout.SavesDirectory, "world.json");
+            File.WriteAllText(save, "world");
             var version = GameVersionName.Parse("0.1.0-alpha.2")!;
             using var server = new FakeReleases();
             using var http = new HttpClient(server);
             var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
-            var installed = await store.InstallAsync(server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
+            var release = server.Publish(version, Package(version,
+                ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+            var installed = await store.InstallAsync(release, null, CancellationToken.None);
             var publicKey = SigningKey.ExportSubjectPublicKeyInfoPem();
             GameVersionStore.RequireSigned(installed, publicKey);
+            Assert.False(store.NeedsRepair(installed));
             // The production pin must never trust this throwaway test key.
             Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
             if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
+            else if (damage == "bad-proof") File.WriteAllText(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile), "not json");
             else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
             Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, publicKey));
+            Assert.True(store.NeedsRepair(installed));
+            var repaired = await store.InstallAsync(release, null, CancellationToken.None);
+            GameVersionStore.RequireSigned(repaired, publicKey);
+            Assert.False(store.NeedsRepair(repaired));
+            Assert.Equal("world", File.ReadAllText(save));
         }
         finally { root.Delete(recursive: true); }
     }

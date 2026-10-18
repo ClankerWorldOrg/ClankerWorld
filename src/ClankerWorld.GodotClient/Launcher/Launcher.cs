@@ -559,8 +559,7 @@ public partial class Launcher : Control
         try
         {
             SetStatus($"Checking ClankerWorld {version.Version}…");
-            var problems = await Task.Run(() => GameVersionStore.Verify(version));
-            if (problems.Count == 0)
+            if (!await Task.Run(() => store.NeedsRepair(version)))
             {
                 SetStatus($"ClankerWorld {version.Version} is fine. Every file matches its release.");
                 return;
@@ -688,9 +687,17 @@ public partial class Launcher : Control
             var testDirectory = layout.VersionDirectory(testVersion);
             Directory.CreateDirectory(testDirectory);
             File.WriteAllText(Path.Combine(testDirectory, LauncherLayout.GameExecutable), "smoke game");
-            File.WriteAllText(Path.Combine(testDirectory, LauncherLayout.PackageManifest), "# smoke manifest");
+            Directory.CreateDirectory(Path.Combine(testDirectory, "host"));
+            File.WriteAllText(Path.Combine(testDirectory, "host", "ClankerWorld.Viewer.exe"), "smoke server");
+            File.WriteAllLines(Path.Combine(testDirectory, LauncherLayout.PackageManifest),
+                new[] { LauncherLayout.GameExecutable, "host/ClankerWorld.Viewer.exe" }.Select(relative =>
+                    $"{Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(Path.Combine(testDirectory, relative))))} *./{relative}"));
             RefreshInstalled();
             var testInstalled = installed.Single(version => version.Version == testVersion);
+            Expect(GameVersionStore.Verify(testInstalled).Count == 0, "The unsigned repair fixture has intact game files");
+            await RepairAsync(testInstalled);
+            Expect(status.Text.Contains("needs repair", StringComparison.Ordinal),
+                "Repair must not report an installation with missing approval as fine");
             if (OperatingSystem.IsLinux())
             {
                 const string worldId = "0123456789abcdef0123456789abcdef";
