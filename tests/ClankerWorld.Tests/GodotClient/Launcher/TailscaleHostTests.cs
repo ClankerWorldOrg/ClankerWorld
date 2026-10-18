@@ -74,16 +74,58 @@ public sealed class TailscaleHostTests
         Assert.Single(changed.Calls);
     }
 
+    [Theory]
+    [InlineData("exit")]
+    [InlineData("json")]
+    [InlineData("cancel")]
+    [InlineData("foreign")]
+    [InlineData("cleanup")]
+    public async Task FailedConfirmationRemovesOnlyTheRouteItCreated(string failure)
+    {
+        const string privateOutput = "synthetic private helper output";
+        var foreign = Own.Replace(":5188", ":9999", StringComparison.Ordinal);
+        var confirmation = failure switch
+        {
+            "json" => new HostCommandResult(0, "{"),
+            "foreign" => new HostCommandResult(0, foreign),
+            "cancel" => new HostCommandResult(0, Own),
+            _ => new HostCommandResult(1, privateOutput),
+        };
+        using var cancellation = new CancellationTokenSource();
+        var commands = new Commands([new(0, Status), new(0, "{}"), new(0, ""), confirmation,
+            new(0, failure == "foreign" ? foreign : Own), new(failure == "cleanup" ? 1 : 0, privateOutput)])
+        {
+            AfterResult = call => { if (failure == "cancel" && call == 4) cancellation.Cancel(); },
+        };
+        var host = new TailscaleHost(commands);
+        if (failure == "cancel")
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => host.ConnectAsync(new("http://127.0.0.1:5188/"), cancellation.Token));
+        else
+        {
+            var error = await Assert.ThrowsAsync<GameInstallException>(() => host.ConnectAsync(new("http://127.0.0.1:5188/"), cancellation.Token));
+            Assert.DoesNotContain(privateOutput, error.Message, StringComparison.Ordinal);
+            if (failure is "foreign" or "cleanup") Assert.Contains("Check Tailscale", error.Message, StringComparison.Ordinal);
+        }
+        Assert.Equal(failure == "foreign" ? 5 : 6, commands.Calls.Count);
+        Assert.Equal(StatusArguments, commands.Calls[4]);
+        if (failure == "foreign") Assert.DoesNotContain(commands.Calls, call => call.Contains("off"));
+        else Assert.Equal("serve --https=443 off", string.Join(' ', commands.Calls[5]));
+    }
+
     private sealed class Commands(IEnumerable<HostCommandResult> results) : IHostCommandRunner
     {
         private readonly Queue<HostCommandResult> results = new(results);
         public List<IReadOnlyList<string>> Calls { get; } = [];
+        public Action<int>? AfterResult { get; init; }
         public Task<HostCommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
         {
             Assert.Equal("tailscale", executable);
             cancellationToken.ThrowIfCancellationRequested();
             Calls.Add(arguments);
-            return Task.FromResult(results.Dequeue());
+            var result = results.Dequeue();
+            AfterResult?.Invoke(Calls.Count);
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(result);
         }
     }
 }

@@ -34,11 +34,13 @@ public sealed record LocalServerLayout(
     public string SaveDirectory => Path.Combine(DataDirectory, "saves");
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
 
-    public static LocalServerLayout ForHosting(InstalledVersion version, LauncherLayout launcher, bool stopWhenGameQuits)
+    public static LocalServerLayout ForHosting(InstalledVersion version, LauncherLayout launcher, bool stopWhenGameQuits,
+        IReleaseSignatureVerifier? verifier = null)
     {
+        GameVersionStore.RequireSigned(version, verifier);
         if (!File.ReadLines(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Contains(HostingMarker, StringComparer.Ordinal))
             throw new GameInstallException("This version doesn't support hosting from the launcher. Install a newer version.");
-        if (GameVersionStore.Verify(version).Count > 0 || version.SourceRevision is null)
+        if (version.SourceRevision is null)
             throw new GameInstallException("This version's files need Repair before hosting. Your worlds are kept.");
         var bundled = FindBundled(version.Executable, launcher.Root) ??
             throw new GameInstallException("This version's world server is missing. Choose Repair before hosting.");

@@ -85,11 +85,23 @@ public sealed class TailscaleHost(IHostCommandRunner commands, string executable
         if (IsEmpty(current.RootElement) || current.RootElement.ValueKind == JsonValueKind.Object &&
             current.RootElement.EnumerateObject().All(item => IsEmpty(item.Value)))
         {
-            var configured = await commands.RunAsync(executable, ["serve", "--bg", "--https=443", localOrigin.AbsoluteUri], cancellationToken);
-            if (configured.ExitCode != 0)
-                throw new GameInstallException("Tailscale could not start private HTTPS hosting. Check its HTTPS setup, then try again.");
-            using var confirmed = await JsonAsync(["serve", "status", "--json"], cancellationToken);
-            RequireOwnRoute(confirmed.RootElement, origin.Host, localOrigin);
+            try
+            {
+                var configured = await commands.RunAsync(executable, ["serve", "--bg", "--https=443", localOrigin.AbsoluteUri], cancellationToken);
+                if (configured.ExitCode != 0)
+                    throw new GameInstallException("Tailscale could not start private HTTPS hosting. Check its HTTPS setup, then try again.");
+                using var confirmed = await JsonAsync(["serve", "status", "--json"], cancellationToken);
+                RequireOwnRoute(confirmed.RootElement, origin.Host, localOrigin);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                try { await DisconnectAsync(localOrigin, origin, CancellationToken.None); }
+                catch (Exception cleanupException) when (cleanupException is not OutOfMemoryException)
+                {
+                    throw new GameInstallException("Hosting could not start and its private address may still be active. Check Tailscale's hosting settings before trying again.", exception);
+                }
+                throw;
+            }
         }
         else RequireOwnRoute(current.RootElement, origin.Host, localOrigin);
         return origin;

@@ -451,7 +451,8 @@ The portable README directs players to unpack inside their own Windows user fold
 
 The portable game's manifest includes `# Launcher options: host-app-v1` when
 it supports the launcher host app. Hosting refuses a version without that
-marker or with missing/changed installed files, then reuses the bundled
+marker, authenticated release approval or original installed files, then reuses
+the bundled
 `LocalServer` startup proof. The host screen and sign-in behavior are described
 in [Playing](../playing.md#host-a-world-for-other-devices); its pending
 Windows/Tailscale checks are in the playtest list.

@@ -929,6 +929,15 @@ public partial class Launcher : Control
             await RepairAsync(installed.Single(version => version.Directory == withdrawnDirectory));
             Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal) && File.ReadAllText(withdrawnExecutable) == "kept installed game",
                 "Repair cannot reinstall a withdrawn release and keeps the installed copy");
+            OpenHostPage();
+            Expect(startHosting.Disabled, "A withdrawn version cannot be hosted outside Developer mode");
+            await StartHostingAsync();
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal), "Hosting explains withdrawal before starting a server or private route");
+            developerMode.ButtonPressed = true;
+            RefreshHostControls();
+            Expect(!startHosting.Disabled, "Developer mode keeps the explicit withdrawn hosting choice subject to release approval");
+            developerMode.ButtonPressed = false;
+            ShowPage(playPage);
         }
         catch (Exception exception)
         {

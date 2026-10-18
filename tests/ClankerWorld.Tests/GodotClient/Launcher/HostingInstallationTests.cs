@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Networking;
 
@@ -28,8 +29,31 @@ public sealed class HostingInstallationTests
             File.WriteAllText(meter, "retained installation accounting");
             var retained = File.ReadAllBytes(meter);
             Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false));
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var verifier = new TestReleaseSignatureVerifier(key);
+            ReleasePackageSignature SignManifest()
+            {
+                var unsigned = new ReleasePackageSignature(GameReleaseFeed.PackageName(version.Version) + ".zip", new string('b', 64),
+                    Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(manifestPath))), "");
+                return unsigned with
+                {
+                    Signature = Convert.ToBase64String(key.SignData(unsigned.Payload(), HashAlgorithmName.SHA256,
+                    DSASignatureFormat.Rfc3279DerSequence))
+                };
+            }
+            var approvalPath = Path.Combine(package, ReleasePackageSignature.InstalledFile);
+            File.WriteAllText(approvalPath, JsonSerializer.Serialize(SignManifest()));
+            var unsupported = Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false, verifier));
+            Assert.Contains("doesn't support hosting", unsupported.Message, StringComparison.Ordinal);
             File.AppendAllText(manifestPath, "\n" + LocalServerLayout.HostingMarker + "\n");
-            var host = LocalServerLayout.ForHosting(version, launcher, true);
+            File.Delete(approvalPath);
+            Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false));
+            var approval = SignManifest();
+            File.WriteAllText(approvalPath, JsonSerializer.Serialize(approval with { Signature = "invalid" }));
+            Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false, verifier));
+            File.WriteAllText(approvalPath, JsonSerializer.Serialize(approval));
+            Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false));
+            var host = LocalServerLayout.ForHosting(version, launcher, true, verifier);
             Assert.Equal(launcher.Root, host.DataDirectory);
             Assert.Equal(Path.Combine(launcher.Root, "settings"), host.SettingsDirectory);
             Assert.Equal("launcher", host.HostKind);
@@ -41,7 +65,7 @@ public sealed class HostingInstallationTests
             Assert.Equal(launcher.Root, launcher.HostingDataDirectory(settings, restoring: false));
             Assert.Equal(launcher.TestDataDirectory, launcher.HostingDataDirectory(settings, restoring: true));
             File.AppendAllText(Path.Combine(package, "server", "ClankerWorld.Server.exe"), "changed after installation");
-            Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false));
+            Assert.Throws<GameInstallException>(() => LocalServerLayout.ForHosting(version, launcher, false, verifier));
             Assert.Equal(retained, File.ReadAllBytes(meter));
         }
         finally { directory.Delete(recursive: true); }

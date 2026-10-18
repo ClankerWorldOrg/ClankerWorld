@@ -260,8 +260,9 @@ public sealed partial class WorldRuntimeService(
                 HostIdleSaveFailed = saved == ShutdownSaveOutcome.WriteFailed;
                 if (saved == ShutdownSaveOutcome.Saved)
                 {
-                    hostedClientSeen = false;
-                    if (hosting.StopWhenGameQuits) lifetime?.StopApplication();
+                    // A game can reconnect while the checkpoint waits or writes.
+                    hostedClientSeen = clientPresence.HasActiveClient;
+                    if (!hostedClientSeen && hosting.StopWhenGameQuits) lifetime?.StopApplication();
                 }
             }
             LogGateTransition("waiting_for_client", runtime.WorldTick);

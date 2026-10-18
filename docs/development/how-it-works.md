@@ -5461,7 +5461,8 @@ This is separate from the saved lesson record, which now stores a skill.
 
 `Launcher.Hosting.cs` runs the installed version's existing `LocalServer`
 startup proof, approval and save/stop paths without opening the game. Hosting
-requires a verified package with the `host-app-v1` manifest marker. It uses the
+requires authenticated release approval and a verified package with the
+`host-app-v1` manifest marker. It uses the
 same installation data root, including provider credentials and lifetime usage;
 Developer test data remains separate. Reuse checks the protected host status
 for the same mode and stop option, so another game or host cannot silently
@@ -5470,7 +5471,9 @@ take over its lifecycle.
 `TailscaleHost` checks the installed helper's private-network status and exact
 Serve configuration. It sets up only one HTTPS route to the ordinary loopback
 listener, refuses public Funnel or another service's setup, and removes only
-that checked route when hosting stops. Helper output is bounded and never
+that checked route when hosting stops or setup confirmation fails. Changed
+external routes are preserved; failed cleanup asks the player to check Tailscale.
+Helper output is bounded and never
 logged or shown as an error. The approval listener is never forwarded.
 
 `LauncherSettings` records the hosted version and data choice. The optional

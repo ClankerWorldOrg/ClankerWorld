@@ -112,7 +112,7 @@ public partial class Launcher
 
     private void RefreshHostControls()
     {
-        startHosting.Disabled = busy || hostingRunning || Chosen() is null;
+        startHosting.Disabled = busy || hostingRunning || Chosen() is not { } chosen || IsWithdrawn(chosen);
         stopHosting.Visible = hostingRunning;
         stopHosting.Disabled = busy;
         stopWithGame.Disabled = busy || hostingRunning;
@@ -134,6 +134,11 @@ public partial class Launcher
     private async Task StartHostingAsync(bool restoring = false)
     {
         if (busy || hostingRunning || Chosen() is not { } chosen) return;
+        if (IsWithdrawn(chosen))
+        {
+            SetStatus(WithdrawnMessage(chosen));
+            return;
+        }
         var version = installed.FirstOrDefault(item => item.Version == chosen);
         if (version is null)
         {
