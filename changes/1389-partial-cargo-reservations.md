@@ -1,1 +1,0 @@
-- Dismounting and making room for food can move unreserved surplus from a partly claimed loose stack. Promised units and whole reserved vessel families stay protected.

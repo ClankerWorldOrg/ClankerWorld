@@ -13,20 +13,15 @@ namespace ClankerWorld.Server.Saves;
 /// <see cref="GameVersion"/> and <see cref="SourceRevision"/> name the host build
 /// that wrote the save; saves from before they were recorded have neither.
 /// </remarks>
-public sealed record ManualWorldSave(string Id, string Name, DateTimeOffset CreatedUtc, long WorldTick,
-    bool IsAutosave = false, SaveBranch? Branch = null, string? ContinuedFromId = null,
-    DateTimeOffset? ContinuedFromCreatedUtc = null, long BranchPosition = 0,
-    [property: JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null,
-    [property: JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null);
-public sealed record ManualSaveOverwriteReceipt(ManualWorldSave Saved, string BackupId);
+
+
 
 /// <summary>
 /// One version of a world's history. Playing on from an older save starts a new
 /// branch, so later saves of the original branch stay where they were. Saves
 /// made before branches existed have no branch.
 /// </summary>
-public sealed record SaveBranch(string Id, int Number, string? StartedFromId = null,
-    string? StartedFromName = null, long? StartedFromTick = null);
+
 
 /// <summary>The branch record to put back if loading a save fails part-way.</summary>
 public sealed record SaveTimelineRestorePoint(string WorldId, byte[]? Bytes);
@@ -35,8 +30,7 @@ public sealed record SaveTimelineRestorePoint(string WorldId, byte[]? Bytes);
 /// Where the running world's history continues: the save it was last loaded from
 /// or saved as, that save's branch, and whether the next save starts a new branch.
 /// </summary>
-public sealed record SaveTimelinePosition(string? ContinuedFromId, string? BranchId, bool StartsNewBranch,
-    int? NextBranchNumber = null, long? ContinuedFromTick = null);
+
 
 /// <summary>
 /// Owner-only named checkpoints for the currently active world. Opaque IDs,
@@ -97,6 +91,7 @@ public sealed partial class ManualWorldSaveStore
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before overwriting a manual save.");
@@ -183,6 +178,7 @@ public sealed partial class ManualWorldSaveStore
         name = NormalizeName(name);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!isAutosave && !state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before making a manual save.");
@@ -194,8 +190,7 @@ public sealed partial class ManualWorldSaveStore
                 state.Society.Society.WorldTick, isAutosave, branch, timeline?.ContinuedFromId,
                 timeline?.ContinuedFromCreatedUtc, NextBranchPosition(branch, timeline),
                 BuildInformation.Version, BuildInformation.SourceRevision);
-            Directory.CreateDirectory(directory);
-            RestrictDirectory();
+            PrivateStorage.EnsureDirectory(directory);
             WriteAtomic(StatePath(entry.Id), bytes);
             // The branch record moves before the save is published. A failure in
             // between leaves a record pointing at an unlisted save, whose
@@ -395,8 +390,7 @@ public sealed partial class ManualWorldSaveStore
 
     private void WriteTimeline(Timeline timeline)
     {
-        Directory.CreateDirectory(directory);
-        RestrictDirectory();
+        PrivateStorage.EnsureDirectory(directory);
         WriteAtomic(TimelinePath(timeline.WorldId), JsonSerializer.SerializeToUtf8Bytes(timeline), overwrite: true);
     }
 
@@ -427,6 +421,7 @@ public sealed partial class ManualWorldSaveStore
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
         lock (gate)
         {
+            RequireNoPendingLoad();
             var intent = Path.Combine(directory, id + ".deleting.json");
             var source = File.Exists(intent) ? intent : MetadataPath(id);
             var metadata = ReadDeletionMetadata(source, id);
@@ -442,6 +437,7 @@ public sealed partial class ManualWorldSaveStore
     {
         lock (gate)
         {
+            RequireNoPendingLoad();
             if (!Directory.Exists(directory)) return;
             var foreignSaveIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var path in Directory.GetFiles(directory, "*.json"))
@@ -562,6 +558,7 @@ public sealed partial class ManualWorldSaveStore
         if (count is < 1 or > 10) throw new ArgumentOutOfRangeException(nameof(count));
         lock (gate)
         {
+            RequireNoPendingLoad();
             // Each branch keeps its own newest autosaves, so playing one branch
             // never retires another branch's history. Unknown histories stay
             // recoverable rather than being merged into the pre-branch group.
@@ -765,25 +762,18 @@ public sealed partial class ManualWorldSaveStore
     private string MetadataPath(string id) => Path.Combine(directory, id + ".meta.json");
     private static bool IsId(string? id) => id is { Length: 32 } && id.All(char.IsAsciiHexDigit);
 
-    private void RestrictDirectory()
-    {
-        if (!OperatingSystem.IsWindows())
-            File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-    }
-
     private static void WriteAtomic(string destination, byte[] bytes, bool overwrite = false)
     {
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = PrivateStorage.CreateNew(temporary))
             {
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
             }
-            if (!OperatingSystem.IsWindows())
-                File.SetUnixFileMode(temporary, UnixFileMode.UserRead | UnixFileMode.UserWrite);
             File.Move(temporary, destination, overwrite);
+            PrivateStorage.RestrictFile(destination);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }

@@ -261,6 +261,8 @@ public partial class Main
 
     public override void _Process(double delta)
     {
+        FitQueuedTextPanels();
+        FitQueuedAgentProfile();
         UpdateDeveloperFrameTime(delta);
         AdvanceCameraMotion(delta);
         AdvanceMapMarkers(delta);

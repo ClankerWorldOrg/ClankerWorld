@@ -20,7 +20,7 @@ internal sealed partial class TownSystem
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !world.Agents.TryGetValue(plan.Recipient, out var recipient) ||
-            plan.Notices.Any(notice => !council.Notices.Contains(notice)))
+            !plan.ReadsCurrentBoard && plan.Notices.Any(notice => !council.Notices.Contains(notice)))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected notices or recipient are no longer available");
         var history = CivicHistory(town);
         var reading = plan.Choice.RecipientToken is null;

@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
                 .OrderBy(item => item.Kind).ToArray(),
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("skill_learned", $"{actor}|{skill.ToString().ToLowerInvariant()}|{teacher ?? "work"}");
+        AppendEvent(new SkillLearnedEventPayload(actor, skill.ToString().ToLowerInvariant(), teacher ?? "work"));
     }
 
     private SkillKind SkillForRecipe(RecipeDefinition recipe)
