@@ -301,7 +301,7 @@ world context cannot clear a retained request in the current world.
 
 The device registry records which paired device approved a new pairing, or that
 approval happened on the server's own computer. The origin survives approval,
-activation, revocation and restart; **Paired devices** shows the server's
+activation, revocation and restart; **Paired-device management** in F12 shows the server's
 description. Older authority records without that information display
 **Approval not recorded**. This is installation authority metadata, outside
 world saves and replay.
