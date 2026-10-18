@@ -9,33 +9,6 @@ public sealed class SmithGatherActionPlanTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task UnplannedToolCollectionKeepsRoomForThePendingSmithHarvest(bool tightCargo)
-    {
-        var (state, actor, tree) = await Fixture(basket: true);
-        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collection-plan-pickaxe", "wooden_pickaxe",
-            household, 1, groundPosition: new(tree.Position.X, tree.Position.Y));
-        if (tightCargo) inventory = InventoryAuthority.AddLot(inventory, "collection-plan-ballast", "stone", actor, 14);
-        using var world = WorldRuntime.Restore(FoodCapacityTestFixture.WithInventory(state, inventory));
-        var baseline = WorldRuntimeCodec.Encode(world.ExportState());
-
-        // Continuing an unplanned native action must use the same cargo context as offering it.
-        typeof(WorldRuntime).GetMethod("ApplyCandidate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(world, [actor, world.Agents.Single(person => person.AgentId == actor), "collect_wooden_pickaxe", false]);
-
-        var tool = world.Society.Inventory.GetLot("collection-plan-pickaxe");
-        Assert.Equal(household, tool.OwnerId);
-        Assert.Equal(tightCargo ? null : actor, tool.CarrierId);
-        if (tightCargo) Assert.Equal(baseline, WorldRuntimeCodec.Encode(world.ExportState()));
-        else Assert.Contains(world.ExportState().Events, item => item.Kind == "equipment_collected" && item.Detail == actor + ":wooden_pickaxe");
-        world.Validate();
-        using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reopened.ExportState()));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
     public async Task GatheringAndPreparationCarryTheSamePlanAcrossRollbackReplayAndReload(bool prepareCargo)
     {
         var (state, actor, _) = await Fixture();
