@@ -6,7 +6,7 @@ public enum DirectBarterKind { Propose, Wait, Accept, Decline }
 
 public sealed record DirectBarterChoice(DirectBarterKind Kind, string Subject)
 {
-    public string Encode() => "trade_" + Kind.ToString().ToLowerInvariant() + ":" + Subject;
+    public string Encode() => IdentityRules.PrefixedReference("trade_" + Kind.ToString().ToLowerInvariant() + ":", Subject);
     public static DirectBarterChoice? Decode(string value)
     {
         foreach (var kind in Enum.GetValues<DirectBarterKind>())

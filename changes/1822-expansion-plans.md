@@ -1,1 +1,3 @@
 - Expansion choices retain the selected building, target footprint and available reservation inputs through shared checks.
+- Expansion choice references use the shared complete-reference helper without changing their spelling.
+- Retained expansion choices refuse a removed and rebuilt building even when its ID, design, site and ownership are reused.

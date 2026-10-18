@@ -20,13 +20,13 @@ public sealed partial class WorldRuntime
             .SingleOrDefault(option => option.Choice == summary.Choice && option.Text == summary.Text &&
                 option.OwnerId == summary.OwnerId && option.Sources.SequenceEqual(summary.Sources));
         if (current is null) return;
-        var sources = summary.Sources.Select(source => new SocietyMemorySummarySource(source.Id,
+        var sources = summary.Sources.Select(source => new SocietyMemorySummarySource(Identity.ParseStored(source.Id),
             source.Kind == "experience" ? SocietyMemorySourceKind.Experience : SocietyMemorySourceKind.Belief, source.SourceTick)).ToArray();
         var next = SocietyRules.RecordAgentMemorySummary(society.Checkpoint, ownerId,
             new SocietyMemorySummaryOption(summary.Choice, summary.Text, sources));
         society.Apply(_ => new SocietyOperationResult(next));
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_memories_summarized", ownerId + ":" + sources.Length);
+        AppendEvent(new AgentMemoriesSummarizedEventPayload(ownerId, sources.Length));
     }
 
     private void ApplyMemoryCompaction(
@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
     {
         if (scores.Count == 0) return;
         var indexed = scores.Select(score => new SocietyAgentMemoryImportance(
-                score.Id,
+                Identity.Parse(score.Id),
                 score.Kind switch
                 {
                     "experience" => SocietyMemorySourceKind.Experience,

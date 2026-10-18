@@ -1,1 +1,2 @@
-- Non-land voluntary offers and personal responses retain their named contributions and exact noticed terms through shared native checks.
+- Non-land voluntary offers and personal responses retain their named contributions and exact noticed terms through shared native checks; a delayed proposal cannot duplicate another accepted equipment repair.
+- Retained voluntary agreements preserve native identity, response text and notice allocation checks when published.

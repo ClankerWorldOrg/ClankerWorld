@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
             new(ActionLifeStages.Adults, AllowBoat: !plan.OfferedChoice, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == plan.House.InstanceId) is not { } house ||
-            house.DefinitionId != plan.House.DefinitionId || house.Position != plan.House.Position || house.HouseholdId is null ||
+            house.DefinitionId != plan.House.DefinitionId || house.PlacedTick != plan.House.PlacedTick || house.HouseholdId is null ||
             house.HouseholdId != plan.ActorHouseholdId || society.Checkpoint.GetAgent(plan.Actor).HouseholdId != plan.ActorHouseholdId ||
             !worldContent.Buildings.Any(definition => definition.CanonicalId == house.DefinitionId && definition.Tags.Contains("house", StringComparer.Ordinal)))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "Only an adult member of the House's household can invite or revoke a guest.");

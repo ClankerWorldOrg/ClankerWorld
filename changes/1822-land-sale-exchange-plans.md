@@ -1,1 +1,1 @@
-- Permission-sale travel and payment retain the meeting, exact personal goods and actual seller through shared checks.
+- Permission-sale travel and payment retain the meeting, exact personal goods and actual seller through shared checks and native identity validation.

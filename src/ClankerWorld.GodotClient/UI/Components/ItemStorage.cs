@@ -9,7 +9,7 @@ namespace ClankerWorld.GodotClient.UI;
 /// </summary>
 public partial class ItemStorage : VBoxContainer
 {
-    private readonly Label titleLabel = new() { ThemeTypeVariation = "SectionLabel", SizeFlagsHorizontal = SizeFlags.ExpandFill };
+    private readonly FittedLabel titleLabel = new() { ThemeTypeVariation = "SectionLabel", SizeFlagsHorizontal = SizeFlags.ExpandFill };
     private readonly Label summaryLabel = new() { ThemeTypeVariation = "DimLabel" };
     private readonly GridContainer slots = new();
     private readonly Label emptyLabel = new() { Text = "Nothing stored here yet.", ThemeTypeVariation = "DimLabel" };

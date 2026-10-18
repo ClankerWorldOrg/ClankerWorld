@@ -1,3 +1,5 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
 
@@ -95,7 +97,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal(boat.DockedPortId, Assert.Single(restored.World.Boats).DockedPortId);
         Assert.Equal(2, restored.World.BoatRequests.Count);
         Assert.All(restored.World.BoatRequests, request => Assert.Equal("arrived", request.Status));
-        Assert.Equal(new[] { outward.InstructionId, homeward.InstructionId },
+        Assert.Equal(new[] { outward.InstructionId.Value, homeward.InstructionId.Value },
             restored.World.BoatRequests.Select(request => request.OrderInstructionId));
         AssertBoatCargoUnchanged(restored.World, "travel-jug", BoatPolicy.Author, 1);
         restored.World.Validate();
@@ -175,28 +177,26 @@ public sealed partial class PortBoatRuntimeTests
         var initial = scenario.World.ExportState();
         var instruction = initial.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
         var order = instruction.Task!;
-        foreach (var damaged in new[]
-        {
-            order with { BoatTravel = null },
-            order with { BoatTravel = new("unknown-port") },
-            order with { BoatTravel = order.BoatTravel! with { RequestId = "boat-request:999" } },
-            order with { CompletedUnits = 1, Status = "finished" },
-            order with { TargetPosition = null },
-            order with { TargetResourceId = "invented-food" },
-            order with { RepeatUntilCancelled = true },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(initial with
-            { Instructions = [instruction with { Task = damaged }] }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = new OwnerBoatTravelBinding("unknown-port") }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = order.BoatTravel! with { RequestId = "boat-request:999" } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["Status"] = "finished" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "invented-food" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(initial, damaged));
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey is not null, 120);
         var state = scenario.World.ExportState();
         var request = Assert.Single(state.BoatTransport.Requests);
         var underwayInstruction = state.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
-        var inventedArrival = underwayInstruction.Task! with
+        var inventedArrival = (underwayInstruction.Task! with
         {
-            Status = "finished",
             CompletedUnits = 1,
-            LastEffectId = "boat-arrival:" + request.Id
-        };
+            LastEffectId = Identity.Parse("boat-arrival:" + request.Id)
+        }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {
             Instructions = [underwayInstruction with { Task = inventedArrival }],
@@ -242,7 +242,15 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal("blocked", BoatOrder(scenario.World, receipt).Status);
         Assert.Contains("permission", BoatOrder(scenario.World, receipt).BlockedReason, StringComparison.Ordinal);
         Assert.Empty(scenario.World.BoatRequests);
-        var noticePlace = scenario.World.Towns[0].OriginSite!.Value;
+        var board = scenario.World.Towns[0].OriginSite!.Value;
+        // The other readers can surround the board. Walk into reading range
+        // through the real walls rather than requiring its crowded exact tile.
+        state = scenario.World.ExportState();
+        using var routes = MovementTestWorld.Routes(state, state.Agents.Single(person => person.AgentId == BoatPolicy.Author).Position,
+            state.Agents.Where(person => person.AgentId != BoatPolicy.Author).Select(person => person.Position).ToHashSet());
+        var approach = routes.RouteTo(board, 1);
+        Assert.NotEmpty(approach);
+        var noticePlace = approach[^1];
         var move = scenario.World.SubmitInstruction(new("proposer-at-notice-place", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.Order, FormattableString.Invariant($"move to ({noticePlace.X}, {noticePlace.Y})")));
         await scenario.UntilAsync(() => BoatOrder(scenario.World, move).Status == "finished", 40);
@@ -256,7 +264,7 @@ public sealed partial class PortBoatRuntimeTests
         var request = Assert.Single(scenario.World.BoatRequests);
         Assert.Equal("waiting", request.Status);
         Assert.Null(request.BoatId);
-        Assert.Equal(receipt.InstructionId, request.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, request.OrderInstructionId);
         policy.RevokeBoatAccess = true;
         await scenario.UntilAsync(() => !TownBoatAccessRules.Allows(scenario.World.Towns[0], Visitor, scenario.World.WorldTick), 120);
         await scenario.UntilAsync(() => scenario.World.BoatRequests[0].Status == "cancelled", 4);
@@ -304,7 +312,7 @@ public sealed partial class PortBoatRuntimeTests
         var native = scenario.World.ExportState();
         var bound = Assert.Single(native.BoatTransport.Requests);
         Assert.Equal(outcome, bound.Status);
-        Assert.Equal(receipt.InstructionId, bound.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, bound.OrderInstructionId);
         var originalOrder = BoatOrder(scenario.World, receipt);
         Assert.Equal(outcome == "arrived" ? 1 : 0, originalOrder.CompletedUnits);
         var cargo = scenario.World.Society.Inventory.GetLot("travel-jug");
