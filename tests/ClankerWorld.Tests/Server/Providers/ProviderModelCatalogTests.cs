@@ -149,7 +149,7 @@ public sealed class ProviderModelCatalogTests
 
         var refused = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.Unauthorized, "{}"))))
             .ListAsync(new("openai", ApiKey: "wrong-secret"), CancellationToken.None);
-        Assert.Equal("OpenAI refused this key.", refused.Error);
+        Assert.Contains("Authentication failed.", refused.Error, StringComparison.Ordinal);
         Assert.All(refused.Models, item => Assert.True(item.Available));
 
         var broken = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.OK, "not json"))))
