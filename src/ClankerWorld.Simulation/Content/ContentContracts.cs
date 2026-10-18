@@ -489,6 +489,7 @@ public static class ContentPackageResolver
 /// </summary>
 public sealed class ContentPackageRegistry
 {
+    private const int MinimumRemovalReceipts = 3;
     private readonly Dictionary<string, ContentPackageRecord> packages = new(StringComparer.Ordinal);
     private readonly List<ContentGovernanceEvent> events = [];
     private long nextEventId = 1;
@@ -544,7 +545,7 @@ public sealed class ContentPackageRegistry
         {
             var history = historyByPackage[packageId];
             ContentPackageRules.ValidateDigest(history[^1].Detail, nameof(ContentGovernanceEvent.Detail));
-            if (history.Length < 3 || history[0].Kind != "package_proposed" ||
+            if (history.Length < MinimumRemovalReceipts || history[0].Kind != "package_proposed" ||
                 history[^2].Kind != "package_rolled_back" || history[^1].Detail != history[0].Detail)
                 throw new InvalidDataException("Removed content has no matching proposal and quarantine receipts.");
         }
