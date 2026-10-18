@@ -81,6 +81,10 @@ travel, trade, order survival, refusal and exact checkpoint replay stay checked.
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.
+Paid-boat fixtures use twelve-tick test days, including the full native day
+before a blocked arrival returns. The permission-order fixture keeps its
+96-tick day so every resident has time to read and vote. All native journeys,
+approved budget quantities, strict reload and paired replay stay checked.
 
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
