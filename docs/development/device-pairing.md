@@ -38,7 +38,8 @@ rollback backup. This is the approved pre-release exception described in
    launch secret ([local server](#local-server-started-by-the-game)). Once an owner device exists, it may approve or revoke further
    devices through signed owner-device-management requests. It may also request
    the signed registry of paired-device lifecycle records. The registry exposes
-   only public device IDs, public-key fingerprints, and lifecycle state; it
+   only public device IDs, public-key fingerprints, lifecycle state and approval
+   origin; it
    never exposes private keys, comparison codes, or reusable challenges. The
    same separate server-local listener supports recovery revocation when every
    paired Windows device has been lost or revoked.
@@ -298,6 +299,13 @@ world context cannot clear a retained request in the current world.
 
 ## Current scope
 
+The device registry records which paired device approved a new pairing, or that
+approval happened on the server's own computer. The origin survives approval,
+activation, revocation and restart; **Paired devices** shows the server's
+description. Older authority records without that information display
+**Approval not recorded**. This is installation authority metadata, outside
+world saves and replay.
+
 Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
 Paused map editing uses the same owner scope. There are no viewer, operator, or multiplayer roles yet. A revoked
@@ -411,6 +419,9 @@ a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_A
 `OLLAMA_API_KEY`, `TYPESAFE_API_KEY`) or any `ClankerWorld__` setting override,
 so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
+The child process uses `Production` for both `ASPNETCORE_ENVIRONMENT` and
+`DOTNET_ENVIRONMENT`, and does not inherit `ANTHROPIC_BASE_URL` or
+`ANTHROPIC_AUTH_TOKEN`.
 
 On such a local server, every `/api/v1/approval/*` request except the launch
 check below must also carry the value in the `X-ClankerWorld-Launch-Secret`

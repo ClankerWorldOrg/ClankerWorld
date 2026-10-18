@@ -96,6 +96,8 @@ public static class PlayerDecisionProviders
     }
 }
 
+// Record printing requires an instance PrintMembers even when every field is omitted.
+#pragma warning disable CA1822
 public sealed record ProviderConfigurationSeed(
     string ActiveProvider,
     string? JevModel,
@@ -105,11 +107,20 @@ public sealed record ProviderConfigurationSeed(
     string? OllamaCloudModel,
     string? OllamaCloudApiKey,
     string? AnthropicModel = null,
-    string? AnthropicApiKey = null);
+    string? AnthropicApiKey = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
-public sealed record StoredProviderCredential(string Model, string? ApiKey);
+public sealed record StoredProviderCredential(string Model, string? ApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
-public sealed record ProviderCredentialSlot(string Id, string Provider, string Label, string ApiKey);
+public sealed record ProviderCredentialSlot(string Id, string Provider, string Label, string ApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 public sealed record ProviderConfigurationState(
     int SchemaVersion,
@@ -122,7 +133,10 @@ public sealed record ProviderConfigurationState(
     IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
     IReadOnlyList<string>? DeletedCredentialSlotIds = null,
-    StoredProviderCredential? Anthropic = null);
+    StoredProviderCredential? Anthropic = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 public sealed record RuntimeProviderConfiguration(
     string RoutineProvider,
@@ -133,11 +147,18 @@ public sealed record RuntimeProviderConfiguration(
     long Revision,
     IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
-    StoredProviderCredential? Anthropic = null);
+    StoredProviderCredential? Anthropic = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 internal sealed record FrozenChildModelBinding(
     ChildPersonalModelSelection Selection,
-    string? CopiedDefaultApiKey);
+    string? CopiedDefaultApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
+#pragma warning restore CA1822
 
 /// <summary>
 /// Keeps player-supplied model-provider credentials outside world saves and
@@ -167,6 +188,32 @@ public sealed class ProviderConfigurationStore
     }
 
     public string Path { get; }
+
+    public static (int Removed, int Retained) RemoveTemporaryFiles(string path)
+    {
+        var fullPath = System.IO.Path.GetFullPath(path);
+        var directory = System.IO.Path.GetDirectoryName(fullPath)!;
+        if (!Directory.Exists(directory)) return (0, 0);
+        var prefix = "." + System.IO.Path.GetFileName(fullPath) + ".";
+        var removed = 0;
+        var retained = 0;
+        foreach (var temporary in Directory.EnumerateFiles(directory, prefix + "*.tmp"))
+        {
+            var name = System.IO.Path.GetFileName(temporary);
+            if (!name.StartsWith(prefix, StringComparison.Ordinal) || !name.EndsWith(".tmp", StringComparison.Ordinal) ||
+                !Guid.TryParseExact(name.AsSpan(prefix.Length, name.Length - prefix.Length - ".tmp".Length), "N", out _)) continue;
+            try
+            {
+                if ((File.GetAttributes(temporary) & FileAttributes.ReparsePoint) != 0) { retained++; continue; }
+                // Never read a credential payload; a live writer's exclusive handle refuses this open.
+                using (new FileStream(temporary, FileMode.Open, FileAccess.Write, FileShare.None,
+                    bufferSize: 1, FileOptions.DeleteOnClose)) { }
+                removed++;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { retained++; }
+        }
+        return (removed, retained);
+    }
 
     // Shared by selection and founder/add-agent setup across the complete
     // world/checkpoint/routing transaction, not just individual store writes.
@@ -629,7 +676,7 @@ public sealed class ProviderConfigurationStore
             ValidateState(loaded);
             if (OperatingSystem.IsWindows() && !ProviderCredentialFile.IsProtected(stored))
                 SaveUnsafe(loaded);
-            RestrictPermissions(Path);
+            PrivateStorage.RestrictFile(Path);
             return loaded;
         }
     }
@@ -933,25 +980,21 @@ public sealed class ProviderConfigurationStore
         ValidateState(next);
         var directory = System.IO.Path.GetDirectoryName(Path) ??
             throw new InvalidOperationException("The provider-configuration path has no directory.");
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(Path)}.{Guid.NewGuid():N}.tmp");
         try
         {
             var encoded = ProviderCredentialFile.Encode(JsonSerializer.Serialize(next, JsonOptions));
-            var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
-            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-            using (var stream = new FileStream(temporaryPath, options))
+            using (var stream = PrivateStorage.CreateNew(temporaryPath))
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(encoded);
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
             }
-            RestrictPermissions(temporaryPath);
             File.Move(temporaryPath, Path, overwrite: true);
-            RestrictPermissions(Path);
+            PrivateStorage.RestrictFile(Path);
         }
         finally
         {
@@ -999,13 +1042,7 @@ public sealed class ProviderConfigurationStore
         return normalized;
     }
 
-    private static void RestrictPermissions(string path)
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-    }
+
 }
 
 /// <summary>

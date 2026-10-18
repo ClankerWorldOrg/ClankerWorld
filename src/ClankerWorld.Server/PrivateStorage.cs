@@ -1,0 +1,32 @@
+namespace ClankerWorld.Server;
+
+/// <summary>Private installation files and folders, including their first write.</summary>
+internal static class PrivateStorage
+{
+    private const UnixFileMode FilePermissions = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+    private const UnixFileMode DirectoryPermissions = FilePermissions | UnixFileMode.UserExecute;
+
+    public static void EnsureDirectory(string path)
+    {
+        if (OperatingSystem.IsWindows()) Directory.CreateDirectory(path);
+        else
+        {
+            Directory.CreateDirectory(path, DirectoryPermissions);
+            var current = File.GetUnixFileMode(path);
+            var restricted = current & DirectoryPermissions;
+            if (current != restricted) File.SetUnixFileMode(path, restricted);
+        }
+    }
+
+    public static FileStream CreateNew(string path)
+    {
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+        if (!OperatingSystem.IsWindows()) options.UnixCreateMode = FilePermissions;
+        return new FileStream(path, options);
+    }
+
+    public static void RestrictFile(string path)
+    {
+        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(path, FilePermissions);
+    }
+}

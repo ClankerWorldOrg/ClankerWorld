@@ -7,6 +7,49 @@ namespace ClankerWorld.Tests;
 
 public sealed class OwnerAuthorityStoreTests
 {
+    private static readonly JsonSerializerOptions LegacyJson = new()
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+    [Fact]
+    public void ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var firstKey = CreateP256Key();
+        var first = StartPairing(store, firstKey);
+        Assert.True(store.ApprovePendingPairingLocally(first.PairingId, first.PairingCode).IsSuccess);
+        var firstDevice = store.ActivatePairing(new(first.PairingId, first.ActivationCanonicalProof,
+            Sign(firstKey, first.ActivationCanonicalProof))).Value!;
+        Assert.Equal(OwnerAuthorityStore.LocalApproval, firstDevice.ApprovedBy);
+        Assert.Equal("Approved on the server's computer", firstDevice.ApprovalDescription);
+        using var secondKey = CreateP256Key();
+        var second = StartPairing(store, secondKey);
+        Assert.True(store.ApprovePendingPairing(second.PairingId, second.PairingCode, firstDevice.DeviceId).IsSuccess);
+        store = OwnerAuthorityStore.Restore(JsonSerializer.Deserialize<OwnerAuthorityState>(
+            JsonSerializer.Serialize(store.ExportState()))!, clock, CryptographicOwnerAuthorityRandom.Instance);
+        var secondDevice = store.ActivatePairing(new(second.PairingId, second.ActivationCanonicalProof,
+            Sign(secondKey, second.ActivationCanonicalProof))).Value!;
+        Assert.Equal(firstDevice.DeviceId, secondDevice.ApprovedBy);
+        Assert.Equal($"Approved by device {firstDevice.DeviceId}", secondDevice.ApprovalDescription);
+        Assert.True(store.RevokeDevice(firstDevice.DeviceId).IsSuccess);
+        var state = store.ExportState();
+        store = OwnerAuthorityStore.Restore(state, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.Equal(firstDevice.DeviceId, store.GetDevice(secondDevice.DeviceId).Value!.ApprovedBy);
+        Assert.Throws<InvalidDataException>(() => OwnerAuthorityStore.Restore(state with
+        {
+            Devices = state.Devices.Select(device => device with { ApprovedBy = "missing-approver" }).ToArray(),
+        }, clock, CryptographicOwnerAuthorityRandom.Instance));
+        var legacy = state with
+        {
+            Pairings = state.Pairings.Select(pairing => pairing with { ApprovedBy = null }).ToArray(),
+            Devices = state.Devices.Select(device => device with { ApprovedBy = null }).ToArray(),
+        };
+        store = OwnerAuthorityStore.Restore(JsonSerializer.Deserialize<OwnerAuthorityState>(
+            JsonSerializer.Serialize(legacy, LegacyJson))!, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.All(store.GetDevices(), device => Assert.Equal("Approval not recorded", device.ApprovalDescription));
+    }
+
     [Fact]
     public void LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction()
     {
@@ -54,7 +97,7 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered, store.ActivatePairing(new(second.PairingId,
             second.ActivationCanonicalProof, Sign(key, second.ActivationCanonicalProof))).Failure);
         Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered,
-            store.ApprovePendingPairing(third.PairingId, third.PairingCode).Failure);
+            store.ApprovePendingPairing(third.PairingId, third.PairingCode, device.Value!.DeviceId).Failure);
         Assert.Single(store.GetDevices(), item => item.State == OwnerDeviceState.Active);
 
         // Revoking the device cancels every pending or approved pairing for its key.
@@ -85,7 +128,7 @@ public sealed class OwnerAuthorityStoreTests
         var readmitted = store.StartPairingLocally(new(spki));
         Assert.True(readmitted.IsSuccess);
         Assert.Equal(OwnerAuthorityFailure.DeviceRevoked,
-            store.ApprovePendingPairing(readmitted.Value!.PairingId, readmitted.Value.PairingCode).Failure);
+            store.ApprovePendingPairing(readmitted.Value!.PairingId, readmitted.Value.PairingCode, device.DeviceId).Failure);
         Assert.Equal(OwnerPairingState.Pending, store.GetPairingStatus(readmitted.Value.PairingId).Value!.State);
         Assert.True(store.ApprovePendingPairingLocally(readmitted.Value!.PairingId, readmitted.Value.PairingCode).IsSuccess);
         var replacement = store.ActivatePairing(new(readmitted.Value.PairingId, readmitted.Value.ActivationCanonicalProof,

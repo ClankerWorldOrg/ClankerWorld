@@ -1,0 +1,1 @@
+- Paired devices now shows who approved each device. Local server startup, private file creation and model connections have tighter defaults, and diagnostic record text leaves out credentials.
