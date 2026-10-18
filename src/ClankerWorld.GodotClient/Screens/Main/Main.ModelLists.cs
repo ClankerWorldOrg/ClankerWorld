@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
@@ -162,7 +163,7 @@ public partial class Main
         StyleButton(applyRoutineHelperButton);
         applyRoutineHelperButton.Pressed += () => _ = SaveRoutineHelperAsync();
         routineHelperSetupCheckButton.Text = "Test helper · 1 paid call";
-        routineHelperSetupCheckButton.TooltipText = "Tests the selected helper, model and saved key. It counts toward your model-call limit.";
+        routineHelperSetupCheckButton.TooltipText = "Tests the selected helper, model and saved key with one call that counts toward your model-call limit.";
         StyleButton(routineHelperSetupCheckButton);
         routineHelperSetupCheckButton.Pressed += () => _ = RunRoutineHelperSetupCheckAsync();
         routineHelperSetupCheckStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -207,7 +208,7 @@ public partial class Main
     {
         var provider = SelectedRoutineHelper();
         var model = routineHelperModelPicker.Model;
-        if (provider == "off" || model.Length is < 1 or > 128 || model.Any(char.IsControl)) return;
+        if (provider == "off" || !BoundedText.IsValid(model, 128, requireTrimmed: true)) return;
         await RunModelSetupCheckAsync(routineHelperSetupCheckButton, routineHelperSetupCheckStatus,
             provider, model, new(provider, model, SelectedRoutineHelperKey()), () => routineHelperSetupCheckRevision);
     }
@@ -254,7 +255,7 @@ public partial class Main
             !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
         var provider = SelectedRoutineHelper();
         var model = provider == "off" ? string.Empty : routineHelperModelPicker.Model;
-        if (provider != "off" && (model.Length is < 1 or > 128 || model.Any(char.IsControl)))
+        if (provider != "off" && (!BoundedText.IsValid(model, 128, requireTrimmed: true)))
         {
             SetStatus("Choose a model name of 128 characters or fewer.", good: false);
             return;

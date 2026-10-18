@@ -104,6 +104,12 @@ public partial class Main
                         routineHelperSetupCheckButton.Show();
                         routineHelperSetupCheckButton.Disabled = false;
                         routineHelperSetupCheckButton.GrabFocus();
+                        routineHelperModelPicker.SetModel("   ");
+                        await RunRoutineHelperSetupCheckAsync();
+                        if (host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck))
+                            throw new InvalidOperationException("An empty helper model must never send a paid test.");
+                        routineHelperModelPicker.SetModel("helper-lifecycle-model");
+                        routineHelperSetupCheckButton.Disabled = false;
                         if (routineHelperSetupCheckButton.GetParent() != routineHelperChoice.GetParent() ||
                             routineHelperSetupCheckButton.Text != "Test helper · 1 paid call" ||
                             !routineHelperSetupCheckButton.TooltipText.Contains("model-call limit", StringComparison.Ordinal))
