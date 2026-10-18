@@ -185,7 +185,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, str
     }
 
     private static GameInstallException NeedsRepair() => new(
-        "This version's files are missing or changed. Choose Repair on the Versions page before playing. Your saves are untouched.");
+        "This version's files couldn't be verified. Choose Repair on the Versions page before playing. Your saves are untouched.");
 
     /// <summary>Removes one version's program files. Worlds, keys and logs stay where they are.</summary>
     public void Remove(InstalledVersion version)
