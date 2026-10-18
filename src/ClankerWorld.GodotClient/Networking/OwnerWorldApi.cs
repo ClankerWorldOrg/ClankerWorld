@@ -257,9 +257,9 @@ public sealed class OwnerWorldApi
 
     public Task<CatalogWorld> SelectWorldAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
-        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken, string? modelSettingsApproval = null)
     {
-        var action = new OwnerManualSaveAction("select-world", id);
+        var action = new OwnerManualSaveAction("select-world", id, modelSettingsApproval);
         return pairing.SendSignedActionAsync<OwnerManualSaveAction, CatalogWorld>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerWorldSelect,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
@@ -268,11 +268,22 @@ public sealed class OwnerWorldApi
 
     public Task<ManualSaveLoadReceipt> LoadManualSaveAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
-        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken, string? modelSettingsApproval = null)
     {
-        var action = new OwnerManualSaveAction("load", id);
+        var action = new OwnerManualSaveAction("load", id, modelSettingsApproval);
         return pairing.SendSignedActionAsync<OwnerManualSaveAction, ManualSaveLoadReceipt>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerSaveLoad,
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
+            action, deviceKey, cancellationToken);
+    }
+
+    public Task<OwnerModelSettingsPreview> InspectLoadModelsAsync(
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string id, bool world,
+        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        var action = new OwnerManualSaveAction(world ? "inspect-world-models" : "inspect-save-models", id);
+        return pairing.SendSignedActionAsync<OwnerManualSaveAction, OwnerModelSettingsPreview>(
+            serverUri, authority, deviceId, world ? OwnerPairingEndpoints.OwnerWorldSelect : OwnerPairingEndpoints.OwnerSaveLoad,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
             action, deviceKey, cancellationToken);
     }

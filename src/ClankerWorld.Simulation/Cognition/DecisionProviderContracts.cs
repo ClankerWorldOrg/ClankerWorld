@@ -191,8 +191,8 @@ public sealed record CognitionWillChoice(
         {
             var status = Rune.DecodeFromUtf16(value.AsSpan(offset), out var character, out var consumed);
             offset += consumed;
-            if (status != OperationStatus.Done || Rune.IsWhiteSpace(character) || Rune.IsControl(character) ||
-                Rune.GetUnicodeCategory(character) is System.Globalization.UnicodeCategory.Format or
+            if (status != OperationStatus.Done || Rune.IsWhiteSpace(character) || Rune.IsControl(character) || BoundedText.IsInvisibleFormatting(character) ||
+                Rune.GetUnicodeCategory(character) is
                     System.Globalization.UnicodeCategory.LineSeparator or System.Globalization.UnicodeCategory.ParagraphSeparator or
                     System.Globalization.UnicodeCategory.Surrogate or System.Globalization.UnicodeCategory.PrivateUse or
                     System.Globalization.UnicodeCategory.OtherNotAssigned)
@@ -635,33 +635,17 @@ public sealed record CognitionDecisionResponse(
     public const int MaximumChosenNameLength = 48;
     public const int MaximumIdentityTextLength = 256;
 
-    public static string? NormalizeIdentityText(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumIdentityTextLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeIdentityText(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumIdentityTextLength);
 
-    public static string? NormalizePrivateThought(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumPrivateThoughtLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizePrivateThought(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumPrivateThoughtLength);
 
-    public static string? NormalizeObserverReply(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumObserverReplyLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeObserverReply(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumObserverReplyLength);
 
-    public static string? NormalizeChosenName(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumChosenNameLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeChosenName(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumChosenNameLength);
 
     public void Validate()
     {
@@ -753,6 +737,9 @@ public sealed record CognitionUsage(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProviderId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Role = null)
 {
+    private string? modelId = ModelOutputLimits.ReportedModelName(ModelId);
+    public string? ModelId { get => modelId; init => modelId = ModelOutputLimits.ReportedModelName(value); }
+
     public void Validate()
     {
         if (InputTokens < 0 || OutputTokens < 0 || LatencyMilliseconds < 0)
@@ -1397,6 +1384,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         {
             ["model"] = model,
             ["response_format"] = new JsonObject { ["type"] = "json_object" },
+            ["max_completion_tokens"] = ModelOutputLimits.MaximumCompletionTokens,
             ["messages"] = new JsonArray(
                 new JsonObject { ["role"] = "system", ["content"] = prompt.Instructions },
                 new JsonObject { ["role"] = "user", ["content"] = prompt.Input }),

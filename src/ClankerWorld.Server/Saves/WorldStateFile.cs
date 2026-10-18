@@ -79,6 +79,12 @@ public sealed class WorldStateFile
         return compacted;
     }
 
+    public void RemoveQuarantinedContent(WorldRuntime runtime, string packageId) =>
+        runtime.RemoveQuarantinedContent(packageId, state =>
+        {
+            lock (gate) _ = SaveUnsafe(state);
+        });
+
     public WorldDeveloperEditResult ApplyMapEdit(WorldRuntime runtime, WorldMapEdit edit)
         => runtime.ApplyMapEdit(edit, state =>
         {

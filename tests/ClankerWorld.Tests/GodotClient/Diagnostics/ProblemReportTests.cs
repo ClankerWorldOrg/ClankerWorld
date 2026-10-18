@@ -15,7 +15,7 @@ public sealed class ProblemReportTests : IDisposable
     public void ReportHoldsSummaryAndLogsWithSecretsBlanked()
     {
         const string launchSecret = "q2Vb7nX0pL9sT4wY1zA8cD3eF6gH5jK2mN0rU7vW9xQ";
-        const string requestId = "3f2a9c1be04d4e7fa6b81c2d3e4f5a6b";
+        const string requestId = "3f2a9c1be04d4e7f";
         var hostLog = Write("server.log",
             $"info: decision_accepted tick=5040 request={requestId} outcome=accepted latency_ms=812",
             "warn: provider_failed model=openai/gpt-5 key=sk-proj-AbCdEf0123456789XyZ outcome=fallback",
@@ -123,6 +123,15 @@ public sealed class ProblemReportTests : IDisposable
         Assert.DoesNotContain("sk-proj-AbCdEf0123456789XyZ", redacted);
         Assert.DoesNotContain(launchSecret, redacted);
         Assert.Contains("[removed]/game.log/[removed]", redacted);
+    }
+
+    [Theory]
+    [InlineData("abcdef0123456789abcdef0123456789")]
+    [InlineData("ABCDEF0123456789ABCDEF0123456789")]
+    [InlineData("482913")]
+    public void UnlabelledHexTokensAndComparisonCodesAreRemoved(string token)
+    {
+        Assert.Equal("debug: [removed]", ProblemReport.Redact("debug: " + token));
     }
 
     [Fact]

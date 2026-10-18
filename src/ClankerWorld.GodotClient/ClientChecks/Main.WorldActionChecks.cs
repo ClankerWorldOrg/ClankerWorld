@@ -556,6 +556,10 @@ public partial class Main
                     }
                     else response = DiskSpace;
                     break;
+                case OwnerPairingEndpoints.OwnerWorldSelect when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-world-models":
+                case OwnerPairingEndpoints.OwnerSaveLoad when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-save-models":
+                    response = new OwnerModelSettingsPreview("smoke-model-settings", false, ["Routine helper: Off"]);
+                    break;
                 case OwnerPairingEndpoints.OwnerSaveLoad when LoadReceipt is { } loadReceipt:
                     LoadReceived.TrySetResult(envelope.GetProperty("action").GetProperty("value").GetString()!);
                     if (ReleaseLoad is { } releaseLoad) await releaseLoad.Task.ConfigureAwait(false);

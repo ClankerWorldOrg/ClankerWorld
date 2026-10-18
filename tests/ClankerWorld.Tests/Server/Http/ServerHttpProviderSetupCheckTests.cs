@@ -94,7 +94,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(2, root.GetProperty("messages").GetArrayLength());
                 Assert.False(root.TryGetProperty("temperature", out _));
                 Assert.False(root.TryGetProperty("max_tokens", out _));
-                Assert.False(root.TryGetProperty("max_completion_tokens", out _));
+                Assert.Equal(ModelOutputLimits.MaximumCompletionTokens, root.GetProperty("max_completion_tokens").GetInt32());
             }
 
             var meter = host.Services.GetRequiredService<ProviderUsageStore>().Capture();
