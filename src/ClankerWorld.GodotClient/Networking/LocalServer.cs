@@ -22,6 +22,7 @@ public sealed record LocalServerLayout(
     string ServerDirectory,
     string DataDirectory)
 {
+    public const string HostingMarker = "# Launcher options: host-app-v1";
     public string? HostKind { get; init; }
     public bool StopWhenGameQuits { get; init; }
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
@@ -32,6 +33,22 @@ public sealed record LocalServerLayout(
     public string ReportDirectory => Path.Combine(DataDirectory, "reports");
     public string SaveDirectory => Path.Combine(DataDirectory, "saves");
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
+
+    public static LocalServerLayout ForHosting(InstalledVersion version, LauncherLayout launcher, bool stopWhenGameQuits)
+    {
+        if (!File.ReadLines(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Contains(HostingMarker, StringComparer.Ordinal))
+            throw new GameInstallException("This version doesn't support hosting from the launcher. Install a newer version.");
+        if (GameVersionStore.Verify(version).Count > 0 || version.SourceRevision is null)
+            throw new GameInstallException("This version's files need Repair before hosting. Your worlds are kept.");
+        var bundled = FindBundled(version.Executable, launcher.Root) ??
+            throw new GameInstallException("This version's world server is missing. Choose Repair before hosting.");
+        return bundled with
+        {
+            DataDirectory = launcher.Root,
+            HostKind = ClankerWorld.Contracts.OwnerHostInformation.Launcher,
+            StopWhenGameQuits = stopWhenGameQuits,
+        };
+    }
 
     /// <summary>
     /// Finds the world server named by the game's package root. A
@@ -136,6 +153,7 @@ public enum LocalServerStartOutcome
     Reused,
     /// <summary>Something that is not this build's host holds the port.</summary>
     PortInUse,
+    ModeInUse,
     /// <summary>The host exited before it was ready.</summary>
     Exited,
     /// <summary>The host did not answer in time.</summary>
@@ -154,6 +172,8 @@ public sealed record LocalServerStart(LocalServerStartOutcome Outcome, string? D
         LocalServerStartOutcome.Started or LocalServerStartOutcome.Reused => "Your world server is running on this PC.",
         LocalServerStartOutcome.PortInUse =>
             $"Another program is using the port the world server needs ({Detail}). Close it, or another copy of ClankerWorld, then try again. Your saves are safe.",
+        LocalServerStartOutcome.ModeInUse =>
+            "The server on this PC is already being used by the game or another host window. Close the game or stop hosting there, then try again. Your world is kept.",
         LocalServerStartOutcome.Exited =>
             "The world server closed while starting. Your saves are safe. Try again, and if it keeps happening, choose Report a problem and send the report.",
         LocalServerStartOutcome.TimedOut =>
@@ -209,6 +229,7 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    public bool StartedProcessHasExited => process is { HasExited: true };
     internal int? StartedServerProcessId => process?.Id;
 
     public LocalServerLayout Layout => layout;
@@ -269,6 +290,13 @@ public sealed class LocalServer : IAsyncDisposable
                 if (proof == LaunchCheck.Confirmed)
                 {
                     (secret, proven) = (running, true);
+                    var status = await HostStatusAsync(cancellationToken);
+                    if (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
+                        status.StopWhenGameQuits != layout.StopWhenGameQuits)
+                    {
+                        (secret, proven) = (null, false);
+                        return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
+                    }
                     return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
                 if (proof == LaunchCheck.Refused)

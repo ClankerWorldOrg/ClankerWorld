@@ -114,11 +114,12 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapGet("/api/v1/approval/hosting", (HttpContext context, ApprovalListenerOptions options,
-            OwnerClientPresenceLease presence, WorldStartupRecovery recovery) =>
+            OwnerClientPresenceLease presence, WorldStartupRecovery recovery, OwnerHostInformation host) =>
         {
             if (!options.IsApprovalRequest(context)) return Results.NotFound();
             return Results.Ok(new HostStatus(presence.ActiveClientCount, !recovery.Pending &&
-                context.RequestServices.GetRequiredService<WorldRuntimeService>().HostIdleSaveFailed, recovery.Pending));
+                context.RequestServices.GetRequiredService<WorldRuntimeService>().HostIdleSaveFailed, recovery.Pending,
+                host.Kind, context.RequestServices.GetService<LauncherHostOptions>()?.StopWhenGameQuits ?? false));
         });
 
         app.MapPost("/api/v1/approval/pairings/{pairingId}/decline", (string pairingId,

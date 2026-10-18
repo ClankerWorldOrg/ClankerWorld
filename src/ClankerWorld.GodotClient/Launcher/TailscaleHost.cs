@@ -59,6 +59,17 @@ public sealed class HostCommandRunner(TimeProvider? timeProvider = null) : IHost
 /// <summary>Creates one private HTTPS route, refusing another service or public Funnel.</summary>
 public sealed class TailscaleHost(IHostCommandRunner commands, string executable = "tailscale")
 {
+    public async Task DisconnectAsync(Uri localOrigin, Uri hostedOrigin, CancellationToken cancellationToken)
+    {
+        using var current = await JsonAsync(["serve", "status", "--json"], cancellationToken);
+        if (IsEmpty(current.RootElement) || current.RootElement.ValueKind == JsonValueKind.Object &&
+            current.RootElement.EnumerateObject().All(item => IsEmpty(item.Value))) return;
+        RequireOwnRoute(current.RootElement, hostedOrigin.Host, localOrigin);
+        var stopped = await commands.RunAsync(executable, ["serve", "--https=443", "off"], cancellationToken);
+        if (stopped.ExitCode != 0)
+            throw new GameInstallException("The world stopped, but Tailscale could not turn off its address. Check Tailscale's hosting settings.");
+    }
+
     public async Task<Uri> ConnectAsync(Uri localOrigin, CancellationToken cancellationToken)
     {
         if (!localOrigin.IsLoopback || localOrigin.Scheme != "http" || localOrigin.AbsolutePath != "/")
@@ -78,9 +89,9 @@ public sealed class TailscaleHost(IHostCommandRunner commands, string executable
             if (configured.ExitCode != 0)
                 throw new GameInstallException("Tailscale could not start private HTTPS hosting. Check its HTTPS setup, then try again.");
             using var confirmed = await JsonAsync(["serve", "status", "--json"], cancellationToken);
-            RequireOwnRoute(confirmed.RootElement, dns, localOrigin);
+            RequireOwnRoute(confirmed.RootElement, origin.Host, localOrigin);
         }
-        else RequireOwnRoute(current.RootElement, dns, localOrigin);
+        else RequireOwnRoute(current.RootElement, origin.Host, localOrigin);
         return origin;
     }
 
@@ -104,11 +115,13 @@ public sealed class TailscaleHost(IHostCommandRunner commands, string executable
             (!config.TryGetProperty("AllowFunnel", out var funnel) || IsEmpty(funnel) ||
                 funnel.ValueKind == JsonValueKind.Object && funnel.EnumerateObject().All(item => item.Value.ValueKind == JsonValueKind.False)) &&
             config.TryGetProperty("TCP", out var tcp) && tcp.ValueKind == JsonValueKind.Object && tcp.EnumerateObject().Count() == 1 &&
-            tcp.TryGetProperty("443", out var port) && port.TryGetProperty("HTTPS", out var https) && https.ValueKind == JsonValueKind.True &&
+            tcp.TryGetProperty("443", out var port) && port.ValueKind == JsonValueKind.Object &&
+            port.TryGetProperty("HTTPS", out var https) && https.ValueKind == JsonValueKind.True &&
             config.TryGetProperty("Web", out var web) && web.ValueKind == JsonValueKind.Object && web.EnumerateObject().Count() == 1 &&
-            web.TryGetProperty(dns + ":443", out var site) && site.TryGetProperty("Handlers", out var handlers) &&
+            web.TryGetProperty(dns + ":443", out var site) && site.ValueKind == JsonValueKind.Object && site.TryGetProperty("Handlers", out var handlers) &&
             handlers.ValueKind == JsonValueKind.Object && handlers.EnumerateObject().Count() == 1 &&
-            handlers.TryGetProperty("/", out var root) && root.TryGetProperty("Proxy", out var proxy) &&
+            handlers.TryGetProperty("/", out var root) && root.ValueKind == JsonValueKind.Object &&
+            root.TryGetProperty("Proxy", out var proxy) && proxy.ValueKind == JsonValueKind.String &&
             Uri.TryCreate(proxy.GetString(), UriKind.Absolute, out var actual) && actual == target;
         if (!valid)
             throw new GameInstallException("Tailscale already serves another setup or public Funnel is enabled. Keep that setup; use a separate hosting computer or change it yourself before trying again.");

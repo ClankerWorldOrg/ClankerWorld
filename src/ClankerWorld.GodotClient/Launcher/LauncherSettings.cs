@@ -7,7 +7,8 @@ namespace ClankerWorld.GodotClient.Launcher;
 public sealed record LauncherSettings(bool DeveloperMode = false, string? LastPlayedVersion = null,
     bool UseTestData = true, bool DetailedLogs = false, bool JoinRemoteWorld = false,
     bool HostingEnabled = false, string? HostedVersion = null,
-    bool ResumeHostingAtSignIn = true, bool StopHostingWhenGameQuits = false)
+    bool ResumeHostingAtSignIn = true, bool StopHostingWhenGameQuits = false,
+    bool HostedUseTestData = false)
 {
     public static LauncherSettings Load(LauncherLayout layout)
     {

@@ -46,7 +46,7 @@ rollback backup. This is the approved pre-release exception described in
 4. The device proves possession of its private key before activation. The
    server records its public-key fingerprint, fixed owner scope, and durable
    activation/revocation state. Private keys and raw approval codes never enter
-   world saves, snapshots, event projections, or logs.
+   world saves, world snapshots, event projections, or logs.
 5. Each read or control request carries a short-lived server challenge and a
    signature over canonical request data. The server consumes the challenge
    once before asking the runtime to commit. Challenges are process-local:
@@ -395,8 +395,9 @@ Every `/api/v1/approval/*` route also needs the request's host name to be
 `127.0.0.1`, `[::1]` or `localhost`, with or without a port. Address the
 approval listener that way, as the game does; any other name gets the same 404
 and one `approval_listener outcome=refused reason=host_name` line at most once a
-minute. The public listener has no such check, because Tailscale Serve reaches
-it under its own name.
+minute. A hosted server's ordinary listener accepts its private HTTPS name.
+A game-started one-PC server accepts only literal loopback host names there
+too, so a leftover proxy cannot turn local play into hosting.
 
 On a remote Unix server, approval and recovery also require the server account's
 `X-ClankerWorld-Approval-Secret` header (the owner's choice, October 18). Startup
@@ -419,6 +420,28 @@ pairing ([Local server started by the game](#local-server-started-by-the-game)).
 returned code and proof local/private. Tests cover capacity recovery and signed
 owner availability. Bodies without a declared length and the host-name check are
 tested on a real Kestrel server, not only through TestServer.
+
+## Launcher host approval
+
+The launcher host reuses the local-server startup proof and approval listener
+below. Host-local `GET /api/v1/approval/pairings` lists pending comparison
+codes, and the existing approve route plus
+`POST /api/v1/approval/pairings/{pairingId}/decline` answer a request. These
+routes require the same local listener, literal host name and launch proof;
+the forwarded listener returns 404. Decline expires the request durably and
+cannot approve or activate a device.
+
+Comparison codes are retained only in bounded process-local pending records.
+Authority export stores their hashes, and world state and logs contain neither
+raw codes nor launch proof. After a server restart the host shows no recovered
+code: decline that pending request and start joining again. Existing approved
+devices still reconnect without pairing again.
+
+`GET /api/v1/approval/hosting` reports local presence/save readiness and the
+installation's host mode and stop option. Reuse verifies those settings after
+the launch proof, alongside the exact build. A game and a launcher host cannot
+silently take over each other's process. Host reads and answers have a
+five-second complete-response deadline.
 
 ## Local server started by the game
 
@@ -467,7 +490,8 @@ restores the prior secret, and cancellation finishes its own starting child's
 stop attempt before releasing the handle. An explicitly refused shutdown keeps
 the server and its paused world available for retry. A running server of the exact same version and
 source revision, started by an earlier launch, is reused only after it answers
-the side-effect-free launch check on the approval listener. The game sends
+the side-effect-free launch check and confirms the same hosting mode and stop
+option on the approval listener. The game sends
 `GET /api/v1/approval/launch-check` with a fresh random challenge in the
 `X-ClankerWorld-Launch-Check` header, and the server returns an HMAC-SHA256 of
 it keyed by the secret (`LocalServerLaunchCheck`). The game compares that with

@@ -568,6 +568,8 @@ public sealed class OwnerAuthorityStore
 
     public OwnerAuthorityResult<OwnerPairingStatus> DeclinePendingPairingLocally(string pairingId)
     {
+        if (!IsReasonableIdentifier(pairingId))
+            return OwnerAuthorityResult<OwnerPairingStatus>.Fail(OwnerAuthorityFailure.InvalidRequest);
         lock (gate)
         {
             ExpireOperationalStateUnsafe(UtcNow());
