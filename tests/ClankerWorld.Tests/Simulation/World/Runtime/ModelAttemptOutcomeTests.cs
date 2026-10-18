@@ -71,9 +71,8 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal("Aster Vale", world.Society.GetAgent(TargetId).Name);
         Assert.Equal("ready", Status(world));
         Assert.DoesNotContain("probabilities", fixture.Handler.SystemPrompt!, StringComparison.Ordinal);
-        // No unmeasured output cap or temperature is imposed on models with
-        // different output needs. The setup check uses this same adapter.
-        Assert.False(fixture.Handler.SentOutputLimit);
+        // The setup check shares the bounded personal adapter.
+        Assert.True(fixture.Handler.SentOutputLimit);
         fixture.Handler.Mode = "malformed";
         var failed = await CompleteNext(world);
         world.Pause();

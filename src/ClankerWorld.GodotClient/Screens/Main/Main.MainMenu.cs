@@ -1031,7 +1031,7 @@ public partial class Main
         });
     }
 
-    private async Task SelectListedWorldAsync()
+    private async Task SelectListedWorldAsync(PendingModelLoad? approvedModels = null)
     {
         if (worldHistoryLoading)
         {
@@ -1055,6 +1055,32 @@ public partial class Main
         var server = ResolveWorldUri();
         await RunWorldMenuActionAsync(async () =>
         {
+            if (approvedModels is not null && (approvedModels.WorldId != worldId || approvedModels.SaveId != save?.Id)) return;
+            if (approvedModels is null)
+            {
+                try
+                {
+                    var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(server, authority,
+                        deviceId, worldId, true, signer, OwnerRequestToken));
+                    var savePreview = save is null ? null : await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(
+                        server, authority, deviceId, save.Id, false, signer, OwnerRequestToken));
+                    if (!worldMenuOverlay.Visible || SelectedListedWorld()?.Id != worldId ||
+                        (SelectedManualSave() ?? NewestListedSave())?.Id != save?.Id) return;
+                    approvedModels = new(worldId, save?.Id, preview.Approval, savePreview?.Approval);
+                    if (preview.RequiresConfirmation || savePreview?.RequiresConfirmation == true)
+                    {
+                        pendingWorldModelLoad = approvedModels;
+                        worldModelLoadConfirmation.DialogText = "Opening this world changes model or key assignments. Use these settings?\n\n" +
+                            string.Join("\n", preview.Details) + (savePreview is null ? string.Empty :
+                            "\n\nSelected save:\n" + string.Join("\n", savePreview.Details));
+                        PopupDialog(worldModelLoadConfirmation);
+                        return;
+                    }
+                }
+                catch (ObsoleteOwnerRequestException) { return; }
+                catch (Exception exception)
+                { worldMenuStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); return; }
+            }
             worldMenuStatus.Text = "Opening world...";
             try
             {
@@ -1063,9 +1089,9 @@ public partial class Main
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(async () =>
                 {
-                    await ownerApi.SelectWorldAsync(server, authority, deviceId, worldId, signer, OwnerRequestToken);
+                    await ownerApi.SelectWorldAsync(server, authority, deviceId, worldId, signer, OwnerRequestToken, approvedModels.WorldApproval);
                     if (save is not null)
-                        await ownerApi.LoadManualSaveAsync(server, authority, deviceId, save.Id, signer, OwnerRequestToken);
+                        await ownerApi.LoadManualSaveAsync(server, authority, deviceId, save.Id, signer, OwnerRequestToken, approvedModels.SaveApproval);
                 }));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();

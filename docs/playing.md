@@ -120,12 +120,19 @@ have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
 which saves, closes the game and reopens the launcher with that version chosen.
 After **Play**, choose **Load World** on the Main Menu: the previous world is
 already selected. It opens only when you choose **Load**. The launcher checks each download against the
-release's published SHA-256 before unpacking it, never installs anything
-without your click, and never updates itself: it tells you when a newer
+release's signed approval before unpacking it and checks installed files before
+Play. It never installs anything without your click, and never updates itself:
+it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
 installed version. Until the first alpha release, it is the
 `clankerworld-launcher-windows-11-x64` build from CI
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
+
+If the publisher withdraws a release, the launcher hides it from normal install
+and Play choices. A world asking for that version gets an explanation; the
+launcher keeps its installed files and your saves. Developer mode shows
+withdrawn games with a warning. Downloading them still needs a valid release
+approval.
 
 ### If a request loses its reply
 
@@ -1269,6 +1276,11 @@ after you leave the field. Changing to another server clears the previous
 server's displayed information and unfinished edit.
 
 ## Save and return
+
+When a save or another world changes model or key assignments, the game shows
+those settings before loading. Check the model names and key labels, then
+confirm to use them, or cancel to keep your current world and settings. A load
+never supplies a new API key from the save.
 
 If the server's save disk is low on space, a warning stays visible while you
 play and appears in Save World before saving or overwriting. Make room soon;

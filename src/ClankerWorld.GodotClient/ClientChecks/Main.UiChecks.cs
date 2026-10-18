@@ -798,7 +798,7 @@ public partial class Main
         foreach (var heading in new Control[] { menuHeadingLabel, selectedActorNameLabel, clockLabel, mainMenuContinueButton })
             if (heading.GetThemeFont("font") != UiFonts.Headings)
                 throw new InvalidOperationException($"{heading.Name} must use the Timber heading lettering.");
-        ConfirmationDialog[] dialogs = [quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation];
+        ConfirmationDialog[] dialogs = [quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, worldModelLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation];
         if (dialogs.Any(dialog => dialog.GetThemeFont("title_font") != UiFonts.Headings))
             throw new InvalidOperationException("Dialog titles must use the Timber heading lettering.");
         foreach (var letter in TimberFont.Characters)

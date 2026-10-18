@@ -82,6 +82,7 @@ printf 'Copying the Godot export\n'
 find "${export_dir}" -mindepth 1 -maxdepth 1 ! -name manifest.sha256 -exec cp -a {} "${stage}/" \;
 
 if [[ "${launcher}" == true ]]; then
+    bash "${repo_root}/scripts/build-release-verifier.sh" "${stage}/ClankerWorld.ReleaseVerifier.exe"
     cat > "${stage}/README.txt" <<EOF
 ClankerWorld Launcher ${version} for Windows 11 x64
 Source commit: ${revision}
@@ -119,12 +120,16 @@ else
 ClankerWorld ${version} for Windows 11 x64
 Source commit: ${revision}
 
+Unpack this folder inside your own Windows user folder, such as Downloads.
+Avoid shared folders where other accounts can change the game files.
+
 Start ClankerWorld.exe. It starts your world server in the background and
 stops it when you quit.
 
 Your worlds, keys and logs are kept in %LOCALAPPDATA%\\ClankerWorld, not in this
 folder, so you can replace this folder with a newer version without losing
-them. Windows may warn that the publisher is unknown: this alpha is not signed.
+them. Windows may warn that the publisher is unknown: this alpha has no
+Windows publisher signature.
 EOF
     sed -i 's/$/\r/' "${stage}/README.txt"
 fi

@@ -220,7 +220,8 @@ public static class OwnerHttpBinding
         '\n',
         "clankerworld.owner-manual-save.v1",
         $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"value={EncodeRequired(action.Value, nameof(action.Value))}");
+        $"value={EncodeRequired(action.Value, nameof(action.Value))}") +
+        (action.ModelSettingsApproval is null ? string.Empty : "\nmodel-settings=" + EncodeRequired(action.ModelSettingsApproval, nameof(action.ModelSettingsApproval)));
 
     public const string WorldCreationPayloadDomain = "clankerworld.owner-world-creation.v3";
     public const string AgentPlacementPayloadDomain = "clankerworld.owner-agent-placement.v2";

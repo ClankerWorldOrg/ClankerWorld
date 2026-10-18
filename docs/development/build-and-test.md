@@ -430,10 +430,24 @@ since the game reuses only a server of its own exact build
 ([Device pairing](device-pairing.md#local-server-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
-`clankerworld-windows-11-x64-portable` artifact. It is unsigned, and a built
-zip is not a Windows playtest.
+`clankerworld-windows-11-x64-portable` artifact. The protected release workflow adds an
+[automatic release signature](releasing.md#automatic-release-signatures) before
+distribution. A built zip is not a Windows playtest.
 
 ### Windows launcher
+
+Downloaded releases require an [automatic workflow signature](releasing.md#automatic-release-signatures).
+The launcher checks that approval before extraction, retains its approved
+manifest hash, and checks the signed manifest and installed files before Play.
+The bundled official Sigstore verifier checks the main release-workflow identity
+and public trust root offline; no personal signing key is needed. Explicitly
+selected local builds keep the existing Developer mode path.
+
+Release metadata must name files under this repository's GitHub release-download
+path. Package and signature responses also check the final HTTPS address after
+redirects against GitHub's download hosts. The package stays open exclusively
+from download and hashing through extraction; extraction never reopens its path.
+The portable README directs players to unpack inside their own Windows user folder.
 
 The portable game's manifest includes `# Launcher options: host-app-v1` when
 it supports the launcher host app. Hosting refuses a version without that

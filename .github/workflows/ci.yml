@@ -115,6 +115,11 @@ jobs:
       - name: Verify Godot client project
         if: needs.scope.outputs.code == 'true'
         run: bash scripts/verify-godot-client.sh
+      - name: Verify automatic release signatures offline
+        if: needs.scope.outputs.code == 'true'
+        run: |
+          bash scripts/build-release-verifier.sh "$RUNNER_TEMP/release-verifier" linux
+          python3 -m unittest discover -s scripts -p 'test_release_signing.py'
       - if: needs.scope.outputs.code == 'true'
         run: dotnet format --verify-no-changes --no-restore
       - name: Verify documentation (the test suite is skipped)
@@ -329,7 +334,7 @@ jobs:
       - name: Verify native protected storage and checkpoint recovery
         env:
           CLANKERWORLD_CHECKPOINT_DIAGNOSTICS: ${{ runner.temp }}/checkpoint-evidence
-        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~ProviderConfigurationStoreTests|FullyQualifiedName~PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld|FullyQualifiedName~OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot|FullyQualifiedName~ManualSaveGenerationTests|FullyQualifiedName~ResumeRequiresDurableCheckpointEvenOnRetry|FullyQualifiedName~ResumeCheckpointTests|FullyQualifiedName~.WorldStateFileTests.|FullyQualifiedName~Deletion" --logger "trx;LogFileName=windows-storage.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
+        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~ProviderConfigurationStoreTests|FullyQualifiedName~PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld|FullyQualifiedName~OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot|FullyQualifiedName~ManualSaveGenerationTests|FullyQualifiedName~ResumeRequiresDurableCheckpointEvenOnRetry|FullyQualifiedName~ResumeCheckpointTests|FullyQualifiedName~.WorldStateFileTests.|FullyQualifiedName~Deletion|FullyQualifiedName~LauncherHandoffTests" --logger "trx;LogFileName=windows-storage.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
       - name: Upload native storage test results and checkpoint failure evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

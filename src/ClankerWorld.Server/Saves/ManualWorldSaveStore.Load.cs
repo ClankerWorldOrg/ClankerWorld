@@ -48,7 +48,7 @@ public sealed partial class ManualWorldSaveStore
             if (backup.Checkpoint.Society.Society.WorldId != worldId || backup.AutosaveSettings is null)
                 throw new InvalidDataException("A load needs a complete backup from the same world.");
             var path = TimelinePath(worldId);
-            var restore = new SaveTimelineRestorePoint(worldId, File.Exists(path) ? File.ReadAllBytes(path) : null);
+            var restore = new SaveTimelineRestorePoint(worldId, File.Exists(path) ? SavedFile.Read(path) : null);
             var settings = saved.AutosaveSettings ?? backup.AutosaveSettings;
             if (settings.WorldId != worldId) throw new InvalidDataException("Autosave settings belong to another world.");
             WorldAutosaveStore.Validate(settings.IntervalMinutes, settings.RotationCount);
@@ -120,7 +120,7 @@ public sealed partial class ManualWorldSaveStore
     private PendingLoad? ReadPendingLoad()
     {
         if (!File.Exists(PendingLoadPath)) return null;
-        var pending = JsonSerializer.Deserialize<PendingLoad>(File.ReadAllBytes(PendingLoadPath));
+        var pending = JsonSerializer.Deserialize<PendingLoad>(SavedFile.Read(PendingLoadPath));
         if (pending is not { SchemaVersion: 1, Timeline.WorldId.Length: > 0, Settings: not null } ||
             !IsId(pending.SaveId) || !IsId(pending.BackupId) || pending.Settings.WorldId != pending.Timeline.WorldId)
             throw new InvalidDataException("The pending save load is invalid.");

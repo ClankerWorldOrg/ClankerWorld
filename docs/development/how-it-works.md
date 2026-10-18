@@ -164,6 +164,10 @@ Smith delivery and gathering, tool collection and repair, rare mining,
 workstation supplies and Store stocking also own typed definitions. Their
 selected source, tool, stock, family and load pass the same check before the
 native effect; Store stocking has its own row beside the other shop actions.
+Recipe projects also own a typed definition. The capability policy is resolved
+from the retained recipe, preserving the garment exception during urgent cold.
+A codec-matched recipe row precedes the construction row; invalid legacy
+targets retain their existing project rejection through the fallback handler.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
@@ -756,6 +760,8 @@ the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+Offering, planning and native lookup share the bounded token of the complete
+case-revision and ballot-round pair, including long references from founded Towns.
 A withdrawn candidate or departed voter does not invalidate other selections;
 the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
@@ -2276,13 +2282,20 @@ fallback does not erase the previous accepted choice. Pause/disconnect records
 cancellation; refreshed views and current-format reload preserve it. Exception
 messages, provider bodies and keys do not enter these fields.
 
-For OpenAI and Ollama Cloud, the personal adapter sends JSON-object response
-mode and omits temperature and output-token limits. The owner's 16-call sample in
-[#457](https://github.com/ClankerWorldOrg/ClankerWorld/issues/457) used 44,285 output
-tokens (about 2,768 per call), nearly its 43,576 input tokens. This does not
-establish a safe universal output cap, so the cap stays unset; output billing
-and truncation remain model-dependent. There is no smaller candidate list or
-wider Jev role in this change.
+OpenAI and Ollama Cloud personal requests send JSON-object response mode and
+`max_completion_tokens: 16000`, without temperature. Personal decisions, wills,
+conversations and Test model share this output ceiling with Anthropic; it allows
+room for thinking as well as the bounded reply. Providers that cannot support
+the ceiling refuse through the existing failure path, without another paid
+attempt. The candidate list and routine-helper role are unchanged.
+
+Model-written names, identity, thoughts, observer replies, civic prose and public
+speech remove invisible formatting before their existing length and control
+checks. `BoundedText` shares the invisible-character classification used by final
+words. First-name and surname comparisons remove the same characters, including
+in already saved names. Reported provider model names pass the shared 256-unit
+printable-text boundary before usage is saved or shown; unusable reported names
+are discarded without losing token counts.
 
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
 and the same reply validation. `AnthropicModelClient` in the server sends them to
@@ -2661,8 +2674,7 @@ not model calls, so they do not count toward the usage cap below.
 panel. It sends one request through the same personal decision adapter used in
 play, at the chosen thinking level: chat completions with the required JSON
 response format for OpenAI and Ollama Cloud, and the Messages API for
-Anthropic. It sends no temperature, and an output-token limit only to
-Anthropic, which requires one. The server durably reserves a
+Anthropic. It sends no temperature and uses the shared 16,000-token output limit. The server durably reserves a
 paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
@@ -4944,7 +4956,8 @@ blanks the launch secret, values after names such as `api_key`,
 addresses, common provider key formats and any token of 32 or more characters
 mixing upper case, lower case and digits outside file paths. Known secrets,
 named credential values and provider key formats are removed even inside paths;
-ordinary paths, hex IDs and hashes stay readable so a request can be followed.
+ordinary paths stay readable. Hex tokens of 32 or more characters and unlabelled
+six-digit comparison codes are removed as well, including inside paths.
 The rule against logging secrets still applies; this pass is a safety net,
 not permission. Reports go to `reports/` in the player's
 data folder (or `user://reports` without a local server), keeping the five
@@ -5500,6 +5513,9 @@ Godot's `--log-file` points at `logs/game.log` in the selected data root.
 Because that option disables Godot's own rotation, `GameStarter.PrepareGameLog`
 moves the last run to `logs/game.previous.log` before starting the game,
 replacing the older backup. A retry with no new log preserves that backup.
+On Windows, Quit to Launcher uses shell launch so the returned launcher does
+not inherit the game's open log handle and block the next Play's rotation.
+Unix handoffs retain direct execution and separate arguments.
 Standalone runs keep Godot's normal timestamped rotation. The project enables
 `application/run/flush_stdout_on_print` in release builds too, so reports and
 logs left by a forced close include the latest printed line.

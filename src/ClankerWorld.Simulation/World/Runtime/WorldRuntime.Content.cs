@@ -61,7 +61,8 @@ public sealed partial class WorldRuntime
         try
         {
             if (society.Checkpoint.IsPaused || contentRegistry.ExportState().Packages
-                .Any(package => package.Manifest.PackageId == StarterContent.PackageId))
+                .Any(package => package.Manifest.PackageId == StarterContent.PackageId) ||
+                contentRegistry.ExportState().Events.Any(item => item.PackageId == StarterContent.PackageId))
             {
                 // Never undo an owner's rollback or quarantine, or mutate a paused save.
                 return false;
@@ -526,6 +527,24 @@ public sealed partial class WorldRuntime
         {
             gate.Release();
         }
+    }
+
+    public void RemoveQuarantinedContent(string packageId, Action<WorldRuntimeState>? persist = null)
+    {
+        gate.Wait();
+        try
+        {
+            if (!society.Checkpoint.IsPaused)
+                throw new InvalidOperationException("Pause the world before removing content.");
+            using var proposed = RestoreCore(CaptureState(), providerFactory,
+                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
+            proposed.contentRegistry.RemoveQuarantined(packageId, WorldTick);
+            proposed.Validate();
+            ValidateStateForCodec(proposed.CaptureState());
+            persist?.Invoke(proposed.CaptureState());
+            CommitPreparedTick(proposed);
+        }
+        finally { gate.Release(); }
     }
 
     public DeclarativeWorldContentState WorldContent => worldContent;

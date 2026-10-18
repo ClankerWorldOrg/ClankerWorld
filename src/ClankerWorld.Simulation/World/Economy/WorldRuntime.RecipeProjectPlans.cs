@@ -52,11 +52,13 @@ public sealed partial class WorldRuntime
         return selected.ToArray();
     }
 
-    private ActionCheck CheckRecipeProject(RecipeProjectActionPlan plan)
+    private static ActorCapabilityPolicy RecipeCapabilities(RecipeDefinition recipe) =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: false,
+            AllowUrgentWarmth: recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId)), AllowActiveOrder: true);
+
+    private ActionCheck CheckRecipeProject(RecipeProjectActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false,
-                AllowUrgentWarmth: plan.Recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId)), AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? RecipeCapabilities(plan.Recipe));
         if (!capability.Allowed) return capability;
         var workstation = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == plan.Workstation.InstanceId);
         var definition = worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == plan.Workstation.DefinitionId);

@@ -29,6 +29,11 @@ public partial class Main
     private readonly Button manualSaveOverwriteButton = new();
     private readonly ConfirmationDialog manualSaveLoadConfirmation = new();
     private readonly ConfirmationDialog manualSaveOverwriteConfirmation = new();
+    private readonly ConfirmationDialog worldModelLoadConfirmation = new();
+    private sealed record PendingModelLoad(string WorldId, string? SaveId, string? WorldApproval, string? SaveApproval);
+    private PendingModelLoad? pendingWorldModelLoad;
+    private (string Id, string Approval)? pendingSaveModelLoad;
+    private Task manualSaveLoadPreparation = Task.CompletedTask;
     private readonly Button manualSaveDeleteButton = new();
     private readonly ConfirmationDialog deletionConfirmation = new();
     private OwnerDeletionAction? pendingDeletion;
@@ -270,7 +275,17 @@ public partial class Main
         manualSaveCard.CustomMinimumSize = new Vector2(520, 0);
         StyleConfirmation(manualSaveLoadConfirmation, "Load this save?", "Load Save");
         manualSaveLoadConfirmation.Confirmed += () => _ = LoadSelectedManualSaveAsync();
+        manualSaveLoadConfirmation.Canceled += () => pendingSaveModelLoad = null;
         AddChild(manualSaveLoadConfirmation);
+        StyleConfirmation(worldModelLoadConfirmation, "Use these model settings?", "Open World");
+        worldModelLoadConfirmation.Confirmed += () =>
+        {
+            var approved = pendingWorldModelLoad;
+            pendingWorldModelLoad = null;
+            if (approved is not null) _ = SelectListedWorldAsync(approved);
+        };
+        worldModelLoadConfirmation.Canceled += () => pendingWorldModelLoad = null;
+        AddChild(worldModelLoadConfirmation);
         StyleConfirmation(manualSaveOverwriteConfirmation, "Overwrite this save?", "Overwrite");
         manualSaveOverwriteConfirmation.Confirmed += () => _ = OverwriteSelectedManualSaveAsync();
         AddChild(manualSaveOverwriteConfirmation);
@@ -418,13 +433,22 @@ public partial class Main
         text.AddThemeConstantOverride("separation", 2);
         var chosen = SelectedManualSave();
         var lane = chosen is null ? null : manualSaveTimeline.Lanes.FirstOrDefault(item => item.Points.Contains(chosen));
-        Label Line(string value, string variation = "") => new()
+        Label Line(string value, string variation = "")
         {
-            Text = value,
-            ThemeTypeVariation = variation,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            CustomMinimumSize = new Vector2(360, 0),
-        };
+            var line = new Label
+            {
+                Text = value,
+                ThemeTypeVariation = variation,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                CustomMinimumSize = new Vector2(360, 0),
+            };
+            // Measure wrapping at the same width the card will give this text,
+            // rather than briefly measuring the new label at its minimum width.
+            var width = ManualSaveTimelineWidth() - ManualSaveCardFrame() -
+                manualSaveDetails.GetThemeStylebox("panel").GetMinimumSize().X - row.GetThemeConstant("separation") - 4;
+            line.Size = new Vector2(Math.Max(360, width), 0);
+            return line;
+        }
         if (chosen is null || lane is null)
         {
             var readout = TimelineReadout();
@@ -491,6 +515,11 @@ public partial class Main
         }
         row.AddChild(text);
         manualSaveDetails.AddChild(row);
+        // Container minimum-size updates propagate later. Drop the loading
+        // list's cached height before the first frame of the finished timeline.
+        for (Control? control = manualSaveDetails; control is not null; control = control.GetParent() as Control)
+            control.UpdateMinimumSize();
+        if (!WorldHistoryEmbedded) manualSaveCard.ResetSize();
         if (manualSaveTimeline.IsVisibleInTree()) Callable.From(FitManualSaveTimeline).CallDeferred();
     }
 
@@ -901,16 +930,32 @@ public partial class Main
 
     private ManualWorldSave? NewestListedSave() => allListedManualSaves.OrderByDescending(save => save.CreatedUtc).FirstOrDefault();
 
-    private void ConfirmManualSaveLoad()
+    private void ConfirmManualSaveLoad() => manualSaveLoadPreparation = PrepareManualSaveLoadAsync();
+
+    private async Task PrepareManualSaveLoadAsync()
     {
-        if (!manualSaveLoadMode || manualSaveList.GetSelectedItems() is not { Length: 1 } selected ||
-            selected[0] < 0 || selected[0] >= listedManualSaves.Length) return;
-        var save = listedManualSaves[selected[0]];
-        var branchNote = IsLatestInBranch(save, allListedManualSaves)
-            ? string.Empty
-            : " Playing on from it starts a new branch; your later saves stay as they are.";
-        manualSaveLoadConfirmation.DialogText = $"Load \"{save.Name}\"? Your current world is saved first, and the loaded world starts paused.{branchNote}";
-        PopupDialog(manualSaveLoadConfirmation);
+        if (!manualSaveLoadMode || SelectedManualSave() is not { } save ||
+            !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
+        if (WorldHistoryEmbedded) { await SelectListedWorldAsync(); return; }
+        pendingSaveModelLoad = null;
+        await RunOwnerActionAsync(async () =>
+        {
+            try
+            {
+                var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(ResolveWorldUri(), authority,
+                    deviceId, save.Id, false, signer, OwnerRequestToken));
+                if (!manualSaveOverlay.Visible || SelectedManualSave()?.Id != save.Id) return string.Empty;
+                pendingSaveModelLoad = (save.Id, preview.Approval);
+                var branchNote = IsLatestInBranch(save, allListedManualSaves)
+                    ? string.Empty : " Playing on from it starts a new branch; your later saves stay as they are.";
+                manualSaveLoadConfirmation.DialogText = $"Load \"{save.Name}\"? Your current world is saved first, and the loaded world starts paused.{branchNote}" +
+                    (preview.RequiresConfirmation ? "\n\nThis save changes model or key assignments. Use these settings?\n" + string.Join("\n", preview.Details) : string.Empty);
+                PopupDialog(manualSaveLoadConfirmation);
+            }
+            catch (ObsoleteOwnerRequestException) { }
+            catch (Exception exception) { manualSaveStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); }
+            return string.Empty;
+        });
     }
 
     private async Task LoadSelectedManualSaveAsync()
@@ -919,6 +964,9 @@ public partial class Main
             selected[0] < 0 || selected[0] >= listedManualSaves.Length ||
             !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
         var save = listedManualSaves[selected[0]];
+        var approval = pendingSaveModelLoad;
+        pendingSaveModelLoad = null;
+        if (approval is not null && approval.Value.Id != save.Id) return;
         if (WorldHistoryEmbedded)
         {
             await SelectListedWorldAsync();
@@ -934,7 +982,7 @@ public partial class Main
             // A pulse may accept the fresh baseline before the load receipt.
             // This explicit transition still needs to finish closing its menus.
             await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.LoadManualSaveAsync(ResolveWorldUri(), authority,
-                deviceId, save.Id, signer, OwnerRequestToken)));
+                deviceId, save.Id, signer, OwnerRequestToken, approval?.Approval)));
             manualSaveOverlay.Hide();
             worldMenuOverlay.Hide();
             mainMenuOverlay.Hide();

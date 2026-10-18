@@ -69,6 +69,12 @@ public static class GameStarter
     public const string WorldOption = "--choose-world=";
     public const string DeveloperOptionsMarker = "# Launcher options: developer-data-v1";
 
+    /// <summary>The launch configuration used when a game returns to its launcher.</summary>
+    public static ProcessStartInfo LauncherStartInfo(string executable) =>
+        // CreateProcess inherits the game's open log on Windows. Shell launch
+        // gives the returned launcher its own handles, so the next Play can rotate it.
+        new(executable) { UseShellExecute = OperatingSystem.IsWindows(), WorkingDirectory = Path.GetDirectoryName(executable) };
+
     public static bool UsesTestData(IEnumerable<string> arguments) =>
         arguments.Contains("--developer-mode", StringComparer.Ordinal) && arguments.Contains("--test-data", StringComparer.Ordinal);
 
