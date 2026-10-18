@@ -249,6 +249,45 @@ public sealed partial class LocalServerTests
     }
 
     [Fact]
+    public async Task GameStopsItsOwnServerWhileAnIncompatibleSaveWaitsForRecovery()
+    {
+        var directory = Directory.CreateTempSubdirectory("local-recovery-exit-");
+        var (port, approvalPort) = FreePorts();
+        var assembly = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(assembly);
+        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        Directory.CreateDirectory(layout.SaveDirectory);
+        var path = Path.Combine(layout.SaveDirectory, "world.json");
+        var refused = System.Text.Encoding.UTF8.GetBytes("""{"state":{"schemaVersion":1}}""");
+        File.WriteAllBytes(path, refused);
+        using var http = new HttpClient();
+        var game = new LocalServer(layout, http, port, approvalPort);
+        try
+        {
+            Assert.Equal(LocalServerStartOutcome.Started,
+                (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            var processId = game.StartedServerProcessId!.Value;
+            using var process = System.Diagnostics.Process.GetProcessById(processId);
+            Assert.True(await game.StopAsync(CancellationToken.None));
+            Assert.True(process.HasExited);
+            Assert.Equal(0, process.ExitCode);
+            Assert.False(game.StartedServer);
+            Assert.False(File.Exists(layout.SecretPath));
+            Assert.Equal(refused, File.ReadAllBytes(path));
+            var log = await ReadSharedAsync(layout.LogPath);
+            Assert.Contains("startup_recovery outcome=waiting_for_owner", log, StringComparison.Ordinal);
+            Assert.Contains("local_server outcome=shutdown_requested", log, StringComparison.Ordinal);
+            Assert.DoesNotContain("server_shutdown outcome=saved", log, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await game.StopAsync(CancellationToken.None);
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task AServerThatCannotStartIsReportedNotHidden()
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-missing-{Guid.NewGuid():N}");

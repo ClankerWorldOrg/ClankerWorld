@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace ClankerWorld.Tests;
 
@@ -166,6 +167,64 @@ public sealed partial class ServerHttpTests
         Assert.False(runtime.Society.IsPaused);
         Assert.Equal(before, File.ReadAllBytes(file.Path));
         Assert.False(host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.IsCancellationRequested);
+    }
+
+    [Theory]
+    [InlineData("schema", null)]
+    [InlineData("schema", "wrong")]
+    [InlineData("schema", "valid")]
+    [InlineData("truncated", "valid")]
+    public async Task LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(string damage, string? secret)
+    {
+        var directory = Directory.CreateTempSubdirectory("recovery-exit-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "runtime.json");
+            using (var original = new WorldStateFile(path).LoadOrCreate("recovery-exit")) { }
+            if (damage == "schema")
+            {
+                var checkpoint = JsonNode.Parse(File.ReadAllBytes(path))!;
+                checkpoint["state"]!["schemaVersion"] = 1;
+                File.WriteAllText(path, checkpoint.ToJsonString());
+            }
+            else File.WriteAllText(path, "{interrupted checkpoint");
+            var refused = File.ReadAllBytes(path);
+            var build = File.ReadAllBytes(SavedBuild.PathFor(path));
+
+            using (var baseHost = new ServerWebApplicationFactory(directory.FullName, runClock: true))
+            using (var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+                services.AddSingleton(new ApprovalListenerOptions(5189, new string('s', 32))))))
+            using (host.CreateClient())
+            {
+                var recovery = host.Services.GetRequiredService<WorldStartupRecovery>();
+                Assert.True(recovery.Pending);
+                Assert.Null(recovery.Capture().Autosave);
+                Assert.Equal(damage == "schema" ? "different_save_format" : "checkpoint_refused", recovery.Capture().Reason);
+                var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+                var exited = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                using var onExit = lifetime.ApplicationStopping.Register(() => exited.TrySetResult());
+                var response = await host.Server.SendAsync(context =>
+                {
+                    LocalServerShutdownRequest(context);
+                    if (secret != "valid")
+                    {
+                        context.Request.Headers.Remove(ApprovalListenerOptions.LaunchSecretHeader);
+                        if (secret is not null) context.Request.Headers[ApprovalListenerOptions.LaunchSecretHeader] = secret;
+                    }
+                });
+                Assert.Equal(secret == "valid" ? StatusCodes.Status202Accepted : StatusCodes.Status404NotFound,
+                    response.Response.StatusCode);
+                if (secret == "valid") await ModelWorkHarness.WaitForSignalAsync(exited.Task);
+                Assert.Equal(secret == "valid", lifetime.ApplicationStopping.IsCancellationRequested);
+                Assert.True(recovery.Pending);
+            }
+
+            // Check after host teardown too: no shutdown service may save a replacement world.
+            Assert.Equal(refused, File.ReadAllBytes(path));
+            Assert.Equal(build, File.ReadAllBytes(SavedBuild.PathFor(path)));
+            Assert.Empty(Directory.GetFiles(directory.FullName, "runtime.json.damaged.*.json"));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
     private static void LocalServerShutdownRequest(HttpContext context)

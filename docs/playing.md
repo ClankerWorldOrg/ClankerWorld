@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Playing the current game
@@ -1255,8 +1255,9 @@ Developer tools show the total number of refusals in this world. A fault that
 cannot be traced to one action still leaves the world paused.
 
 If no usable autosave is available, recovery stays blocked. **Check again**
-checks for a usable autosave without changing your world. You can quit and keep
-the saved files for recovery. A lost recovery reply also offers **Check again**
+checks for a usable autosave without changing your world. **Quit Game** closes
+the game and its local world server, keeping the refused save unchanged for
+recovery. A lost recovery reply also offers **Check again**
 so you can find out whether recovery finished before trying it again.
 
 **Save World** creates a named save for the current world. Its name starts as
