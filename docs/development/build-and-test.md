@@ -93,6 +93,10 @@ day; only the completed family checkpoint is reclocked for hearing setup.
 Personal consent, saved election ties, strict reload and paired checkpoint
 replay remain checked through the real runtime transitions.
 
+Native memory fixtures share adult-growth checkpoints while keeping the original
+helper policy and paused boundary. Each case decodes fresh state; native identity,
+ordinary decision windows and full checkpoint replay remain checked.
+
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
 License. Keep `fusion-pixel-OFL.txt` beside it; the export preset's include
