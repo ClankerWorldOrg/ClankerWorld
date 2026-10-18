@@ -103,7 +103,7 @@ jobs:
             [[ "$(git rev-parse "refs/tags/${RELEASE_TAG}^{}")" == "${sha}" ]]
           fi
           releases="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate)"
-          last="$(jq -sr '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""' <<<"${releases}")"
+          last="$(jq -sr '[.[][] | select(.draft != true) | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""' <<<"${releases}")"
           if [[ "${RELEASE_CHANNEL}" != release && "${last}" == "${sha}" ]]; then
             echo "The newest nightly build already has ${sha}."
             echo "build=false" >> "${GITHUB_OUTPUT}"
@@ -114,6 +114,7 @@ jobs:
           if [[ "${ci}" != "success" ]]; then
             echo "Main's CI hasn't passed on ${sha} (${ci:-no finished run}), so there is no nightly build today."
             echo "build=false" >> "${GITHUB_OUTPUT}"
+            [[ "${RELEASE_CHANNEL}" != release ]] || exit 1
             exit 0
           fi
           echo "build=true" >> "${GITHUB_OUTPUT}"

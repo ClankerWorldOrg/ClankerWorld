@@ -104,10 +104,17 @@ process.exit(2);
 const alphaPage = Array.from({ length: 100 }, (_, index) => ({ tag_name: `v0.1.0-alpha.${index}`, created_at: '2026-10-11T01:00:00Z', target_commitish: sha }));
 const nightlies = Array.from({ length: 9 }, (_, index) => ({ tag_name: `v0.1.0-nightly.20261010.${index}`, created_at: `2026-10-10T0${index}:00:00Z`, target_commitish: index === 8 ? sha : 'older' }));
 
-test('the newest nightly draft on a later API page prevents rebuilding the same commit', t => {
+test('an interrupted nightly draft on a later API page does not prevent a new build', t => {
   const fixture = sandbox(t, [alphaPage, nightlies.map(release => ({ ...release, draft: release.target_commitish === sha }))]);
   const result = fixture.run('Decide whether main needs a new nightly build');
   assert.equal(result.status, 0, result.stderr);
+  assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=true/);
+  assert.equal(fixture.calls().filter(call => call[0] === 'run').length, 1);
+});
+
+test('a published nightly of the same commit prevents a redundant build', t => {
+  const fixture = sandbox(t, [alphaPage, nightlies]);
+  assert.equal(fixture.run('Decide whether main needs a new nightly build').status, 0);
   assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=false/);
   assert.equal(fixture.calls().filter(call => call[0] === 'run').length, 0);
 });
@@ -194,6 +201,7 @@ test('prepared releases require an annotated tag at the exact green main commit'
     } else {
       const output = fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8');
       assert.ok(result.status !== 0 || !output.includes('build=true'), JSON.stringify(overrides));
+      if (overrides.NIGHTLY_TEST_CI === 'failure') assert.notEqual(result.status, 0);
     }
   }
 });

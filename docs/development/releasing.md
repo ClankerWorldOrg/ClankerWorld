@@ -290,7 +290,8 @@ the workflow adds the automatic approvals above before publication:
   available when Developer mode is off.
 - Both build jobs use the commit on main that triggered the workflow, even
   when main advances before either job starts. It runs only when the newest
-  nightly has a different commit and main's CI passed on the selected commit.
+  published nightly has a different commit and main's CI passed on the selected
+  commit. An interrupted draft does not prevent a later run from trying again.
   Run it by hand from Actions with main and the nightly channel selected to
   publish a checked nightly sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
