@@ -226,6 +226,118 @@ public sealed class LauncherTests
         Assert.Equal(2, GameReleaseFeed.Offered(feed.Games, developerMode: true).Count);
     }
 
+    [Theory]
+    [InlineData("https://github.com/another/project/releases/download/v1/game.zip")]
+    [InlineData("https://github.com/ClankerWorldOrg/ClankerWorld/archive/main.zip")]
+    [InlineData("https://github.com/ClankerWorldOrg/ClankerWorld/releases/download-other/game.zip")]
+    [InlineData("https://objects.githubusercontent.com/game.zip")]
+    [InlineData("http://github.com/ClankerWorldOrg/ClankerWorld/releases/download/v1/game.zip")]
+    [InlineData("https://user@github.com/ClankerWorldOrg/ClankerWorld/releases/download/v1/game.zip")]
+    [InlineData("https://github.com:8443/ClankerWorldOrg/ClankerWorld/releases/download/v1/game.zip")]
+    [InlineData("https://github.com/ClankerWorldOrg/ClankerWorld/releases/download/v1/game.zip#fragment")]
+    public void FeedRequiresAssetsFromTheProjectsOwnReleasePath(string address)
+    {
+        var release = Release("v0.1.0-alpha.1");
+        release = release with { Assets = release.Assets!.Select(asset => asset with { BrowserDownloadUrl = address }).ToArray() };
+        Assert.Empty(GameReleaseFeed.Read([release]).Games);
+    }
+
+    [Fact]
+    public void WithdrawnReleasesAreKeptForDeveloperModeAndDoNotAdvertiseALauncherUpdate()
+    {
+        var feed = GameReleaseFeed.Read([
+            Release("v0.1.0-alpha.1"),
+            Release("v0.1.0-alpha.2") with { Body = "Withdrawn by the publisher.\n" + GameReleaseFeed.WithdrawnMarker },
+            new GitHubRelease("launcher-v1.0.0", Page + "launcher-v1.0.0", false, false, []),
+            new GitHubRelease("launcher-v2.0.0", Page + "launcher-v2.0.0", false, false, [], GameReleaseFeed.WithdrawnMarker),
+        ]);
+        Assert.True(feed.Games[0].Withdrawn);
+        Assert.Equal("0.1.0-alpha.1", Assert.Single(GameReleaseFeed.Offered(feed.Games, false)).Version.ToString());
+        Assert.Equal(2, GameReleaseFeed.Offered(feed.Games, true).Count);
+        Assert.Equal("1.0.0", feed.NewestLauncher!.Version.ToString());
+    }
+
+    [Theory]
+    [InlineData(".zip", "https://release-assets.githubusercontent.com/package?token=test", true)]
+    [InlineData(".sig", "https://objects.githubusercontent.com/proof?token=test", true)]
+    [InlineData(".zip", "https://example.test/package", false)]
+    [InlineData(".sig", "https://example.test/proof", false)]
+    [InlineData(".zip", "https://github.com/another/project/releases/download/v1/package", false)]
+    [InlineData(".sig", "http://objects.githubusercontent.com/proof", false)]
+    [InlineData(".zip", null, false)]
+    [InlineData(".sig", null, false)]
+    public async Task DownloadChecksTheFinalAddressBeforeUsingPackageOrSignatureBytes(string suffix, string? finalAddress, bool allowed)
+    {
+        var root = Directory.CreateTempSubdirectory("launcher-response-address-");
+        try
+        {
+            var layout = new LauncherLayout(root.FullName);
+            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+            using var server = new FakeReleases();
+            using var http = new HttpClient(server);
+            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var old = await store.InstallAsync(server.Publish(version, Package(version,
+                ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
+            var manifest = File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest));
+            var release = server.Publish(version, Package(version,
+                ("ClankerWorld.exe", "replacement"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+            server.FinalAddress = request => request.RequestUri!.AbsolutePath.EndsWith(suffix, StringComparison.Ordinal)
+                ? finalAddress is null ? null : new Uri(finalAddress) : request.RequestUri;
+            if (allowed)
+            {
+                var installed = await store.InstallAsync(release, null, CancellationToken.None);
+                Assert.Equal("replacement", File.ReadAllText(installed.Executable));
+                GameVersionStore.RequireSigned(installed, SigningKey.ExportSubjectPublicKeyInfoPem());
+            }
+            else
+            {
+                await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
+                Assert.Equal("old game", File.ReadAllText(old.Executable));
+                Assert.Equal(manifest, File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest)));
+            }
+            Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
+            Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
+        }
+        finally { root.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public async Task ExtractionUsesTheOpenDownloadedFileEvenIfItsPathIsReplaced()
+    {
+        var root = Directory.CreateTempSubdirectory("launcher-open-download-");
+        try
+        {
+            var layout = new LauncherLayout(root.FullName);
+            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+            using var server = new FakeReleases();
+            using var http = new HttpClient(server);
+            var store = new GameVersionStore(layout, http, SigningKey.ExportSubjectPublicKeyInfoPem());
+            var release = server.Publish(version, Package(version,
+                ("ClankerWorld.exe", "checked game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+            var part = Path.Combine(layout.DownloadsDirectory, release.Package.Name + ".part");
+            var observed = false;
+            var progress = new InlineProgress(_ =>
+            {
+                if (observed) return;
+                observed = true;
+                // Windows refuses replacement while the exclusive handle is open.
+                // On Unix a rename must not change which bytes extraction reads.
+                if (OperatingSystem.IsWindows()) Assert.Throws<IOException>(() => File.Move(part, part + ".original"));
+                else
+                {
+                    File.Move(part, part + ".original");
+                    File.WriteAllText(part, "different bytes");
+                }
+            });
+            var installed = await store.InstallAsync(release, progress, CancellationToken.None);
+            Assert.True(observed);
+            Assert.Equal("checked game", File.ReadAllText(installed.Executable));
+            GameVersionStore.RequireSigned(installed, SigningKey.ExportSubjectPublicKeyInfoPem());
+            Assert.False(File.Exists(part));
+        }
+        finally { root.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task InstallChecksTheDownloadAndRepairAndRemoveNeverTouchSaves()
     {
@@ -552,7 +664,8 @@ public sealed class LauncherTests
             Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
             if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
             else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
-            Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, publicKey));
+            var refused = Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, publicKey));
+            Assert.Contains("Repair", refused.Message, StringComparison.Ordinal);
         }
         finally { root.Delete(recursive: true); }
     }
@@ -584,6 +697,7 @@ public sealed class LauncherTests
         private readonly Dictionary<string, byte[]> files = new(StringComparer.Ordinal);
         public bool Tamper { get; set; }
         public string? SignatureFailure { get; set; }
+        public Func<HttpRequestMessage, Uri?>? FinalAddress { get; set; }
 
         public GameRelease Publish(GameVersionName version, byte[] package)
         {
@@ -637,7 +751,17 @@ public sealed class LauncherTests
                 bytes = (byte[])bytes.Clone();
                 bytes[^1] ^= 1;
             }
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+            var address = FinalAddress is null ? request.RequestUri : FinalAddress(request);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(bytes),
+                RequestMessage = address is null ? null : new HttpRequestMessage(request.Method, address),
+            });
         }
+    }
+
+    private sealed class InlineProgress(Action<double> report) : IProgress<double>
+    {
+        public void Report(double value) => report(value);
     }
 }
