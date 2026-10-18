@@ -64,6 +64,25 @@ network requests. For this private deployment, the owner can relay the short
 comparison code through the already trusted direct-control channel; that
 channel approves a pending pairing only, never supplies the device key.
 
+The launcher owns remote address entry, comparison-code display and approval
+polling. `DeviceJoinSession` shares the protocol client's activation and signed
+reconnect boundaries with automatic local-game setup. Pending replies stay
+pinned to their original origin, authority, device and key. A lost activation
+reply is recovered from a matching Active status before saving registration;
+no comparison code or activation proof enters that file. The launcher passes
+the saved origin as `--server-url` to the selected game. The game refuses a
+saved registration for a different explicit origin and offers no pairing screen.
+
+Pairing-start responses include optional `Host` installation metadata with a
+`Kind` of `launcher`, `terminal` or `unspecified`, configured through
+`ClankerWorld:Hosting:Kind`. It changes neither authority proofs nor world
+formats. Registration remembers the kind for conditional stopped-host hints;
+the terminal hint names `sudo systemctl start clankerworld-server.service`.
+An older or unknown host kind gets a private-network/host check instead.
+The launcher verifies a signed observation baseline before starting remote play;
+a responsive port alone is insufficient. HTTP approval failures and TLS failures
+retain their own explanations.
+
 ## Client and server updates
 
 An approved device can reconnect even when a particular action needs a newer
@@ -146,9 +165,9 @@ and Jev, a stale target returns 409 without changing the newly selected world,
 and a request without a target returns 400. Building management retains its
 rejected result. The pairing authority and world-save schema are unchanged.
 
-Successful activation and recovery of an already-active pairing both return
-to the Main Menu. Recovery saves the matching registration without opening
-the world; Continue performs the usual signed reconnect.
+Successful activation and recovery of an already-active pairing both finish
+in the launcher. Play checks the signed connection before starting the game;
+the game opens at its Main Menu, and Continue enters the world.
 
 ## Recovering after another device loads a world
 

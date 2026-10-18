@@ -73,6 +73,8 @@ public sealed class DeviceJoinSession(OwnerWorldApi api, IOwnerDeviceSigner sign
         if (!observations.TryAccept(reply, 0, out var failure)) throw new InvalidDataException(failure);
     }
 
+    public void CancelPending() => (Pending, PendingOrigin) = (null, null);
+
     public void Forget()
     {
         store.Forget();

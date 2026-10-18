@@ -73,8 +73,7 @@ public sealed record OwnerPairingApproval(
     string PairingId,
     string DeviceId,
     string PublicKeyFingerprint,
-    string ActivationCanonicalProof,
-    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
+    string ActivationCanonicalProof);
 
 /// <summary>
 /// Proof-of-possession request that activates an approved pairing.

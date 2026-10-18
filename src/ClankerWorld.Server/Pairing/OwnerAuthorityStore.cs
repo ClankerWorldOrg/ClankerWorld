@@ -101,8 +101,7 @@ public sealed record OwnerPairingApproval(
     string PairingId,
     string DeviceId,
     string PublicKeyFingerprint,
-    string ActivationCanonicalProof,
-    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
+    string ActivationCanonicalProof);
 
 /// <summary>
 /// The device sends back the exact canonical proof it signed. The store

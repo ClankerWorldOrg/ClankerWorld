@@ -7,153 +7,20 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
-    private async Task VerifyPairingRecoveryMenuAsync()
+    private Task VerifyPairingRecoveryMenuAsync()
     {
-        var previousRequestedWorld = requestedWorldToSelect;
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
-        var previousObservation = observationSession.Current;
-        var previousPendingPairing = pendingPairing;
-        var previousPairingOrigin = pendingPairingOrigin;
-        var previousInWorld = isInWorld;
-        var previousResume = resumeWorldOnContinue;
-        var previousLocalStarting = localServerStarting;
-        var registrationPath = ProjectSettings.GlobalizePath("user://owner-device-registration.json");
-        var previousRegistrationFile = File.Exists(registrationPath) ? File.ReadAllBytes(registrationPath) : null;
-        var previousCi = System.Environment.GetEnvironmentVariable("CI");
-        System.Environment.SetEnvironmentVariable("CI", "true");
-        using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
-        using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
-        var expiry = DateTimeOffset.UtcNow.AddMinutes(1);
-        host.PairingStart = new(host.Authority, "menu-pairing", "smoke-device", "fixture-code",
-            signer.PublicKeyFingerprint, expiry, OwnerPairingProtocol.CreatePairingActivationCanonicalProof(
-                host.Authority, "menu-pairing", "smoke-device", signer.PublicKeyFingerprint));
-        var approved = new OwnerPairingStatus(host.Authority, "menu-pairing", "smoke-device",
-            signer.PublicKeyFingerprint, OwnerPairingState.Approved, expiry);
-        host.Reconnect = new(new(new(1, 1),
-            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
-             "owner-control.request.v1", "paused-authoring.request.v1"], []),
-            new(new("paired-world", 0, "paired-map", [new(0, 0, "meadow")], [], [], null, 0), new(0, 0, [])));
-        int Requests(string path) => host.Requests.Count(request => request == path);
-        void AssertMenu()
-        {
-            if (registrationStore.TryLoad(signer.PublicKeyFingerprint) != registration || registration is null ||
-                pendingPairing is not null || pendingPairingOrigin is not null || isInWorld ||
-                !mainMenuOverlay.Visible || !mainMenuCard.IsVisibleInTree() || !mainMenuLogo.IsVisibleInTree() ||
-                !mainMenuContinueButton.IsVisibleInTree() || mainMenuContinueButton.Disabled ||
-                !mainMenuSettingsButton.IsVisibleInTree() || !quitGameButton.IsVisibleInTree() ||
-                pauseMenuPanel.Visible || pairingPanel.Visible)
-                throw new InvalidOperationException("Successful pairing recovery must save registration and restore the Main Menu card, logo and usable Continue, Settings and Quit controls.");
-        }
-        try
-        {
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
-            resumeWorldOnContinue = false;
-            foreach (var loseReply in new[] { true, false })
-            {
-                registration = null;
-                pendingPairing = null;
-                registrationStore.Forget();
-                observationSession.ResetAfterLoad();
-                host.PairingStatus = approved;
-                host.LoseActivationReply = loseReply;
-                ShowMainMenu();
-                await OpenMainMenuConnectionAsync();
-                var reconnects = Requests(OwnerPairingEndpoints.OwnerReconnect);
-                localServerStarting = true;
-                RefreshMainMenuAvailability();
-                host.ActivationReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                host.ReleaseActivation = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                var activating = PollPairingAsync();
-                await host.ActivationReceived.Task.WaitAsync(TimeSpan.FromSeconds(3));
-                if (activating.IsCompleted || registration is not null || mainMenuConnectButton.Visible ||
-                    mainMenuStatus.Text != "Starting your world server…" || !mainMenuContinueButton.Disabled ||
-                    !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled)
-                    throw new InvalidOperationException("Local startup must keep waiting through the signed activation reply.");
-                host.ReleaseActivation.TrySetResult();
-                await activating;
-                CompleteLocalServerStartup();
-                if (loseReply)
-                {
-                    if (registration is not null || pendingPairing is null || !pauseMenuPanel.Visible)
-                        throw new InvalidOperationException("A lost activation reply must leave the pairing available for recovery.");
-                    await PollPairingAsync();
-                }
-                AssertMenu();
-                // A saved connection still cannot enter a world while its local server starts.
-                localServerStarting = true;
-                RefreshMainMenuAvailability();
-                if (!mainMenuContinueButton.Disabled || !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled ||
-                    mainMenuConnectButton.Visible || mainMenuStatus.Text != "Starting your world server…")
-                    throw new InvalidOperationException("Local startup must disable world choices even with a saved connection.");
-                CompleteLocalServerStartup();
-                AssertMenu();
-                if (mainMenuStatus.Visible)
-                    throw new InvalidOperationException("Successful local startup must clear its wait message.");
-                if (Requests(OwnerPairingEndpoints.OwnerReconnect) != reconnects)
-                    throw new InvalidOperationException("Pairing must wait for Continue before requesting the world, including after recovery.");
-                mainMenuSettingsButton.EmitSignal(BaseButton.SignalName.Pressed);
-                menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
-                AssertMenu();
-                // The same entry method used by Continue must perform a signed refresh and enter the world.
-                requestedWorldToSelect = "0123456789abcdef0123456789abcdef";
-                await EnterWorldAsync();
-                if (!isInWorld || mainMenuOverlay.Visible || requestedWorldToSelect is not null ||
-                    observationSession.Current?.Baseline.Snapshot.WorldId != "paired-world" ||
-                    Requests(OwnerPairingEndpoints.OwnerReconnect) != reconnects + 1)
-                    throw new InvalidOperationException("Continue after pairing must enter the recovered world through signed HTTP.");
-            }
-
-            foreach (var mismatched in new[]
-            {
-                approved with { Authority = new("different-host", host.Authority.WorldId), State = OwnerPairingState.Active },
-                approved with { DeviceId = "different-device", State = OwnerPairingState.Active },
-                approved with { PublicKeyFingerprint = "different-key", State = OwnerPairingState.Active },
-            })
-            {
-                registration = null;
-                registrationStore.Forget();
-                ShowMainMenu();
-                await OpenMainMenuConnectionAsync();
-                host.PairingStatus = mismatched;
-                var activations = Requests(OwnerPairingEndpoints.PairingActivation);
-                await PollPairingAsync();
-                if (registration is not null || registrationStore.TryLoad(signer.PublicKeyFingerprint) is not null ||
-                    pendingPairing is not null || !pauseMenuPanel.Visible ||
-                    Requests(OwnerPairingEndpoints.PairingActivation) != activations)
-                    throw new InvalidOperationException("A mismatched active pairing must not save a registration or dismiss the connection screen.");
-            }
-            // Drain the normal two-frame pairing-panel reveal before restoring the surrounding fixture.
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        }
-        finally
-        {
-            host.ReleaseActivation?.TrySetResult();
-            localServerStarting = previousLocalStarting;
-            pendingPairing = previousPendingPairing;
-            pendingPairingOrigin = previousPairingOrigin;
-            registration = previousRegistration;
-            if (previousRegistrationFile is null) registrationStore.Forget();
-            else File.WriteAllBytes(registrationPath, previousRegistrationFile);
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
-            observationSession.ResetAfterLoad();
-            if (previousObservation is not null)
-                observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            pairingPanel.Hide();
-            settingsPanel.Hide();
-            ClosePauseMenu();
-            ShowMainMenu();
-            isInWorld = previousInWorld;
-            requestedWorldToSelect = previousRequestedWorld;
-            resumeWorldOnContinue = previousResume;
-            System.Environment.SetEnvironmentVariable("CI", previousCi);
-            RefreshControlAvailability();
-            statusToast.Hide();
-        }
+        var previous = localServerStarting;
+        localServerStarting = true;
+        RefreshMainMenuAvailability();
+        if (!mainMenuContinueButton.Disabled || !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled ||
+            mainMenuStatus.Text != "Starting your world server…")
+            throw new InvalidOperationException("World choices must wait for the local server and device setup.");
+        localServerStarting = previous;
+        RefreshMainMenuAvailability();
+        if (FindChildren("*", nameof(Button), true, false).OfType<Button>().Any(button =>
+            button.IsVisibleInTree() && button.Text is "Connect to a world server" or "Start pairing" or "Pair again"))
+            throw new InvalidOperationException("The game must leave joining and pairing in the launcher.");
+        return Task.CompletedTask;
     }
 
     /// <summary>Entering an untouched host starts the normal creation flow without exposing or resuming its bootstrap world.</summary>

@@ -5446,6 +5446,14 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## Launcher developer runs
 
+The launcher also owns remote joining through `Launcher.Join.cs` and
+`DeviceJoinSession`. Device registration storage has no Godot dependency and
+keeps only public metadata; the current-user signer remains in the key store.
+The normal and test-data folders use distinct registrations and key names.
+[Device pairing](device-pairing.md#pairing-flow) owns the protocol, host-kind
+metadata and reconnect contract.
+
+
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
 `%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; server saves, provider settings,
