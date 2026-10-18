@@ -25,10 +25,11 @@ public sealed partial class WorldConstructionOrderTests
             .Take(8).ToArray();
         Assert.Equal(8, approaches.Length);
         Assert.DoesNotContain(setup.Site, approaches);
-        // Leave one native harvest's worth missing. This still requires actual
-        // acquisition past the blocked Warehouse, without repeating supply trips.
+        // Blocked-door cases need only one harvest's worth missing to prove
+        // gathering still works. Keep the full shortage in the open-door control
+        // so it still collects all ten communal wood through the actual entrance.
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "construction-drain", Alpha,
-            "construction-wood", 2, "fixture_work", long.MaxValue);
+            "construction-wood", openApproach ? 10 : 2, "fixture_work", long.MaxValue);
         inventory = InventoryAuthority.ConsumeReservation(inventory, "construction-drain");
         inventory = InventoryAuthority.AddLot(inventory, "construction-gather-axe", "crude_wooden_axe", actor, 1);
         if (townStock) inventory = InventoryAuthority.AddLot(inventory, "blocked-town-wood", "wood", warehouse.TownId!, 10,
