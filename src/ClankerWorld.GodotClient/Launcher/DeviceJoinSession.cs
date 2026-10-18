@@ -64,13 +64,10 @@ public sealed class DeviceJoinSession(OwnerWorldApi api, IOwnerDeviceSigner sign
         var registration = Registration ?? throw new InvalidOperationException("Join a world first.");
         if (!ServerOrigin.TryResolve(registration.WorldUrl, out var origin))
             throw new InvalidDataException("The saved host address is invalid. Forget this connection and join again.");
-        var reply = await api.ReconnectAsync(origin, registration.Authority, registration.DeviceId,
-            0, null, null, null, signer, cancellationToken);
-        // Apply the game's complete observation/handshake validation, not just
-        // a responsive port or a successful HTTP status.
-        var observations = new ClankerWorld.GodotClient.Protocol.OwnerWorldObservationSession();
-        observations.ReplaceRegistration(registration);
-        if (!observations.TryAccept(reply, 0, out var failure)) throw new InvalidDataException(failure);
+        // Authenticate without a game presence lease. A refused checkpoint
+        // must still let the game open its recovery screen.
+        await api.GetStartupRecoveryAsync(origin, registration.Authority, registration.DeviceId,
+            signer, cancellationToken);
     }
 
     public void CancelPending() => (Pending, PendingOrigin) = (null, null);

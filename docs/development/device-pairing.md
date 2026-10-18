@@ -79,9 +79,11 @@ Pairing-start responses include optional `Host` installation metadata with a
 formats. Registration remembers the kind for conditional stopped-host hints;
 the terminal hint names `sudo systemctl start clankerworld-server.service`.
 An older or unknown host kind gets a private-network/host check instead.
-The launcher verifies a signed observation baseline before starting remote play;
-a responsive port alone is insufficient. HTTP approval failures and TLS failures
-retain their own explanations.
+The launcher checks signed startup status before starting remote play. This
+confirms device access without granting a game presence lease, and lets the game
+open its recovery screen when the latest checkpoint is refused. A responsive
+port alone is insufficient. HTTP approval failures and TLS failures retain their
+own explanations.
 
 ## Client and server updates
 
