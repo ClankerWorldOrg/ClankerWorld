@@ -12,9 +12,10 @@ namespace ClankerWorld.Tests;
 /// </summary>
 public sealed class HouseholdBuildingUseCoverageTests
 {
-    // Two world days at the current 360-tick day: every family asserted below
-    // appears within this horizon on these seeds, and it keeps CI short.
-    private const int CoverageTicks = 720;
+    // Keep the same two-world-day horizon on a short test calendar, chosen
+    // before Start World through the normal generated-world fixture.
+    private const int TicksPerDay = 144;
+    private const int CoverageTicks = TicksPerDay * 2;
 
     private static readonly string[] SharedBuildingFamilies =
         ["building:warehouse-2x2", "building:workshop", "building:weaving-frame", "building:shelter",
@@ -25,7 +26,7 @@ public sealed class HouseholdBuildingUseCoverageTests
     public async Task HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack(string seed)
     {
         var recorder = new ActionCoverageRecorder();
-        using var setup = NormalPathWorld.CreateGenerated(seed, _ => recorder);
+        using var setup = NormalPathWorld.CreateGenerated(seed, _ => recorder, ticksPerDay: TicksPerDay);
         var state = setup.ExportState();
         var farmingHousehold = setup.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-farmhouse").HouseholdId!;
         // This checks permission to mill available grain, independently of
