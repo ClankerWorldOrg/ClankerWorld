@@ -1312,6 +1312,9 @@ state intact. The repair applies once and may expose an already broken Road
 connection; it does not reroute Roads or create bridges. Back up older saves
 before an upgrade.
 
+The terrain codec and map acceptance share per-layer length and declared-byte
+checks. Each boundary retains its own failure messages.
+
 World-systems resource manifests are separate from the terrain-byte chunks.
 Loaded or changed manifests require full structural validation and an exact
 canonical digest. Unchanged immutable manifests may reuse that result in a
