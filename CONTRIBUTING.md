@@ -84,7 +84,7 @@ one and what the label workflows do on their own. Never create a label by hand.
 | Pull request status | `status:needs-review` (ready for review), `status:reviewing` ([claimed by a reviewer](#claims)) |
 | Either | `status:needs-decision` (waiting on the owner), `status:blocked` (waiting on an issue, pull request or outside event its description names, such as `Blocked by #123`; never for waiting on a later release) |
 | Other | `owner-task` (only computment can do it), `owner-priority` (the owner chose this priority), `regression`, `from:playtest`, `accessibility` |
-| Release | `release:alpha-1` (needed for the release being prepared), `release:alpha-2` (waits for the release after it); see [Release scope](#release-scope) |
+| Release | `release:alpha-2` (needed for the release being prepared); see [Release scope](#release-scope) |
 
 Add by hand: every label on an issue created without a form; on other new
 issues, its areas, a priority if it is not P2, its release label while release
@@ -164,11 +164,13 @@ release needs ([Priorities](#priorities)). Release labels are for when more is
 open than one release can take. They split the open issues between the release
 being prepared and the one after it:
 
-- **The current release's label,** now `release:alpha-1` for
-  `v0.1.0-alpha.1`, marks what that release needs. A new P0 or P1 bug, or work
+- **The current release's label,** now `release:alpha-2` for
+  `v0.1.0-alpha.2`, marks what that release needs. A new P0 or P1 bug, or work
   the owner asks to include, gets it.
-- **The next release's label,** now `release:alpha-2` for `v0.1.0-alpha.2`,
-  marks work that waits for that release. Every other new issue gets it. A bug
+- **The next release's label,** once the owner names that release,
+  marks work that waits for it. Every other new issue gets it. Until then,
+  leave those issues without a release label. Alpha 1 is published and its
+  label is retired; no next release after alpha 2 has been named. A bug
   that exists only in an unmerged pull request takes the release label of the
   issue that pull request works on.
 - **Fixers take current-release issues first,** highest priority first, then
