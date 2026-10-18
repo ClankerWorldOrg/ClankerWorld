@@ -50,7 +50,7 @@ public sealed class WorldMapDigestTests
         var expected = MapManifestCodec.Digest(map);
         for (var warm = 0; warm < 5; warm++) _ = MapManifestCodec.Digest(map);
         const int samples = 10;
-        var bytesPerDigestBudget = 64L * map.Width * map.Height;
+        var bytesPerDigestBudget = 8L * map.Width * map.Height;
         string? actual = null;
         var before = GC.GetAllocatedBytesForCurrentThread();
         for (var sample = 0; sample < samples; sample++) actual = MapManifestCodec.Digest(map);

@@ -47,36 +47,46 @@ public static class MapLayerManifestCodec
 public static class MapManifestCodec
 {
     private const string Header = "clankerworld.seeded-map/v1";
+    private const int BatchCharacters = 4096;
 
-    public static byte[] Encode(WorldMap map) =>
-        Encoding.UTF8.GetBytes(BuildManifest(map).ToString());
+    public static byte[] Encode(WorldMap map)
+    {
+        using var stream = new MemoryStream();
+        WriteManifest(map, stream);
+        return stream.ToArray();
+    }
 
     public static string Digest(WorldMap map)
     {
         using var hash = SHA256.Create();
         using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
-        using (var writer = new StreamWriter(digestStream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true))
-            foreach (var chunk in BuildManifest(map).GetChunks())
-                writer.Write(chunk.Span);
+        WriteManifest(map, digestStream);
         digestStream.FlushFinalBlock();
         return Convert.ToHexStringLower(hash.Hash!);
     }
 
-    private static StringBuilder BuildManifest(WorldMap map)
+    private static void WriteManifest(WorldMap map, Stream stream)
     {
         ArgumentNullException.ThrowIfNull(map);
+        using var writer = new StreamWriter(stream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true);
         var builder = new StringBuilder();
         builder.Append(Header).Append('\n');
         builder.Append("dimensions=").Append(map.Width).Append('x').Append(map.Height).Append('\n');
         builder.Append("generation_attempt=").Append(map.GenerationAttempt).Append('\n');
+        WriteAndClear(builder, writer, force: true);
         if (map.ClimateZones is not null)
-            builder.Append("climate-zones=").Append(Convert.ToBase64String(map.ClimateZones)).Append('\n');
+        {
+            writer.Write("climate-zones=");
+            writer.Write(Convert.ToBase64String(map.ClimateZones));
+            writer.Write('\n');
+        }
         foreach (var tile in OrderedTiles(map.Tiles))
         {
             builder.Append("tile=")
                 .Append(tile.Position.X).Append(',').Append(tile.Position.Y).Append('|')
                 .Append(ToWireValue(tile.Terrain)).Append('\n');
+            WriteAndClear(builder, writer);
         }
 
         foreach (var mapObject in map.MapObjects.OrderBy(mapObject => mapObject.Id, StringComparer.Ordinal))
@@ -84,6 +94,7 @@ public static class MapManifestCodec
             builder.Append("object=")
                 .Append(mapObject.Id).Append('|').Append(mapObject.Kind).Append('|')
                 .Append(mapObject.Position.X).Append(',').Append(mapObject.Position.Y).Append('\n');
+            WriteAndClear(builder, writer);
         }
 
         foreach (var resource in map.Resources.OrderBy(resource => resource.Id, StringComparer.Ordinal))
@@ -97,9 +108,17 @@ public static class MapManifestCodec
             if (resource.NaturalObjectKind is { } naturalObjectKind)
                 builder.Append("|natural:").Append(naturalObjectKind);
             builder.Append('\n');
+            WriteAndClear(builder, writer);
         }
+        WriteAndClear(builder, writer, force: true);
+    }
 
-        return builder;
+    private static void WriteAndClear(StringBuilder builder, TextWriter writer, bool force = false)
+    {
+        // Batch ordinary rows without retaining the complete manifest text.
+        if (!force && builder.Length < BatchCharacters) return;
+        foreach (var chunk in builder.GetChunks()) writer.Write(chunk.Span);
+        builder.Clear();
     }
 
     private static IEnumerable<TerrainTile> OrderedTiles(IReadOnlyList<TerrainTile> tiles)
