@@ -1,0 +1,1 @@
+- Walking checks on wrapped maps reuse the same column-wrapping rule and skip repeated work inside the map.

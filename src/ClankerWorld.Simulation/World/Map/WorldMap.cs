@@ -79,7 +79,7 @@ public sealed record WorldMap(
     public bool IsRiverWater(GridPoint point) => Contains(point) && IsRiverAt(point);
 
     /// <summary>Wraps a column across an enabled east/west seam; rows never wrap.</summary>
-    public GridPoint WrapColumn(GridPoint point) => WrapsEastWest && Width > 0
+    public GridPoint WrapColumn(GridPoint point) => WrapsEastWest && Width > 0 && (point.X < 0 || point.X >= Width)
         ? new GridPoint((point.X % Width + Width) % Width, point.Y)
         : point;
 
@@ -244,9 +244,7 @@ public sealed record WorldMap(
         private readonly GridPoint Neighbor(int index)
         {
             var (dx, dy) = FootNeighborOffsets[index];
-            var x = origin.X + dx;
-            if (map.WrapsEastWest) x = (x % map.Width + map.Width) % map.Width;
-            return new GridPoint(x, origin.Y + dy);
+            return map.WrapColumn(new GridPoint(origin.X + dx, origin.Y + dy));
         }
     }
 
