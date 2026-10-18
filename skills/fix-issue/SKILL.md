@@ -26,10 +26,12 @@ is:issue is:open label:"status:needs-pr" -label:"type:decision" -label:owner-tas
 
 While release labels are in use
 ([Release scope](../../CONTRIBUTING.md#release-scope)), first add the current
-release's label, now `label:"release:alpha-1"`. Only when none with it is
-ready, search again with `-label:"release:alpha-2"` instead: never start an
-issue with the next release's label before the current release is published,
-even when nothing else is ready. Take the highest priority first: add
+release's label, now `label:"release:alpha-2"`. Only when none with it is
+ready, search again without that filter for issues with no release label.
+No next release after alpha 2 has been named. If the owner names one, exclude
+its label from this second search: never start a next-release issue before
+the current release is published, even when nothing else is ready.
+Take the highest priority first: add
 `label:"priority:p0"` to the search, then p1, p2 and p3. At that level, pick
 one of the five oldest results at random, so sessions that search at the same
 moment don't all land on the same issue.

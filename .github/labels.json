@@ -32,8 +32,7 @@
     { "name": "accessibility", "color": "f143ab", "description": "A barrier for players with disabilities.", "aliases": [] },
     { "name": "regression", "color": "e11d21", "description": "Something that used to work broke.", "aliases": [] },
     { "name": "from:playtest", "color": "5ebeff", "description": "Found while playing the game.", "aliases": [] },
-    { "name": "release:alpha-1", "color": "1d76db", "description": "Needed for alpha 1, the first playtest release. Fixers take these first.", "aliases": [] },
-    { "name": "release:alpha-2", "color": "a2c4f5", "description": "Waits for alpha 2, the release after alpha 1. Fixers don't start these until alpha 1 is published.", "aliases": [] }
+    { "name": "release:alpha-2", "color": "1d76db", "description": "Needed for alpha 2, the current release. Fixers take these first.", "aliases": [] }
   ],
-  "retired": ["good first issue", "help wanted", "question", "invalid", "wontfix", "duplicate", "area:kernel", "status:needs-playtest", "type:playtest", "status:merging"]
+  "retired": ["good first issue", "help wanted", "question", "invalid", "wontfix", "duplicate", "area:kernel", "status:needs-playtest", "type:playtest", "status:merging", "release:alpha-1"]
 }
