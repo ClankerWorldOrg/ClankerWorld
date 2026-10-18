@@ -7,6 +7,70 @@ namespace ClankerWorld.Tests;
 public sealed class SavedFileTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OversizedTimelineRefusesSavePublicationWithoutChangingAnyOriginal(bool overwrite)
+    {
+        var directory = Directory.CreateTempSubdirectory("oversized-timeline-");
+        try
+        {
+            using var world = new WorldRuntime("oversized-timeline");
+            world.Pause();
+            var store = new ManualWorldSaveStore(Path.Combine(directory.FullName, "world.json"));
+            var first = store.Create("First", world, []);
+            var timeline = Assert.Single(Directory.GetFiles(directory.FullName, "timeline-*.json", SearchOption.AllDirectories));
+            using (var stream = File.OpenWrite(timeline)) stream.SetLength((long)SavedFile.MetadataLimit + 1);
+            var before = Directory.GetFiles(directory.FullName, "*", SearchOption.AllDirectories)
+                .ToDictionary(path => path, File.ReadAllBytes);
+            var state = WorldRuntimeCodec.Encode(world.ExportState());
+            Assert.Throws<SavedFileLimitException>(() =>
+            {
+                if (overwrite) store.Overwrite(first.Id, world, []);
+                else store.Create("Second", world, []);
+            });
+            Assert.Equal(before.Keys.Order(), Directory.GetFiles(directory.FullName, "*", SearchOption.AllDirectories).Order());
+            foreach (var (path, bytes) in before) Assert.Equal(bytes, File.ReadAllBytes(path));
+            Assert.Equal(first.Id, Assert.Single(store.List(world.Society.WorldId)).Id);
+            Assert.Equal(state, WorldRuntimeCodec.Encode(world.ExportState()));
+        }
+        finally { directory.Delete(true); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OversizedDiagnosticBuildMetadataSurvivesCheckpointPublicationAndRollback(bool recovery)
+    {
+        var directory = Directory.CreateTempSubdirectory("oversized-build-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "world.json");
+            using var world = new WorldRuntime("oversized-build");
+            world.Pause();
+            var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
+            var original = recovery ? "{refused checkpoint"u8.ToArray() : checkpoint;
+            File.WriteAllBytes(path, original);
+            var build = SavedBuild.PathFor(path);
+            using (var stream = File.Create(build)) { stream.WriteByte(0xff); stream.SetLength((long)SavedFile.MetadataLimit + 1); }
+            var before = File.ReadAllBytes(build);
+            var file = new WorldStateFile(path);
+            var preserved = recovery ? file.PreserveDamagedCheckpoint(original) : null;
+            file.Save(world);
+            Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(File.ReadAllBytes(path))));
+            Assert.Equal(before, File.ReadAllBytes(build));
+            Assert.Null(SavedBuild.TryRead(path));
+            if (preserved is not null)
+            {
+                file.RestorePreservedCheckpoint(preserved);
+                Assert.Equal(original, File.ReadAllBytes(path));
+                Assert.Equal(before, File.ReadAllBytes(build));
+            }
+            Assert.Empty(Directory.GetFiles(directory.FullName, "*.tmp"));
+        }
+        finally { directory.Delete(true); }
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(16)]
     public void BoundedReadPreservesExactBytesAtTheLimit(int length)

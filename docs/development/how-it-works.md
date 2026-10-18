@@ -2288,8 +2288,8 @@ speech remove invisible formatting before their existing length and control
 checks. `BoundedText` shares the invisible-character classification used by final
 words. First-name and surname comparisons remove the same characters, including
 in already saved names. Reported provider model names pass the shared 256-unit
-printable-text boundary before usage is saved or shown; unusable names become
-unknown without discarding reported token counts.
+printable-text boundary before usage is saved or shown; unusable reported names
+are discarded without losing token counts.
 
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
 and the same reply validation. `AnthropicModelClient` in the server sends them to

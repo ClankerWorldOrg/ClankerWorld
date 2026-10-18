@@ -20,6 +20,11 @@ that grows during the read. Oversized files stay on disk. The checkpoint
 writer checks its encoded checkpoint and new history segment before publication;
 there is no trimming, migration or replacement world. An oversized active file
 stops startup with a size explanation rather than loading it into recovery memory.
+An oversized timeline refuses save publication before creating a recovery copy
+or another save. An oversized diagnostic `.build.json` stays untouched; its
+best-effort build recording does not fail an otherwise valid checkpoint save.
+Save creation, overwrite, load, world selection and timeline inspection share
+one `save_too_large` response with the size explanation.
 
 The world holds at most 256 content package records. Each manifest permits 256
 definitions and asset reservations, 128 dependencies and 64 capabilities. Display

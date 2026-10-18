@@ -107,6 +107,8 @@ public sealed partial class ManualWorldSaveStore
             var oldCheckpoint = WorldRuntimeCodec.Decode(previousBytes);
             if (oldCheckpoint.Society.Society.WorldId != previousMetadata.WorldId)
                 throw new InvalidDataException("The selected checkpoint does not match its metadata.");
+            var worldId = state.Society.Society.WorldId;
+            var timeline = ReadTimeline(worldId);
 
             var backupName = "Before overwriting: " + previousMetadata.Save.Name;
             if (backupName.Length > 80)
@@ -123,8 +125,6 @@ public sealed partial class ManualWorldSaveStore
 
             // The backup keeps the old version in its original branch. The chosen
             // slot now holds the running world, so it joins the running world's branch.
-            var worldId = state.Society.Society.WorldId;
-            var timeline = ReadTimeline(worldId);
             // Decide against the actual loaded version before its ID is rebound
             // to the recovery copy. Positions survive deleted intermediate saves.
             var branch = ResolveBranch(timeline, List(worldId));
@@ -382,8 +382,10 @@ public sealed partial class ManualWorldSaveStore
                 IsValidFingerprint(timeline.LoadedStateFingerprint) && IsValidFingerprint(timeline.SavedCheckpointFingerprint))
                 return timeline;
         }
-        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException) { }
-        // A damaged record never blocks saving: the next save starts a new branch.
+        catch (Exception exception) when (exception is not SavedFileLimitException &&
+            exception is JsonException or IOException or UnauthorizedAccessException)
+        { }
+        // Ordinary damaged records start a new branch; oversized originals stay intact.
         if (logger is not null) ManualWorldSaveTelemetry.InvalidTimeline(logger);
         return null;
     }

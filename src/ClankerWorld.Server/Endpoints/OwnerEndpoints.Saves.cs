@@ -254,8 +254,6 @@ internal static partial class OwnerEndpoints
                     ManualWorldSaveTelemetry.Loaded(logger, action.Value, backup.Id, runtime.WorldTick);
                     return Results.Ok(new { loadedId = action.Value, backupId = backup.Id, worldTick = runtime.WorldTick });
                 }
-                catch (SavedFileLimitException exception)
-                { return Results.Conflict(new OwnerControlFailure("save_too_large", exception.Message)); }
                 catch (ModelSettingsConfirmationRequiredException exception)
                 { return Results.Conflict(new OwnerControlFailure("model_settings_confirmation_required", exception.Message)); }
                 catch (FileNotFoundException)

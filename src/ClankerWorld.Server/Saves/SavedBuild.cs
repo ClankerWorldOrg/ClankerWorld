@@ -30,6 +30,8 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
+            if (File.Exists(destination))
+                SavedFile.CheckLength(new FileInfo(destination).Length, SavedFile.MetadataLimit);
             if (bytes is null)
             {
                 File.Delete(destination);
