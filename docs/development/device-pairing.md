@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Device pairing
@@ -32,7 +32,9 @@ rollback backup. This is the approved pre-release exception described in
 3. A server-local bootstrap administrator approves the matching pairing ID and
    code through a separate loopback-only listener. There is no bootstrap
    password or reusable approval secret in the client, a URL, or deployment
-   configuration. The local server, which the game starts on the player's own PC, also needs a
+   configuration. A remote Unix server generates an owner-only approval header file;
+   its account reads that file for local approval and recovery. The local server,
+   which the game starts on the player's own PC, instead needs a
    launch secret ([local server](#local-server-started-by-the-game)). Once an owner device exists, it may approve or revoke further
    devices through signed owner-device-management requests. It may also request
    the signed registry of paired-device lifecycle records. The registry exposes
@@ -366,6 +368,21 @@ approval listener that way, as the game does; any other name gets the same 404
 and one `approval_listener outcome=refused reason=host_name` line at most once a
 minute. The public listener has no such check, because Tailscale Serve reaches
 it under its own name.
+
+On a remote Unix server, approval and recovery also require the server account's
+`X-ClankerWorld-Approval-Secret` header (the owner's choice, October 18). Startup
+generates a private header file at `ClankerWorld:Pairing:ApprovalSecretPath`, or
+beside the authority file with `.approval-header` appended. It uses owner-only
+permissions from creation, keeps the same value across restarts and refuses
+shared permissions, symbolic links and damaged files without replacing them.
+The containing directory must not be writable by other accounts. Keep this
+installation file out of saves, logs and reports. Missing or incorrect proof
+receives the same 404; it never authorizes shutdown or the local-game launch check.
+Proof refusals log only `approval_listener outcome=refused reason=proof`, at most
+once a minute with a skipped count, never the supplied or expected value.
+The [deployment guide](remote-server-deployment.md#local-approval-and-recovery)
+shows commands that read the header from disk without putting its value in process
+arguments. The game-started local server keeps its launch-secret flow below.
 
 This is an operator recovery path, not automatic queue eviction on behalf of an
 untrusted remote client. The game's own server also uses it for the game's first
