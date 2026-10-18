@@ -140,6 +140,9 @@ check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
 retained plan through the same definition. Remaining areas move their existing
 plan checks from the compatibility dispatcher into their rows in later slices.
+Child social and household-helping actions also use one typed definition. Their
+existing selected person, resource or load reaches the same native effect after
+the definition rechecks it; legacy entry points share that check and effect.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
