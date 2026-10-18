@@ -78,6 +78,11 @@ fresh state before adding its own ingredients, payment, cargo and visitor
 positions, then uses independent runtime and providers. Real milling, cooking,
 travel, trade, order survival, refusal and exact checkpoint replay stay checked.
 
+Animal-yard fixtures cache strict checkpoint bytes by their original seed and
+calendar after native generation, reachable placement and actual wood/rope
+payment. Each caller strictly decodes fresh mutable state before adding its
+animals and orders; no runtime, provider or live checkpoint is shared.
+
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.
