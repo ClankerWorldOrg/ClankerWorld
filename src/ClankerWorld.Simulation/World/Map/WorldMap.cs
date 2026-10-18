@@ -328,10 +328,9 @@ public sealed record WorldMap(
 
     private bool IsOpenGroundAt(GridPoint point)
     {
-        var terrain = TerrainAt(point);
         if (!IsLandAt(point) || IsMountainAt(point) || IsPeakAt(point)) return false;
         return HydrologyAt(point) is not null || ElevationAt(point) is not null ||
-            SurfaceAt(point) is not null || IsOpenGround(terrain);
+            SurfaceAt(point) is not null || IsOpenGround(TerrainAt(point));
     }
 
     private bool IsLandAt(GridPoint point) => HydrologyAt(point) is { } water
