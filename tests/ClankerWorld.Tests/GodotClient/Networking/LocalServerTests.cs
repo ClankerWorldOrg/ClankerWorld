@@ -282,6 +282,13 @@ public sealed partial class LocalServerTests
         }
         finally
         {
+            // Reap our child even when the regression refuses the graceful stop.
+            if (game.StartedServerProcessId is { } id)
+            {
+                using var child = System.Diagnostics.Process.GetProcessById(id);
+                if (!child.HasExited) child.Kill(entireProcessTree: true);
+                await ModelWorkHarness.WaitForSignalAsync(child.WaitForExitAsync());
+            }
             await game.StopAsync(CancellationToken.None);
             directory.Delete(recursive: true);
         }

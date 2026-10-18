@@ -201,7 +201,7 @@ public sealed partial class ServerHttpTests
                 Assert.Null(recovery.Capture().Autosave);
                 Assert.Equal(damage == "schema" ? "different_save_format" : "checkpoint_refused", recovery.Capture().Reason);
                 var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-                var exited = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                var exited = new TaskCompletionSource();
                 using var onExit = lifetime.ApplicationStopping.Register(() => exited.TrySetResult());
                 var response = await host.Server.SendAsync(context =>
                 {
