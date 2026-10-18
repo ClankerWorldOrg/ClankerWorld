@@ -167,13 +167,14 @@ public partial class Launcher
             var result = await host.StartAsync(version.Version.ToString(), version.SourceRevision!, hostingLifetime.Token);
             if (!result.IsReady) throw new GameInstallException(result.PlayerMessage);
             startedHere = result.Outcome == LocalServerStartOutcome.Started;
+            settings = settings with { HostedVersion = version.Version.ToString(), HostedUseTestData = useTestData };
             hostingRunning = true;
             var tailscale = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles), "Tailscale", "tailscale.exe");
             hostingNetwork = new TailscaleHost(new HostCommandRunner(), File.Exists(tailscale) ? tailscale : "tailscale");
             var address = await hostingNetwork.ConnectAsync(host.Origin, hostingLifetime.Token);
             hostedOrigin = address;
             if (!IsInsideTree()) return;
-            settings = settings with { HostingEnabled = true, HostedVersion = version.Version.ToString(), HostedUseTestData = useTestData };
+            settings = settings with { HostingEnabled = true };
             settings.Save(layout);
             var startupSaved = true;
             try { HostingStartup.SetEnabled(OS.GetExecutablePath(), settings.ResumeHostingAtSignIn); }

@@ -297,27 +297,20 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
+                    // Read with the proven credential without granting this client
+                    // shutdown authority while the mode check is still pending.
+                    var status = await HostReadAsync<ClankerWorld.Contracts.HostStatus>(
+                        "api/v1/approval/hosting", running, cancellationToken);
+                    var joiningHost = layout.HostKind is null &&
+                        status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
+                    if (joinHostedWorld && !joiningHost)
+                        return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
+                    if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
+                        status.StopWhenGameQuits != layout.StopWhenGameQuits))
+                        return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
+                    JoinedHostedServer = joiningHost;
                     (secret, proven) = (running, true);
-                    var accepted = false;
-                    try
-                    {
-                        var status = await HostStatusAsync(cancellationToken);
-                        var joiningHost = layout.HostKind is null &&
-                            status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
-                        if (joinHostedWorld && !joiningHost)
-                            return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
-                        if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
-                            status.StopWhenGameQuits != layout.StopWhenGameQuits))
-                            return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
-                        JoinedHostedServer = joiningHost;
-                        accepted = true;
-                        return new LocalServerStart(LocalServerStartOutcome.Reused);
-                    }
-                    finally
-                    {
-                        // An interrupted or refused mode check grants no shutdown authority.
-                        if (!accepted) { (secret, proven) = (null, false); JoinedHostedServer = false; }
-                    }
+                    return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
                 if (proof == LaunchCheck.Refused)
                     return new LocalServerStart(LocalServerStartOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
@@ -422,13 +415,18 @@ public sealed class LocalServer : IAsyncDisposable
     public Task<ClankerWorld.Contracts.HostStatus> HostStatusAsync(CancellationToken cancellationToken) =>
         HostReadAsync<ClankerWorld.Contracts.HostStatus>("api/v1/approval/hosting", cancellationToken);
 
-    private async Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
+    private Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
     {
         if (secret is null || !proven) throw new InvalidOperationException("The host has not started.");
+        return HostReadAsync<T>(path, secret, cancellationToken);
+    }
+
+    private async Task<T> HostReadAsync<T>(string path, string credential, CancellationToken cancellationToken) where T : class
+    {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, path));
-        request.Headers.Add(SecretHeader, secret);
+        request.Headers.Add(SecretHeader, credential);
         using var response = await http.SendAsync(request, deadline.Token);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(deadline.Token) ??

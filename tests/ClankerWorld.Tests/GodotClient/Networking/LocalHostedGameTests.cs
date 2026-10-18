@@ -91,8 +91,10 @@ public sealed partial class LocalServerTests
         finally { directory.Delete(recursive: true); }
     }
 
-    [Fact]
-    public async Task CancelledHostedModeReadLeavesTheHostAndItsProofAvailable()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InterruptedHostedModeReadLeavesTheHostAndItsProofAvailable(bool stopBeforeCancellation)
     {
         var directory = Directory.CreateTempSubdirectory("host-pc-cancel-");
         var (port, approval) = FreePorts();
@@ -113,6 +115,7 @@ public sealed partial class LocalServerTests
             using var cancel = new CancellationTokenSource();
             var starting = game.StartAsync(version, revision, cancel.Token);
             await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+            if (stopBeforeCancellation) Assert.True(await game.StopAsync(CancellationToken.None));
             cancel.Cancel();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
             await game.DisposeAsync();
