@@ -10,7 +10,37 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class GrownAgentHelperMemoryTests
 {
-    private static readonly Lazy<Task<byte[]>> FinalWordsFamily = new(() => CreateLaterAdultAsync(2));
+    private static readonly Lazy<Task<byte[]>> FinalWordsFamily = new(CreateFinalWordsFamilyAsync);
+
+    private static async Task<byte[]> CreateFinalWordsFamilyAsync()
+    {
+        var first = await CreateLaterAdultAsync(2);
+        var expected = first.ToArray();
+        first[0] ^= 1;
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var repeated = CreateLaterAdultAsync(2);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        var completed = repeated.IsCompletedSuccessfully;
+        var fresh = await repeated;
+        Assert.True(completed);
+        Assert.InRange(allocated, 0, 64 * 1024 * 1024);
+        Assert.Equal(expected, fresh);
+        byte[]? running = null;
+        await CreateLaterAdultAsync(2, (generation, bytes) =>
+        {
+            Assert.Equal(2, generation);
+            running = bytes.ToArray();
+            bytes[0] ^= 1;
+        });
+        Assert.NotNull(running);
+        await CreateLaterAdultAsync(2, (generation, bytes) =>
+        {
+            Assert.Equal(2, generation);
+            Assert.Equal(running, bytes);
+        });
+        return fresh;
+    }
+
     [Fact]
     public async Task NativeHeirRecallsFinalWordsFromAnAcceptedWillAfterSettlementAndReload()
     {
