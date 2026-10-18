@@ -205,7 +205,7 @@ public sealed class ProviderConfigurationStore
             try
             {
                 if ((File.GetAttributes(temporary) & FileAttributes.ReparsePoint) != 0) { retained++; continue; }
-                // Never read a credential payload; a live writer's exclusive handle refuses this open.
+                // Never read a credential payload; a live writer denies this write-open through publication.
                 using (new FileStream(temporary, FileMode.Open, FileAccess.Write, FileShare.None,
                     bufferSize: 1, FileOptions.DeleteOnClose)) { }
                 removed++;
@@ -987,14 +987,15 @@ public sealed class ProviderConfigurationStore
         try
         {
             var encoded = ProviderCredentialFile.Encode(JsonSerializer.Serialize(next, JsonOptions));
-            using (var stream = PrivateStorage.CreateNew(temporaryPath))
+            // Permit atomic rename while denying cleanup's write-open until publication finishes.
+            using (var stream = PrivateStorage.CreateNew(temporaryPath, FileShare.Delete))
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(encoded);
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
+                File.Move(temporaryPath, Path, overwrite: true);
+                PrivateStorage.RestrictFile(Path);
             }
-            File.Move(temporaryPath, Path, overwrite: true);
-            PrivateStorage.RestrictFile(Path);
         }
         finally
         {

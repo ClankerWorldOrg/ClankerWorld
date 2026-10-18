@@ -18,9 +18,9 @@ internal static class PrivateStorage
         }
     }
 
-    public static FileStream CreateNew(string path)
+    public static FileStream CreateNew(string path, FileShare share = FileShare.None)
     {
-        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = share };
         if (!OperatingSystem.IsWindows()) options.UnixCreateMode = FilePermissions;
         return new FileStream(path, options);
     }

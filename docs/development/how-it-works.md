@@ -1993,7 +1993,9 @@ limit buffered bodies to the shared 256 KiB response bound. Streaming adapters
 also use `ProviderResponseBody` before parsing. Credential-bearing records omit
 their fields when printed. Startup removes matching leftover temporary provider
 configuration files without reading their contents; busy or linked files are
-retained, with only removed/retained counts logged.
+retained, with only removed/retained counts logged. Credential writers keep
+their handle open through atomic publication so cleanup cannot take a live
+temporary file between its final write and rename.
 
 The per-world routine helper is Off, Jev or OpenAI Decisions. Decisions uses
 `POST https://api.openai.com/v1/decisions`, sharing Jev's bounded actor context
