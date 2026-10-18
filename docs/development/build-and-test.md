@@ -734,7 +734,8 @@ runs in its own trusted server trial copy, through normal admission, action
 application and post-action reconciliation. The test requires a strict save
 round-trip, acceptance of the exact offered choice without fallback, and progress
 or a native refusal reason. It does not recover or skip a throwing action.
-Progress includes medical consent, treatment and supply trips; model admission metadata alone does not count.
+Progress includes native tool-request creation and transitions, medical consent,
+treatment and supply trips; model admission metadata alone does not count.
 
 The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
 with:
