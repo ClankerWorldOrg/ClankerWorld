@@ -195,6 +195,10 @@ var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
         ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
             authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
+var hostKind = builder.Configuration["ClankerWorld:Hosting:Kind"] ?? "unspecified";
+if (hostKind is not ("unspecified" or OwnerHostInformation.Launcher or OwnerHostInformation.Terminal))
+    throw new InvalidOperationException("ClankerWorld:Hosting:Kind must be unspecified, launcher or terminal.");
+builder.Services.AddSingleton(new OwnerHostInformation(hostKind));
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>

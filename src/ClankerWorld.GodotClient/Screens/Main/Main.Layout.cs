@@ -48,31 +48,6 @@ public partial class Main
         ApplyResponsiveLayout();
     }
 
-    private void BuildConnectionPanel()
-    {
-        var body = new VBoxContainer();
-        body.AddThemeConstantOverride("separation", 6);
-        var controls = new HBoxContainer();
-        controls.AddThemeConstantOverride("separation", 8);
-        serverUrlInput.PlaceholderText = "https://your-world-server:8443";
-        serverUrlInput.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        controls.AddChild(serverUrlInput);
-        connectButton.Text = "Connect";
-        connectButton.Pressed += () => _ = ConnectUsingCurrentUrlAsync();
-        controls.AddChild(connectButton);
-        pairAgainButton.Text = "Pair again";
-        pairAgainButton.TooltipText = "Forget this device's saved connection and connect again.";
-        pairAgainButton.Visible = false;
-        pairAgainButton.Pressed += () => _ = PairAgainAsync();
-        controls.AddChild(pairAgainButton);
-        body.AddChild(controls);
-        connectionStatusLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        connectionStatusLabel.Hide();
-        body.AddChild(connectionStatusLabel);
-        AddPanelContents(connectionPanel, "World connection", body);
-        connectionPanel.ThemeTypeVariation = "InsetPanel";
-    }
-
     private void ShowSettingsSection(bool worldSpecific)
     {
         if (worldSpecific && (!isInWorld || returnToMainMenu)) return;
@@ -105,38 +80,6 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         await RefreshAutosaveSettingsAsync();
         if (IsCurrentWorldRequest(generation)) await RefreshProviderConfigurationAsync();
-    }
-
-    private void BuildPairingPanel()
-    {
-        var body = new VBoxContainer();
-        body.AddThemeConstantOverride("separation", 6);
-        var heading = new Label { Text = "Pair this Windows device", ThemeTypeVariation = "HeadingLabel" };
-        body.AddChild(heading);
-        pairingInstructionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        body.AddChild(pairingInstructionLabel);
-        var codeRow = new HBoxContainer();
-        codeRow.AddChild(new Label { Text = "Comparison code:" });
-        pairingCodeLabel.AddThemeFontSizeOverride("font_size", UiFonts.Body * 2);
-        codeRow.AddChild(pairingCodeLabel);
-        body.AddChild(codeRow);
-        var idRow = new HBoxContainer();
-        idRow.AddChild(new Label { Text = "Pairing ID:" });
-        pairingIdLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        idRow.AddChild(pairingIdLabel);
-        body.AddChild(idRow);
-        body.AddChild(pairingExpiryLabel);
-        var buttons = new HBoxContainer();
-        pairButton.Text = "Start pairing";
-        pairButton.Pressed += () => _ = StartPairingAsync();
-        buttons.AddChild(pairButton);
-        forgetRegistrationButton.Text = "Forget saved connection";
-        forgetRegistrationButton.Pressed += ForgetLocalRegistration;
-        buttons.AddChild(forgetRegistrationButton);
-        body.AddChild(buttons);
-        AddPanelContents(pairingPanel, body);
-        pairingPanel.ThemeTypeVariation = "InsetPanel";
-        pairingPanel.Hide();
     }
 
     private void BuildWorldColumn(Control content)
@@ -458,10 +401,6 @@ public partial class Main
         // One call count and limit covers every world, so it is a Game setting.
         BuildUsageLimitPanel();
         gameSettingsContent.AddChild(usageLimitPanel);
-        BuildConnectionPanel();
-        gameSettingsContent.AddChild(connectionPanel);
-        BuildPairingPanel();
-        gameSettingsContent.AddChild(pairingPanel);
         var settingsPages = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         settingsPages.AddChild(gameSettingsContent);
         settingsPages.AddChild(worldSettingsContent);

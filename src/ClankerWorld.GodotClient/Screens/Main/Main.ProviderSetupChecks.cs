@@ -89,7 +89,7 @@ public partial class Main
             return;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            resultLabel.Text = "Connect this device before testing a model. Nothing was sent.";
+            resultLabel.Text = "Start the game through the launcher before testing a model. Nothing was sent.";
             resultLabel.Show();
             return;
         }

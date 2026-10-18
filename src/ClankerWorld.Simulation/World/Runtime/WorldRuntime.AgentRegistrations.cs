@@ -177,6 +177,7 @@ public sealed partial class WorldRuntime
         runtime.ApplyHouseGuest(action.AgentId, action.CandidateId, action.Plan as HouseGuestActionPlan);
         return true;
     }),
+        new(ActionPhase.Ordinary, "recipe", [], [], Definition: RecipeActionDefinition),
         new(ActionPhase.Ordinary, "build:", ["build:"], [], static (runtime, action) =>
     {
         runtime.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
@@ -270,6 +271,8 @@ public sealed partial class WorldRuntime
         {
             if (registration.Phase != phase)
                 continue;
+            if (registration.Definition is { } codec && registration.Prefixes.Length == 0 && registration.ExactIds.Length == 0 &&
+                !codec.Matches(action.CandidateId)) continue;
             if (registration.Prefixes.Length != 0 || registration.ExactIds.Length != 0)
             {
                 if (!MatchesAction(registration, action.CandidateId))

@@ -1099,7 +1099,7 @@ public sealed partial class WorldRuntime
             }
 
             var plan = PlanRecipeProject(agent.Id, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == siteId));
-            if (CheckRecipeProject(plan).Allowed) candidates.Add(new CognitionCandidate(
+            if (CheckActionPlan(plan).Allowed) candidates.Add(new CognitionCandidate(
                 plan.CandidateId,
                 $"{recipe.DisplayName} at the household work site.",
                 recipe.Tags.Contains("named-meal", StringComparer.Ordinal) ? 20 : recipe.IsCrop ? 20 :
