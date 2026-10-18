@@ -274,6 +274,7 @@ public partial class Main
         manualSaveCard.CustomMinimumSize = new Vector2(520, 0);
         StyleConfirmation(manualSaveLoadConfirmation, "Load this save?", "Load Save");
         manualSaveLoadConfirmation.Confirmed += () => _ = LoadSelectedManualSaveAsync();
+        manualSaveLoadConfirmation.Canceled += () => pendingSaveModelLoad = null;
         AddChild(manualSaveLoadConfirmation);
         StyleConfirmation(worldModelLoadConfirmation, "Use these model settings?", "Open World");
         worldModelLoadConfirmation.Confirmed += () =>
@@ -282,6 +283,7 @@ public partial class Main
             pendingWorldModelLoad = null;
             if (approved is not null) _ = SelectListedWorldAsync(approved);
         };
+        worldModelLoadConfirmation.Canceled += () => pendingWorldModelLoad = null;
         AddChild(worldModelLoadConfirmation);
         StyleConfirmation(manualSaveOverwriteConfirmation, "Overwrite this save?", "Overwrite");
         manualSaveOverwriteConfirmation.Confirmed += () => _ = OverwriteSelectedManualSaveAsync();
@@ -921,20 +923,24 @@ public partial class Main
             !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
         if (WorldHistoryEmbedded) { await SelectListedWorldAsync(); return; }
         pendingSaveModelLoad = null;
-        try
+        await RunOwnerActionAsync(async () =>
         {
-            var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(ResolveWorldUri(), authority,
-                deviceId, save.Id, false, signer, OwnerRequestToken));
-            if (!manualSaveOverlay.Visible || SelectedManualSave()?.Id != save.Id) return;
-            pendingSaveModelLoad = (save.Id, preview.Approval);
-            var branchNote = IsLatestInBranch(save, allListedManualSaves)
-                ? string.Empty : " Playing on from it starts a new branch; your later saves stay as they are.";
-            manualSaveLoadConfirmation.DialogText = $"Load \"{save.Name}\"? Your current world is saved first, and the loaded world starts paused.{branchNote}" +
-                (preview.RequiresConfirmation ? "\n\nThis save changes model or key assignments. Use these settings?\n" + string.Join("\n", preview.Details) : string.Empty);
-            PopupDialog(manualSaveLoadConfirmation);
-        }
-        catch (ObsoleteOwnerRequestException) { }
-        catch (Exception exception) { manualSaveStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); }
+            try
+            {
+                var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(ResolveWorldUri(), authority,
+                    deviceId, save.Id, false, signer, OwnerRequestToken));
+                if (!manualSaveOverlay.Visible || SelectedManualSave()?.Id != save.Id) return string.Empty;
+                pendingSaveModelLoad = (save.Id, preview.Approval);
+                var branchNote = IsLatestInBranch(save, allListedManualSaves)
+                    ? string.Empty : " Playing on from it starts a new branch; your later saves stay as they are.";
+                manualSaveLoadConfirmation.DialogText = $"Load \"{save.Name}\"? Your current world is saved first, and the loaded world starts paused.{branchNote}" +
+                    (preview.RequiresConfirmation ? "\n\nThis save changes model or key assignments. Use these settings?\n" + string.Join("\n", preview.Details) : string.Empty);
+                PopupDialog(manualSaveLoadConfirmation);
+            }
+            catch (ObsoleteOwnerRequestException) { }
+            catch (Exception exception) { manualSaveStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); }
+            return string.Empty;
+        });
     }
 
     private async Task LoadSelectedManualSaveAsync()

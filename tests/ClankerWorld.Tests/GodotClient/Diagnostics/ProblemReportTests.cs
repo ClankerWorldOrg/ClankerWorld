@@ -58,7 +58,7 @@ public sealed class ProblemReportTests : IDisposable
     [Fact]
     public void LongLogKeepsOnlyWholeLinesFromItsEnd()
     {
-        var line = new string('a', 99);
+        var line = new string('z', 99);
         var lines = Enumerable.Range(0, ProblemReport.MaxBytesPerLog / 100 + 500).Select(_ => line).ToList();
         lines.Add("last line before the crash");
         var log = Write("server.log", [.. lines]);

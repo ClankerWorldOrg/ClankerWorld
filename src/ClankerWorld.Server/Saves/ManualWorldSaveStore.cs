@@ -764,6 +764,8 @@ public sealed partial class ManualWorldSaveStore
 
     private static void WriteAtomic(string destination, byte[] bytes, bool overwrite = false)
     {
+        SavedFile.CheckLength(bytes.LongLength, destination.EndsWith(".save", StringComparison.Ordinal)
+            ? SavedFile.CheckpointLimit : SavedFile.MetadataLimit);
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {

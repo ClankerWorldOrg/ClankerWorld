@@ -127,6 +127,8 @@ internal static partial class OwnerEndpoints
                 return action.Operation == "inspect-world-models" ? Results.Ok(worlds.PreviewModels(action.Value)) :
                     Results.Ok(worlds.Select(action.Value, action.ModelSettingsApproval));
             }
+            catch (SavedFileLimitException exception)
+            { return Results.Conflict(new OwnerControlFailure("save_too_large", exception.Message)); }
             catch (ModelSettingsConfirmationRequiredException exception)
             { return Results.Conflict(new OwnerControlFailure("model_settings_confirmation_required", exception.Message)); }
             catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world does not exist." }); }

@@ -534,9 +534,10 @@ public sealed class ContentPackageRegistry
 
         if (state.Events.Any(item => item is null))
             throw new InvalidDataException("The content governance event stream contains an empty record.");
-        var removed = state.Events.GroupBy(item => item.PackageId, StringComparer.Ordinal)
-            .Where(group => group.Last().Kind == "package_removed")
-            .Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
+        var lastByPackage = state.Events.GroupBy(item => item.PackageId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Last(), StringComparer.Ordinal);
+        var removed = lastByPackage.Where(pair => pair.Value.Kind == "package_removed")
+            .Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal);
         if (removed.Any(registry.packages.ContainsKey))
             throw new InvalidDataException("Removed content still has a package record.");
         var expectedEventId = 1L;
@@ -553,7 +554,7 @@ public sealed class ContentPackageRegistry
 
             ContentPackageRules.ValidatePackageId(governanceEvent.PackageId);
             if (governanceEvent.Kind == "package_removed" &&
-                state.Events.Last(item => item.PackageId == governanceEvent.PackageId).EventId != governanceEvent.EventId)
+                lastByPackage[governanceEvent.PackageId].EventId != governanceEvent.EventId)
                 throw new InvalidDataException("Removed content has later lifecycle events.");
             expectedEventId = checked(expectedEventId + 1);
             previousTick = governanceEvent.WorldTick;

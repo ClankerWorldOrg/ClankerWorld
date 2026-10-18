@@ -1234,6 +1234,11 @@ server's displayed information and unfinished edit.
 
 ## Save and return
 
+When a save or another world changes model or key assignments, the game shows
+those settings before loading. Check the model names and key labels, then
+confirm to use them, or cancel to keep your current world and settings. A load
+never supplies a new API key from the save.
+
 If the server's save disk is low on space, a warning stays visible while you
 play and appears in Save World before saving or overwriting. Make room soon;
 saves can fail when the disk fills. The warning is advisory: manual saves,

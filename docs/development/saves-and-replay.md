@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Saves and replay
@@ -10,6 +10,44 @@ updated: 2026-10-16
 This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
+
+## Stored-data bounds and model settings on load
+
+`SavedFile` checks the length on the same open handle before allocating or
+reading: checkpoints have a 256 MiB limit, individual history segments 64 MiB,
+the world catalog 16 MiB and adjacent metadata 4 MiB. It also refuses a file
+that grows during the read. Oversized files stay on disk. The checkpoint
+writer checks its encoded checkpoint and new history segment before publication;
+there is no trimming, migration or replacement world. An oversized active file
+stops startup with a size explanation rather than loading it into recovery memory.
+
+The world holds at most 256 content package records. Each manifest permits 256
+definitions and asset reservations, 128 dependencies and 64 capabilities. Display
+names have a 128 UTF-16-unit printable-text limit; capability names have the same
+limit and contain no whitespace. Each definition payload has a 256 KiB UTF-8
+limit, with 2 MiB of payload across the manifest. Manifest decoding is capped at
+16 MiB. Proposal and strict restore share these checks. Earlier alpha saves over
+the bounds are refused and preserved.
+
+The signed `content/remove` action removes only quarantined content, while
+paused. It validates and saves an isolated proposal before installing it. Ordered
+governance audit receipts remain, including a removal receipt; the package's
+payload and reservations are no longer retained as a package record. A removed
+package ID cannot be proposed again. Active content must first pass the existing
+rollback checks, including retained physical and order references.
+
+Before loading a named save or selecting another world, the game reads its model
+settings without applying them. A changed set of agent assignments or routine
+helper is shown with model names and installation key labels. Confirmation is
+bound to the selected identity and exact saved assignments, thinking levels and
+helper. The signed load carries that approval; changed settings require a new
+preview and confirmation. Missing approval refuses before recovery copies,
+timelines, provider assignments or checkpoints change. Keys themselves remain
+installation state and never enter previews, approvals or saves.
+
+These bounds and approval checks add no world fields or replay events. Existing
+strict reload, history verification, durable load intent and rollback remain
+required.
 
 ## Developer map edits
 

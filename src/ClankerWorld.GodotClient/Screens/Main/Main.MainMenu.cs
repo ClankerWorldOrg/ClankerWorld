@@ -1068,32 +1068,32 @@ public partial class Main
         var server = ResolveWorldUri();
         await RunWorldMenuActionAsync(async () =>
         {
-        if (approvedModels is not null && (approvedModels.WorldId != worldId || approvedModels.SaveId != save?.Id)) return;
-        if (approvedModels is null)
-        {
-            try
+            if (approvedModels is not null && (approvedModels.WorldId != worldId || approvedModels.SaveId != save?.Id)) return;
+            if (approvedModels is null)
             {
-                var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(server, authority,
-                    deviceId, worldId, true, signer, OwnerRequestToken));
-                var savePreview = save is null ? null : await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(
-                    server, authority, deviceId, save.Id, false, signer, OwnerRequestToken));
-                if (!worldMenuOverlay.Visible || SelectedListedWorld()?.Id != worldId ||
-                    (SelectedManualSave() ?? NewestListedSave())?.Id != save?.Id) return;
-                approvedModels = new(worldId, save?.Id, preview.Approval, savePreview?.Approval);
-                if (preview.RequiresConfirmation || savePreview?.RequiresConfirmation == true)
+                try
                 {
-                    pendingWorldModelLoad = approvedModels;
-                    worldModelLoadConfirmation.DialogText = "Opening this world changes model or key assignments. Use these settings?\n\n" +
-                        string.Join("\n", preview.Details) + (savePreview is null ? string.Empty :
-                        "\n\nSelected save:\n" + string.Join("\n", savePreview.Details));
-                    PopupDialog(worldModelLoadConfirmation);
-                    return;
+                    var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(server, authority,
+                        deviceId, worldId, true, signer, OwnerRequestToken));
+                    var savePreview = save is null ? null : await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(
+                        server, authority, deviceId, save.Id, false, signer, OwnerRequestToken));
+                    if (!worldMenuOverlay.Visible || SelectedListedWorld()?.Id != worldId ||
+                        (SelectedManualSave() ?? NewestListedSave())?.Id != save?.Id) return;
+                    approvedModels = new(worldId, save?.Id, preview.Approval, savePreview?.Approval);
+                    if (preview.RequiresConfirmation || savePreview?.RequiresConfirmation == true)
+                    {
+                        pendingWorldModelLoad = approvedModels;
+                        worldModelLoadConfirmation.DialogText = "Opening this world changes model or key assignments. Use these settings?\n\n" +
+                            string.Join("\n", preview.Details) + (savePreview is null ? string.Empty :
+                            "\n\nSelected save:\n" + string.Join("\n", savePreview.Details));
+                        PopupDialog(worldModelLoadConfirmation);
+                        return;
+                    }
                 }
+                catch (ObsoleteOwnerRequestException) { return; }
+                catch (Exception exception)
+                { worldMenuStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); return; }
             }
-            catch (ObsoleteOwnerRequestException) { return; }
-            catch (Exception exception)
-            { worldMenuStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); return; }
-        }
             worldMenuStatus.Text = "Opening world...";
             try
             {

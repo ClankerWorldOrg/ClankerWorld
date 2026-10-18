@@ -222,6 +222,8 @@ public sealed class WorldSelectionCoordinator(
                 };
             return world with { Compatibility = "compatible", CompatibilityReason = null };
         }
+        catch (SavedFileLimitException exception)
+        { return world with { Compatibility = "incompatible", CompatibilityReason = exception.Message }; }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             FileNotFoundException or System.Text.Json.JsonException or FormatException or InvalidOperationException)
         {

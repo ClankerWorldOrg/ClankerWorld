@@ -47,22 +47,22 @@ public sealed class SavedFileTests
             // without allocating or writing hundreds of megabytes in a test.
             using (var file = File.Create(path)) { file.WriteByte(0xff); file.SetLength((long)limit + 1); }
             var stateFile = new WorldStateFile(checkpoint);
-            InvalidDataException failure;
+            SavedFileLimitException failure;
             switch (kind)
             {
                 case "catalog":
-                    failure = Assert.Throws<InvalidDataException>(() => WorldCatalogStore.ReadActiveIdentity(checkpoint));
+                    failure = Assert.Throws<SavedFileLimitException>(() => WorldCatalogStore.ReadActiveIdentity(checkpoint));
                     break;
                 case "metadata":
-                    failure = Assert.Throws<InvalidDataException>(() => new WorldAutosaveStore(checkpoint, "bounded"));
+                    failure = Assert.Throws<SavedFileLimitException>(() => new WorldAutosaveStore(checkpoint, "bounded"));
                     break;
                 case "history":
                     using (var world = new WorldRuntime("bounded"))
-                        failure = Assert.Throws<InvalidDataException>(() => stateFile.VerifyRequiredHistory(
+                        failure = Assert.Throws<SavedFileLimitException>(() => stateFile.VerifyRequiredHistory(
                             world.ExportState() with { HistoryArchiveHead = new string('a', 64) }));
                     break;
                 default:
-                    failure = Assert.Throws<InvalidDataException>(() => stateFile.LoadOrCreate("bounded"));
+                    failure = Assert.Throws<SavedFileLimitException>(() => stateFile.LoadOrCreate("bounded"));
                     break;
             }
             Assert.Contains("exceeds the supported size", failure.Message);

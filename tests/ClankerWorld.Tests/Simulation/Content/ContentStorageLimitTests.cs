@@ -49,6 +49,9 @@ public sealed class ContentStorageLimitTests
         for (var i = 1; i < ContentPackageRules.MaximumPackages; i++) registry.Propose(Package("package-" + i));
         var before = JsonSerializer.SerializeToUtf8Bytes(registry.ExportState());
         Assert.Throws<InvalidOperationException>(() => registry.Propose(Package("one-too-many")));
+        var full = registry.ExportState();
+        Assert.Throws<InvalidDataException>(() => ContentPackageRegistry.Restore(full with
+        { Packages = [.. full.Packages, full.Packages[0] with { Manifest = Package("overflow") }] }));
         Assert.Throws<InvalidOperationException>(() => registry.RemoveQuarantined("package-1", 0));
         Assert.Equal(before, JsonSerializer.SerializeToUtf8Bytes(registry.ExportState()));
         registry.RemoveQuarantined(first.PackageId, 0);

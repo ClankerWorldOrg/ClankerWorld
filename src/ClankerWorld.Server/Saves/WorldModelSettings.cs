@@ -19,7 +19,10 @@ public static class WorldModelSettings
         var changed = !selected.SequenceEqual(previous) || target.RoutineHelper != current.RoutineHelper;
         var approval = Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new
         {
-            targetId, worldId = target.Society.Society.WorldId, assignments = selected, helper = target.RoutineHelper,
+            targetId,
+            worldId = target.Society.Society.WorldId,
+            assignments = selected,
+            helper = target.RoutineHelper,
         })));
         var keys = providers.CaptureStatus().CredentialSlots ?? [];
         string Key(string? id) => id is null ? "default key" :

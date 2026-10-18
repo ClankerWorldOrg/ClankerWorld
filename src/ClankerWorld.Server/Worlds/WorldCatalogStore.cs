@@ -285,6 +285,7 @@ public sealed class WorldCatalogStore
 
     private void WriteAtomic(string destination, byte[] bytes)
     {
+        SavedFile.CheckLength(bytes.LongLength, destination == indexPath ? SavedFile.CatalogLimit : SavedFile.CheckpointLimit);
         Directory.CreateDirectory(directory);
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);

@@ -1,0 +1,1 @@
+- Loading a save or opening another world asks before changing model and key assignments. Saved files and content packages have size limits, model replies have bounded output and plain text, and problem reports remove more secret-like values.
