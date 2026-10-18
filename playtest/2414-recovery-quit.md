@@ -1,0 +1,1 @@
+- With a disposable save from an incompatible development build and no usable autosave, choose **Quit Game** on **Recover world** and confirm. The game and its local world server should close, and the refused save should stay byte-for-byte unchanged. ([#2414](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2414))

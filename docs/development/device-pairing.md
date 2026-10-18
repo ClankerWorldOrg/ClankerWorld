@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Device pairing
@@ -449,7 +449,8 @@ provider storage and writes its checkpoint before returning 202. The response
 completion callback requests process exit, so server teardown follows the
 acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
-returns 409 without rewriting the refused checkpoint. Whenever a world
+also returns 202 and exits, preserving the refused checkpoint and its build record;
+there is no loaded world to save. Whenever a loaded world
 server stops, it waits for the tick loop to finish and writes a final checkpoint
 (`server_shutdown` in the log). Ctrl+C or a service stop also pauses a local
 server's world; a failed final write is logged and sets a nonzero process exit status.

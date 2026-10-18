@@ -1418,8 +1418,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
             timeout.Token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(
-                $"OpenAI-compatible provider returned HTTP {(int)response.StatusCode} ({response.StatusCode}).", null, response.StatusCode);
+            throw await ProviderHttpException.ReadAsync(response, timeout.Token).ConfigureAwait(false);
         }
 
         var responseBody = await ProviderResponseBody.ReadAsync(response.Content, timeout.Token).ConfigureAwait(false);
