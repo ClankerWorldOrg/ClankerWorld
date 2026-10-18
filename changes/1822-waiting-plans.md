@@ -1,2 +1,0 @@
-- Waiting and fallback choices retain their existing capability outcome through shared action checks.
-- Waiting uses existing typed idle and age-rejection events.
