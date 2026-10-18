@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static readonly ActorCapabilityPolicy EquipmentRepairPolicy = new(ActionLifeStages.Adults,
+    private static ActorCapabilityPolicy EquipmentRepairPolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
 
     private static GoodsRequest EquipmentRepairTargetRequest(string actor) => new(GoodsUse.EquipmentRepair,
@@ -44,9 +44,9 @@ public sealed partial class WorldRuntime
     private static InputCollectionStep EquipmentRepairCollectionStep(PlannedEquipmentRepairInput input) =>
         new(input.Pickup.ItemKind, input.Pickup.Position, input.Pickup.InteractionRange, input.Quantity);
 
-    private ActionCheck CheckEquipmentRepairPlan(EquipmentRepairActionPlan plan)
+    private ActionCheck CheckEquipmentRepairPlan(EquipmentRepairActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, EquipmentRepairPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? EquipmentRepairPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId ||
             RecheckGoods(EquipmentRepairTargetRequest(plan.Actor), plan.TargetId) is not { Lot: var target } ||
@@ -81,7 +81,12 @@ public sealed partial class WorldRuntime
     private void ApplyEquipmentRepairPlan(EquipmentRepairActionPlan? plan, string? orderInstructionId = null)
     {
         if (plan is null) return;
-        if (CheckEquipmentRepairPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedEquipmentRepairPlan(plan, orderInstructionId);
+    }
+
+    private void ApplyCheckedEquipmentRepairPlan(EquipmentRepairActionPlan plan, string? orderInstructionId = null)
+    {
         if (plan.Inputs.Count > 0) { ApplyPlannedEquipmentPickup(plan.Actor, plan.Inputs[0].Pickup); return; }
         var person = agents[plan.Actor];
         if (person.Position != plan.Destination) { MoveToward(plan.Actor, person, plan.Destination, "repair_equipment", 0); return; }

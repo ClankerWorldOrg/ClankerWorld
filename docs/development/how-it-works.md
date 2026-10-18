@@ -156,6 +156,10 @@ Food consumption, shared-food collection, food gathering, fire and warmth also
 bind their codecs and existing capability policies to typed definitions. Their
 offer, admission and apply paths check the same selected serving, source,
 fuel or protection; legacy entry points share the native effects.
+Garments, carry aids, equipment repairs and each household-vessel action also
+own definitions. Their selected item, repair inputs or vessel family reaches
+the same native effect after its shared check; each vessel keeps its existing
+urgency policy.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

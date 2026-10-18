@@ -116,7 +116,7 @@ public sealed partial class WorldRuntime
     private void AddVesselCandidate(List<CognitionCandidate> candidates, VesselActionPlan? plan,
         string description, int priority, string? destination = null, bool useVesselId = false)
     {
-        if (plan is not null && CheckVesselPlan(plan).Allowed)
+        if (plan is not null && CheckActionPlan(plan).Allowed)
             candidates.Add(new(plan.CandidateId, description, priority, useVesselId ? plan.VesselId : destination) { ActionPlan = plan });
     }
 
