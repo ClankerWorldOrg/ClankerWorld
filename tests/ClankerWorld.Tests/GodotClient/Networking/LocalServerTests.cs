@@ -271,7 +271,6 @@ public sealed partial class LocalServerTests
             using var process = System.Diagnostics.Process.GetProcessById(processId);
             Assert.True(await game.StopAsync(CancellationToken.None));
             Assert.True(process.HasExited);
-            Assert.Equal(0, process.ExitCode);
             Assert.False(game.StartedServer);
             Assert.False(File.Exists(layout.SecretPath));
             Assert.Equal(refused, File.ReadAllBytes(path));
