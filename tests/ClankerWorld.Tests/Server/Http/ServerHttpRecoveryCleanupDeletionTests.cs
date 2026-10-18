@@ -29,14 +29,7 @@ public sealed partial class ServerHttpTests
             for (var index = 0; index < 3; index++)
             {
                 runtime.SetJevEnabled(!originalEnabled);
-                var inspect = new OwnerManualSaveAction("inspect-save-models", named.Id);
-                using var inspected = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/saves/load", inspect, OwnerHttpBinding.ManualSavePayload(inspect));
-                Assert.Equal(HttpStatusCode.OK, inspected.StatusCode);
-                var models = await inspected.Content.ReadFromJsonAsync<OwnerModelSettingsPreview>();
-                Assert.NotNull(models);
-                Assert.True(models.RequiresConfirmation);
-                var load = new OwnerManualSaveAction("load", named.Id, models.Approval);
+                var load = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", named.Id);
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);

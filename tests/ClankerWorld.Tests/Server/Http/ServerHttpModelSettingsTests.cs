@@ -12,6 +12,19 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
+    private static async Task<OwnerManualSaveAction> ApprovedModelLoadAsync(ServerWebApplicationFactory host,
+        HttpClient client, ECDsa key, string deviceId, string operation, string id)
+    {
+        var path = operation == "load" ? "/api/v1/owner/saves/load" : "/api/v1/owner/worlds/select";
+        var inspect = new OwnerManualSaveAction(operation == "load" ? "inspect-save-models" : "inspect-world-models", id);
+        using var response = await SendSignedAsync(host, client, key, deviceId, path, inspect,
+            OwnerHttpBinding.ManualSavePayload(inspect));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var models = await response.Content.ReadFromJsonAsync<OwnerModelSettingsPreview>();
+        Assert.NotNull(models);
+        return new(operation, id, models.Approval);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

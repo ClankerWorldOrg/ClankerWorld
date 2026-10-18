@@ -442,7 +442,7 @@ public sealed partial class ServerHttpTests
                 Assert.NotEqual(JsonSerializer.Serialize(originalCheckpoint.TownLandTitles),
                     JsonSerializer.Serialize(generatedLandState.TownLandTitles));
 
-                var select = new OwnerManualSaveAction("select-world", firstId);
+                var select = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", firstId);
                 using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", select,
                     OwnerHttpBinding.ManualSavePayload(select));
@@ -453,7 +453,7 @@ public sealed partial class ServerHttpTests
                 Assert.Contains(providers.CaptureRuntimeConfiguration().Assignments ?? [],
                     assignment => assignment.CredentialSlotId == credentialSlotId);
                 Assert.False(host.Services.GetRequiredService<WorldAutosaveStore>().Capture().Enabled);
-                var returnToGenerated = new OwnerManualSaveAction("select-world", generatedId);
+                var returnToGenerated = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", generatedId);
                 using var returned = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", returnToGenerated,
                     OwnerHttpBinding.ManualSavePayload(returnToGenerated));
@@ -606,7 +606,7 @@ public sealed partial class ServerHttpTests
                 Assert.Contains((await listed.Content.ReadFromJsonAsync<ManualWorldSave[]>())!,
                     item => item.Id == saveId && item.Name == "Before changing Jev");
 
-                var load = new OwnerManualSaveAction("load", saveId);
+                var load = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", saveId);
                 using var loaded = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
@@ -875,14 +875,14 @@ public sealed partial class ServerHttpTests
             runtime.Pause();
 
             const string loadPath = "/api/v1/owner/saves/load";
-            var loadFirst = new OwnerManualSaveAction("load", first.Id);
+            var loadFirst = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", first.Id);
             using var firstResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadFirst, OwnerHttpBinding.ManualSavePayload(loadFirst));
             Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
             Assert.True(runtime.Society.IsPaused);
             var beforeBrowsing = saves.List(runtime.Society.WorldId);
 
-            var loadSecond = new OwnerManualSaveAction("load", second.Id);
+            var loadSecond = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", second.Id);
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
@@ -926,7 +926,7 @@ public sealed partial class ServerHttpTests
             var secondBytes = WorldRuntimeCodec.Encode(saves.Read(second.Id));
 
             const string loadPath = "/api/v1/owner/saves/load";
-            var loadFirst = new OwnerManualSaveAction("load", first.Id);
+            var loadFirst = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", first.Id);
             using var firstResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadFirst, OwnerHttpBinding.ManualSavePayload(loadFirst));
             Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
@@ -938,7 +938,7 @@ public sealed partial class ServerHttpTests
             else File.Delete(sourcePath);
             Assert.True(File.Exists(Path.Combine(stateFile.Path + ".manual", first.Id + ".meta.json")));
 
-            var loadSecond = new OwnerManualSaveAction("load", second.Id);
+            var loadSecond = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", second.Id);
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
