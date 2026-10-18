@@ -1,1 +1,0 @@
-- Personal storage and borrowed-goods returns leave House space for supplies already collected for delivery, including each jug and its contents.

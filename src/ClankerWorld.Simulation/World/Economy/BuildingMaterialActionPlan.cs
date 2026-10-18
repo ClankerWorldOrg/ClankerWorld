@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record BuildingMaterialChoice(string ItemKind)
 {
     public const string Prefix = "gather_building_material:";
-    public string Encode() => Prefix + ItemKind;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ItemKind);
 }
 
 public sealed record BuildingMaterialActionPlan(string ActorId, BuildingMaterialChoice Choice, string HouseholdId,

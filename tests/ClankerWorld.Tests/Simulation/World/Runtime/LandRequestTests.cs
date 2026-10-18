@@ -89,7 +89,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             using var service = new WorldRuntimeService(world, file, presence);
             for (var step = 0; step < 20 && world.HouseholdLandUseRequests.Count == 0; step++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
                 await WaitForRequests(world);
             }
             Assert.Contains(choices.Selected, selected => selected.Contains("|request_land_use|", StringComparison.Ordinal));

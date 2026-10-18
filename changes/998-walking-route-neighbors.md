@@ -1,1 +1,0 @@
-- Walking-route searches avoid allocating a neighbor iterator for each visited tile while preserving their movement and construction rules.

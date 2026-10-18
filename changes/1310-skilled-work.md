@@ -1,1 +1,0 @@
-- Learned building, farming, crafting and smithing skills now shorten matching work with a provisional 20% bonus. Model requests show each agent their own learned skills.

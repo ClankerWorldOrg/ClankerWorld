@@ -1,1 +1,0 @@
-- Keep the selected save name in view when the timeline finishes resizing, while allowing you to scroll elsewhere.

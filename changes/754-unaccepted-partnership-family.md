@@ -1,1 +1,0 @@
-- Withdrawing or letting an unanswered partnership proposal expire no longer splits existing families or removes a House's extra family places. Ending an accepted partnership still separates the partners' family groups.
