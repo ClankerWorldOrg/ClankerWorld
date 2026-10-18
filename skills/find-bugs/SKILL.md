@@ -48,8 +48,9 @@ normal game reaches it.
   including the P0 and P1 caps, and add `regression` to something that used
   to work.
 - While release labels are in use, give a new P0 or P1 bug the current
-  release's label, now `release:alpha-1`, and any other new bug the next
-  release's, now `release:alpha-2`. A bug that exists only in an unmerged pull
+  release's label, now `release:alpha-2`. Give any other new bug the next
+  release's label once the owner names it; until then, leave it without a
+  release label. A bug that exists only in an unmerged pull
   request takes the label of the issue that pull request works on
   ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - Give the title in ordinary words about the effect, such as "Returning a jug
