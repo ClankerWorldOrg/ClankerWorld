@@ -48,7 +48,22 @@ public static class MapManifestCodec
 {
     private const string Header = "clankerworld.seeded-map/v1";
 
-    public static byte[] Encode(WorldMap map)
+    public static byte[] Encode(WorldMap map) =>
+        Encoding.UTF8.GetBytes(BuildManifest(map).ToString());
+
+    public static string Digest(WorldMap map)
+    {
+        using var hash = SHA256.Create();
+        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+        using (var writer = new StreamWriter(digestStream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true))
+            foreach (var chunk in BuildManifest(map).GetChunks())
+                writer.Write(chunk.Span);
+        digestStream.FlushFinalBlock();
+        return Convert.ToHexStringLower(hash.Hash!);
+    }
+
+    private static StringBuilder BuildManifest(WorldMap map)
     {
         ArgumentNullException.ThrowIfNull(map);
         var builder = new StringBuilder();
@@ -84,11 +99,8 @@ public static class MapManifestCodec
             builder.Append('\n');
         }
 
-        return Encoding.UTF8.GetBytes(builder.ToString());
+        return builder;
     }
-
-    public static string Digest(WorldMap map) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encode(map)));
 
     private static IEnumerable<TerrainTile> OrderedTiles(IReadOnlyList<TerrainTile> tiles)
     {
