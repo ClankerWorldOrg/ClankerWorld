@@ -2,7 +2,7 @@
 title: Remote world server deployment
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-18
 ---
 
 # Remote world server deployment
@@ -53,6 +53,7 @@ versioned binary directories. The relevant configuration keys are:
 | --- | --- |
 | `ClankerWorld:World:SavePath` | Active world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
 | `ClankerWorld:Pairing:AuthorityPath` | Durable owner-device authority and revocations |
+| `ClankerWorld:Pairing:ApprovalSecretPath` | Account-private approval header file (defaults to the authority path with `.approval-header` appended) |
 | `ClankerWorld:Providers:ConfigurationPath` | Installation model assignments and protected credentials |
 | `ClankerWorld:Providers:UsagePath` | Installation-lifetime paid-attempt accounting |
 | `ClankerWorld:Assets:CatalogPath` | Approved asset catalog and the assets it refers to |
@@ -157,7 +158,8 @@ complete output under `/opt/clankerworld-server`. The
 `/home/clanker/.local/bin/dotnet`. Provision that account and runtime, or adjust
 the unit to the intended account and runtime path, before starting it.
 `StateDirectory=clankerworld-server` creates `/var/lib/clankerworld-server`;
-world state, device authority and model configuration live there. The optional
+`StateDirectoryMode=0700` makes it private to the service account. World state,
+device authority, the approval header and model configuration live there. The optional
 environment file is `/etc/clankerworld-server/provider.env`.
 
 Install the reviewed unit, reload systemd and start it:
@@ -180,6 +182,7 @@ The template sets these environment variables:
 - `ClankerWorld__Clock__ClientPresenceTimeoutSeconds`
 - `ClankerWorld__Http__Port`
 - `ClankerWorld__Pairing__ApprovalPort`
+- `ClankerWorld__Pairing__ApprovalSecretPath`
 - `ClankerWorld__Pairing__AuthorityPath`
 - `ClankerWorld__World__SavePath`
 - `ClankerWorld__Providers__ConfigurationPath`
@@ -216,9 +219,10 @@ The approval listener, never forwarded, serves `POST /api/v1/approval/pairings`,
 the game starts, also serves `POST /api/v1/approval/shutdown` and
 `GET /api/v1/approval/launch-check`, and needs
 `ClankerWorld:LocalServer:LaunchSecretPath`. All approval routes check the local
-listener and loopback host name; in local-server mode the others also need the
-`X-ClankerWorld-Launch-Secret` header, and the launch check answers a challenge
-without it. [Device pairing](device-pairing.md#local-server-started-by-the-game)
+listener and loopback host name. A remote Unix server also requires its private
+`X-ClankerWorld-Approval-Secret` header. In local-server mode the other routes need
+the existing `X-ClankerWorld-Launch-Secret` header, and the launch check answers a
+challenge without it. [Device pairing](device-pairing.md#local-server-started-by-the-game)
 owns those checks and the client bootstrap flow. Route handlers live in
 `src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Pairing.cs`.
 
@@ -227,3 +231,34 @@ Model-decision logs name the agent with `agent=`. The server's events include
 `model_decision_progress`, `model_call` and `model_conversation_call`.
 `pairing_local_recovery` records local pairing and recovery;
 `local_server outcome=shutdown_requested` records the game's shutdown request.
+
+## Local approval and recovery
+
+The remote server creates `/var/lib/clankerworld-server/approval-header` on its
+first start, readable and writable only by `clanker`. This is the owner-approved
+secret-file design (October 18). Operators run local approval commands as that
+account; do not print the file or put its contents in arguments, environment
+variables or logs. Existing deployments must also use a private state directory
+and preserve this file across updates. If a file is damaged or has shared
+permissions, startup refuses it and leaves it untouched for operator recovery.
+Keep a private backup with the installation state.
+
+Prepare an owner-only JSON request file readable by `clanker`, containing the
+comparison code shown by the joining device as the `pairingCode` field. After
+checking that the codes match, approve its pairing ID:
+
+```bash
+sudo -u clanker curl --fail-with-body --silent --show-error \
+  --header @/var/lib/clankerworld-server/approval-header \
+  --json @/path/to/private-approval.json \
+  http://127.0.0.1:5189/api/v1/approval/pairings/PAIRING_ID/approve
+```
+
+For recovery revocation, prepare an owner-only request file containing `{}` and
+run the same command with `--json @/path/to/private-revocation.json` and
+`http://127.0.0.1:5189/api/v1/approval/devices/DEVICE_ID/revoke`. Recovery pairing
+creation uses `/api/v1/approval/pairings` with the device's `publicKeySpkiBase64`
+field, then follows the same comparison-code approval and signed activation.
+Keep request files private and remove them after use. Never forward this
+listener. The normal signed owner routes and the game's local launch flow do
+not use this header file.

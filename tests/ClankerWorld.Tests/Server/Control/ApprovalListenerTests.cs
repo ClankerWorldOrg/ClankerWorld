@@ -31,8 +31,14 @@ public sealed class ApprovalListenerTests
     [Fact]
     public void ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp()
     {
-        var server = new ApprovalListenerOptions(ApprovalPort);
-        Assert.True(server.IsApprovalRequest(Request(ApprovalPort, null)));
+        var server = new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret);
+        Assert.True(server.IsApprovalRequest(Request(ApprovalPort, Secret, header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, null)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret[..^1] + "x", header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(5188, Secret, header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret, IPAddress.Parse("192.0.2.4"), header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null)));
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, null)));
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret)));
         Assert.False(new ApprovalListenerOptions(0).IsApprovalRequest(Request(0, null)));
@@ -71,7 +77,8 @@ public sealed class ApprovalListenerTests
     [InlineData("LocalHost:5189")]
     public void ApprovalListenerAcceptsALiteralLoopbackHostName(string host)
     {
-        Assert.True(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null, host: host)));
+        Assert.True(new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret)
+            .IsApprovalRequest(Request(ApprovalPort, Secret, host: host, header: ApprovalListenerOptions.ApprovalSecretHeader)));
         var localServer = new ApprovalListenerOptions(ApprovalPort, Secret);
         Assert.True(localServer.IsApprovalRequest(Request(ApprovalPort, Secret, host: host)));
         Assert.True(localServer.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret, host: host)));
@@ -112,6 +119,13 @@ public sealed class ApprovalListenerTests
         {
             File.Delete(path);
         }
+    }
+
+    [Fact]
+    public void ApprovalOptionsNeverPrintEitherSecret()
+    {
+        Assert.DoesNotContain(Secret, new ApprovalListenerOptions(ApprovalPort, Secret).ToString());
+        Assert.DoesNotContain(Secret, new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret).ToString());
     }
 
     [Fact]
@@ -167,13 +181,13 @@ public sealed class ApprovalListenerTests
 
     // The game's HttpClient names the approval listener as 127.0.0.1 and its port.
     private static DefaultHttpContext Request(int localPort, string? secret, IPAddress? remote = null,
-        string host = "127.0.0.1:5189")
+        string host = "127.0.0.1:5189", string header = ApprovalListenerOptions.LaunchSecretHeader)
     {
         var context = new DefaultHttpContext();
         context.Connection.LocalPort = localPort;
         context.Connection.RemoteIpAddress = remote ?? IPAddress.Loopback;
         context.Request.Host = new HostString(host);
-        if (secret is not null) context.Request.Headers[ApprovalListenerOptions.LaunchSecretHeader] = secret;
+        if (secret is not null) context.Request.Headers[header] = secret;
         return context;
     }
 }

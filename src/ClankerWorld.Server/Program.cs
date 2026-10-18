@@ -189,7 +189,10 @@ if (launchSecretPath is not null && approvalPort == 0)
         "ClankerWorld:LocalServer:LaunchSecretPath needs ClankerWorld:Pairing:ApprovalPort.");
 }
 var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
-    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath));
+    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath),
+    launchSecretPath is null && approvalPort > 0
+        ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
+            authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
