@@ -146,6 +146,9 @@ the definition rechecks it; legacy entry points share that check and effect.
 Town Warehouse surplus and abandoned-stock salvage each own a definition with
 their existing capability policy. Both retain the resolved Town, stock, family
 and load in the plan; hashed salvage requests keep their original identity.
+Household recovery, hauling and spare-food storage also own separate
+definitions. Their existing urgency policies and selected physical steps share
+one codec, plan check and native effect with legacy entry points.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

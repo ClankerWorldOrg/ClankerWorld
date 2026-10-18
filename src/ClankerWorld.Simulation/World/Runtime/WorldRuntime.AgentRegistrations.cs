@@ -114,21 +114,9 @@ public sealed partial class WorldRuntime
             runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "haul_household_stock", [], ["haul_household_stock"], static (runtime, action) =>
-    {
-        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "recover_household_delivery", [], ["recover_household_delivery"], static (runtime, action) =>
-    {
-        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "store_household_food", [], ["store_household_food"], static (runtime, action) =>
-    {
-        runtime.ApplyHouseholdStockPlan(action.Plan as HouseholdStockActionPlan ?? runtime.PlanHouseholdStock(action.AgentId, action.CandidateId));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "haul_household_stock", [], [new HouseholdStockRequest(HouseholdStockRequestKind.Haul).Encode()], Definition: HouseholdHaulingDefinition),
+        new(ActionPhase.Ordinary, "recover_household_delivery", [], [new HouseholdStockRequest(HouseholdStockRequestKind.RecoverDelivery).Encode()], Definition: HouseholdRecoveryDefinition),
+        new(ActionPhase.Ordinary, "store_household_food", [], [new HouseholdStockRequest(HouseholdStockRequestKind.StoreFood).Encode()], Definition: HouseholdFoodStorageDefinition),
         new(ActionPhase.Ordinary, "make_room_for_food", [], ["make_room_for_food"], static (runtime, action) =>
     {
         runtime.ApplyFoodCargoPlan(action.Plan as FoodCargoActionPlan ?? runtime.PlanFoodCargo(action.AgentId));
