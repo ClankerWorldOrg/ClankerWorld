@@ -493,8 +493,10 @@ public partial class Launcher : Control
             version = await InstallAsync(release, playAfter: true);
             if (version is null) return;
         }
+        SetBusy(true);
         try
         {
+            await Task.Run(() => GameVersionStore.RequireSigned(version));
             using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld);
         }
         catch (GameInstallException exception)
@@ -507,6 +509,7 @@ public partial class Launcher : Control
             SetStatus($"ClankerWorld {version.Version} didn't start. Try Repair on the Versions page.");
             return;
         }
+        finally { SetBusy(false); }
         settings = settings with { LastPlayedVersion = version.Version.ToString() };
         SaveSettings();
         // The launcher closes while the game runs.

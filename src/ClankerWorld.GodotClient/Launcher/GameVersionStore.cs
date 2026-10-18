@@ -17,11 +17,11 @@ public sealed class GameInstallException(string message, Exception? inner = null
 /// <summary>
 /// Installs, checks, repairs and removes game versions in the launcher's
 /// versions folder. A download is checked against the release's published
-/// SHA-256 before anything is unpacked or run. A version's own
+/// SHA-256 and offline signature before anything is unpacked or run. A version's own
 /// <c>manifest.sha256</c> lets Repair find files that changed since.
 /// Nothing here ever touches the saves, logs or settings folders.
 /// </summary>
-public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
+public sealed class GameVersionStore(LauncherLayout layout, HttpClient http, string signingPublicKey = ReleasePackageSignature.PublicKeyPem)
 {
     private const long MaximumPackageBytes = 2L * 1024 * 1024 * 1024;
 
@@ -58,7 +58,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
             foreach (var path in Directory.EnumerateFiles(version.Directory, "*", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(version.Directory, path);
-                if (relative != LauncherLayout.PackageManifest && !names.Contains(relative)) problems.Add(relative);
+                if (relative != LauncherLayout.PackageManifest && relative != ReleasePackageSignature.InstalledFile && !names.Contains(relative)) problems.Add(relative);
             }
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException or UnauthorizedAccessException)
@@ -89,28 +89,31 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
     public async Task<InstalledVersion> InstallAsync(GameRelease release, IProgress<double>? progress,
         CancellationToken cancellationToken)
     {
-        if (!GameReleaseFeed.IsTrustedDownload(release.Package.DownloadUrl) ||
-            !GameReleaseFeed.IsTrustedDownload(release.PackageHash.DownloadUrl))
+        if (!GameReleaseFeed.IsTrustedDownload(release.Package.DownloadUrl))
             throw new GameInstallException("This download doesn't come from ClankerWorld's releases, so it wasn't installed.");
         if (release.Package.Size > MaximumPackageBytes)
             throw new GameInstallException("This download is larger than any ClankerWorld version, so it wasn't installed.");
+        if (release.PackageSignature is not { } signatureAsset || !GameReleaseFeed.IsTrustedDownload(signatureAsset.DownloadUrl))
+            throw ReleasePackageSignature.Refused();
+        using var signatureResponse = await http.GetAsync(signatureAsset.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        if (!signatureResponse.IsSuccessStatusCode) throw ReleasePackageSignature.Refused();
+        var signature = await ReleasePackageSignature.ReadAsync(signatureResponse.Content, cancellationToken);
+        if (!signature.Verify(release.Package.Name, signingPublicKey)) throw ReleasePackageSignature.Refused();
         Directory.CreateDirectory(layout.DownloadsDirectory);
-        var expected = ParseHashFile(await http.GetStringAsync(release.PackageHash.DownloadUrl, cancellationToken),
-            release.Package.Name);
         var zip = Path.Combine(layout.DownloadsDirectory, release.Package.Name + ".part");
         try
         {
             var actual = await DownloadAsync(release.Package, zip, progress, cancellationToken);
-            if (!actual.Equals(expected, StringComparison.OrdinalIgnoreCase))
+            if (!actual.Equals(signature.PackageSha256, StringComparison.OrdinalIgnoreCase))
                 throw new GameInstallException(
                     "The download didn't match the published file, so it wasn't installed. Your saves are untouched. Try again.");
-            return InstallPackage(zip, release.Version);
+            return InstallPackage(zip, release.Version, signature);
         }
         finally { TryDelete(zip); }
     }
 
     /// <summary>Unpacks an already checked package into its version folder.</summary>
-    public InstalledVersion InstallPackage(string zipPath, GameVersionName version)
+    internal InstalledVersion InstallPackage(string zipPath, GameVersionName version, ReleasePackageSignature? signature = null)
     {
         Directory.CreateDirectory(layout.VersionsDirectory);
         var staging = Path.Combine(layout.VersionsDirectory, ".staging-" + Guid.NewGuid().ToString("N"));
@@ -119,6 +122,12 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
         try
         {
             Extract(zipPath, GameReleaseFeed.PackageName(version) + "/", staging);
+            if (signature is not null)
+            {
+                if (!HashFile(Path.Combine(staging, LauncherLayout.PackageManifest)).Equals(signature.ManifestSha256, StringComparison.OrdinalIgnoreCase))
+                    throw ReleasePackageSignature.Refused();
+                File.WriteAllText(Path.Combine(staging, ReleasePackageSignature.InstalledFile), JsonSerializer.Serialize(signature));
+            }
             if (PackageEntryPoints.ReadInstalled(staging) is not { } entryPoints ||
                 !File.Exists(Path.Combine(staging, entryPoints.Game)))
                 throw new GameInstallException("This download isn't a ClankerWorld game package, so it wasn't installed.");
@@ -147,6 +156,23 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
             if (Directory.Exists(destination)) TryDeleteDirectory(retired);
         }
         return Installed().Single(installed => installed.Version == version);
+    }
+
+    /// <summary>Rechecks the pinned approval and every manifested file before Play.</summary>
+    public static void RequireSigned(InstalledVersion version, string publicKey = ReleasePackageSignature.PublicKeyPem)
+    {
+        try
+        {
+            var signature = ReleasePackageSignature.ReadFile(Path.Combine(version.Directory, ReleasePackageSignature.InstalledFile));
+            if (!signature.Verify(GameReleaseFeed.PackageName(version.Version) + ".zip", publicKey) ||
+                !HashFile(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Equals(signature.ManifestSha256, StringComparison.OrdinalIgnoreCase) ||
+                Verify(version).Count != 0)
+                throw ReleasePackageSignature.Refused();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw ReleasePackageSignature.Refused();
+        }
     }
 
     /// <summary>Removes one version's program files. Worlds, keys and logs stay where they are.</summary>
@@ -190,19 +216,6 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
         if (Directory.Exists(layout.DownloadsDirectory))
             foreach (var file in Directory.EnumerateFiles(layout.DownloadsDirectory, "*.part"))
                 TryDelete(file);
-    }
-
-    public static string ParseHashFile(string text, string fileName)
-    {
-        foreach (var line in text.Split('\n'))
-        {
-            var trimmed = line.Trim();
-            if (trimmed.Length < 66) continue;
-            var hash = trimmed[..64];
-            var name = trimmed[64..].TrimStart(' ', '*');
-            if (name == fileName && hash.All(Uri.IsHexDigit)) return hash;
-        }
-        throw new GameInstallException("This release has no checksum for its download, so it wasn't installed.");
     }
 
     private static GameVersionName? RetiredVersion(string name, string prefix) =>

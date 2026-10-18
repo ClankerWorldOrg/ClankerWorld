@@ -1,0 +1,1 @@
+- The launcher checks the owner's release signature before installing a download and checks the approved file list before Play. Missing or invalid approval leaves installed versions and worlds untouched.

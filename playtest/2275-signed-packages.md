@@ -1,0 +1,1 @@
+- With the new launcher and an owner-signed release, install the game, choose Play, save a disposable world, then close and reopen it from the launcher. Repair still restores the signed game files and keeps your saved world. ([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275))

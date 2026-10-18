@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Build and test
@@ -426,10 +426,17 @@ since the game reuses only a server of its own exact build
 ([Device pairing](device-pairing.md#local-server-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
-`clankerworld-windows-11-x64-portable` artifact. It is unsigned, and a built
-zip is not a Windows playtest.
+`clankerworld-windows-11-x64-portable` artifact. It is not signed by the build job; the owner adds an
+[offline release signature](releasing.md#offline-release-signatures) before
+distribution. A built zip is not a Windows playtest.
 
 ### Windows launcher
+
+Downloaded releases require the owner's [offline signature](releasing.md#offline-release-signatures).
+The launcher checks that approval before extraction, retains its approved
+manifest hash, and checks the signed manifest and installed files before Play.
+The signing key stays outside the build; tests use temporary keys. Explicitly
+selected local builds keep the existing Developer mode path.
 
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
 is the same Godot project exported with the `launcher` feature, which makes

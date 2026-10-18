@@ -2,7 +2,7 @@
 title: Releasing
 type: release-policy
 status: active
-updated: 2026-10-15
+updated: 2026-10-18
 ---
 
 # Releasing
@@ -147,8 +147,10 @@ Before publishing:
    distributable artifact or useful release note. For an alpha, attach the
    [portable Windows zip](build-and-test.md#portable-windows-package) and its
    `.sha256` built from the tagged commit, keeping their file names: the
-   launcher finds a game release by its `v<version>` tag and those two assets,
-   and refuses a package whose SHA-256 differs from the `.sha256` file. For a
+   launcher finds a game release by its `v<version>` tag and those assets,
+   and verifies the package's SHA-256 against the owner's signed approval. Keep
+   the `.sha256` for manual checks and older launchers. Add its
+   [offline signature](#offline-release-signatures) before publishing. For a
    later alpha that includes the installer, also attach the
    [per-user setup](build-and-test.md#windows-installer) and its `.sha256` from
    the same tagged commit. The setup includes that game's
@@ -194,6 +196,63 @@ test device and disposable world:
 Record the build and each result. A failed check gets a Bug issue and blocks
 the release unless the owner explicitly accepts it. This short release check
 does not claim that the release checklist's remaining checks were performed.
+
+## Offline release signatures
+
+The launcher requires an owner's detached approval before installing a downloaded
+game or starting an installed release. The `.zip.sig` JSON sidecar binds the
+package name, its SHA-256 and its internal `manifest.sha256` hash. ECDSA P-256
+with SHA-256 signs a versioned canonical payload. The launcher pins only the
+public PEM in `Launcher/ReleasePackageSignature.cs`; an empty pin refuses every
+release. It retains the verified sidecar as `.release-signature.json` and checks
+that approval, the manifest and all listed files before Play. A missing or wrong
+signature refuses the operation and keeps existing installations and saves.
+Developer mode's explicitly selected local builds retain their separate path.
+
+The owner creates and keeps the private signing key offline, outside the
+repository, GitHub, CI secrets and build machines. On the owner's offline signing
+computer, with OpenSSL installed:
+
+```bash
+umask 077
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out clankerworld-release-private.pem
+openssl pkey -in clankerworld-release-private.pem -pubout -out clankerworld-release-public.pem
+```
+
+Keep an offline backup of the private file. Give contributors only the public
+PEM to pin through a reviewed launcher change. Do not paste, upload or log the
+private key. No build job signs with it.
+
+After verifying the exact tagged build and its existing checksums, move its
+artifacts to the signing computer. Keep each package's original name. With
+Python 3.11 or later and OpenSSL:
+
+```bash
+python3 scripts/sign-release-package.py sign ClankerWorld-<version>-windows-x64.zip clankerworld-release-private.pem
+python3 scripts/sign-release-package.py verify ClankerWorld-<version>-windows-x64.zip clankerworld-release-public.pem
+```
+
+The tool creates `<package>.sig` and refuses to replace an existing approval.
+For the installer, sign the game zip first and keep its sidecar beside it when
+running `package-windows-installer.sh`; the installer then carries the game's
+retained approval. Sign and verify the finished installer with the same two
+commands, replacing the zip name with its `.exe` name. Sign a separately
+published launcher zip as well. These detached approvals do not replace Windows
+Authenticode signing or remove Windows' unknown-publisher warning.
+
+Attach the original artifacts, their `.sha256` files and their `.sig` sidecars
+to a **draft** GitHub release. Verify all sidecars against the pinned public key
+before publishing. Enable immutable releases in the repository's release
+settings if available, and confirm the release is immutable after publication;
+all assets must be attached before that point. This setting requires a repository
+administrator. No repository setting was changed by the signing tool.
+
+Nightlies need the same offline approval to be installable by this launcher.
+The publication workflow must wait as a draft for that approval, or a separate
+owner-approved automated signing design must replace that step. The existing
+automatic publication policy below must be reconciled before shipping this
+change; [#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)
+records the pending public key and nightly decision.
 
 ## Nightly builds
 

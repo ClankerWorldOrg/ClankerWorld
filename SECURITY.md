@@ -66,8 +66,10 @@ Older alpha builds don't; update through the launcher.
 - On Windows, API keys are stored protected for your Windows account. Keys never
   go into saves or logs. Problem reports also blank known secrets and text that
   resembles common keys before including log excerpts.
-- The launcher checks every download against the published release before
-  running it.
+- The launcher requires an offline release signature pinned to the owner's
+  public key before installing downloads. Before Play it checks the retained
+  approval, the signed file manifest and the installed files. Private release
+  keys stay outside GitHub and CI.
 
 ## For contributors
 

@@ -73,6 +73,9 @@ for files in "${game_files}" "${launcher_files}"; do
     (cd "${files}" && sha256sum --check --quiet --strict manifest.sha256)
 done
 test -f "${game_files}/ClankerWorld.exe"
+if [[ -f "${game_package}.sig" ]]; then
+    cp -- "${game_package}.sig" "${game_files}/.release-signature.json"
+fi
 test -f "${game_files}/server/ClankerWorld.Server.exe"
 test -f "${launcher_files}/ClankerWorldLauncher.exe"
 staged_repo_root="${scratch_root}/repository"

@@ -11,7 +11,7 @@ public sealed record ReleaseAsset(string Name, long Size, Uri DownloadUrl);
 /// SHA-256. Both come from the project's own GitHub releases.
 /// </summary>
 public sealed record GameRelease(GameVersionName Version, string Tag, bool PreRelease, Uri Page,
-    ReleaseAsset Package, ReleaseAsset PackageHash);
+    ReleaseAsset Package, ReleaseAsset PackageHash, ReleaseAsset? PackageSignature = null);
 
 /// <summary>A published launcher release, which the player installs by hand.</summary>
 public sealed record LauncherRelease(GameVersionName Version, Uri Page);
@@ -64,7 +64,7 @@ public sealed class GameReleaseFeed(HttpClient http, Uri? releasesApi = null)
             var package = Asset(release, name);
             var hash = Asset(release, name + ".sha256");
             if (package is null || hash is null) continue;
-            games.Add(new GameRelease(version, release.TagName, release.PreRelease, page, package, hash));
+            games.Add(new GameRelease(version, release.TagName, release.PreRelease, page, package, hash, Asset(release, name + ".sig")));
         }
         games.Sort((a, b) => b.Version.CompareTo(a.Version));
         return new ReleaseFeedResult(games, launcher);
