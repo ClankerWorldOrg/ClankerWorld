@@ -1,1 +1,0 @@
-- Agents offer tree planting or stump replanting from a shared seed only when they have room to collect it. An agent already carrying its seed can still plant with a full load.

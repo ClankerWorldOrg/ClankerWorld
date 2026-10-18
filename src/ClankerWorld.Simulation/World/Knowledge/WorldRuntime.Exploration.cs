@@ -20,6 +20,20 @@ public sealed record ExplorationGoal(string Kind, string Target, string? OrderIn
 
 public sealed partial class WorldRuntime
 {
+    private void RetireClosedOrderExplorationGoals(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person =>
+                     retired.Contains(person.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            agents[person.AgentId] = person with { Exploration = person.Exploration! with { Goal = null } };
+        foreach (var person in deceasedAgents.Values.Where(person =>
+                     retired.Contains(person.LastPhysical.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            deceasedAgents[person.AgentId] = person with
+            {
+                LastPhysical = person.LastPhysical with
+                { Exploration = person.LastPhysical.Exploration! with { Goal = null } },
+            };
+    }
+
     private const int StartingExplorationWarmthBudgetSteps = 8;
     private const int ExplorationCooldownTicks = 180;
     private const int ExplorationMemoryLimit = 256;
@@ -38,7 +52,7 @@ public sealed partial class WorldRuntime
             },
         };
         agents[actor] = completed;
-        AppendEvent("exploration_goal_found", $"{actor}:{goal.Kind}:{goal.Target}");
+        AppendEvent(new ExplorationGoalFoundEventPayload(actor, goal.Kind, goal.Target));
         return completed;
     }
 
@@ -62,7 +76,7 @@ public sealed partial class WorldRuntime
 
         if (!HasWarmthForOuting(person) || person.FullnessBasisPoints < OutingFullnessReserve ||
             exploration is not null && WorldTick - exploration.LastOutingTick < ExplorationCooldownTicks ||
-            !map.FootNeighbors(person.Position).Any(map.IsPassable))
+            !FootMovementNeighbors(person.Position).Any(map.IsPassable))
             return;
 
         if (NeededExplorationResource(actor, person) is { } needed)
@@ -85,7 +99,7 @@ public sealed partial class WorldRuntime
         // Keep the starting trial budget, then account for a longer recorded return.
         // Shelter at the starting tile is not protection carried along on the outing.
         var steps = Math.Max(StartingExplorationWarmthBudgetSteps, person.Exploration?.OutingPath.Count ?? 0);
-        return map.FootNeighbors(person.Position).Where(map.IsPassable).All(next =>
+        return FootMovementNeighbors(person.Position).Where(map.IsPassable).All(next =>
         {
             var loss = Math.Max(0, OutdoorExposure(next) - ClothingProtection(person.AgentId, next));
             var stepTicks = (RoadStepCost(person.Position, next) + 99) / 100 +
@@ -101,7 +115,7 @@ public sealed partial class WorldRuntime
         if (plan is null) return;
         if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var exploration = plan.Prepared;
-        if (plan.Interrupted) AppendEvent("exploration_aborted", $"{actor}:interrupted_movement");
+        if (plan.Interrupted) AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
         if (plan.Starting)
         {
             var learnedStartingTile = RecordKnowledgeFact(actor, person.Position);
@@ -110,7 +124,7 @@ public sealed partial class WorldRuntime
                 LastOutingTick = WorldTick,
                 OutingDiscoveries = learnedStartingTile ? [person.Position] : [],
             };
-            AppendEvent("exploration_started", $"{actor}:{person.Position.X},{person.Position.Y}");
+            AppendEvent(new ExplorationStartedEventPayload(actor, person.Position.X, person.Position.Y));
         }
 
         if (exploration.Returning)
@@ -154,8 +168,7 @@ public sealed partial class WorldRuntime
             var terrain = map.Tiles.First(tile => tile.Position == moved.Position).Terrain;
             var resourcesHere = map.Resources.Where(site => site.Position == moved.Position)
                 .Select(site => site.Kind).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
-            AppendEvent("exploration_discovered",
-                $"{actor}:{moved.Position.X},{moved.Position.Y}:{terrain}:{string.Join(',', resourcesHere)}");
+            AppendEvent(new ExplorationDiscoveredEventPayload(actor, moved.Position.X, moved.Position.Y, Convert.ToString(terrain, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, string.Join(',', resourcesHere)));
         }
         if (exploration.Goal is { } reachedGoal && ExplorationGoalReached(actor, agents[actor], reachedGoal))
             CompleteExplorationGoal(actor, agents[actor]);
@@ -168,7 +181,7 @@ public sealed partial class WorldRuntime
         if (plan is null) return;
         if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Original is { Returning: false })
-            AppendEvent("exploration_return_started", actor);
+            AppendEvent(new ExplorationReturnStartedEventPayload(actor));
         ReturnFromExploration(actor, person, plan.Prepared, plan);
     }
 
@@ -186,7 +199,7 @@ public sealed partial class WorldRuntime
                     Goal = null,
                 }
             };
-            AppendEvent("exploration_completed", $"{actor}:visited={exploration.VisitedTiles.Count}");
+            AppendEvent(new ExplorationCompletedEventPayload(actor, exploration.VisitedTiles.Count));
             return;
         }
 
@@ -216,7 +229,7 @@ public sealed partial class WorldRuntime
                     Goal = null,
                 }
             };
-            AppendEvent("exploration_aborted", $"{actor}:return_blocked");
+            AppendEvent(new ExplorationAbortedEventPayload(actor, "return_blocked"));
         }
     }
 

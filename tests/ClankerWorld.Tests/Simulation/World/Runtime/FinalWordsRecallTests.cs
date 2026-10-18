@@ -67,7 +67,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var offered = Assert.Single(provider.Observations, item => item.Will is not null);
         offered.Validate();
         Assert.Contains(offered.Will!.Heirs, item => item.Name == checkpoint.GetAgent(heir).Name);
-        Assert.DoesNotContain(world.Society.Memories, item => item.Id.StartsWith("final-words:", StringComparison.Ordinal) &&
+        Assert.DoesNotContain(world.Society.Memories, item => item.Id.Value.StartsWith("final-words:", StringComparison.Ordinal) &&
             item.SubjectId == parent);
 
         // Keep the full escrow wait. Replay the actual settlement boundary,
@@ -90,7 +90,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal((heir, 4, new InventoryGroundPosition(physical.Position.X, physical.Position.Y)),
             (inherited.OwnerId, inherited.Quantity, inherited.GroundPosition));
         var memory = Assert.Single(world.Society.Memories, item => item.OwnerId == heir &&
-            item.Id.StartsWith("final-words:", StringComparison.Ordinal) && item.SubjectId == parent);
+            item.Id.Value.StartsWith("final-words:", StringComparison.Ordinal) && item.SubjectId == parent);
         Assert.Equal((heir, parent, "private", SocietyMemoryKind.LifeEvent,
                 $"{checkpoint.GetAgent(parent).Name}'s final words were: '{FinalWordsRecallProvider.Words}'"),
             (memory.OwnerId, memory.SubjectId, memory.Visibility, memory.Kind, memory.Summary));
@@ -108,7 +108,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         observation.Validate();
         Assert.True(observation.WorldTick > memory.SourceTick);
         var excerpt = Assert.Single(observation.RetrievedMemories!, item => item.Id == memory.Id);
-        Assert.InRange(memory.Id.Length, 1, 128);
+        Assert.InRange(memory.Id.Value.Length, 1, 128);
         Assert.Equal((heir, memory.Summary, memory.SourceTick, "private"),
             (excerpt.OwnerId, excerpt.Summary, excerpt.SourceTick, excerpt.Visibility));
         Assert.Equal(parent, excerpt.SubjectId);
@@ -123,15 +123,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task AdvanceFinalWordsTick(WorldRuntime world)
     {
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        foreach (var name in new[] { "pendingModelCalls", "pendingWills" })
-        {
-            var field = typeof(WorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-            var tasks = pending.Values.Cast<object>().Select(item =>
-                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-            await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
-        }
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class FinalWordsRecallProvider(string heirName, string? recallOwner = null) : IDecisionProvider

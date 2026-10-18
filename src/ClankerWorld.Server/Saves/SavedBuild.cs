@@ -60,21 +60,3 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
         }
     }
 }
-
-/// <summary>Unusable optional build diagnostics read as unknown without refusing a world or save.</summary>
-public sealed class SavedBuildTextConverter : JsonConverter<string>
-{
-    public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.String)
-        {
-            reader.Skip();
-            return null;
-        }
-        var value = reader.GetString();
-        return value is { Length: > 0 and <= 64 } && !value.Any(char.IsControl) ? value : null;
-    }
-
-    public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) =>
-        writer.WriteStringValue(value);
-}

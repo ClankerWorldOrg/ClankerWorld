@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -350,7 +351,7 @@ public sealed partial class ServerHttpTests
         var instructionReceipt = await instruction.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
         Assert.Equal(HttpStatusCode.OK, instruction.StatusCode);
         Assert.NotNull(instructionReceipt);
-        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId);
+        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId.Value);
 
         var beforeAuthoring = WorldRuntimeCodec.Encode(runtime.ExportState());
         var authoringAction = new OwnerAuthoringBatchAction(
@@ -366,11 +367,11 @@ public sealed partial class ServerHttpTests
         var failure = await authoring.Content.ReadFromJsonAsync<OwnerControlFailure>();
 
         Assert.Equal(HttpStatusCode.Conflict, authoring.StatusCode);
-        Assert.Equal("game_world_authoring_pending", failure!.Code);
+        Assert.Equal("world_edit_refused", failure!.Code);
         Assert.Equal(beforeAuthoring, WorldRuntimeCodec.Encode(runtime.ExportState()));
         var queued = Assert.Single(runtime.ExportState().Instructions!);
         Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);
-        Assert.Equal(instructionReceipt.InstructionId, queued.InstructionId);
+        Assert.Equal(instructionReceipt.InstructionId.Value, queued.InstructionId);
         Assert.Equal(instructionAction.TargetAgentId, queued.TargetAgentId);
     }
 }

@@ -1,1 +1,0 @@
-- Handcart pulling retains the selected attachment, cargo and destination, while blocked routes keep their existing wait behavior.
