@@ -206,6 +206,7 @@ test('publication refuses a prepared tag that moved after the build gate', t => 
     const result = fixture.run('Publish the automatically approved release');
     assert.equal(result.status === 0, tagSha === sha, result.stderr);
     assert.equal(fixture.calls().some(call => call[1] === 'create'), tagSha === sha);
+    if (tagSha === sha) assert.ok(fixture.calls().find(call => call[1] === 'create').includes('--notes-from-tag'));
   }
 });
 

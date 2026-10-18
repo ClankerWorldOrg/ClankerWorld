@@ -144,15 +144,17 @@ Before publishing:
    and the same source commit.
 6. That preparing session creates and pushes the annotated tag for the verified
    release commit, then verifies that GitHub resolves it to that commit.
+   Put the reviewed changelog and the remaining "not yet checked by hand"
+   checks in the tag's annotation; the workflow uses it for the release notes.
    Never move or delete a pushed tag. Start the automatic release workflow when
-   there is a distributable artifact or useful release note. For an alpha, it attaches the
+   there is a distributable artifact or useful release note. It attaches the
    [portable Windows zip](build-and-test.md#portable-windows-package) and its
    `.sha256` built from the tagged commit, keeping their file names: the
    launcher finds a game release by its `v<version>` tag and those assets,
    and verifies the package's SHA-256 against its workflow approval. Keep
-   the `.sha256` for manual checks and older launchers. The release workflow adds its
+   the `.sha256` for manual checks and older launchers. The workflow adds its
    [automatic signature](#automatic-release-signatures) before publishing. For a
-   later alpha that includes the installer, also attach the
+   release that includes the installer, it also attaches the
    [per-user setup](build-and-test.md#windows-installer) and its `.sha256` from
    the same tagged commit. The setup includes that game's
    current launcher and game; keep the portable zip for launcher downloads.
@@ -245,7 +247,8 @@ embedded public trust root through review when Sigstore rotates its public keys;
 the file's source is `sigstore/root-signing/targets/trusted_root.json`.
 
 For a prepared alpha release, finish the release gates above and push its
-annotated tag at the reviewed current main commit. From a local or cloud session, run:
+annotated tag at the reviewed current main commit. From a local or cloud
+session, run:
 
 ```bash
 gh workflow run nightly.yml --ref main -f channel=release -f release_tag=v<version>
