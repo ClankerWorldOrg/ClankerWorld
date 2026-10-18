@@ -50,7 +50,7 @@ public sealed class WorldStateFile
                 return created;
             }
 
-            var state = WorldRuntimeCodec.Decode(File.ReadAllBytes(Path));
+            var state = WorldRuntimeCodec.Decode(SavedFile.Read(Path, SavedFile.CheckpointLimit));
             VerifyHistory(state.HistoryArchiveHead, state.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(state));
             if (!allowDifferentSavedSeed && !string.Equals(state.WorldSeed, worldSeed, StringComparison.Ordinal))
             {
@@ -126,6 +126,8 @@ public sealed class WorldStateFile
             }
         }
         var checkpointBytes = WorldRuntimeCodec.Encode(state);
+        SavedFile.CheckLength(checkpointBytes.LongLength, SavedFile.CheckpointLimit);
+        if (historyBytes is not null) SavedFile.CheckLength(historyBytes.LongLength, SavedFile.HistoryLimit);
         // A valid in-memory checkpoint can still serialize into invalid source
         // evidence. Check the exact bytes before replacing the last good file.
         _ = WorldRuntimeCodec.Decode(checkpointBytes);
@@ -149,7 +151,7 @@ public sealed class WorldStateFile
     {
         lock (gate)
         {
-            if (!File.ReadAllBytes(Path).AsSpan().SequenceEqual(expectedBytes))
+            if (!SavedFile.Read(Path, SavedFile.CheckpointLimit).AsSpan().SequenceEqual(expectedBytes))
                 throw new InvalidDataException("The latest checkpoint changed. Restart before recovering it.");
             var preserved = Path + ".damaged." + Guid.NewGuid().ToString("N") + ".json";
             var buildBytes = SavedBuild.TryReadBytes(Path);
@@ -210,7 +212,7 @@ public sealed class WorldStateFile
         PrivateStorage.EnsureDirectory(Path + ".history");
         if (File.Exists(destination))
         {
-            if (!File.ReadAllBytes(destination).AsSpan().SequenceEqual(bytes))
+            if (!SavedFile.Read(destination, SavedFile.HistoryLimit).AsSpan().SequenceEqual(bytes))
             {
                 throw new InvalidDataException("A world history segment failed content verification.");
             }
@@ -269,14 +271,14 @@ public sealed class WorldStateFile
             // checkpoints are conservative roots too; corrupt roots fail closed.
             foreach (var root in roots)
             {
-                var checkpoint = WorldRuntimeCodec.Decode(File.ReadAllBytes(root));
+                var checkpoint = WorldRuntimeCodec.Decode(SavedFile.Read(root, SavedFile.CheckpointLimit));
                 VerifyHistory(checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint));
                 var head = checkpoint.HistoryArchiveHead;
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 while (head is not null)
                 {
                     if (!visited.Add(head)) throw new InvalidDataException("The history archive contains a cycle.");
-                    var bytes = File.ReadAllBytes(HistoryPath(head));
+                    var bytes = SavedFile.Read(HistoryPath(head), SavedFile.HistoryLimit);
                     if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != head)
                         throw new InvalidDataException("The history archive is corrupt.");
                     retained.Add(head);
@@ -305,7 +307,7 @@ public sealed class WorldStateFile
             {
                 throw new InvalidDataException("The world history archive contains a cycle.");
             }
-            var bytes = File.ReadAllBytes(HistoryPath(head));
+            var bytes = SavedFile.Read(HistoryPath(head), SavedFile.HistoryLimit);
             if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != head)
             {
                 throw new InvalidDataException("The world history archive is corrupt.");

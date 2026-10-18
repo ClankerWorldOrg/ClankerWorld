@@ -103,7 +103,7 @@ public sealed partial class ManualWorldSaveStore
                 previousMetadata.WorldId != state.Society.Society.WorldId)
                 throw new InvalidOperationException("Only a named save from this world can be overwritten.");
             var previousPath = CommittedStatePath(id, previousMetadata);
-            var previousBytes = File.ReadAllBytes(previousPath);
+            var previousBytes = SavedFile.Read(previousPath, SavedFile.CheckpointLimit);
             var oldCheckpoint = WorldRuntimeCodec.Decode(previousBytes);
             if (oldCheckpoint.Society.Society.WorldId != previousMetadata.WorldId)
                 throw new InvalidDataException("The selected checkpoint does not match its metadata.");
@@ -226,10 +226,10 @@ public sealed partial class ManualWorldSaveStore
             var metadata = ReadMetadata(id);
             var worldId = metadata.WorldId ?? throw new InvalidDataException("The manual save has no world.");
             var path = TimelinePath(worldId);
-            var restore = new SaveTimelineRestorePoint(worldId, File.Exists(path) ? File.ReadAllBytes(path) : null);
+            var restore = new SaveTimelineRestorePoint(worldId, File.Exists(path) ? SavedFile.Read(path) : null);
             var previous = ReadTimeline(worldId);
             var save = WithValidBranch(metadata.Save);
-            var checkpointFingerprint = Fingerprint(File.ReadAllBytes(CommittedStatePath(id, metadata)));
+            var checkpointFingerprint = Fingerprint(SavedFile.Read(CommittedStatePath(id, metadata), SavedFile.CheckpointLimit));
             WriteTimeline(new Timeline(worldId, save.Branch, save.Id, save.Name, save.WorldTick,
                 Math.Max(previous?.LastBranchNumber ?? 0, save.Branch?.Number ?? 0), save.CreatedUtc,
                 save.BranchPosition, SavedCheckpointFingerprint: checkpointFingerprint));
@@ -288,7 +288,7 @@ public sealed partial class ManualWorldSaveStore
                 var bytes = WorldRuntimeCodec.Encode(state);
                 // A remembered runtime baseline cannot stand in for a missing
                 // or damaged recovery checkpoint. Verify the stored bytes too.
-                var checkpointBytes = File.ReadAllBytes(CommittedStatePath(id, metadata));
+                var checkpointBytes = SavedFile.Read(CommittedStatePath(id, metadata), SavedFile.CheckpointLimit);
                 var unchanged = timeline.SavedCheckpointFingerprint is { } checkpointFingerprint &&
                     timeline.LoadedStateFingerprint is { } fingerprint
                     ? checkpointFingerprint == Fingerprint(checkpointBytes) && fingerprint == Fingerprint(bytes)
@@ -373,7 +373,7 @@ public sealed partial class ManualWorldSaveStore
         if (!File.Exists(path)) return null;
         try
         {
-            var timeline = JsonSerializer.Deserialize<Timeline>(File.ReadAllBytes(path));
+            var timeline = JsonSerializer.Deserialize<Timeline>(SavedFile.Read(path));
             if (timeline is not null && timeline.WorldId == worldId && IsValidBranch(timeline.Branch) &&
                 (timeline.ContinuedFromId is null || IsId(timeline.ContinuedFromId)) &&
                 timeline.LastBranchNumber is >= 0 and < int.MaxValue &&
@@ -463,7 +463,7 @@ public sealed partial class ManualWorldSaveStore
                 // Preserve another world's recorded save and all its generations
                 // without requiring that unrelated checkpoint to remain readable.
                 if (foreignSaveIds.Contains(parts[0])) continue;
-                var state = WorldRuntimeCodec.Decode(File.ReadAllBytes(path));
+                var state = WorldRuntimeCodec.Decode(SavedFile.Read(path, SavedFile.CheckpointLimit));
                 if (state.Society.Society.WorldId == worldId) File.Delete(path);
             }
             File.Delete(TimelinePath(worldId));
@@ -488,7 +488,7 @@ public sealed partial class ManualWorldSaveStore
 
     private static Metadata ReadDeletionMetadata(string path, string id)
     {
-        var metadata = DeserializeMetadata(File.ReadAllBytes(path));
+        var metadata = DeserializeMetadata(SavedFile.Read(path));
         // Deletion needs a verified identity, not playable routing/settings.
         // Malformed records must enter the existing pending-cleanup path.
         if (!IsId(id) || metadata?.Save is null || metadata.Save.Id != id)
@@ -519,7 +519,7 @@ public sealed partial class ManualWorldSaveStore
                 var fileId = Path.GetFileName(path)[..^".meta.json".Length];
                 try
                 {
-                    var item = DeserializeMetadata(File.ReadAllBytes(path));
+                    var item = DeserializeMetadata(SavedFile.Read(path));
                     if (!IsValidMetadata(item, fileId))
                     {
                         ReportInvalid(path, fileId, "invalid_metadata", invalidPaths);
@@ -577,7 +577,7 @@ public sealed partial class ManualWorldSaveStore
                     var metadata = ReadMetadata(save.Id);
                     try
                     {
-                        VerifyCheckpoint(File.ReadAllBytes(CommittedStatePath(save.Id, metadata)), metadata.WorldId, stateFile);
+                        VerifyCheckpoint(SavedFile.Read(CommittedStatePath(save.Id, metadata), SavedFile.CheckpointLimit), metadata.WorldId, stateFile);
                     }
                     catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
                         InvalidDataException or JsonException or ArgumentException)
@@ -632,7 +632,7 @@ public sealed partial class ManualWorldSaveStore
             if (!File.Exists(MetadataPath(id)))
                 throw new FileNotFoundException("The manual save does not exist.");
             var metadata = ReadMetadata(id);
-            var checkpoint = WorldRuntimeCodec.Decode(File.ReadAllBytes(CommittedStatePath(id, metadata)));
+            var checkpoint = WorldRuntimeCodec.Decode(SavedFile.Read(CommittedStatePath(id, metadata), SavedFile.CheckpointLimit));
             return (checkpoint, metadata.Assignments, metadata.AutosaveSettings);
         }
     }
@@ -664,7 +664,7 @@ public sealed partial class ManualWorldSaveStore
         Metadata? metadata;
         try
         {
-            metadata = DeserializeMetadata(File.ReadAllBytes(MetadataPath(id)));
+            metadata = DeserializeMetadata(SavedFile.Read(MetadataPath(id)));
         }
         catch (JsonException exception)
         {

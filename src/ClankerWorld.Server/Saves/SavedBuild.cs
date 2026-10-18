@@ -20,8 +20,8 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
 
     internal static byte[]? TryReadBytes(string checkpointPath)
     {
-        try { return File.ReadAllBytes(PathFor(checkpointPath)); }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { return null; }
+        try { return SavedFile.Read(PathFor(checkpointPath)); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException) { return null; }
     }
 
     internal static bool TryRestore(string checkpointPath, byte[]? bytes)
@@ -42,7 +42,7 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
             File.Move(temporary, destination, overwrite: true);
             return true;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException)
         {
             try { File.Delete(temporary); }
             catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }
@@ -54,10 +54,10 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
     {
         try
         {
-            var saved = JsonSerializer.Deserialize<SavedBuild>(File.ReadAllBytes(PathFor(checkpointPath)));
+            var saved = JsonSerializer.Deserialize<SavedBuild>(SavedFile.Read(PathFor(checkpointPath)));
             return saved is { GameVersion.Length: > 0 and <= 64, SourceRevision.Length: <= 64 } ? saved : null;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
         {
             return null;
         }

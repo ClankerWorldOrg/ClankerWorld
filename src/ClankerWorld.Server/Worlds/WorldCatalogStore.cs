@@ -29,7 +29,7 @@ public sealed class WorldCatalogStore
     {
         var path = Path.Combine(Path.GetFullPath(activeSavePath) + ".worlds", "catalog.json");
         if (!File.Exists(path)) return null;
-        var saved = JsonSerializer.Deserialize<WorldCatalogSnapshot>(File.ReadAllBytes(path))
+        var saved = JsonSerializer.Deserialize<WorldCatalogSnapshot>(SavedFile.Read(path, SavedFile.CatalogLimit))
             ?? throw new InvalidDataException("The world catalog is empty.");
         Validate(saved);
         return saved.Worlds.Single(world => world.Id == saved.ActiveId);
@@ -44,7 +44,7 @@ public sealed class WorldCatalogStore
         indexPath = Path.Combine(directory, "catalog.json");
         if (File.Exists(indexPath))
         {
-            index = JsonSerializer.Deserialize<WorldCatalogSnapshot>(File.ReadAllBytes(indexPath))
+            index = JsonSerializer.Deserialize<WorldCatalogSnapshot>(SavedFile.Read(indexPath, SavedFile.CatalogLimit))
                 ?? throw new InvalidDataException("The world catalog is empty.");
             Validate(index);
             var matching = index.Worlds.SingleOrDefault(world => world.WorldId == activeState.Society.Society.WorldId);
@@ -148,7 +148,7 @@ public sealed class WorldCatalogStore
         WorldRuntimeState existing;
         try
         {
-            existing = WorldRuntimeCodec.Decode(File.ReadAllBytes(SnapshotPath(entry.Id)));
+            existing = WorldRuntimeCodec.Decode(SavedFile.Read(SnapshotPath(entry.Id), SavedFile.CheckpointLimit));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or
             JsonException or ArgumentException or FormatException)
@@ -209,7 +209,7 @@ public sealed class WorldCatalogStore
         {
             var entry = index.Worlds.SingleOrDefault(world => world.Id == id)
                 ?? throw new FileNotFoundException("The selected world does not exist.");
-            var state = WorldRuntimeCodec.Decode(File.ReadAllBytes(SnapshotPath(id)));
+            var state = WorldRuntimeCodec.Decode(SavedFile.Read(SnapshotPath(id), SavedFile.CheckpointLimit));
             if (state.Society.Society.WorldId != entry.WorldId || state.WorldSeed != entry.Seed)
                 throw new InvalidDataException("The selected world checkpoint does not match its catalog entry.");
             return state;
@@ -222,7 +222,7 @@ public sealed class WorldCatalogStore
         {
             if (!index.Worlds.Any(world => world.Id == id))
                 throw new FileNotFoundException("The selected world does not exist.");
-            return File.ReadAllBytes(SnapshotPath(id));
+            return SavedFile.Read(SnapshotPath(id), SavedFile.CheckpointLimit);
         }
     }
 

@@ -52,11 +52,11 @@ public sealed partial class ManualWorldSaveStore
             var timelinePath = TimelinePath(worldId);
             if (timeline is null && File.Exists(timelinePath))
                 throw new InvalidDataException("Recovery cleanup cannot verify the active save's timeline.");
-            if (File.Exists(timelinePath)) inventory.Add(Fingerprint(File.ReadAllBytes(timelinePath)));
+            if (File.Exists(timelinePath)) inventory.Add(Fingerprint(SavedFile.Read(timelinePath)));
             foreach (var save in List(worldId).OrderBy(save => save.Id, StringComparer.Ordinal))
             {
                 var metadata = ReadMetadata(save.Id);
-                inventory.Add(save.Id + ":" + Fingerprint(File.ReadAllBytes(MetadataPath(save.Id))));
+                inventory.Add(save.Id + ":" + Fingerprint(SavedFile.Read(MetadataPath(save.Id))));
                 var provenance = metadata.Recovery;
                 if (provenance is null || save.IsAutosave || !IsId(provenance.SourceSaveId) || provenance.Sequence <= 0)
                 {
@@ -65,7 +65,7 @@ public sealed partial class ManualWorldSaveStore
                 }
                 try
                 {
-                    var bytes = File.ReadAllBytes(CommittedStatePath(save.Id, metadata));
+                    var bytes = SavedFile.Read(CommittedStatePath(save.Id, metadata), SavedFile.CheckpointLimit);
                     inventory.Add(save.Id + ":" + Fingerprint(bytes));
                     VerifyCheckpoint(bytes, worldId, stateFile);
                     verified.Add((save, provenance));
