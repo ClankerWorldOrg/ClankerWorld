@@ -83,9 +83,7 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("The map dimensions or generation attempt are invalid.");
         }
 
-        if (map.Tiles.Count != map.Width * map.Height ||
-            map.Tiles.Select(tile => tile.Position).Distinct().Count() != map.Tiles.Count ||
-            map.Tiles.Any(tile => !map.Contains(tile.Position)))
+        if (!HasCompleteGrid(map))
         {
             return MapValidationResult.Invalid("The logical grid is not a complete bounded rectangle.");
         }
@@ -183,6 +181,20 @@ public static class MapAcceptance
         }
 
         return MapValidationResult.Valid;
+    }
+
+    private static bool HasCompleteGrid(WorldMap map)
+    {
+        if (map.Tiles.Count != map.Width * map.Height) return false;
+        var occupied = new bool[map.Tiles.Count];
+        foreach (var tile in map.Tiles)
+        {
+            if (!map.Contains(tile.Position)) return false;
+            var index = tile.Position.Y * map.Width + tile.Position.X;
+            if (occupied[index]) return false;
+            occupied[index] = true;
+        }
+        return true;
     }
 
     internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>
