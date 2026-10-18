@@ -301,6 +301,7 @@ jobs:
           done
           sha="${{ needs.nightly.outputs.sha }}"
           flags=(--latest=false)
+          publish_flags=(--latest=false)
           title="Nightly ${version}"
           notes="Automatically approved nightly build of main at ${sha}. For Developer mode; saved worlds may not open in other versions. Kept for ${KEEP_NIGHTLIES} newer nightly builds."
           note_flags=(--notes "${notes}")
@@ -313,7 +314,7 @@ jobs:
             [[ "$(jq -r .type <<<"${target}")" == commit && "$(jq -r .sha <<<"${target}")" == "${sha}" ]]
             title="ClankerWorld ${version}"
             note_flags=(--notes-from-tag)
-            [[ "${version}" == *-* ]] && flags+=(--prerelease) || flags=(--latest)
+            [[ "${version}" == *-* ]] && flags+=(--prerelease) || publish_flags=(--latest)
           else
             flags+=(--prerelease)
           fi
@@ -321,7 +322,7 @@ jobs:
             --title "${title}" "${note_flags[@]}" \
             "${zip}" "${zip}.sha256" "${zip}.sig" "${setup}" "${setup}.sha256" "${setup}.sig" \
             "${launcher}" "${launcher}.sha256" "${launcher}.sig"
-          gh release edit "v${version}" --draft=false
+          gh release edit "v${version}" --draft=false "${publish_flags[@]}"
       - name: Remove older nightly builds
         env:
           GH_TOKEN: ${{ github.token }}

@@ -77,6 +77,7 @@ if (args[0] === 'api') {
 }
 if (args[0] === 'run') { console.log(process.env.NIGHTLY_TEST_CI); process.exit(0); }
 if (args[0] === 'release') {
+  if (args[1] === 'create' && args.includes('--draft') && args.includes('--latest')) process.exit(1);
   if (args[1] === process.env.NIGHTLY_TEST_RELEASE_FAIL) process.exit(1);
   if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_DELETE_FAIL) process.exit(1);
   if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_UNTAGGED_DRAFT && args.includes('--cleanup-tag')) process.exit(1);
@@ -144,8 +145,8 @@ const releaseAssets = [
   'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip.sig',
 ];
 
-function writeReleaseAssets(root, missing) {
-  for (const asset of releaseAssets.filter(asset => asset !== missing)) {
+function writeReleaseAssets(root, missing, assets = releaseAssets) {
+  for (const asset of assets.filter(asset => asset !== missing)) {
     const file = path.join(root, asset);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const contents = 'synthetic release asset';
@@ -187,6 +188,19 @@ test('a failed draft upload cannot publish a partial release', t => {
   fixture.env.NIGHTLY_TEST_RELEASE_FAIL = 'create';
   assert.notEqual(fixture.run('Publish the automatically approved release').status, 0);
   assert.deepEqual(fixture.calls().filter(call => call[0] === 'release').map(call => call[1]), ['create']);
+});
+
+test('a stable release becomes latest only when the fully uploaded draft is published', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root, undefined, releaseAssets.map(asset => asset.replace('0.1.0-nightly.20261011.42', '0.1.0')));
+  Object.assign(fixture.env, { RELEASE_CHANNEL: 'release', RELEASE_TAG: 'v0.1.0' });
+  const result = fixture.run('Publish the automatically approved release');
+  assert.equal(result.status, 0, result.stderr);
+  const create = fixture.calls().find(call => call[1] === 'create');
+  const publish = fixture.calls().find(call => call[1] === 'edit');
+  assert.ok(create.includes('--draft') && create.includes('--latest=false'));
+  assert.ok(!create.includes('--prerelease') && create.includes('--notes-from-tag'));
+  assert.ok(publish.includes('--draft=false') && publish.includes('--latest'));
 });
 
 test('prepared releases require an annotated tag at the exact green main commit', t => {
