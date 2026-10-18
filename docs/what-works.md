@@ -34,7 +34,7 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Join a world on another computer | Available in the launcher | HTTPS on a private network, comparison-code approval, saved device connection and signed access check before Play. Host startup hints depend on the host kind reported during pairing; older hosts get a general network/host check. Launcher hosting and the server-only Linux download remain separate work. Windows playtesting is pending. |
+| Join a world on another computer | Available in the launcher | HTTPS on a private network, comparison-code approval, saved device connection and signed access check before Play. Host startup hints depend on the host kind reported during pairing; older hosts get a general network/host check. Launcher hosting remains separate work; the server-only Linux download has its [own guide](hosting-linux.md). Windows playtesting is pending. |
 | Create, select, save and load worlds | Available in the game | Loads show changed model and key assignments for confirmation before applying them. Oversized save files are refused and preserved. Small/Medium maps; larger playable worlds are unfinished. The earlier manually signed Windows installer, normal Play, Repair check, save and reopening a saved Town were checked on October 18; the automatic signing workflow still needs its first release check ([details](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2422)). Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Starting supplies are fixed; New World offers no extra supplies or survival grace period. |
@@ -1750,6 +1750,11 @@ provisional 1 GiB. The notice stays visible while autosaves run, appears in
 Save World before saving or overwriting, and clears when space recovers.
 Unknown space is shown separately. These checks never prevent a save or delay
 an emergency save; an actual disk-full write can still fail.
+
+The [Linux hosting guide](hosting-linux.md) describes the server-only Linux x64
+download, fresh systemd installation and private comparison-code approval.
+The service includes its runtime and keeps installation state outside its
+program folder. A fresh-machine reboot and Windows join playtest is pending.
 
 A written [remote world server deployment checklist](development/remote-server-deployment.md)
 is available for manual server updates. It covers staging a build, preserving

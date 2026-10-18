@@ -7,6 +7,57 @@ namespace ClankerWorld.Tests;
 
 public sealed class OwnerAuthorityStoreTests
 {
+    [Fact]
+    public void LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var key = CreateP256Key();
+        using var otherKey = CreateP256Key();
+        var pending = StartPairing(store, key);
+        var other = StartPairing(store, otherKey);
+        // Keep this exact-device control independent of random short-code collisions.
+        other = other with { PairingCode = pending.PairingCode == "000000" ? "000001" : "000000" };
+        var state = store.ExportState();
+        store = OwnerAuthorityStore.Restore(state with
+        {
+            Pairings = state.Pairings.Select(pairing => pairing.PairingId == other.PairingId
+                ? pairing with { VisibleCodeHashBase64 = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(other.PairingCode))) }
+                : pairing).ToArray(),
+        }, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.False(store.ApprovePendingPairingLocally("not-a-code").IsSuccess);
+        Assert.True(store.ApprovePendingPairingLocally(pending.PairingCode).IsSuccess);
+        Assert.Equal(OwnerPairingState.Pending, store.GetPairingStatus(other.PairingId).Value!.State);
+        store = OwnerAuthorityStore.Restore(store.ExportState(), clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.False(store.ApprovePendingPairingLocally(pending.PairingCode).IsSuccess);
+        Assert.False(store.ActivatePairing(new(pending.PairingId, pending.ActivationCanonicalProof,
+            Sign(otherKey, pending.ActivationCanonicalProof))).IsSuccess);
+        Assert.True(store.ActivatePairing(new(pending.PairingId, pending.ActivationCanonicalProof,
+            Sign(key, pending.ActivationCanonicalProof))).IsSuccess);
+        clock.UtcNow += OwnerAuthorityStore.PendingPairingLifetime;
+        Assert.False(store.ApprovePendingPairingLocally(other.PairingCode).IsSuccess);
+        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(other.PairingId).Value!.State);
+    }
+
+    [Fact]
+    public void LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice()
+    {
+        var clock = NewClock();
+        var store = NewStore(clock);
+        using var firstKey = CreateP256Key();
+        using var secondKey = CreateP256Key();
+        var first = StartPairing(store, firstKey);
+        _ = StartPairing(store, secondKey);
+        var state = store.ExportState();
+        var hash = state.Pairings.Single(pairing => pairing.PairingId == first.PairingId).VisibleCodeHashBase64;
+        store = OwnerAuthorityStore.Restore(state with
+        {
+            Pairings = state.Pairings.Select(pairing => pairing with { VisibleCodeHashBase64 = hash }).ToArray(),
+        }, clock, CryptographicOwnerAuthorityRandom.Instance);
+        Assert.False(store.ApprovePendingPairingLocally(first.PairingCode).IsSuccess);
+        Assert.All(store.ExportState().Pairings, pairing => Assert.Equal(OwnerPairingState.Pending, pairing.State));
+    }
+
     private static readonly JsonSerializerOptions LegacyJson = new()
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,

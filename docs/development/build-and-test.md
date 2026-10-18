@@ -434,6 +434,18 @@ restores in locked mode. CI uploads the zip as the
 [automatic release signature](releasing.md#automatic-release-signatures) before
 distribution. A built zip is not a Windows playtest.
 
+### Linux server package
+
+`bash scripts/package-linux-server.sh` stages committed inputs, publishes a
+self-contained `linux-x64` server with locked restore, and writes
+`export/linux-server/ClankerWorld-Server-<version>-linux-x64.tar.gz` and its
+`.sha256`. The archive contains the matching build, a complete file manifest,
+the systemd unit, a fresh-install script and the local approval command.
+CI builds it alongside the Windows packages; nightly publication attaches it
+with its checksum. Players follow the [Linux hosting guide](../hosting-linux.md).
+No Linux desktop game is included. Automated checks do not replace the fresh
+machine, reboot and Windows join checks in the playtest list.
+
 ### Windows launcher
 
 Downloaded releases require an [automatic workflow signature](releasing.md#automatic-release-signatures).

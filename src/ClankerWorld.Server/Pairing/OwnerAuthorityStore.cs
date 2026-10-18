@@ -554,6 +554,24 @@ public sealed class OwnerAuthorityStore
         string pairingId,
         string visibleCode) => ApprovePendingPairing(pairingId, visibleCode, LocalApproval, allowRevokedKey: true);
 
+    /// <summary>Resolve a comparison code only on the account-protected local listener.</summary>
+    public OwnerAuthorityResult<OwnerPairingApproval> ApprovePendingPairingLocally(string visibleCode)
+    {
+        if (!IsVisibleCode(visibleCode))
+            return OwnerAuthorityResult<OwnerPairingApproval>.Fail(OwnerAuthorityFailure.InvalidRequest);
+        var hash = HashUtf8(visibleCode);
+        lock (gate)
+        {
+            ExpireOperationalStateUnsafe(UtcNow());
+            var matches = pairings.Values.Where(pairing => pairing.State == OwnerPairingState.Pending &&
+                CryptographicOperations.FixedTimeEquals(pairing.VisibleCodeHash, hash)).Take(2).ToArray();
+            // A short code can collide. Never pick one device arbitrarily.
+            return matches.Length == 1
+                ? ApprovePendingPairingLocally(matches[0].PairingId, visibleCode)
+                : OwnerAuthorityResult<OwnerPairingApproval>.Fail(OwnerAuthorityFailure.PairingCodeMismatch);
+        }
+    }
+
     /// <summary>
     /// Applies confirmation by an already paired owner device. Deliberate
     /// recovery of a revoked key requires <see cref="ApprovePendingPairingLocally"/>.
