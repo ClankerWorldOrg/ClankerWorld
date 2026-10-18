@@ -5466,6 +5466,9 @@ Godot's `--log-file` points at `logs/game.log` in the selected data root.
 Because that option disables Godot's own rotation, `GameStarter.PrepareGameLog`
 moves the last run to `logs/game.previous.log` before starting the game,
 replacing the older backup. A retry with no new log preserves that backup.
+On Windows, Quit to Launcher uses shell launch so the returned launcher does
+not inherit the game's open log handle and block the next Play's rotation.
+Unix handoffs retain direct execution and separate arguments.
 Standalone runs keep Godot's normal timestamped rotation. The project enables
 `application/run/flush_stdout_on_print` in release builds too, so reports and
 logs left by a forced close include the latest printed line.
