@@ -170,7 +170,7 @@ public partial class Main
             if (townExtras.GetChildCount() > 0) townExtras.AddChild(new Control { CustomMinimumSize = new Vector2(0, 2), MouseFilter = Control.MouseFilterEnum.Ignore });
             var band = new HBoxContainer();
             band.AddThemeConstantOverride("separation", 8);
-            band.AddChild(new Label { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" });
+            band.AddChild(new FittedLabel { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" });
             band.AddChild(new HSeparator { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             townExtras.AddChild(band);
         }
@@ -189,7 +189,7 @@ public partial class Main
         {
             var row = new HBoxContainer();
             row.AddThemeConstantOverride("separation", 8);
-            row.AddChild(new Label { Text = store.Name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
+            row.AddChild(new FittedLabel { Text = store.Name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
             var total = store.Items.Sum(item => item.Quantity);
             row.AddChild(new Label { Text = total == 0 ? "Nothing stored" : total == 1 ? "1 item" : $"{total} items", ThemeTypeVariation = "DimLabel" });
             townExtras.AddChild(row);
@@ -216,7 +216,7 @@ public partial class Main
             line.AddChild(Portrait(person, Control.SizeFlags.ShrinkBegin));
             var text = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             text.AddThemeConstantOverride("separation", 0);
-            text.AddChild(new Label { Text = $"{person.DisplayName} · {project.Label}" });
+            text.AddChild(new FittedLabel { Text = $"{person.DisplayName} · {project.Label}" });
             var done = project.WorkRequired <= 0 ? 0 : Math.Clamp(project.WorkDone * 100 / project.WorkRequired, 0, 100);
             var progress = new HBoxContainer();
             progress.AddThemeConstantOverride("separation", 6);
@@ -232,7 +232,7 @@ public partial class Main
         if (foodStewardship is not null)
         {
             Section("Household council");
-            townExtras.AddChild(new Label { Text = $"Steward: {foodStewardship.StewardName ?? "awaiting a contributor"}" });
+            townExtras.AddChild(new FittedLabel { Text = $"Steward: {foodStewardship.StewardName ?? "awaiting a contributor"}" });
             townExtras.AddChild(new Label { Text = foodStewardship.FoodPolicy == "essential_first" ? "Food reserve: hungry members first" : "Shared food: open access" });
             if (foodStewardship.ProposedPolicy is not null)
                 townExtras.AddChild(new Label { Text = $"Vote: {Pretty(foodStewardship.ProposedPolicy)} · {foodStewardship.Approvals} yes · {foodStewardship.Rejections} no · {foodStewardship.Voters} voters" });
@@ -245,7 +245,7 @@ public partial class Main
             var line = new HBoxContainer();
             line.AddThemeConstantOverride("separation", 8);
             line.AddChild(Portrait(person, Control.SizeFlags.ShrinkBegin));
-            line.AddChild(new Label
+            line.AddChild(new FittedLabel
             {
                 Text = $"{person.DisplayName}: {GameUiText.PlainEllipses(note)}",
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,

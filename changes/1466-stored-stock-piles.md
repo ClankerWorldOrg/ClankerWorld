@@ -1,1 +1,0 @@
-- Stored goods now show as log, crate and sack piles beside store doors at close and mid zoom. Piles grow with recorded storage fullness, disappear when empty, and stay clear of Roads, doorsteps, buildings and the Town edge.

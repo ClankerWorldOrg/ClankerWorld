@@ -1,1 +1,0 @@
-- House hauling can collect another reachable pile when its first household supply pile is occupied, leaving the blocked goods untouched.

@@ -1,1 +1,0 @@
-- Land hearing filings retain their authority, plot, requested outcome and statement through shared checks.

@@ -9,7 +9,7 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
-using GodotSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
@@ -234,7 +234,7 @@ public sealed class StreetLanternRuntimeTests
 
         // Isolate the orphan-fixture check from generic missing-proposal or orphan-receipt checks.
         var orphanTown = state.Towns[0] with { Projects = [], Council = state.Towns[0].Council! with { Proposals = [] } };
-        var paidReceipts = project.Deliveries.Select(item => item.ReservationId).ToHashSet(StringComparer.Ordinal);
+        var paidReceipts = project.Deliveries.Select(item => item.ReservationId!.Value).ToHashSet(StringComparer.Ordinal);
         var withoutReceipts = state.Society.Society with
         {
             Inventory = state.Society.Society.Inventory with

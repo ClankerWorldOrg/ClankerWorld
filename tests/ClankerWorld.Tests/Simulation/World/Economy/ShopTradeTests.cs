@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -25,23 +26,23 @@ public sealed partial class ShopTradeTests
         for (var index = 1; index <= 8; index++)
         {
             var proposed = open.ProposedTick + index;
-            var id = $"shop-trade:{proposed}:{buyer}:{shopId}";
+            var id = DerivedId.Create($"shop-trade:{proposed}:{buyer}:{shopId}");
             inventory = InventoryAuthority.CreateDirectBarterOffer(inventory,
-                new(id, 1, open.SellerHouseholdId, buyer, "shop-axe", 1, "buyer-payment", 3,
+                new(Identity.Parse(id), 1, open.SellerHouseholdId, buyer, "shop-axe", 1, "buyer-payment", 3,
                     state.Society.Society.WorldTick + 120));
             inventory = InventoryAuthority.CancelDirectBarterOffer(inventory, id, 1, open.SellerHouseholdId);
-            trades.Add(open with { OfferId = id, ProposedTick = proposed, CancellationReason = "The seller declined." });
+            trades.Add(open with { OfferId = Identity.Parse(id), ProposedTick = proposed, CancellationReason = "The seller declined." });
         }
         state = WithInventory(state, inventory) with
         {
-            ShopTrades = trades.OrderBy(trade => trade.OfferId, StringComparer.Ordinal).ToArray(),
+            ShopTrades = trades.OrderBy(trade => trade.OfferId.Value, StringComparer.Ordinal).ToArray(),
         };
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ShopProvider("safe_idle"));
         var snapshot = new OwnerWorldObservationStore(restored).GetSnapshot();
         var visible = snapshot.PlacedBuildings.Single(building => building.InstanceId == shopId).Trades;
         Assert.Equal(8, visible.Count);
-        Assert.Equal(open.OfferId, visible[0].OfferId);
+        Assert.Equal(open.OfferId.Value, visible[0].OfferId);
         Assert.Equal("open", visible[0].Status);
         Assert.Contains(snapshot.Agents.Single(person => person.Id == buyer).SocialNotes,
             note => note.Contains("Both traders must meet there", StringComparison.Ordinal));
@@ -126,6 +127,10 @@ public sealed partial class ShopTradeTests
         var bytes = WorldRuntimeCodec.Encode(offering.ExportState());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(bytes)));
         state = WorldRuntimeCodec.Decode(bytes);
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
+        {
+            ShopTrades = state.ShopTrades!.Select(item => item with { OfferId = null! }).ToArray(),
+        }));
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
         {
             ShopTrades = [.. state.ShopTrades!, null!],
@@ -315,7 +320,7 @@ public sealed partial class ShopTradeTests
         for (var step = 0; step < 35; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain("shop_buy:" + shopId, provider.Seen);
         Assert.Empty(world.ShopTrades);
-        Assert.DoesNotContain(world.Society.Inventory.Offers, offer => offer.Id.StartsWith("shop-trade:", StringComparison.Ordinal));
+        Assert.DoesNotContain(world.Society.Inventory.Offers, offer => offer.Id.Value.StartsWith("shop-trade:", StringComparison.Ordinal));
         Assert.Equal(2, world.Society.Inventory.GetLot("shop-axe").Quantity);
         Assert.Equal(6, world.Society.Inventory.GetLot("buyer-payment").Quantity);
         world.Validate();
@@ -665,14 +670,14 @@ public sealed partial class ShopTradeTests
         if (pendingExchange)
         {
             var proposedTick = state.Society.Society.WorldTick;
-            offerId = $"shop-trade:{proposedTick}:{buyer}:{shopId}";
+            offerId = DerivedId.Create($"shop-trade:{proposedTick}:{buyer}:{shopId}");
             inventory = InventoryAuthority.AcceptDirectBarterOffer(
                 InventoryAuthority.CreateDirectBarterOffer(inventory,
-                    new(offerId, 1, shop.HouseholdId!, buyer, "shop-axe", 1, "buyer-payment", 3,
+                    new(Identity.Parse(offerId), 1, shop.HouseholdId!, buyer, "shop-axe", 1, "buyer-payment", 3,
                         proposedTick + 120)), offerId, 1, buyer);
             state = state with
             {
-                ShopTrades = [new(offerId, shopId, shop.HouseholdId!, buyer, shop.Position,
+                ShopTrades = [new(Identity.Parse(offerId), shopId, shop.HouseholdId!, buyer, shop.Position,
                     proposedTick, "wooden_axe", "wood")],
             };
         }

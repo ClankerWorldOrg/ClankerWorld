@@ -20,10 +20,11 @@ internal static partial class OwnerEndpoints
 
         // Bound unauthenticated creation before JSON binding. Do not spend this budget
         // on signed owner challenges/reconnect/pause or host-local recovery. Pairing
-        // bodies are already capped by RequestBodyLimits.
+        // bodies are already capped by RequestBodyLimits. Routing has already chosen
+        // the endpoint, so every path spelling it accepts for the route is counted.
         app.Use(async (context, next) =>
         {
-            if (HttpMethods.IsPost(context.Request.Method) && context.Request.Path == "/api/v1/pairings" &&
+            if (context.GetEndpoint()?.Metadata.GetMetadata<PairingRequestBudget.Route>() is not null &&
                 !context.RequestServices.GetRequiredService<PairingRequestBudget>().TryAcquire())
             {
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -34,10 +35,10 @@ internal static partial class OwnerEndpoints
         });
 
         // Prove that this listener is the local server holding the game's secret,
-        // without creating a pairing or changing the world.
+        // without receiving it, creating a pairing or changing the world.
         app.MapGet("/api/v1/approval/launch-check", (HttpContext context, ApprovalListenerOptions options) =>
-            options.IsLocalServer && options.IsApprovalRequest(context)
-                ? Results.Ok() : Results.NotFound());
+            options.LaunchCheckAnswer(context) is { } answer
+                ? Results.Ok(new LocalServerLaunchCheckAnswer(answer)) : Results.NotFound());
 
         app.MapPost("/api/v1/approval/pairings", (
             StartOwnerPairingHttpRequest request, HttpContext context, ApprovalListenerOptions options,
@@ -66,7 +67,7 @@ internal static partial class OwnerEndpoints
             }
 
             return Results.Ok(result.Value);
-        });
+        }).WithMetadata(PairingRequestBudget.Route.Instance);
 
         app.MapGet("/api/v1/pairings/{pairingId}", (
             string pairingId,
@@ -147,8 +148,7 @@ internal static partial class OwnerEndpoints
                 return Results.NotFound();
             }
 
-            var result = authority.RevokeDeviceLocally(deviceId);
-            stateFile.Save(authority);
+            var result = stateFile.RevokeDevice(authority, deviceId);
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);
@@ -167,10 +167,9 @@ internal static partial class OwnerEndpoints
             if (!options.IsLocalServerShutdownRequest(context)) return Results.NotFound();
             var recovery = context.RequestServices.GetService<WorldStartupRecovery>();
             if (recovery is null) return Results.NotFound();
-            if (recovery.Pending) return Results.Conflict(new { message = "Choose world recovery before saving." });
-            var advancing = context.RequestServices.GetRequiredService<WorldRuntimeService>();
-            var outcome = advancing.SaveBeforeShutdown(pauseWorld: true);
-            if (outcome == ShutdownSaveOutcome.WriteFailed)
+            // A refused startup checkpoint has no loaded world to save.
+            if (!recovery.Pending && context.RequestServices.GetRequiredService<WorldRuntimeService>()
+                .SaveBeforeShutdown(pauseWorld: true) == ShutdownSaveOutcome.WriteFailed)
                 return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "The world could not be saved",
                     detail: "The host is still running and the world is paused. Try again.");

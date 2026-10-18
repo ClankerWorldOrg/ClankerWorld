@@ -49,8 +49,13 @@ public sealed class ProviderUsageCancellationBoundaryTests
         private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("clankerworld-usage-cancel-boundary-");
         private readonly InlineCancellationHttpHandler handler = new();
         private readonly RecordingLogger<ProviderUsageCancellationBoundaryTests> log = new();
+        // Entry and completion can block on gates owned by the test. Starting
+        // them must not depend on spare capacity in the .NET thread pool.
+        private readonly TaskFactory workers = new(CancellationToken.None, TaskCreationOptions.LongRunning,
+            TaskContinuationOptions.None, TaskScheduler.Default);
         private Task? runningOperation;
         private readonly AwaitingDecisionProvider provider;
+        private readonly ModelWorkHarness harness;
 
         public HeldConfiguredUsageWorld()
         {
@@ -64,6 +69,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
                 configuration, new HeldHttpClientFactory(handler), usageStore: Usage));
             World = new WorldRuntime("configured-usage-cancellation-boundary", id =>
                 id == Actor ? provider : new DeterministicDecisionProvider());
+            harness = ModelWorkHarness.For(World);
             StateFile = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
             var effects = new ProviderUsageWorldEffects(World, StateFile, Usage, configuration.WorldMutationGate, log);
             Usage.LimitReached += effects.PauseAtLimit;
@@ -77,13 +83,21 @@ public sealed class ProviderUsageCancellationBoundaryTests
         public async Task StartHeldRequestAsync()
         {
             Assert.True((await TickAsync()).Advanced);
-            await handler.Started.Task.WaitAsync(Deadline);
-            // Started is deliberately early: SendAsync has not returned yet.
-            // Only the configured provider's returned incomplete operation proves
-            // that its full HTTP/usage chain has suspended on the held response.
-            Assert.False(provider.AwaitingReply.Task.IsCompleted);
-            handler.AllowReturn.Set();
-            await provider.AwaitingReply.Task.WaitAsync(Deadline);
+            // Entry blocks synchronously, so start it on a controlled worker
+            // after the tick has registered the request. Signal waits must not
+            // steal queued work and block the test before it opens AllowReturn.
+            var startup = workers.StartNew(harness.RunPendingWork);
+            runningOperation = startup;
+            try
+            {
+                await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(handler.Started.Task, startup), Deadline);
+                Assert.True(handler.Started.Task.IsCompleted, "The scheduler finished before HTTP entry.");
+                Assert.False(provider.AwaitingReply.Task.IsCompleted);
+            }
+            finally { handler.AllowReturn.Set(); }
+            await ModelWorkHarness.WaitForSignalAsync(startup, Deadline);
+            Assert.True(provider.AwaitingReply.Task.IsCompleted,
+                "The configured provider must return its incomplete HTTP/usage operation.");
             // No second request may spend another call while the first is held.
             Assert.True((await TickAsync()).Advanced);
             Assert.Equal(1, handler.RequestCount);
@@ -93,7 +107,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
         }
 
         public Task<WorldStepResult> TickAsync() => RunWithDeadlineAsync(() =>
-            World.AdvanceOneTickNonBlockingAsync().AsTask());
+            harness.TickAsync(runPendingWork: false).AsTask());
 
         public Task<bool> CompleteResponseAsync() => RunWithDeadlineAsync(() =>
         {
@@ -103,9 +117,10 @@ public sealed class ProviderUsageCancellationBoundaryTests
 
         private async Task<T> RunWithDeadlineAsync<T>(Func<Task<T>> operation)
         {
-            var task = Task.Run(operation);
+            var task = workers.StartNew(operation).Unwrap();
             runningOperation = task;
-            return await task.WaitAsync(Deadline);
+            await ModelWorkHarness.WaitForSignalAsync(task, Deadline);
+            return await task;
         }
 
         public void Dispose()
@@ -124,7 +139,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
 
     private sealed class AwaitingDecisionProvider(IDecisionProvider inner) : IDecisionProvider
     {
-        public TaskCompletionSource AwaitingReply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource AwaitingReply { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => inner.ProviderEpoch;
         public DecisionProviderKind KindFor(AgentObservation observation) => inner.KindFor(observation);
@@ -148,11 +163,11 @@ public sealed class ProviderUsageCancellationBoundaryTests
     {
         // Default options intentionally permit inline continuations. This is a
         // legal HTTP handler behavior that the runtime must tolerate.
-        private readonly TaskCompletionSource<HttpResponseMessage> response = new();
+        private readonly InlineCompletionSource<HttpResponseMessage> response = new();
         private CancellationTokenRegistration cancellation;
         private int requestCount;
 
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public int RequestCount => Volatile.Read(ref requestCount);
         public ManualResetEventSlim AllowReturn { get; } = new();
 
