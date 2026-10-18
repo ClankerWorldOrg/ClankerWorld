@@ -386,12 +386,21 @@ public sealed partial class RestaurantShopPipelineTests
             id == fixture.Cook ? CookProvider(fixture.Farmhouse, fixture.Recipe, true, false) : new PipelineProvider("safe_idle"));
         var start = initial.Agents.Single(person => person.AgentId == fixture.Customer).Position;
         long? arrivedTick = null;
+        long? paidTick = null;
+        AgentObservation? paidObservation = null;
         for (var tick = 0; tick < 100; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             AssertNoRemoteMealQuote(world, fixture);
             var position = world.Agents.Single(person => person.AgentId == fixture.Customer).Position;
             if (initial.Map.FootDistance(position, fixture.Restaurant.Position) <= 1) arrivedTick ??= world.WorldTick;
+            if (control is "ordinary" or "foreign-town" && world.ShopTrades.Any(trade => trade.BuyerId == fixture.Customer &&
+                    world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Settled))
+            {
+                paidTick ??= world.WorldTick;
+                paidObservation = customerProvider.ObservationAfter(paidTick.Value);
+                if (paidObservation is not null) break;
+            }
         }
         var visits = customerProvider.SeenObservations.SelectMany(observation => observation.Candidates)
             .Where(candidate => candidate.Id == "shop_buy:" + fixture.Restaurant.InstanceId &&
@@ -416,6 +425,8 @@ public sealed partial class RestaurantShopPipelineTests
         if (control is "ordinary" or "foreign-town")
         {
             var sale = Assert.Single(sales);
+            Assert.NotNull(paidObservation);
+            Assert.DoesNotContain(paidObservation.Candidates, candidate => candidate.Id == "shop_buy:" + fixture.Restaurant.InstanceId);
             Assert.True(sale.ProposedTick >= arrivedTick!.Value);
             var offer = world.Society.Inventory.GetOffer(sale.OfferId);
             Assert.Equal(DirectBarterState.Settled, offer.State);
@@ -526,6 +537,8 @@ public sealed partial class RestaurantShopPipelineTests
             fixture = fixture with { State = WithForeignTownResident(fixture.State, fixture.Cook) };
         using var world = Restore(fixture);
         var mayVisit = !householdOwnsPayment && paymentQuantity > 2;
+        AgentObservation? reserveObservation = null;
+        long? completedPipelineTick = null;
         for (var tick = 0; tick < 200; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -537,6 +550,23 @@ public sealed partial class RestaurantShopPipelineTests
                 Assert.DoesNotContain(world.Society.Inventory.Reservations, reservation =>
                     reservation.Purpose.StartsWith("barter:", StringComparison.Ordinal));
             }
+            if (expectedPurchases > 0 && world.ShopTrades.Count(trade => trade.BuyerId == fixture.Cook &&
+                    world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Settled) == expectedPurchases &&
+                !world.Society.Inventory.Lots.Any(lot => lot.Id == "restaurant-mill-grain" && lot.Quantity > 0))
+            {
+                var jobs = world.WorldSimulation.ProductionJobs.Where(job => job.RecipeId == fixture.MillRecipe.CanonicalId).ToArray();
+                if (jobs.Length > 0 && jobs.All(job => job.State == WorldProductionJobState.Completed))
+                {
+                    completedPipelineTick ??= world.WorldTick;
+                    reserveObservation = fixture.CookProvider.ObservationAfter(completedPipelineTick.Value);
+                    if (reserveObservation is not null) break;
+                }
+            }
+        }
+        if (expectedPurchases > 0)
+        {
+            Assert.NotNull(reserveObservation);
+            Assert.DoesNotContain(reserveObservation.Candidates, candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId);
         }
         var visits = fixture.CookProvider.SeenObservations.SelectMany(observation => observation.Candidates)
             .Where(candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId &&
@@ -826,6 +856,8 @@ public sealed partial class RestaurantShopPipelineTests
     private sealed class PipelineProvider(params string[] prefixes) : IDecisionProvider
     {
         public ConcurrentQueue<AgentObservation> SeenObservations { get; } = new();
+        public AgentObservation? ObservationAfter(long tick) =>
+            SeenObservations.LastOrDefault(observation => observation.WorldTick > tick);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
