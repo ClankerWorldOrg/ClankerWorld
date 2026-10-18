@@ -12,6 +12,7 @@ keys, private saves and model replies out of reports.
 - [ ] Quit the playing game. Confirm the world is saved and paused and the
   paid-attempt count stays unchanged. Reconnect to that same world.
 - [ ] Close the host window; it minimizes and hosting remains available.
+  Repeat while hosting is still starting; the launcher stays available.
   Stop hosting from its screen and confirm the private Serve route stops.
   Local play afterwards must keep the same worlds, keys and usage total.
 - [ ] Enable stop-on-quit before starting. Quit the last connected game,
@@ -24,3 +25,6 @@ keys, private saves and model replies out of reports.
   hosting refuses without replacing that configuration. No approval listener
   is exposed. If disk space prevents saving, Stop hosting leaves the server
   paused and available for retry; after freeing space it saves and stops.
+- [ ] With only the launcher-settings location made read-only in disposable
+  data, let Tailscale start and then refuse the settings write. The failed
+  start stops the newly started server and removes its private Serve route.

@@ -86,7 +86,7 @@ public partial class Launcher
         GetTree().AutoAcceptQuit = false;
         GetWindow().CloseRequested += () =>
         {
-            if (hostingRunning) GetWindow().Mode = Window.ModeEnum.Minimized;
+            if (hostingRunning || busy && hostingPage.Visible) GetWindow().Mode = Window.ModeEnum.Minimized;
             else GetTree().Quit();
         };
         GetWindow().FocusExited += () => { if (hostingRunning) Engine.MaxFps = 1; };
@@ -160,6 +160,7 @@ public partial class Launcher
             var tailscale = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles), "Tailscale", "tailscale.exe");
             hostingNetwork = new TailscaleHost(new HostCommandRunner(), File.Exists(tailscale) ? tailscale : "tailscale");
             var address = await hostingNetwork.ConnectAsync(host.Origin, hostingLifetime.Token);
+            hostedOrigin = address;
             if (!IsInsideTree()) return;
             settings = settings with { HostingEnabled = true, HostedVersion = version.Version.ToString(), HostedUseTestData = useTestData };
             settings.Save(layout);
@@ -173,7 +174,6 @@ public partial class Launcher
                 startupSaved = false;
             }
             hostingAddress.Text = "Address for the joining computer: " + address.AbsoluteUri;
-            hostedOrigin = address;
             hostingData.Text = useTestData ? "Using your test data folder." : "Using this PC's existing worlds, saved keys and model-call count.";
             hostingState.Text = "Waiting for a game. The world saves and pauses when the last game leaves.";
             ShowPage(hostingPage);
@@ -184,7 +184,13 @@ public partial class Launcher
         {
             if (startedHere && hostedServer is { } host)
             {
-                if (await host.StopAsync(CancellationToken.None)) { hostedServer = null; hostingRunning = false; }
+                if (await host.StopAsync(CancellationToken.None))
+                {
+                    await TurnOffHostingAddressAsync(host);
+                    hostedOrigin = null;
+                    hostedServer = null;
+                    hostingRunning = false;
+                }
             }
             if (IsInsideTree()) SetStatus(exception is GameInstallException ? exception.Message :
                 "Hosting could not start. Check Tailscale and the game files, then try again. Your world is kept.");
