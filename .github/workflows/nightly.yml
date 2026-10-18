@@ -206,10 +206,12 @@ jobs:
         run: |
           releases="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate)"
           jq -sr --argjson keep "${KEEP_NIGHTLIES}" \
-            '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | reverse | .[$keep:] | .[].tag_name' <<<"${releases}" |
-          while IFS= read -r tag; do
+            '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | reverse | .[$keep:] | .[] | [.tag_name, (.draft // false)] | @tsv' <<<"${releases}" |
+          while IFS=$'\t' read -r tag draft; do
             echo "Removing ${tag}"
-            gh release delete "${tag}" --yes --cleanup-tag
+            cleanup=()
+            [[ "${draft}" == true ]] || cleanup+=(--cleanup-tag)
+            gh release delete "${tag}" --yes "${cleanup[@]}"
           done
 
   model-work:

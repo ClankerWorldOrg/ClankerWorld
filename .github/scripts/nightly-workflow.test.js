@@ -63,6 +63,7 @@ if (args[0] === 'api') {
 if (args[0] === 'run') { console.log(process.env.NIGHTLY_TEST_CI); process.exit(0); }
 if (args[0] === 'release') {
   if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_DELETE_FAIL) process.exit(1);
+  if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_UNTAGGED_DRAFT && args.includes('--cleanup-tag')) process.exit(1);
   process.exit(0);
 }
 process.exit(2);
@@ -188,6 +189,18 @@ test('retention finds later API pages and removes only nightlies older than the 
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(fixture.calls().filter(call => call[1] === 'delete'), [
     ['release', 'delete', nightlies[1].tag_name, '--yes', '--cleanup-tag'],
+    ['release', 'delete', nightlies[0].tag_name, '--yes', '--cleanup-tag'],
+  ]);
+});
+
+test('retention removes untagged drafts and still cleans published nightly tags', t => {
+  const oldDraft = { ...nightlies[1], draft: true };
+  const fixture = sandbox(t, [nightlies.map(release => release.tag_name === oldDraft.tag_name ? oldDraft : release)]);
+  fixture.env.NIGHTLY_TEST_UNTAGGED_DRAFT = oldDraft.tag_name;
+  const result = fixture.run('Remove older nightly builds');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(fixture.calls().filter(call => call[1] === 'delete'), [
+    ['release', 'delete', oldDraft.tag_name, '--yes'],
     ['release', 'delete', nightlies[0].tag_name, '--yes', '--cleanup-tag'],
   ]);
 });

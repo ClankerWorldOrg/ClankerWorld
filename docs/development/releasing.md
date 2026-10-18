@@ -296,8 +296,9 @@ it still needs the offline approval above before publication:
   Run it by hand from Actions with the main branch selected to publish one
   sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
-  tags, the one exception to never deleting a pushed tag. Never use a nightly
-  tag for anything else.
+  tags, the one exception to never deleting a pushed tag. New drafts from this
+  workflow do not create tags, so cleanup removes only those drafts. Never use
+  a nightly tag for anything else.
 
 Add a changelog entry in `changes/` in the same commit as player-visible
 gameplay/UI, world-runtime, save-compatibility, deployment, packaging or
