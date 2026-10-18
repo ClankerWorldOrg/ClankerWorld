@@ -443,6 +443,12 @@ The bundled official Sigstore verifier checks the main release-workflow identity
 and public trust root offline; no personal signing key is needed. Explicitly
 selected local builds keep the existing Developer mode path.
 
+Release metadata must name files under this repository's GitHub release-download
+path. Package and signature responses also check the final HTTPS address after
+redirects against GitHub's download hosts. The package stays open exclusively
+from download and hashing through extraction; extraction never reopens its path.
+The portable README directs players to unpack inside their own Windows user folder.
+
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
 is the same Godot project exported with the `launcher` feature, which makes
 `run/main_scene.launcher` open `res://Launcher/Launcher.tscn` instead of the

@@ -406,7 +406,8 @@ public partial class Launcher : Control
         if (versionChoice.Selected < 0 && versionChoice.ItemCount > 0) versionChoice.Select(0);
         UpdatePlayButton();
         RebuildVersionRows();
-        if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested) &&
+        if (Chosen() is { } chosen && IsWithdrawn(chosen)) SetStatus(WithdrawnMessage(chosen));
+        else if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested) &&
             releases.Games.All(release => release.Version.ToString() != requested))
             SetStatus(releasesReached
                 ? $"ClankerWorld {requested} isn't installed and that version isn't published. Your save is safe."
@@ -414,6 +415,12 @@ public partial class Launcher : Control
     }
 
     private IReadOnlyList<GameRelease> Offered() => GameReleaseFeed.Offered(releases.Games, settings.DeveloperMode);
+
+    private bool IsWithdrawn(GameVersionName version) => !settings.DeveloperMode &&
+        releases.Games.Any(release => release.Version == version && release.Withdrawn);
+
+    private static string WithdrawnMessage(GameVersionName version) =>
+        $"ClankerWorld {version} was withdrawn by its publisher. Choose another version. Your installed files and saves are kept.";
 
     /// <summary>
     /// Installed versions first, newest first; the newest release if it isn't
@@ -425,25 +432,27 @@ public partial class Launcher : Control
         var newest = offered.FirstOrDefault(release => !release.PreRelease) ??
             offered.FirstOrDefault(release => !release.Version.IsNightly) ??
             (offered.Count > 0 ? offered[0] : null);
-        if (requestedVersion is { } requested && installed.All(version => version.Version.ToString() != requested))
+        if (requestedVersion is { } requested && !installed.Any(version => version.Version.ToString() == requested && !IsWithdrawn(version.Version)))
             yield return requested;
         if (newest is not null && newest.Version.ToString() != requestedVersion && installed.All(version => version.Version != newest.Version))
             yield return newest.Version.ToString();
         // A version the game asked for, to open a world it saved, can be installed from here too.
         var wanted = releases.Games.FirstOrDefault(release => release.Version.ToString() == (requestedVersion ?? settings.LastPlayedVersion));
-        if (wanted is not null && wanted != newest && wanted.Version.ToString() != requestedVersion &&
+        if (wanted is not null && !IsWithdrawn(wanted.Version) && wanted != newest && wanted.Version.ToString() != requestedVersion &&
             installed.All(version => version.Version != wanted.Version))
             yield return wanted.Version.ToString();
-        foreach (var version in installed) yield return version.Version.ToString();
+        foreach (var version in installed.Where(version => !IsWithdrawn(version.Version))) yield return version.Version.ToString();
     }
 
     private void UpdatePlayButton()
     {
         var chosen = Chosen();
-        var unavailable = chosen is not null && installed.All(version => version.Version != chosen) &&
+        var withdrawn = chosen is not null && IsWithdrawn(chosen);
+        var unavailable = withdrawn || chosen is not null && installed.All(version => version.Version != chosen) &&
             releases.Games.All(release => release.Version != chosen);
         playButton.Disabled = busy || chosen is null || unavailable;
         playButton.Text = chosen is null ? "Play"
+            : withdrawn ? $"ClankerWorld {chosen} was withdrawn"
             : unavailable ? $"ClankerWorld {chosen} isn't available"
             : installed.Any(version => version.Version == chosen) ? $"Play {chosen}" : $"Install and Play {chosen}";
     }
@@ -465,6 +474,7 @@ public partial class Launcher : Control
         {
             var needing = worlds.Where(world => world.SavedBy == version.Version).Select(world => world.Name).ToArray();
             var detail = $"{FormatSize(version.SizeBytes)}" +
+                (releases.Games.Any(release => release.Version == version.Version && release.Withdrawn) ? " · Withdrawn release" : "") +
                 (needing.Length == 0 ? "" : $" · Last saved: {string.Join(", ", needing)}");
             installedRows.AddChild(VersionRow(version.Version.ToString(), detail,
                 ("Repair", () => _ = RepairAsync(version)), ("Remove", () => Remove(version, needing.Length))));
@@ -474,6 +484,7 @@ public partial class Launcher : Control
         foreach (var release in available)
             availableRows.AddChild(VersionRow(release.Version.ToString(),
                 FormatSize(release.Package.Size) +
+                (release.Withdrawn ? " · Withdrawn release" : "") +
                 (release.Version.IsNightly ? " · Nightly build of main" : release.PreRelease ? " · Pre-release" : ""),
                 ("Install", () => _ = InstallAsync(release, playAfter: false))));
         if (available.Length == 0)
@@ -511,6 +522,11 @@ public partial class Launcher : Control
     {
         var chosen = Chosen();
         if (chosen is null || busy) return;
+        if (IsWithdrawn(chosen))
+        {
+            SetStatus(WithdrawnMessage(chosen));
+            return;
+        }
         var version = installed.FirstOrDefault(candidate => candidate.Version == chosen);
         if (version is null)
         {
@@ -575,6 +591,11 @@ public partial class Launcher : Control
     // Called only while the install or repair operation holds the busy state.
     private async Task<InstalledVersion?> DownloadInstallAsync(GameRelease release, bool playAfter)
     {
+        if (IsWithdrawn(release.Version) || release.Withdrawn && !settings.DeveloperMode)
+        {
+            SetStatus(WithdrawnMessage(release.Version));
+            return null;
+        }
         SetStatus($"Downloading ClankerWorld {release.Version}…");
         var progress = new Progress<double>(fraction => progressBar.Value = fraction);
         try
@@ -836,6 +857,32 @@ public partial class Launcher : Control
             RefreshInstalled();
             Expect(Chosen()?.ToString() == requestedVersion && !playButton.Disabled,
                 "An explicit saved-world nightly target keeps the version handoff available");
+
+            releases = GameReleaseFeed.Read([
+                SmokeRelease("v0.1.0-alpha.2", true) with { Body = GameReleaseFeed.WithdrawnMarker },
+                SmokeRelease("v0.1.0-alpha.1", true),
+            ]);
+            requestedVersion = "0.1.0-alpha.2";
+            RefreshInstalled();
+            Expect(Chosen()?.ToString() == requestedVersion && playButton.Disabled && availableRows.GetChildCount() == 1 &&
+                status.Text.Contains("withdrawn", StringComparison.Ordinal),
+                "A withdrawn requested version stays chosen with an explanation and no install offer");
+            developerMode.ButtonPressed = true;
+            Expect(!playButton.Disabled && availableRows.GetChildCount() == 2,
+                "Developer mode explicitly offers withdrawn versions");
+            var withdrawnDirectory = layout.VersionDirectory(GameVersionName.Parse(requestedVersion)!);
+            Directory.CreateDirectory(withdrawnDirectory);
+            var withdrawnExecutable = Path.Combine(withdrawnDirectory, LauncherLayout.GameExecutable);
+            File.WriteAllText(withdrawnExecutable, "kept installed game");
+            developerMode.ButtonPressed = false;
+            RefreshInstalled();
+            Expect(Chosen()?.ToString() == requestedVersion && playButton.Disabled,
+                "An installed withdrawn version cannot bypass normal Play restrictions");
+            await PlayAsync();
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal), "Play explains withdrawal before checking or starting files");
+            await RepairAsync(installed.Single(version => version.Directory == withdrawnDirectory));
+            Expect(status.Text.Contains("withdrawn", StringComparison.Ordinal) && File.ReadAllText(withdrawnExecutable) == "kept installed game",
+                "Repair cannot reinstall a withdrawn release and keeps the installed copy");
         }
         catch (Exception exception)
         {

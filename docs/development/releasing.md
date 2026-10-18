@@ -263,6 +263,19 @@ publishes that version; it does not prepare a version,
 collect changes or authorize skipping review or the release playtest. The normal
 nightly channel remains automatic and needs no manual signing or password.
 
+## Withdrawn releases
+
+To withdraw a game version, put the exact marker `<!-- clankerworld:withdrawn -->`
+in its GitHub release notes and explain why in the visible text. The launcher
+retains that metadata but hides the version from normal install and Play choices;
+an explicit saved-world request shows why that version is unavailable. Repair
+also refuses to download it outside Developer mode. Existing files and saves
+remain available for removal or later recovery. Developer mode lists withdrawn
+games with a warning and still requires their release approval.
+
+The same marker on a launcher release suppresses its update notice. Withdrawal
+does not remove release assets or change their signatures.
+
 ## Nightly builds
 
 The [Nightly workflow](../../.github/workflows/nightly.yml) stages a build of
