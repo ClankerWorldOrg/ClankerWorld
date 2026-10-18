@@ -340,6 +340,10 @@ public partial class Main : Control
         UiTheme.Changed -= ApplyThemeColors;
         deviceKey?.Dispose();
         httpClient.Dispose();
+        // These failure dialogs only join the tree when shown. Unused ones are
+        // still native nodes, so the scene tree cannot free them on our behalf.
+        foreach (var dialog in new[] { launcherStartFailure, localServerFailure, localServerStopFailure })
+            if (dialog.GetParent() is null) dialog.Free();
         base._ExitTree();
     }
 
