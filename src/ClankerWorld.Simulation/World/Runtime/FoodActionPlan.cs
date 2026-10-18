@@ -4,6 +4,18 @@ public enum FoodActionKind { Consume, CollectShared, Seek, Harvest }
 
 public sealed record FoodChoice(FoodActionKind Kind)
 {
+    public static bool TryDecode(string candidate, out FoodChoice choice)
+    {
+        choice = new(candidate switch
+        {
+            "collect_shared_food" => FoodActionKind.CollectShared,
+            "seek_food" => FoodActionKind.Seek,
+            "harvest_food" => FoodActionKind.Harvest,
+            _ => FoodActionKind.Consume,
+        });
+        return candidate == choice.Encode();
+    }
+
     public string Encode() => Kind switch
     {
         FoodActionKind.Consume => "consume_food",
