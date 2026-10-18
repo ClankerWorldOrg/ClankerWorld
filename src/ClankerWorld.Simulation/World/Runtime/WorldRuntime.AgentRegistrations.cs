@@ -124,16 +124,8 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "store_town_resources", [], [TownStockRequest.WarehouseCandidate], Definition: WarehouseStockDefinition),
         new(ActionPhase.Ordinary, "TownSalvagePrefix", [TownSalvagePrefix], [], Definition: SalvageStockDefinition),
-        new(ActionPhase.Ordinary, "haul_farm_grain", [], ["haul_farm_grain"], static (runtime, action) =>
-    {
-        runtime.ApplyFarmStockAction(action.Plan as FarmStockActionPlan ?? runtime.PlanFarmStockAction(action.AgentId, FarmStockActionKind.Grain));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "haul_farm_flour", [], ["haul_farm_flour"], static (runtime, action) =>
-    {
-        runtime.ApplyFarmStockAction(action.Plan as FarmStockActionPlan ?? runtime.PlanFarmStockAction(action.AgentId, FarmStockActionKind.Flour));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "haul_farm_grain", [], [FarmStockActionPlan.Candidate(FarmStockActionKind.Grain)], Definition: FarmStockDefinition),
+        new(ActionPhase.Ordinary, "haul_farm_flour", [], [FarmStockActionPlan.Candidate(FarmStockActionKind.Flour)], Definition: FarmStockDefinition),
         new(ActionPhase.Ordinary, "haul_smith_input", [], ["haul_smith_input"], static (runtime, action) =>
     {
         runtime.ApplySmithDeliveryPlan(action.Plan as SmithDeliveryActionPlan ?? runtime.PlanSmithDelivery(action.AgentId, SmithDeliveryKind.Input));
@@ -258,16 +250,8 @@ public sealed partial class WorldRuntime
         runtime.AssistProject(action.AgentId, action.State, action.CandidateId[ProjectAssistanceChoice.Prefix.Length..], action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "replant_tree", [], ["replant_tree"], static (runtime, action) =>
-    {
-        runtime.ApplyTreeActionPlan(action.Plan as TreeActionPlan ?? FarmingSystem.PlanTreeAction(runtime.farmingWorld, action.AgentId, TreeChoice.Replant));
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "plant_tree", [], ["plant_tree", "plant_orchard"], static (runtime, action) =>
-    {
-        runtime.ApplyTreeActionPlan(action.Plan as TreeActionPlan ?? FarmingSystem.PlanTreeAction(runtime.farmingWorld, action.AgentId, action.CandidateId == "plant_orchard" ? TreeChoice.Orchard : TreeChoice.Plant));
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "replant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Replant)], Definition: TreeDefinition),
+        new(ActionPhase.Ordinary, "plant_tree", [], [TreeActionPlan.Candidate(TreeChoice.Plant), TreeActionPlan.Candidate(TreeChoice.Orchard)], Definition: TreeDefinition),
         new(ActionPhase.Ordinary, "ExplorationGoalPrefix", [ExplorationGoalPrefix], [], static (runtime, action) =>
     {
         runtime.ApplyExploration(action.Plan as ExplorationActionPlan ??

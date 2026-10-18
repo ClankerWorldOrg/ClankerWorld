@@ -105,8 +105,6 @@ public sealed partial class WorldRuntime
         EquipmentRepairActionPlan equipmentRepair => CheckEquipmentRepairPlan(equipmentRepair),
         PrivateEquipmentActionPlan equipment => CheckPrivateEquipmentPlan(equipment),
         VesselActionPlan vessel => CheckVesselPlan(vessel),
-        FieldActionPlan field => farmingSystem.CheckFieldPlan(farmingWorld, field),
-        TreeActionPlan tree => FarmingSystem.CheckTreePlan(farmingWorld, tree),
         RareMiningActionPlan mining => CheckRareMiningPlan(mining),
         ToolRepairActionPlan repair => CheckToolRepairPlan(repair),
         ToolCollectionActionPlan tool => CheckToolCollectionPlan(tool),
@@ -114,7 +112,6 @@ public sealed partial class WorldRuntime
         SmithDeliveryActionPlan smith => CheckSmithDeliveryPlan(smith),
         StoreStockActionPlan storeStock => CheckStoreStockPlan(storeStock),
         WorkstationSupplyActionPlan workstation => CheckWorkstationSupplyPlan(workstation),
-        FarmStockActionPlan farmStock => CheckFarmStockAction(farmStock),
         FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
