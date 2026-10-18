@@ -156,6 +156,18 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+      - name: Package the self-contained Linux x64 server
+        if: needs.scope.outputs.code == 'true'
+        run: bash scripts/package-linux-server.sh
+      - name: Upload the Linux x64 server
+        if: needs.scope.outputs.code == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clankerworld-server-linux-x64
+          path: export/linux-server
+          compression-level: 0
+          if-no-files-found: error
+
   windows-installer:
     needs: [scope, checks]
     if: needs.scope.outputs.code == 'true' && needs.scope.outputs.queue-run == ''

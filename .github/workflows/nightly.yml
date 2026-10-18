@@ -119,6 +119,15 @@ jobs:
           bash scripts/package-windows.sh
           bash scripts/verify-godot-windows-export.sh --launcher
           bash scripts/package-windows.sh --launcher export/launcher-windows-x64 export/launcher-package
+          bash scripts/package-linux-server.sh
+      - name: Upload the nightly Linux server
+        if: steps.decide.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-linux-server
+          path: export/linux-server
+          compression-level: 0
+          if-no-files-found: error
       - name: Upload the nightly game package
         if: steps.decide.outputs.build == 'true'
         uses: actions/upload-artifact@v4
@@ -176,6 +185,10 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          name: nightly-linux-server
+          path: export/linux-server
+      - uses: actions/download-artifact@v4
+        with:
           name: nightly-game
           path: export/package
       - uses: actions/download-artifact@v4
@@ -191,7 +204,8 @@ jobs:
           version="${name#ClankerWorld-}"
           version="${version%-windows-x64}"
           setup="export/setup/ClankerWorld-Setup-${version}-windows-x64.exe"
-          for asset in "${zip}" "${setup}"; do
+          server="export/linux-server/ClankerWorld-Server-${version}-linux-x64.tar.gz"
+          for asset in "${zip}" "${setup}" "${server}"; do
             test -f "${asset}"
             (cd "${asset%/*}" && sha256sum --check --quiet --strict "${asset##*/}.sha256")
           done
@@ -199,7 +213,7 @@ jobs:
           notes="Nightly build of main at ${sha}, for Developer mode in the launcher. It is not a release: it may not open worlds other versions saved, and it is removed after ${KEEP_NIGHTLIES} newer nightly builds."
           gh release create "v${version}" --prerelease --latest=false --target "${sha}" \
             --title "Nightly ${version}" --notes "${notes}" \
-            "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256"
+            "${zip}" "${zip}.sha256" "${setup}" "${setup}.sha256" "${server}" "${server}.sha256"
       - name: Remove older nightly builds
         env:
           GH_TOKEN: ${{ github.token }}

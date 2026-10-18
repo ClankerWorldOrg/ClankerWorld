@@ -31,6 +31,10 @@ version is reused.
 
 ## Connect your device
 
+To run the world on an always-on Linux x64 machine, follow the
+[Linux hosting guide](hosting-linux.md). It covers the server download,
+private HTTPS access, service installation and local device approval.
+
 Start the game through the launcher, or start `ClankerWorld.exe` from the
 extracted portable bundle. For an approved remote server, use the connection
 and pairing screen to connect to the world server you have been given. Your

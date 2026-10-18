@@ -7,6 +7,10 @@ updated: 2026-10-18
 
 # Remote world server deployment
 
+Players setting up a fresh Linux host should use the
+[Linux hosting guide](../hosting-linux.md). This page remains the operator's
+checklist for preserving an existing installation during a manual update.
+
 Use this checklist for an owner-authorized update of a world server that runs
 on another machine, such as the development VPS. It describes a manual
 operation; there is no staged deploy command yet. Building or merging a PR
@@ -151,12 +155,14 @@ is implied by this guide.
 
 ## Installing this build on a remote server
 
-For a fresh Linux installation, publish the server as above and install the
-complete output under `/opt/clankerworld-server`. The
-[systemd template](../../deploy/clankerworld-server.service) runs
-`ClankerWorld.Server.dll` as `clanker:clanker` with the .NET 10 runtime at
-`/home/clanker/.local/bin/dotnet`. Provision that account and runtime, or adjust
-the unit to the intended account and runtime path, before starting it.
+The [server-only package](build-and-test.md#linux-server-package) includes
+the self-contained Linux x64 server and a fresh-install command. Its
+[systemd unit](../../deploy/clankerworld-server.service) runs
+`/opt/clankerworld-server/ClankerWorld.Server` as `clanker:clanker`, without
+an installed .NET runtime. For a manually staged development build, publish
+with `--runtime linux-x64 --self-contained -p:RestoreLockedMode=true` and
+provision that account before installing the unit. Existing installations
+follow the paused update procedure above, not the fresh installer.
 `StateDirectory=clankerworld-server` creates `/var/lib/clankerworld-server`;
 `StateDirectoryMode=0700` makes it private to the service account. World state,
 device authority, the approval header and model configuration live there. The optional
@@ -178,6 +184,7 @@ re-pairing, deleting state or starting a new world.
 The template sets these environment variables:
 
 - `ClankerWorld__World__Mode`
+- `ClankerWorld__Hosting__Kind`
 - `ClankerWorld__Clock__Run`
 - `ClankerWorld__Clock__ClientPresenceTimeoutSeconds`
 - `ClankerWorld__Http__Port`
@@ -186,6 +193,7 @@ The template sets these environment variables:
 - `ClankerWorld__Pairing__AuthorityPath`
 - `ClankerWorld__World__SavePath`
 - `ClankerWorld__Providers__ConfigurationPath`
+- `ClankerWorld__Providers__UsagePath`
 - `ClankerWorld__Assets__CatalogPath`
 
 The server also reads these settings, which a unit sets only when needed:
@@ -233,6 +241,11 @@ Model-decision logs name the agent with `agent=`. The server's events include
 `local_server outcome=shutdown_requested` records the game's shutdown request.
 
 ## Local approval and recovery
+
+On a package-installed host, `sudo clankerworld-server approve` prompts for
+the joining device's code and approves its unique pending pairing through
+the same account-protected listener. It does not print a code or proof. The
+lower-level commands below remain available to operators.
 
 The remote server creates `/var/lib/clankerworld-server/approval-header` on its
 first start, readable and writable only by `clanker`. This is the owner-approved

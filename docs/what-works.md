@@ -1750,6 +1750,11 @@ Save World before saving or overwriting, and clears when space recovers.
 Unknown space is shown separately. These checks never prevent a save or delay
 an emergency save; an actual disk-full write can still fail.
 
+The [Linux hosting guide](hosting-linux.md) describes the server-only Linux x64
+download, fresh systemd installation and private comparison-code approval.
+The service includes its runtime and keeps installation state outside its
+program folder. A fresh-machine reboot and Windows join playtest is pending.
+
 A written [remote world server deployment checklist](development/remote-server-deployment.md)
 is available for manual server updates. It covers staging a build, preserving
 installation state, checking the updated server while paused and rolling back

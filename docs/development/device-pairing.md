@@ -20,6 +20,13 @@ rollback backup. This is the approved pre-release exception described in
 
 ## Pairing flow
 
+Package-installed Linux hosts offer `sudo clankerworld-server approve`, which
+reads a comparison code privately and posts it to
+`/api/v1/approval/pairings/approve` with the account's approval header. It
+resolves only a unique pending match and uses the existing approval operation;
+expired, absent or ambiguous codes approve no device. Activation still requires
+the joining device's signature. See the [Linux hosting guide](../hosting-linux.md).
+
 1. A Windows client creates a non-exportable current-user CNG P-256 signing
    key locally. Its non-secret pairing registration metadata lives under the
    app user's storage, while the private key remains in the Windows key store.

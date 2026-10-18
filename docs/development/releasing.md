@@ -159,6 +159,13 @@ Before publishing:
    when the launcher changed. Players download it themselves: the launcher
    never updates itself, it only says that a newer launcher exists.
 
+For releases that include Linux hosting, also run
+`bash scripts/package-linux-server.sh` on the tagged commit and attach
+`ClankerWorld-Server-<version>-linux-x64.tar.gz` and its `.sha256`. Check its
+manifest and source revision against the Windows game. Keep the private-network
+and manual-update limitations in the [Linux hosting guide](../hosting-linux.md)
+visible in the release notes.
+
 ### Rehearse without publishing
 
 Use a detached scratch worktree of fetched `origin/main`, with full history.

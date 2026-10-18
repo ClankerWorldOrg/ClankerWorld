@@ -112,6 +112,8 @@ const releaseAssets = [
   'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip.sha256',
   'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe',
   'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe.sha256',
+  'export/linux-server/ClankerWorld-Server-0.1.0-nightly.20261011.42-linux-x64.tar.gz',
+  'export/linux-server/ClankerWorld-Server-0.1.0-nightly.20261011.42-linux-x64.tar.gz.sha256',
 ];
 
 function writeReleaseAssets(root, missing) {
@@ -125,7 +127,7 @@ function writeReleaseAssets(root, missing) {
   }
 }
 
-test('publication targets the checked commit and uploads the game, setup and both hashes as a pre-release', t => {
+test('publication targets the checked commit and uploads the game, setup, server and hashes as a pre-release', t => {
   const fixture = sandbox(t);
   writeReleaseAssets(fixture.root);
   const result = fixture.run('Publish the nightly pre-release');
@@ -134,7 +136,7 @@ test('publication targets the checked commit and uploads the game, setup and bot
   assert.deepEqual(call.slice(0, 3), ['release', 'create', 'v0.1.0-nightly.20261011.42']);
   assert.ok(call.includes('--prerelease') && call.includes('--latest=false'));
   assert.equal(call[call.indexOf('--target') + 1], sha);
-  assert.deepEqual(call.slice(-4), releaseAssets);
+  assert.deepEqual(call.slice(-6), releaseAssets);
 });
 
 test('a missing game, setup or checksum prevents publication', t => {
@@ -162,7 +164,7 @@ test('publication preserves the built asset bytes and their matching checksums',
   writeReleaseAssets(fixture.root);
   const before = releaseAssets.map(asset => fs.readFileSync(path.join(fixture.root, asset)));
   assert.equal(fixture.run('Publish the nightly pre-release').status, 0);
-  const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-4);
+  const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-6);
   assert.deepEqual(uploaded.map(asset => fs.readFileSync(path.join(fixture.root, asset))), before);
 });
 
@@ -172,7 +174,7 @@ test('read-only builds hand artifacts to a main-only publisher without repositor
   assert.match(publisher, /needs: \[nightly, windows-installer\]/);
   assert.match(publisher, /if: github\.ref == 'refs\/heads\/main' && needs\.nightly\.outputs\.build == 'true'/);
   assert.doesNotMatch(publisher, /actions\/checkout@|\b(?:bash|node|python|dotnet)\b|scripts\//);
-  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 2);
+  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 3);
   for (const job of jobs.filter(job => !job.startsWith('  publish:\n'))) {
     assert.doesNotMatch(job, /\b(?:contents|actions): write\b/);
   }
