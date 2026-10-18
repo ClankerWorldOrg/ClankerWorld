@@ -5,8 +5,8 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class TownSystem
 {
     private static string LandHearingJudgeActionToken(TownLandCase item, LandHearingJudgeKind kind) =>
-        CivicAgentToken(kind == LandHearingJudgeKind.Vote && item.Contest is { } contest
-            ? TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest) : TownLandHearingRules.RevisionToken(item));
+        kind == LandHearingJudgeKind.Vote && item.Contest is { } contest
+            ? DerivedId.Create(TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest)) : TownLandHearingRules.RevisionToken(item);
 
     internal static LandHearingJudgeActionPlan? PlanLandHearingJudge(ITownWorld world, string actor, LandHearingJudgeChoice choice)
     {
