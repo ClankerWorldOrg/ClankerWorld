@@ -737,6 +737,11 @@ public partial class Launcher : Control
             var approvalButtons = pendingDevices.FindChildren("*", "Button", recursive: true, owned: false).OfType<Button>().ToArray();
             Expect(approvalButtons.Length == 4 && !approvalButtons[0].Disabled && approvalButtons[2].Disabled,
                 "Only a current comparison code can be approved; restored requests can be declined");
+            resumeHosting.ButtonPressed = false;
+            Expect(!LauncherSettings.Load(layout).ResumeHostingAtSignIn && hostingRunning,
+                "Disabling sign-in restart is remembered without stopping the host");
+            resumeHosting.ButtonPressed = true;
+            Expect(LauncherSettings.Load(layout).ResumeHostingAtSignIn, "Sign-in restart can be enabled again");
             hostingRunning = false;
             ClearHostRequests();
             RefreshHostControls();
