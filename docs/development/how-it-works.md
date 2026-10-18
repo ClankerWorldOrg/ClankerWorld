@@ -3813,6 +3813,8 @@ foot-neighbor enumeration when computing Road costs. Public step costs and movem
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Live movement and planned ground/bridge routes share the same Road cost
+adjustment, including its minimum cost and Road-bridge distinction.
 Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped
