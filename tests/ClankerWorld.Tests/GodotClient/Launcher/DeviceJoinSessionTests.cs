@@ -8,6 +8,8 @@ using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Networking;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +30,12 @@ public sealed class DeviceJoinSessionTests
         try
         {
             using var baseHost = new ServerWebApplicationFactory(null, legacyPace: false);
-            using var host = baseHost.WithWebHostBuilder(builder => builder.UseSetting("ClankerWorld:Hosting:Kind", kind));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), new ManualTimeProvider());
+            using var host = baseHost.WithWebHostBuilder(builder =>
+            {
+                builder.UseSetting("ClankerWorld:Hosting:Kind", kind);
+                builder.ConfigureServices(services => services.AddSingleton(presence));
+            });
             using var handler = new ObservePairing(host.Server.CreateHandler()) { LoseActivationReply = loseReply };
             using var http = new HttpClient(handler);
             using var signer = new TestSigner();
@@ -60,12 +67,15 @@ public sealed class DeviceJoinSessionTests
             var saved = File.ReadAllText(path);
             Assert.DoesNotContain(pending.PairingCode, saved, StringComparison.Ordinal);
             Assert.DoesNotContain(pending.ActivationCanonicalProof, saved, StringComparison.Ordinal);
-            // Restart the launcher: its signed reconnect uses the saved origin,
+            // Restart the launcher: its signed access check uses the saved origin,
             // authority, device and durable signer, without starting pairing again.
             var restarted = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+            Assert.False(presence.HasActiveClient);
             await restarted.CheckConnectionAsync(CancellationToken.None);
+            Assert.False(presence.HasActiveClient);
             Assert.Equal(1, handler.Pairings);
-            Assert.Equal(1, handler.Reconnects);
+            Assert.Equal(0, handler.Reconnects);
+            Assert.Equal(1, handler.RecoveryChecks);
             Assert.Equal(session.Registration, restarted.Registration);
             await Assert.ThrowsAsync<InvalidOperationException>(() => restarted.StartAsync(
                 new Uri("https://different-host.test"), CancellationToken.None));
@@ -74,6 +84,39 @@ public sealed class DeviceJoinSessionTests
             restarted.Forget();
             Assert.False(File.Exists(path));
             Assert.Null(restarted.Registration);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public async Task ARefusedCheckpointKeepsItsRecoveryScreenReachableThroughTheLauncher()
+    {
+        var directory = Directory.CreateTempSubdirectory("launcher-join-recovery-");
+        try
+        {
+            using var signer = new TestSigner();
+            var store = new OwnerDeviceRegistrationStore(Path.Combine(directory.FullName, "registration.json"));
+            var origin = new Uri("http://127.0.0.1");
+            using (var original = new ServerWebApplicationFactory(directory.FullName, legacyPace: false))
+            using (var client = original.CreateClient())
+            {
+                var session = new DeviceJoinSession(new OwnerWorldApi(client), signer, store);
+                await session.StartAsync(origin, CancellationToken.None);
+                var pending = session.Pending!;
+                Assert.True(original.Services.GetRequiredService<OwnerAuthorityStore>()
+                    .ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
+                Assert.True(await session.PollAsync(CancellationToken.None));
+            }
+            var checkpoint = Path.Combine(directory.FullName, "runtime.json");
+            var damaged = System.Text.Encoding.UTF8.GetBytes("{damaged latest");
+            File.WriteAllBytes(checkpoint, damaged);
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, legacyPace: false);
+            using var http = restarted.CreateClient();
+            var joined = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+            Assert.True(restarted.Services.GetRequiredService<WorldStartupRecovery>().Pending);
+            await joined.CheckConnectionAsync(CancellationToken.None);
+            Assert.False(restarted.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
+            Assert.Equal(damaged, File.ReadAllBytes(checkpoint));
         }
         finally { directory.Delete(recursive: true); }
     }
@@ -167,6 +210,7 @@ public sealed class DeviceJoinSessionTests
         public int Pairings { get; private set; }
         public int Activations { get; private set; }
         public int Reconnects { get; private set; }
+        public int RecoveryChecks { get; private set; }
         public ClientPairingStatus? Status { get; set; }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -175,6 +219,7 @@ public sealed class DeviceJoinSessionTests
             if (path.StartsWith("/api/v1/pairings/", StringComparison.Ordinal) && request.Method == HttpMethod.Get && Status is not null)
                 return new(HttpStatusCode.OK) { Content = JsonContent.Create(Status) };
             if (path == OwnerPairingEndpoints.OwnerReconnect) Reconnects++;
+            if (path == "/api/v1/owner/recovery/status") RecoveryChecks++;
             var response = await base.SendAsync(request, cancellationToken);
             if (path == OwnerPairingEndpoints.PairingActivation)
             {
