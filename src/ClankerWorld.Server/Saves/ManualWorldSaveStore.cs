@@ -190,8 +190,7 @@ public sealed partial class ManualWorldSaveStore
                 state.Society.Society.WorldTick, isAutosave, branch, timeline?.ContinuedFromId,
                 timeline?.ContinuedFromCreatedUtc, NextBranchPosition(branch, timeline),
                 BuildInformation.Version, BuildInformation.SourceRevision);
-            Directory.CreateDirectory(directory);
-            RestrictDirectory();
+            PrivateStorage.EnsureDirectory(directory);
             WriteAtomic(StatePath(entry.Id), bytes);
             // The branch record moves before the save is published. A failure in
             // between leaves a record pointing at an unlisted save, whose
@@ -391,8 +390,7 @@ public sealed partial class ManualWorldSaveStore
 
     private void WriteTimeline(Timeline timeline)
     {
-        Directory.CreateDirectory(directory);
-        RestrictDirectory();
+        PrivateStorage.EnsureDirectory(directory);
         WriteAtomic(TimelinePath(timeline.WorldId), JsonSerializer.SerializeToUtf8Bytes(timeline), overwrite: true);
     }
 
@@ -764,25 +762,18 @@ public sealed partial class ManualWorldSaveStore
     private string MetadataPath(string id) => Path.Combine(directory, id + ".meta.json");
     private static bool IsId(string? id) => id is { Length: 32 } && id.All(char.IsAsciiHexDigit);
 
-    private void RestrictDirectory()
-    {
-        if (!OperatingSystem.IsWindows())
-            File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-    }
-
     private static void WriteAtomic(string destination, byte[] bytes, bool overwrite = false)
     {
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = PrivateStorage.CreateNew(temporary))
             {
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
             }
-            if (!OperatingSystem.IsWindows())
-                File.SetUnixFileMode(temporary, UnixFileMode.UserRead | UnixFileMode.UserWrite);
             File.Move(temporary, destination, overwrite);
+            PrivateStorage.RestrictFile(destination);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
