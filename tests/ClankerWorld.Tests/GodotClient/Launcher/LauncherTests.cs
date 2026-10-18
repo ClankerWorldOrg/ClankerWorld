@@ -745,7 +745,7 @@ public sealed class LauncherTests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (!files.TryGetValue(request.RequestUri!.ToString(), out var bytes))
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { RequestMessage = request });
             if (Tamper && request.RequestUri.ToString().EndsWith(".zip", StringComparison.Ordinal))
             {
                 bytes = (byte[])bytes.Clone();
