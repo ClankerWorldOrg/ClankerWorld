@@ -7,8 +7,8 @@ updated: 2026-10-18
 
 # Releasing
 
-ClankerWorld is **unreleased**. A successful build or commit is not a public
-release. Keep the game version separate from the compatibility versions used
+The latest release is **v0.1.0-alpha.1**. A successful build or commit is not
+a public release. Keep the game version separate from the compatibility versions used
 by saves, replay, content packages and network contracts.
 
 ## Game version
@@ -23,7 +23,7 @@ already identify exact builds.
 The current .NET version metadata comes from
 [`Directory.Build.props`](../../Directory.Build.props), not a second hand-maintained
 constant. See the [build reference](build-and-test.md) for the selected toolchain.
-The default version is `0.1.0-alpha.1` while preparing alpha 1. Development
+The default version is `0.1.0-alpha.1`, matching the latest release. Development
 builds can set `VersionSuffix=dev`; a version label alone does not make a
 build a published release.
 The SDK includes the checked-out source revision in the assembly's informational
@@ -83,9 +83,10 @@ may stop loading, but it is refused with a reason and kept.
 The owner decides when a release is being prepared and what it needs. When
 more is open than one release can take, release labels in
 [`.github/labels.json`](../../.github/labels.json) split the open issues
-([Release scope](../../CONTRIBUTING.md#release-scope)): `release:alpha-1`
-marks those for `v0.1.0-alpha.1`, the first playtest release, and
-`release:alpha-2` those that wait for `v0.1.0-alpha.2`.
+([Release scope](../../CONTRIBUTING.md#release-scope)): `release:alpha-2`
+marks those for `v0.1.0-alpha.2`, the current release. Alpha 1 is published
+and `release:alpha-1` is retired. No next release after alpha 2 has been named;
+until the owner names one, other new issues keep no release label.
 
 1. Fixers take current-release issues first, then issues with no release
    label, and never start a next-release issue before the current release is
@@ -211,15 +212,17 @@ Developer mode's explicitly selected local builds retain their separate path.
 
 The owner creates and keeps the private signing key offline, outside the
 repository, GitHub, CI secrets and build machines. On the owner's offline signing
-computer, with OpenSSL installed:
+computer, with OpenSSL installed, use a new empty folder on offline storage.
+The encryption password is entered locally, never in a command or chat. In a
+POSIX shell, run `umask 077` first; the OpenSSL commands also work in PowerShell:
 
 ```bash
-umask 077
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out clankerworld-release-private.pem
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -aes-256-cbc -out clankerworld-release-private.pem
 openssl pkey -in clankerworld-release-private.pem -pubout -out clankerworld-release-public.pem
 ```
 
-Keep an offline backup of the private file. Give contributors only the public
+Keep the password and an offline backup of the encrypted private file safe.
+OpenSSL asks for the password again when signing. Give contributors only the public
 PEM to pin through a reviewed launcher change. Do not paste, upload or log the
 private key. No build job signs with it.
 
@@ -242,10 +245,13 @@ Authenticode signing or remove Windows' unknown-publisher warning.
 
 Attach the original artifacts, their `.sha256` files and their `.sig` sidecars
 to a **draft** GitHub release. Verify all sidecars against the pinned public key
-before publishing. Enable immutable releases in the repository's release
-settings if available, and confirm the release is immutable after publication;
-all assets must be attached before that point. This setting requires a repository
-administrator. No repository setting was changed by the signing tool.
+before publishing. Release immutability was enabled for this repository on
+October 18, 2026, with the owner's approval in chat
+([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)). Check
+that it remains enabled before publishing, and confirm the new release is
+immutable afterwards; the setting does not protect earlier releases. All assets
+must be attached before publication. A repository administrator controls the
+setting; the signing tool does not change it.
 
 Nightlies need the same offline approval to be installable by this launcher.
 The owner chose draft nightlies for offline signing in chat on October 18
