@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # Build and test
@@ -77,6 +77,10 @@ generated world and genuinely paid Restaurant placement. Each case decodes
 fresh state before adding its own ingredients, payment, cargo and visitor
 positions, then uses independent runtime and providers. Real milling, cooking,
 travel, trade, order survival, refusal and exact checkpoint replay stay checked.
+
+Boat-history fixtures stop after 44 native cancellations: 40 recent records
+and four older records for compaction and corruption checks. Paid construction,
+queuing, cancellation, failed writes and exact checkpoint replay stay checked.
 
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
