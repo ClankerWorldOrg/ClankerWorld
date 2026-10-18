@@ -702,6 +702,36 @@ public partial class Launcher : Control
             Expect(joinPage.IsVisibleInTree() && hostAddress.IsVisibleInTree() && joinHost.IsVisibleInTree() &&
                 !checkApproval.Visible && !playPage.Visible, "Joining has its own address and approval screen");
             Expect(GetViewportRect().Encloses(joinPage.GetGlobalRect()), "Join controls fit the launcher window");
+            var previousCi = System.Environment.GetEnvironmentVariable("CI");
+            System.Environment.SetEnvironmentVariable("CI", "true");
+            try
+            {
+                using var signer = Pairing.OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
+                var registrationStore = new ClientState.OwnerDeviceRegistrationStore(Path.Combine(layout.Root, "join-check.json"));
+                var approved = new ClientState.OwnerDeviceRegistration(new("join-check-host", "join-check-world"),
+                    "join-check-device", signer.PublicKeyFingerprint, "https://joined-world.test/");
+                registrationStore.Save(approved);
+                joinSession = new DeviceJoinSession(new Networking.OwnerWorldApi(http), signer, registrationStore);
+                settings = settings with { JoinRemoteWorld = true };
+                SaveSettings();
+                playPage.GetChildren().OfType<Button>().Single(button => button.Text == "Play on this PC")
+                    .EmitSignal(BaseButton.SignalName.Pressed);
+                Expect(!settings.JoinRemoteWorld, "Local Play leaves the saved remote connection unselected");
+                RefreshJoinPage();
+                Expect(!joinHost.Disabled && joinHost.Text == "Use this world", "The saved remote world can be selected again");
+                await JoinHostAsync();
+                Expect(settings.JoinRemoteWorld && LauncherSettings.Load(layout).JoinRemoteWorld && playPage.Visible &&
+                    joinSession.Registration == approved && joinSession.Pending is null &&
+                    registrationStore.TryLoad(signer.PublicKeyFingerprint) == approved,
+                    "Returning to the saved remote world retains its approval without pairing again");
+            }
+            finally
+            {
+                joinSession = null;
+                settings = settings with { JoinRemoteWorld = false };
+                SaveSettings();
+                System.Environment.SetEnvironmentVariable("CI", previousCi);
+            }
             ShowPage(playPage);
             releases = GameReleaseFeed.Read(
             [
