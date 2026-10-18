@@ -1,1 +1,0 @@
-- Adults born in the world can recall newly completed lessons, with their teacher and learned skill preserved through save/load.

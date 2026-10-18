@@ -1,1 +1,0 @@
-- Building quick cards and Details now show a storage-space bar with exact used/limit counts, updating as goods move or a building expands.

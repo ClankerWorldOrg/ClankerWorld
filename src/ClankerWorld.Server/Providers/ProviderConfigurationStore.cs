@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
+using ClankerWorld.Contracts;
 
 namespace ClankerWorld.Server.Providers;
 
@@ -24,7 +25,7 @@ public static class PlayerDecisionProviders
     public const string OllamaCloud = "ollama-cloud";
     public const string Anthropic = "anthropic";
 
-    public const string DefaultJevModel = "jev-1.13.0";
+    public const string DefaultJevModel = RoutineHelperDefaults.JevModel;
     public const string DefaultOpenAiModel = "gpt-6-luna";
     public const string DefaultOllamaCloudModel = "glm-5.3-flash:cloud";
     public const string DefaultAnthropicModel = "claude-haiku-5-5";
@@ -38,6 +39,10 @@ public static class PlayerDecisionProviders
 
     /// <summary>Providers that host an agent's own paid model, with a key and a thinking setting.</summary>
     public static bool IsModelProvider(string? provider) => provider is OpenAi or OllamaCloud or Anthropic;
+
+    public static bool IsCredentialProvider(string? provider) => provider == Jev || IsModelProvider(provider);
+
+    public static string HelperCredentialProvider(string provider) => provider == Decisions ? OpenAi : provider;
 
     public static string Normalize(string? provider) => provider?.Trim().ToLowerInvariant() switch
     {
@@ -91,6 +96,8 @@ public static class PlayerDecisionProviders
     }
 }
 
+// Record printing requires an instance PrintMembers even when every field is omitted.
+#pragma warning disable CA1822
 public sealed record ProviderConfigurationSeed(
     string ActiveProvider,
     string? JevModel,
@@ -100,11 +107,20 @@ public sealed record ProviderConfigurationSeed(
     string? OllamaCloudModel,
     string? OllamaCloudApiKey,
     string? AnthropicModel = null,
-    string? AnthropicApiKey = null);
+    string? AnthropicApiKey = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
-public sealed record StoredProviderCredential(string Model, string? ApiKey);
+public sealed record StoredProviderCredential(string Model, string? ApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
-public sealed record ProviderCredentialSlot(string Id, string Provider, string Label, string ApiKey);
+public sealed record ProviderCredentialSlot(string Id, string Provider, string Label, string ApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 public sealed record ProviderConfigurationState(
     int SchemaVersion,
@@ -117,7 +133,10 @@ public sealed record ProviderConfigurationState(
     IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
     IReadOnlyList<string>? DeletedCredentialSlotIds = null,
-    StoredProviderCredential? Anthropic = null);
+    StoredProviderCredential? Anthropic = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 public sealed record RuntimeProviderConfiguration(
     string RoutineProvider,
@@ -128,11 +147,18 @@ public sealed record RuntimeProviderConfiguration(
     long Revision,
     IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
-    StoredProviderCredential? Anthropic = null);
+    StoredProviderCredential? Anthropic = null)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
 
 internal sealed record FrozenChildModelBinding(
     ChildPersonalModelSelection Selection,
-    string? CopiedDefaultApiKey);
+    string? CopiedDefaultApiKey)
+{
+    private bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
+#pragma warning restore CA1822
 
 /// <summary>
 /// Keeps player-supplied model-provider credentials outside world saves and
@@ -162,6 +188,32 @@ public sealed class ProviderConfigurationStore
     }
 
     public string Path { get; }
+
+    public static (int Removed, int Retained) RemoveTemporaryFiles(string path)
+    {
+        var fullPath = System.IO.Path.GetFullPath(path);
+        var directory = System.IO.Path.GetDirectoryName(fullPath)!;
+        if (!Directory.Exists(directory)) return (0, 0);
+        var prefix = "." + System.IO.Path.GetFileName(fullPath) + ".";
+        var removed = 0;
+        var retained = 0;
+        foreach (var temporary in Directory.EnumerateFiles(directory, prefix + "*.tmp"))
+        {
+            var name = System.IO.Path.GetFileName(temporary);
+            if (!name.StartsWith(prefix, StringComparison.Ordinal) || !name.EndsWith(".tmp", StringComparison.Ordinal) ||
+                !Guid.TryParseExact(name.AsSpan(prefix.Length, name.Length - prefix.Length - ".tmp".Length), "N", out _)) continue;
+            try
+            {
+                if ((File.GetAttributes(temporary) & FileAttributes.ReparsePoint) != 0) { retained++; continue; }
+                // Never read a credential payload; a live writer denies this write-open through publication.
+                using (new FileStream(temporary, FileMode.Open, FileAccess.Write, FileShare.None,
+                    bufferSize: 1, FileOptions.DeleteOnClose)) { }
+                removed++;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { retained++; }
+        }
+        return (removed, retained);
+    }
 
     // Shared by selection and founder/add-agent setup across the complete
     // world/checkpoint/routing transaction, not just individual store writes.
@@ -222,8 +274,8 @@ public sealed class ProviderConfigurationStore
         if (!Guid.TryParseExact(action.CredentialSlotId, "N", out _))
             throw new ArgumentException("Choose a valid named credential slot.", nameof(action));
         var provider = PlayerDecisionProviders.Normalize(action.Provider);
-        if (!PlayerDecisionProviders.IsModelProvider(provider))
-            throw new ArgumentException("Choose OpenAI, Ollama Cloud or Anthropic for this key.", nameof(action));
+        if (!PlayerDecisionProviders.IsCredentialProvider(provider))
+            throw new ArgumentException("Choose OpenAI, Ollama Cloud, Anthropic or TypeSafe for this key.", nameof(action));
         var label = NormalizeSlotLabel(action.Label);
         var key = NormalizeRequiredApiKey(action.ApiKey);
         lock (gate)
@@ -244,7 +296,7 @@ public sealed class ProviderConfigurationStore
     }
 
     /// <summary>Delete an unused named key from installation-local provider storage.</summary>
-    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId)
+    public OwnerProviderConfigurationStatus DeleteCredentialSlot(string slotId, RoutineHelperSettings? routineHelper = null)
     {
         if (!Guid.TryParseExact(slotId, "N", out _))
             throw new ArgumentException("Choose a valid named credential slot.", nameof(slotId));
@@ -255,6 +307,8 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("That named credential slot no longer exists.", nameof(slotId));
             if ((state.Assignments ?? []).Any(item => item.CredentialSlotId == slotId && item.SelectionReason is null))
                 throw new InvalidOperationException("This key is assigned to an agent. Choose another key or world default for that agent before deleting it.");
+            if (routineHelper?.CredentialSlotId == slotId)
+                throw new InvalidOperationException("This key is used by the world's routine helper. Choose another helper key or turn the helper off before deleting it.");
 
             var next = state with
             {
@@ -281,13 +335,27 @@ public sealed class ProviderConfigurationStore
         }
     }
 
-    /// <summary>Preflight a saved world's required local credentials without changing the active routing.</summary>
-    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
+    /// <summary>Preflight saved agent and helper credentials without changing the active routing.</summary>
+    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments,
+        RoutineHelperSettings? helper = null)
     {
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
-            try { ValidateState(PreparedWorldAssignments(assignments)); return true; }
+            try
+            {
+                ValidateState(PreparedWorldAssignments(assignments));
+                helper?.Validate();
+                // Preserve keyless legacy Jev worlds. An explicit named key
+                // must never fall back to an installation default.
+                if (helper is null || helper.Provider == "off" ||
+                    helper.Provider == PlayerDecisionProviders.Jev && helper.CredentialSlotId is null)
+                    return true;
+                var provider = PlayerDecisionProviders.HelperCredentialProvider(helper.Provider);
+                return !string.IsNullOrWhiteSpace(helper.CredentialSlotId is { } slotId
+                    ? state.CredentialSlots?.FirstOrDefault(slot => slot.Id == slotId && slot.Provider == provider)?.ApiKey
+                    : CredentialFor(state, provider)?.ApiKey);
+            }
             catch (Exception exception) when (exception is ArgumentException or InvalidDataException or OverflowException)
             { return false; }
         }
@@ -608,7 +676,7 @@ public sealed class ProviderConfigurationStore
             ValidateState(loaded);
             if (OperatingSystem.IsWindows() && !ProviderCredentialFile.IsProtected(stored))
                 SaveUnsafe(loaded);
-            RestrictPermissions(Path);
+            PrivateStorage.RestrictFile(Path);
             return loaded;
         }
     }
@@ -817,7 +885,7 @@ public sealed class ProviderConfigurationStore
         foreach (var slot in state.CredentialSlots ?? [])
         {
             if (!Guid.TryParseExact(slot.Id, "N", out _) || !slotIds.Add(slot.Id) ||
-                !PlayerDecisionProviders.IsModelProvider(slot.Provider))
+                !PlayerDecisionProviders.IsCredentialProvider(slot.Provider))
                 throw new InvalidDataException("A credential slot has an invalid or duplicate identity.");
             _ = NormalizeSlotLabel(slot.Label);
             _ = NormalizeRequiredApiKey(slot.ApiKey);
@@ -912,25 +980,22 @@ public sealed class ProviderConfigurationStore
         ValidateState(next);
         var directory = System.IO.Path.GetDirectoryName(Path) ??
             throw new InvalidOperationException("The provider-configuration path has no directory.");
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(Path)}.{Guid.NewGuid():N}.tmp");
         try
         {
             var encoded = ProviderCredentialFile.Encode(JsonSerializer.Serialize(next, JsonOptions));
-            var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
-            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-            using (var stream = new FileStream(temporaryPath, options))
+            // Permit atomic rename while denying cleanup's write-open until publication finishes.
+            using (var stream = PrivateStorage.CreateNew(temporaryPath, FileShare.Delete))
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(encoded);
                 stream.Write(bytes);
                 stream.Flush(flushToDisk: true);
+                File.Move(temporaryPath, Path, overwrite: true);
+                PrivateStorage.RestrictFile(Path);
             }
-            RestrictPermissions(temporaryPath);
-            File.Move(temporaryPath, Path, overwrite: true);
-            RestrictPermissions(Path);
         }
         finally
         {
@@ -978,13 +1043,7 @@ public sealed class ProviderConfigurationStore
         return normalized;
     }
 
-    private static void RestrictPermissions(string path)
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-    }
+
 }
 
 /// <summary>
@@ -1040,6 +1099,8 @@ public sealed partial class ConfigurableDecisionProvider(
     ProviderUsageStore? usageStore = null) : IDecisionProvider, IAgentConversationProvider
 {
     private readonly WorldJevPolicy jevPolicy = jevPolicy ?? new WorldJevPolicy();
+    // Logged in place of a chosen ID that matches none of the offered choices.
+    internal const string NotOfferedCandidate = "<not-offered>";
     private static readonly HashSet<string> RoutineCandidateIds = new(StringComparer.Ordinal)
     {
         "consume_food",
@@ -1454,10 +1515,12 @@ public sealed partial class ConfigurableDecisionProvider(
         if (providerId == PlayerDecisionProviders.Decisions ||
             providerId == PlayerDecisionProviders.Jev && worldJev.Revision > 0)
             credential = credential with { Model = worldJev.Helper.Model };
-        if (providerId == PlayerDecisionProviders.Decisions && worldJev.Helper.CredentialSlotId is { } helperSlotId)
+        if (providerId is PlayerDecisionProviders.Decisions or PlayerDecisionProviders.Jev &&
+            worldJev.Helper.CredentialSlotId is { } helperSlotId)
         {
-            var helperSlot = selected.CredentialSlots?.FirstOrDefault(item => item.Id == helperSlotId && item.Provider == PlayerDecisionProviders.OpenAi);
-            if (helperSlot is null) throw new CognitionProviderUnavailableException("missing_key", "Choose a saved OpenAI key for this world's helper.");
+            var helperProvider = PlayerDecisionProviders.HelperCredentialProvider(providerId);
+            var helperSlot = selected.CredentialSlots?.FirstOrDefault(item => item.Id == helperSlotId && item.Provider == helperProvider);
+            if (helperSlot is null) throw new CognitionProviderUnavailableException("missing_key", "Choose an available saved key for this world's routine helper.");
             credential = credential with { ApiKey = helperSlot.ApiKey };
         }
         if (routing.Assignment?.CredentialSlotId is { } slotId)
@@ -1521,6 +1584,10 @@ public sealed partial class ConfigurableDecisionProvider(
                     response.Usage?.OutputTokens ?? 0);
             if (logger is not null)
             {
+                // The runtime checks the reply against the offered choices only
+                // later, so log the chosen ID only when it is one of them.
+                var offered = request.Observation.Candidates.Any(candidate =>
+                    string.Equals(candidate.Id, response.SelectedCandidateId, StringComparison.Ordinal));
                 LogProviderCallCompleted(
                     logger,
                     providerId,
@@ -1528,7 +1595,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
                     request.Observation.AgentId,
                     request.Observation.WorldTick,
-                    response.SelectedCandidateId,
+                    offered ? response.SelectedCandidateId : NotOfferedCandidate,
                     response.Confidence,
                     response.Usage?.InputTokens ?? 0,
                     response.Usage?.OutputTokens ?? 0,

@@ -13,18 +13,17 @@ public sealed record CognitionNonLandChoice(string? Statement = null, string? Un
     public void Validate()
     {
         if (!ValidText(Statement) || !ValidText(Uncertainty) || !ValidText(Grounds) || CompletionTicks is <= 0 ||
-            EvidenceIds is { } refs && (refs.Count > 16 || refs.Any(reference => !Reference(reference)) ||
+            EvidenceIds is { } refs && (refs.Count > 16 || refs.Any(reference => !IdentityRules.Reference(reference, DerivedId.MaximumLength, requireTrimmed: false, forbidWhitespace: true)) ||
                 refs.Distinct(StringComparer.Ordinal).Count() != refs.Count) ||
             Terms is { } terms && (terms.Count is < 1 or > 8 || terms.Any(term => term is null ||
                 term.Kind is not ("return_goods" or "repair_equipment" or "public_service_goods") ||
-                !Reference(term.ContributorId) || !OptionalReference(term.BeneficiaryId) ||
+                !IdentityRules.Reference(term.ContributorId, DerivedId.MaximumLength, requireTrimmed: false, forbidWhitespace: true) || !OptionalReference(term.BeneficiaryId) ||
                 !OptionalReference(term.ItemKind) || !OptionalReference(term.TargetId) || term.Quantity is < 1 or > 10_000)))
             throw new ArgumentOutOfRangeException(nameof(CognitionNonLandChoice), "The legal submission is malformed or too large.");
     }
 
     private static bool ValidText(string? value) => value is null || CognitionDecisionResponse.NormalizeIdentityText(value) == value;
-    private static bool Reference(string? value) => value is { Length: > 0 and <= DerivedId.MaximumLength } && !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
-    private static bool OptionalReference(string? value) => value is null || Reference(value);
+    private static bool OptionalReference(string? value) => value is null || IdentityRules.Reference(value, DerivedId.MaximumLength, requireTrimmed: false, forbidWhitespace: true);
 
     internal static CognitionNonLandChoice? Parse(JsonElement answer)
     {
@@ -47,14 +46,14 @@ public sealed record CognitionNonLandChoice(string? Statement = null, string? Un
                 if (required) throw new InvalidDataException("A remedy reference is required.");
                 return null;
             }
-            if (item.ValueKind != JsonValueKind.String || !Reference(item.GetString())) throw new InvalidDataException("Invalid remedy reference.");
+            if (item.ValueKind != JsonValueKind.String || !IdentityRules.Reference(item.GetString(), DerivedId.MaximumLength, requireTrimmed: false, forbidWhitespace: true)) throw new InvalidDataException("Invalid remedy reference.");
             return item.GetString();
         }
         string[]? evidence = null;
         if (payload.TryGetProperty("evidence_ids", out var references) && references.ValueKind != JsonValueKind.Null)
         {
             if (references.ValueKind != JsonValueKind.Array || references.GetArrayLength() > 16 ||
-                references.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String || !Reference(item.GetString())))
+                references.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String || !IdentityRules.Reference(item.GetString(), DerivedId.MaximumLength, requireTrimmed: false, forbidWhitespace: true)))
                 throw new InvalidDataException("Invalid legal evidence references.");
             evidence = references.EnumerateArray().Select(item => item.GetString()!).ToArray();
         }

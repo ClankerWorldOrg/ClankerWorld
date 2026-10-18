@@ -1,1 +1,0 @@
-- Redo Town site works after removing an empty starter building before placing any founders, including after saving and loading the unfinished setup.

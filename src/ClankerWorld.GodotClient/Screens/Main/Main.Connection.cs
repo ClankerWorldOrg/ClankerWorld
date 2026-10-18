@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
@@ -94,7 +95,11 @@ public partial class Main
                 ? await localServer!.StartPairingAsync(deviceKey, CancellationToken.None)
                 : await ownerApi.StartPairingAsync(origin, deviceKey, CancellationToken.None);
             pendingPairingOrigin = origin;
-            if (ownServer && await ApproveLocalPairingAsync(pendingPairing)) return;
+            if (ownServer && await ApproveLocalPairingAsync(pendingPairing))
+            {
+                await ActivatePendingPairingAsync();
+                return;
+            }
             pairingPanel.Show();
             pairingInstructionLabel.Text = "Give the person who runs the world server the pairing ID and comparison code below. They approve this device on the server's own computer. The code is not a password.";
             pairingCodeLabel.Text = pendingPairing.PairingCode;
@@ -264,6 +269,7 @@ public partial class Main
         unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         knownEvents.Clear();
+        eventLogRefusals.Clear();
         pairingPanel.Show();
         connectionPanel.Show();
         OpenMenuForSetup();
@@ -324,15 +330,18 @@ public partial class Main
                 return;
             }
 
-            if (timelineChanged || renderedObservationGeneration != observationSession.RequestGeneration)
+            var sameContext = !timelineChanged && renderedObservationGeneration == observationSession.RequestGeneration;
+            if (!sameContext)
             {
                 ResetDisplayedWorldContext();
             }
             else if (reconnect.Baseline.Events.ResetRequired)
             {
                 knownEvents.Clear();
+                eventLogRefusals.Clear();
             }
-            Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);
+            using (var draft = sameContext ? new PanelDraft(this) : null)
+                Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);
             renderedObservationGeneration = observationSession.RequestGeneration;
             successfulRefreshCount++;
             if (!isOwnerAction)
@@ -373,37 +382,20 @@ public partial class Main
     private bool IsCurrentWorldRequest(long generation) =>
         generation == observationSession.RequestGeneration && !observationSession.AwaitingFreshBaseline;
 
-    private sealed class ObsoleteWorldRequestException : OperationCanceledException { }
+    private readonly AsyncLocal<OwnerRequestContext?> ownerRequestContext = new();
+    private CancellationToken OwnerRequestToken => ownerRequestContext.Value?.CancellationToken ?? CancellationToken.None;
 
-    // A request already sent may still commit on the host. Only its late local
-    // result is discarded here; this never retries or rewrites its payload.
-    private async Task<T> AwaitCurrentWorldResultAsync<T>(Task<T> request)
+    // The context is captured by the runner before anything is sent.
+    private Task<T> AwaitCurrentWorldResultAsync<T>(Task<T> request) =>
+        (ownerRequestContext.Value ?? CaptureOwnerRequestContext()).AwaitAsync(request);
+
+    private Task AwaitCurrentWorldResultAsync(Task request) =>
+        (ownerRequestContext.Value ?? CaptureOwnerRequestContext()).AwaitAsync(request);
+
+    private OwnerRequestContext CaptureOwnerRequestContext()
     {
         var generation = observationSession.RequestGeneration;
-        try
-        {
-            var result = await request;
-            if (generation != observationSession.RequestGeneration) throw new ObsoleteWorldRequestException();
-            return result;
-        }
-        catch (Exception) when (generation != observationSession.RequestGeneration)
-        {
-            throw new ObsoleteWorldRequestException();
-        }
-    }
-
-    private async Task AwaitCurrentWorldResultAsync(Task request)
-    {
-        var generation = observationSession.RequestGeneration;
-        try
-        {
-            await request;
-            if (generation != observationSession.RequestGeneration) throw new ObsoleteWorldRequestException();
-        }
-        catch (Exception) when (generation != observationSession.RequestGeneration)
-        {
-            throw new ObsoleteWorldRequestException();
-        }
+        return new OwnerRequestContext(() => IsCurrentWorldRequest(generation), OwnerRequestToken);
     }
 
     private async Task ConnectUsingCurrentUrlAsync()

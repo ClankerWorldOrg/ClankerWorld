@@ -72,7 +72,8 @@ public sealed partial class WorldRuntime
             permittedRoadOffsets: forTownProject && building?.Tags.Contains(MarketContent.HallTag, StringComparer.Ordinal) == true
                 ? MarketContent.PlazaTiles(new(0, 0)).Except(Enumerable.Range(0, MarketContent.MaximumStalls)
                     .Select(slot => MarketContent.StallSite(new(0, 0), slot))) : null,
-            protectedTiles: TownProjectProtectedSites(townProjectId).Concat(bridges.SelectMany(item => item.Entrances)));
+            protectedTiles: TownProjectProtectedSites(townProjectId).Concat(bridges.SelectMany(item => item.Entrances))
+                .Concat(Ground.BuildingEntrances()));
     }
 
     /// <summary>A Silo stands near its household's Farmhouse; no Farmhouse means no legal Silo site.</summary>
@@ -112,6 +113,7 @@ public sealed partial class WorldRuntime
         var selectedSiteReached = selectedSite is null ||
             pendingAnchors is not null && pendingAnchors.Count == 0;
         var order = 0;
+        var buildings = MovementBuildings;
         var best = ArrayPool<int>.Shared.Rent(tileCount);
         try
         {
@@ -139,7 +141,7 @@ public sealed partial class WorldRuntime
                     break;
                 foreach (var next in map.FootNeighborsForSearch(current))
                 {
-                    if (occupied.Contains(next) ||
+                    if (!buildings.CanStep(map, current, next) || occupied.Contains(next) ||
                         map.IsDiagonalFootStep(current, next) &&
                         (occupied.Contains(new GridPoint(next.X, current.Y)) ||
                          occupied.Contains(new GridPoint(current.X, next.Y))))
@@ -281,7 +283,7 @@ public sealed partial class WorldRuntime
     // A synchronous proposal query checks many sites against the same objects.
     // Keep Market tiles separate: only an extra stall may use its own slot,
     // and that exception never opens a tile occupied by another kind of object.
-    private sealed record BuildingPlacementTiles(HashSet<GridPoint> Occupied, HashSet<GridPoint> Market,
+    private sealed record BuildingPlacementTiles(HashSet<GridPoint> Occupied, HashSet<GridPoint> Market, HashSet<GridPoint> Entrances,
         string? Failure = null);
 
     private sealed record BuildingPlacementWorld(string? ProjectId, Lazy<BuildingPlacementTiles> Tiles);
@@ -300,7 +302,7 @@ public sealed partial class WorldRuntime
         {
             if (!buildingDefinitions.TryGetValue(placed.DefinitionId, out var existingDefinition))
             {
-                return new(occupied, market, $"Placed building '{placed.InstanceId}' references an unavailable definition.");
+                return new(occupied, market, [], $"Placed building '{placed.InstanceId}' references an unavailable definition.");
             }
 
             foreach (var existingPoint in WorldContentSimulationRules.Footprint(existingDefinition, placed))
@@ -311,16 +313,20 @@ public sealed partial class WorldRuntime
 
         occupied.UnionWith(worldSimulation.Buildings.Where(building => Port(building.InstanceId) is not null)
             .Select(PortGeometryFor).SelectMany(geometry => geometry.DockingTiles));
-        return new(occupied, market);
+        return new(occupied, market, ground.BuildingEntrances().ToHashSet());
     }
 
     private bool CanPlaceBuilding(
         BuildingDefinition definition,
         GridPoint position,
         out string failure,
+        out GridPoint? entrance,
         string? townProjectId = null,
-        BuildingPlacementWorld? world = null)
+        BuildingPlacementWorld? world = null,
+        bool mayFaceRoad = false,
+        GridPoint? requiredEntrance = null)
     {
+        entrance = null;
         var footprint = WorldContentSimulationRules.Footprint(definition, position).ToArray();
         if (!PortNavigationRules.IsPort(definition) && footprint.Any(point => !map.IsBuildable(point)))
         {
@@ -336,6 +342,11 @@ public sealed partial class WorldRuntime
             failure = contentFailure;
             return false;
         }
+        if (footprint.Any(tiles.Entrances.Contains))
+        {
+            failure = "The building would cover another building's doorway.";
+            return false;
+        }
         if (PortNavigationRules.IsPort(definition))
         {
             var occupied = tiles.Occupied.Concat(tiles.Market).ToHashSet();
@@ -347,6 +358,14 @@ public sealed partial class WorldRuntime
                 (point != position || !definition.Tags.Contains(MarketContent.StallTag, StringComparer.Ordinal))))
         {
             failure = "The building footprint overlaps an existing object, resource, Road, bridge end, or building.";
+            return false;
+        }
+
+        entrance = BuildingMovementRules.FindEntrance(map, definition, position, mayFaceRoad,
+            tiles.Occupied, roadTiles, required: requiredEntrance);
+        if (entrance is null)
+        {
+            failure = "The building needs a clear doorway on buildable ground.";
             return false;
         }
 
@@ -460,22 +479,16 @@ public sealed partial class WorldRuntime
 
             var completed = CompleteProductionJob(job, recipe, targetTick);
 
-            worldSimulation = new WorldContentSimulationState(
-                worldSimulation.Buildings,
-                worldSimulation.ProductionJobs
-                    .Select(candidate => candidate.JobId == job.JobId
-                        ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled }
-                        : candidate)
-                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal)
-                    .ToArray(),
-                worldSimulation.NextProductionJobSequence,
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
+            worldSimulation = worldSimulation with
+            {
+                ProductionJobs = worldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
+                    ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled } : candidate)
+                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal).ToArray(),
+            };
             if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
-                AppendEvent("house_tool_made", $"{job.WorkerId}|{recipe.Outputs.Single().ResourceId}",
-                    worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
+                AppendEvent(new HouseToolMadeEventPayload(job.WorkerId, recipe.Outputs.Single().ResourceId), worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
             else
-                AppendEvent(completed ? "recipe_completed" : "recipe_cancelled", $"{job.JobId}:{recipe.CanonicalId}");
+                AppendEvent(completed ? new RecipeCompletedEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null) : new RecipeCancelledEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null));
             if (completed)
             {
                 LearnProducedRecipe(job, recipe, targetTick);
@@ -490,7 +503,7 @@ public sealed partial class WorldRuntime
         long targetTick)
     {
         var inventoryState = society.Checkpoint.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
+        var inputs = job.InputReservationIds.Select(id => inventoryState.GetReservation(id)).ToArray();
         var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
             job.WorkerId, ToolFamily.Knife, job.ToolLotId);
         var inputUnusable = inputs.Any(reservation =>
@@ -508,8 +521,7 @@ public sealed partial class WorldRuntime
                 }
                 return inventory;
             });
-            AppendEvent(unsupportedOutput ? "production_output_unsupported" :
-                inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.JobId);
+            AppendEvent(WorldEvents.ProductionFailure(unsupportedOutput ? "production_output_unsupported" : inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.WorkerId, job.JobId));
             return false;
         }
         var productionBuilding = worldSimulation.Buildings
@@ -518,7 +530,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var current = inventory;
-            foreach (var reservationId in job.InputReservationIds.Order(StringComparer.Ordinal))
+            foreach (var reservationId in job.InputReservationIds.Order())
             {
                 current = InventoryAuthority.ConsumeReservation(current, reservationId);
             }
