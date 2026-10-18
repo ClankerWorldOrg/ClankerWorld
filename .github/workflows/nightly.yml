@@ -140,6 +140,15 @@ jobs:
           bash scripts/package-windows.sh
           bash scripts/verify-godot-windows-export.sh --launcher
           bash scripts/package-windows.sh --launcher export/launcher-windows-x64 export/launcher-package
+          bash scripts/package-linux-server.sh
+      - name: Upload the nightly Linux server
+        if: steps.decide.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-linux-server
+          path: export/linux-server
+          compression-level: 0
+          if-no-files-found: error
       - name: Upload the nightly game package
         if: steps.decide.outputs.build == 'true'
         uses: actions/upload-artifact@v4
@@ -274,6 +283,10 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          name: nightly-linux-server
+          path: export/linux-server
+      - uses: actions/download-artifact@v4
+        with:
           name: approved-game
           path: export/package
       - uses: actions/download-artifact@v4
@@ -294,10 +307,13 @@ jobs:
           version="${version%-windows-x64}"
           setup="export/setup/ClankerWorld-Setup-${version}-windows-x64.exe"
           launcher="$(find export/launcher -maxdepth 1 -name '*.zip' -print -quit)"
-          for asset in "${zip}" "${setup}" "${launcher}"; do
+          server="export/linux-server/ClankerWorld-Server-${version}-linux-x64.tar.gz"
+          for asset in "${zip}" "${setup}" "${launcher}" "${server}"; do
             test -f "${asset}"
-            test -s "${asset}.sig"
             (cd "${asset%/*}" && sha256sum --check --quiet --strict "${asset##*/}.sha256")
+          done
+          for asset in "${zip}" "${setup}" "${launcher}"; do
+            test -s "${asset}.sig"
           done
           sha="${{ needs.nightly.outputs.sha }}"
           flags=(--latest=false)
@@ -321,7 +337,7 @@ jobs:
           gh release create "v${version}" --draft "${flags[@]}" --target "${sha}" \
             --title "${title}" "${note_flags[@]}" \
             "${zip}" "${zip}.sha256" "${zip}.sig" "${setup}" "${setup}.sha256" "${setup}.sig" \
-            "${launcher}" "${launcher}.sha256" "${launcher}.sig"
+            "${launcher}" "${launcher}.sha256" "${launcher}.sig" "${server}" "${server}.sha256"
           gh release edit "v${version}" --draft=false "${publish_flags[@]}"
       - name: Remove older nightly builds
         env:

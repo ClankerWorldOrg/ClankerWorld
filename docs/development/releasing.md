@@ -163,6 +163,12 @@ Before publishing:
    when the launcher changed. Players download it themselves: the launcher
    never updates itself, it only says that a newer launcher exists.
 
+The workflow also builds `ClankerWorld-Server-<version>-linux-x64.tar.gz`
+and its `.sha256` from the same commit and attaches them before publication.
+Check its manifest and source revision against the Windows game. Keep the
+private-network and manual-update limitations in the
+[Linux hosting guide](../hosting-linux.md) visible in the release notes.
+
 ### Rehearse without publishing
 
 Use a detached scratch worktree of fetched `origin/main`, with full history.
@@ -295,11 +301,11 @@ the workflow adds the automatic approvals above before publication:
   `ClankerWorld-Setup-<version>-windows-x64.exe` and its `.sha256` beside the
   portable zip. The [per-user setup](build-and-test.md#windows-installer)
   bundles the launcher and game from the same commit, using the same package
-  scripts as CI. Linux builds both packages; Windows builds the setup before
-  the publisher verifies the downloaded files against their SHA-256 files and
-  requires their approvals before attaching everything to a draft and publishing
-  it. Only that job can write releases; it runs only on main and does not check
-  out or execute repository code.
+  scripts as CI. Linux also builds the server-only `linux-x64.tar.gz`; Windows
+  builds the setup. The publisher checks all four downloads against their SHA-256
+  files and requires the Windows game, launcher and installer approvals before
+  attaching all eleven files to a draft and publishing it. Only that job can write
+  releases; it runs only on main and does not check out or execute repository code.
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.

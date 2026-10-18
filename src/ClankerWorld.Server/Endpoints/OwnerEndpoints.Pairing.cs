@@ -133,6 +133,17 @@ internal static partial class OwnerEndpoints
             return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
         });
 
+        app.MapPost("/api/v1/approval/pairings/approve", (
+            PairingApprovalHttpRequest request, HttpContext context, ApprovalListenerOptions options,
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var result = authority.ApprovePendingPairingLocally(request?.PairingCode ?? string.Empty);
+            stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "approved" : "refused");
+            return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
+        });
+
         // This route is served only by the second loopback-only listener configured by
         // the deployment. Tailscale Serve forwards the normal server port, never this
         // approval port, so a remote client cannot bootstrap itself.

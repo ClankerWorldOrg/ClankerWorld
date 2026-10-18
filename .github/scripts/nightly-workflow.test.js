@@ -143,6 +143,8 @@ const releaseAssets = [
   'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip',
   'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip.sha256',
   'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip.sig',
+  'export/linux-server/ClankerWorld-Server-0.1.0-nightly.20261011.42-linux-x64.tar.gz',
+  'export/linux-server/ClankerWorld-Server-0.1.0-nightly.20261011.42-linux-x64.tar.gz.sha256',
 ];
 
 function writeReleaseAssets(root, missing, assets = releaseAssets) {
@@ -271,7 +273,7 @@ test('read-only builds hand artifacts to a main-only publisher without repositor
   assert.match(publisher, /needs: \[nightly, sign-setup\]/);
   assert.match(publisher, /if: github\.ref == 'refs\/heads\/main' && needs\.nightly\.outputs\.build == 'true'/);
   assert.doesNotMatch(publisher, /actions\/checkout@|\b(?:bash|node|python|dotnet)\b|scripts\//);
-  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 3);
+  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 4);
   for (const job of jobs.filter(job => !job.startsWith('  publish:\n'))) {
     assert.doesNotMatch(job, /\b(?:contents|actions): write\b/);
   }

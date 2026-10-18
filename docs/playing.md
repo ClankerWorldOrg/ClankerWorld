@@ -63,6 +63,10 @@ hosting before playing locally.
 
 ## Connect your device
 
+To run the world on an always-on Linux x64 machine, follow the
+[Linux hosting guide](hosting-linux.md). It covers the server download,
+private HTTPS access, service installation and local device approval.
+
 For a world on another computer, open the launcher and choose **Join a world
 on another computer**. Enter the host's HTTPS address. Both devices must be on
 its private network. Compare the displayed code with the person approving the
