@@ -91,7 +91,8 @@ public partial class Launcher
         var pending = joinSession?.Pending;
         var registration = joinSession?.Registration;
         hostAddress.Editable = !joining && pending is null && registration is null;
-        joinHost.Disabled = joining || pending is not null || registration is not null;
+        joinHost.Text = registration is null ? "Join" : "Use this world";
+        joinHost.Disabled = joining || pending is not null;
         checkApproval.Visible = pending is not null;
         checkApproval.Disabled = joining;
         forgetHost.Disabled = joining;
@@ -100,7 +101,7 @@ public partial class Launcher
         else if (registration is not null)
         {
             hostAddress.Text = registration.WorldUrl;
-            comparison.Text = "This device is approved. Choose Play to reconnect to this world.";
+            comparison.Text = "This device is approved. Choose Use this world, then Play to reconnect.";
         }
         else comparison.Text = "Enter the address shown on the hosting computer. Both devices must be on its private network.";
     }
@@ -108,6 +109,14 @@ public partial class Launcher
     private async Task JoinHostAsync()
     {
         if (joining || busy || joinSession is null) return;
+        if (joinSession.Registration is not null)
+        {
+            settings = settings with { JoinRemoteWorld = true };
+            SaveSettings();
+            ShowPage(playPage);
+            SetStatus("Play will open the world you joined.");
+            return;
+        }
         if (!ServerOrigin.TryResolve(hostAddress.Text, out var origin))
         {
             SetStatus("Enter the host's HTTPS address, without a path.");

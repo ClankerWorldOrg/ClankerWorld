@@ -154,9 +154,9 @@ a log that looks like a key is blanked. Reports go in a `reports` folder (in
 `%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
 five newest are kept. Nothing is uploaded; you choose where to send the file.
 
-If the server changes, choose **Pair again** in **Settings → Game → World
-connection**: it forgets this device's saved connection so you can pair with
-the new server.
+If the server changes, open the launcher's joining screen and choose **Forget
+this connection**, then enter and approve the new host. To return to an
+already approved host after local play, choose **Use this world**, then **Play**.
 [Device pairing](development/device-pairing.md) has the operator instructions.
 
 If New World asks for matching updates, update the game and have the server
