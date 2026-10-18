@@ -5,8 +5,8 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Content;
 using ClankerWorld.Server.Saves;
 using Microsoft.Extensions.DependencyInjection;
-using ServerBuildingReassignmentAction = ClankerWorld.Server.Content.OwnerBuildingReassignmentAction;
-using ServerBuildingRemovalAction = ClankerWorld.Server.Content.OwnerBuildingRemovalAction;
+using ServerBuildingReassignmentAction = ClankerWorld.Contracts.OwnerBuildingReassignmentAction;
+using ServerBuildingRemovalAction = ClankerWorld.Contracts.OwnerBuildingRemovalAction;
 
 namespace ClankerWorld.Tests;
 

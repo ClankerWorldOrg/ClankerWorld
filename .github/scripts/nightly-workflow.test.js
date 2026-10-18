@@ -2,7 +2,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { execFile, spawnSync } = require('node:child_process');
+const { createServer } = require('node:http');
+const { createHash } = require('node:crypto');
+const { promisify } = require('node:util');
 const { test } = require('node:test');
 
 const workflow = fs.readFileSync(path.join(__dirname, '../workflows/nightly.yml'), 'utf8');
@@ -19,7 +22,7 @@ function script(name) {
     if (line && !line.startsWith('          ')) break;
     body.push(line.slice(10));
   }
-  return body.join('\n').replaceAll('${{ steps.decide.outputs.sha }}', sha);
+  return body.join('\n').replaceAll('${{ needs.nightly.outputs.sha }}', sha);
 }
 
 function sandbox(t, pages = []) {
@@ -35,8 +38,23 @@ const { spawnSync } = require('node:child_process');
 const args = process.argv.slice(2);
 fs.appendFileSync(process.env.NIGHTLY_TEST_CALLS, JSON.stringify(args) + '\\n');
 if (args[0] === 'api') {
+  if (args.includes('--slurp') && args.includes('--jq')) {
+    console.error('the --slurp option is not supported with --jq or --template');
+    process.exit(1);
+  }
   if (process.env.NIGHTLY_TEST_API_FAIL === 'true') process.exit(1);
   const pages = JSON.parse(fs.readFileSync(process.env.NIGHTLY_TEST_PAGES, 'utf8'));
+  if (process.env.NIGHTLY_TEST_API_FAIL === 'partial') {
+    process.stdout.write(JSON.stringify(pages[0] || []) + '\\n');
+    process.exit(1);
+  }
+  if (!args.includes('--jq')) {
+    const output = args.includes('--slurp') ? JSON.stringify(pages)
+      : args.includes('--paginate') ? (pages.length ? pages : [[]]).map(page => JSON.stringify(page)).join('\\n')
+      : JSON.stringify(pages[0] || []);
+    process.stdout.write(output + '\\n');
+    process.exit(0);
+  }
   const data = args.includes('--paginate') && args.includes('--slurp') ? pages : (pages[0] || []);
   const result = spawnSync('jq', ['-r', args[args.indexOf('--jq') + 1]], { input: JSON.stringify(data), encoding: 'utf8' });
   process.stdout.write(result.stdout || ''); process.stderr.write(result.stderr || '');
@@ -89,19 +107,76 @@ test('only a green push run for the exact checked-out commit allows a new nightl
   }
 });
 
-test('publication targets the checked commit and uploads both versioned assets as a pre-release', t => {
+const releaseAssets = [
+  'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip',
+  'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip.sha256',
+  'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe',
+  'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe.sha256',
+];
+
+function writeReleaseAssets(root, missing) {
+  for (const asset of releaseAssets.filter(asset => asset !== missing)) {
+    const file = path.join(root, asset);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const contents = 'synthetic release asset';
+    fs.writeFileSync(file, asset.endsWith('.sha256')
+      ? `${createHash('sha256').update(contents).digest('hex')} *${path.basename(asset, '.sha256')}\n`
+      : contents);
+  }
+}
+
+test('publication targets the checked commit and uploads the game, setup and both hashes as a pre-release', t => {
   const fixture = sandbox(t);
-  fs.mkdirSync(path.join(fixture.root, 'export/package'), { recursive: true });
-  const zip = 'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip';
-  fs.writeFileSync(path.join(fixture.root, zip), 'synthetic package');
-  fs.writeFileSync(path.join(fixture.root, `${zip}.sha256`), 'synthetic hash');
+  writeReleaseAssets(fixture.root);
   const result = fixture.run('Publish the nightly pre-release');
   assert.equal(result.status, 0, result.stderr);
   const call = fixture.calls().find(call => call[0] === 'release');
   assert.deepEqual(call.slice(0, 3), ['release', 'create', 'v0.1.0-nightly.20261011.42']);
   assert.ok(call.includes('--prerelease') && call.includes('--latest=false'));
   assert.equal(call[call.indexOf('--target') + 1], sha);
-  assert.deepEqual(call.slice(-2), [zip, `${zip}.sha256`]);
+  assert.deepEqual(call.slice(-4), releaseAssets);
+});
+
+test('a missing game, setup or checksum prevents publication', t => {
+  for (const missing of releaseAssets) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root, missing);
+    const result = fixture.run('Publish the nightly pre-release');
+    assert.notEqual(result.status, 0, missing);
+    assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, missing);
+  }
+});
+
+test('changed package bytes or checksums prevent publication', t => {
+  for (const asset of releaseAssets) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root);
+    fs.appendFileSync(path.join(fixture.root, asset), 'changed after building');
+    assert.notEqual(fixture.run('Publish the nightly pre-release').status, 0, asset);
+    assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, asset);
+  }
+});
+
+test('publication preserves the built asset bytes and their matching checksums', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root);
+  const before = releaseAssets.map(asset => fs.readFileSync(path.join(fixture.root, asset)));
+  assert.equal(fixture.run('Publish the nightly pre-release').status, 0);
+  const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-4);
+  assert.deepEqual(uploaded.map(asset => fs.readFileSync(path.join(fixture.root, asset))), before);
+});
+
+test('read-only builds hand artifacts to a main-only publisher without repository execution', () => {
+  const jobs = workflow.split('\njobs:\n')[1].split(/\n(?=  [\w-]+:\n)/);
+  const publisher = jobs.find(job => job.startsWith('  publish:\n'));
+  assert.match(publisher, /needs: \[nightly, windows-installer\]/);
+  assert.match(publisher, /if: github\.ref == 'refs\/heads\/main' && needs\.nightly\.outputs\.build == 'true'/);
+  assert.doesNotMatch(publisher, /actions\/checkout@|\b(?:bash|node|python|dotnet)\b|scripts\//);
+  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 2);
+  for (const job of jobs.filter(job => !job.startsWith('  publish:\n'))) {
+    assert.doesNotMatch(job, /\b(?:contents|actions): write\b/);
+  }
+  assert.match(workflow.split('\njobs:\n')[0], /permissions:\n  contents: read/);
 });
 
 test('retention finds later API pages and removes only nightlies older than the newest seven', t => {
@@ -126,13 +201,23 @@ test('API errors fail both decision and cleanup without attempting a deletion', 
 });
 
 test('only the steps that call gh get the token, and checkout keeps no credentials', () => {
-  const [head, body] = workflow.split('\n    steps:\n');
+  const [head, jobs] = workflow.split('\njobs:\n');
   assert.doesNotMatch(head, /^\s*GH_TOKEN:/m);
-  const steps = body.split(/\n(?=      - )/);
+  const writers = jobs.split(/\n(?=  [\w-]+:\n)/)
+    .filter(job => /^      contents: write$/m.test(job))
+    .map(job => job.match(/^  ([\w-]+):$/m)?.[1]);
+  assert.deepEqual(writers, ['publish']);
+  const steps = jobs.split(/\n(?=  [\w-]+:\n)/).flatMap(job => {
+    const [settings, body] = job.split('\n    steps:\n');
+    assert.doesNotMatch(settings, /^\s*GH_TOKEN:/m);
+    assert.ok(body, 'Each nightly job has steps');
+    return body.split(/\n(?=      - )/);
+  });
   const withToken = steps.filter(step => /^\s*GH_TOKEN:/m.test(step)).map(step => step.match(/^      - name: (.+)$/m)?.[1]);
   assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Publish the nightly pre-release', 'Remove older nightly builds']);
   for (const step of steps.filter(step => /\bgh (api|run|release) /.test(step))) assert.match(step, /\n        env:\n          GH_TOKEN: \$\{\{ github\.token \}\}\n/);
-  assert.match(steps.find(step => step.includes('actions/checkout@')), /\n          persist-credentials: false(\n|$)/);
+  for (const step of steps.filter(step => step.includes('actions/checkout@')))
+    assert.match(step, /\n          persist-credentials: false(\n|$)/);
 });
 
 test('a failed deletion stops retention before deleting another tag', t => {
@@ -140,4 +225,52 @@ test('a failed deletion stops retention before deleting another tag', t => {
   fixture.env.NIGHTLY_TEST_DELETE_FAIL = nightlies[1].tag_name;
   assert.notEqual(fixture.run('Remove older nightly builds').status, 0);
   assert.deepEqual(fixture.calls().filter(call => call[1] === 'delete').map(call => call[2]), [nightlies[1].tag_name]);
+});
+
+
+test('a later API page failure stops decision and cleanup before using partial releases', t => {
+  for (const name of ['Decide whether main needs a new nightly build', 'Remove older nightly builds']) {
+    const fixture = sandbox(t, [nightlies, alphaPage]);
+    fixture.env.NIGHTLY_TEST_API_FAIL = 'partial';
+    const result = fixture.run(name);
+    assert.notEqual(result.status, 0);
+    assert.equal(fixture.calls().filter(call => call[1] === 'delete').length, 0);
+    if (fs.existsSync(fixture.env.GITHUB_OUTPUT))
+      assert.doesNotMatch(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=true/);
+  }
+});
+
+
+test('the workflow API flags paginate with the installed gh binary', async t => {
+  const fixture = sandbox(t, [alphaPage, nightlies]);
+  const result = fixture.run('Decide whether main needs a new nightly build');
+  assert.equal(result.status, 0, result.stderr);
+  const flags = fixture.calls().find(call => call[0] === 'api').slice(2);
+  const located = spawnSync('bash', ['-c', 'command -v gh'], { encoding: 'utf8' });
+  assert.equal(located.status, 0, located.stderr);
+  const gh = located.stdout.trim();
+  t.diagnostic(spawnSync(gh, ['--version'], { encoding: 'utf8' }).stdout.split('\n')[0]);
+  const requested = [];
+  let endpoint;
+  const server = createServer((request, response) => {
+    requested.push(request.url);
+    const second = new URL(request.url, endpoint).searchParams.get('page') === '2';
+    response.setHeader('content-type', 'application/json');
+    if (!second) response.setHeader('link', `<${endpoint}?page=2>; rel="next"`);
+    response.end(JSON.stringify(second ? nightlies : alphaPage));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  endpoint = `http://127.0.0.1:${server.address().port}/releases`;
+  const actual = await promisify(execFile)(gh, ['api', endpoint, ...flags], {
+    env: { ...process.env, GH_TOKEN: 'offline-test', GH_ENTERPRISE_TOKEN: 'offline-test', GH_CONFIG_DIR: fixture.root },
+    timeout: 5_000,
+  });
+  const collected = spawnSync('jq', ['-s', '.'], { input: actual.stdout, encoding: 'utf8' });
+  assert.equal(collected.status, 0, collected.stderr);
+  assert.deepEqual(JSON.parse(collected.stdout).flat(), [...alphaPage, ...nightlies]);
+  assert.deepEqual(requested.map(value => {
+    const request = new URL(value, endpoint);
+    return [request.pathname, request.searchParams.get('page') || '1'];
+  }), [['/releases', '1'], ['/releases', '2']]);
 });

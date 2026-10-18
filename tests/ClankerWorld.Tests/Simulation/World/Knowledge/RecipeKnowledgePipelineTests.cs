@@ -186,7 +186,7 @@ public sealed class RecipeKnowledgePipelineTests
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         {
             Instructions = completed.Instructions!.Select(item => item.InstructionId == instruction.InstructionId
-                ? item with { Task = item.Task! with { KnowledgeReadCompletion = receipt with { LearnedRecipes = [] } } } : item).ToArray(),
+                ? item with { Task = item.Task!.UpdateDefinition(definition => definition switch { ReadKnowledgeOrderDefinition task => task with { KnowledgeReadCompletion = receipt with { LearnedRecipes = [] } }, _ => throw new InvalidOperationException() }) } : item).ToArray(),
         }));
         Assert.True((await reading.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(1, reading.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.CompletedUnits);

@@ -1,1 +1,0 @@
-- Ecology updates avoid repeating configuration checks for every resource, reducing allocation work while retaining input validation and the existing growth rules.

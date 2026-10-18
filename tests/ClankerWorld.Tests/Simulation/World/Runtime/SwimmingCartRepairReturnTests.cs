@@ -77,7 +77,7 @@ public sealed class SwimmingCartRepairReturnTests
             world.Society.Inventory.GetLot("swim-repair-cart").GroundPosition!.Value.Y));
         Assert.Equal(4, world.Society.Inventory.GetLot("swim-repair-cargo").Quantity);
         Assert.Equal("swim-repair-cart", world.Society.Inventory.GetLot("swim-repair-cargo").ContainerLotId);
-        Assert.DoesNotContain(world.Society.Inventory.Reservations, reservation => reservation.Id.StartsWith("cart-repair:", StringComparison.Ordinal));
+        Assert.DoesNotContain(world.Society.Inventory.Reservations, reservation => reservation.Id.Value.StartsWith("cart-repair:", StringComparison.Ordinal));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));

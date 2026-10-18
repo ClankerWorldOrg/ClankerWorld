@@ -11,7 +11,7 @@ public partial class Main
     private const int MaximumVisibleConversationTurns = 7;
 
     private readonly PanelContainer conversationPanel = new();
-    private readonly Label conversationReaderTitle = new();
+    private readonly FittedLabel conversationReaderTitle = new();
     private readonly Label conversationReaderStatus = new() { ThemeTypeVariation = "DimLabel" };
     private readonly Label conversationReaderSummary = new() { AutowrapMode = TextServer.AutowrapMode.WordSmart };
     private readonly Button conversationHistoryButton = new();
@@ -129,13 +129,13 @@ public partial class Main
                 (conversation.InitiatorId == agentId ? conversation.InitiatorName : conversation.InviteeName);
             var otherName = conversation.InitiatorId == agentId ? conversation.InviteeName : conversation.InitiatorName;
             conversationReaderTitle.Text = $"{ownName} and {otherName}";
-            if (conversation.Kind == "marriage_surname") conversationReaderTitle.Text = "Shared surname · " + conversationReaderTitle.Text;
+            if (conversation.Kind == "marriage_surname") conversationReaderTitle.Text = "Shared surname · " + conversationReaderTitle.FullText;
         }
         else
         {
             conversationReaderTitle.Text = $"Nearby conversation · {conversation.InitiatorName} and {conversation.InviteeName}";
         }
-        conversationReaderTitle.TooltipText = conversationReaderTitle.Text;
+        conversationReaderTitle.TooltipText = conversationReaderTitle.FullText;
         conversationReaderStatus.Text = ConversationStatusText(conversation);
         conversationReaderSummary.Text = ConversationSummary(conversation, agentId, unreadCount);
 

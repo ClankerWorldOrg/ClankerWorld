@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace ClankerWorld.Server.Pairing;
@@ -27,6 +28,22 @@ public sealed class OwnerAuthorityStateFile
 
     public string Path { get; }
     public long WriteCount => Interlocked.Read(ref writeCount);
+
+    /// <summary>
+    /// The server authority ID this file already holds, or a new random one for
+    /// a server that has none yet. New IDs carry nothing about the computer;
+    /// stored IDs stay unchanged across restarts so existing pairings remain valid.
+    /// </summary>
+    public string StoredOrNewServerAuthorityId()
+    {
+        lock (gate)
+        {
+            if (!File.Exists(Path)) return Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+            var state = JsonSerializer.Deserialize<OwnerAuthorityState>(File.ReadAllText(Path), JsonOptions);
+            return state?.Authority?.ServerAuthorityId ??
+                throw new InvalidDataException("The owner-authority state file has no server authority.");
+        }
+    }
 
     public OwnerAuthorityStore LoadOrCreate(
         OwnerAuthorityIdentity initialIdentity,
@@ -66,6 +83,20 @@ public sealed class OwnerAuthorityStateFile
             // Preserve existing file bytes until durable pairing/device state changes.
             lastSavedJson = SerializeDurable(restored.ExportState());
             return restored;
+        }
+    }
+
+    /// <summary>
+    /// Revokes a device so that the revocation is on disk before any request
+    /// can see it. A failed write leaves the device active and throws.
+    /// </summary>
+    public OwnerAuthorityResult<OwnerDevice> RevokeDevice(OwnerAuthorityStore store, string deviceId)
+    {
+        ArgumentNullException.ThrowIfNull(store);
+        // Same lock order as Save: this file's gate, then the store's.
+        lock (gate)
+        {
+            return store.RevokeDevice(deviceId, SaveUnsafe);
         }
     }
 
