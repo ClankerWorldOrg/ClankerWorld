@@ -22,9 +22,10 @@ public sealed partial class LocalServerTests
         var host = new LocalServer(layout, http, port, approval);
         var game = new LocalServer(layout with
         {
-            HostKind = null, StopWhenGameQuits = false,
+            HostKind = null,
+            StopWhenGameQuits = false,
             FileName = Path.Combine(directory.FullName, "must-not-start-a-second-server"),
-        }, http, port, approval);
+        }, http, port, approval, joinHostedWorld: true);
         try
         {
             Assert.Equal(LocalServerStartOutcome.Started, (await host.StartAsync(version, revision, CancellationToken.None)).Outcome);
@@ -41,6 +42,7 @@ public sealed partial class LocalServerTests
                 remoteSigner, CancellationToken.None);
             Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
             Assert.False(game.StartedServer);
+            Assert.True(game.JoinedHostedServer);
             Assert.Equal(processId, host.StartedServerProcessId);
             using var localKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             using var localSigner = new Signer(localKey);
@@ -69,5 +71,55 @@ public sealed partial class LocalServerTests
             await host.StopAsync(CancellationToken.None);
             directory.Delete(recursive: true);
         }
+    }
+
+    [Fact]
+    public async Task HostedGameIntentDoesNotStartAReplacementWhenNoHostIsRunning()
+    {
+        var directory = Directory.CreateTempSubdirectory("host-pc-absent-");
+        try
+        {
+            var (port, approval) = FreePorts();
+            var layout = new LocalServerLayout(Path.Combine(directory.FullName, "must-not-start"), [], directory.FullName, directory.FullName);
+            using var http = new HttpClient();
+            await using var game = new LocalServer(layout, http, port, approval, joinHostedWorld: true);
+            Assert.Equal(LocalServerStartOutcome.HostedWorldUnavailable,
+                (await game.StartAsync("1.0.0", new string('a', 40), CancellationToken.None)).Outcome);
+            Assert.False(game.StartedServer);
+            Assert.False(File.Exists(layout.SecretPath));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public async Task CancelledHostedModeReadLeavesTheHostAndItsProofAvailable()
+    {
+        var directory = Directory.CreateTempSubdirectory("host-pc-cancel-");
+        var (port, approval) = FreePorts();
+        var assembly = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(assembly);
+        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        { HostKind = "launcher" };
+        using var http = new HttpClient();
+        var host = new LocalServer(layout, http, port, approval);
+        try
+        {
+            Assert.True((await host.StartAsync(version, revision, CancellationToken.None)).IsReady);
+            var proof = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
+            using var handler = new TimeoutOnceHandler("/api/v1/approval/hosting");
+            using var delayedHttp = new HttpClient(handler);
+            var game = new LocalServer(layout with { HostKind = null }, delayedHttp, port, approval, joinHostedWorld: true);
+            using var cancel = new CancellationTokenSource();
+            var starting = game.StartAsync(version, revision, cancel.Token);
+            await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+            cancel.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
+            await game.DisposeAsync();
+            Assert.False(host.StartedProcessHasExited);
+            Assert.Equal(proof, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
+            Assert.Equal("launcher", (await host.HostStatusAsync(CancellationToken.None)).Kind);
+        }
+        finally { await host.StopAsync(CancellationToken.None); directory.Delete(recursive: true); }
     }
 }

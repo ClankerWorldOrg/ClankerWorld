@@ -446,8 +446,9 @@ devices still reconnect without pairing again.
 
 `GET /api/v1/approval/hosting` reports local presence/save readiness and the
 installation's host mode and stop option. Reuse verifies those settings after
-the launch proof, alongside the exact build. A game and a launcher host cannot
-silently take over each other's process. Host reads and answers have a
+the launch proof, alongside the exact build. A launcher host cannot take over a game-started process. A game may join a
+proven launcher host of the exact build; it leaves shutdown to the host app.
+An interrupted or refused mode check retains no client shutdown authority. Host reads and answers have a
 five-second complete-response deadline.
 
 ## Local server started by the game
@@ -498,7 +499,10 @@ stop attempt before releasing the handle. An explicitly refused shutdown keeps
 the server and its paused world available for retry. A running server of the exact same version and
 source revision, started by an earlier launch, is reused only after it answers
 the side-effect-free launch check and confirms the same hosting mode and stop
-option on the approval listener. The game sends
+option on the approval listener. A game joining a launcher host accepts the
+host's existing stop option without changing it, and detaches on quit without
+removing the host's launch proof. Explicit hosted-game startup refuses an
+absent host instead of starting a replacement. The game sends
 `GET /api/v1/approval/launch-check` with a fresh random challenge in the
 `X-ClankerWorld-Launch-Check` header, and the server returns an HMAC-SHA256 of
 it keyed by the secret (`LocalServerLaunchCheck`). The game compares that with

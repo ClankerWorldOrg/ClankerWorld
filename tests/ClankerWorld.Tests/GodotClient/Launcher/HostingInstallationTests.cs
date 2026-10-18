@@ -71,4 +71,45 @@ public sealed class HostingInstallationTests
         finally { directory.Delete(recursive: true); }
     }
 
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void HostedPlayKeepsTheActualHostDataAndIgnoresAnUnrelatedRemoteChoice(bool developer, bool hostTestData)
+    {
+        var localData = Path.Combine(Path.GetTempPath(), "hosting-play-data");
+        var layout = LauncherLayout.ForUser(localData);
+        var saved = new LauncherSettings(DeveloperMode: developer, UseTestData: !hostTestData,
+            JoinRemoteWorld: true, HostedUseTestData: hostTestData);
+        var game = saved.ForHostedGame();
+        Assert.False(game.JoinRemoteWorld);
+        Assert.Equal(layout.HostingDataDirectory(saved, restoring: true), layout.GameDataDirectory(game));
+        var arguments = GameStarter.Arguments("launcher.exe", game.DeveloperMode, useTestData: game.UseTestData, hostedWorld: true);
+        Assert.Contains(GameStarter.HostedWorldOption, arguments);
+        Assert.DoesNotContain(arguments, value => value.StartsWith("--server-url=", StringComparison.Ordinal));
+        Assert.Equal(layout.HostingDataDirectory(saved, restoring: true), GameStarter.DataDirectory(localData, arguments));
+        Assert.True(saved.JoinRemoteWorld);
+        Assert.Equal(!hostTestData, saved.UseTestData);
+        Assert.Throws<GameInstallException>(() => GameStarter.Arguments("launcher.exe", false,
+            serverUrl: "https://other.example.test/", hostedWorld: true));
+    }
+
+    [Fact]
+    public void HostedPlayRefusesAnOlderInstalledGameBeforeTryingToLaunchIt()
+    {
+        var directory = Directory.CreateTempSubdirectory("hosting-old-game-");
+        try
+        {
+            var executable = Path.Combine(directory.FullName, "ClankerWorld.exe");
+            File.WriteAllText(executable, "synthetic game that must not start");
+            File.WriteAllText(Path.Combine(directory.FullName, "package.json"), """{"game":"ClankerWorld.exe","server":"server/ClankerWorld.Server.exe"}""");
+            File.WriteAllText(Path.Combine(directory.FullName, LauncherLayout.PackageManifest), LocalServerLayout.HostingMarker);
+            var error = Assert.Throws<GameInstallException>(() => GameStarter.Start(executable, "launcher.exe",
+                new LauncherSettings(), new LauncherLayout(Path.Combine(directory.FullName, "data")), hostedWorld: true));
+            Assert.Contains("newer build", error.Message, StringComparison.Ordinal);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
 }

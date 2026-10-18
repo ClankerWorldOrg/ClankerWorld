@@ -68,7 +68,9 @@ public sealed partial class LocalServerTests
             var relaunch = new LocalServer(layout, http, port, approval);
             Assert.Equal(LocalServerStartOutcome.Reused, (await relaunch.StartAsync(version, revision, CancellationToken.None)).Outcome);
             var game = new LocalServer(layout with { HostKind = null }, http, port, approval);
-            Assert.Equal(LocalServerStartOutcome.ModeInUse, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            Assert.True(game.JoinedHostedServer);
+            Assert.True(await game.StopAsync(CancellationToken.None));
             using var publicList = await http.GetAsync(new Uri(host.Origin, "api/v1/approval/pairings"));
             Assert.Equal(HttpStatusCode.NotFound, publicList.StatusCode);
             using var missingProof = await http.GetAsync($"http://127.0.0.1:{approval}/api/v1/approval/pairings");

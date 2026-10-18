@@ -530,10 +530,12 @@ public partial class Launcher : Control
         return row;
     }
 
+    private GameVersionName? PlayVersion() => hostingRunning ? GameVersionName.Parse(settings.HostedVersion) : Chosen();
+
     private async Task PlayAsync()
     {
-        if (hostingRunning) { OpenHostPage(); return; }
-        var chosen = Chosen();
+        var playingHosted = hostingRunning;
+        var chosen = PlayVersion();
         if (chosen is null || busy) return;
         if (IsWithdrawn(chosen))
         {
@@ -552,8 +554,9 @@ public partial class Launcher : Control
         try
         {
             await Task.Run(() => GameVersionStore.RequireSigned(version));
+            var launchSettings = playingHosted ? settings.ForHostedGame() : settings;
             string? serverUrl = null;
-            if (settings.JoinRemoteWorld)
+            if (launchSettings.JoinRemoteWorld)
             {
                 EnsureJoinSession();
                 if (joinSession!.Registration is not { } joined)
@@ -570,7 +573,7 @@ public partial class Launcher : Control
                 }
                 serverUrl = joined.WorldUrl;
             }
-            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld, serverUrl);
+            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), launchSettings, layout, playingHosted ? null : requestedWorld, serverUrl, playingHosted);
         }
         catch (GameInstallException exception)
         {
@@ -585,8 +588,12 @@ public partial class Launcher : Control
         finally { SetBusy(false); }
         settings = settings with { LastPlayedVersion = version.Version.ToString() };
         SaveSettings();
-        // The launcher closes while the game runs.
-        GetTree().Quit();
+        if (playingHosted)
+        {
+            SetStatus("Your game is running. Hosting stays available in this window.");
+            GetWindow().Mode = Window.ModeEnum.Minimized;
+        }
+        else GetTree().Quit();
     }
 
     private async Task<InstalledVersion?> InstallAsync(GameRelease release, bool playAfter)
@@ -772,7 +779,7 @@ public partial class Launcher : Control
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Expect(hostingPage.IsVisibleInTree() && startHosting.IsVisibleInTree() && resumeHosting.IsVisibleInTree() &&
                 stopWithGame.IsVisibleInTree(), "Hosting has its own start and restart controls");
-            Expect(startHosting.Disabled && !stopHosting.Visible, "Hosting waits for a selected version");
+            Expect(startHosting.Disabled && !stopHosting.Visible && !playHosted.Visible, "Hosting waits for a selected version");
             Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Host controls fit the launcher window");
             hostingRunning = true;
             hostingAddress.Text = "Address for the joining computer: https://hosting-computer.private-network.ts.net/";
@@ -784,8 +791,13 @@ public partial class Launcher : Control
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Expect(GetViewportRect().Encloses(hostingPage.GetGlobalRect()), "Active hosting and pending requests fit the launcher window");
-            Expect(!navigationTabs.Visible && stopHosting.Visible && stopWithGame.Disabled && hostingBack.Disabled,
+            Expect(!navigationTabs.Visible && playHosted.Visible && stopHosting.Visible && stopWithGame.Disabled && hostingBack.Disabled,
                 "Running hosting keeps its controls available and prevents changing modes");
+            var previousHostVersion = settings.HostedVersion;
+            settings = settings with { HostedVersion = "0.1.0-alpha.2" };
+            RefreshHostControls();
+            Expect(PlayVersion() == GameVersionName.Parse("0.1.0-alpha.2"), "Hosted Play chooses the running host version");
+            settings = settings with { HostedVersion = previousHostVersion };
             var approvalButtons = pendingDevices.FindChildren("*", "Button", recursive: true, owned: false).OfType<Button>().ToArray();
             Expect(approvalButtons.Length == 4 && !approvalButtons[0].Disabled && approvalButtons[2].Disabled,
                 "Only a current comparison code can be approved; restored requests can be declined");

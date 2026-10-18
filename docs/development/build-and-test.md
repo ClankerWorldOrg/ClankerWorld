@@ -469,7 +469,10 @@ The portable game's manifest includes `# Launcher options: host-app-v1` when
 it supports the launcher host app. Hosting refuses a version without that
 marker, authenticated release approval or original installed files, then reuses
 the bundled
-`LocalServer` startup proof. The host screen and sign-in behavior are described
+`LocalServer` startup proof. `# Launcher options: host-local-game-v1` additionally
+allows Play on this PC to launch the matching game with `--hosted-world` and
+the running host's data choice; older games are refused before launch.
+The host screen and sign-in behavior are described
 in [Playing](../playing.md#host-a-world-for-other-devices); its pending
 Windows/Tailscale checks are in the playtest list.
 

@@ -10,6 +10,13 @@ public sealed record LauncherSettings(bool DeveloperMode = false, string? LastPl
     bool ResumeHostingAtSignIn = true, bool StopHostingWhenGameQuits = false,
     bool HostedUseTestData = false)
 {
+    public LauncherSettings ForHostedGame() => this with
+    {
+        JoinRemoteWorld = false,
+        DeveloperMode = DeveloperMode || HostedUseTestData,
+        UseTestData = HostedUseTestData,
+    };
+
     public static LauncherSettings Load(LauncherLayout layout)
     {
         try
@@ -67,6 +74,8 @@ public static class SavedWorlds
 public static class GameStarter
 {
     public const string WorldOption = "--choose-world=";
+    public const string HostedWorldOption = "--hosted-world";
+    public const string HostedGameMarker = "# Launcher options: host-local-game-v1";
     public const string DeveloperOptionsMarker = "# Launcher options: developer-data-v1";
 
     /// <summary>The launch configuration used when a game returns to its launcher.</summary>
@@ -102,12 +111,15 @@ public static class GameStarter
     /// offer Quit to Launcher, and whether Developer mode is on.
     /// </summary>
     public static IReadOnlyList<string> Arguments(string launcherExecutable, bool developerMode, string? worldId = null,
-        bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null)
+        bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null, bool hostedWorld = false)
     {
+        if (hostedWorld && serverUrl is not null)
+            throw new GameInstallException("Choose the hosted world on this PC or a world on another computer.");
         List<string> arguments = [];
         if (developerMode && detailedLogs) arguments.Add("--verbose");
         if (logPath is not null) arguments.AddRange(["--log-file", logPath]);
         arguments.AddRange(["--", "--launcher=" + launcherExecutable]);
+        if (hostedWorld) arguments.Add(HostedWorldOption);
         if (developerMode) arguments.Add("--developer-mode");
         if (developerMode && useTestData) arguments.Add("--test-data");
         if (developerMode && detailedLogs) arguments.Add("--detailed-logs");
@@ -125,18 +137,25 @@ public static class GameStarter
         => StartProcess(version.Executable, launcherExecutable, developerMode, worldId);
 
     public static Process Start(string executable, string launcherExecutable, LauncherSettings settings,
-        LauncherLayout layout, string? worldId = null, string? serverUrl = null)
+        LauncherLayout layout, string? worldId = null, string? serverUrl = null, bool hostedWorld = false)
     {
         if (settings.DeveloperMode && (settings.UseTestData || settings.DetailedLogs))
         {
-            var directory = PackageEntryPoints.FindInstalledForGame(executable)?.Directory;
-            var manifest = directory is null ? null : Path.Combine(directory, LauncherLayout.PackageManifest);
-            if (manifest is null || !File.Exists(manifest) || !File.ReadLines(manifest).Contains(DeveloperOptionsMarker, StringComparer.Ordinal))
+            if (!SupportsOption(executable, DeveloperOptionsMarker))
                 throw new GameInstallException("This build doesn't support the test data folder or detailed logs. Choose a newer build, or turn these options off.");
         }
+        if (hostedWorld && !SupportsOption(executable, HostedGameMarker))
+            throw new GameInstallException("This build can't play on the hosting PC. Choose a newer build, or stop hosting before playing locally.");
         var logs = Path.Combine(layout.GameDataDirectory(settings), "logs");
         return StartProcess(executable, launcherExecutable, settings.DeveloperMode, worldId,
-            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs), serverUrl);
+            settings.UseTestData, settings.DetailedLogs, PrepareGameLog(logs), serverUrl, hostedWorld);
+    }
+
+    private static bool SupportsOption(string executable, string marker)
+    {
+        var directory = PackageEntryPoints.FindInstalledForGame(executable)?.Directory;
+        var manifest = directory is null ? null : Path.Combine(directory, LauncherLayout.PackageManifest);
+        return manifest is not null && File.Exists(manifest) && File.ReadLines(manifest).Contains(marker, StringComparer.Ordinal);
     }
 
     /// <summary>Godot disables rotation with --log-file; keep the last run before it opens the new log.</summary>
@@ -158,14 +177,14 @@ public static class GameStarter
     }
 
     private static Process StartProcess(string executable, string launcherExecutable, bool developerMode,
-        string? worldId, bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null)
+        string? worldId, bool useTestData = false, bool detailedLogs = false, string? logPath = null, string? serverUrl = null, bool hostedWorld = false)
     {
         var start = new ProcessStartInfo(executable)
         {
             WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(executable)),
             UseShellExecute = false,
         };
-        foreach (var argument in Arguments(launcherExecutable, developerMode, worldId, useTestData, detailedLogs, logPath, serverUrl))
+        foreach (var argument in Arguments(launcherExecutable, developerMode, worldId, useTestData, detailedLogs, logPath, serverUrl, hostedWorld))
             start.ArgumentList.Add(argument);
         return Process.Start(start) ?? throw new GameInstallException("ClankerWorld didn't start.");
     }
