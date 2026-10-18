@@ -1,1 +1,1 @@
-- Paired devices now shows who approved each device. Local server startup, private file creation and model connections have tighter defaults, and diagnostic record text leaves out credentials.
+- The paired-device list now shows who approved each device. Saved files are private from their first write, model connections refuse redirects and oversized replies, and diagnostics leave out credentials.
