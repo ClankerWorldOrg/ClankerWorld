@@ -172,7 +172,11 @@ uses a saved OpenAI key and handles the same routine choices and scoring of each
 agent's private memories as Jev. Both helpers serve adults and elders, including people
 born in the world. Children keep their own model; conversations, identity,
 wills and planning use the agent's personal model throughout life. Switching
-cancels pending work and preserves memories.
+cancels pending work and preserves memories. **Test helper · 1 paid call**
+checks the selected helper and saved key immediately; applying a helper only
+selects it. Settings explain why choices with planning options still use the
+personal model. Helper checks use the same signed, metered and bounded path as
+personal-model tests, with sample replies covered automatically.
 The Decisions integration is checked against the published API contract and
 sample replies; the live-account Windows check is still [pending](../playtest/alpha-1.md).
 The saved TypeSafe-key path is covered by automated checks; its live-account

@@ -107,22 +107,22 @@ public partial class Main
                 {
                     var result = await AwaitCurrentWorldResultAsync(ownerApi.CheckProviderSetupAsync(
                         ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
-                    if (currentRevision() == testedRevision)
-                        resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: {result.Message}";
+                    if (currentRevision() != testedRevision) throw new ObsoleteOwnerRequestException();
+                    resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: {result.Message}";
                     return $"{ProviderDisplayName(provider)} / {model}: {result.Message}";
                 }
                 catch (OwnerActionCompatibilityException exception)
                 {
                     var message = $"{FriendlyFailure(exception)}. Nothing was sent.";
-                    if (currentRevision() == testedRevision)
-                        resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: {message}";
+                    if (currentRevision() != testedRevision) throw new ObsoleteOwnerRequestException();
+                    resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: {message}";
                     return message;
                 }
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
                     exception is not ObsoleteOwnerRequestException)
                 {
-                    if (currentRevision() == testedRevision)
-                        resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result arrived. Check your model-call count before trying again.";
+                    if (currentRevision() != testedRevision) throw new ObsoleteOwnerRequestException();
+                    resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result arrived. Check your model-call count before trying again.";
                     return "The test result didn't arrive. Check your model-call count before trying again.";
                 }
             });

@@ -2683,6 +2683,18 @@ limit, authentication or access failure, exhausted allowance, rate limit,
 unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
+**Test helper** reuses this signed, metered endpoint for Jev's System One or
+OpenAI Decisions adapter, with the selected model and saved provider-specific
+key. The challenge must advertise `clankerworld.owner-helper-setup-check.v1`
+before the client sends the action; older hosts get the existing update message
+without a paid request. Helpers reject personal-model thinking options.
+The synthetic check offers only `safe_idle` and requires that offered choice;
+it does not run or change an agent. Settings distinguish selection from a
+successful connection check and explain that ordinary routing requires every
+offered candidate to be routine, with no guidance, naming or identity request.
+Editing the helper, model or key clears its test result. A replaced form cannot
+publish a late success or failure in its label or global feedback.
+
 An installation-local usage file reserves every model attempt before HTTP work.
 Concurrent requests share its optional lifetime attempt cap. Failure, retry and
 abandonment keep their spent allowance; only known token counts are added.
