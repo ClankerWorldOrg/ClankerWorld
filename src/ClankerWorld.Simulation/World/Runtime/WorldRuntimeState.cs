@@ -82,12 +82,13 @@ public sealed record DeceasedAgentState(
     public string? BoatIdAtDeath { get; init; }
 }
 
-public sealed record WorldEventEntry(
-    long EventId,
-    long WorldTick,
-    string Kind,
-    string Detail,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? Position = null);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record WorldEventEntry(long EventId, long WorldTick, WorldEventPayload Payload)
+{
+    [JsonIgnore] public string Kind => Payload.Kind;
+    [JsonIgnore] public string Detail => Payload.DiagnosticDetail;
+    [JsonIgnore] public GridPoint? Position => Payload.Position is { } point ? new(point.X, point.Y) : null;
+}
 
 public sealed record FounderSetupState(IReadOnlyList<string> FounderIds, bool Started);
 
@@ -132,6 +133,12 @@ public sealed record WorldRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ToolMakingRequestState>? ToolMakingRequests = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HandcartHitch>? HandcartHitches = null)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorldMapAuthoring? MapAuthoring { get; init; }
+
+    [JsonRequired]
+    public IReadOnlyList<RecordedInstructionReceipt> InstructionReceipts { get; init; } = [];
+
     [JsonRequired]
     public IReadOnlyList<WorldActionRefusal> ActionRefusals { get; init; } = [];
     [JsonRequired]

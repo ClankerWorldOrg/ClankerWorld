@@ -1,1 +1,0 @@
-- Offer unloading for cargo in every owned cart on the same tile, including broken carts, so an empty cart cannot hide another cart’s goods.

@@ -60,7 +60,12 @@ internal sealed partial class TownSystem
         selected ??= TownFoundingChoice.Decode(candidate) is { } choice ? PlanTownFounding(world, actor, choice) : null;
         if (selected is null) return;
         if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
-        var town = selected.Town with { FoundedTick = world.WorldTick, Government = TownGovernmentState.Create(world.WorldTick) };
+        var town = selected.Town with
+        {
+            FoundedTick = world.WorldTick,
+            FirstBuildingCompletedTick = selected.Town.AssignedBuildingIds.Count > 0 ? world.WorldTick : null,
+            Government = TownGovernmentState.Create(world.WorldTick),
+        };
         var previous = selected.PreviousTown;
         var group = selected.CareGroup;
         var moving = group.ToHashSet(StringComparer.Ordinal);
@@ -87,7 +92,7 @@ internal sealed partial class TownSystem
         };
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_founded", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Count}", world.Agents[actor].Position);
+        world.AppendEvent(new TownFoundedEventPayload(actor, town.Id, previous ?? "none", group.Count, false), world.Agents[actor].Position);
         if (world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId))
             .OrderBy(building => building.PlacedTick).ThenBy(building => building.InstanceId, StringComparer.Ordinal)
             .FirstOrDefault() is { } firstBuilding)

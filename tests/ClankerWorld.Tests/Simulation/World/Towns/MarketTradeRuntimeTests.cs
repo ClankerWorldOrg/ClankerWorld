@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -15,7 +16,7 @@ internal static class MarketTradeScenario
 {
     internal static async Task AssertPipelineAsync(WorldRuntime paidWorld)
     {
-        var boundary = paidWorld.ExportState();
+        var boundary = MovementTestWorld.ClearOtherBuildingAccess(paidWorld.ExportState());
         var market = Assert.Single(Assert.Single(boundary.Towns!).Markets);
         Assert.Equal("completed", Assert.Single(boundary.Towns![0].Projects, project => project.Id == market.ProjectId).Stage);
         Assert.Equal(2, market.Stalls.Count);
@@ -98,6 +99,15 @@ internal static class MarketTradeScenario
         var offeredMarket = offering.Towns[0].Markets[0];
         var trade = Assert.Single(offeredMarket.Trades);
         var offer = offering.Society.Inventory.GetOffer(trade.OfferId);
+        var offerEvent = Assert.Single(offering.ExportState().Events, item =>
+            item.Payload is MarketTradeOfferedEventPayload payload && payload.OfferId == trade.OfferId);
+        var offerPayload = Assert.IsType<MarketTradeOfferedEventPayload>(offerEvent.Payload);
+        Assert.Equal(buyer, offerPayload.ActorId);
+        Assert.Contains(seller, offerPayload.SubjectIds);
+        Assert.Contains(buyer, offerPayload.SubjectIds);
+        Assert.Equal(trade.Position, offerEvent.Position);
+        Assert.Equal($"{offeredMarket.Id}|{stall.BuildingId}|{seller}|{buyer}|{trade.OfferId}",
+            offerEvent.Detail[(offerEvent.Detail.IndexOf('|') + 1)..]);
         Assert.Equal(DirectBarterState.Open, offer.State);
         Assert.Equal(new[] { buyer }, offer.AcceptedBy);
         Assert.Equal(stockOwner, offer.FirstPartyId);
@@ -140,6 +150,16 @@ internal static class MarketTradeScenario
         var pending = offering.ExportState();
         var bytes = WorldRuntimeCodec.Encode(pending);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(bytes)));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(pending with
+        {
+            Towns = pending.Towns!.Select(town => town with
+            {
+                Markets = town.Markets.Select(item => item with
+                {
+                    Trades = item.Trades.Select(record => record with { OfferId = null! }).ToArray(),
+                }).ToArray(),
+            }).ToArray(),
+        }));
         var forged = pending with
         {
             Towns = pending.Towns!.Select(town => town with
@@ -182,6 +202,11 @@ internal static class MarketTradeScenario
         var leaving = phases.Resume("leave", WorldRuntimeCodec.Decode(bytes));
         await UntilAsync(leaving, () => leaving.Towns[0].Markets[0].Occupancies[0].EndedTick is not null, policy);
         Assert.Equal(DirectBarterState.Cancelled, leaving.Society.Inventory.GetOffer(offer.Id).State);
+        var cancelled = Assert.Single(leaving.ExportState().Events, item =>
+            item.Payload is MarketTradeCancelledEventPayload payload && payload.OfferId == offer.Id);
+        Assert.Equal(seller, cancelled.Payload.ActorId);
+        Assert.Equal(trade.Position, cancelled.Position);
+        Assert.Equal(offerEvent.Detail, cancelled.Detail);
         Assert.All(leaving.Society.Inventory.Reservations.Where(claim => claim.Purpose == "barter:" + offer.Id),
             claim => Assert.Equal(InventoryReservationState.Released, claim.State));
         Assert.Equal(4, leaving.Society.Inventory.GetLot(deposit.LotId).Quantity);
@@ -221,8 +246,8 @@ internal static class MarketTradeScenario
         var changed = receipt with
         {
             OwnerId = falseOwner,
-            Id = MarketTradeRules.ReceiptId(receipt.OccupancyId,
-            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt))
+            Id = Identity.Parse(MarketTradeRules.ReceiptId(receipt.OccupancyId,
+            receipt.SourceLotId, falseOwner, receipt.Quantity, receipt.DepositedTick, Array.IndexOf(market.StockReceipts.ToArray(), receipt)))
         };
         var damaged = state with
         {
@@ -256,7 +281,9 @@ internal static class MarketTradeScenario
             var before = world.Agents.ToDictionary(person => person.AgentId, person => person.Position);
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
-            foreach (var decision in result.Decisions.Where(decision => decision.ActionPlan is MarketOccupancyActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null))
+            foreach (var decision in result.Decisions.Where(decision => decision.Admission.Accepted && decision.PlanRefusal is null &&
+                         decision.Admission.Intention?.CandidateId is { } candidate &&
+                         (candidate.StartsWith("market_borrow:", StringComparison.Ordinal) || candidate.StartsWith("market_leave:", StringComparison.Ordinal))))
             {
                 var plan = Assert.IsType<MarketOccupancyActionPlan>(decision.ActionPlan);
                 Assert.Equal(plan.Choice.Encode(), plan.CandidateId);

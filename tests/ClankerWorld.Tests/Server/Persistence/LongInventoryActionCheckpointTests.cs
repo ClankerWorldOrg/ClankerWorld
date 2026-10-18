@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -10,7 +13,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class LongInventoryActionCheckpointTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
     private const string House = "first-town-house-a";
     private const string Cart = "lineage-cart";
     private static readonly Lazy<Task<byte[]>> StartingCheckpoint = new(async () =>
@@ -36,17 +39,18 @@ public sealed partial class LongInventoryActionCheckpointTests
 
         var finished = Order(world, receipt.InstructionId);
         Assert.Equal(("finished", 1), (finished.Status, finished.CompletedUnits));
-        Assert.InRange(finished.LastEffectId!.Length, 1, 512);
+        Assert.InRange(finished.LastEffectId!.Value.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(7 - splits, world.Society.Inventory.GetLot(lotId).Quantity);
         Assert.Equal(Actor, world.Society.Inventory.GetLot(lotId).OwnerId);
         Assert.Single(world.ExportState().Events, item => item.Kind == "food_consumed" && item.Detail == Actor);
 
         var finishedState = world.ExportState();
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(finishedState with
-        {
-            Instructions = finishedState.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { LastEffectId = new string('x', 513) } } : item).ToArray(),
-        }));
+        Assert.Throws<ArgumentException>(() => Identity.Parse(new string('x', 513)));
+        var damaged = JsonNode.Parse(WorldRuntimeCodec.Encode(finishedState))!;
+        var savedInstruction = damaged["state"]!["instructions"]!.AsArray()
+            .Single(item => item!["instructionId"]!.GetValue<string>() == receipt.InstructionId)!;
+        savedInstruction["task"]!["lastEffectId"] = new string('x', 513);
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(damaged)));
 
         using var replay = host.Reload(FoodProviders);
         using var replayHost = new CheckpointHost(replay);
@@ -171,9 +175,7 @@ public sealed partial class LongInventoryActionCheckpointTests
             item.Detail == Actor + ":model_unavailable");
         for (var step = 0; step < 32 && !Failed(); step++)
         {
-            // Hosted replies run on the worker pool. Let the completed failure
-            // reach the next host tick without assuming identical reply timing.
-            await Task.Delay(5);
+            await ModelWorkHarness.For(world).WaitForDecisionAsync(Actor);
             await host.AdvanceAndCheckSaved();
         }
         Assert.True(Failed(), "The host must apply the controlled later model failure.");
@@ -207,7 +209,7 @@ public sealed partial class LongInventoryActionCheckpointTests
 
         public async Task AdvanceAndCheckSaved()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             var saved = File.ReadAllBytes(file.Path);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(saved).Society.Society.WorldTick);

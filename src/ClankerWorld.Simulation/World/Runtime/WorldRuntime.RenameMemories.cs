@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
         var id = RenameMemoryId(agentId, nextEventId);
         var day = CivicDayNumber(checkpoint.WorldTick).ToString(CultureInfo.InvariantCulture);
         var recorded = SocietyRules.RecordSocialMemory(renamed.Checkpoint,
-            new(id, agentId, agentId, $"I was renamed on day {day} to {identity.Name}.", "private", checkpoint.WorldTick, Permanent: true));
+            new(Identity.Parse(id), agentId, agentId, $"I was renamed on day {day} to {identity.Name}.", "private", checkpoint.WorldTick, Permanent: true));
         return new(recorded.Checkpoint, NewEvents: [.. renamed.NewEvents, .. recorded.NewEvents ?? []]);
     }
 }

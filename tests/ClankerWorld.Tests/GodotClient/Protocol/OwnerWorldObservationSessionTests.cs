@@ -1,13 +1,13 @@
 using ClankerWorld.GodotClient.Protocol;
 using OwnerHttpBinding = ClankerWorld.Server.Pairing.OwnerHttpBinding;
-using ServerReconnectAction = ClankerWorld.Server.Pairing.OwnerReconnectAction;
-using ServerDeviceManagementAction = ClankerWorld.Server.Pairing.OwnerDeviceManagementAction;
-using ServerInstructionAction = ClankerWorld.Server.Pairing.OwnerInstructionAction;
-using ServerOrderCancelAction = ClankerWorld.Server.Pairing.OwnerOrderCancelAction;
-using ServerPairingApprovalAction = ClankerWorld.Server.Pairing.OwnerPairingApprovalAction;
-using ServerProviderConfigurationAction = ClankerWorld.Server.Pairing.OwnerProviderConfigurationAction;
-using ServerProviderModelListAction = ClankerWorld.Server.Pairing.OwnerProviderModelListAction;
-using ServerProviderSetupCheckAction = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckAction;
+using ServerReconnectAction = ClankerWorld.Contracts.OwnerReconnectAction;
+using ServerDeviceManagementAction = ClankerWorld.Contracts.OwnerDeviceManagementAction;
+using ServerInstructionAction = ClankerWorld.Contracts.OwnerInstructionAction;
+using ServerOrderCancelAction = ClankerWorld.Contracts.OwnerOrderCancelAction;
+using ServerPairingApprovalAction = ClankerWorld.Contracts.OwnerPairingApprovalAction;
+using ServerProviderConfigurationAction = ClankerWorld.Contracts.OwnerProviderConfigurationAction;
+using ServerProviderModelListAction = ClankerWorld.Contracts.OwnerProviderModelListAction;
+using ServerProviderSetupCheckAction = ClankerWorld.Contracts.OwnerProviderSetupCheckAction;
 
 namespace ClankerWorld.Tests;
 
@@ -171,7 +171,7 @@ public sealed class OwnerWorldObservationSessionTests
     [InlineData(1_460)]
     public void AgingOverridePayloadMatchesTheHostExactly(int rate)
     {
-        Assert.Equal(OwnerHttpBinding.AgingOverridePayload(new ClankerWorld.Server.Pairing.OwnerAgingOverrideAction(rate, "world-é")),
+        Assert.Equal(OwnerHttpBinding.AgingOverridePayload(new ClankerWorld.Contracts.OwnerAgingOverrideAction(rate, "world-é")),
             OwnerWorldActionPayload.AgingOverride(new OwnerAgingOverrideAction(rate, "world-é")));
     }
 
@@ -180,7 +180,7 @@ public sealed class OwnerWorldObservationSessionTests
     [InlineData(false)]
     public void JevAssistancePayloadMatchesTheHostExactly(bool enabled)
     {
-        Assert.Equal(OwnerHttpBinding.JevAssistancePayload(new ClankerWorld.Server.Pairing.OwnerJevAssistanceAction(enabled, "world-é")),
+        Assert.Equal(OwnerHttpBinding.JevAssistancePayload(new ClankerWorld.Contracts.OwnerJevAssistanceAction(enabled, "world-é")),
             OwnerWorldActionPayload.JevAssistance(new OwnerJevAssistanceAction(enabled, "world-é")));
     }
 
@@ -418,7 +418,7 @@ public sealed class OwnerWorldObservationSessionTests
             Protocol: new OwnerWorldProtocolVersion(1, 1),
             ServerCapabilities:
             [
-                "owner-observation.read.v1",
+                "owner-observation.read.v1", "owner-event-presentation.v2",
                 "agent-inspection.read.v1",
                 "spatial-knowledge.read.v1",
                 "owner-control.request.v1",

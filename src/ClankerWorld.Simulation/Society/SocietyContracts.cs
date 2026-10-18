@@ -254,7 +254,7 @@ public enum SocietyMemoryKind
 }
 
 public sealed record SocietySocialMemory(
-    string Id,
+    [property: JsonConverter(typeof(StoredIdentityJsonConverter))] Identity Id,
     string OwnerId,
     string SubjectId,
     string Summary,
@@ -282,7 +282,7 @@ public enum SocietyBeliefProvenance
 /// <param name="SourceAgentId">The reporter for hearsay; firsthand evidence is owned by the witness.</param>
 /// <param name="SourceEventId">An optional reference to an authoritative world-event ID behind the account.</param>
 public sealed record SocietyAgentBelief(
-    string Id,
+    Identity Id,
     string OwnerId,
     string Statement,
     SocietyBeliefProvenance Provenance,
@@ -291,8 +291,8 @@ public sealed record SocietyAgentBelief(
     string? SourceAgentId = null,
     long? SourceEventId = null,
     string? AboutAgentId = null,
-    string? SupersedesBeliefId = null,
-    string? SupersededByBeliefId = null,
+    Identity? SupersedesBeliefId = null,
+    Identity? SupersededByBeliefId = null,
     long? SupersededTick = null,
     string? SourceTurnId = null)
 {
@@ -312,7 +312,7 @@ public enum SocietyMemorySourceKind
 
 /// <summary>A bounded Jev importance estimate linked to its unchanged source record.</summary>
 public sealed record SocietyAgentMemoryImportance(
-    string SourceId,
+    Identity SourceId,
     SocietyMemorySourceKind Kind,
     long SourceTick,
     int ImportanceBasisPoints,

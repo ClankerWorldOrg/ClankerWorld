@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Net;
+using ClankerWorld.Server;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Content;
@@ -30,7 +31,7 @@ if (clientPresenceTimeoutSeconds is < 2 or > 60)
         "ClankerWorld:Clock:ClientPresenceTimeoutSeconds must be between 2 and 60 seconds.");
 }
 var configuredDecisionProvider = builder.Configuration["ClankerWorld:Providers:DecisionProvider"] ?? "deterministic";
-var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? "jev-1.13.0";
+var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? PlayerDecisionProviders.DefaultJevModel;
 var configuredModel = builder.Configuration["ClankerWorld:Providers:Model"];
 var configuredOpenAiModel = builder.Configuration["ClankerWorld:Providers:OpenAiModel"] ??
     (configuredDecisionProvider.StartsWith("openai", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);
@@ -72,10 +73,11 @@ var providerConfigurationPath = builder.Configuration["ClankerWorld:Providers:Co
     Path.Combine(builder.Environment.ContentRootPath, "saves", "provider-configuration.json");
 var providerUsagePath = builder.Configuration["ClankerWorld:Providers:UsagePath"] ??
     Path.Combine(Path.GetDirectoryName(Path.GetFullPath(providerConfigurationPath))!, "provider-usage.json");
+var credentialTempCleanup = ProviderConfigurationStore.RemoveTemporaryFiles(providerConfigurationPath);
 var approvedAssetCatalogPath = builder.Configuration["ClankerWorld:Assets:CatalogPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "approved-assets.json");
-var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"] ??
-    $"clankerworld-host:{Environment.MachineName}";
+// Unset, the authority file's own ID is kept, or a new server gets a random one.
+var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAuthorityId"];
 
 // The catalog is loaded only from a host-owned path at startup. Its absence
 // intentionally yields an empty, deny-all allow-list; malformed existing
@@ -83,8 +85,7 @@ var configuredAuthorityId = builder.Configuration["ClankerWorld:Pairing:ServerAu
 var approvedAssetCatalog = ApprovedAssetCatalog.LoadOrDeny(approvedAssetCatalogPath);
 builder.Services.AddSingleton<IOwnerApprovedAssetReferencePolicy>(approvedAssetCatalog);
 builder.Services.AddSingleton(approvedAssetCatalog);
-builder.Services.AddHttpClient("typesafe");
-builder.Services.AddHttpClient("model");
+ProviderHttpClients.Configure(builder.Services);
 builder.Services.AddSingleton<WorldJevPolicy>();
 builder.Services.AddSingleton(new ProviderUsageStore(providerUsagePath));
 builder.Services.AddSingleton(new ProviderConfigurationStore(
@@ -175,7 +176,8 @@ builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSe
     services.GetRequiredService<WorldAutosaveStore>(),
     services.GetRequiredService<WorldJevPolicy>(),
     services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
-    _ => services.GetRequiredService<IDecisionProvider>()));
+    _ => services.GetRequiredService<IDecisionProvider>(),
+    services.GetRequiredService<ManualWorldSaveStore>()));
 
 builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
     new OwnerWorldObservationStore(services.GetRequiredService<WorldRuntime>()));
@@ -188,7 +190,10 @@ if (launchSecretPath is not null && approvalPort == 0)
         "ClankerWorld:LocalServer:LaunchSecretPath needs ClankerWorld:Pairing:ApprovalPort.");
 }
 var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
-    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath));
+    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath),
+    launchSecretPath is null && approvalPort > 0
+        ? ApprovalSecretFile.LoadOrCreate(builder.Configuration["ClankerWorld:Pairing:ApprovalSecretPath"] ??
+            authorityStatePath + ".approval-header") : null);
 builder.Services.AddSingleton(approvalListenerOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<RequestRefusals>();
@@ -197,8 +202,9 @@ builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
     var worldId = services.GetRequiredService<WorldStartupRecovery>().Pending
         ? services.GetRequiredService<WorldStartupRecovery>().WorldId
         : services.GetRequiredService<WorldRuntime>().Society.WorldId;
-    return services.GetRequiredService<OwnerAuthorityStateFile>().LoadOrCreate(
-        new OwnerAuthorityIdentity(configuredAuthorityId, worldId),
+    var stateFile = services.GetRequiredService<OwnerAuthorityStateFile>();
+    return stateFile.LoadOrCreate(
+        new OwnerAuthorityIdentity(configuredAuthorityId ?? stateFile.StoredOrNewServerAuthorityId(), worldId),
         allowWorldSwitch: true);
 });
 builder.Services.AddSingleton<OwnerRequestAuthorizer>();
@@ -221,6 +227,8 @@ if (!app.Services.GetRequiredService<WorldStartupRecovery>().Pending)
 if (app.Services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is not null)
     ProviderUsageTelemetry.AccountingBlocked(app.Logger);
 ProviderCredentialTelemetry.Ready(app.Logger, OperatingSystem.IsWindows() ? "windows_current_user" : "private_file_permissions");
+if (credentialTempCleanup.Removed + credentialTempCleanup.Retained > 0)
+    ProviderCredentialTelemetry.TemporaryFiles(app.Logger, credentialTempCleanup.Removed, credentialTempCleanup.Retained);
 var providerUsage = app.Services.GetRequiredService<ProviderUsageStore>();
 
 var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWorldEffects(
@@ -232,6 +240,7 @@ var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWo
 providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
 providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
 
+SafeServerErrors.Configure(app, app.Logger);
 app.UseRequestBodyLimits();
 app.UseDefaultFiles();
 app.UseStaticFiles();
