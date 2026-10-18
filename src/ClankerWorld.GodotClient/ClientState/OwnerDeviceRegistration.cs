@@ -11,4 +11,5 @@ public sealed record OwnerDeviceRegistration(
     OwnerAuthorityIdentity Authority,
     string DeviceId,
     string PublicKeyFingerprint,
-    string WorldUrl = "");
+    string WorldUrl = "",
+    ClankerWorld.Contracts.OwnerHostInformation? Host = null);

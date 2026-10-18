@@ -5,12 +5,12 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FarmingSystem
 {
-    private static ActorCapabilityPolicy FieldPolicy => new(ActionLifeStages.Adults,
+    internal static ActorCapabilityPolicy FieldPolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
 
-    private static ActionCheck CheckFieldContext(IFarmingWorld world, string actor, FieldChoice choice)
+    private static ActionCheck CheckFieldContext(IFarmingWorld world, string actor, FieldChoice choice, ActorCapabilityPolicy? capabilityPolicy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(actor), choice.Encode(), FieldPolicy);
+        var capability = ActorCapabilities.Check(world.CapabilitiesFor(actor), choice.Encode(), capabilityPolicy ?? FieldPolicy);
         if (!capability.Allowed) return capability;
         if (world.HouseholdFor(actor) is not { } household || world.FarmhouseForHousehold(household) is null)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household no longer has a Farmhouse");
@@ -21,9 +21,9 @@ internal sealed partial class FarmingSystem
     }
 
     internal FieldActionPlan? PlanFieldAction(IFarmingWorld world, string actor, FieldChoice choice,
-        InventoryLot? selectedSeed = null)
+        InventoryLot? selectedSeed = null, ActorCapabilityPolicy? capabilityPolicy = null)
     {
-        if (!CheckFieldContext(world, actor, choice).Allowed) return null;
+        if (!CheckFieldContext(world, actor, choice, capabilityPolicy).Allowed) return null;
         var household = world.HouseholdFor(actor)!;
         var farmhouse = world.FarmhouseForHousehold(household)!;
         var field = fields.SingleOrDefault(item => item.Position == choice.Position);
@@ -49,9 +49,9 @@ internal sealed partial class FarmingSystem
             world.Reach(actor, choice.Position, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain));
     }
 
-    internal ActionCheck CheckFieldPlan(IFarmingWorld world, FieldActionPlan plan)
+    internal ActionCheck CheckFieldPlan(IFarmingWorld world, FieldActionPlan plan, ActorCapabilityPolicy? capabilityPolicy = null)
     {
-        var context = CheckFieldContext(world, plan.Actor, plan.Choice);
+        var context = CheckFieldContext(world, plan.Actor, plan.Choice, capabilityPolicy);
         if (!context.Allowed) return context;
         if (world.HouseholdFor(plan.Actor) != plan.HouseholdId || world.FarmhouseForHousehold(plan.HouseholdId)?.InstanceId != plan.FarmhouseId)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household or Farmhouse has changed");

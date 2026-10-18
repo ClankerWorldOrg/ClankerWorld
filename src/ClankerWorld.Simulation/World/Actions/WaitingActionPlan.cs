@@ -3,6 +3,11 @@ namespace ClankerWorld.Simulation.World;
 public sealed record WaitingChoice
 {
     public const string Candidate = "safe_idle";
+    public static bool TryDecode(string candidate, out WaitingChoice choice)
+    {
+        choice = new();
+        return candidate == Candidate;
+    }
     public static string Encode() => Candidate;
 }
 

@@ -159,8 +159,8 @@ public sealed partial class WorldRuntime
 
     private void AddFarmGrainCandidate(List<CognitionCandidate> candidates, string actor)
     {
-        if (PlanFarmStockAction(actor, FarmStockActionKind.Grain) is { } plan && CheckActionPlan(plan).Allowed)
-            candidates.Add(new CognitionCandidate("haul_farm_grain",
+        if (FarmStockDefinition.Offer(this, actor, FarmStockActionKind.Grain) is { } plan)
+            candidates.Add(new CognitionCandidate(FarmStockDefinition.Encode(FarmStockActionKind.Grain),
                 "Carry household crops and seeds from their actual location to farm storage.", 24, plan.DestinationId)
             { ActionPlan = plan });
     }
@@ -169,8 +169,8 @@ public sealed partial class WorldRuntime
 
     private void AddFarmFlourCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (PlanFarmStockAction(actor, FarmStockActionKind.Flour) is { } plan && CheckActionPlan(plan).Allowed)
-            candidates.Add(new CognitionCandidate("haul_farm_flour",
+        if (FarmStockDefinition.Offer(this, actor, FarmStockActionKind.Flour) is { } plan)
+            candidates.Add(new CognitionCandidate(FarmStockDefinition.Encode(FarmStockActionKind.Flour),
                 "Carry household flour from its Farmhouse to its House.", 25, plan.DestinationId)
             { ActionPlan = plan });
     }

@@ -82,6 +82,7 @@ printf 'Copying the Godot export\n'
 find "${export_dir}" -mindepth 1 -maxdepth 1 ! -name manifest.sha256 -exec cp -a {} "${stage}/" \;
 
 if [[ "${launcher}" == true ]]; then
+    bash "${repo_root}/scripts/build-release-verifier.sh" "${stage}/ClankerWorld.ReleaseVerifier.exe"
     cat > "${stage}/README.txt" <<EOF
 ClankerWorld Launcher ${version} for Windows 11 x64
 Source commit: ${revision}

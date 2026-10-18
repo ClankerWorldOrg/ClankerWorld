@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-16
+updated: 2026-10-18
 ---
 
 # How the game works
@@ -134,6 +134,40 @@ forwarders. Every binding receives the current coordinator per call; no entry
 captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
+
+Typed action definitions bind a choice codec, plan, capability policy, shared
+check and application to those ordered rows. Waiting uses one definition in
+both phases. Offering checks its new plan; admission and application check the
+retained plan through the same definition. Remaining areas move their existing
+plan checks from the compatibility dispatcher into their rows in later slices.
+Child social and household-helping actions also use one typed definition. Their
+existing selected person, resource or load reaches the same native effect after
+the definition rechecks it; legacy entry points share that check and effect.
+Town Warehouse surplus and abandoned-stock salvage each own a definition with
+their existing capability policy. Both retain the resolved Town, stock, family
+and load in the plan; hashed salvage requests keep their original identity.
+Household recovery, hauling and spare-food storage also own separate
+definitions. Their existing urgency policies and selected physical steps share
+one codec, plan check and native effect with legacy entry points.
+Field work, tree planting and farm-stock hauling bind their existing shared
+capability policies and plan checks to typed definitions. Field and tree rows
+call the Farming system's native effects directly after those checks.
+Food consumption, shared-food collection, food gathering, fire and warmth also
+bind their codecs and existing capability policies to typed definitions. Their
+offer, admission and apply paths check the same selected serving, source,
+fuel or protection; legacy entry points share the native effects.
+Garments, carry aids, equipment repairs and each household-vessel action also
+own definitions. Their selected item, repair inputs or vessel family reaches
+the same native effect after its shared check; each vessel keeps its existing
+urgency policy.
+Smith delivery and gathering, tool collection and repair, rare mining,
+workstation supplies and Store stocking also own typed definitions. Their
+selected source, tool, stock, family and load pass the same check before the
+native effect; Store stocking has its own row beside the other shop actions.
+Recipe projects also own a typed definition. The capability policy is resolved
+from the retained recipe, preserving the garment exception during urgent cold.
+A codec-matched recipe row precedes the construction row; invalid legacy
+targets retain their existing project rejection through the fallback handler.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
@@ -726,6 +760,8 @@ the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+Offering, planning and native lookup share the bounded token of the complete
+case-revision and ballot-round pair, including long references from founded Towns.
 A withdrawn candidate or departed voter does not invalidate other selections;
 the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
@@ -1988,6 +2024,15 @@ construction or replay rule changes.
 
 ## Model inputs, usage and memories
 
+The named `model` and `typesafe` HTTP clients refuse automatic redirects and
+limit buffered bodies to the shared 256 KiB response bound. Streaming adapters
+also use `ProviderResponseBody` before parsing. Credential-bearing records omit
+their fields when printed. Startup removes matching leftover temporary provider
+configuration files without reading their contents; busy or linked files are
+retained, with only removed/retained counts logged. Credential writers keep
+their handle open through atomic publication so cleanup cannot take a live
+temporary file between its final write and rename.
+
 The per-world routine helper is Off, Jev or OpenAI Decisions. Decisions uses
 `POST https://api.openai.com/v1/decisions`, sharing Jev's bounded actor context
 and existing owner-private memory scoring. Its `input` is serialized context;
@@ -2600,7 +2645,13 @@ the saved key, a named key slot, or a key pasted for that check only, which is
 not stored. Keys never return to the client. Listed models the key's route
 doesn't include are marked unavailable; names are compared without Ollama's
 `:cloud`, `-cloud` or `:latest` endings. If the key can't be checked, the whole
-list stays usable and the reason is shown. A new agent starts on the provider's
+list stays usable and the reason is shown. OpenAI list and personal-model test errors
+share bounded categories for authentication, permissions, model access, credits,
+spending or usage limits, rate limits and service failures, following
+[OpenAI's error guide](https://developers.openai.com/api/docs/guides/error-codes).
+Only known error codes and types are classified; remote messages never enter
+results or logs. Unreadable or oversized error bodies retain the HTTP category.
+A new agent starts on the provider's
 default model when the key can use it. If the key can't use a new agent's
 starting model, the picker selects nothing and asks the owner to choose, so no
 other model, possibly a costlier one, is chosen for them. An existing or
@@ -2622,7 +2673,8 @@ paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
 The response contains only a bounded result such as ready, missing key, usage
-limit, unsupported format, timed out, unavailable, or unusable reply. It does
+limit, authentication or access failure, exhausted allowance, rate limit,
+unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
 An installation-local usage file reserves every model attempt before HTTP work.
@@ -4853,6 +4905,13 @@ follow ordinary rollback and event compaction, not a second growing ledger.
 
 ## Runtime logging
 
+Unexpected HTTP failures return a plain problem response. `SafeServerErrors`
+logs `server_request outcome=failed error_type=... route=...`, using the route
+pattern rather than request text and suppressing the
+middleware's detailed exception diagnostics. `PrivateStorage` creates private
+installation files with owner-only permissions before writing; its folders
+also exclude other accounts while preserving an owner's read-only setting.
+
 Changed gameplay loops, provider adapters, persistence boundaries and lifecycle
 gates need low-noise structured logs at meaningful outcomes. An operator should
 be able to tell what was attempted, accepted, rejected or fell back, and why.
@@ -5393,6 +5452,14 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## Launcher developer runs
 
+The launcher also owns remote joining through `Launcher.Join.cs` and
+`DeviceJoinSession`. Device registration storage has no Godot dependency and
+keeps only public metadata; the current-user signer remains in the key store.
+The normal and test-data folders use distinct registrations and key names.
+[Device pairing](device-pairing.md#pairing-flow) owns the protocol, host-kind
+metadata and reconnect contract.
+
+
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
 `%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; server saves, provider settings,
@@ -5409,6 +5476,9 @@ Godot's `--log-file` points at `logs/game.log` in the selected data root.
 Because that option disables Godot's own rotation, `GameStarter.PrepareGameLog`
 moves the last run to `logs/game.previous.log` before starting the game,
 replacing the older backup. A retry with no new log preserves that backup.
+On Windows, Quit to Launcher uses shell launch so the returned launcher does
+not inherit the game's open log handle and block the next Play's rotation.
+Unix handoffs retain direct execution and separate arguments.
 Standalone runs keep Godot's normal timestamped rotation. The project enables
 `application/run/flush_stdout_on_print` in release builds too, so reports and
 logs left by a forced close include the latest printed line.

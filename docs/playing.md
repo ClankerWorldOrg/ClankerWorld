@@ -31,22 +31,27 @@ version is reused.
 
 ## Connect your device
 
-Start the game through the launcher, or start `ClankerWorld.exe` from the
-extracted portable bundle. For an approved remote server, use the connection
-and pairing screen to connect to the world server you have been given. Your
-device must be able to reach it through its private network.
+For a world on another computer, open the launcher and choose **Join a world
+on another computer**. Enter the host's HTTPS address. Both devices must be on
+its private network. Compare the displayed code with the person approving the
+device on the hosting computer; approve only when they match. The launcher
+checks approval automatically, and **Check approval** checks again immediately.
+Do not post the code, keys or private save data in an issue.
 
-A new device needs approval. Compare the game's code with the person approving
-the device on the server, then complete pairing. Do not post the code, keys or
-private save data in an issue. Once paired, reconnecting uses the saved
-connection; normal play does not need approval every time.
+Once approved, choose a game version and **Play**. The launcher checks the saved
+connection with this device's key and starts the game already connected. Choose
+**Continue** from the game's Main Menu to enter the world. Later launches reuse
+the saved connection without pairing again. The game has no address-entry or
+pairing screen.
 
-After pairing, choose **Continue** from the Main Menu to enter your world.
-If the server's last pairing reply was lost, the next pairing check can still
-finish pairing and return you to the same menu.
+If the host cannot be reached, the launcher explains how to start it if it is
+stopped: **Start hosting** on a launcher host, or the service command on a
+terminal host. A connection failure can also mean the private network is
+unavailable. Approval and certificate failures have their own messages.
 
-For an already paired device, **Connect** checks the saved server connection
-and shows the result below the address. It does not start a new pairing.
+Choose **Play on this PC** to return to your local worlds. To join another host,
+open the joining screen and choose **Forget this connection** first; the
+private device key stays in your Windows account's key store.
 
 A game folder that carries its own `server` folder runs the world on your PC
 instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
@@ -125,9 +130,9 @@ a log that looks like a key is blanked. Reports go in a `reports` folder (in
 `%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
 five newest are kept. Nothing is uploaded; you choose where to send the file.
 
-If the server changes, choose **Pair again** in **Settings → Game → World
-connection**: it forgets this device's saved connection so you can pair with
-the new server.
+If the server changes, open the launcher's joining screen and choose **Forget
+this connection**, then enter and approve the new host. To return to an
+already approved host after local play, choose **Use this world**, then **Play**.
 [Device pairing](development/device-pairing.md) has the operator instructions.
 
 If New World asks for matching updates, update the game and have the server
@@ -1262,8 +1267,9 @@ Developer tools show the total number of refusals in this world. A fault that
 cannot be traced to one action still leaves the world paused.
 
 If no usable autosave is available, recovery stays blocked. **Check again**
-checks for a usable autosave without changing your world. You can quit and keep
-the saved files for recovery. A lost recovery reply also offers **Check again**
+checks for a usable autosave without changing your world. **Quit Game** closes
+the game and its local world server, keeping the refused save unchanged for
+recovery. A lost recovery reply also offers **Check again**
 so you can find out whether recovery finished before trying it again.
 
 **Save World** creates a named save for the current world. Its name starts as

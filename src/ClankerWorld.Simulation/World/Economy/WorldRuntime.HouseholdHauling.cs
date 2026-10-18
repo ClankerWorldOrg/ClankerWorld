@@ -37,13 +37,13 @@ public sealed partial class WorldRuntime
 
     private void AddRecoverHouseholdDeliveryCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (PlanHouseholdStock(actor, "recover_household_delivery") is { } plan && CheckActionPlan(plan).Allowed)
-            candidates.Add(new("recover_household_delivery", "Return unusable delivery supplies to your household's storage pile.", 18)
+        if (HouseholdRecoveryDefinition.Offer(this, actor, new(HouseholdStockRequestKind.RecoverDelivery)) is { } plan)
+            candidates.Add(new(HouseholdRecoveryDefinition.Encode(new(HouseholdStockRequestKind.RecoverDelivery)), "Return unusable delivery supplies to your household's storage pile.", 18)
             { ActionPlan = plan });
     }
 
     private void RecoverHouseholdDelivery(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "recover_household_delivery"));
+        ApplyHouseholdStockPlan(HouseholdRecoveryDefinition.Plan(this, actor, new(HouseholdStockRequestKind.RecoverDelivery)));
 
     private static int HouseDeliveryPhysicalQuantity(InventoryCheckpoint inventory, InventoryLot carried) =>
         InventoryContainerRules.IsContainer(carried.ItemKind)
@@ -108,7 +108,7 @@ public sealed partial class WorldRuntime
         if (household is null) return;
         var carried = CarriedHouseDelivery(actor);
         if (carried is null && (HouseForHousehold(household) is not { } house || DestinationRoom(house.InstanceId) == 0)) return;
-        if (PlanHouseholdStock(actor, "haul_household_stock") is { } plan && CheckActionPlan(plan).Allowed)
+        if (HouseholdHaulingDefinition.Offer(this, actor, new(HouseholdStockRequestKind.Haul)) is { } plan)
         {
             var description = plan.Kind switch
             {
@@ -117,12 +117,12 @@ public sealed partial class WorldRuntime
                 _ => "Carry a load of household supplies to the household's House.",
             };
             var priority = plan.Kind == HouseholdStockActionKind.Deliver ? 18 : plan.Kind == HouseholdStockActionKind.StorePreparationTool ? 24 : 28;
-            candidates.Add(new("haul_household_stock", description, priority, plan.HouseId) { ActionPlan = plan });
+            candidates.Add(new(HouseholdHaulingDefinition.Encode(new(HouseholdStockRequestKind.Haul)), description, priority, plan.HouseId) { ActionPlan = plan });
             if (plan.Kind is HouseholdStockActionKind.Deliver or HouseholdStockActionKind.StorePreparationTool) return;
         }
         if (carried is not null) return;
-        if (PlanHouseholdStock(actor, "store_household_food") is { } food && CheckActionPlan(food).Allowed)
-            candidates.Add(new("store_household_food", "Bring personally carried spare food into the household House.", 30, food.HouseId)
+        if (HouseholdFoodStorageDefinition.Offer(this, actor, new(HouseholdStockRequestKind.StoreFood)) is { } food)
+            candidates.Add(new(HouseholdFoodStorageDefinition.Encode(new(HouseholdStockRequestKind.StoreFood)), "Bring personally carried spare food into the household House.", 30, food.HouseId)
             { ActionPlan = food });
     }
 
@@ -132,10 +132,10 @@ public sealed partial class WorldRuntime
             !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 1);
 
     private void StoreHouseholdFood(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "store_household_food"));
+        ApplyHouseholdStockPlan(HouseholdFoodStorageDefinition.Plan(this, actor, new(HouseholdStockRequestKind.StoreFood)));
 
     private void HaulHouseholdStock(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(PlanHouseholdStock(actor, "haul_household_stock"));
+        ApplyHouseholdStockPlan(HouseholdHaulingDefinition.Plan(this, actor, new(HouseholdStockRequestKind.Haul)));
 
     /// <summary>
     /// A hungry resident past infancy whose load leaves no room for a food pickup may make room

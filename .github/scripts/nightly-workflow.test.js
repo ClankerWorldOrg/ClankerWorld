@@ -4,6 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFile, spawnSync } = require('node:child_process');
 const { createServer } = require('node:http');
+const { createHash } = require('node:crypto');
 const { promisify } = require('node:util');
 const { test } = require('node:test');
 
@@ -30,7 +31,14 @@ function sandbox(t, pages = []) {
   const bin = path.join(root, 'bin');
   fs.mkdirSync(bin);
   fs.writeFileSync(path.join(root, 'pages.json'), JSON.stringify(pages));
-  fs.writeFileSync(path.join(bin, 'git'), '#!/bin/bash\n[[ "$*" == "rev-parse HEAD" ]] || exit 2\nprintf "%s\\n" "$NIGHTLY_TEST_SHA"\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(bin, 'git'), `#!/bin/bash
+case "$*" in
+  'rev-parse HEAD') printf '%s\\n' "$NIGHTLY_TEST_SHA" ;;
+  'cat-file -t refs/tags/'*) printf '%s\\n' "${'$'}{NIGHTLY_TEST_TAG_TYPE:-tag}" ;;
+  'rev-parse refs/tags/'*) printf '%s\\n' "${'$'}{NIGHTLY_TEST_TAG_SHA:-$NIGHTLY_TEST_SHA}" ;;
+  *) exit 2 ;;
+esac
+`, { mode: 0o755 });
   fs.writeFileSync(path.join(bin, 'gh'), `#!/usr/bin/env node
 const fs = require('node:fs');
 const { spawnSync } = require('node:child_process');
@@ -42,6 +50,14 @@ if (args[0] === 'api') {
     process.exit(1);
   }
   if (process.env.NIGHTLY_TEST_API_FAIL === 'true') process.exit(1);
+  if (args[1].includes('/git/ref/tags/')) {
+    console.log(JSON.stringify({ type: process.env.NIGHTLY_TEST_TAG_TYPE || 'tag', sha: 'tag-object' }));
+    process.exit(0);
+  }
+  if (args[1].includes('/git/tags/')) {
+    console.log(JSON.stringify({ type: 'commit', sha: process.env.NIGHTLY_TEST_TAG_SHA || process.env.NIGHTLY_TEST_SHA }));
+    process.exit(0);
+  }
   const pages = JSON.parse(fs.readFileSync(process.env.NIGHTLY_TEST_PAGES, 'utf8'));
   if (process.env.NIGHTLY_TEST_API_FAIL === 'partial') {
     process.stdout.write(JSON.stringify(pages[0] || []) + '\\n');
@@ -61,7 +77,10 @@ if (args[0] === 'api') {
 }
 if (args[0] === 'run') { console.log(process.env.NIGHTLY_TEST_CI); process.exit(0); }
 if (args[0] === 'release') {
+  if (args[1] === 'create' && args.includes('--draft') && args.includes('--latest')) process.exit(1);
+  if (args[1] === process.env.NIGHTLY_TEST_RELEASE_FAIL) process.exit(1);
   if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_DELETE_FAIL) process.exit(1);
+  if (args[1] === 'delete' && args[2] === process.env.NIGHTLY_TEST_UNTAGGED_DRAFT && args.includes('--cleanup-tag')) process.exit(1);
   process.exit(0);
 }
 process.exit(2);
@@ -69,6 +88,7 @@ process.exit(2);
   const env = {
     ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`,
     GH_TOKEN: 'offline-test', GH_REPO: 'ClankerWorldOrg/ClankerWorld', KEEP_NIGHTLIES: '7',
+    RELEASE_CHANNEL: 'nightly', RELEASE_TAG: '',
     GITHUB_OUTPUT: path.join(root, 'output'), NIGHTLY_TEST_SHA: sha,
     NIGHTLY_TEST_PAGES: path.join(root, 'pages.json'), NIGHTLY_TEST_CALLS: path.join(root, 'calls'),
     NIGHTLY_TEST_CI: 'success', NIGHTLY_TEST_API_FAIL: 'false', NIGHTLY_TEST_DELETE_FAIL: '',
@@ -85,10 +105,17 @@ process.exit(2);
 const alphaPage = Array.from({ length: 100 }, (_, index) => ({ tag_name: `v0.1.0-alpha.${index}`, created_at: '2026-10-11T01:00:00Z', target_commitish: sha }));
 const nightlies = Array.from({ length: 9 }, (_, index) => ({ tag_name: `v0.1.0-nightly.20261010.${index}`, created_at: `2026-10-10T0${index}:00:00Z`, target_commitish: index === 8 ? sha : 'older' }));
 
-test('the newest nightly draft on a later API page prevents rebuilding the same commit', t => {
+test('an interrupted nightly draft on a later API page does not prevent a new build', t => {
   const fixture = sandbox(t, [alphaPage, nightlies.map(release => ({ ...release, draft: release.target_commitish === sha }))]);
   const result = fixture.run('Decide whether main needs a new nightly build');
   assert.equal(result.status, 0, result.stderr);
+  assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=true/);
+  assert.equal(fixture.calls().filter(call => call[0] === 'run').length, 1);
+});
+
+test('a published nightly of the same commit prevents a redundant build', t => {
+  const fixture = sandbox(t, [alphaPage, nightlies]);
+  assert.equal(fixture.run('Decide whether main needs a new nightly build').status, 0);
   assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=false/);
   assert.equal(fixture.calls().filter(call => call[0] === 'run').length, 0);
 });
@@ -109,40 +136,146 @@ test('only a green push run for the exact checked-out commit allows a new nightl
 const releaseAssets = [
   'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip',
   'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip.sha256',
+  'export/package/ClankerWorld-0.1.0-nightly.20261011.42-windows-x64.zip.sig',
   'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe',
   'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe.sha256',
+  'export/setup/ClankerWorld-Setup-0.1.0-nightly.20261011.42-windows-x64.exe.sig',
+  'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip',
+  'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip.sha256',
+  'export/launcher/ClankerWorld-Launcher-1.0.0-windows-x64.zip.sig',
 ];
 
-function writeReleaseAssets(root, missing) {
-  for (const asset of releaseAssets.filter(asset => asset !== missing)) {
+function writeReleaseAssets(root, missing, assets = releaseAssets) {
+  for (const asset of assets.filter(asset => asset !== missing)) {
     const file = path.join(root, asset);
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, 'synthetic release asset');
+    const contents = 'synthetic release asset';
+    fs.writeFileSync(file, asset.endsWith('.sha256')
+      ? `${createHash('sha256').update(contents).digest('hex')} *${path.basename(asset, '.sha256')}\n`
+      : contents);
   }
 }
 
-test('staging targets the checked commit and leaves the game, setup and hashes in an unpublished pre-release', t => {
+test('publishing uploads all approved artifacts before making the draft public', t => {
   const fixture = sandbox(t);
   writeReleaseAssets(fixture.root);
-  const result = fixture.run('Stage the nightly draft for offline signing');
+  const result = fixture.run('Publish the automatically approved release');
   assert.equal(result.status, 0, result.stderr);
   const call = fixture.calls().find(call => call[0] === 'release');
   assert.deepEqual(call.slice(0, 3), ['release', 'create', 'v0.1.0-nightly.20261011.42']);
   assert.ok(call.includes('--prerelease') && call.includes('--latest=false'));
-  assert.ok(call.includes('--draft'), 'unsigned nightlies must wait for offline approval');
-  assert.match(call[call.indexOf('--notes') + 1], /owner signs.*offline/);
+  assert.ok(call.includes('--draft'), 'attach every artifact before publication');
+  assert.deepEqual(fixture.calls().filter(call => call[0] === 'release').map(call => call[1]), ['create', 'edit']);
+  assert.ok(fixture.calls().find(call => call[1] === 'edit').includes('--draft=false'));
+  assert.match(call[call.indexOf('--notes') + 1], /Automatically approved nightly/);
   assert.equal(call[call.indexOf('--target') + 1], sha);
-  assert.deepEqual(call.slice(-4), releaseAssets);
+  assert.deepEqual(call.slice(-releaseAssets.length), releaseAssets);
 });
 
 test('a missing game, setup or checksum prevents staging', t => {
   for (const missing of releaseAssets) {
     const fixture = sandbox(t);
     writeReleaseAssets(fixture.root, missing);
-    const result = fixture.run('Stage the nightly draft for offline signing');
+    const result = fixture.run('Publish the automatically approved release');
     assert.notEqual(result.status, 0, missing);
     assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, missing);
   }
+});
+
+test('a failed draft upload cannot publish a partial release', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root);
+  fixture.env.NIGHTLY_TEST_RELEASE_FAIL = 'create';
+  assert.notEqual(fixture.run('Publish the automatically approved release').status, 0);
+  assert.deepEqual(fixture.calls().filter(call => call[0] === 'release').map(call => call[1]), ['create']);
+});
+
+test('a stable release becomes latest only when the fully uploaded draft is published', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root, undefined, releaseAssets.map(asset => asset.replace('0.1.0-nightly.20261011.42', '0.1.0')));
+  Object.assign(fixture.env, { RELEASE_CHANNEL: 'release', RELEASE_TAG: 'v0.1.0' });
+  const result = fixture.run('Publish the automatically approved release');
+  assert.equal(result.status, 0, result.stderr);
+  const create = fixture.calls().find(call => call[1] === 'create');
+  const publish = fixture.calls().find(call => call[1] === 'edit');
+  assert.ok(create.includes('--draft') && create.includes('--latest=false'));
+  assert.ok(!create.includes('--prerelease') && create.includes('--notes-from-tag'));
+  assert.ok(publish.includes('--draft=false') && publish.includes('--latest'));
+});
+
+test('prepared releases require an annotated tag at the exact green main commit', t => {
+  for (const overrides of [{}, { NIGHTLY_TEST_TAG_TYPE: 'commit' }, { NIGHTLY_TEST_TAG_SHA: 'different' },
+    { RELEASE_TAG: 'main' }, { NIGHTLY_TEST_CI: 'failure' }]) {
+    const fixture = sandbox(t);
+    Object.assign(fixture.env, { RELEASE_CHANNEL: 'release', RELEASE_TAG: 'v0.1.0-alpha.2' }, overrides);
+    const result = fixture.run('Decide whether main needs a new nightly build');
+    if (Object.keys(overrides).length === 0) {
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8'), /build=true/);
+    } else {
+      const output = fs.readFileSync(fixture.env.GITHUB_OUTPUT, 'utf8');
+      assert.ok(result.status !== 0 || !output.includes('build=true'), JSON.stringify(overrides));
+      if (overrides.NIGHTLY_TEST_CI === 'failure') assert.notEqual(result.status, 0);
+    }
+  }
+});
+
+test('publication refuses a prepared tag that moved after the build gate', t => {
+  for (const tagSha of [sha, 'different']) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root);
+    Object.assign(fixture.env, { RELEASE_CHANNEL: 'release', RELEASE_TAG: 'v0.1.0-nightly.20261011.42', NIGHTLY_TEST_TAG_SHA: tagSha });
+    const result = fixture.run('Publish the automatically approved release');
+    assert.equal(result.status === 0, tagSha === sha, result.stderr);
+    assert.equal(fixture.calls().some(call => call[1] === 'create'), tagSha === sha);
+    if (tagSha === sha) assert.ok(fixture.calls().find(call => call[1] === 'create').includes('--notes-from-tag'));
+  }
+});
+
+test('only main signing jobs obtain an identity token and the installer waits for approval', () => {
+  const jobs = workflow.split('\njobs:\n')[1].split(/\n(?=  [\w-]+:\n)/);
+  const signers = jobs.filter(job => /id-token: write/.test(job));
+  assert.deepEqual(signers.map(job => job.match(/^  ([\w-]+):/)[1]), ['sign-game', 'sign-setup']);
+  for (const signer of signers) {
+    assert.match(signer, /github\.repository == 'ClankerWorldOrg\/ClankerWorld' && github\.ref == 'refs\/heads\/main'/);
+    assert.match(signer, /ref: \$\{\{ github\.sha \}\}/);
+    assert.ok(signer.indexOf('scripts/sign-release-package.py sign') < signer.indexOf('actions/upload-artifact@'));
+  }
+  const installer = jobs.find(job => job.startsWith('  windows-installer:'));
+  assert.match(installer, /needs: \[nightly, sign-game\]/);
+  assert.match(installer, /test -f "\$\{game_zip\}\.sig"/);
+});
+
+test('changed package bytes or checksums prevent draft staging', t => {
+  for (const asset of releaseAssets.filter(asset => !asset.endsWith('.sig'))) {
+    const fixture = sandbox(t);
+    writeReleaseAssets(fixture.root);
+    fs.appendFileSync(path.join(fixture.root, asset), 'changed after building');
+    assert.notEqual(fixture.run('Publish the automatically approved release').status, 0, asset);
+    assert.equal(fixture.calls().filter(call => call[0] === 'release').length, 0, asset);
+  }
+});
+
+test('draft staging preserves the built asset bytes and their matching checksums', t => {
+  const fixture = sandbox(t);
+  writeReleaseAssets(fixture.root);
+  const before = releaseAssets.map(asset => fs.readFileSync(path.join(fixture.root, asset)));
+  assert.equal(fixture.run('Publish the automatically approved release').status, 0);
+  const uploaded = fixture.calls().find(call => call[1] === 'create').slice(-releaseAssets.length);
+  assert.deepEqual(uploaded.map(asset => fs.readFileSync(path.join(fixture.root, asset))), before);
+});
+
+test('read-only builds hand artifacts to a main-only publisher without repository execution', () => {
+  const jobs = workflow.split('\njobs:\n')[1].split(/\n(?=  [\w-]+:\n)/);
+  const publisher = jobs.find(job => job.startsWith('  publish:\n'));
+  assert.match(publisher, /needs: \[nightly, sign-setup\]/);
+  assert.match(publisher, /if: github\.ref == 'refs\/heads\/main' && needs\.nightly\.outputs\.build == 'true'/);
+  assert.doesNotMatch(publisher, /actions\/checkout@|\b(?:bash|node|python|dotnet)\b|scripts\//);
+  assert.equal((publisher.match(/actions\/download-artifact@/g) || []).length, 3);
+  for (const job of jobs.filter(job => !job.startsWith('  publish:\n'))) {
+    assert.doesNotMatch(job, /\b(?:contents|actions): write\b/);
+  }
+  assert.match(workflow.split('\njobs:\n')[0], /permissions:\n  contents: read/);
 });
 
 test('retention finds later API pages and removes only nightlies older than the newest seven', t => {
@@ -152,6 +285,18 @@ test('retention finds later API pages and removes only nightlies older than the 
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(fixture.calls().filter(call => call[1] === 'delete'), [
     ['release', 'delete', nightlies[1].tag_name, '--yes', '--cleanup-tag'],
+    ['release', 'delete', nightlies[0].tag_name, '--yes', '--cleanup-tag'],
+  ]);
+});
+
+test('retention removes untagged drafts and still cleans published nightly tags', t => {
+  const oldDraft = { ...nightlies[1], draft: true };
+  const fixture = sandbox(t, [nightlies.map(release => release.tag_name === oldDraft.tag_name ? oldDraft : release)]);
+  fixture.env.NIGHTLY_TEST_UNTAGGED_DRAFT = oldDraft.tag_name;
+  const result = fixture.run('Remove older nightly builds');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(fixture.calls().filter(call => call[1] === 'delete'), [
+    ['release', 'delete', oldDraft.tag_name, '--yes'],
     ['release', 'delete', nightlies[0].tag_name, '--yes', '--cleanup-tag'],
   ]);
 });
@@ -180,7 +325,7 @@ test('only the steps that call gh get the token, and checkout keeps no credentia
     return body.split(/\n(?=      - )/);
   });
   const withToken = steps.filter(step => /^\s*GH_TOKEN:/m.test(step)).map(step => step.match(/^      - name: (.+)$/m)?.[1]);
-  assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Stage the nightly draft for offline signing', 'Remove older nightly builds']);
+  assert.deepEqual(withToken, ['Decide whether main needs a new nightly build', 'Publish the automatically approved release', 'Remove older nightly builds']);
   for (const step of steps.filter(step => /\bgh (api|run|release) /.test(step))) assert.match(step, /\n        env:\n          GH_TOKEN: \$\{\{ github\.token \}\}\n/);
   for (const step of steps.filter(step => step.includes('actions/checkout@')))
     assert.match(step, /\n          persist-credentials: false(\n|$)/);

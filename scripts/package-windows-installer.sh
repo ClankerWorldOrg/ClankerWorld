@@ -74,6 +74,10 @@ for files in "${game_files}" "${launcher_files}"; do
 done
 test -f "${game_files}/ClankerWorld.exe"
 if [[ -f "${game_package}.sig" ]]; then
+    # Check real workflow proofs with the exact verifier players will run.
+    verifier="$(cygpath -w "${launcher_files}/ClankerWorld.ReleaseVerifier.exe")"
+    python "${repo_root}/scripts/sign-release-package.py" verify "${game_package}" --verifier "${verifier}"
+    python "${repo_root}/scripts/sign-release-package.py" verify "${launcher_package}" --verifier "${verifier}"
     cp -- "${game_package}.sig" "${game_files}/.release-signature.json"
 fi
 test -f "${game_files}/server/ClankerWorld.Server.exe"

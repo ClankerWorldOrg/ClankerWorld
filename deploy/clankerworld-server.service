@@ -17,12 +17,14 @@ Environment=ClankerWorld__Clock__Run=true
 Environment=ClankerWorld__Clock__ClientPresenceTimeoutSeconds=5
 Environment=ClankerWorld__Http__Port=5188
 Environment=ClankerWorld__Pairing__ApprovalPort=5189
+Environment=ClankerWorld__Pairing__ApprovalSecretPath=/var/lib/clankerworld-server/approval-header
 Environment=ClankerWorld__Pairing__AuthorityPath=/var/lib/clankerworld-server/private-owner-authority.json
 Environment=ClankerWorld__World__SavePath=/var/lib/clankerworld-server/world.json
 Environment=ClankerWorld__Providers__ConfigurationPath=/var/lib/clankerworld-server/provider-configuration.json
 Environment=ClankerWorld__Assets__CatalogPath=/etc/clankerworld-server/approved-assets.json
 Environment=DOTNET_NOLOGO=1
 StateDirectory=clankerworld-server
+StateDirectoryMode=0700
 ExecStart=/home/clanker/.local/bin/dotnet /opt/clankerworld-server/ClankerWorld.Server.dll
 Restart=on-failure
 RestartSec=5

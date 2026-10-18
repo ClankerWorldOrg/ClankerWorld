@@ -47,9 +47,9 @@ public sealed partial class WorldRuntime
                 ReachPurpose.MaterialGathering, checked(harvest.Quantity + harvest.TreeSeedQuantity)));
     }
 
-    private ActionCheck CheckSmithGatherPlan(SmithGatherActionPlan plan)
+    private ActionCheck CheckSmithGatherPlan(SmithGatherActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, SmithDeliveryPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
@@ -97,7 +97,12 @@ public sealed partial class WorldRuntime
     private void ApplySmithGatherPlan(SmithGatherActionPlan? plan)
     {
         if (plan is null) return;
-        if (CheckSmithGatherPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedSmithGatherPlan(plan);
+    }
+
+    private void ApplyCheckedSmithGatherPlan(SmithGatherActionPlan plan)
+    {
         if (plan.CargoPreparation is { } cargo) { ApplyCargoStorage(cargo); return; }
         var state = agents[plan.Actor];
         if (plan.ToolPickup is { } pickup)

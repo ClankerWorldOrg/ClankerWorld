@@ -144,15 +144,17 @@ Before publishing:
    and the same source commit.
 6. That preparing session creates and pushes the annotated tag for the verified
    release commit, then verifies that GitHub resolves it to that commit.
-   Never move or delete a pushed tag. Publish a GitHub release when there is a
-   distributable artifact or useful release note. For an alpha, attach the
+   Put the reviewed changelog and the remaining "not yet checked by hand"
+   checks in the tag's annotation; the workflow uses it for the release notes.
+   Never move or delete a pushed tag. Start the automatic release workflow when
+   there is a distributable artifact or useful release note. It attaches the
    [portable Windows zip](build-and-test.md#portable-windows-package) and its
    `.sha256` built from the tagged commit, keeping their file names: the
    launcher finds a game release by its `v<version>` tag and those assets,
-   and verifies the package's SHA-256 against the owner's signed approval. Keep
-   the `.sha256` for manual checks and older launchers. Add its
-   [offline signature](#offline-release-signatures) before publishing. For a
-   later alpha that includes the installer, also attach the
+   and verifies the package's SHA-256 against its workflow approval. Keep
+   the `.sha256` for manual checks and older launchers. The workflow adds its
+   [automatic signature](#automatic-release-signatures) before publishing. For a
+   release that includes the installer, it also attaches the
    [per-user setup](build-and-test.md#windows-installer) and its `.sha256` from
    the same tagged commit. The setup includes that game's
    current launcher and game; keep the portable zip for launcher downloads.
@@ -198,70 +200,68 @@ Record the build and each result. A failed check gets a Bug issue and blocks
 the release unless the owner explicitly accepts it. This short release check
 does not claim that the release checklist's remaining checks were performed.
 
-## Offline release signatures
+## Automatic release signatures
 
-The launcher requires an owner's detached approval before installing a downloaded
-game or starting an installed release. The `.zip.sig` JSON sidecar binds the
-package name, its SHA-256 and its internal `manifest.sha256` hash. ECDSA P-256
-with SHA-256 signs a versioned canonical payload. The launcher pins only the
-public PEM in `Launcher/ReleasePackageSignature.cs`; an empty pin refuses every
-release. It retains the verified sidecar as `.release-signature.json` and checks
-that approval, the manifest and all listed files before Play. A missing or wrong
-signature refuses the operation and keeps existing installations and saves.
-Developer mode's explicitly selected local builds retain their separate path.
+The owner chose automatic signing on October 18, replacing the earlier offline
+USB-key process ([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)).
+GitHub Actions creates a short-lived signing identity for the protected release
+workflow on main. No owner key, USB stick, password or long-lived signing secret
+is needed. Cloud sessions can prepare a release and start that workflow.
 
-The owner creates and keeps the private signing key offline, outside the
-repository, GitHub, CI secrets and build machines. On the owner's offline signing
-computer, with OpenSSL installed, use a new empty folder on offline storage.
-The encryption password is entered locally, never in a command or chat. In a
-POSIX shell, run `umask 077` first; the OpenSSL commands also work in PowerShell:
+The `.zip.sig` approval binds the original package name, SHA-256 and internal
+`manifest.sha256` hash in a versioned payload. Cosign signs it using GitHub's
+identity and produces a Sigstore bundle containing the certificate, signature,
+transparency proof and verification timestamp. The signing job verifies its
+own output before making it available to the installer and publisher.
+
+The launcher uses the official Sigstore Go verifier, bundled as
+`ClankerWorld.ReleaseVerifier.exe`, with an embedded public trust root. It
+accepts only this repository's main release workflows and GitHub Actions issuer;
+a fork, pull-request workflow, different workflow or arbitrary personal key
+cannot approve an official package. Verification needs no network at Play time.
+It retains the approval as `.release-signature.json` and checks that proof, the
+manifest and all listed files before Play. Refusals keep existing versions and
+saves. Explicitly selected local builds retain their Developer mode path.
+
+The build automatically approves the game and launcher ZIPs, builds the final
+installer with the game's approval inside it, then approves the finished
+installer. Before building the setup, Windows checks both package approvals
+with the bundled launcher verifier, so a real workflow proof must pass the
+player's verifier before publication. All ZIPs, the installer, their checksums and approvals are attached to
+a temporary draft before the workflow publishes it. Only the separate publisher
+has release-write permission; it executes no checked-out repository code. Only
+the signing jobs get identity-token permission, and they run only on main in
+`ClankerWorldOrg/ClankerWorld`. Pull requests and ordinary CI cannot sign releases.
+
+Release immutability was enabled with the owner's approval on October 18, 2026.
+It protects future published assets and tags. Keep it enabled. Signing now trusts
+the protected GitHub release process rather than a separate owner's offline
+approval; secure main, review changes and keep the existing release gates.
+These approvals do not replace Windows Authenticode signing or remove Windows'
+unknown-publisher warning.
+
+To approve an artifact inside the protected workflow, use
+`python3 scripts/sign-release-package.py sign <package>`. The script checks its
+workflow context and refuses other environments or replacement of an existing
+approval. `verify <package>` checks an existing approval with Cosign. The workflow
+pins Cosign 3.1.3; the verifier pins Sigstore Go 1.3.0 and Go 1.27.2. Update the
+embedded public trust root through review when Sigstore rotates its public keys;
+the file's source is `sigstore/root-signing/targets/trusted_root.json`.
+
+For a prepared alpha release, finish the release gates above and push its
+annotated tag at the reviewed current main commit. From a local or cloud
+session, run:
 
 ```bash
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -aes-256-cbc -out clankerworld-release-private.pem
-openssl pkey -in clankerworld-release-private.pem -pubout -out clankerworld-release-public.pem
+gh workflow run nightly.yml --ref main -f channel=release -f release_tag=v<version>
 ```
 
-Keep the password and an offline backup of the encrypted private file safe.
-OpenSSL asks for the password again when signing. Give contributors only the public
-PEM to pin through a reviewed launcher change. Do not paste, upload or log the
-private key. No build job signs with it.
-
-After verifying the exact tagged build and its existing checksums, move its
-artifacts to the signing computer. Keep each package's original name. With
-Python 3.11 or later and OpenSSL:
-
-```bash
-python3 scripts/sign-release-package.py sign ClankerWorld-<version>-windows-x64.zip clankerworld-release-private.pem
-python3 scripts/sign-release-package.py verify ClankerWorld-<version>-windows-x64.zip clankerworld-release-public.pem
-```
-
-The tool creates `<package>.sig` and refuses to replace an existing approval.
-For the installer, sign the game zip first and keep its sidecar beside it when
-running `package-windows-installer.sh`; the installer then carries the game's
-retained approval. Sign and verify the finished installer with the same two
-commands, replacing the zip name with its `.exe` name. Sign a separately
-published launcher zip as well. These detached approvals do not replace Windows
-Authenticode signing or remove Windows' unknown-publisher warning.
-
-Attach the original artifacts, their `.sha256` files and their `.sig` sidecars
-to a **draft** GitHub release. Verify all sidecars against the pinned public key
-before publishing. Release immutability was enabled for this repository on
-October 18, 2026, with the owner's approval in chat
-([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)). Check
-that it remains enabled before publishing, and confirm the new release is
-immutable afterwards; the setting does not protect earlier releases. All assets
-must be attached before publication. A repository administrator controls the
-setting; the signing tool does not change it.
-
-Nightlies need the same offline approval to be installable by this launcher.
-The owner chose draft nightlies for offline signing in chat on October 18
-([#2275](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2275)).
-Download the game and launcher artifacts from the nightly run, sign the game
-zip, and rebuild the installer from that exact commit with the game's sidecar
-beside the zip. Sign the final installer, replace the draft's preliminary setup
-and checksum, attach both `.sig` files, verify them, then publish the draft.
-The preliminary installer is not the final signed distribution: rebuilding it
-includes the game's retained approval without putting a private key in CI.
+This builds the triggering main commit, requires the tag to name that exact
+commit, and checks its green CI. If main has advanced since preparing the tag,
+prepare and review a release on current main first. The workflow
+publishes that version; it does not prepare a version,
+collect changes or authorize skipping review or the release playtest. The normal
+nightly channel remains automatic and needs no manual signing or password.
 
 ## Withdrawn releases
 
@@ -271,7 +271,7 @@ retains that metadata but hides the version from normal install and Play choices
 an explicit saved-world request shows why that version is unavailable. Repair
 also refuses to download it outside Developer mode. Existing files and saves
 remain available for removal or later recovery. Developer mode lists withdrawn
-games with a warning and still requires their offline approval.
+games with a warning and still requires their release approval.
 
 The same marker on a launcher release suppresses its update notice. Withdrawal
 does not remove release assets or change their signatures.
@@ -279,14 +279,14 @@ does not remove release assets or change their signatures.
 ## Nightly builds
 
 The [Nightly workflow](../../.github/workflows/nightly.yml) stages a build of
-main every evening as a draft GitHub pre-release. After the owner signs and
-publishes it, Developer mode can try main
+main every evening, automatically approves the files and publishes a GitHub
+pre-release. Developer mode can try main
 without a release (the owner's choice, October 10). It starts at 21:17 UTC,
 which is 23:17 in Amsterdam in summer and 22:17 in winter, so the build is
 ready by the owner's usual evening playtest (the owner's choice, October 15).
 GitHub can start a scheduled run late, and **Run workflow** on main starts one
 at any time. A nightly is not an alpha release and needs no alpha release gate;
-it still needs the offline approval above before publication:
+the workflow adds the automatic approvals above before publication:
 
 - It is tagged `v<version>-nightly.<date>.<run>`, such as
   `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
@@ -296,19 +296,24 @@ it still needs the offline approval above before publication:
   portable zip. The [per-user setup](build-and-test.md#windows-installer)
   bundles the launcher and game from the same commit, using the same package
   scripts as CI. Linux builds both packages; Windows builds the setup before
-  the staging job attaches all four files to a draft. Only that job can write
-  releases automatically; it never publishes the unsigned draft.
+  the publisher verifies the downloaded files against their SHA-256 files and
+  requires their approvals before attaching everything to a draft and publishing
+  it. Only that job can write releases; it runs only on main and does not check
+  out or execute repository code.
   New nightly installs are offered in Developer mode. Installed
   versions and a version explicitly requested by a saved world remain
   available when Developer mode is off.
 - Both build jobs use the commit on main that triggered the workflow, even
   when main advances before either job starts. It runs only when the newest
-  nightly has a different commit and main's CI passed on the selected commit.
-  Run it by hand from Actions with the main branch selected to publish one
-  sooner.
+  published nightly has a different commit and main's CI passed on the selected
+  commit. An interrupted draft does not prevent a later run from trying again.
+  Run it by hand from Actions with main and the nightly channel selected to
+  publish a checked nightly sooner.
 - It keeps the seven newest nightly builds and deletes older ones with their
-  tags, the one exception to never deleting a pushed tag. Never use a nightly
-  tag for anything else.
+  tags, the one exception to never deleting a pushed tag. An interrupted
+  publication may leave an untagged draft; cleanup removes that draft without
+  trying to delete a tag. Never use
+  a nightly tag for anything else.
 
 Add a changelog entry in `changes/` in the same commit as player-visible
 gameplay/UI, world-runtime, save-compatibility, deployment, packaging or

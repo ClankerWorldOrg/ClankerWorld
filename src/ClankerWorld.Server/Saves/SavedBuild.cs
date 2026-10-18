@@ -35,7 +35,10 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
                 File.Delete(destination);
                 return true;
             }
-            File.WriteAllBytes(temporary, bytes);
+            using (var stream = PrivateStorage.CreateNew(temporary))
+            {
+                stream.Write(bytes);
+            }
             File.Move(temporary, destination, overwrite: true);
             return true;
         }

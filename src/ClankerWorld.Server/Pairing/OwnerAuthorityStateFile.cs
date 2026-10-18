@@ -118,17 +118,19 @@ public sealed class OwnerAuthorityStateFile
         }
         var directory = System.IO.Path.GetDirectoryName(Path) ??
             throw new InvalidOperationException("The owner-authority state path has no directory.");
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
 
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(Path)}.{Guid.NewGuid():N}.tmp");
         try
         {
-            File.WriteAllText(temporaryPath, json);
-            RestrictPermissions(temporaryPath);
+            using (var stream = PrivateStorage.CreateNew(temporaryPath))
+            {
+                stream.Write(System.Text.Encoding.UTF8.GetBytes(json));
+            }
             File.Move(temporaryPath, Path, overwrite: true);
-            RestrictPermissions(Path);
+            PrivateStorage.RestrictFile(Path);
             lastSavedJson = json;
             Interlocked.Increment(ref writeCount);
         }
@@ -143,14 +145,4 @@ public sealed class OwnerAuthorityStateFile
 
     private static string SerializeDurable(OwnerAuthorityState state) =>
         JsonSerializer.Serialize(state with { Challenges = [] }, JsonOptions);
-
-    private static void RestrictPermissions(string path)
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(
-                path,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-    }
 }

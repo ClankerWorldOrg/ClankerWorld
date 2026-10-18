@@ -1,1 +1,2 @@
-- The launcher checks the owner's release signature before installing a download and checks the approved file list before Play. Missing or invalid approval leaves installed versions and worlds untouched.
+- The launcher checks the automatic release-workflow signature before installing a download and checks the approved file list before Play. Repair can restore missing or invalid approvals. Refused downloads leave installed versions and worlds untouched.
+- Release builds are approved automatically in GitHub Actions. Nightlies no longer wait for a USB key or password; the installer includes the approved game before it is published.

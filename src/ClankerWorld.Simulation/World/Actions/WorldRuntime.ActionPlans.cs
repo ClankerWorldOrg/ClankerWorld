@@ -4,9 +4,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    public ActionCheck CheckActionPlan(ActionPlan plan) => plan switch
+    public ActionCheck CheckActionPlan(ActionPlan plan) => DefinitionFor(plan) is { } definition
+        ? definition.Check(this, plan) : CheckLegacyActionPlan(plan);
+
+    private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
     {
-        WaitingActionPlan waiting => CheckWaiting(waiting),
         ExplorationActionPlan exploration => CheckExploration(exploration),
         PersonalGoodsActionPlan personalGoods => CheckPersonalGoods(personalGoods),
         HouseGuestActionPlan houseGuest => CheckHouseGuest(houseGuest),
@@ -15,7 +17,6 @@ public sealed partial class WorldRuntime
         ConstructionActionPlan construction => CheckConstruction(construction),
         ProjectAssistanceActionPlan assistance => CheckProjectAssistance(assistance),
         BuildingMaterialActionPlan buildingMaterial => CheckBuildingMaterial(buildingMaterial),
-        RecipeProjectActionPlan recipeProject => CheckRecipeProject(recipeProject),
         KnowledgeStorageActionPlan knowledgeStorage => CheckKnowledgeStorage(knowledgeStorage),
         KnowledgeReadingActionPlan knowledgeReading => CheckKnowledgeReading(knowledgeReading),
         KnowledgeWritingActionPlan knowledgeWriting => CheckKnowledgeWriting(knowledgeWriting),
@@ -96,27 +97,8 @@ public sealed partial class WorldRuntime
         AnimalWorkActionPlan work => animalSystem.CheckAnimalWorkPlan(animalWorldAdapter, work),
         AnimalSupplyActionPlan supply => animalSystem.CheckAnimalSupplyPlan(animalWorldAdapter, supply),
         AnimalProductActionPlan animal => animalSystem.CheckAnimalProductPlan(animalWorldAdapter, animal),
-        FoodActionPlan food => CheckFoodPlan(food),
         OrnamentActionPlan ornament => CheckOrnamentPlan(ornament),
-        FireActionPlan fire => CheckFirePlan(fire),
-        WarmthActionPlan warmth => CheckWarmthPlan(warmth),
-        EquipmentRepairActionPlan equipmentRepair => CheckEquipmentRepairPlan(equipmentRepair),
-        PrivateEquipmentActionPlan equipment => CheckPrivateEquipmentPlan(equipment),
-        VesselActionPlan vessel => CheckVesselPlan(vessel),
-        FieldActionPlan field => farmingSystem.CheckFieldPlan(farmingWorld, field),
-        TreeActionPlan tree => FarmingSystem.CheckTreePlan(farmingWorld, tree),
-        RareMiningActionPlan mining => CheckRareMiningPlan(mining),
-        ToolRepairActionPlan repair => CheckToolRepairPlan(repair),
-        ToolCollectionActionPlan tool => CheckToolCollectionPlan(tool),
-        SmithGatherActionPlan gather => CheckSmithGatherPlan(gather),
-        SmithDeliveryActionPlan smith => CheckSmithDeliveryPlan(smith),
-        StoreStockActionPlan storeStock => CheckStoreStockPlan(storeStock),
-        WorkstationSupplyActionPlan workstation => CheckWorkstationSupplyPlan(workstation),
-        FarmStockActionPlan farmStock => CheckFarmStockAction(farmStock),
         FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
-        ChildActionPlan child => CheckChildPlan(child),
-        TownStockActionPlan town => CheckTownStockPlan(town),
-        HouseholdStockActionPlan household => CheckHouseholdStockPlan(household),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 

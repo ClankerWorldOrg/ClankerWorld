@@ -271,10 +271,6 @@ public partial class Main
             lastObservedAgingOverride = rate;
             lastAgingOverrideWorldId = snapshot.WorldId;
         }
-        serverUrlInput.Editable = registration is null && pendingPairing is null && !isPairingOperation && !isOwnerAction && !isRefreshing;
-        connectButton.Disabled = registeredEndpointInvalid || pendingPairing is not null || isPairingOperation || isOwnerAction || isRefreshing;
-        pairAgainButton.Visible = registration is not null;
-        pairAgainButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
         pauseButton.Disabled = actionDisabled || snapshot is null;
         pauseButton.Visible = snapshot?.FounderSetup is not { Started: false };
         founderSetupButton.Disabled = actionDisabled || snapshot?.FounderSetup is not { Started: false };
@@ -326,7 +322,7 @@ public partial class Main
         retryPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing || !CanRetryPendingSubmission(pendingSubmission);
         reviewPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing ||
             observationSession.AwaitingFreshBaseline || snapshot is null;
-        forgetPendingSubmissionButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
+        forgetPendingSubmissionButton.Disabled = isOwnerAction || isRefreshing;
         pairingApprovalId.Editable = !actionDisabled;
         pairingApprovalCode.Editable = !actionDisabled;
         approvePairingButton.Disabled = actionDisabled;
@@ -358,10 +354,6 @@ public partial class Main
         deleteAgentModelCredentialSlotButton.Disabled = actionDisabled ||
             providerConfiguration?.Assignments?.Any(item =>
                 item.CredentialSlotId == SelectedCredentialChoice() && item.SelectionReason is null) == true;
-        // A public key can have only one pending server pairing. Keep the
-        // visible comparison value stable until it expires or activates.
-        pairButton.Disabled = isPairingOperation || deviceKey is null || pendingPairing is not null || registration is not null;
-        forgetRegistrationButton.Disabled = isPairingOperation || registration is null;
     }
 
 }

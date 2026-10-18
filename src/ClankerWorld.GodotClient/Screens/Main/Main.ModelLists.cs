@@ -38,7 +38,7 @@ public partial class Main
         var lookup = picker.BeginLoading(defaultModel);
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            picker.ShowError("Connect this device to see the models.", defaultModel, canRetry: false);
+            picker.ShowError("Start the game through the launcher to see the models.", defaultModel, canRetry: false);
             return;
         }
         try

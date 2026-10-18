@@ -100,7 +100,7 @@ public partial class Main
             SetMainMenuStatus(status);
     }
 
-    /// <summary>False leaves the ordinary comparison-code flow on screen.</summary>
+    /// <summary>False keeps automatic local setup pending, without a pairing screen.</summary>
     private async Task<bool> ApproveLocalPairingAsync(OwnerPairingStart pairing)
     {
         try
@@ -185,7 +185,7 @@ public partial class Main
             : "Your world server is still running. Try closing again after fixing the save problem.", good: false);
         localServerStopFailure.DialogText = chooseCurrentWorld
             ? "Your world server couldn't report the current world for the launcher. The game will stay open so you can try again."
-            : "Your world server couldn't finish saving or stopping. The game will stay open so you can try again. Check your save folder and free disk space; if Recover world is waiting, finish it first.";
+            : "Your world server couldn't finish saving or stopping. The game will stay open so you can try again. Check your save folder and free disk space, then try again.";
         PopupDialog(localServerStopFailure);
     }
 }

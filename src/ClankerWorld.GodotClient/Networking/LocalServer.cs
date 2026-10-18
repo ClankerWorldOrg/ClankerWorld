@@ -93,15 +93,21 @@ public sealed record LocalServerLayout(
         return start;
     }
 
-    /// <summary>Removes provider keys and ClankerWorld setting overrides; keeps every other variable.</summary>
+    /// <summary>Removes provider credentials and setting overrides, then fixes the host environment to Production.</summary>
     public static void WithholdServerSettings(IDictionary<string, string?> environment)
     {
         foreach (var name in environment.Keys.Where(IsServerSetting).ToArray()) environment.Remove(name);
+        environment["ASPNETCORE_ENVIRONMENT"] = "Production";
+        environment["DOTNET_ENVIRONMENT"] = "Production";
     }
 
     private static bool IsServerSetting(string name)
     {
-        if (ProviderKeyVariables.Contains(name, StringComparer.OrdinalIgnoreCase)) return true;
+        if (ProviderKeyVariables.Contains(name, StringComparer.OrdinalIgnoreCase) ||
+            name.Equals("ANTHROPIC_BASE_URL", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("ANTHROPIC_AUTH_TOKEN", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("ASPNETCORE_ENVIRONMENT", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("DOTNET_ENVIRONMENT", StringComparison.OrdinalIgnoreCase)) return true;
         // The host reads ClankerWorld__Section__Key as a setting, with or
         // without the DOTNET_ or ASPNETCORE_ prefix, in any letter case.
         foreach (var settingPrefix in (string[])["DOTNET_", "ASPNETCORE_"])

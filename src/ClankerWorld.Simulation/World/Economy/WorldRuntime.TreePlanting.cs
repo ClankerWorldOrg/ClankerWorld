@@ -25,12 +25,6 @@ public sealed partial class WorldRuntime
     private MapResource? ReplantableTree(string actor, GridPoint origin) =>
         FarmingSystem.ReplantableTree(farmingWorld, actor, origin);
 
-    private void ApplyTreeActionPlan(TreeActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (FarmingSystem.CheckTreePlan(farmingWorld, plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        FarmingSystem.ApplyTreePlan(farmingWorld, plan);
-    }
 
     public TreePlantingResult PlantTree(string planterId, string species, string seedLotId, GridPoint destination)
     {
