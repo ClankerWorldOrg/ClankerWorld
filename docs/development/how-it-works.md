@@ -3787,10 +3787,10 @@ door, and a short dead end can carry on through that seam in its original
 direction. Rows do not wrap, building footprints still stay within map bounds,
 and bridge headings follow their saved axis and span.
 
-Layout queries freeze their walking-cost dictionary once. Contexts reuse that
-immutable map; mutable external inputs are still copied and all costs validated.
-Cost lookups retain ordinary coordinate equality even when an external
-dictionary uses a custom comparer.
+Layout queries freeze their walking-cost dictionary and occupied tiles once.
+Contexts reuse both immutable inputs; mutable external inputs are still copied
+and all costs validated. Cost and occupied-tile lookups retain ordinary coordinate
+equality even when external inputs use custom comparers.
 `TownLayoutService` captures one immutable layout context per decision and
 normally offers at most five legal sites with reasons for footprint, route,
 resources, purpose and compact growth. A model selects a site-specific candidate
