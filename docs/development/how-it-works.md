@@ -100,6 +100,8 @@ owns the archive count and recovery contract.
   save files are untrusted input. Deterministic rules validate movement, work,
   resources, occupancy, ownership and effects. Use seeded random paths and
   keep external I/O outside authoritative transitions.
+  Named PCG streams retain their exact UTF-8/HMAC seed derivation and algorithm
+  metadata while using a fixed stack buffer for temporary digest outputs.
 - **A tick commits all its accepted changes together.** A tick is one step of
   world time. Rejected, cancelled or stale model work cannot leave a half-applied
   action. Pause and loss of authenticated client presence invalidate in-flight
