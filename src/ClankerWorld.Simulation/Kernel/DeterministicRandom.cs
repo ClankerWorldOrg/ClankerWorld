@@ -31,11 +31,13 @@ public sealed class Pcg32XshRrV1
         ArgumentException.ThrowIfNullOrWhiteSpace(streamName);
 
         var key = Encoding.UTF8.GetBytes(worldSeed);
-        var stateBytes = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/state"));
-        var incrementBytes = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/increment"));
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/state"), hash);
+        var initialState = BinaryPrimitives.ReadUInt64BigEndian(hash);
+        HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/increment"), hash);
         return new Pcg32XshRrV1(
-            BinaryPrimitives.ReadUInt64BigEndian(stateBytes),
-            BinaryPrimitives.ReadUInt64BigEndian(incrementBytes));
+            initialState,
+            BinaryPrimitives.ReadUInt64BigEndian(hash));
     }
 
     public uint NextUInt()
