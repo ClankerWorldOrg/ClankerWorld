@@ -3813,6 +3813,8 @@ record the matched native checks and timing limits. Warehouse discovery
 matches a set of current definition IDs instead of scanning definitions for
 every building. Later queries and actions check current stock, membership and
 routes again; these optimizations add no saved state or persistent cache.
+Dense material searches walk fixed distance-ring offsets in their original
+order, reading current positions with the same wrapping and map-edge checks.
 Purpose scoring filters related buildings once per context and keeps its
 distance, building-ID and tag tie rules. Border-growth scoring counts the same
 rounded footprint margin that actual placement adds, without sorting those
