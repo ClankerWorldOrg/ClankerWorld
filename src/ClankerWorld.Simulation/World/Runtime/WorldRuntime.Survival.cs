@@ -415,9 +415,8 @@ public sealed partial class WorldRuntime
         var kinds = IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId))
             ? PreparedMealGoods : GoodsKinds.One(output.ResourceId);
         var available = HoldingsTotal(owners, kinds);
-        var residentCount = ownerId is null ? agents.Count :
-            agents.Values.Count(person => society.Checkpoint.GetAgent(person.AgentId).HouseholdId == ownerId);
-        var target = IsPreparedMeal(output.ResourceId) ? Math.Max(2, residentCount * 2)
+        var target = IsPreparedMeal(output.ResourceId) ? Math.Max(2, (ownerId is null ? agents.Count :
+            agents.Values.Count(person => society.Checkpoint.GetAgent(person.AgentId).HouseholdId == ownerId)) * 2)
             : output.ResourceId == "food" ? agents.Count * 4 : Math.Max(1, agents.Count);
         return available < target;
     }));

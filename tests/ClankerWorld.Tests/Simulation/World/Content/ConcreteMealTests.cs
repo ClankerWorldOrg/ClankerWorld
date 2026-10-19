@@ -308,6 +308,14 @@ public sealed partial class ConcreteMealTests
         Assert.DoesNotContain(observer.FamiliesOfferedTo(actor, completed.WorldContent), family =>
             family is "recipe:porridge" or "recipe:restaurant-meal");
         Assert.Contains(completed.Society.Agents, person => person.Id == other && person.Status != SocietyAgentStatus.Active);
+        Assert.Single(completed.Agents, person => completed.Society.GetAgent(person.AgentId).HouseholdId == household);
+        Assert.Contains(completed.Agents, person => completed.Society.GetAgent(person.AgentId).HouseholdId != household);
+        Assert.Equal(2, completed.Society.Inventory.Lots.Where(lot => lot.OwnerId == household &&
+            lot.ItemKind == "restaurant_meal").Sum(lot => lot.Quantity));
+        Assert.Single(completed.WorldSimulation.ProductionJobs, job => job.RecipeId == recipe.CanonicalId);
+        var bytes = WorldRuntimeCodec.Encode(completed.ExportState());
+        using var strict = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new Chooser());
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(strict.ExportState()));
     }
 
     [Fact]
