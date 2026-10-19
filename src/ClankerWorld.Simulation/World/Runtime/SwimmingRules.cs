@@ -35,10 +35,10 @@ public static class SwimmingRules
                 pending.Enqueue(tile.Position);
                 while (pending.TryDequeue(out var point))
                 {
-                    foreach (var neighbor in Neighbors(map, point))
+                    foreach (var neighbor in map.NeighborPositionsForSearch(point))
                     {
                         var neighborIndex = neighbor.Y * map.Width + neighbor.X;
-                        if (labels[neighborIndex] != 0) continue;
+                        if (labels[neighborIndex] != 0 || !CanStep(map, point, neighbor)) continue;
                         labels[neighborIndex] = component;
                         pending.Enqueue(neighbor);
                     }
