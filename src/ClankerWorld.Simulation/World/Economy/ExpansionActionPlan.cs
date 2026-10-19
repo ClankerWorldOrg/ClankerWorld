@@ -3,6 +3,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed record ExpansionChoice(string BuildingId)
 {
     public const string Prefix = "expand_building:";
+    public static ExpansionChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
+        ? new(candidate[Prefix.Length..]) : null;
     public string Encode() => IdentityRules.PrefixedReference(Prefix, BuildingId);
 }
 

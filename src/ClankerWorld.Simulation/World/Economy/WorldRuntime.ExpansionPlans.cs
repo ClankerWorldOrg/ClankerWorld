@@ -122,10 +122,12 @@ public sealed partial class WorldRuntime
         return inputs.ToArray();
     }
 
-    private ActionCheck CheckExpansion(ExpansionActionPlan plan)
+    private static ActorCapabilityPolicy ExpansionCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private ActionCheck CheckExpansion(ExpansionActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? ExpansionCapabilities);
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == plan.Building.InstanceId) is not { } current ||
             current != plan.Building || ExpansionOwner(current) != plan.OwnerId ||

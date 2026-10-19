@@ -175,6 +175,10 @@ Recipe projects also own a typed definition. The capability policy is resolved
 from the retained recipe, preserving the garment exception during urgent cold.
 A codec-matched recipe row precedes the construction row; invalid legacy
 targets retain their existing project rejection through the fallback handler.
+Construction and expansion also own typed definitions. Construction resolves
+its warmth policy from the retained design and keeps legacy site-less requests
+on their existing fallback path. Both retain selected sites, footprints and
+material steps through the same check before native application.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and

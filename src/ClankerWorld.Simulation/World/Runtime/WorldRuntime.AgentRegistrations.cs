@@ -167,22 +167,14 @@ public sealed partial class WorldRuntime
         runtime.GatherBuildingMaterial(action.AgentId, action.State, action.CandidateId[GatherBuildingMaterialPrefix.Length..], action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpandBuildingPrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyBuildingExpansionCandidate(action.AgentId, action.State, action.CandidateId[ExpandBuildingPrefix.Length..], originalPlan: action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "ExpandBuildingPrefix", [ExpansionChoice.Prefix], [], Definition: ExpansionDefinition),
         new(ActionPhase.Ordinary, "InviteHouseGuestPrefix", [InviteHouseGuestPrefix, RevokeHouseGuestPrefix], [], static (runtime, action) =>
     {
         runtime.ApplyHouseGuest(action.AgentId, action.CandidateId, action.Plan as HouseGuestActionPlan);
         return true;
     }),
         new(ActionPhase.Ordinary, "recipe", [], [], Definition: RecipeActionDefinition),
-        new(ActionPhase.Ordinary, "build:", ["build:"], [], static (runtime, action) =>
-    {
-        runtime.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "build:", ["build:"], [], Definition: ConstructionDefinition),
         new(ActionPhase.Ordinary, "assist:", ["assist:"], [], static (runtime, action) =>
     {
         runtime.AssistProject(action.AgentId, action.State, action.CandidateId[ProjectAssistanceChoice.Prefix.Length..], action.Plan);

@@ -52,11 +52,13 @@ public sealed partial class WorldRuntime
         return selected.ToArray();
     }
 
-    private ActionCheck CheckConstruction(ConstructionActionPlan plan, bool checkDestination = true)
+    private static ActorCapabilityPolicy ConstructionCapabilities(BuildingDefinition definition) =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: false,
+            AllowUrgentWarmth: definition.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking"), AllowActiveOrder: true);
+
+    private ActionCheck CheckConstruction(ConstructionActionPlan plan, bool checkDestination = true, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false,
-                AllowUrgentWarmth: plan.Definition.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking"), AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? ConstructionCapabilities(plan.Definition));
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.ActorHouseholdId || TownForResident(plan.Actor) != plan.TownId ||
             !worldContent.Buildings.Any(definition => definition.CanonicalId == plan.Definition.CanonicalId && definition.PayloadDigest == plan.Definition.PayloadDigest) ||
