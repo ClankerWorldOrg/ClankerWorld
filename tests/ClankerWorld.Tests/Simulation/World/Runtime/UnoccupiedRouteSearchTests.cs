@@ -31,6 +31,29 @@ public sealed class UnoccupiedRouteSearchTests
         Assert.Equal(count, calls.Count);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CustomNeighborsKeepTheirOwnGeometryAcrossRepeatedQuestions(bool wrap)
+    {
+        var map = new WorldMap(3, 2, 0,
+            [.. from y in Enumerable.Range(0, 2)
+                from x in Enumerable.Range(0, 3)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Lake)], [], [], string.Empty)
+        { WrapsEastWest = wrap };
+        var origin = new GridPoint(0, 0);
+        var waypoint = new GridPoint(2, 0);
+        var destination = new GridPoint(2, 1);
+        IEnumerable<GridPoint> Neighbors(GridPoint point) =>
+            point == origin ? [waypoint] : point == waypoint ? [destination] : [];
+        using var walking = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1);
+        using var custom = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1, Neighbors);
+        Assert.Empty(walking.RouteTo(destination, 0));
+        Assert.Equal([origin, waypoint], custom.RouteTo(waypoint, 0));
+        Assert.Equal([origin, waypoint, destination], custom.RouteTo(destination, 0));
+        Assert.Equal([origin, waypoint], custom.RouteTo(waypoint, 0));
+    }
+
     [Fact]
     public void SharedSearchFindsTheSameRoutesAsFreshSearchesOnAGeneratedMap()
     {
