@@ -6,9 +6,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private IEnumerable<GridPoint> TownProjectFootprintTiles(string? exceptProjectId = null) =>
-        Ground.ProjectFootprints(exceptProjectId);
-
     private IEnumerable<GridPoint> TownProjectProtectedSites(string? exceptProjectId = null) =>
         Ground.ProtectedProjectSites(exceptProjectId);
 
