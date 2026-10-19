@@ -106,8 +106,8 @@ public sealed partial class WorldRuntime
 
     private void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        // Every Town project building is communal, so all of them read the same occupied tiles and foot
-        // routes, and all of their site checks read the same world tiles: gather each once, when first needed.
+        // Communal project layouts share occupied tiles and foot routes. Port checks and lantern
+        // ranking also share the site facts they need within this query; final validation gathers its own.
         // A basis built for another kind of building is refused by CreateTownLayoutContext.
         var basis = new Lazy<TownLayoutBasis>(() => CreateTownLayoutBasis(actor, building: TownHallContent.Hall3x4()),
             LazyThreadSafetyMode.None);
@@ -122,9 +122,7 @@ public sealed partial class WorldRuntime
             foreach (var site in TownLayoutService.RankConstructionSites(layout, definition, TownLayoutService.MaximumCandidateLimit))
             {
                 var plan = PlanFor(town, definition, site.Position, definition.DisplayName);
-                // The site check also refuses a site that overlaps another proposal whose vote is still open.
-                if (plan is null || TownProjectSiteFailure(town, plan, actor: actor, world: siteWorld) is not null) continue;
-                if (!AddTownProjectProposalCandidate(candidates, actor, town, definition, site.Position, plan)) continue;
+                if (plan is null || !AddTownProjectProposalCandidate(candidates, actor, town, definition, site.Position, plan)) continue;
                 if (++offered == TownLayoutService.DefaultCandidateLimit) break;
             }
         }
@@ -137,9 +135,8 @@ public sealed partial class WorldRuntime
                 if (market.Stalls.Any(stall => stall.SlotIndex == slot)) continue;
                 var site = MarketContent.StallSite(market.Site, slot);
                 var plan = PlanFor(town, stallDefinition, site, "Market stall");
-                if (plan is null || TownProjectSiteFailure(town, plan, actor: actor, world: siteWorld) is not null) continue;
                 // One more stall at a time: the next waits until this one is built and borrowed too.
-                if (!AddTownProjectProposalCandidate(candidates, actor, town, stallDefinition, site, plan)) continue;
+                if (plan is null || !AddTownProjectProposalCandidate(candidates, actor, town, stallDefinition, site, plan)) continue;
                 break;
             }
     }
@@ -208,8 +205,6 @@ public sealed partial class WorldRuntime
                          .ThenBy(edge => edge.Site.Position.Y).ThenBy(edge => edge.Site.Position.X)
                          .ThenBy(edge => edge.Road.Y).ThenBy(edge => edge.Road.X))
             {
-                if (TownProjectSiteFailure(town, new(definition.DisplayName, definition.CanonicalId, edge.Site.Position, edge.Road,
-                        definition.BuildCosts), world: siteWorld) is not null) continue;
                 var coordinates = FormattableString.Invariant($"{edge.Site.Position.X},{edge.Site.Position.Y},{edge.Road.X},{edge.Road.Y}");
                 var budget = definition.CanonicalId == StreetLanternContent.Stone().CanonicalId ? "4 stone" : "4 wood and 1 refined iron";
                 var choice = new TownProjectProposalChoice(town.Id, false, definition.LocalId, coordinates);
