@@ -31,8 +31,9 @@ public sealed class Pcg32XshRrV1
         ArgumentException.ThrowIfNullOrWhiteSpace(streamName);
 
         var key = Encoding.UTF8.GetBytes(worldSeed);
-        var stateBytes = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/state"));
-        var incrementBytes = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"{streamName}/increment"));
+        using var hmac = new HMACSHA256(key);
+        var stateBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes($"{streamName}/state"));
+        var incrementBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes($"{streamName}/increment"));
         return new Pcg32XshRrV1(
             BinaryPrimitives.ReadUInt64BigEndian(stateBytes),
             BinaryPrimitives.ReadUInt64BigEndian(incrementBytes));
