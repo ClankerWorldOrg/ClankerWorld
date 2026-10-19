@@ -3,16 +3,14 @@ namespace ClankerWorld.Simulation.Society;
 /// <summary>Pure lookup state keyed by the immutable agent-list snapshot.</summary>
 internal static class SocietyAgentIndex
 {
-    private sealed record Index(Dictionary<string, SocietyAgent> ById, SocietyAgent[] Agents);
+    private sealed record Index(Dictionary<string, SocietyAgent>? ById, SocietyAgent[] Agents);
 
     private static readonly Derived<IReadOnlyList<SocietyAgent>, Index> Indexes = new(Build, Equal);
 
-    public static SocietyAgent Get(IReadOnlyList<SocietyAgent> agents, string id)
-    {
-        var index = Indexes.Get(agents);
-        return index.ById.Count == index.Agents.Length && id is not null && index.ById.TryGetValue(id, out var person)
+    public static SocietyAgent Get(IReadOnlyList<SocietyAgent> agents, string id) =>
+        Indexes.Get(agents) is { ById: { } byId, Agents: var snapshot } &&
+        byId.Count == snapshot.Length && id is not null && byId.TryGetValue(id, out var person)
             ? person : GetSingle(agents, id);
-    }
 
     // Keep Single's existing missing/duplicate/null-ID behavior for malformed
     // inputs. A duplicate unrelated to the requested ID must not throw here.
@@ -21,9 +19,10 @@ internal static class SocietyAgentIndex
     private static Index Build(IReadOnlyList<SocietyAgent> agents)
     {
         var snapshot = agents.ToArray();
-        var byId = new Dictionary<string, SocietyAgent>(snapshot.Length, StringComparer.Ordinal);
+        Dictionary<string, SocietyAgent>? byId = snapshot.Length <= 8
+            ? null : new(snapshot.Length, StringComparer.Ordinal);
         foreach (var person in snapshot)
-            if (person.Id is not null) byId.TryAdd(person.Id, person);
+            if (person.Id is not null) byId?.TryAdd(person.Id, person);
         return new(byId, snapshot);
     }
 
