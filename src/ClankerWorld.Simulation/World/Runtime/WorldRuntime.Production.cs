@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
     // walks the map from the actor, so a caller laying out several buildings of one kind builds them once.
     // A household building avoids only other households' land; any other building avoids all of it.
     private sealed record TownLayoutBasis(string Actor, GridPoint? SelectedSite, bool HouseholdBuilding, string? TownProjectId,
-        IReadOnlySet<GridPoint> Occupied, IReadOnlyDictionary<GridPoint, int> FootCosts);
+        FrozenSet<GridPoint> Occupied, IReadOnlyDictionary<GridPoint, int> FootCosts);
 
     private static bool IsHouseholdLayout(BuildingDefinition? building) =>
         building is null || building.Tags.Any(IsHouseholdBuildingTag);
@@ -85,9 +85,9 @@ public sealed partial class WorldRuntime
             ? WorldContentSimulationRules.Footprint(definitions[farmhouse.DefinitionId], farmhouse.Position).ToArray()
             : [];
 
-    internal Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
+    private Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
         string agentId, GridPoint origin, TownRuntimeState? town,
-        IReadOnlySet<GridPoint> occupiedSites, GridPoint? selectedSite)
+        FrozenSet<GridPoint> occupiedSites, GridPoint? selectedSite)
     {
         if (selectedSite is { } invalidSite &&
             (!map.IsBuildable(invalidSite) || occupiedSites.Contains(invalidSite)))
