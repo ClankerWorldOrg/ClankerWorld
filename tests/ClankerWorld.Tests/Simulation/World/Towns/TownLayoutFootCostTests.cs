@@ -1,4 +1,3 @@
-using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
@@ -43,8 +42,11 @@ public sealed class TownLayoutFootCostTests
             var occupied = state.Agents.Where(other => other.AgentId != person.AgentId)
                 .Select(other => other.Position).ToHashSet();
             var buildings = new BuildingMovementRules(state.WorldSimulation!.Buildings, state.WorldContent!.Buildings);
-            var stepCost = typeof(WorldRuntime).GetMethod("RoadStepCost", BindingFlags.Instance | BindingFlags.NonPublic)!
-                .CreateDelegate<Func<GridPoint, GridPoint, int>>(world);
+            var roads = (state.RoadTiles ?? []).Concat((state.Bridges ?? [])
+                .Where(bridge => bridge.Trigger == BridgeTriggers.Road).SelectMany(bridge => bridge.Span)).ToHashSet();
+            int StepCost(GridPoint from, GridPoint to) => RoadRoutePlanner.AdjustFootCost(
+                map.FootStepCost(from, to), roads.Contains(from) && roads.Contains(to));
+            Func<GridPoint, GridPoint, int> stepCost = StepCost;
             using var routes = new UnoccupiedRouteSearch(map, origin, occupied, stepCost,
                 canStep: (from, to) => buildings.CanStep(map, from, to));
             var costs = new Dictionary<GridPoint, int> { [origin] = 0 };
@@ -80,9 +82,7 @@ public sealed class TownLayoutFootCostTests
             }
             expected = ordered.Take(stop + 1).ToArray();
         }
-        var actual = Assert.IsType<Dictionary<GridPoint, int>>(typeof(WorldRuntime)
-            .GetMethod("FindUnoccupiedFootCosts", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(world, [person.AgentId, origin, town, sites, selected]));
+        var actual = world.FindUnoccupiedFootCosts(person.AgentId, origin, town, sites, selected);
         Assert.Equal(expected, actual.ToArray());
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
     }
