@@ -170,19 +170,7 @@ public sealed partial class WorldRuntime
         var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!IsAdult(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith)
-        {
-            if (IsAdult(actor) && householdId is not null && CarriedHouseDelivery(actor) is null &&
-                BlacksmithForHousehold(householdId) is { } gatheringSmith &&
-                BlacksmithInputToGather(householdId, gatheringSmith.InstanceId, actor) is { } missing)
-            {
-                if (PlanSmithGather(actor, missing.ItemKind, missing.Source, gatheringSmith) is { } gather && CheckActionPlan(gather).Allowed)
-                    candidates.Add(new CognitionCandidate(gather.CandidateId,
-                        $"Gather {missing.ItemKind.Replace('_', ' ')} for the household Blacksmith.", 30,
-                        missing.Source.Id)
-                    { ActionPlan = gather });
-            }
             return;
-        }
         if (DestinationRoom(blacksmith.InstanceId) == 0)
             return;
         var input = BlacksmithInputForDelivery(householdId, blacksmith, actor);
