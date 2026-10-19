@@ -95,11 +95,10 @@ public sealed partial class WorldRuntime
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
         var buildings = MovementBuildings;
-        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
+        var open = new PriorityQueue<GridPoint, (int Cost, int TileIndex)>();
         var best = new Dictionary<GridPoint, int> { [origin] = 0 };
         var predecessor = new Dictionary<GridPoint, GridPoint>();
-        var order = 0;
-        open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+        open.Enqueue(origin, (0, origin.Y * map.Width + origin.X));
 
         while (open.TryDequeue(out var current, out var priority))
         {
@@ -119,10 +118,9 @@ public sealed partial class WorldRuntime
                 return route;
             }
 
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (!buildings.CanStep(map, current, next) ||
-                    handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
+                if (!buildings.CanStep(map, current, next) || !LegalHandcartStep(current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -136,7 +134,7 @@ public sealed partial class WorldRuntime
                     continue;
                 best[next] = cost;
                 predecessor[next] = current;
-                open.Enqueue(next, (cost, next.Y, next.X, order++));
+                open.Enqueue(next, (cost, next.Y * map.Width + next.X));
             }
         }
 
@@ -155,19 +153,18 @@ public sealed partial class WorldRuntime
         if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
             animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
             return null;
-        if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
+        if (interactionRange != 0 || !occupied.Contains(destination)) return occupied;
+        if (worldSimulation.Buildings.Any(building =>
                 building.Position == destination &&
                 building.HouseholdId is not null &&
                 (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
                  WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))))
-            occupied.Remove(destination);
-        if (interactionRange == 0 && occupied.Contains(destination) &&
+                 CanEnterGuardianPlacementHouse(agentId, building))) ||
             CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching
         // an entire map when neither household nor public Town sharing applies.
-        if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
+        else if (origin != destination)
             return null;
         return occupied;
     }

@@ -1067,23 +1067,22 @@ public sealed partial class WorldRuntime
         Lazy<PlacedBuilding[]> accessibleWarehouses,
         List<string> buildingsWithoutSites)
     {
+        var needsWarmth = NeedsUrgentWarmth(state);
         if (agent.HouseholdId is { } planningHousehold)
-            AddHouseholdBuildingPlans(candidates, agent, state, planningHousehold, buildingsWithoutSites);
+            AddHouseholdBuildingPlans(candidates, agent, needsWarmth, planningHousehold, buildingsWithoutSites);
 
         // Work follows what the household holds, not a role: crops need the
         // household's Farmhouse, and workstation recipes need a building the
         // household holds or a communal one (see TryFindRecipeSite).
+        var placedWorkstations = worldSimulation.Buildings.Select(building => building.DefinitionId).ToHashSet(StringComparer.Ordinal);
         foreach (var recipe in worldContent.Recipes.Where(item =>
                      !item.Outputs.Any(output => output.ResourceId == "bedding") &&
-                     !item.IsCrop && !IsGenericFoodRecipe(item)))
+                     !item.IsCrop && !IsGenericFoodRecipe(item) &&
+                     (!needsWarmth || item.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId))) &&
+                     item.WorkstationBuildingId is { } placedId && placedWorkstations.Contains(placedId)))
         {
-            if (NeedsUrgentWarmth(state) && !recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId)))
-            {
-                continue;
-            }
             var householdWorkstation = recipe.WorkstationBuildingId is { } workstationId &&
-                worldContent.Buildings.Any(definition => definition.CanonicalId == workstationId &&
-                    definition.Tags.Any(IsHouseholdBuildingTag));
+                worldContent.BuildingDefinitions.TryGetValue(workstationId, out var workstation) && IsHouseholdLayout(workstation);
             var personalCart = IsHandcartRecipe(recipe);
             var recipeOwner = personalCart ? agent.Id : ProductionOwnerFor(null, agent.Id);
             if (personalCart && (!HasCarriedUnreservedQuantities(agent.Id, recipe.Inputs) ||

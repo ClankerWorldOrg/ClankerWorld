@@ -798,7 +798,7 @@ public partial class Main
         foreach (var heading in new Control[] { menuHeadingLabel, selectedActorNameLabel, clockLabel, mainMenuContinueButton })
             if (heading.GetThemeFont("font") != UiFonts.Headings)
                 throw new InvalidOperationException($"{heading.Name} must use the Timber heading lettering.");
-        ConfirmationDialog[] dialogs = [quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation];
+        ConfirmationDialog[] dialogs = [quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, worldModelLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation];
         if (dialogs.Any(dialog => dialog.GetThemeFont("title_font") != UiFonts.Headings))
             throw new InvalidOperationException("Dialog titles must use the Timber heading lettering.");
         foreach (var letter in TimberFont.Characters)
@@ -952,12 +952,12 @@ public partial class Main
         if (mainMenuCard.FindChildren("*", nameof(Label), true, false).OfType<Label>().Any(label =>
                 label.Visible && (label.Text == "CLANKERWORLD" || label.Text.StartsWith("A world shaped", StringComparison.Ordinal))))
             throw new InvalidOperationException("The Main Menu must show the logo instead of a text title or slogan.");
-        if (!mainMenuStatus.Visible || mainMenuStatus.Text != "Connect this device to your world to play.")
+        if (!mainMenuStatus.Visible || mainMenuStatus.Text != "Open ClankerWorld through the launcher to play.")
             throw new InvalidOperationException("An unpaired Main Menu must say how to start playing.");
         localServerStarting = true;
         RefreshMainMenuAvailability();
         if (mainMenuStatus.Text != "Starting your world server…" || !mainMenuStatus.Visible ||
-            mainMenuConnectButton.Visible || !mainMenuContinueButton.Disabled ||
+            !mainMenuContinueButton.Disabled ||
             !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled)
             throw new InvalidOperationException("Local startup must explain the wait and keep world choices disabled.");
         localServerStarting = false;
@@ -1232,13 +1232,6 @@ public partial class Main
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!mainMenuOverlay.Visible || !mainMenuCard.Visible || pauseMenuPanel.Visible)
                 throw new InvalidOperationException($"Clicking Back in Main Menu Settings must return to the Main Menu. Back={menuCloseButton.GetGlobalRect()}, pointer={backPoint}, hovered={hoveredBackControl?.GetPath()}");
-            OpenMenuForSetup();
-            if (!mainMenuOverlay.Visible || mainMenuCard.Visible || !pauseMenuPanel.Visible || menuResumeButton.Visible ||
-                !ShowsGlyph(menuCloseButton, PixelGlyph.Back) || menuHeadingLabel.Text != "Connect this device" || !topBarShade.Visible)
-                throw new InvalidOperationException("Connect/pair setup must keep the title backdrop with a single compact back button.");
-            menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!mainMenuCard.Visible || pauseMenuPanel.Visible || topBarShade.Visible)
-                throw new InvalidOperationException("Back from connect/pair setup must return to the Main Menu.");
             var displayWindow = GetWindow();
             var originalWindowSize = displayWindow.Size;
             var originalRenderSize = displayWindow.ContentScaleSize;
@@ -1297,7 +1290,6 @@ public partial class Main
             isInWorld = true;
             returnToMainMenu = false;
             SetWorldMenuActionsVisible(true);
-            pairingPanel.Hide();
             pauseMenuPanel.Show();
             var pauseActions = menuQuitToMainButton.GetParent<VBoxContainer>().GetChildren()
                 .OfType<Button>().Where(button => button.Visible).Select(button => button.Text).ToArray();

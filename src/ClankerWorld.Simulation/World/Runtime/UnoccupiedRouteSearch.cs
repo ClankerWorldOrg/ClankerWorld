@@ -6,8 +6,8 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>
 /// Dijkstra's search over legal traveler steps from one origin, for routes that
 /// avoid occupied tiles, run only as far as the questions asked of it need.
-/// Tiles leave the queue in one fixed order (cost, then row, column and the
-/// order they were queued) whatever is asked, and a tile's route is final once
+/// Tiles leave the queue by cost and row-major tile index (row then column),
+/// whatever is asked, and a tile's route is final once
 /// it leaves. So the first tile within range of a destination, and the route to
 /// it, are exactly what a fresh search for that destination alone would find,
 /// and many questions from one origin cost at most one search of the map.
@@ -23,8 +23,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly int[] best;
     private readonly int[] predecessor;
     private readonly int[] finishedOrder;
-    private readonly PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)> open = new();
-    private int order;
+    private readonly PriorityQueue<GridPoint, (int Cost, int TileIndex)> open = new();
     private int finished;
     private bool disposed;
 
@@ -55,7 +54,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         Array.Fill(best, int.MaxValue, 0, tileCount);
         Array.Fill(finishedOrder, -1, 0, tileCount);
         best[Index(origin)] = 0;
-        open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+        open.Enqueue(origin, (0, Index(origin)));
     }
 
     public GridPoint Origin { get; }
@@ -136,7 +135,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
             return;
         best[nextIndex] = nextCost;
         predecessor[nextIndex] = index;
-        open.Enqueue(next, (nextCost, next.Y, next.X, order++));
+        open.Enqueue(next, (nextCost, nextIndex));
     }
 
     // The tile within range that left the queue first, if any has left it yet.

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
@@ -65,8 +66,8 @@ public sealed class TownLayoutContext
 
         Map = map;
         Town = town;
-        OccupiedTiles = occupiedTiles.ToHashSet();
-        ReachableFootCosts = reachableFootCosts.ToDictionary(item => item.Key, item => item.Value);
+        OccupiedTiles = occupiedTiles.ToFrozenSet();
+        ReachableFootCosts = reachableFootCosts.ToFrozenDictionary();
         if (ReachableFootCosts.Any(item => !map.Contains(item.Key) || item.Value < 0))
             throw new ArgumentException("Reachable site costs must be non-negative map positions.", nameof(reachableFootCosts));
         Resources = resources.ToArray();
@@ -101,6 +102,10 @@ public sealed class TownLayoutContext
         return related;
     }
 
+    private static readonly (int X, int Y, int Distance)[] MaterialSearchOffsets = Enumerable.Range(-5, 11)
+        .SelectMany(y => Enumerable.Range(-5, 11).Select(x => (X: x, Y: y, Distance: Math.Max(Math.Abs(x), Math.Abs(y)))))
+        .OrderBy(step => step.Distance).ThenBy(step => step.Y).ThenBy(step => step.X).ToArray();
+
     internal int NearbyMaterialDistance(string kind, GridPoint position, Func<string, string, bool> matches)
     {
         if (!availableMaterialPositions.TryGetValue(kind, out var positions))
@@ -118,15 +123,10 @@ public sealed class TownLayoutContext
                 nearest = Math.Min(nearest, Map.FootDistance(position, source));
             return nearest;
         }
-        for (var distance = 0; distance <= 5; distance++)
+        foreach (var (dx, dy, distance) in MaterialSearchOffsets)
         {
-            for (var dy = -distance; dy <= distance; dy++)
-                for (var dx = -distance; dx <= distance; dx++)
-                {
-                    if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != distance) continue;
-                    var source = Map.WrapColumn(new GridPoint(position.X + dx, position.Y + dy));
-                    if (Map.Contains(source) && positions.Contains(source)) return distance;
-                }
+            var source = Map.WrapColumn(new GridPoint(position.X + dx, position.Y + dy));
+            if (Map.Contains(source) && positions.Contains(source)) return distance;
         }
         return int.MaxValue;
     }
@@ -254,9 +254,8 @@ public static class TownLayoutService
         var footprint = context.RequiredFootprintOffsets is { } offsets
             ? offsets.Select(offset => new GridPoint(position.X + offset.X, position.Y + offset.Y))
             : Footprint(definition, position);
-        if (footprint.Any(point => !IsClearFootprintTile(context, point, position)))
-            return false;
-        if (context.RequiredLandTiles is { } titled && footprint.Any(point => !titled.Contains(point)))
+        if (footprint.Any(point => !IsClearFootprintTile(context, point, position) ||
+                context.RequiredLandTiles is { } titled && !titled.Contains(point)))
             return false;
         if (context.RequiredEntranceOffset is { } offset)
         {

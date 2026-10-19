@@ -98,7 +98,7 @@ public sealed partial class ServerHttpTests
             Assert.Matches("^generated:[0-9a-f]{64}$", mediumEntry.WorldId);
 
             // Return from the fresh-seed control to the second same-seed world.
-            selection.Select(mediumEntry.Id);
+            selection.SelectApprovedModels(mediumEntry.Id);
             runtime.Validate();
             Assert.Equal(medium.Preview.ManifestDigest, runtime.ExportState().Map.ManifestDigest);
             Assert.Equal(medium.Preview.MapLayersDigest, MapLayerManifestCodec.Digest(runtime.ExportState().Map));

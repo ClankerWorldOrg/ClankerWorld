@@ -17,13 +17,12 @@ public sealed partial class WorldRuntime
     private const int ResidentsPerSharedShop = 8;
 
     private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyAgent agent,
-        AgentState state, string householdId, List<string> buildingsWithoutSites)
+        bool needsWarmth, string householdId, List<string> buildingsWithoutSites)
     {
         TownLayoutContext? sharedLayout = null;
-        foreach (var definition in PlannableHouseholdBuildings(householdId, agent.Id))
+        foreach (var definition in PlannableHouseholdBuildings(householdId, agent.Id)
+                     .Where(building => !needsWarmth || building.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking")))
         {
-            if (NeedsUrgentWarmth(state) && !definition.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking"))
-                continue;
             // The identity reads the same actor, design and reservations for this
             // synchronous query; compute it once rather than for every building.
             var instanceId = BuildInstanceId(agent.Id, definition);

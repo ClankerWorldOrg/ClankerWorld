@@ -91,6 +91,57 @@ public sealed class SwimmingRuntimeTests
         Assert.Equal(1, order.CompletedUnits);
     }
 
+    [Fact]
+    public async Task NativeRoadApproachAndSwimmingKeepTheirStepDelaysAcrossReplay()
+    {
+        var state = CrossingState(new GridPoint(84, 80), "traffic-bridge-0");
+        var occupied = state.Map.Resources.Select(item => item.Position)
+            .Concat(state.Map.MapObjects.Select(item => item.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != Actor).Select(person => person.Position))
+            .Concat(state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building.Position)))
+            .ToHashSet();
+        var crossing = state.Map.Tiles.SelectMany(tile => new[] { (X: 0, Y: -1), (X: 1, Y: 0), (X: 0, Y: 1), (X: -1, Y: 0) }
+            .Select(direction => (Bank: tile.Position,
+                Approach: new GridPoint(tile.Position.X - direction.X, tile.Position.Y - direction.Y),
+                Water: new GridPoint(tile.Position.X + direction.X, tile.Position.Y + direction.Y))))
+            .First(item => state.Map.IsBuildable(item.Bank) && state.Map.CanFootStep(item.Approach, item.Bank) &&
+                SwimmingRules.IsSwimmingWater(state.Map, item.Water) && SwimmingRules.CanStep(state.Map, item.Bank, item.Water) &&
+                !occupied.Contains(item.Approach) && !occupied.Contains(item.Bank) && !occupied.Contains(item.Water));
+        var (bank, approach, water) = crossing;
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == Actor
+                ? person with { Position = approach } : person).ToArray(),
+            RoadTiles = state.RoadTiles!.Append(approach).Append(bank).Distinct().ToArray(),
+        };
+        var baseline = WorldRuntimeCodec.Encode(state);
+        using var world = Restore(WorldRuntimeCodec.Decode(baseline));
+        using var replay = Restore(WorldRuntimeCodec.Decode(baseline));
+        var instruction = new OwnerInstructionRequest("road-into-water", "owner:test", Actor,
+            OwnerInstructionKind.Order, $"Move to tile ({water.X}, {water.Y})");
+        world.SubmitInstruction(instruction);
+        replay.SubmitInstruction(instruction);
+        var visited = new List<GridPoint>();
+        var previous = approach;
+        for (var tick = 0; tick < 16 && Position(world) != water; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+            var person = world.Agents.Single(person => person.AgentId == Actor);
+            if (person.Position == previous) continue;
+            visited.Add(person.Position);
+            Assert.Equal(person.Position == bank ? 0 : 7, person.TravelCooldownTicks);
+            previous = person.Position;
+        }
+        Assert.Equal(new[] { bank, water }, visited);
+        Assert.Throws<ArgumentOutOfRangeException>(() => world.ExportState().Map.FootStepCost(approach, water));
+        var saved = WorldRuntimeCodec.Encode(world.ExportState());
+        using var loaded = Restore(WorldRuntimeCodec.Decode(saved));
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded.ExportState()));
+    }
+
     [Theory]
     [InlineData(1_000, 0, 0)]
     [InlineData(10_000, 3_000, 0)]
@@ -142,10 +193,10 @@ public sealed class SwimmingRuntimeTests
     }
 
     [Theory]
-    [InlineData(1_000, 0, 0)]
-    [InlineData(10_000, 3_000, 0)]
-    [InlineData(10_000, 0, 5)]
-    public async Task SwimmerCanStillLeaveWaterAfterTheirConditionChangesAcrossReload(int warmth, int illness, int load)
+    [InlineData(1_000, 0, 0, "interrupted")]
+    [InlineData(10_000, 3_000, 0, "finished")]
+    [InlineData(10_000, 0, 5, "finished")]
+    public async Task SwimmerCanStillLeaveWaterAfterTheirConditionChangesAcrossReload(int warmth, int illness, int load, string expectedOrderStatus)
     {
         using var setup = Restore(CrossingState(new(4, 2)));
         setup.SubmitInstruction(new("enter-water", "owner:test", Actor, OwnerInstructionKind.Order, "Move to tile (5, 2)"));
@@ -164,6 +215,9 @@ public sealed class SwimmingRuntimeTests
         for (var tick = 0; tick < 24 && !world.ExportState().Map.IsPassable(Position(world)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Map.IsPassable(Position(world)));
+        Assert.Equal(new GridPoint(4, 2), Position(world));
+        Assert.Equal(expectedOrderStatus, Assert.Single(world.ExportState().Instructions!,
+            order => order.IdempotencyKey == "leave-water").Task!.Status);
         Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 

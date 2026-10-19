@@ -46,7 +46,7 @@ public sealed partial class ServerHttpTests
             var action = new OwnerAutosaveConfigurationAction(true, 1, 0, settingsA.WorldId);
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
                 path, action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             var settingsB = autosave.Capture();
             Assert.Equal((other.Society.WorldId, 5, 5),
                 (settingsB.WorldId, settingsB.IntervalMinutes, settingsB.RotationCount));
@@ -63,9 +63,9 @@ public sealed partial class ServerHttpTests
             Assert.Equal(idsB.Order(), saves.List(settingsB.WorldId).Select(item => item.Id).Order());
             foreach (var (name, bytes) in copies) Assert.Equal(bytes, File.ReadAllBytes(Path.Combine(root, name)));
 
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal(settingsA, autosave.Capture());
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal(settingsB, autosave.Capture());
 
             // Adding B's ID to A's signed body cannot retarget its proof.
@@ -97,9 +97,9 @@ public sealed partial class ServerHttpTests
             foreach (var id in idsA)
                 foreach (var suffix in new[] { ".save", ".meta.json" })
                     Assert.Equal(copies[id + suffix], File.ReadAllBytes(Path.Combine(root, id + suffix)));
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal(settingsA, autosave.Capture());
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal(updated, autosave.Capture());
             Assert.Equal(updated, new WorldAutosaveStore(file.Path, settingsB.WorldId).Capture());
         }
