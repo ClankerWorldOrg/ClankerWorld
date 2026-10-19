@@ -1085,7 +1085,7 @@ public sealed partial class WorldRuntime
                 worldContent.Buildings.Any(definition => definition.CanonicalId == workstationId &&
                     definition.Tags.Any(IsHouseholdBuildingTag));
             var personalCart = IsHandcartRecipe(recipe);
-            var recipeOwner = personalCart ? agent.Id : ProductionOwnerFor(null, agent.Id);
+            var recipeOwner = personalCart ? agent.Id : agent.HouseholdId ?? agent.Id;
             if (personalCart && (!HasCarriedUnreservedQuantities(agent.Id, recipe.Inputs) ||
                 society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == agent.Id)))
                 continue;
