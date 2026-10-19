@@ -3828,8 +3828,10 @@ care and ongoing work keep their earlier continuation guards, and the ordinary
 idle action still runs its cleanup.
 See [construction query measurements](construction-query-measurements.md) for
 matched native timings, candidate/state equivalence and remaining limits.
-Town proposal site checks also share physical placement obstacles only within
-their synchronous query. Market slots stay separate from other occupied
+Town Hall, Market, stall and lantern offers use their shared action-plan
+validator for the full site check, including pending proposals. Port proposals
+also share physical placement obstacles within their synchronous query.
+Market slots stay separate from other occupied
 objects, and actual placement gathers current facts again. Layout searches
 rent tentative tile costs while preserving their settled tiles, costs and
 stopping rules. Neighbours with settled costs skip repeated terrain checks; all

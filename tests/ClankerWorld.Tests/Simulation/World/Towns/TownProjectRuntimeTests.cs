@@ -358,6 +358,7 @@ public sealed class TownProjectRuntimeTests
         using var scenario = TownProjectScenario.Create(TownProjectScenario.PlayableSeed, new TownProjectPolicy { NoVotes = true });
         await scenario.UntilAsync(() => scenario.World.Towns[0].Council!.Proposals.Any(proposal => proposal.Kind == "project"), 40);
         var proposal = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
+        var selectedPlan = JsonSerializer.Serialize(proposal.Project);
         var hall = TownHallContent.Hall3x4();
         var taken = WorldContentSimulationRules.Footprint(hall, proposal.Project!.Site).Append(proposal.Project.Entrance).ToHashSet();
         bool Overlaps(GridPoint site) => WorldContentSimulationRules.Footprint(hall, site).Append(TownHallContent.Entrance(site)).Any(taken.Contains);
@@ -376,6 +377,8 @@ public sealed class TownProjectRuntimeTests
         await scenario.UntilAsync(() => scenario.Policy.Observations.Count(observation => observation.WorldTick > since &&
             observation.Candidates.Any(candidate => candidate.Id.Contains("|propose|", StringComparison.Ordinal))) >= 3, 20);
         Assert.Equal("pending", Assert.Single(scenario.World.Towns[0].Council!.Proposals).Status);
+        Assert.Equal(selectedPlan,
+            JsonSerializer.Serialize(Assert.Single(scenario.World.Towns[0].Council!.Proposals).Project));
         Assert.DoesNotContain(OfferedSites(observation => observation.WorldTick > since), Overlaps);
     }
 

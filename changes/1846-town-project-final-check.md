@@ -1,0 +1,1 @@
+- Town building proposals avoid repeated site checks while keeping the same offers and land rules.
