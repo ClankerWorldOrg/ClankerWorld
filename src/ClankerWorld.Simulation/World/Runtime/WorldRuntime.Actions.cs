@@ -95,11 +95,10 @@ public sealed partial class WorldRuntime
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
         var buildings = MovementBuildings;
-        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
+        var open = new PriorityQueue<GridPoint, (int Cost, int TileIndex)>();
         var best = new Dictionary<GridPoint, int> { [origin] = 0 };
         var predecessor = new Dictionary<GridPoint, GridPoint>();
-        var order = 0;
-        open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+        open.Enqueue(origin, (0, origin.Y * map.Width + origin.X));
 
         while (open.TryDequeue(out var current, out var priority))
         {
@@ -135,7 +134,7 @@ public sealed partial class WorldRuntime
                     continue;
                 best[next] = cost;
                 predecessor[next] = current;
-                open.Enqueue(next, (cost, next.Y, next.X, order++));
+                open.Enqueue(next, (cost, next.Y * map.Width + next.X));
             }
         }
 
