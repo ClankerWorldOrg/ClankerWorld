@@ -123,6 +123,25 @@ public sealed class SharedReadServicesTests
     }
 
     [Fact]
+    public void ReplacingAnUnqueriedValueEqualResidentFailsFullReferenceVerification()
+    {
+        var original = new ReadWorld().Society;
+        var agents = original.Agents.ToArray();
+        var requested = agents[0];
+        var unqueried = agents[1];
+        var checkpoint = original with { Agents = agents };
+        Assert.Same(requested, checkpoint.GetAgent(requested.Id));
+        agents[1] = unqueried with { };
+        Assert.Equal(unqueried, agents[1]);
+        Assert.NotSame(unqueried, agents[1]);
+        Assert.True(DerivedVerification.RecomputeOnHit);
+        Assert.Throws<InvalidOperationException>(() => checkpoint.GetAgent(requested.Id));
+        var replaced = checkpoint with { Agents = agents.ToArray() };
+        Assert.Same(requested, replaced.GetAgent(requested.Id));
+        Assert.Same(unqueried, original.GetAgent(unqueried.Id));
+    }
+
+    [Fact]
     public async Task NativeCommitAndFailedPersistenceKeepEventLogAndResidentAdapterIsolated()
     {
         using var world = NormalPathWorld.CreateGenerated("shared-read-native", _ => new DeterministicDecisionProvider());
