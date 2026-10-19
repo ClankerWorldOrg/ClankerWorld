@@ -2841,6 +2841,9 @@ Strict restore checks doorways too; [Saves and replay](saves-and-replay.md#build
 owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
+Public foot-cost queries validate the tile or complete step. Searches that just
+obtained a legal neighbor reuse the same base-cost formula without repeating
+that validation.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
 to be passable, including clear occupancy during a move. A river is waded in a
 straight cardinal line from one dry bank to the opposite one, across one or two
