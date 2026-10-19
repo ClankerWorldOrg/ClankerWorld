@@ -83,6 +83,11 @@ calendar after native generation, reachable placement and actual wood/rope
 payment. Each caller strictly decodes fresh mutable state before adding its
 animals and orders; no runtime, provider or live checkpoint is shared.
 
+Tool-request fixtures share private strict bytes from their original generated
+world, exact stock and buyer/seller positions. Each caller decodes fresh mutable
+state and uses independent runtime and providers; real work, payment, refusal
+windows and replay checks remain in each case.
+
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.
