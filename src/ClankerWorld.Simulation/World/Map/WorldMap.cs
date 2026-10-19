@@ -248,7 +248,8 @@ public sealed record WorldMap(
         {
             var (dx, dy) = FootNeighborOffsets[index];
             var x = origin.X + dx;
-            return new GridPoint(map.WrapsEastWest && (uint)x >= (uint)map.Width ? (x < 0 ? map.Width - 1 : 0) : x, origin.Y + dy);
+            if (map.WrapsEastWest) x = (x % map.Width + map.Width) % map.Width;
+            return new GridPoint(x, origin.Y + dy);
         }
     }
 
