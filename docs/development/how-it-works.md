@@ -1092,6 +1092,9 @@ and food-pot selection retain their own ownership, place, route and destination
 rules. `ReturnVessel` preserves physical returns of damaged carried jugs;
 damage does not repair or discard property. A reserved or damaged jug still
 counts as physically present even when it cannot be refilled.
+Refill planning tries shores by distance, preserving their row/column ties,
+and stops at the first point that passes terrain, loaded reach, occupancy and
+return-carry-capacity checks.
 
 `Eat` uses the inventory consumption boundary and requires the actor to carry
 the food or its usable vessel, with no delivery assignment. Personal meals keep
