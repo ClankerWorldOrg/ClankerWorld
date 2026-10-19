@@ -20,12 +20,16 @@ public sealed partial class WorldRuntimeService(
     WorldAutosaveStore? autosave = null,
     ManualWorldSaveStore? manualSaves = null,
     ProviderConfigurationStore? providers = null,
-    WorldTickFailurePolicy failurePolicy = WorldTickFailurePolicy.Strict) : BackgroundService
+    WorldTickFailurePolicy failurePolicy = WorldTickFailurePolicy.Strict,
+    LauncherHostOptions? hosting = null,
+    IHostApplicationLifetime? lifetime = null) : BackgroundService
 {
     private string? lastGateState;
     private bool recoveryWritePending;
     private bool invalidStateHalt;
     private bool writingCheckpoint;
+    private bool hostedClientSeen;
+    public bool HostIdleSaveFailed { get; private set; }
     private readonly ConcurrentDictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
@@ -121,11 +125,19 @@ public sealed partial class WorldRuntimeService(
     /// first, so a prepared tick cannot commit after this save. A failed write
     /// leaves the local server alive and paused; a halted world stays untouched.
     /// </summary>
-    public ShutdownSaveOutcome SaveBeforeShutdown(bool pauseWorld = false)
+    public ShutdownSaveOutcome SaveBeforeShutdown(bool pauseWorld = false) => SaveWorld(pauseWorld, shuttingDown: true);
+
+    private ShutdownSaveOutcome SaveWorld(bool pauseWorld, bool shuttingDown)
     {
+        void Log(string outcome)
+        {
+            if (logger is null) return;
+            if (shuttingDown) LogShutdownSave(logger, outcome, runtime.WorldTick);
+            else LogHostIdleSave(logger, outcome, runtime.WorldTick);
+        }
         if (invalidStateHalt)
         {
-            if (logger is not null) LogShutdownSave(logger, "skipped_halted", runtime.WorldTick);
+            Log("skipped_halted");
             return ShutdownSaveOutcome.PreservedHalted;
         }
         var gate = providers?.WorldMutationGate ?? new object();
@@ -137,18 +149,18 @@ public sealed partial class WorldRuntimeService(
                 runtime.CancelPendingModelCalls();
                 if (!TryBindPendingChildModels(out _))
                 {
-                    if (logger is not null) LogShutdownSave(logger, "save_failed", runtime.WorldTick);
+                    Log("save_failed");
                     return ShutdownSaveOutcome.WriteFailed;
                 }
                 _ = stateFile.Save(runtime);
             }
             recoveryWritePending = false;
-            if (logger is not null) LogShutdownSave(logger, "saved", runtime.WorldTick);
+            Log("saved");
             return ShutdownSaveOutcome.Saved;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            if (logger is not null) LogShutdownSave(logger, "save_failed", runtime.WorldTick);
+            Log("save_failed");
             return ShutdownSaveOutcome.WriteFailed;
         }
     }
@@ -162,12 +174,26 @@ public sealed partial class WorldRuntimeService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _ = await TryAdvanceOnceAsync(stoppingToken);
+            if (!clientPresence.HasActiveClient)
+            {
+                _ = await TryAdvanceOnceAsync(stoppingToken);
+                if (!HostIdleSaveFailed && !recoveryWritePending)
+                    await clientPresence.WaitForClientAsync(stoppingToken);
+            }
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                _ = await TryAdvanceOnceAsync(stoppingToken);
+                if (!clientPresence.HasActiveClient && !HostIdleSaveFailed && !recoveryWritePending) break;
+            }
         }
     }
+
+    [LoggerMessage(EventId = 2326, Level = LogLevel.Information,
+        Message = "launcher_host outcome={Outcome} tick={WorldTick}")]
+    private static partial void LogHostIdleSave(ILogger logger, string outcome, long worldTick);
 
     /// <summary>
     /// Advances one world tick only while at least one authenticated
@@ -228,9 +254,21 @@ public sealed partial class WorldRuntimeService(
         if (!clientPresence.HasActiveClient)
         {
             runtime.CancelPendingModelCalls();
+            if (hosting is not null && hostedClientSeen)
+            {
+                var saved = SaveWorld(pauseWorld: true, shuttingDown: false);
+                HostIdleSaveFailed = saved == ShutdownSaveOutcome.WriteFailed;
+                if (saved == ShutdownSaveOutcome.Saved)
+                {
+                    // A game can reconnect while the checkpoint waits or writes.
+                    hostedClientSeen = clientPresence.HasActiveClient;
+                    if (!hostedClientSeen && hosting.StopWhenGameQuits) lifetime?.StopApplication();
+                }
+            }
             LogGateTransition("waiting_for_client", runtime.WorldTick);
             return false;
         }
+        if (hosting is not null) hostedClientSeen = true;
 
         if (!TryBindPendingChildModels(out var recoveredChildBindings))
         {

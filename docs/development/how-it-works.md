@@ -760,6 +760,8 @@ the recipient and the evidence/reopening material the source already read.
 Case-judge consent and resignation retain their exact case revision and
 consent or mandate. Case ballots retain their round, opening rosters and
 candidate while allowing current ballots to accumulate or be revised.
+Offering, planning and native lookup share the bounded token of the complete
+case-revision and ballot-round pair, including long references from founded Towns.
 A withdrawn candidate or departed voter does not invalidate other selections;
 the retained voter and candidate must remain in the original and current rosters.
 The same checks verify current standing and the native round deadline.
@@ -875,7 +877,9 @@ ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
-the existing validation. The index changes no checkpoint fields or ordering.
+the existing validation. Its fallback runs separately from valid lookups, and
+verification compares an immutable copy of the complete agent references.
+The index changes no checkpoint fields or ordering.
 Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
@@ -2280,13 +2284,20 @@ fallback does not erase the previous accepted choice. Pause/disconnect records
 cancellation; refreshed views and current-format reload preserve it. Exception
 messages, provider bodies and keys do not enter these fields.
 
-For OpenAI and Ollama Cloud, the personal adapter sends JSON-object response
-mode and omits temperature and output-token limits. The owner's 16-call sample in
-[#457](https://github.com/ClankerWorldOrg/ClankerWorld/issues/457) used 44,285 output
-tokens (about 2,768 per call), nearly its 43,576 input tokens. This does not
-establish a safe universal output cap, so the cap stays unset; output billing
-and truncation remain model-dependent. There is no smaller candidate list or
-wider Jev role in this change.
+OpenAI and Ollama Cloud personal requests send JSON-object response mode and
+`max_completion_tokens: 16000`, without temperature. Personal decisions, wills,
+conversations and Test model share this output ceiling with Anthropic; it allows
+room for thinking as well as the bounded reply. Providers that cannot support
+the ceiling refuse through the existing failure path, without another paid
+attempt. The candidate list and routine-helper role are unchanged.
+
+Model-written names, identity, thoughts, observer replies, civic prose and public
+speech remove invisible formatting before their existing length and control
+checks. `BoundedText` shares the invisible-character classification used by final
+words. First-name and surname comparisons remove the same characters, including
+in already saved names. Reported provider model names pass the shared 256-unit
+printable-text boundary before usage is saved or shown; unusable reported names
+are discarded without losing token counts.
 
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
 and the same reply validation. `AnthropicModelClient` in the server sends them to
@@ -2665,8 +2676,7 @@ not model calls, so they do not count toward the usage cap below.
 panel. It sends one request through the same personal decision adapter used in
 play, at the chosen thinking level: chat completions with the required JSON
 response format for OpenAI and Ollama Cloud, and the Messages API for
-Anthropic. It sends no temperature, and an output-token limit only to
-Anthropic, which requires one. The server durably reserves a
+Anthropic. It sends no temperature and uses the shared 16,000-token output limit. The server durably reserves a
 paid-call allowance before sending; every result after that point, including a
 timeout or rejected format, counts as one attempt. The check never tries an
 alternate request format, changes provider settings, or saves a pasted key.
@@ -2674,6 +2684,18 @@ The response contains only a bounded result such as ready, missing key, usage
 limit, authentication or access failure, exhausted allowance, rate limit,
 unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
+
+**Test helper** reuses this signed, metered endpoint for Jev's System One or
+OpenAI Decisions adapter, with the selected model and saved provider-specific
+key. The challenge must advertise `clankerworld.owner-helper-setup-check.v1`
+before the client sends the action; older hosts get the existing update message
+without a paid request. Helpers reject personal-model thinking options.
+The synthetic check offers only `safe_idle` and requires that offered choice;
+it does not run or change an agent. Settings distinguish selection from a
+successful connection check and explain that ordinary routing requires every
+offered candidate to be routine, with no guidance, naming or identity request.
+Editing the helper, model or key clears its test result. A replaced form cannot
+publish a late success or failure in its label or global feedback.
 
 An installation-local usage file reserves every model attempt before HTTP work.
 Concurrent requests share its optional lifetime attempt cap. Failure, retry and
@@ -4953,7 +4975,8 @@ blanks the launch secret, values after names such as `api_key`,
 addresses, common provider key formats and any token of 32 or more characters
 mixing upper case, lower case and digits outside file paths. Known secrets,
 named credential values and provider key formats are removed even inside paths;
-ordinary paths, hex IDs and hashes stay readable so a request can be followed.
+ordinary paths stay readable. Hex tokens of 32 or more characters and unlabelled
+six-digit comparison codes are removed as well, including inside paths.
 The rule against logging secrets still applies; this pass is a safety net,
 not permission. Reports go to `reports/` in the player's
 data folder (or `user://reports` without a local server), keeping the five
@@ -5453,7 +5476,48 @@ The owner observation keeps its existing JSON `role` field for the lesson's
 skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
 
+## Launcher hosting
+
+`Launcher.Hosting.cs` runs the installed version's existing `LocalServer`
+startup proof, approval and save/stop paths without opening the game. Hosting
+requires authenticated release approval and a verified package with the
+`host-app-v1` manifest marker. It uses the
+same installation data root, including provider credentials and lifetime usage;
+Developer test data remains separate. Reuse checks the protected host status
+for the same mode and stop option, so another game or host cannot silently
+take over its lifecycle.
+
+`TailscaleHost` checks the installed helper's private-network status and exact
+Serve configuration. It sets up only one HTTPS route to the ordinary loopback
+listener, refuses public Funnel or another service's setup, and removes only
+that checked route when hosting stops or setup confirmation fails. Changed
+external routes are preserved; failed cleanup asks the player to check Tailscale.
+Helper output is bounded and never
+logged or shown as an error. The approval listener is never forwarded.
+
+`LauncherSettings` records the hosted version and data choice. The optional
+current-user Windows Run entry starts the launcher with `--resume-hosting`;
+it resumes that saved choice minimized. The host window otherwise minimizes
+on close; Stop hosting saves before exit. Raw comparison codes remain only in
+process memory for host-local display, outside authority exports and world
+state. [Device pairing](device-pairing.md) owns the approval protocol.
+
+The runtime uses an authenticated-presence signal while idle rather than a
+polling timer. A launcher host saves a paused checkpoint after its last client
+leaves, then waits or stops according to its option. Failed writes leave a
+paused running host and retry before any optional exit. Normal active tick
+cadence and explicit Resume are unchanged. Hands-on Windows/Tailscale checks
+are in the playtest list.
+
 ## Launcher developer runs
+
+The launcher also owns remote joining through `Launcher.Join.cs` and
+`DeviceJoinSession`. Device registration storage has no Godot dependency and
+keeps only public metadata; the current-user signer remains in the key store.
+The normal and test-data folders use distinct registrations and key names.
+[Device pairing](device-pairing.md#pairing-flow) owns the protocol, host-kind
+metadata and reconnect contract.
+
 
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under

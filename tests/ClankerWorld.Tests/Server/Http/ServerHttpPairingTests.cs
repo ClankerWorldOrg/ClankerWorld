@@ -62,6 +62,8 @@ public sealed partial class ServerHttpTests
         using var remoteRecoveryRevoke = await client.PostAsJsonAsync(
             "/api/v1/approval/devices/device_not_real/revoke",
             new DeviceRevokeHttpRequest(null));
+        using var remoteCodeApproval = await client.PostAsJsonAsync(
+            "/api/v1/approval/pairings/approve", new PairingApprovalHttpRequest("000000"));
         using var unsignedDeviceList = await client.PostAsJsonAsync(
             "/api/v1/owner/devices/list",
             new { });
@@ -76,6 +78,7 @@ public sealed partial class ServerHttpTests
         Assert.Equal(HttpStatusCode.MethodNotAllowed, attemptedWrite.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, remotePairingApproval.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, remoteRecoveryRevoke.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, remoteCodeApproval.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, unsignedDeviceList.StatusCode);
         Assert.Contains("read-only deterministic inspection", page, StringComparison.Ordinal);
     }

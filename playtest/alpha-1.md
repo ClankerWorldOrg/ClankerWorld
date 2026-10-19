@@ -25,7 +25,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
   - Start the game from the launcher and open the Main Menu. Quit to Launcher should show the same pixel door icon as Quit Game, with matching size and alignment in both Light and Dark themes. ([#2335](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2335))
 
 - [ ] **On a remote server: pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
-  - Pair the device with the host. → The Main Menu shows the logo with Continue, Settings and Quit Game.
+  - In the launcher choose **Join a world on another computer**, enter the host address and compare the code before the host approves. Choose Play. → The game opens its Main Menu with Continue, Settings and Quit Game, without a pairing screen.
   - Open Settings, then leave it. → Settings returns you to the Main Menu.
   - Press Continue. → It enters the world on the remote server.
   - Restart the game, also once after pairing was interrupted after the host accepted it. → It reuses the saved pairing and recovers to the same menu.
@@ -313,7 +313,7 @@ The portable game starts its own world server on your PC; it needs no manual pai
 ## Install, launch and pairing
 
 - [ ] **Connection and build details in Settings.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#452](https://github.com/compoodment/ClankerWorld/issues/452), [#730](https://github.com/compoodment/ClankerWorld/issues/730), [#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973))
-  - On a remote server: in **Settings → Game → World connection**, press **Connect** with the server up, unreachable and at a wrong address. → Each shows a checking message, then a clear result, with one way back from the World connection screen.
+  - On a remote server: use the launcher joining screen and Play with the server up, unreachable and at a wrong address. → Each shows a clear result. Startup guidance says how to start the host if it is stopped, without assuming every connection failure means it stopped.
   - Press Continue with the server unreachable. → It shows the problem without resuming.
   - Place an adult with no walking route to the Town's food, such as on an island. → The world view keeps working and reports the missing route.
   - Reconnect and open the Main Menu. → The Main Menu still pauses the world, even if a later refresh fails.

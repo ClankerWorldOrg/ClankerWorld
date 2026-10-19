@@ -18,7 +18,7 @@ public partial class Main
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            agentModelConfigurationStatus.Text = "Connect this device before setting up agent models.";
+            agentModelConfigurationStatus.Text = "Start the game through the launcher before setting up agent models.";
             RenderProviderConfiguration();
             return;
         }
@@ -46,7 +46,7 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            SetStatus("Connect this device before setting up agent models.", good: false);
+            SetStatus("Start the game through the launcher before setting up agent models.", good: false);
             return;
         }
 
@@ -105,7 +105,7 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            SetStatus("Connect this device before changing keys.", good: false);
+            SetStatus("Start the game through the launcher before changing keys.", good: false);
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class Main
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            SetStatus("Connect this device before deleting a saved key.", good: false);
+            SetStatus("Start the game through the launcher before deleting a saved key.", good: false);
             return;
         }
 

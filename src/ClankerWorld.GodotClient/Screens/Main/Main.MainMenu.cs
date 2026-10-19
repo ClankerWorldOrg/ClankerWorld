@@ -27,7 +27,6 @@ public partial class Main
     private readonly Label mainMenuStatus = new();
     private readonly Button mainMenuContinueButton = new();
     private readonly Button mainMenuNewButton = new();
-    private readonly Button mainMenuConnectButton = new();
     private readonly Button mainMenuLoadButton = new();
     private readonly Button menuQuitToMainButton = new();
     private readonly Button menuSaveWorldButton = new();
@@ -135,10 +134,6 @@ public partial class Main
         mainMenuSettingsButton.Pressed += OpenMainMenuSettings;
         body.AddChild(mainMenuSettingsButton);
 
-        mainMenuConnectButton.Text = "Connect to a world server";
-        StyleMenuChoice(mainMenuConnectButton);
-        mainMenuConnectButton.Pressed += () => _ = OpenMainMenuConnectionAsync();
-        body.AddChild(mainMenuConnectButton);
 
         BuildQuitToLauncher(body);
 
@@ -182,9 +177,8 @@ public partial class Main
         mainMenuContinueButton.Disabled = !paired;
         mainMenuNewButton.Disabled = !paired;
         mainMenuLoadButton.Disabled = !paired;
-        mainMenuConnectButton.Visible = !paired && !localServerStarting;
         SetMainMenuStatus(localServerStarting ? LocalServerStartingMessage
-            : paired ? null : "Connect this device to your world to play.");
+            : paired ? null : "Open ClankerWorld through the launcher to play.");
     }
 
     /// <summary>The Main Menu only shows a line when something needs the player's attention.</summary>
@@ -269,13 +263,6 @@ public partial class Main
         menuShade.Show();
         ShowSettingsSection(worldSpecific: false);
         ApplyResponsiveLayout();
-    }
-
-    private async Task OpenMainMenuConnectionAsync()
-    {
-        OpenMenuForSetup();
-        if (registration is null && pendingPairing is null)
-            await StartPairingAsync();
     }
 
     private bool isQuittingToMenu;
@@ -1044,7 +1031,7 @@ public partial class Main
         });
     }
 
-    private async Task SelectListedWorldAsync()
+    private async Task SelectListedWorldAsync(PendingModelLoad? approvedModels = null)
     {
         if (worldHistoryLoading)
         {
@@ -1068,6 +1055,32 @@ public partial class Main
         var server = ResolveWorldUri();
         await RunWorldMenuActionAsync(async () =>
         {
+            if (approvedModels is not null && (approvedModels.WorldId != worldId || approvedModels.SaveId != save?.Id)) return;
+            if (approvedModels is null)
+            {
+                try
+                {
+                    var preview = await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(server, authority,
+                        deviceId, worldId, true, signer, OwnerRequestToken));
+                    var savePreview = save is null ? null : await AwaitCurrentWorldResultAsync(ownerApi.InspectLoadModelsAsync(
+                        server, authority, deviceId, save.Id, false, signer, OwnerRequestToken));
+                    if (!worldMenuOverlay.Visible || SelectedListedWorld()?.Id != worldId ||
+                        (SelectedManualSave() ?? NewestListedSave())?.Id != save?.Id) return;
+                    approvedModels = new(worldId, save?.Id, preview.Approval, savePreview?.Approval);
+                    if (preview.RequiresConfirmation || savePreview?.RequiresConfirmation == true)
+                    {
+                        pendingWorldModelLoad = approvedModels;
+                        worldModelLoadConfirmation.DialogText = "Opening this world changes model or key assignments. Use these settings?\n\n" +
+                            string.Join("\n", preview.Details) + (savePreview is null ? string.Empty :
+                            "\n\nSelected save:\n" + string.Join("\n", savePreview.Details));
+                        PopupDialog(worldModelLoadConfirmation);
+                        return;
+                    }
+                }
+                catch (ObsoleteOwnerRequestException) { return; }
+                catch (Exception exception)
+                { worldMenuStatus.Text = "Could not read model settings: " + FriendlyFailure(exception); return; }
+            }
             worldMenuStatus.Text = "Opening world...";
             try
             {
@@ -1076,9 +1089,9 @@ public partial class Main
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(async () =>
                 {
-                    await ownerApi.SelectWorldAsync(server, authority, deviceId, worldId, signer, OwnerRequestToken);
+                    await ownerApi.SelectWorldAsync(server, authority, deviceId, worldId, signer, OwnerRequestToken, approvedModels.WorldApproval);
                     if (save is not null)
-                        await ownerApi.LoadManualSaveAsync(server, authority, deviceId, save.Id, signer, OwnerRequestToken);
+                        await ownerApi.LoadManualSaveAsync(server, authority, deviceId, save.Id, signer, OwnerRequestToken, approvedModels.SaveApproval);
                 }));
                 worldMenuOverlay.Hide();
                 await EnterWorldAsync();
@@ -1106,7 +1119,6 @@ public partial class Main
         mainMenuNewButton.Icon = PixelIcons.Themed(PixelGlyph.Globe, green, scale);
         mainMenuLoadButton.Icon = PixelIcons.Themed(PixelGlyph.Folder, warm, scale);
         mainMenuSettingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
-        mainMenuConnectButton.Icon = PixelIcons.Themed(PixelGlyph.Link, green, scale);
         settingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
         menuLoadSaveButton.Icon = PixelIcons.Themed(PixelGlyph.Folder, warm, scale);
         menuSaveWorldButton.Icon = PixelIcons.Themed(PixelGlyph.Book, wood, scale);
