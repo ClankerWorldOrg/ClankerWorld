@@ -103,13 +103,10 @@ public sealed record WorldMap(
         return checked(diagonal * 141 + (Math.Max(horizontal, vertical) - diagonal) * 100);
     }
 
-    public bool IsDiagonalFootStep(GridPoint origin, GridPoint destination)
-    {
-        if (!Contains(origin) || !Contains(destination)) return false;
-        var horizontal = Math.Abs(origin.X - destination.X);
-        if (WrapsEastWest) horizontal = Math.Min(horizontal, Width - horizontal);
-        return horizontal == 1 && Math.Abs(origin.Y - destination.Y) == 1;
-    }
+    public bool IsDiagonalFootStep(GridPoint origin, GridPoint destination) =>
+        Contains(origin) && Contains(destination) && Math.Abs(origin.Y - destination.Y) == 1 &&
+        (Math.Abs(origin.X - destination.X) == 1 ||
+         WrapsEastWest && Width > 1 && Math.Abs(origin.X - destination.X) == Width - 1);
 
     public bool CanFootStep(GridPoint origin, GridPoint destination)
     {
