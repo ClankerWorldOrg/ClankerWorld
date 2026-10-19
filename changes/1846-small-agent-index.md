@@ -1,1 +1,0 @@
-- Small settlements use less temporary memory when residents act.
