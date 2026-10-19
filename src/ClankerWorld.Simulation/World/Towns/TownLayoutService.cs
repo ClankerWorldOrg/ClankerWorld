@@ -102,6 +102,10 @@ public sealed class TownLayoutContext
         return related;
     }
 
+    private static readonly (int X, int Y, int Distance)[] MaterialSearchOffsets = Enumerable.Range(-5, 11)
+        .SelectMany(y => Enumerable.Range(-5, 11).Select(x => (X: x, Y: y, Distance: Math.Max(Math.Abs(x), Math.Abs(y)))))
+        .OrderBy(step => step.Distance).ThenBy(step => step.Y).ThenBy(step => step.X).ToArray();
+
     internal int NearbyMaterialDistance(string kind, GridPoint position, Func<string, string, bool> matches)
     {
         if (!availableMaterialPositions.TryGetValue(kind, out var positions))
@@ -119,15 +123,10 @@ public sealed class TownLayoutContext
                 nearest = Math.Min(nearest, Map.FootDistance(position, source));
             return nearest;
         }
-        for (var distance = 0; distance <= 5; distance++)
+        foreach (var (dx, dy, distance) in MaterialSearchOffsets)
         {
-            for (var dy = -distance; dy <= distance; dy++)
-                for (var dx = -distance; dx <= distance; dx++)
-                {
-                    if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != distance) continue;
-                    var source = Map.WrapColumn(new GridPoint(position.X + dx, position.Y + dy));
-                    if (Map.Contains(source) && positions.Contains(source)) return distance;
-                }
+            var source = Map.WrapColumn(new GridPoint(position.X + dx, position.Y + dy));
+            if (Map.Contains(source) && positions.Contains(source)) return distance;
         }
         return int.MaxValue;
     }
