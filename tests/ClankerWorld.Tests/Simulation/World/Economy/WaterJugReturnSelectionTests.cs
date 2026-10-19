@@ -10,6 +10,11 @@ public sealed class WaterJugReturnSelectionTests
 {
     private const string House = "first-town-house-a";
     private const string Claim = "held-other-jug";
+    private static readonly Lazy<byte[]> Baseline = new(() =>
+    {
+        using var setup = NormalPathWorld.CreateGenerated("jug-return-selection-audit", _ => new ReturnChoices(false));
+        return WorldRuntimeCodec.Encode(ShelterOrderTestFixture.WithClearWeather(setup.ExportState()));
+    });
 
     [Theory]
     [InlineData(true, "contents", false, false, -1)]
@@ -143,8 +148,7 @@ public sealed class WaterJugReturnSelectionTests
     private static (WorldRuntimeState State, string Actor, string Other, string Returned) Prepared(
         bool otherFirst, string heldPart, bool returnedFull, bool walk, int houseRoom)
     {
-        using var setup = NormalPathWorld.CreateGenerated("jug-return-selection-audit", _ => new ReturnChoices(false));
-        var state = ShelterOrderTestFixture.WithClearWeather(setup.ExportState());
+        var state = WorldRuntimeCodec.Decode(Baseline.Value);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
