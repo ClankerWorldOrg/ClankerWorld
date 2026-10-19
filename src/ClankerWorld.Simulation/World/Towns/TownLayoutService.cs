@@ -385,7 +385,8 @@ public static class TownLayoutService
         if (related is null)
             return;
 
-        var role = definition.Tags.Intersect(related.Definition.Tags, StringComparer.Ordinal).First();
+        var role = definition.Tags.Intersect(related.Definition.Tags, StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal).First();
         score += nearest <= 2 ? 10 : 5;
         var relationship = context.Town is null ? "existing" : "Town's existing";
         reasons.Add(new(TownConstructionSiteReasonCodes.PurposeCluster, $"Near {relationship} {role} building."));
