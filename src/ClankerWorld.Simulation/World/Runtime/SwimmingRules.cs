@@ -22,7 +22,7 @@ public static class SwimmingRules
             !(map.IsPassable(to) || IsSwimmingWater(map, to))) return false;
         // Like foot connectivity, this follows immutable map identity. A bridge changes the map.
         // Task selection needs connectivity, not a weighted route for every potential resource.
-        var components = Components.GetValue(map, [MethodImpl(MethodImplOptions.AggressiveOptimization)] static (map) =>
+        var components = Components.GetValue(map, static map =>
         {
             var labels = new int[checked(map.Width * map.Height)];
             var pending = new Queue<GridPoint>();
@@ -35,10 +35,10 @@ public static class SwimmingRules
                 pending.Enqueue(tile.Position);
                 while (pending.TryDequeue(out var point))
                 {
-                    foreach (var neighbor in map.NeighborPositionsForSearch(point))
+                    foreach (var neighbor in Neighbors(map, point))
                     {
                         var neighborIndex = neighbor.Y * map.Width + neighbor.X;
-                        if (labels[neighborIndex] != 0 || !CanStep(map, point, neighbor)) continue;
+                        if (labels[neighborIndex] != 0) continue;
                         labels[neighborIndex] = component;
                         pending.Enqueue(neighbor);
                     }
