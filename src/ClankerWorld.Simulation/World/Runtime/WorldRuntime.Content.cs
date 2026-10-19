@@ -84,24 +84,6 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private static readonly Lazy<ContentPackageManifest[]> InitialManifests = new(() =>
-        new ContentPackageManifest[]
-        {
-            StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseToolsContent.Create(),
-            WarehouseContent.Create(), FarmContent.Create(), BlacksmithContent.Create(),
-            HouseCookingContent.Create(), PotteryContent.Create(), SiloContent.Create(), TailorContent.Create(),
-            RestaurantContent.Create(), StoreContent.Create(), CareContent.Create(), OrnamentContent.Create(), TownHallContent.Create(),
-            KnowledgeContent.Create(), MarketContent.Create(), StreetLanternContent.Create(), PortContent.Create(),
-            FarmhouseVariantContent.Create(), BlacksmithVariantContent.Create(), TailorVariantContent.Create(),
-            ClinicVariantContent.Create(), RestaurantVariantContent.Create(), AnimalContent.Create(),
-        }.Select(manifest => manifest with
-        {
-            Dependencies = Array.AsReadOnly(manifest.Dependencies.ToArray()),
-            Definitions = Array.AsReadOnly(manifest.Definitions.ToArray()),
-            DeclaredCapabilities = Array.AsReadOnly(manifest.DeclaredCapabilities.ToArray()),
-            AssetReservations = manifest.AssetReservations is null ? null : Array.AsReadOnly(manifest.AssetReservations.ToArray()),
-        }).ToArray());
-
     /// <summary>Install trusted shipped content before the first paused Town layout is accepted.</summary>
     public void InitializeFirstTownContent()
     {
@@ -112,7 +94,7 @@ public sealed partial class WorldRuntime
                 !society.Checkpoint.IsPaused || WorldTick != 0 ||
                 contentRegistry.ExportState().Packages.Count != 0)
                 throw new InvalidOperationException("Initial content is available only to a fresh paused generated world.");
-            foreach (var manifest in InitialManifests.Value)
+            foreach (var manifest in StarterContent.InitialTownManifests)
             {
                 var packages = contentRegistry.ExportState().Packages;
                 var resolution = ContentPackageResolver.Resolve(
