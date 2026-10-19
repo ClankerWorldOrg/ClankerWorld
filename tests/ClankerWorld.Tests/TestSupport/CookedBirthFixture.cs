@@ -47,7 +47,7 @@ internal static class CookedBirthFixture
 
     private static async Task<byte[]> CreateCookedAsync()
     {
-        using var initial = NormalPathWorld.CreateGenerated("native-care-small-island-2", _ => new BirthChooser("", "", ""));
+        using var initial = NormalPathWorld.CreateGenerated("native-care-small-island-28", _ => new BirthChooser("", "", ""));
         var state = initial.ExportState();
         const string household = "household:first";
         var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
