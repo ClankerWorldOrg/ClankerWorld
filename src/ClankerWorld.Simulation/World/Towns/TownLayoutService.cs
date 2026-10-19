@@ -89,15 +89,14 @@ public sealed class TownLayoutContext
     internal IReadOnlySet<GridPoint>? TownBorder { get; }
 
     private readonly Dictionary<string, HashSet<GridPoint>> availableMaterialPositions = new(StringComparer.Ordinal);
-    private readonly Dictionary<BuildingDefinition, (PlacedBuilding Building, string? Role)[]> relatedBuildings = new();
+    private readonly Dictionary<BuildingDefinition, TownLayoutBuilding[]> relatedBuildings = new();
 
-    internal IReadOnlyList<(PlacedBuilding Building, string? Role)> RelatedBuildings(BuildingDefinition definition)
+    internal IReadOnlyList<TownLayoutBuilding> RelatedBuildings(BuildingDefinition definition)
     {
         if (!relatedBuildings.TryGetValue(definition, out var related))
         {
-            related = Buildings.Where(item => Town is null || item.Building.TownId == Town.Id)
-                .Select(item => (item.Building, Role: definition.Tags.Intersect(item.Definition.Tags, StringComparer.Ordinal).FirstOrDefault()))
-                .Where(item => item.Role is not null).ToArray();
+            related = Buildings.Where(item => (Town is null || item.Building.TownId == Town.Id) &&
+                item.Definition.Tags.Intersect(definition.Tags, StringComparer.Ordinal).Any()).ToArray();
             relatedBuildings[definition] = related;
         }
         return related;
@@ -372,23 +371,24 @@ public static class TownLayoutService
         if (definition.Tags.Count == 0)
             return;
 
-        (PlacedBuilding? Building, string? Role) related = default;
+        TownLayoutBuilding? related = null;
         var nearest = int.MaxValue;
         foreach (var item in context.RelatedBuildings(definition))
         {
             var distance = context.Map.FootDistance(position, item.Building.Position);
-            if (distance > 5 || distance > nearest || distance == nearest && related.Building is not null &&
+            if (distance > 5 || distance > nearest || distance == nearest && related is not null &&
                 StringComparer.Ordinal.Compare(item.Building.InstanceId, related.Building.InstanceId) >= 0)
                 continue;
             related = item;
             nearest = distance;
         }
-        if (related.Building is null)
+        if (related is null)
             return;
 
+        var role = definition.Tags.Intersect(related.Definition.Tags, StringComparer.Ordinal).First();
         score += nearest <= 2 ? 10 : 5;
         var relationship = context.Town is null ? "existing" : "Town's existing";
-        reasons.Add(new(TownConstructionSiteReasonCodes.PurposeCluster, $"Near {relationship} {related.Role} building."));
+        reasons.Add(new(TownConstructionSiteReasonCodes.PurposeCluster, $"Near {relationship} {role} building."));
     }
 
     private static bool FacesRoad(TownLayoutContext context, BuildingDefinition definition, GridPoint position)
