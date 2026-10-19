@@ -2795,6 +2795,11 @@ older tiny map remains a populated native test setup; generation is no longer
 merely a separate primitive. Large/Huge/Mega generator outputs do not imply
 playable storage, observation or performance support.
 
+`MapLayerManifestCodec` writes the binary layer preimage; `MapManifestCodec`
+writes canonical BOM-free UTF-8 text. Both share one SHA-256 stream lifetime,
+finalizing only after the emitter's writer is disposed. Their framing and
+canonical bytes remain separate and unchanged.
+
 Generation saves climate zone, elevation, hydrology, surface and vegetation
 cover separately beside the stable terrain summary. New World preview and
 creation select saved hydrology revision 1: inland lakes retain a connected
