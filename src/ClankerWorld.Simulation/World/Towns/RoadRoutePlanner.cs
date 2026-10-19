@@ -204,7 +204,7 @@ public static class RoadRoutePlanner
             if (priority.Cost != best[current]) continue;
             if (request.Network.Contains(current)) return Reconstruct(current, predecessor);
 
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
                 if (!Landing(next, out var joins) || !IsStreetStep(request, current, next)) continue;
                 Relax(next, checked(priority.Cost + GroundCost(current, next) + Beside(next, joins)),

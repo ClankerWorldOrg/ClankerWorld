@@ -119,10 +119,9 @@ public sealed partial class WorldRuntime
                 return route;
             }
 
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (!buildings.CanStep(map, current, next) ||
-                    handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
+                if (!buildings.CanStep(map, current, next) || !LegalHandcartStep(current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
