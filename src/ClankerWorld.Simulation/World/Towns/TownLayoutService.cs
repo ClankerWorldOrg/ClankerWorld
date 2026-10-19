@@ -255,9 +255,8 @@ public static class TownLayoutService
         var footprint = context.RequiredFootprintOffsets is { } offsets
             ? offsets.Select(offset => new GridPoint(position.X + offset.X, position.Y + offset.Y))
             : Footprint(definition, position);
-        if (footprint.Any(point => !IsClearFootprintTile(context, point, position)))
-            return false;
-        if (context.RequiredLandTiles is { } titled && footprint.Any(point => !titled.Contains(point)))
+        if (footprint.Any(point => !IsClearFootprintTile(context, point, position) ||
+                context.RequiredLandTiles is { } titled && !titled.Contains(point)))
             return false;
         if (context.RequiredEntranceOffset is { } offset)
         {
