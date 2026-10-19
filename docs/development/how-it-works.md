@@ -119,6 +119,8 @@ owns the archive count and recovery contract.
   of saves, exports, observations and telemetry. See
   [device pairing](device-pairing.md) for transport and access rules.
 - **Content is bounded and validated.** Current content definitions are data-only.
+  Fixed Town Hall and Market metadata is shared, with read-only costs and tags.
+  Definitions still undergo their normal validation; no world state is retained.
   Arbitrary executable agent code is disabled. The intended restricted script
   system remains design work, not permission to run generated code today.
   `StarterContent` owns the lazy, read-only shipped catalogue used by world creation
@@ -426,7 +428,9 @@ the shared goods query before applying the original child load and trip limits.
 fields, roads, bridges, Town projects, Markets and animals. Its named layers
 retain each source's enumeration order. Callers combine the layers in their
 existing order and add resident positions or ownership constraints for that
-query. Original building footprints, expanded footprints and protected Port
+query. Unions reserve capacity from cheap layer counts; unknown-size layers
+are read once, and duplicate points keep their first position in the order.
+Original building footprints, expanded footprints and protected Port
 tiles remain separate choices. Occupancy is recomputed from current snapshots;
 no layer cache, saved field or tick phase is added. The immutable declarative
 content snapshot supplies one read-only definition index shared by these queries.
@@ -3775,6 +3779,10 @@ door, and a short dead end can carry on through that seam in its original
 direction. Rows do not wrap, building footprints still stay within map bounds,
 and bridge headings follow their saved axis and span.
 
+Layout queries freeze their walking-cost dictionary once. Contexts reuse that
+immutable map; mutable external inputs are still copied and all costs validated.
+Cost lookups retain ordinary coordinate equality even when an external
+dictionary uses a custom comparer.
 `TownLayoutService` captures one immutable layout context per decision and
 normally offers at most five legal sites with reasons for footprint, route,
 resources, purpose and compact growth. A model selects a site-specific candidate

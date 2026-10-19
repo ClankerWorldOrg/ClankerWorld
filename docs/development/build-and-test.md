@@ -65,6 +65,10 @@ its own runtime and providers. Setup stops when the real output appears;
 protected-stock cases require a valid trade control and an ordinary action
 observation before checking refusal, ownership, reservations and capacity.
 
+Empty-vessel return fixtures place their paid Clinic near the House. Positive
+cases still walk both ways and preserve completed input receipts through reload.
+Original refusal checks, storage limits and paired replay remain.
+
 Clinic-supply fixtures choose nearby legal building sites, retaining actual paid
 placement, native gathering and carrying, and strict reload/paired replay.
 
@@ -109,9 +113,18 @@ before a blocked arrival returns. The permission-order fixture keeps its
 96-tick day so every resident has time to read and vote. All native journeys,
 approved budget quantities, strict reload and paired replay stay checked.
 
+Jug-return selection fixtures share strict bytes from their original generated
+world and clear weather. Each case decodes independent state before placing its
+jugs, reservations and House stock; actual return, refusal and replay stay checked.
+
 Guardian-care fixtures share strict checkpoint bytes for infant and older-child
 setups. Each variant keeps all 605 native birth ticks, naming and parent deaths;
 every caller decodes fresh state and uses independent runtimes and providers.
+
+Parenthood fixtures reuse strict bytes after their five native setup ticks,
+real shelter placement and accepted partnership. Each caller decodes fresh
+state before its own changes; birth and age windows, rollback, provider and
+replay checks remain unchanged.
 
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
