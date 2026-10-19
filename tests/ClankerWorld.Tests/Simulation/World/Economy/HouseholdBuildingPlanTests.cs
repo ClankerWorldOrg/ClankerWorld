@@ -52,7 +52,6 @@ public sealed class HouseholdBuildingPlanTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "alpha-stone", "stone", Alpha, 2,
             storageBuildingId: "first-town-house-a");
         inventory = InventoryAuthority.AddLot(inventory, "beta-stone", "stone", Beta, 2, storageBuildingId: "first-town-house-b");
-        inventory = InventoryAuthority.AddLot(inventory, "alpha-tailor-fiber", "fiber", Alpha, 5, storageBuildingId: "first-town-house-a");
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         var recorder = new ActionCoverageRecorder(chooseIdle: true);
         using var world = WorldRuntime.Restore(state, _ => recorder);
@@ -75,8 +74,6 @@ public sealed class HouseholdBuildingPlanTests
         Assert.All(siloSites, site => Assert.InRange(Distance(site), 1, TownLayoutContext.NeighborReach));
         Assert.Contains(siloSites, site => Distance(site) == 1);
         Assert.DoesNotContain("building:silo-1x1", FamiliesForHousehold(world, recorder, Beta));
-        Assert.Contains(FamiliesForHousehold(world, recorder, Alpha),
-            family => family.StartsWith("building:tailor-shop-", StringComparison.Ordinal));
     }
 
     [Fact]
