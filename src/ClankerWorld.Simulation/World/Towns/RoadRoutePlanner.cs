@@ -188,15 +188,14 @@ public static class RoadRoutePlanner
         // 43 is the largest saving (a 141-cost diagonal becomes 98).
         var maximumSavings = request.ReuseRoads ? 43L * (roads.Count + request.Bridges.Where(bridge => bridge.Trigger == BridgeTriggers.Road)
             .Sum(bridge => (long)bridge.Span.Count)) : 0;
-        var open = new PriorityQueue<GridPoint, (int Score, int Cost, int Y, int X, int Order)>();
+        var open = new PriorityQueue<GridPoint, (int Score, int Cost, int TileIndex)>();
         var best = new Dictionary<GridPoint, int>();
         var predecessor = new Dictionary<GridPoint, Link>();
-        var order = 0;
         foreach (var start in starts)
         {
             best[start] = 0;
             predecessor[start] = new Link(start, LinkKind.Start, null, null);
-            open.Enqueue(start, (Heuristic(start), 0, start.Y, start.X, order++));
+            open.Enqueue(start, (Heuristic(start), 0, start.Y * map.Width + start.X));
         }
 
         while (open.TryDequeue(out var current, out var priority) && best.Count <= MaximumSearchTiles)
@@ -275,7 +274,7 @@ public static class RoadRoutePlanner
             if (best.TryGetValue(next, out var previous) && previous <= cost) return;
             best[next] = cost;
             predecessor[next] = link;
-            open.Enqueue(next, (checked(cost + Heuristic(next)), cost, next.Y, next.X, order++));
+            open.Enqueue(next, (checked(cost + Heuristic(next)), cost, next.Y * map.Width + next.X));
         }
 
         bool IsRedundant(RiverCrossing crossing)
