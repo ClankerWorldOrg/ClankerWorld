@@ -128,6 +128,9 @@ internal static class CookedBirthFixture
             Assert.Equal(household, output.OwnerId);
             Assert.Equal(house.InstanceId, output.StorageBuildingId);
         }
+        foreach (var (kind, spent) in new[] { ("potatoes", 8), ("wood", 4) })
+            Assert.Equal(originalInputs.Values.Where(lot => lot.OwnerId == household && lot.ItemKind == kind).Sum(lot => lot.Quantity) - spent,
+                world.Society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == kind).Sum(lot => lot.Quantity));
         Assert.Empty(world.Society.Births);
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
