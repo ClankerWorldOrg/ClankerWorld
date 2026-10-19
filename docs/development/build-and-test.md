@@ -85,6 +85,10 @@ real travel; warehouse controls keep their original distant site so doorway
 access still distinguishes communal collection from gathering. Each case decodes
 fresh state and retains full work, stock, receipts, strict reload and paired replay.
 
+Hall-approval fixtures build personal-stock and Town-stock variants through
+native Council approval and bound-plan checks once. Every case strictly decodes
+fresh world bytes and creates its own policy before its original work and checks.
+
 Restaurant pipeline fixtures also share strict bytes from their original
 generated world and genuinely paid Restaurant placement. Each case decodes
 fresh state before adding its own ingredients, payment, cargo and visitor
