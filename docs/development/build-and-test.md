@@ -437,7 +437,9 @@ For C# changes, run `dotnet format --no-restore` first if formatting needs
 applying, then verify that no changes remain.
 
 `verify-godot-client.sh` downloads the pinned engine archive, checks its
-SHA-256, builds the scripts and starts the scene headlessly.
+SHA-256, builds the scripts and starts the scene headlessly. Each engine run
+keeps its full output and fails if shutdown reports leaked native objects,
+rendering allocations or resources still in use, even when Godot exits zero.
 It also prepares a disposable generated world with the hard-world and
 accepted-birth fixtures, advances it for three normal game days with local
 model replies, and opens every agent's Profile in fresh Godot processes at

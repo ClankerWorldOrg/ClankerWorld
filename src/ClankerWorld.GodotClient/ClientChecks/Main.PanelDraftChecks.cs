@@ -41,7 +41,7 @@ public partial class Main
             name.GetSelectedText() != "Zoë" || message.Text != "A half-typed message" ||
             message.GetCaretColumn() != 7 || choice.GetSelectedId() != 2)
             throw new InvalidOperationException("A refresh must preserve text, caret, selection and selected identity.");
-        uiLayer.RemoveChild(panel);
+        panel.Free();
 
         using var caption = new FittedLabel
         {
@@ -67,7 +67,7 @@ public partial class Main
         finally
         {
             viewport.PushInput(new InputEventMouseMotion { Position = previousPointer, GlobalPosition = previousPointer }, true);
-            menuLayer.RemoveChild(caption);
+            caption.Free();
         }
     }
 }
