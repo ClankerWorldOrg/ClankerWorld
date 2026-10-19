@@ -75,6 +75,12 @@ runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
 
+Construction-order fixtures capture one native generated setup and its actual
+construction offers. Payment and lifecycle cases use a nearby offered site with
+real travel; warehouse controls keep their original distant site so doorway
+access still distinguishes communal collection from gathering. Each case decodes
+fresh state and retains full work, stock, receipts, strict reload and paired replay.
+
 Restaurant pipeline fixtures also share strict bytes from their original
 generated world and genuinely paid Restaurant placement. Each case decodes
 fresh state before adding its own ingredients, payment, cargo and visitor
