@@ -80,8 +80,12 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
                 new GridPoint(job.TargetPosition.X + x, job.TargetPosition.Y + y)));
 
     // Callers select layer order deliberately: HashSet enumeration also follows insertion order.
-    internal static HashSet<GridPoint> Combine(params IEnumerable<GridPoint>[] layers) =>
-        layers.SelectMany(layer => layer).ToHashSet();
+    internal static HashSet<GridPoint> Combine(params IEnumerable<GridPoint>[] layers)
+    {
+        var occupied = new HashSet<GridPoint>(layers.Sum(layer => layer.TryGetNonEnumeratedCount(out var count) ? count : 0));
+        foreach (var layer in layers) occupied.UnionWith(layer);
+        return occupied;
+    }
 
     internal static HashSet<GridPoint> InitialObstacles(WorldMap map) =>
         Combine(map.MapObjects.Select(item => item.Position), map.Resources.Select(item => item.Position));
