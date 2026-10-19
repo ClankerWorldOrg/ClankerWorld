@@ -59,8 +59,8 @@ public sealed record WorldMap(
         point.X >= 0 && point.X < Width && point.Y >= 0 && point.Y < Height;
 
     public bool IsPassable(GridPoint point) =>
-        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) || IsOneTileRiverCrossing(point) ||
-            IsTwoTileRiverCrossing(point) || IsBridgeDeck(point));
+        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) ||
+            IsRiverAt(point) && (IsOneTileRiverCrossing(point) || IsTwoTileRiverCrossing(point)) || IsBridgeDeck(point));
 
     /// <summary>
     /// The cost of entering a tile on foot. A river tile costs what its
@@ -113,8 +113,9 @@ public sealed record WorldMap(
 
     public bool CanFootStep(GridPoint origin, GridPoint destination)
     {
-        if (!IsPassable(origin) || !IsPassable(destination) || FootDistance(origin, destination) != 1)
+        if (!Contains(origin) || !Contains(destination) || FootDistance(origin, destination) != 1)
             return false;
+        // These complete crossing checks also establish both endpoints' passability.
         if (BridgeDecks is { } decks)
         {
             var originIsDeck = decks.TryGetValue(origin, out var originAxis);
@@ -156,11 +157,11 @@ public sealed record WorldMap(
             var beyond = Step(river, -outX, -outY);
             return IsDryBank(bank) && (IsDryBank(beyond) || IsTwoTileLine(river, -outX, -outY));
         }
-        if (!IsDiagonalFootStep(origin, destination)) return true;
         // Both orthogonal shoulders must be traversable. A diagonal cannot
         // squeeze around a wall, peak, deep river, or map edge.
-        return IsPassable(new GridPoint(destination.X, origin.Y)) &&
-            IsPassable(new GridPoint(origin.X, destination.Y));
+        return IsPassable(origin) && IsPassable(destination) &&
+            (!IsDiagonalFootStep(origin, destination) || IsPassable(new GridPoint(destination.X, origin.Y)) &&
+                IsPassable(new GridPoint(origin.X, destination.Y)));
     }
 
     public int FootStepCost(GridPoint origin, GridPoint destination) =>
@@ -361,8 +362,6 @@ public sealed record WorldMap(
 
     private bool IsOneTileRiverCrossing(GridPoint point)
     {
-        if (!IsRiverAt(point))
-            return false;
         var west = new GridPoint(point.X - 1, point.Y);
         var east = new GridPoint(point.X + 1, point.Y);
         var north = new GridPoint(point.X, point.Y - 1);
@@ -378,7 +377,6 @@ public sealed record WorldMap(
     /// Bridge decks do not change this: they decide only which steps a deck allows.
     /// </summary>
     private bool IsTwoTileRiverCrossing(GridPoint point) =>
-        IsRiverAt(point) &&
         (IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
             IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1));
 
