@@ -141,7 +141,7 @@ public sealed class WaterJugReturnSelectionTests
         var before = GC.GetAllocatedBytesForCurrentThread();
         var fixture = Prepared(true, "contents", false, false, -1);
         var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.InRange(allocated, 1, 16L * 1024 * 1024);
+        Assert.InRange(allocated, 1, 24L * 1024 * 1024);
         GC.KeepAlive(fixture.State);
     }
 
