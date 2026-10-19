@@ -2903,8 +2903,9 @@ without discovering a moved patient remotely. Tool-repair preparation uses the
 same Blacksmith destination as collection, so unavailable return routes produce
 a blocker rather than leaving the order doing. Water collection also keeps room to return
 with the jug and its contents. A rider, an animal
-leader or a cart puller cannot start swimming, and moving dependants must also
-meet the starting conditions. Infants and adults carrying guardian-placement
+leader or a cart puller cannot start swimming. Eligibility checks the actor
+before gathering moving dependants, who must meet the same starting conditions.
+Infants and adults carrying guardian-placement
 dependants cannot start. A swimmer whose condition changes can still leave
 the water. Occupancy, bridge entrances and ordinary wading restrictions remain
 authoritative; the sea cannot be swum. Task selection uses weakly cached

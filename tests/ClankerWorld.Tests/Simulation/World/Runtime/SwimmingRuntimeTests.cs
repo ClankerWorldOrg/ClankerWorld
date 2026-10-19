@@ -142,10 +142,10 @@ public sealed class SwimmingRuntimeTests
     }
 
     [Theory]
-    [InlineData(1_000, 0, 0)]
-    [InlineData(10_000, 3_000, 0)]
-    [InlineData(10_000, 0, 5)]
-    public async Task SwimmerCanStillLeaveWaterAfterTheirConditionChangesAcrossReload(int warmth, int illness, int load)
+    [InlineData(1_000, 0, 0, "interrupted")]
+    [InlineData(10_000, 3_000, 0, "finished")]
+    [InlineData(10_000, 0, 5, "finished")]
+    public async Task SwimmerCanStillLeaveWaterAfterTheirConditionChangesAcrossReload(int warmth, int illness, int load, string expectedOrderStatus)
     {
         using var setup = Restore(CrossingState(new(4, 2)));
         setup.SubmitInstruction(new("enter-water", "owner:test", Actor, OwnerInstructionKind.Order, "Move to tile (5, 2)"));
@@ -164,6 +164,9 @@ public sealed class SwimmingRuntimeTests
         for (var tick = 0; tick < 24 && !world.ExportState().Map.IsPassable(Position(world)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Map.IsPassable(Position(world)));
+        Assert.Equal(new GridPoint(4, 2), Position(world));
+        Assert.Equal(expectedOrderStatus, Assert.Single(world.ExportState().Instructions!,
+            order => order.IdempotencyKey == "leave-water").Task!.Status);
         Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
