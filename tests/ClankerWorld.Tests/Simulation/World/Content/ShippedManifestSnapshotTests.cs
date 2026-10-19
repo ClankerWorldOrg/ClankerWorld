@@ -7,6 +7,20 @@ namespace ClankerWorld.Tests;
 public sealed class ShippedManifestSnapshotTests
 {
     [Fact]
+    public void CatalogueReadersCannotReplaceAWholeShippedPackage()
+    {
+        var catalogue = StarterContent.InitialTownManifests;
+        var before = catalogue.Select(ContentPackageManifestCodec.Encode).ToArray();
+        var entries = Assert.IsAssignableFrom<IList<ContentPackageManifest>>(catalogue);
+        Assert.NotEmpty(entries);
+
+        Assert.Throws<NotSupportedException>(() => entries[0] = entries[0]);
+
+        for (var index = 0; index < before.Length; index++)
+            Assert.Equal(before[index], ContentPackageManifestCodec.Encode(catalogue[index]));
+    }
+
+    [Fact]
     public void ShippedManifestCollectionsCannotBeChangedThroughAnExportedWorld()
     {
         using var world = Create();
