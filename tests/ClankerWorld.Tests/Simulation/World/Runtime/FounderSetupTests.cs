@@ -322,6 +322,18 @@ public sealed class FounderSetupTests
                 },
             },
         };
+        // The capacity check deliberately stacked residents inside the House.
+        // Observe construction from its clear outdoor door, with the other
+        // residents indoors so they do not block the tiny map's only exit.
+        var placedHouse = proposed.WorldSimulation!.Buildings.Single(building => building.InstanceId == "starter-house-alpha");
+        var entrance = BuildingMovementRules.EntranceFor(house, placedHouse);
+        proposed = proposed with
+        {
+            Agents = proposed.Agents.Select(person => person with
+            {
+                Position = person.AgentId == agentId ? entrance : site,
+            }).ToArray(),
+        };
         using var observing = WorldRuntime.Restore(proposed,
             id => id == agentId ? capture : new CandidateCaptureProvider());
         Assert.True((await observing.AdvanceOneTickAsync()).Advanced);

@@ -1,1 +1,0 @@
-- Field work, tree planting and farm-stock hauling now bind their typed codecs, planning, capability policies, shared checks and native effects to their ordered action rows.

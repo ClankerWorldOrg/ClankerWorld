@@ -1,1 +1,0 @@
-- Personal models get one metered chance to choose a different first name when their first valid choice uses a taken first name. The game keeps the placeholder if that retry is duplicated or unusable.

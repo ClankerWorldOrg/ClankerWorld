@@ -74,7 +74,7 @@ public static class AgentNameRules
         string normalized;
         try
         {
-            normalized = name.Normalize(NormalizationForm.FormC);
+            normalized = BoundedText.WithoutInvisibleFormatting(name).Normalize(NormalizationForm.FormC);
         }
         catch (ArgumentException)
         {

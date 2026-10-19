@@ -55,7 +55,7 @@ public sealed class EquipmentConditionObservationTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         var displayed = client.Agents.Single(person => person.Id == actor).Equipment!;
         Assert.Equal(shownPercent, displayed.ClothingConditionPercent);

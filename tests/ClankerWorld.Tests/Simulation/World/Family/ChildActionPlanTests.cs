@@ -48,6 +48,8 @@ public sealed class ChildActionPlanTests
         Assert.NotEqual(position, world.Agents.Single(person => person.AgentId == target).Position);
         Assert.Same(plan, result.Decisions.Single(decision => decision.AgentId == child).ActionPlan);
         var refusal = Assert.Single(result.Events, item => item.Kind == "choice_refused");
+        var payload = Assert.IsType<ChoiceRefusedEventPayload>(refusal.Payload);
+        Assert.Equal(child, payload.ActorId);
         Assert.Contains("the person is no longer available there", refusal.Detail, StringComparison.Ordinal);
         Assert.DoesNotContain(result.Events, item => item.Kind == "child_play");
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(baseline), _ => new OrderedChoices(child, target));
@@ -121,6 +123,13 @@ public sealed class ChildActionPlanTests
     [Fact]
     public void PlansNeverEnterCandidateJsonOrChangeModelText()
     {
+        var target = NormalPathWorld.Founder1;
+        foreach (var kind in Enum.GetValues<ChildActionKind>().Where(kind => kind != ChildActionKind.HelpFood))
+        {
+            var choice = new ChildChoice(kind, target);
+            Assert.EndsWith(target, choice.Id, StringComparison.Ordinal);
+            Assert.Equal(choice, ChildChoice.Parse(choice.Id));
+        }
         var candidate = new CognitionCandidate("child_help_food", "Carry one spare food serving back to the household store.", 26);
         var planned = candidate with
         {
