@@ -7,6 +7,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class TownReleasedMaterialRecoveryTests
 {
+    private static readonly Lazy<Task<byte[]>> CancelledHall = new(CreateCancelledCheckpointAsync);
+
     [Fact]
     public async Task ResidentsReturnActualGroundLoadsAfterAHallIsCancelledByGrantedHouseholdRights()
     {
@@ -39,7 +41,10 @@ public sealed class TownReleasedMaterialRecoveryTests
         world.Validate();
     }
 
-    private static async Task<WorldRuntimeState> CancelledStateAsync()
+    private static async Task<WorldRuntimeState> CancelledStateAsync() =>
+        WorldRuntimeCodec.Decode(await CancelledHall.Value);
+
+    private static async Task<byte[]> CreateCancelledCheckpointAsync()
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
         scenario.Policy.Supply = true;
@@ -52,7 +57,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         await scenario.UntilAsync(() => scenario.Project.Stage == "blocked", 4);
         scenario.Policy.AcceptLandUse = true;
         await scenario.UntilAsync(() => scenario.Project.Stage == "cancelled", 160);
-        return scenario.World.ExportState();
+        return WorldRuntimeCodec.Encode(scenario.World.ExportState());
     }
 
     [Theory]
