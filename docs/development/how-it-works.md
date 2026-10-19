@@ -877,7 +877,9 @@ ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
-the existing validation. The index changes no checkpoint fields or ordering.
+the existing validation. Its fallback runs separately from valid lookups, and
+verification compares an immutable copy of the complete agent references.
+The index changes no checkpoint fields or ordering.
 Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
