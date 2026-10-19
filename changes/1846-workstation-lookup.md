@@ -1,1 +1,1 @@
-Reduce repeated building-definition scans while residents consider recipes, keeping their offers and household stock rules the same.
+- Reduce repeated building-definition scans while residents consider recipes, keeping their offers and household stock rules the same.
