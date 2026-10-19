@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
     private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyAgent agent,
         AgentState state, string householdId, List<string> buildingsWithoutSites)
     {
-        TownLayoutContext? sharedLayout = null;
+        TownLayoutBasis? basis = null;
         foreach (var definition in PlannableHouseholdBuildings(householdId, agent.Id))
         {
             if (NeedsUrgentWarmth(state) && !definition.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking"))
@@ -32,9 +32,8 @@ public sealed partial class WorldRuntime
                 !WorkBuildingHasInputs(agent.Id, householdId, definition))
                 continue;
 
-            var layout = HouseholdBuildingKind(definition) == "silo"
-                ? CreateTownLayoutContext(agent.Id, building: definition)
-                : sharedLayout ??= CreateTownLayoutContext(agent.Id);
+            var layout = CreateTownLayoutContext(agent.Id, building: definition,
+                basis: basis ??= CreateTownLayoutBasis(agent.Id));
             var sites = TownLayoutService.RankConstructionSites(layout, definition);
             if (sites.Count == 0) buildingsWithoutSites.Add(definition.DisplayName);
             for (var rank = 0; rank < sites.Count; rank++)
