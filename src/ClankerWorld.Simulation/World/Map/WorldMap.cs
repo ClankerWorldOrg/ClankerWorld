@@ -59,8 +59,8 @@ public sealed record WorldMap(
         point.X >= 0 && point.X < Width && point.Y >= 0 && point.Y < Height;
 
     public bool IsPassable(GridPoint point) =>
-        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) || IsOneTileRiverCrossing(point) ||
-            IsTwoTileRiverCrossing(point) || IsBridgeDeck(point));
+        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) ||
+            IsRiverAt(point) && (IsOneTileRiverCrossing(point) || IsTwoTileRiverCrossing(point)) || IsBridgeDeck(point));
 
     /// <summary>
     /// The cost of entering a tile on foot. A river tile costs what its
@@ -361,8 +361,6 @@ public sealed record WorldMap(
 
     private bool IsOneTileRiverCrossing(GridPoint point)
     {
-        if (!IsRiverAt(point))
-            return false;
         var west = new GridPoint(point.X - 1, point.Y);
         var east = new GridPoint(point.X + 1, point.Y);
         var north = new GridPoint(point.X, point.Y - 1);
@@ -378,7 +376,6 @@ public sealed record WorldMap(
     /// Bridge decks do not change this: they decide only which steps a deck allows.
     /// </summary>
     private bool IsTwoTileRiverCrossing(GridPoint point) =>
-        IsRiverAt(point) &&
         (IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
             IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1));
 
