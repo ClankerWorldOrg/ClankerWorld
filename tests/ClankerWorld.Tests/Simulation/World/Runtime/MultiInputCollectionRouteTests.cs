@@ -9,7 +9,7 @@ public sealed class MultiInputCollectionRouteTests
     private static readonly Lazy<Task<byte[]>> Fixture = new(async () =>
     {
         using var world = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new ActionCoverageRecorder(chooseIdle: true),
-            size: WorldSizePreset.Small);
+            roughTownSite: new(110, 50), size: WorldSizePreset.Small);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var actor = world.Agents[0];
         world.SubmitInstruction(new("learn-for-writing", "owner:test", actor.AgentId, OwnerInstructionKind.Order,
