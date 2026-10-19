@@ -253,9 +253,9 @@ public static class MapAcceptance
         queue.Enqueue(origin);
         while (queue.TryDequeue(out var current))
         {
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (map.IsPassable(next) && visited.Add(next))
+                if (visited.Add(next))
                 {
                     queue.Enqueue(next);
                 }
