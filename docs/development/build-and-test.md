@@ -79,6 +79,10 @@ runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
 
+Released-material fixtures share strict bytes after actual Hall approval,
+delivery, a granted household claim and cancellation. Each recovery case decodes
+fresh state before its own cargo, ownership, survival and native return checks.
+
 Construction-order fixtures capture one native generated setup and its actual
 construction offers. Payment and lifecycle cases use a nearby offered site with
 real travel; warehouse controls keep their original distant site so doorway
