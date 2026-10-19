@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
     // walks the map from the actor, so a caller laying out several buildings of one kind builds them once.
     // A household building avoids only other households' land; any other building avoids all of it.
     private sealed record TownLayoutBasis(string Actor, GridPoint? SelectedSite, bool HouseholdBuilding, string? TownProjectId,
-        HashSet<GridPoint> Occupied, IReadOnlyDictionary<GridPoint, int> FootCosts);
+        IReadOnlySet<GridPoint> Occupied, IReadOnlyDictionary<GridPoint, int> FootCosts);
 
     private static bool IsHouseholdLayout(BuildingDefinition? building) =>
         building is null || building.Tags.Any(IsHouseholdBuildingTag);
@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
             ground.MarketSites, ground.ExpansionSites, ground.CheckedBuildingFootprints,
             agents.Values.Where(person => person.AgentId != actor).Select(person => person.Position),
             // A household builds only on land no other household holds or has asked for; Town buildings avoid it all.
-            HouseholdLandHeldByOthers(IsHouseholdLayout(building) ? HouseholdFor(actor) : null));
+            HouseholdLandHeldByOthers(IsHouseholdLayout(building) ? HouseholdFor(actor) : null)).ToFrozenSet();
         return new(actor, selectedSite, IsHouseholdLayout(building), townProjectId,
             occupied, FindUnoccupiedFootCosts(actor, origin, town, occupied, selectedSite).ToFrozenDictionary());
     }
@@ -87,7 +87,7 @@ public sealed partial class WorldRuntime
 
     private Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
         string agentId, GridPoint origin, TownRuntimeState? town,
-        HashSet<GridPoint> occupiedSites, GridPoint? selectedSite)
+        IReadOnlySet<GridPoint> occupiedSites, GridPoint? selectedSite)
     {
         if (selectedSite is { } invalidSite &&
             (!map.IsBuildable(invalidSite) || occupiedSites.Contains(invalidSite)))
@@ -134,9 +134,7 @@ public sealed partial class WorldRuntime
                         viableLegacyAnchors++;
                 }
                 else
-                {
                     pendingAnchors.Remove(current);
-                }
                 if (selectedSite is not null ? selectedSiteReached :
                     pendingAnchors?.Count == 0 || pendingAnchors is null && viableLegacyAnchors >= 32)
                     break;
