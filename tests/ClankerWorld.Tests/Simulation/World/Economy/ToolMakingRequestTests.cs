@@ -749,7 +749,7 @@ public sealed partial class ToolMakingRequestTests
 
     private static PreparedRequest CreatePrepared()
     {
-        using var setup = NormalPathWorld.CreateGenerated("tool-request-small-island-5", _ => new RequestChoices());
+        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new RequestChoices());
         var state = setup.ExportState();
         var shop = state.WorldSimulation!.Buildings.Single(building => state.WorldContent!.Buildings.Single(definition =>
             definition.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
