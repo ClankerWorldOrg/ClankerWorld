@@ -168,7 +168,7 @@ public sealed record WorldMap(
             ? throw new ArgumentOutOfRangeException(nameof(destination), "The foot step is illegal.")
             : LegalFootStepCost(origin, destination);
 
-    // Only for a step just returned by FootNeighbors on this same map. Public
+    // Only for a step just validated by CanFootStep on this same map. Public
     // callers still validate the complete step, including river and bridge axes.
     internal int LegalFootStepCost(GridPoint origin, GridPoint destination) =>
         checked(LegalFootTravelCost(destination) * (IsDiagonalFootStep(origin, destination) ? 141 : 100) / 100);
