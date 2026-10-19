@@ -2841,6 +2841,9 @@ Strict restore checks doorways too; [Saves and replay](saves-and-replay.md#build
 owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
+Public foot-cost queries validate the tile or complete step. Searches that just
+obtained a legal neighbor reuse the same base-cost formula without repeating
+that validation.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
 to be passable, including clear occupancy during a move. A river is waded in a
 straight cardinal line from one dry bank to the opposite one, across one or two
@@ -4395,6 +4398,9 @@ Walking to a known Blacksmith, continuing accepted work and opening a quote
 for a completed tool retain their routine priorities. Opening the quote does
 not accept payment or transfer goods; the existing barter consent checks apply.
 
+Planning rejects unrelated workstation recipes before seller and route queries.
+Fresh consent uses the same complete eligibility rule.
+
 The accepted worker produces with actual household-owned inputs at the named
 Blacksmith and its normal output-space reservations. The finished tool remains
 household property. The request references the real production job and output;
@@ -4546,6 +4552,7 @@ and stores two named servings, leaving water jugs intact. A runnable named meal
 has priority over input replenishment, so one shared jug cannot shuttle between
 House and Restaurant indefinitely before anyone cooks. The trial cooked-food
 reserve is two servings per living household resident across prepared kinds.
+Recipe planning counts household residents only for that cooked-food target.
 Only loose meals and contents in usable vessels count toward that target;
 finished meals trapped in a broken pot do not suppress replacement cooking.
 A recipe that improves already prepared food, such as Restaurant meals from

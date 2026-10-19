@@ -227,6 +227,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         var herbs = Assert.Single(state.Map.Resources, item => item.Kind == CareContent.MedicinalHerbs);
         var initialHerbs = state.WorldSystems!.Ecology.GetResource(herbs.Id).Quantity;
         Assert.True(initialHerbs > 0);
+        Assert.True(state.Map.FootDistance(state.Agents.Single(person => person.AgentId == actor).Position, herbs.Position) > 1);
         Assert.True(state.Map.IsReachableOnFoot(state.Agents.Single(person => person.AgentId == actor).Position, herbs.Position));
         var medicineRecipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "clinic-medicine");
         var choices = new Preferred(["collect_water_jug", "fill_water_jug:", "return_water_jug", "supply_workstation:",
@@ -359,7 +360,8 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     {
         var house = world.WorldSimulation.Buildings.Single(building => building.InstanceId == House);
         Assert.Contains(Enumerable.Range(-8, 17).SelectMany(y => Enumerable.Range(-8, 17).Select(x =>
-            new GridPoint(house.Position.X + x, house.Position.Y + y))), point => world.PlaceBuilding(id, definitionId, point, Alpha).Applied);
+            new GridPoint(house.Position.X + x, house.Position.Y + y)))
+            .OrderBy(point => Math.Abs(point.X - house.Position.X) + Math.Abs(point.Y - house.Position.Y)), point => world.PlaceBuilding(id, definitionId, point, Alpha).Applied);
     }
 
     private static WorldRuntimeState MedicineInputs(WorldRuntimeState state, string building)

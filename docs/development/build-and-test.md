@@ -69,12 +69,21 @@ Empty-vessel return fixtures place their paid Clinic near the House. Positive
 cases still walk both ways and preserve completed input receipts through reload.
 Original refusal checks, storage limits and paired replay remain.
 
+Clinic-supply fixtures choose nearby legal building sites, retaining actual paid
+placement, native gathering and carrying, and strict reload/paired replay.
+
 Named meal fixtures share strict setup checkpoints from one generated Small
 world, including separately paid native 1×2 and 2×2 Restaurant placements.
 Every recipe case decodes fresh state, adds its own exact ingredients and
 runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
+
+Construction-order fixtures capture one native generated setup and its actual
+construction offers. Payment and lifecycle cases use a nearby offered site with
+real travel; warehouse controls keep their original distant site so doorway
+access still distinguishes communal collection from gathering. Each case decodes
+fresh state and retains full work, stock, receipts, strict reload and paired replay.
 
 Restaurant pipeline fixtures also share strict bytes from their original
 generated world and genuinely paid Restaurant placement. Each case decodes
@@ -90,6 +99,11 @@ animals and orders; no runtime, provider or live checkpoint is shared.
 Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
 Generation and paid placement run once per kind; each caller decodes fresh state
 before changing stock and using independent runtimes and providers.
+
+Tool-request fixtures share private strict bytes from their original generated
+world, exact stock and buyer/seller positions. Each caller decodes fresh mutable
+state and uses independent runtime and providers; real work, payment, refusal
+windows and replay checks remain in each case.
 
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
@@ -109,6 +123,10 @@ clocks are rescaled together. Later-generation family growth keeps its forty-tic
 day; only the completed family checkpoint is reclocked for hearing setup.
 Personal consent, saved election ties, strict reload and paired checkpoint
 replay remain checked through the real runtime transitions.
+
+Native memory fixtures share adult-growth checkpoints while keeping the original
+helper policy and paused boundary. Each case decodes fresh state; native identity,
+ordinary decision windows and full checkpoint replay remain checked.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
