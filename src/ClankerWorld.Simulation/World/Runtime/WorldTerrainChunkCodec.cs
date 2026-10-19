@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,6 +12,7 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
     private const int ChunkSize = 64;
     private const string Encoding = "terrain-chunks/v1";
     private const string LayerEncoding = "brotli-byte-layers/v1";
+    private static readonly ConditionalWeakTable<byte[], CompressedLayer> CompressedLayers = new();
 
     private sealed record Chunk(int X, int Y, int Width, int Height, byte[] Data, string Sha256);
 
@@ -138,13 +140,29 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
             CompressLayer(value.VegetationKinds), value.WrapsEastWest), options);
     }
 
-    private static byte[]? CompressLayer(byte[]? data)
+    private static byte[]? CompressLayer(byte[]? data) =>
+        data is null ? null : CompressedLayers.GetValue(data, static _ => new()).Encode(data);
+
+    private sealed class CompressedLayer
     {
-        if (data is null) return null;
-        var compressed = new byte[BrotliEncoder.GetMaxCompressedLength(data.Length)];
-        if (!BrotliEncoder.TryCompress(data, compressed, out var written, quality: 4, window: 22))
-            throw new InvalidDataException("The world map layer could not be compressed.");
-        return compressed[..written];
+        private readonly Lock gate = new();
+        private byte[]? source;
+        private byte[] compressed = [];
+
+        public byte[] Encode(byte[] data)
+        {
+            lock (gate)
+            {
+                // Borrowed arrays can change: identity alone never proves a hit.
+                if (source is not null && source.AsSpan().SequenceEqual(data)) return compressed;
+                var snapshot = data.ToArray();
+                var buffer = new byte[BrotliEncoder.GetMaxCompressedLength(snapshot.Length)];
+                if (!BrotliEncoder.TryCompress(snapshot, buffer, out var written, quality: 4, window: 22))
+                    throw new InvalidDataException("The world map layer could not be compressed.");
+                source = snapshot;
+                return compressed = buffer[..written];
+            }
+        }
     }
 
     private static byte[]? DecodeLayer(byte[]? data, string? encoding, int expectedLength)
