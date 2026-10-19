@@ -110,7 +110,7 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("The map dimensions or generation attempt are invalid.");
         }
 
-        if (!HasCompleteGrid(map))
+        if (ValidateGrid(map) is not null)
         {
             return MapValidationResult.Invalid("The logical grid is not a complete bounded rectangle.");
         }
@@ -207,18 +207,21 @@ public static class MapAcceptance
         return MapValidationResult.Valid;
     }
 
-    private static bool HasCompleteGrid(WorldMap map)
+    internal static string? ValidateGrid(WorldMap map, Span<byte> terrain = default)
     {
-        if (map.Tiles.Count != (long)map.Width * map.Height) return false;
+        if (map.Tiles.Count != (long)map.Width * map.Height)
+            return "The world terrain dimensions are invalid.";
         var occupied = new bool[map.Tiles.Count];
         foreach (var tile in map.Tiles)
         {
-            if (!map.Contains(tile.Position)) return false;
+            if (!map.Contains(tile.Position) || !terrain.IsEmpty && !Enum.IsDefined(tile.Terrain))
+                return "The world terrain tile is invalid.";
             var index = tile.Position.Y * map.Width + tile.Position.X;
-            if (occupied[index]) return false;
+            if (occupied[index]) return "The world terrain has duplicate tiles.";
             occupied[index] = true;
+            if (!terrain.IsEmpty) terrain[index] = checked((byte)tile.Terrain);
         }
-        return true;
+        return null;
     }
 
     internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>

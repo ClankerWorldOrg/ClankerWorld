@@ -104,18 +104,8 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
             value.Tiles.Count != checked(value.Width * value.Height))
             throw new InvalidDataException("The world terrain dimensions are invalid.");
         var terrain = new byte[value.Tiles.Count];
-        var occupied = new bool[terrain.Length];
-        foreach (var tile in value.Tiles)
-        {
-            if (!value.Contains(tile.Position) || !Enum.IsDefined(tile.Terrain))
-                throw new InvalidDataException("The world terrain tile is invalid.");
-            var index = tile.Position.Y * value.Width + tile.Position.X;
-            if (occupied[index]) throw new InvalidDataException("The world terrain has duplicate tiles.");
-            occupied[index] = true;
-            terrain[index] = checked((byte)tile.Terrain);
-        }
-        if (occupied.Any(present => !present))
-            throw new InvalidDataException("The world terrain has missing tiles.");
+        if (MapAcceptance.ValidateGrid(value, terrain) is { } gridFailure)
+            throw new InvalidDataException(gridFailure);
         ValidateLayers(value.Width, value.Height, value.ClimateZones, value.ElevationLevels,
             value.HydrologyKinds, value.SurfaceKinds, value.VegetationKinds);
 
