@@ -78,6 +78,11 @@ fresh state before adding its own ingredients, payment, cargo and visitor
 positions, then uses independent runtime and providers. Real milling, cooking,
 travel, trade, order survival, refusal and exact checkpoint replay stay checked.
 
+Animal-yard fixtures cache strict checkpoint bytes by their original seed and
+calendar after native generation, reachable placement and actual wood/rope
+payment. Each caller strictly decodes fresh mutable state before adding its
+animals and orders; no runtime, provider or live checkpoint is shared.
+
 Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
 Generation and paid placement run once per kind; each caller decodes fresh state
 before changing stock and using independent runtimes and providers.
@@ -297,6 +302,11 @@ dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration R
 The first command records each test's duration in
 `tests/ClankerWorld.Tests/TestResults/timings.trx`; the second lists
 the tests job 1 would run without timings.
+
+Launcher log-handoff checks hold a real native command child at an asynchronous
+named pipe. Its connection proves entry and a release line lets it exit,
+without cold PowerShell startup or a blocking thread-pool waiter. The inherited
+log control and repeated production shell handoffs keep their real handles.
 
 The native Windows storage job also runs the repeated checkpoint-compaction
 test and checks that a refused overwrite preserves the previous checkpoint.

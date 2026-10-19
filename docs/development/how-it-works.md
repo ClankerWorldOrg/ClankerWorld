@@ -877,7 +877,9 @@ ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
-the existing validation. The index changes no checkpoint fields or ordering.
+the existing validation. Its fallback runs separately from valid lookups, and
+verification compares an immutable copy of the complete agent references.
+The index changes no checkpoint fields or ordering.
 Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
@@ -2793,6 +2795,11 @@ older tiny map remains a populated native test setup; generation is no longer
 merely a separate primitive. Large/Huge/Mega generator outputs do not imply
 playable storage, observation or performance support.
 
+`MapLayerManifestCodec` writes the binary layer preimage; `MapManifestCodec`
+writes canonical BOM-free UTF-8 text. Both share one SHA-256 stream lifetime,
+finalizing only after the emitter's writer is disposed. Their framing and
+canonical bytes remain separate and unchanged.
+
 Generation saves climate zone, elevation, hydrology, surface and vegetation
 cover separately beside the stable terrain summary. New World preview and
 creation select saved hydrology revision 1: inland lakes retain a connected
@@ -3808,11 +3815,13 @@ Household planning computes each prospective building's identity once per design
 before checking placed buildings for it. Each later query reads current reservations
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
-Layout and shared route searches reuse the step legality just established by
-foot-neighbor enumeration when computing Road costs. Public step costs and movement still
+Layout, A* and shared route searches reuse the step legality just established by
+foot-neighbor enumeration when computing step costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Live movement and planned ground/bridge routes share the same Road cost
+adjustment, including its minimum cost and Road-bridge distinction.
 Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.IO.Pipes;
 using ClankerWorld.GodotClient.Launcher;
 
 namespace ClankerWorld.Tests;
@@ -35,27 +36,23 @@ public sealed class LauncherHandoffTests
             FileShare.Read | FileShare.Inheritable);
         stream.Write(Encoding.UTF8.GetBytes(lastRun));
         stream.Flush(flushToDisk: true);
-        var name = "Local\\ClankerWorld-log-check-" + Guid.NewGuid().ToString("N");
-        using var entered = new EventWaitHandle(false, EventResetMode.ManualReset, name + "-entered");
-        using var release = new EventWaitHandle(false, EventResetMode.ManualReset, name + "-release");
-        var shell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
-            "WindowsPowerShell", "v1.0", "powershell.exe");
+        var name = "ClankerWorld-log-check-" + Guid.NewGuid().ToString("N");
+        await using var pipe = new NamedPipeServerStream(name, PipeDirection.Out, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var connection = new CancellationTokenSource();
+        var shell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
         var start = GameStarter.LauncherStartInfo(shell);
         if (forceDirect) start.UseShellExecute = false;
         start.WindowStyle = ProcessWindowStyle.Hidden;
-        // Named events hold the real child open without sleeps or file polling.
-        var command = $"$ready=[Threading.EventWaitHandle]::OpenExisting('{name}-entered'); " +
-            $"$release=[Threading.EventWaitHandle]::OpenExisting('{name}-release'); " +
-            "$null=$ready.Set(); $null=$release.WaitOne(); $ready.Dispose(); $release.Dispose()";
-        foreach (var argument in new[] { "-NoProfile", "-NonInteractive", "-EncodedCommand",
-                     Convert.ToBase64String(Encoding.Unicode.GetBytes(command)) }) start.ArgumentList.Add(argument);
+        // Native line input holds the child until the parent sends its release.
+        foreach (var argument in new[] { "/D", "/C", $@"set /p held=<\\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
         using var child = Process.Start(start) ?? throw new IOException("The native launcher fixture did not start.");
-        var ready = Task.Run(() => entered.WaitOne());
+        var ready = pipe.WaitForConnectionAsync(connection.Token);
         try
         {
             var first = await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(ready, child.WaitForExitAsync()));
             Assert.Same(ready, first);
-            Assert.True(await ready);
+            Assert.True(pipe.IsConnected);
             Assert.False(child.HasExited);
             // The game has closed its own copy; only the returned launcher
             // could now keep its inherited copy open.
@@ -75,13 +72,19 @@ public sealed class LauncherHandoffTests
         }
         finally
         {
-            entered.Set();
-            release.Set();
-            try { await ModelWorkHarness.WaitForSignalAsync(child.WaitForExitAsync()); }
+            try
+            {
+                connection.Cancel();
+                if (pipe.IsConnected && !child.HasExited)
+                    await ModelWorkHarness.WaitForSignalAsync(pipe.WriteAsync("release\r\n"u8.ToArray()).AsTask());
+                await ModelWorkHarness.WaitForSignalAsync(child.WaitForExitAsync());
+            }
             finally
             {
+                await pipe.DisposeAsync();
                 if (!child.HasExited) child.Kill(entireProcessTree: true);
-                await ModelWorkHarness.WaitForSignalAsync(ready);
+                try { await ModelWorkHarness.WaitForSignalAsync(ready); }
+                catch (OperationCanceledException) when (connection.IsCancellationRequested) { }
             }
         }
         Assert.Equal(0, child.ExitCode);

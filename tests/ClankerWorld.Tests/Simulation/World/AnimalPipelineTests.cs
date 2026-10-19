@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -560,6 +561,18 @@ public sealed partial class AnimalPipelineTests
 
     internal static (WorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
     {
+        var bytes = PreparedYards.GetOrAdd((seed, ticksPerDay), static key =>
+            new Lazy<byte[]>(() => PrepareYard(key.Seed, key.TicksPerDay))).Value;
+        var state = WorldRuntimeCodec.Decode(bytes);
+        var actor = state.Agents[0].AgentId;
+        return (state, actor, state.Society.Society.GetAgent(actor).HouseholdId!,
+            state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "test-yard"));
+    }
+
+    private static readonly ConcurrentDictionary<(string Seed, int? TicksPerDay), Lazy<byte[]>> PreparedYards = new();
+
+    private static byte[] PrepareYard(string seed, int? ticksPerDay)
+    {
         using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser(), ticksPerDay: ticksPerDay);
         var state = setup.ExportState();
         var actor = state.Agents[0].AgentId;
@@ -587,7 +600,7 @@ public sealed partial class AnimalPipelineTests
             var saved = world.ExportState();
             var access = WorldContentSimulationRules.Footprint(definition, yard).Append(yard.Entrance ?? doorway).ToHashSet();
             saved = MovementTestWorld.ClearOtherAccess(saved, actor, access);
-            return (saved with { AnimalWorld = new(true, [], []) }, actor, home, yard);
+            return WorldRuntimeCodec.Encode(saved with { AnimalWorld = new(true, [], []) });
         }
         throw new InvalidOperationException("No legal site for the paid animal yard.");
     }

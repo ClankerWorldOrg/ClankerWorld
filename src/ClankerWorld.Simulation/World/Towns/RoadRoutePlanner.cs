@@ -72,6 +72,13 @@ public static class RoadRoutePlanner
 
     private static readonly (int X, int Y)[] Cardinal = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
+    // One ground tile per tick is already the movement floor. This
+    // provisional factor removes diagonal wait ticks and biases routing
+    // toward an existing Road without making illness delays disappear.
+    // A Road bridge's deck is part of its Road; a traffic bridge's is not.
+    internal static int AdjustFootCost(int cost, bool road) =>
+        road ? Math.Max(1, cost * 70 / 100) : cost;
+
     private enum LinkKind { Start, Ground, Bridge, Crossing }
 
     private readonly record struct Link(GridPoint From, LinkKind Kind, string? BridgeId, RiverCrossing? Crossing);
@@ -226,9 +233,8 @@ public static class RoadRoutePlanner
                     .Append(far).Prepend(current).ToArray();
                 var cost = priority.Cost;
                 for (var index = 1; index < walk.Length; index++)
-                    cost = checked(cost + (request.ReuseRoads && bridge.Trigger == BridgeTriggers.Road
-                        ? Math.Max(1, map.FootStepCost(walk[index - 1], walk[index]) * 70 / 100)
-                        : map.FootStepCost(walk[index - 1], walk[index])));
+                    cost = checked(cost + AdjustFootCost(map.FootStepCost(walk[index - 1], walk[index]),
+                        request.ReuseRoads && bridge.Trigger == BridgeTriggers.Road));
                 Relax(far, checked(cost + Beside(far, joins)), new Link(current, LinkKind.Bridge, bridge.Id, null));
             }
         }
@@ -243,8 +249,8 @@ public static class RoadRoutePlanner
                 (request.Border is null || joins || request.Border.Contains(tile));
         }
 
-        int GroundCost(GridPoint from, GridPoint to) => request.ReuseRoads && roads.Contains(from) && roads.Contains(to)
-            ? Math.Max(1, map.FootStepCost(from, to) * 70 / 100) : map.FootStepCost(from, to);
+        int GroundCost(GridPoint from, GridPoint to) => AdjustFootCost(map.LegalFootStepCost(from, to),
+            request.ReuseRoads && roads.Contains(from) && roads.Contains(to));
 
         int Beside(GridPoint tile, bool joins) => !request.ReuseRoads && !joins && TownStreets.Directions.Any(step =>
             roads.Contains(new GridPoint(tile.X + step.X, tile.Y + step.Y))) ? BesideRoadCost : 0;

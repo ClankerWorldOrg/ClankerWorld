@@ -17,13 +17,16 @@ public sealed record MapValidationResult(bool IsValid, string? Failure)
 public static class MapAcceptance
 {
     private static readonly ConditionalWeakTable<WorldMap, StartingSiteTraversalCache> StartingSiteTraversals = new();
-    private static readonly SearchValues<byte> ClimateValues = DefinedBytes<ClimateZone>();
-    private static readonly SearchValues<byte> WaterValues = DefinedBytes<WaterKind>();
-    private static readonly SearchValues<byte> SurfaceValues = DefinedBytes<SurfaceKind>();
-    private static readonly SearchValues<byte> VegetationValues = DefinedBytes<VegetationCover>();
+    internal static readonly SearchValues<byte> ClimateValues = DefinedBytes<ClimateZone>();
+    internal static readonly SearchValues<byte> WaterValues = DefinedBytes<WaterKind>();
+    internal static readonly SearchValues<byte> SurfaceValues = DefinedBytes<SurfaceKind>();
+    internal static readonly SearchValues<byte> VegetationValues = DefinedBytes<VegetationCover>();
 
     private static SearchValues<byte> DefinedBytes<T>() where T : struct, Enum =>
         SearchValues.Create(Enum.GetValues<T>().Select(value => Convert.ToByte(value, CultureInfo.InvariantCulture)).ToArray());
+
+    internal static bool IsValidLayer(byte[]? layer, int length, SearchValues<byte>? values = null) =>
+        layer is null || layer.Length == length && (values is null || !layer.AsSpan().ContainsAnyExcept(values));
 
     private sealed class StartingSiteTraversalCache
     {
@@ -110,21 +113,18 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("The map dimensions or generation attempt are invalid.");
         }
 
-        if (!HasCompleteGrid(map))
+        if (ValidateGrid(map) is not null)
         {
             return MapValidationResult.Invalid("The logical grid is not a complete bounded rectangle.");
         }
 
-        if (map.ClimateZones is { } zones &&
-            (zones.Length != map.Width * map.Height || zones.AsSpan().ContainsAnyExcept(ClimateValues)))
+        var length = checked(map.Width * map.Height);
+        if (!IsValidLayer(map.ClimateZones, length, ClimateValues))
             return MapValidationResult.Invalid("The climate layer is invalid.");
-        if (map.ElevationLevels is { } elevation && elevation.Length != map.Width * map.Height ||
-            map.HydrologyKinds is { } hydrology &&
-                (hydrology.Length != map.Width * map.Height || hydrology.AsSpan().ContainsAnyExcept(WaterValues)) ||
-            map.SurfaceKinds is { } surfaces &&
-                (surfaces.Length != map.Width * map.Height || surfaces.AsSpan().ContainsAnyExcept(SurfaceValues)) ||
-            map.VegetationKinds is { } vegetation &&
-                (vegetation.Length != map.Width * map.Height || vegetation.AsSpan().ContainsAnyExcept(VegetationValues)))
+        if (!IsValidLayer(map.ElevationLevels, length) ||
+            !IsValidLayer(map.HydrologyKinds, length, WaterValues) ||
+            !IsValidLayer(map.SurfaceKinds, length, SurfaceValues) ||
+            !IsValidLayer(map.VegetationKinds, length, VegetationValues))
             return MapValidationResult.Invalid("A generated geography layer is invalid.");
 
         var founder = map.MapObjects.SingleOrDefault(mapObject =>
@@ -207,18 +207,21 @@ public static class MapAcceptance
         return MapValidationResult.Valid;
     }
 
-    private static bool HasCompleteGrid(WorldMap map)
+    internal static string? ValidateGrid(WorldMap map, Span<byte> terrain = default)
     {
-        if (map.Tiles.Count != (long)map.Width * map.Height) return false;
+        if (map.Tiles.Count != (long)map.Width * map.Height)
+            return "The world terrain dimensions are invalid.";
         var occupied = new bool[map.Tiles.Count];
         foreach (var tile in map.Tiles)
         {
-            if (!map.Contains(tile.Position)) return false;
+            if (!map.Contains(tile.Position) || !terrain.IsEmpty && !Enum.IsDefined(tile.Terrain))
+                return "The world terrain tile is invalid.";
             var index = tile.Position.Y * map.Width + tile.Position.X;
-            if (occupied[index]) return false;
+            if (occupied[index]) return "The world terrain has duplicate tiles.";
             occupied[index] = true;
+            if (!terrain.IsEmpty) terrain[index] = checked((byte)tile.Terrain);
         }
-        return true;
+        return null;
     }
 
     internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>

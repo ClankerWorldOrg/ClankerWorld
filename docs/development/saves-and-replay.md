@@ -1303,7 +1303,10 @@ not loaded; its save is kept." The file is left unchanged, the world list marks
 it as unable to load, and there is no migration. The save format and schema
 number do not change; the hill band still comes from the saved layers.
 
-Private checkpoint v2 stores verified 64×64 terrain-byte chunks. The old v1
+Private checkpoint v2 stores verified 64×64 terrain-byte chunks. Map acceptance
+and checkpoint writing share the complete-grid count, bounds and uniqueness
+proof; the writer fills terrain bytes during that same walk. Borrowed tiles
+are rechecked on every call. The old v1
 per-tile format is refused, and generated maps must match the current generator
 and package checks; there is no historical generator or package fallback.
 Damaged chunks are rejected without replacing the save. Restore also removes
@@ -1311,6 +1314,9 @@ Road tiles inside validated saved building footprints, leaving other Roads and
 state intact. The repair applies once and may expose an already broken Road
 connection; it does not reroute Roads or create bridges. Back up older saves
 before an upgrade.
+
+The terrain codec and map acceptance share per-layer length and declared-byte
+checks. Each boundary retains its own failure messages.
 
 World-systems resource manifests are separate from the terrain-byte chunks.
 Loaded or changed manifests require full structural validation and an exact
