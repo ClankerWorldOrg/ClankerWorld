@@ -12,7 +12,8 @@ namespace ClankerWorld.Tests;
 public sealed partial class GrownAgentHelperMemoryTests
 {
     private static readonly Lazy<Task<byte[]>> Born = new(CreateBornAsync);
-    private static readonly Lazy<Task<byte[]>> Adult = new(CreateAdultAsync);
+    private static readonly Lazy<Task<byte[]>> Adult = new(() => CreateAdultAsync(disableHelper: true));
+    private static readonly Lazy<Task<byte[]>> MemoryAdult = new(() => CreateAdultAsync(disableHelper: false));
 
     [Theory]
     [InlineData(true)]
@@ -129,7 +130,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             willWorld.Society.GetHousehold(householdId).Name);
     }
 
-    private static async Task<byte[]> CreateAdultAsync()
+    private static async Task<byte[]> CreateAdultAsync(bool disableHelper)
     {
         var state = WorldRuntimeCodec.Decode(await Born.Value);
         var child = Assert.Single(state.Society.Society.Births).ChildId;
@@ -142,7 +143,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var world = WorldRuntime.Restore(state,
             id => id == child ? new InitialIdentityProvider() : new QuietProvider());
         world.Pause();
-        world.SetJevEnabled(false);
+        if (disableHelper) world.SetJevEnabled(false);
         world.SetAgingOverride(365);
         world.Resume();
         while (world.Society.AgeAt(world.Society.GetAgent(child), world.WorldTick) < 15)
@@ -162,6 +163,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
         Assert.False(world.Society.GetAgent(child).NeedsName);
         Assert.False(world.Agents.Single(person => person.AgentId == child).IdentityChoicePending);
+        if (!disableHelper) world.Pause();
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 
@@ -201,20 +203,21 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(15, false)]
     public async Task NativeBornResidentOnlyOffersOwnUnassessedMemoriesAfterAdulthoodWithHelperOn(int age, bool helperOn)
     {
-        var state = WorldRuntimeCodec.Decode(await Born.Value);
+        var state = WorldRuntimeCodec.Decode(await (age == 15 ? MemoryAdult : Born).Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
         if (age == 15)
         {
-            var society = state.Society.Society;
-            foreach (var parent in society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == childId)
-                         .Select(edge => edge.ProposerId))
-                society = ChosenBirthNameTestFixture.NameParent(society, parent);
-            state = state with { Society = state.Society with { Society = society } };
+            // The shared fixture keeps actual birth, adult growth and identity admission.
+            var child = state.Society.Society.GetAgent(childId);
+            Assert.Equal(SocietyAgeBand.Adult, child.AgeBand);
+            Assert.Equal(15, state.Society.Society.AgeAt(child, state.Society.Society.WorldTick));
+            Assert.False(state.Agents.Single(item => item.AgentId == childId).IdentityChoicePending);
+            Assert.False(child.NeedsName);
         }
-        using (var aging = WorldRuntime.Restore(state,
-            id => id == childId && age == 15 ? new InitialIdentityProvider() : new QuietProvider()))
+        else
         {
+            using var aging = WorldRuntime.Restore(state, _ => new QuietProvider());
             aging.Pause();
             aging.SetAgingOverride(365);
             aging.Resume();
@@ -222,32 +225,6 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Assert.True((await aging.TickModelWorkAsync()).Advanced);
                 await WaitForRequests(aging);
-            }
-            if (age == 15)
-            {
-                // Finish the actual adult boundary before slowing the clock;
-                // the accelerated next-tick forecast can still be a child now.
-                while (aging.Society.AgeAt(aging.Society.GetAgent(childId), aging.WorldTick) < age)
-                {
-                    Assert.True((await aging.TickModelWorkAsync()).Advanced);
-                    await WaitForRequests(aging);
-                }
-                Assert.Equal(SocietyAgeBand.Adult, aging.Society.GetAgent(childId).AgeBand);
-                // Accelerated aging can cross several identity boundaries
-                // before a model reply is admitted. Finish the ordinary
-                // request at the normal rate before swapping to the helper.
-                aging.Pause();
-                aging.SetAgingOverride(1);
-                aging.Resume();
-                for (var tick = 0; tick < 40 &&
-                    (aging.Agents.Single(item => item.AgentId == childId).IdentityChoicePending ||
-                     aging.Society.GetAgent(childId).NeedsName); tick++)
-                {
-                    Assert.True((await aging.TickModelWorkAsync()).Advanced);
-                    await WaitForRequests(aging);
-                }
-                Assert.False(aging.Agents.Single(item => item.AgentId == childId).IdentityChoicePending);
-                Assert.False(aging.Society.GetAgent(childId).NeedsName);
             }
             aging.Pause();
             state = aging.ExportState();

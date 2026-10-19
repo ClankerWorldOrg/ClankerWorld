@@ -151,15 +151,11 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
         byte[]? hydrology, byte[]? surface, byte[]? vegetation)
     {
         var length = checked(width * height);
-        if (climate?.Length is { } climateLength && climateLength != length ||
-            elevation?.Length is { } elevationLength && elevationLength != length ||
-            hydrology?.Length is { } hydrologyLength && hydrologyLength != length ||
-            surface?.Length is { } surfaceLength && surfaceLength != length ||
-            vegetation?.Length is { } vegetationLength && vegetationLength != length ||
-            climate?.Any(value => !Enum.IsDefined((ClimateZone)value)) == true ||
-            hydrology?.Any(value => !Enum.IsDefined((WaterKind)value)) == true ||
-            surface?.Any(value => !Enum.IsDefined((SurfaceKind)value)) == true ||
-            vegetation?.Any(value => !Enum.IsDefined((VegetationCover)value)) == true)
+        if (!MapAcceptance.IsValidLayer(climate, length, MapAcceptance.ClimateValues) ||
+            !MapAcceptance.IsValidLayer(elevation, length) ||
+            !MapAcceptance.IsValidLayer(hydrology, length, MapAcceptance.WaterValues) ||
+            !MapAcceptance.IsValidLayer(surface, length, MapAcceptance.SurfaceValues) ||
+            !MapAcceptance.IsValidLayer(vegetation, length, MapAcceptance.VegetationValues))
             throw new InvalidDataException("The world map layers are invalid.");
     }
 }

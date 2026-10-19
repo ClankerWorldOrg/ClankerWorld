@@ -12,6 +12,7 @@ public sealed partial class WorldConstructionOrderTests
     public async Task ABlockedWarehouseCannotHideReachableConstructionWood(bool townStock, bool openApproach)
     {
         var setup = await Baseline.Value;
+        setup = setup with { Site = setup.WarehouseSite, CandidateId = setup.WarehouseCandidateId };
         var state = Decode(setup);
         var actor = setup.Actor;
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");

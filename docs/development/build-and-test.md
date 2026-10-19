@@ -65,12 +65,21 @@ its own runtime and providers. Setup stops when the real output appears;
 protected-stock cases require a valid trade control and an ordinary action
 observation before checking refusal, ownership, reservations and capacity.
 
+Clinic-supply fixtures choose nearby legal building sites, retaining actual paid
+placement, native gathering and carrying, and strict reload/paired replay.
+
 Named meal fixtures share strict setup checkpoints from one generated Small
 world, including separately paid native 1×2 and 2×2 Restaurant placements.
 Every recipe case decodes fresh state, adds its own exact ingredients and
 runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
+
+Construction-order fixtures capture one native generated setup and its actual
+construction offers. Payment and lifecycle cases use a nearby offered site with
+real travel; warehouse controls keep their original distant site so doorway
+access still distinguishes communal collection from gathering. Each case decodes
+fresh state and retains full work, stock, receipts, strict reload and paired replay.
 
 Restaurant pipeline fixtures also share strict bytes from their original
 generated world and genuinely paid Restaurant placement. Each case decodes
@@ -82,6 +91,10 @@ Animal-yard fixtures cache strict checkpoint bytes by their original seed and
 calendar after native generation, reachable placement and actual wood/rope
 payment. Each caller strictly decodes fresh mutable state before adding its
 animals and orders; no runtime, provider or live checkpoint is shared.
+
+Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
+Generation and paid placement run once per kind; each caller decodes fresh state
+before changing stock and using independent runtimes and providers.
 
 Tool-request fixtures share private strict bytes from their original generated
 world, exact stock and buyer/seller positions. Each caller decodes fresh mutable
@@ -96,12 +109,20 @@ before a blocked arrival returns. The permission-order fixture keeps its
 96-tick day so every resident has time to read and vote. All native journeys,
 approved budget quantities, strict reload and paired replay stay checked.
 
+Guardian-care fixtures share strict checkpoint bytes for infant and older-child
+setups. Each variant keeps all 605 native birth ticks, naming and parent deaths;
+every caller decodes fresh state and uses independent runtimes and providers.
+
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
 clocks are rescaled together. Later-generation family growth keeps its forty-tick test
 day; only the completed family checkpoint is reclocked for hearing setup.
 Personal consent, saved election ties, strict reload and paired checkpoint
 replay remain checked through the real runtime transitions.
+
+Native memory fixtures share adult-growth checkpoints while keeping the original
+helper policy and paused boundary. Each case decodes fresh state; native identity,
+ordinary decision windows and full checkpoint replay remain checked.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font

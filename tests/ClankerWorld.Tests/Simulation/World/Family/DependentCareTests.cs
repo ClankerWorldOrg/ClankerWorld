@@ -10,6 +10,9 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ParenthoodTests
 {
+    private static readonly Lazy<Task<byte[]>> InfantOrphan = new(() => CreateOrphanState(false));
+    private static readonly Lazy<Task<byte[]>> OlderOrphan = new(() => CreateOrphanState(true));
+
     [Fact]
     public async Task ExpiredCareProposalKeepsTheAffectedChildAndPositionAcrossReload()
     {
@@ -641,7 +644,10 @@ public sealed partial class ParenthoodTests
         }
     }
 
-    private static async Task<WorldRuntimeState> OrphanState(bool olderChild = false)
+    private static async Task<WorldRuntimeState> OrphanState(bool olderChild = false) =>
+        WorldRuntimeCodec.Decode(await (olderChild ? OlderOrphan : InfantOrphan).Value);
+
+    private static async Task<byte[]> CreateOrphanState(bool olderChild)
     {
         var state = await PreparedState();
         var first = state.Agents[0].AgentId;
@@ -678,11 +684,11 @@ public sealed partial class ParenthoodTests
                 }
             };
         }
-        return state with
+        return WorldRuntimeCodec.Encode(state with
         {
             Society = societyState,
             Agents = state.Agents.Where(person => person.AgentId != first && person.AgentId != second)
                 .Select(person => person with { LastDecisionContext = null, FullnessBasisPoints = person.AgentId == child && !olderChild ? 2_000 : 9_000 }).ToArray(),
-        };
+        });
     }
 }

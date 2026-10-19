@@ -22,21 +22,18 @@ public static class MapLayerManifestCodec
             vegetation.Length != expectedLength)
             throw new InvalidDataException("The world map layers do not match their dimensions.");
 
-        using var hash = SHA256.Create();
-        using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
-        using (var writer = new BinaryWriter(digestStream, Encoding.UTF8, leaveOpen: true))
+        return MapManifestCodec.Digest(map, static (source, digestStream) =>
         {
+            using var writer = new BinaryWriter(digestStream, Encoding.UTF8, leaveOpen: true);
             writer.Write(Header);
-            writer.Write(map.Width);
-            writer.Write(map.Height);
-            foreach (var layer in new[] { climate, elevation, hydrology, surface, vegetation })
+            writer.Write(source.Width);
+            writer.Write(source.Height);
+            foreach (var layer in new[] { source.ClimateZones!, source.ElevationLevels!, source.HydrologyKinds!, source.SurfaceKinds!, source.VegetationKinds! })
             {
                 writer.Write(layer.Length);
                 writer.Write(layer);
             }
-        }
-        digestStream.FlushFinalBlock();
-        return Convert.ToHexStringLower(hash.Hash!);
+        });
     }
 }
 
@@ -56,11 +53,13 @@ public static class MapManifestCodec
         return stream.ToArray();
     }
 
-    public static string Digest(WorldMap map)
+    public static string Digest(WorldMap map) => Digest(map, WriteManifest);
+
+    internal static string Digest(WorldMap map, Action<WorldMap, Stream> write)
     {
         using var hash = SHA256.Create();
         using var digestStream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
-        WriteManifest(map, digestStream);
+        write(map, digestStream);
         digestStream.FlushFinalBlock();
         return Convert.ToHexStringLower(hash.Hash!);
     }

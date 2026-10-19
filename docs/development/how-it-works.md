@@ -2795,6 +2795,11 @@ older tiny map remains a populated native test setup; generation is no longer
 merely a separate primitive. Large/Huge/Mega generator outputs do not imply
 playable storage, observation or performance support.
 
+`MapLayerManifestCodec` writes the binary layer preimage; `MapManifestCodec`
+writes canonical BOM-free UTF-8 text. Both share one SHA-256 stream lifetime,
+finalizing only after the emitter's writer is disposed. Their framing and
+canonical bytes remain separate and unchanged.
+
 Generation saves climate zone, elevation, hydrology, surface and vegetation
 cover separately beside the stable terrain summary. New World preview and
 creation select saved hydrology revision 1: inland lakes retain a connected
@@ -2836,6 +2841,9 @@ Strict restore checks doorways too; [Saves and replay](saves-and-replay.md#build
 owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
+Public foot-cost queries validate the tile or complete step. Searches that just
+obtained a legal neighbor reuse the same base-cost formula without repeating
+that validation.
 Diagonal foot steps cost 141% of cardinal entry and require both shoulder tiles
 to be passable, including clear occupancy during a move. A river is waded in a
 straight cardinal line from one dry bank to the opposite one, across one or two
@@ -3810,11 +3818,13 @@ Household planning computes each prospective building's identity once per design
 before checking placed buildings for it. Each later query reads current reservations
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
-Layout and shared route searches reuse the step legality just established by
-foot-neighbor enumeration when computing Road costs. Public step costs and movement still
+Layout, A* and shared route searches reuse the step legality just established by
+foot-neighbor enumeration when computing step costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Live movement and planned ground/bridge routes share the same Road cost
+adjustment, including its minimum cost and Road-bridge distinction.
 Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped
