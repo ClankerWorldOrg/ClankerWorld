@@ -3832,7 +3832,9 @@ Town proposal site checks also share physical placement obstacles only within
 their synchronous query. Market slots stay separate from other occupied
 objects, and actual placement gathers current facts again. Layout searches
 rent tentative tile costs while preserving their settled tiles, costs and
-stopping rules. See [placement query measurements](placement-query-measurements.md)
+stopping rules. Neighbours with settled costs skip repeated terrain checks; all
+remaining edges check the current terrain, building walls and occupied corners.
+See [placement query measurements](placement-query-measurements.md)
 for the follow-up comparison.
 The [Warehouse query measurements](warehouse-query-measurements.md) record a
 later bounded repair, exact native equivalence and its mixed small-case timings.
@@ -3840,8 +3842,8 @@ Household planning computes each prospective building's identity once per design
 before checking placed buildings for it. Each later query reads current reservations
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
-Layout, A* and shared route searches reuse the step legality just established by
-foot-neighbor enumeration when computing step costs. Public step costs and movement still
+Layout, A* and shared route searches reuse the step legality established just
+before computing step costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.

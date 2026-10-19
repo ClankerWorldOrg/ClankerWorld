@@ -30,17 +30,27 @@ export XDG_CONFIG_HOME="${scratch_root}/config"
 export XDG_DATA_HOME="${scratch_root}/data"
 export XDG_CACHE_HOME="${scratch_root}/cache"
 
+# Godot can exit successfully while reporting native objects left alive. Keep
+# its complete output visible, and fail specifically on shutdown allocations.
+run_godot() {
+    "$@" 2>&1 | tee "${scratch_root}/engine.log"
+    if grep -Eq 'ObjectDB instances were leaked at exit|RID allocations.*were leaked at exit|resources still in use at exit|RIDs? of type.*(was|were) leaked' "${scratch_root}/engine.log"; then
+        printf 'Godot left native resources alive at shutdown\n' >&2
+        return 1
+    fi
+}
+
 printf 'Building Godot C# scripts and starting the scene headlessly\n'
-"${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --build-solutions --quit
-"${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --quit-after 120
+run_godot "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --build-solutions --quit
+run_godot "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" --quit-after 120
 # Use fresh processes before the ordinary smoke: it has already opened profiles.
 # The external watchdog also detects a main thread that stops delivering frames.
 bash "${repo_root}/scripts/prepare-agent-profile-check-world.sh" "${scratch_root}/profile-world.json"
 for profile_window in 1280x720 1920x1080; do
-    timeout 120 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- \
+    run_godot timeout 120 "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- \
         --profile-open-smoke-test "--profile-snapshot=${scratch_root}/profile-world.json" "--profile-window=${profile_window}"
 done
-"${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --ui-smoke-test
-"${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --launcher-options-smoke-test --developer-mode --test-data --detailed-logs
+run_godot "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --ui-smoke-test
+run_godot "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" -- --launcher-options-smoke-test --developer-mode --test-data --detailed-logs
 printf 'Starting the launcher scene headlessly\n'
-"${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" res://Launcher/Launcher.tscn -- --launcher-smoke-test
+run_godot "${godot_bin}" --headless --path "${repo_root}/src/ClankerWorld.GodotClient" res://Launcher/Launcher.tscn -- --launcher-smoke-test
