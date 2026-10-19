@@ -68,14 +68,13 @@ public sealed partial class WorldRuntime
     private bool MayRequestToolAt(string actor, PlacedBuilding building, RecipeDefinition recipe)
     {
         var position = agents[actor].Position;
-        return MayStartToolRequest(actor) && building.HouseholdId is { } household && household != HouseholdFor(actor) &&
-            agents.Keys.Any(seller => IsAdult(seller) && HouseholdFor(seller) == household) &&
+        return recipe.WorkstationBuildingId == building.DefinitionId && ToolMakingRequestRules.IsToolRecipe(recipe) &&
             worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("blacksmith", StringComparer.Ordinal)) &&
-            (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) || KnowsMapFact(actor, building.Position)) &&
+            MayStartToolRequest(actor) && building.HouseholdId is { } household && household != HouseholdFor(actor) &&
+            agents.Keys.Any(seller => IsAdult(seller) && HouseholdFor(seller) == household) &&
             (IsWithinInteractionRange(position, building.Position, ResourceInteractionRange) ||
-                Reach(actor, building.Position, ReachPurpose.ToolRequest, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
-            recipe.WorkstationBuildingId == building.DefinitionId && ToolMakingRequestRules.IsToolRecipe(recipe) && ToolRequestWanted(actor, recipe) &&
-            !FindGoods(new(GoodsUse.ToolRequestStock, actor, GoodsOwners.One(household), GoodsKinds.One(recipe.Outputs[0].ResourceId), AtBuilding: building.InstanceId)).Matches.Any();
+                KnowsMapFact(actor, building.Position) && Reach(actor, building.Position, ReachPurpose.ToolRequest, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
+            ToolRequestWanted(actor, recipe) && !FindGoods(new(GoodsUse.ToolRequestStock, actor, GoodsOwners.One(household), GoodsKinds.One(recipe.Outputs[0].ResourceId), AtBuilding: building.InstanceId)).Matches.Any();
     }
 
     private IEnumerable<(PlacedBuilding Building, RecipeDefinition Recipe)> ToolRequestOptions(string actor) =>

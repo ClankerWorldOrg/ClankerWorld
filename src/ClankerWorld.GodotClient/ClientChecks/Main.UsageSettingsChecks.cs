@@ -153,7 +153,8 @@ public partial class Main
                 };
                 var oldRead = RefreshUsageAsync();
                 await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                ForgetLocalRegistration();
+                registrationStore.Forget();
+                registration = null;
                 Connect(newHost);
                 newHost.UsageHandler = () => Task.FromResult<OwnerUsageStatus?>(null);
                 await RefreshUsageAsync();
@@ -180,7 +181,6 @@ public partial class Main
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            pairingPanel.Hide();
             settingsPanel.Hide();
             ClosePauseMenu();
             ShowMainMenu();

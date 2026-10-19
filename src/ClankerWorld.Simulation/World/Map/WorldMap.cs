@@ -69,7 +69,9 @@ public sealed record WorldMap(
     /// </summary>
     public int FootTravelCost(GridPoint point) => !IsPassable(point)
         ? throw new ArgumentOutOfRangeException(nameof(point), "The tile cannot be crossed on foot.")
-        : IsBridgeDeck(point) ? 100
+        : LegalFootTravelCost(point);
+
+    private int LegalFootTravelCost(GridPoint point) => IsBridgeDeck(point) ? 100
         : IsRiverAt(point) ? IsOneTileRiverCrossing(point) ? 200 : TwoTileWadingFootCost
         : IsMountainAt(point) ? 200 : 100;
 
@@ -169,7 +171,7 @@ public sealed record WorldMap(
     // Only for a step just returned by FootNeighbors on this same map. Public
     // callers still validate the complete step, including river and bridge axes.
     internal int LegalFootStepCost(GridPoint origin, GridPoint destination) =>
-        checked(FootTravelCost(destination) * (IsDiagonalFootStep(origin, destination) ? 141 : 100) / 100);
+        checked(LegalFootTravelCost(destination) * (IsDiagonalFootStep(origin, destination) ? 141 : 100) / 100);
 
     private static readonly (int X, int Y)[] FootNeighborOffsets =
     [
@@ -326,13 +328,10 @@ public sealed record WorldMap(
         (byte)TerrainKind.Meadow or (byte)TerrainKind.Sand or
         (byte)TerrainKind.Forest or (byte)TerrainKind.Snow;
 
-    private bool IsOpenGroundAt(GridPoint point)
-    {
-        var terrain = TerrainAt(point);
-        if (!IsLandAt(point) || IsMountainAt(point) || IsPeakAt(point)) return false;
-        return HydrologyAt(point) is not null || ElevationAt(point) is not null ||
-            SurfaceAt(point) is not null || IsOpenGround(terrain);
-    }
+    private bool IsOpenGroundAt(GridPoint point) => IsLandAt(point) &&
+        (ElevationAt(point) is { } elevation ? elevation < MountainElevationThreshold :
+            TerrainAt(point) is not ((byte)TerrainKind.Mountain or (byte)TerrainKind.Peak) &&
+            (HydrologyAt(point) is not null || SurfaceAt(point) is not null || IsOpenGround(TerrainAt(point))));
 
     private bool IsLandAt(GridPoint point) => HydrologyAt(point) is { } water
         ? water == WaterKind.Land

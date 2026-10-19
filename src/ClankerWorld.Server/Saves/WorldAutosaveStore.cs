@@ -24,7 +24,7 @@ public sealed class WorldAutosaveStore
         path = Path.GetFullPath(activeSavePath) + ".autosave.json";
         if (File.Exists(path))
         {
-            state = JsonSerializer.Deserialize<WorldAutosaveSettings>(File.ReadAllBytes(path))
+            state = JsonSerializer.Deserialize<WorldAutosaveSettings>(SavedFile.Read(path))
                 ?? throw new InvalidDataException("Autosave settings are empty.");
             if (state.WorldId != worldId)
             {

@@ -6,7 +6,7 @@ using ClankerWorld.Server.Pairing;
 namespace ClankerWorld.Server.Providers;
 
 /// <summary>
-/// Runs one explicit, metered request through the same personal-model adapter
+/// Runs one explicit, metered request through the same model or helper adapter
 /// used by agents. It does not change provider configuration or try another
 /// request shape when a provider refuses the game's JSON response format.
 /// </summary>
@@ -54,23 +54,23 @@ public sealed class ProviderSetupCheckService(
         }
 
         var request = CreateRequest();
-        var provider = providerId == PlayerDecisionProviders.Anthropic
-            ? new OpenAiCompatibleDecisionProvider(
+        IDecisionProvider provider = providerId switch
+        {
+            PlayerDecisionProviders.Jev => new JevDecisionProvider(
+                httpClientFactory.CreateClient("typesafe"), () => apiKey,
+                PlayerDecisionProviders.JevEndpoint, model, RequestTimeout, request.ProviderEpoch),
+            PlayerDecisionProviders.Decisions => new OpenAiDecisionsProvider(
+                httpClientFactory.CreateClient("model"), () => apiKey,
+                model: model, requestTimeout: RequestTimeout, providerEpoch: request.ProviderEpoch),
+            PlayerDecisionProviders.Anthropic => new OpenAiCompatibleDecisionProvider(
                 new AnthropicModelClient(httpClientFactory.CreateClient("model"), apiKey),
-                model,
-                thinking,
-                RequestTimeout,
-                request.ProviderEpoch)
-            : new OpenAiCompatibleDecisionProvider(
-                httpClientFactory.CreateClient("model"),
-                () => apiKey,
+                model, thinking, RequestTimeout, request.ProviderEpoch),
+            _ => new OpenAiCompatibleDecisionProvider(
+                httpClientFactory.CreateClient("model"), () => apiKey,
                 providerId == PlayerDecisionProviders.OpenAi
-                    ? PlayerDecisionProviders.OpenAiEndpoint
-                    : PlayerDecisionProviders.OllamaCloudEndpoint,
-                model,
-                requestTimeout: RequestTimeout,
-                providerEpoch: request.ProviderEpoch,
-                thinking: thinking);
+                    ? PlayerDecisionProviders.OpenAiEndpoint : PlayerDecisionProviders.OllamaCloudEndpoint,
+                model, requestTimeout: RequestTimeout, providerEpoch: request.ProviderEpoch, thinking: thinking),
+        };
 
         CognitionDecisionResponse response;
         try
@@ -138,6 +138,7 @@ public sealed class ProviderSetupCheckService(
         if (!string.IsNullOrWhiteSpace(action.ApiKey))
             return action.ApiKey.Trim();
 
+        provider = PlayerDecisionProviders.HelperCredentialProvider(provider);
         if (action.CredentialSlotId is { } slotId)
         {
             var slot = runtime.CredentialSlots?.FirstOrDefault(item => item.Id == slotId && item.Provider == provider);
@@ -146,6 +147,7 @@ public sealed class ProviderSetupCheckService(
 
         var credential = provider switch
         {
+            PlayerDecisionProviders.Jev => runtime.Jev,
             PlayerDecisionProviders.OpenAi => runtime.OpenAi,
             PlayerDecisionProviders.OllamaCloud => runtime.OllamaCloud,
             _ => ProviderConfigurationStore.AnthropicCredential(runtime.Anthropic),

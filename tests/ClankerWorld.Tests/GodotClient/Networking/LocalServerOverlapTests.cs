@@ -74,6 +74,10 @@ public sealed partial class LocalServerTests
                     Content = System.Net.Http.Json.JsonContent.Create(new LocalServerLaunchCheckAnswer(
                         LocalServerLaunchCheck.Answer(previousSecret, request.Headers.GetValues(LocalServerLaunchCheck.ChallengeHeader).Single()))),
                 },
+                "/api/v1/approval/hosting" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = System.Net.Http.Json.JsonContent.Create(new HostStatus(0, false, false, "unspecified", false)),
+                },
                 _ => new HttpResponseMessage(AllowCleanup ? HttpStatusCode.OK : HttpStatusCode.Conflict),
             });
         }

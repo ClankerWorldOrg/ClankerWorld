@@ -1,0 +1,1 @@
+- Creating another world uses less temporary memory.

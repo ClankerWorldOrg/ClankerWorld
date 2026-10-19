@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
@@ -66,7 +67,7 @@ public sealed class TownLayoutContext
         Map = map;
         Town = town;
         OccupiedTiles = occupiedTiles.ToHashSet();
-        ReachableFootCosts = reachableFootCosts.ToDictionary(item => item.Key, item => item.Value);
+        ReachableFootCosts = reachableFootCosts.ToFrozenDictionary();
         if (ReachableFootCosts.Any(item => !map.Contains(item.Key) || item.Value < 0))
             throw new ArgumentException("Reachable site costs must be non-negative map positions.", nameof(reachableFootCosts));
         Resources = resources.ToArray();

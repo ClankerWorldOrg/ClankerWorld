@@ -6,12 +6,12 @@ internal sealed partial class TownSystem
 {
     private static string LandHearingJudgeActionToken(TownLandCase item, LandHearingJudgeKind kind) =>
         kind == LandHearingJudgeKind.Vote && item.Contest is { } contest
-            ? TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest) : TownLandHearingRules.RevisionToken(item);
+            ? DerivedId.Create(TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest)) : TownLandHearingRules.RevisionToken(item);
 
     internal static LandHearingJudgeActionPlan? PlanLandHearingJudge(ITownWorld world, string actor, LandHearingJudgeChoice choice)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
-            town.LandRecords.Cases.SingleOrDefault(item => CivicAgentToken(LandHearingJudgeActionToken(item, choice.Kind)) == choice.RevisionOrRoundToken) is not { } item) return null;
+            town.LandRecords.Cases.SingleOrDefault(item => LandHearingJudgeActionToken(item, choice.Kind) == choice.RevisionOrRoundToken) is not { } item) return null;
         var contest = item.Contest;
         return new(actor, choice, item.Id, TownLandHearingRules.CurrentRevision(item),
             item.JudgeConsents.SingleOrDefault(consent => consent.AgentId == actor && consent.WithdrawnTick is null), item.Judge,
@@ -32,7 +32,7 @@ internal sealed partial class TownSystem
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { } item ||
-            CivicAgentToken(LandHearingJudgeActionToken(item, plan.Choice.Kind)) != plan.Choice.RevisionOrRoundToken ||
+            LandHearingJudgeActionToken(item, plan.Choice.Kind) != plan.Choice.RevisionOrRoundToken ||
             TownLandHearingRules.RecordVersion(TownLandHearingRules.CurrentRevision(item)) != TownLandHearingRules.RecordVersion(plan.Revision) ||
             !TownLandHearingRules.HasNoticeReceipt(TownLandHearingRules.CurrentRevision(item), plan.Actor, world.WorldTick, town.Council.Knowledge))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected case, noticed revision or knowledge has changed");

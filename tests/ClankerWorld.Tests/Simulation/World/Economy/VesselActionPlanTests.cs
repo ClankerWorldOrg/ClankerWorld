@@ -83,6 +83,38 @@ public sealed class VesselActionPlanTests
         if (kind == VesselActionKind.StoreFood) Assert.Equal("a-vessel-plan-food", plan.Food!.StockId);
     }
 
+    [Theory]
+    [InlineData(false, 62)]
+    [InlineData(true, 63)]
+    public async Task RefillKeepsTheFirstEquallyNearOpenShoreAcrossReload(bool blockFirst, int expectedY)
+    {
+        var (state, actor) = await Fixture(VesselActionKind.FillJug);
+        var origin = new GridPoint(122, 64);
+        var first = new GridPoint(118, 62);
+        var second = new GridPoint(118, 63);
+        Assert.Equal(4, state.Map.FootDistance(origin, first));
+        Assert.Equal(4, state.Map.FootDistance(origin, second));
+        Assert.True(state.Map.IsPassable(first) && state.Map.IsPassable(second));
+        var blocker = state.Agents.First(person => person.AgentId != actor).AgentId;
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = origin } :
+                blockFirst && person.AgentId == blocker ? person with { Position = first } : person).ToArray(),
+        };
+        var choices = new Choices(actor, VesselActionKind.FillJug, choose: false);
+        using var world = WorldRuntime.Restore(state, _ => choices);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<VesselActionPlan>(choices.Plan);
+        Assert.Equal(new GridPoint(118, expectedY), plan.Shore);
+        Assert.Equal(plan.Shore, plan.Target);
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+        Assert.Equal(origin, world.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.ContainerLotId == plan.VesselId);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var strict = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(strict.ExportState()));
+    }
+
     private static async Task<(WorldRuntimeState State, string Actor)> Fixture(VesselActionKind kind, bool longVesselId = false)
     {
         using var initial = NormalPathWorld.CreateGenerated("vessel-action-plan", _ => new ActionCoverageRecorder(chooseIdle: true));

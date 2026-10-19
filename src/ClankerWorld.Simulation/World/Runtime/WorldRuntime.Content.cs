@@ -61,7 +61,8 @@ public sealed partial class WorldRuntime
         try
         {
             if (society.Checkpoint.IsPaused || contentRegistry.ExportState().Packages
-                .Any(package => package.Manifest.PackageId == StarterContent.PackageId))
+                .Any(package => package.Manifest.PackageId == StarterContent.PackageId) ||
+                contentRegistry.ExportState().Events.Any(item => item.PackageId == StarterContent.PackageId))
             {
                 // Never undo an owner's rollback or quarantine, or mutate a paused save.
                 return false;
@@ -93,17 +94,7 @@ public sealed partial class WorldRuntime
                 !society.Checkpoint.IsPaused || WorldTick != 0 ||
                 contentRegistry.ExportState().Packages.Count != 0)
                 throw new InvalidOperationException("Initial content is available only to a fresh paused generated world.");
-            ContentPackageManifest[] manifests =
-            [
-                StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseToolsContent.Create(),
-                WarehouseContent.Create(), FarmContent.Create(), BlacksmithContent.Create(),
-                HouseCookingContent.Create(), PotteryContent.Create(), SiloContent.Create(), TailorContent.Create(),
-                RestaurantContent.Create(), StoreContent.Create(), CareContent.Create(), OrnamentContent.Create(), TownHallContent.Create(),
-                KnowledgeContent.Create(), MarketContent.Create(), StreetLanternContent.Create(), PortContent.Create(),
-                FarmhouseVariantContent.Create(), BlacksmithVariantContent.Create(), TailorVariantContent.Create(),
-                ClinicVariantContent.Create(), RestaurantVariantContent.Create(), AnimalContent.Create(),
-            ];
-            foreach (var manifest in manifests)
+            foreach (var manifest in StarterContent.InitialTownManifests)
             {
                 var packages = contentRegistry.ExportState().Packages;
                 var resolution = ContentPackageResolver.Resolve(
@@ -526,6 +517,24 @@ public sealed partial class WorldRuntime
         {
             gate.Release();
         }
+    }
+
+    public void RemoveQuarantinedContent(string packageId, Action<WorldRuntimeState>? persist = null)
+    {
+        gate.Wait();
+        try
+        {
+            if (!society.Checkpoint.IsPaused)
+                throw new InvalidOperationException("Pause the world before removing content.");
+            using var proposed = RestoreCore(CaptureState(), providerFactory,
+                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
+            proposed.contentRegistry.RemoveQuarantined(packageId, WorldTick);
+            proposed.Validate();
+            ValidateStateForCodec(proposed.CaptureState());
+            persist?.Invoke(proposed.CaptureState());
+            CommitPreparedTick(proposed);
+        }
+        finally { gate.Release(); }
     }
 
     public DeclarativeWorldContentState WorldContent => worldContent;
