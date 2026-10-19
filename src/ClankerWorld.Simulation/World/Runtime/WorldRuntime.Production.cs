@@ -85,7 +85,7 @@ public sealed partial class WorldRuntime
             ? WorldContentSimulationRules.Footprint(definitions[farmhouse.DefinitionId], farmhouse.Position).ToArray()
             : [];
 
-    private Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
+    internal Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
         string agentId, GridPoint origin, TownRuntimeState? town,
         IReadOnlySet<GridPoint> occupiedSites, GridPoint? selectedSite)
     {
