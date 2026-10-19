@@ -4552,6 +4552,7 @@ and stores two named servings, leaving water jugs intact. A runnable named meal
 has priority over input replenishment, so one shared jug cannot shuttle between
 House and Restaurant indefinitely before anyone cooks. The trial cooked-food
 reserve is two servings per living household resident across prepared kinds.
+Recipe planning counts household residents only for that cooked-food target.
 Only loose meals and contents in usable vessels count toward that target;
 finished meals trapped in a broken pot do not suppress replacement cooking.
 A recipe that improves already prepared food, such as Restaurant meals from
