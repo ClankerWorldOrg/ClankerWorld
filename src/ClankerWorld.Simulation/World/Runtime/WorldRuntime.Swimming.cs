@@ -7,13 +7,14 @@ public sealed partial class WorldRuntime
     private bool IsSwimming(string actor, GridPoint position) =>
         PassengerBoat(actor) is null && SwimmingRules.IsSwimmingWater(map, position);
 
-    // Land entry checks equipment; a swimmer already in water can leave despite a changed condition.
     private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0) =>
-        PassengerBoat(actor) is null && (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position)
-            ? AttachedHandcart(actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor)
-            : SwimmingStartingCondition(actor, additionalCarriedUnits) &&
-              MovingCareGroup(actor).All(id => id == actor || SwimmingStartingCondition(id)) &&
-              !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor));
+        PassengerBoat(actor) is null && AttachedHandcart(actor) is null &&
+        !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor) &&
+        // A swimmer can always make their way out if their condition changes mid-crossing.
+        (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position) ||
+         SwimmingStartingCondition(actor, additionalCarriedUnits) &&
+         MovingCareGroup(actor).All(id => id == actor || SwimmingStartingCondition(id)) &&
+         !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor));
 
     private bool SwimmingStartingCondition(string actor, int additionalCarriedUnits = 0)
     {
