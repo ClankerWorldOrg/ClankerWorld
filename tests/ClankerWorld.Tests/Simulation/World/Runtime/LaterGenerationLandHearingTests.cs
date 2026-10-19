@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -8,6 +9,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class GrownAgentHelperMemoryTests
 {
+    private sealed record LaterFamilyPrefix(byte[] Running, byte[] Paused, FrozenDictionary<string, string> Names);
+    private static readonly Lazy<Task<LaterFamilyPrefix>> FamilyPrefix = new(CreateFamilyPrefixAsync);
     private static readonly Lazy<Task<byte[]>> LaterAdult = new(() => CreateLaterAdultAsync());
     private static readonly Lazy<Task<byte[]>> LaterHearingGovernment = new(async () =>
         await CreateNativeHearingGovernmentAsync(false, WorldRuntimeCodec.Decode(await LaterAdult.Value)));
@@ -140,6 +143,16 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task<byte[]> CreateLaterAdultAsync(int lastGeneration = 3, Action<int, byte[]>? recordAdult = null)
     {
+        var prefix = await FamilyPrefix.Value;
+        recordAdult?.Invoke(2, prefix.Running.ToArray());
+        if (lastGeneration == 2) return prefix.Paused.ToArray();
+        var choices = new LaterFamilyChoices();
+        foreach (var (actor, name) in prefix.Names) choices.Names.Add(actor, name);
+        return await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(prefix.Running), 3, lastGeneration, recordAdult, choices);
+    }
+
+    private static async Task<LaterFamilyPrefix> CreateFamilyPrefixAsync()
+    {
         var state = NativeHearingCalendar(WorldRuntimeCodec.Decode(await ConversationAdult.Value));
         var society = state.Society.Society;
         state = state with
@@ -160,16 +173,19 @@ public sealed partial class GrownAgentHelperMemoryTests
                 },
             },
         };
-        return await GrowLaterFamilyAsync(state, 2, lastGeneration, recordAdult);
+        var choices = new LaterFamilyChoices();
+        byte[]? running = null;
+        var paused = await GrowLaterFamilyAsync(state, 2, 2, (_, bytes) => running = bytes, choices);
+        return new(Assert.IsType<byte[]>(running), paused, choices.Names.ToFrozenDictionary(StringComparer.Ordinal));
     }
 
     private static async Task<byte[]> GrowLaterFamilyAsync(WorldRuntimeState state, int firstGeneration, int lastGeneration,
-        Action<int, byte[]>? recordAdult = null)
+        Action<int, byte[]>? recordAdult = null, LaterFamilyChoices? continuedChoices = null)
     {
         Assert.Equal(firstGeneration - 1, state.Society.Society.Births.Count);
-        var choices = new LaterFamilyChoices();
+        var choices = continuedChoices ?? new LaterFamilyChoices();
         using var world = WorldRuntime.Restore(state, _ => choices);
-        world.Resume();
+        if (state.Society.Society.IsPaused) world.Resume();
         var parent = world.Society.Births.OrderBy(item => item.CommittedTick).Last().ChildId;
         var society = state.Society.Society;
         for (var generation = firstGeneration; generation <= lastGeneration; generation++)
