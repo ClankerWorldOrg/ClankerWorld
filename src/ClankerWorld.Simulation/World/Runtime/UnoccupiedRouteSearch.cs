@@ -110,9 +110,8 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     {
         if (neighbors is null)
         {
-            foreach (var next in map.NeighborPositionsForSearch(current))
-                if (finishedOrder[Index(next)] < 0 && map.CanFootStep(current, next))
-                    VisitNeighbor(current, index, cost, next);
+            foreach (var next in map.FootNeighborsForSearch(current))
+                VisitNeighbor(current, index, cost, next);
             return;
         }
 
@@ -127,7 +126,9 @@ public sealed class UnoccupiedRouteSearch : IDisposable
             map.IsDiagonalFootStep(current, next) &&
             (occupied.Contains(new GridPoint(next.X, current.Y)) ||
              occupied.Contains(new GridPoint(current.X, next.Y))))
+        {
             return;
+        }
 
         var nextCost = checked(cost + stepCost(current, next));
         var nextIndex = Index(next);
