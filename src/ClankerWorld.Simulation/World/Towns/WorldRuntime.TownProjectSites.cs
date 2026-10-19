@@ -106,8 +106,8 @@ public sealed partial class WorldRuntime
 
     private void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        // Every Town project building is communal, so all of them read the same occupied tiles and foot
-        // routes, and all of their site checks read the same world tiles: gather each once, when first needed.
+        // Communal project layouts share occupied tiles and foot routes. Port checks and lantern
+        // ranking also share the site facts they need within this query; final validation gathers its own.
         // A basis built for another kind of building is refused by CreateTownLayoutContext.
         var basis = new Lazy<TownLayoutBasis>(() => CreateTownLayoutBasis(actor, building: TownHallContent.Hall3x4()),
             LazyThreadSafetyMode.None);
