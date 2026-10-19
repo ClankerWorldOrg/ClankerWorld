@@ -15,8 +15,8 @@ public sealed partial class WorldRuntime
     private int RoadStepCost(GridPoint from, GridPoint to) =>
         RoadRoutePlanner.AdjustFootCost(map.FootStepCost(from, to), IsRoadSurface(from) && IsRoadSurface(to));
 
-    // Route searches obtain legal edges from FootNeighbors immediately before
-    // costing them; movement and other callers keep the validating entry point.
+    // Route searches validate walking edges immediately before costing them;
+    // movement and other callers keep the validating entry point.
     private int LegalRoadStepCost(GridPoint from, GridPoint to) =>
         RoadRoutePlanner.AdjustFootCost(map.LegalFootStepCost(from, to), IsRoadSurface(from) && IsRoadSurface(to));
 
