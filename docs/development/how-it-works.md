@@ -3792,8 +3792,10 @@ Layout queries freeze their walking-cost dictionary and occupied tiles once.
 Contexts reuse both immutable inputs; mutable external inputs are still copied
 and all costs validated. Cost and occupied-tile lookups retain ordinary coordinate
 equality even when external inputs use custom comparers.
-`TownLayoutService` captures one immutable layout context per decision and
-normally offers at most five legal sites with reasons for footprint, route,
+Household offers share these inputs across designs; Silo contexts keep their
+Farmhouse-neighbor rule.
+`TownLayoutService` ranks designs in immutable layout contexts and normally
+offers at most five legal sites with reasons for footprint, route,
 resources, purpose and compact growth. A model selects a site-specific candidate
 or chooses another action; refusal starts no project. Accepted projects retain
 their tile. If it becomes illegal, the project blocks and retries after sixty

@@ -1,0 +1,1 @@
+- Reuse household construction route costs across building offers while keeping Silos beside their Farmhouse.
