@@ -3814,8 +3814,8 @@ Purpose scoring filters related buildings once per context and keeps its
 distance, building-ID and tag tie rules. Border-growth scoring counts the same
 rounded footprint margin that actual placement adds, without sorting those
 tiles for every candidate.
-Site evaluation checks an origin that belongs to the footprint before allocating
-the complete tile array. An already blocked origin refuses the site; custom
+Site evaluation first checks an origin that belongs to the footprint.
+An already blocked origin refuses the site; custom
 shapes that omit it still check only their covered tiles. Clearance and required
 Town titles share one footprint walk. Market Road permissions, protected tiles
 and later route and ranking checks retain their existing rules. See [footprint query measurements](footprint-query-measurements.md)
