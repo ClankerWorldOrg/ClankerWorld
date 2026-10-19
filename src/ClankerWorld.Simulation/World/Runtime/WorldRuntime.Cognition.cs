@@ -1004,22 +1004,18 @@ public sealed partial class WorldRuntime
         }
         var context = new ChoiceContext(candidates, agentId, state, currentConversation is not null);
         AddRegisteredChoices(ChoiceGroup.Prelude, context);
-        if (IsAdult(agentId))
-        {
-            AddRegisteredChoices(ChoiceGroup.Adult, context);
-            if (NeedsUrgentFood(state))
-                AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
-            else
-                AddRegisteredChoices(ChoiceGroup.UnhurriedAdult, context with
-                {
-                    Agent = society.Checkpoint.GetAgent(agentId),
-                    ReachableTools = new(),
-                    AccessibleWarehouses = new(() => WarehousesAccessibleTo(agentId).ToArray(), LazyThreadSafetyMode.None),
-                    BuildingsWithoutSites = [],
-                });
-        }
-        else if (!NeedsUrgentWarmth(state) && IsChild(agentId))
-            AddRegisteredChoices(ChoiceGroup.Child, context);
+        var adult = IsAdult(agentId);
+        if (adult) AddRegisteredChoices(ChoiceGroup.Adult, context);
+        if (!NeedsUrgentWarmth(state) && IsChild(agentId)) AddRegisteredChoices(ChoiceGroup.Child, context);
+        if (!NeedsUrgentFood(state) && adult)
+            AddRegisteredChoices(ChoiceGroup.UnhurriedAdult, context with
+            {
+                Agent = society.Checkpoint.GetAgent(agentId),
+                ReachableTools = new(),
+                AccessibleWarehouses = new(() => WarehousesAccessibleTo(agentId).ToArray(), LazyThreadSafetyMode.None),
+                BuildingsWithoutSites = [],
+            });
+        if (NeedsUrgentFood(state) && adult) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
         AddRegisteredChoices(ChoiceGroup.Final, context);
         if (restrictForOrder && PendingInstructionFor(agentId) is { } order)
             return RestrictCandidatesForOrder(candidates, order, state);
