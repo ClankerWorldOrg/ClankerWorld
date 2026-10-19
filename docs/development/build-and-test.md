@@ -99,6 +99,11 @@ Guardian-care fixtures share strict checkpoint bytes for infant and older-child
 setups. Each variant keeps all 605 native birth ticks, naming and parent deaths;
 every caller decodes fresh state and uses independent runtimes and providers.
 
+Parenthood fixtures reuse strict bytes after their five native setup ticks,
+real shelter placement and accepted partnership. Each caller decodes fresh
+state before its own changes; birth and age windows, rollback, provider and
+replay checks remain unchanged.
+
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
 clocks are rescaled together. Later-generation family growth keeps its forty-tick test
