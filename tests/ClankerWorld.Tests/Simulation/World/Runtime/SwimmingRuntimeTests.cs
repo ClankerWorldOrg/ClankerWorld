@@ -164,6 +164,9 @@ public sealed class SwimmingRuntimeTests
         for (var tick = 0; tick < 24 && !world.ExportState().Map.IsPassable(Position(world)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Map.IsPassable(Position(world)));
+        Assert.Equal(new GridPoint(4, 2), Position(world));
+        Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!,
+            order => order.IdempotencyKey == "leave-water").Task!.Status);
         Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
