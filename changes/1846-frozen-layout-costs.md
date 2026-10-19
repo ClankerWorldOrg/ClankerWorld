@@ -1,0 +1,1 @@
+- Town construction planning uses less temporary memory.
