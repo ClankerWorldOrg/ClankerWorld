@@ -4388,6 +4388,9 @@ Walking to a known Blacksmith, continuing accepted work and opening a quote
 for a completed tool retain their routine priorities. Opening the quote does
 not accept payment or transfer goods; the existing barter consent checks apply.
 
+Planning rejects unrelated workstation recipes before seller and route queries.
+Fresh consent uses the same complete eligibility rule.
+
 The accepted worker produces with actual household-owned inputs at the named
 Blacksmith and its normal output-space reservations. The finished tool remains
 household property. The request references the real production job and output;
