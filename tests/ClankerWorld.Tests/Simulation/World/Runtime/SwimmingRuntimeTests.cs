@@ -91,6 +91,48 @@ public sealed class SwimmingRuntimeTests
         Assert.Equal(1, order.CompletedUnits);
     }
 
+    [Fact]
+    public async Task NativeRoadApproachAndSwimmingKeepTheirStepDelaysAcrossReplay()
+    {
+        var approach = new GridPoint(83, 80);
+        var bank = new GridPoint(84, 80);
+        var water = new GridPoint(85, 80);
+        var state = CrossingState(bank, "traffic-bridge-0");
+        Assert.True(state.Map.CanFootStep(approach, bank));
+        Assert.True(SwimmingRules.IsSwimmingWater(state.Map, water));
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == Actor
+                ? person with { Position = approach } : person).ToArray(),
+            RoadTiles = state.RoadTiles!.Append(approach).Append(bank).Distinct().ToArray(),
+        };
+        var baseline = WorldRuntimeCodec.Encode(state);
+        using var world = Restore(WorldRuntimeCodec.Decode(baseline));
+        using var replay = Restore(WorldRuntimeCodec.Decode(baseline));
+        var instruction = new OwnerInstructionRequest("road-into-water", "owner:test", Actor,
+            OwnerInstructionKind.Order, "Move to tile (85, 80)");
+        world.SubmitInstruction(instruction);
+        replay.SubmitInstruction(instruction);
+        var visited = new List<GridPoint>();
+        var previous = approach;
+        for (var tick = 0; tick < 16 && Position(world) != water; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+            var person = world.Agents.Single(person => person.AgentId == Actor);
+            if (person.Position == previous) continue;
+            visited.Add(person.Position);
+            Assert.Equal(person.Position == bank ? 0 : 7, person.TravelCooldownTicks);
+            previous = person.Position;
+        }
+        Assert.Equal(new[] { bank, water }, visited);
+        Assert.Throws<ArgumentOutOfRangeException>(() => world.ExportState().Map.FootStepCost(approach, water));
+        var saved = WorldRuntimeCodec.Encode(world.ExportState());
+        using var loaded = Restore(WorldRuntimeCodec.Decode(saved));
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded.ExportState()));
+    }
+
     [Theory]
     [InlineData(1_000, 0, 0)]
     [InlineData(10_000, 3_000, 0)]
