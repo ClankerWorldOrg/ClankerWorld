@@ -664,6 +664,8 @@ internal sealed class TownProjectScenario : IDisposable
             Assert.Equal(TownHearingProcedure.Digest(proposal.Project), TownHearingProcedure.Digest(plan.Project));
             Assert.Equal(plan.Actor, proposal.AuthorId);
         });
+        Assert.Equal(scenario.InitialLayerDigest,
+            MapLayerManifestCodec.Digest(scenario.World.ExportState().Map));
         return WorldRuntimeCodec.Encode(scenario.World.ExportState());
     }
 
