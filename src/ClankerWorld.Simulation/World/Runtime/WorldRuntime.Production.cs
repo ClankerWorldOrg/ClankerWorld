@@ -104,26 +104,25 @@ public sealed partial class WorldRuntime
             anchors = anchors.Contains(chosenSite) ? [chosenSite] : [];
         var pendingAnchors = anchors?.Where(point => map.IsBuildable(point) && !occupiedSites.Contains(point))
             .ToHashSet();
-        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
-        // Layout searches can visit most of a generated map. Keep tentative
-        // costs in a rented tile array rather than allocating a second map-sized
-        // dictionary alongside the settled costs every time a layout is built.
+        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X)>();
+        // Layout searches can visit most of a generated map. The rented array
+        // stores tentative costs, -1 for unseen tiles and -2 for settled tiles,
+        // avoiding a second map-sized dictionary and settled membership lookups.
         var tileCount = checked(map.Width * map.Height);
         var settled = new Dictionary<GridPoint, int>();
         var viableLegacyAnchors = 0;
-        var order = 0;
         var buildings = MovementBuildings;
         var best = ArrayPool<int>.Shared.Rent(tileCount);
         try
         {
             Array.Fill(best, -1, 0, tileCount);
             best[origin.Y * map.Width + origin.X] = 0;
-            open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+            open.Enqueue(origin, (0, origin.Y, origin.X));
             while (open.TryDequeue(out var current, out var priority))
             {
-                if (priority.Cost != best[current.Y * map.Width + current.X])
+                if (!settled.TryAdd(current, priority.Cost))
                     continue;
-                settled[current] = priority.Cost;
+                best[current.Y * map.Width + current.X] = -2;
                 if (pendingAnchors is null)
                 {
                     if (map.IsBuildable(current) && !occupiedSites.Contains(current))
@@ -138,7 +137,8 @@ public sealed partial class WorldRuntime
                     break;
                 foreach (var next in map.NeighborPositionsForSearch(current))
                 {
-                    if (settled.ContainsKey(next) || !map.CanFootStep(current, next) ||
+                    var index = next.Y * map.Width + next.X;
+                    if (best[index] == -2 || !map.CanFootStep(current, next) ||
                         !buildings.CanStep(map, current, next) || occupied.Contains(next) ||
                         map.IsDiagonalFootStep(current, next) &&
                         (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -146,11 +146,10 @@ public sealed partial class WorldRuntime
                         continue;
 
                     var cost = checked(priority.Cost + LegalRoadStepCost(current, next));
-                    var index = next.Y * map.Width + next.X;
                     if (best[index] >= 0 && best[index] <= cost)
                         continue;
                     best[index] = cost;
-                    open.Enqueue(next, (cost, next.Y, next.X, order++));
+                    open.Enqueue(next, (cost, next.Y, next.X));
                 }
             }
             return settled;
