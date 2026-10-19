@@ -1,1 +1,2 @@
 - Town construction planning uses less temporary memory.
+- Construction plans no longer treat an unlisted site as reachable when a supplied cost map uses a custom comparer.

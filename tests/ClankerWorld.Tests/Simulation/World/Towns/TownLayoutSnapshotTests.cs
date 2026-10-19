@@ -45,6 +45,28 @@ public sealed class TownLayoutSnapshotTests
         Assert.Equal("reachableFootCosts", error.ParamName);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WalkingCostSnapshotsKeepOrdinaryCoordinateEquality(bool frozen)
+    {
+        var map = Meadow(8);
+        var stored = new GridPoint(2, 2);
+        var unlisted = new GridPoint(2, 3);
+        var comparer = EqualityComparer<GridPoint>.Create((left, right) => left.X == right.X, point => point.X);
+        var mutable = new Dictionary<GridPoint, int>(comparer) { [stored] = 100 };
+        IReadOnlyDictionary<GridPoint, int> input = frozen ? mutable.ToFrozenDictionary(comparer) : mutable;
+        Assert.True(input.ContainsKey(unlisted));
+        Assert.DoesNotContain(input.Keys, point => point == unlisted);
+        var town = new TownRuntimeState("town:layout", "Layout", "founded", 0, [], [], [stored]);
+        var context = new TownLayoutContext(map, town, [], input, [], []);
+        Assert.Contains(unlisted, context.CandidateAnchors);
+        Assert.Single(context.ReachableFootCosts);
+        Assert.Equal(100, context.ReachableFootCosts[stored]);
+        Assert.False(context.ReachableFootCosts.ContainsKey(unlisted));
+        Assert.False(context.ReachableFootCosts.TryGetValue(unlisted, out _));
+    }
+
     private static WorldMap Meadow(int size) => new(size, size, 0,
         (from y in Enumerable.Range(0, size)
          from x in Enumerable.Range(0, size)
