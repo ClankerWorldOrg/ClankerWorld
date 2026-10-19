@@ -37,6 +37,10 @@ public sealed partial class WorldRuntime
         SwimmingRules.IsSwimmingWater(map, from) || SwimmingRules.IsSwimmingWater(map, to)
             ? SwimmingRules.StepCost : RoadStepCost(from, to);
 
+    private int LegalAgentStepCost(GridPoint from, GridPoint to) =>
+        SwimmingRules.IsSwimmingWater(map, from) || SwimmingRules.IsSwimmingWater(map, to)
+            ? SwimmingRules.StepCost : LegalRoadStepCost(from, to);
+
     // Plan from the tile where the real pickup will happen, including an
     // interaction beside a resource or storage building. No inventory is changed.
     private GridPoint? PickupPosition(string actor, GridPoint source, int sourceRange)
