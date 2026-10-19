@@ -109,13 +109,9 @@ public sealed record WorldMap(
         return horizontal == 1 && Math.Abs(origin.Y - destination.Y) == 1;
     }
 
-    public bool CanFootStep(GridPoint origin, GridPoint destination) => CanFootStep(origin, destination, adjacent: false);
-
-    // Neighbor offsets prove adjacency, except for a self-step on a one-column wrap.
-    private bool CanFootStep(GridPoint origin, GridPoint destination, bool adjacent)
+    public bool CanFootStep(GridPoint origin, GridPoint destination)
     {
-        if (!IsPassable(origin) || !IsPassable(destination) ||
-            (adjacent ? origin == destination : FootDistance(origin, destination) != 1))
+        if (!IsPassable(origin) || !IsPassable(destination) || FootDistance(origin, destination) != 1)
             return false;
         if (BridgeDecks is { } decks)
         {
@@ -238,7 +234,7 @@ public sealed record WorldMap(
                 }
                 // Walking checks the live map for each step; raw adjacency leaves
                 // legality to its search. Neither caches walkability or bridge axes.
-                if (footSteps ? !map.CanFootStep(origin, next, adjacent: true) : !map.Contains(next)) continue;
+                if (footSteps ? !map.CanFootStep(origin, next) : !map.Contains(next)) continue;
                 Current = next;
                 return true;
             }
