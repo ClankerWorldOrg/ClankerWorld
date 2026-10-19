@@ -576,7 +576,21 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(ToolMakingRequestStatus.Interrupted, request.Status);
         Assert.Null(request.JobId);
         Assert.Equal(3, placing.Society.Inventory.GetLot("request-payment").Quantity);
-        _ = Roundtrip(placing);
+        state = Roundtrip(placing);
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == buyer
+                ? person with { LastDecisionContext = null } : person).ToArray(),
+        };
+        var choices = new RequestChoices("tool_request_place:");
+        using var continued = Restore(state, buyer, seller, choices, new RequestChoices());
+        Assert.True((await continued.AdvanceOneTickAsync()).Advanced);
+        Assert.Contains(choices.Offered, candidate => candidate.Id == "safe_idle");
+        Assert.DoesNotContain(choices.Offered, candidate => candidate.ActionPlan is ToolRequestConsentActionPlan
+        { Choice.Kind: ToolRequestConsentKind.Place } plan && plan.Shop.InstanceId == shop.InstanceId);
+        Assert.Equal(ToolMakingRequestStatus.Interrupted, Assert.Single(continued.ToolMakingRequests).Status);
+        Assert.Equal(3, continued.Society.Inventory.GetLot("request-payment").Quantity);
+        _ = Roundtrip(continued);
     }
 
     [Theory]
