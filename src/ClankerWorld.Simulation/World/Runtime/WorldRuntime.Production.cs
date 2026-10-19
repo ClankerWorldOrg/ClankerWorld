@@ -85,7 +85,7 @@ public sealed partial class WorldRuntime
             ? WorldContentSimulationRules.Footprint(definitions[farmhouse.DefinitionId], farmhouse.Position).ToArray()
             : [];
 
-    private Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
+    internal Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
         string agentId, GridPoint origin, TownRuntimeState? town,
         HashSet<GridPoint> occupiedSites, GridPoint? selectedSite)
     {
@@ -111,8 +111,6 @@ public sealed partial class WorldRuntime
         var tileCount = checked(map.Width * map.Height);
         var settled = new Dictionary<GridPoint, int>();
         var viableLegacyAnchors = 0;
-        var selectedSiteReached = selectedSite is null ||
-            pendingAnchors is not null && pendingAnchors.Count == 0;
         var order = 0;
         var buildings = MovementBuildings;
         var best = ArrayPool<int>.Shared.Rent(tileCount);
@@ -126,17 +124,16 @@ public sealed partial class WorldRuntime
                 if (priority.Cost != best[current.Y * map.Width + current.X])
                     continue;
                 settled[current] = priority.Cost;
-                if (current == selectedSite)
-                    selectedSiteReached = true;
                 if (pendingAnchors is null && map.IsBuildable(current) && !occupiedSites.Contains(current))
                     viableLegacyAnchors++;
                 pendingAnchors?.Remove(current);
-                if (selectedSite is not null ? selectedSiteReached :
+                if (selectedSite is not null ? current == selectedSite || pendingAnchors?.Count == 0 :
                     pendingAnchors?.Count == 0 || pendingAnchors is null && viableLegacyAnchors >= 32)
                     break;
-                foreach (var next in map.FootNeighborsForSearch(current))
+                foreach (var next in map.NeighborPositionsForSearch(current))
                 {
-                    if (!buildings.CanStep(map, current, next) || occupied.Contains(next) ||
+                    if (settled.ContainsKey(next) || !map.CanFootStep(current, next) ||
+                        !buildings.CanStep(map, current, next) || occupied.Contains(next) ||
                         map.IsDiagonalFootStep(current, next) &&
                         (occupied.Contains(new GridPoint(next.X, current.Y)) ||
                          occupied.Contains(new GridPoint(current.X, next.Y))))

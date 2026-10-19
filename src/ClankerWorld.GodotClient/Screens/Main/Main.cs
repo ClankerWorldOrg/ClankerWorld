@@ -326,6 +326,10 @@ public partial class Main : Control
         UiTheme.Changed -= ApplyThemeColors;
         deviceKey?.Dispose();
         httpClient.Dispose();
+        // Failure dialogs join the tree only when shown; the retained address
+        // control has no panel. The scene tree cannot free unparented nodes.
+        foreach (var node in new Node[] { launcherStartFailure, localServerFailure, localServerStopFailure, serverUrlInput })
+            if (node.GetParent() is null) node.Free();
         base._ExitTree();
     }
 
