@@ -148,9 +148,12 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         if (interactionRange < 0) return first;
         var top = Math.Max(0L, (long)destination.Y - interactionRange);
         var bottom = Math.Min(map.Height - 1L, (long)destination.Y + interactionRange);
+        var boundColumns = !map.WrapsEastWest && map.Contains(destination);
+        var left = boundColumns ? Math.Max(0L, (long)destination.X - interactionRange) : 0;
+        var right = boundColumns ? Math.Min(map.Width - 1L, (long)destination.X + interactionRange) : map.Width - 1L;
         for (var y = (int)top; y <= bottom; y++)
         {
-            for (var x = 0; x < map.Width; x++)
+            for (var x = (int)left; x <= right; x++)
             {
                 var index = y * map.Width + x;
                 if (finishedOrder[index] < 0 || first >= 0 && finishedOrder[index] >= finishedOrder[first] ||
