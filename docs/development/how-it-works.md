@@ -3772,6 +3772,8 @@ and any new one- or two-tile river crossings validate before commitment.
 Inter-Town search uses admissible distance bounds to direct it toward the
 selected Town within the existing 32,768-tile search budget; local side streets
 keep Dijkstra ordering.
+Road and attached-cart queues use row-major tile indices after their existing
+score/cost fields, preserving row/column ties without enqueue counters.
 `town_road_linked` records the selected pair; `town_road_link_unconnected`
 records a refused route. A failed link does not choose a farther Town. These
 inter-Town Roads use the ordinary saved Road tiles and bridge records, keep the
