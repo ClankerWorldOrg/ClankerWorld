@@ -45,6 +45,10 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal("build:recipe:" + recipe.CanonicalId, project.CandidateId);
         var plan = Assert.Single(plans);
         Assert.Equal((recipe.CanonicalId, shop.InstanceId, shop.HouseholdId), (plan.Recipe.CanonicalId, plan.Workstation.InstanceId, plan.OwnerId));
+        Assert.Equal(shop.InstanceId, plan.RequiredStorageBuildingId);
+        Assert.False(plan.RequireCarried);
+        var plannedInput = Assert.Single(plan.Inputs!);
+        Assert.Equal(("smith-input", 1), (plannedInput.LotId, plannedInput.Quantity));
         for (var tick = 0; tick < 64 && !world.WorldSimulation.ProductionJobs.Any(job => job.WorkerId == smith && job.RecipeId == recipe.CanonicalId); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var job = Assert.Single(world.WorldSimulation.ProductionJobs, job => job.WorkerId == smith && job.RecipeId == recipe.CanonicalId);

@@ -1082,8 +1082,7 @@ public sealed partial class WorldRuntime
                 continue;
             }
             var householdWorkstation = recipe.WorkstationBuildingId is { } workstationId &&
-                worldContent.Buildings.Any(definition => definition.CanonicalId == workstationId &&
-                    definition.Tags.Any(IsHouseholdBuildingTag));
+                worldContent.BuildingDefinitions.TryGetValue(workstationId, out var workstation) && IsHouseholdLayout(workstation);
             var personalCart = IsHandcartRecipe(recipe);
             var recipeOwner = personalCart ? agent.Id : ProductionOwnerFor(null, agent.Id);
             if (personalCart && (!HasCarriedUnreservedQuantities(agent.Id, recipe.Inputs) ||

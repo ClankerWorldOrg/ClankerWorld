@@ -4203,8 +4203,9 @@ calls, failing if these offers disappear or cross households. The owner's direct
 production request checks the same workstation ownership and age. Crop
 recipes are refused; crops need tilled land, a hoe and real planting stock.
 
-For workstation recipes, site selection checks the actor’s current walking route as well as
-ownership and unused production capacity. An occupied or inaccessible workstation
+Recipe planning classifies workstations through the immutable canonical-ID
+definition lookup and shared household-layout rule. Site selection checks the
+actor’s current walking route, ownership and unused production capacity. An occupied or inaccessible workstation
 does not hide another reachable one. Movement’s existing diagonal and household
 access rules still apply. If no site is reachable, an existing project uses its
 blocked/reconsideration path rather than travelling toward an unreachable tile.
