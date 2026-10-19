@@ -66,7 +66,7 @@ public sealed class TownLayoutContext
 
         Map = map;
         Town = town;
-        OccupiedTiles = occupiedTiles.ToHashSet();
+        OccupiedTiles = occupiedTiles.ToFrozenSet();
         ReachableFootCosts = reachableFootCosts.ToFrozenDictionary();
         if (ReachableFootCosts.Any(item => !map.Contains(item.Key) || item.Value < 0))
             throw new ArgumentException("Reachable site costs must be non-negative map positions.", nameof(reachableFootCosts));
