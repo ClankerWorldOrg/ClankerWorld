@@ -177,7 +177,9 @@ A codec-matched recipe row precedes the construction row; invalid legacy
 targets retain their existing project rejection through the fallback handler.
 
 Choice sources retain their original adult, child and urgent-needs groups,
-including both Market calls and their different gates. Exclusive boat and
+including both Market calls and their different gates. Adult eligibility is
+resolved once per offer query and reused without changing the group order.
+Exclusive boat and
 conversation choices, order restriction and refused-action filtering stay at
 their existing points. Construction sources share the same per-call tool,
 warehouse and rejected-site context. Action routes retain ordinal prefixes,
