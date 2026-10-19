@@ -3803,8 +3803,11 @@ Material scoring searches at most five map tiles from a site, including the
 east-west seam; farther resources cannot change its rank. Recipe and expansion
 input checks share reachable-tool results and a lazily collected accessible
 Warehouse list only within one agent's read-only candidate query. Stock
-quantities and reservations are still read for each input. Project-input source
-scans check the required resource kind before looking up its availability by ID;
+quantities and reservations are still read for each input.
+Recipe planning also gathers placed workstation definitions once per query and
+shares its read-only warmth result with household-building eligibility.
+Ownership, input stock, capacity and routes still pass their later live checks.
+Project-input source scans check the required resource kind before looking up its availability by ID;
 wood still accepts construction sources. Matching sources keep their current
 ecology quantity, foot or swimming reachability and tool checks. This only
 reorders read-only filters, with no cache or saved-state change. The
