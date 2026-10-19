@@ -18,6 +18,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, GridPoint, int> stepCost;
     private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly bool swimming;
     private readonly Func<GridPoint, GridPoint, bool>? canStep;
     private readonly Func<GridPoint, GridPoint, bool>? canStop;
     private readonly int[] best;
@@ -37,6 +38,20 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     public UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
         Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
         Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
+        : this(map, origin, occupied, stepCost, neighbors, canStep, canStop, false)
+    {
+    }
+
+    internal UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
+        Func<GridPoint, GridPoint, int> stepCost, bool swimming,
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
+        : this(map, origin, occupied, stepCost, null, canStep, canStop, swimming)
+    {
+    }
+
+    private UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
+        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors,
+        Func<GridPoint, GridPoint, bool>? canStep, Func<GridPoint, GridPoint, bool>? canStop, bool swimming)
     {
         this.map = map ?? throw new ArgumentNullException(nameof(map));
         this.occupied = occupied ?? throw new ArgumentNullException(nameof(occupied));
@@ -44,6 +59,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         this.neighbors = neighbors;
         this.canStep = canStep;
         this.canStop = canStop;
+        this.swimming = swimming;
         if (!map.Contains(origin))
             throw new ArgumentOutOfRangeException(nameof(origin));
         Origin = origin;
@@ -109,8 +125,9 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     {
         if (neighbors is null)
         {
-            foreach (var next in map.FootNeighborsForSearch(current))
-                VisitNeighbor(current, index, cost, next);
+            foreach (var next in swimming ? map.NeighborPositionsForSearch(current) : map.FootNeighborsForSearch(current))
+                if (!swimming || SwimmingRules.CanStep(map, current, next))
+                    VisitNeighbor(current, index, cost, next);
             return;
         }
 
