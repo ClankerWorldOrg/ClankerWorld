@@ -436,6 +436,8 @@ Original building footprints, expanded footprints and protected Port
 tiles remain separate choices. Occupancy is recomputed from current snapshots;
 no layer cache, saved field or tick phase is added. The immutable declarative
 content snapshot supplies one read-only definition index shared by these queries.
+Checked footprint layers share one definition lookup; project layers share the
+active-building-plan selection while keeping footprints, entrances and Port docking tiles in order.
 To add a new obstacle kind, define its layer here and explicitly select it in
 the queries whose rules need it.
 
