@@ -220,7 +220,8 @@ public static class OwnerHttpBinding
         '\n',
         "clankerworld.owner-manual-save.v1",
         $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"value={EncodeRequired(action.Value, nameof(action.Value))}");
+        $"value={EncodeRequired(action.Value, nameof(action.Value))}") +
+        (action.ModelSettingsApproval is null ? string.Empty : "\nmodel-settings=" + EncodeRequired(action.ModelSettingsApproval, nameof(action.ModelSettingsApproval)));
 
     public const string WorldCreationPayloadDomain = "clankerworld.owner-world-creation.v3";
     public const string AgentPlacementPayloadDomain = "clankerworld.owner-agent-placement.v2";
@@ -351,13 +352,17 @@ public static class OwnerHttpBinding
             $"check-key={action.CheckKey.ToString().ToLowerInvariant()}");
     }
 
+    public const string HelperSetupCheckPayloadDomain = "clankerworld.owner-helper-setup-check.v1";
+
     public static string ProviderSetupCheckPayload(OwnerProviderSetupCheckAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         _ = ModelThinking.Normalize(action.Thinking);
         var provider = PlayerDecisionProviders.Normalize(action.Provider);
-        if (!PlayerDecisionProviders.IsModelProvider(provider))
-            throw new ArgumentException("Choose OpenAI, Ollama Cloud or Anthropic for a personal model check.", nameof(action));
+        if (!PlayerDecisionProviders.IsModelProvider(provider) && provider is not ("jev" or "decisions"))
+            throw new ArgumentException("Choose a personal model provider, Jev or OpenAI Decisions for a setup check.", nameof(action));
+        if (provider is "jev" or "decisions" && action.Thinking is not null)
+            throw new ArgumentException("Routine helpers do not use a Thinking setting.", nameof(action));
         ArgumentException.ThrowIfNullOrWhiteSpace(action.Model);
         if (action.Model.Length > 200 || action.Model.Any(char.IsControl))
             throw new ArgumentException("Model names must be 200 characters or fewer and contain no control characters.", nameof(action));

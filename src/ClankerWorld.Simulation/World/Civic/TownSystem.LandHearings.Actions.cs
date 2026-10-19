@@ -245,8 +245,8 @@ internal sealed partial class TownSystem
             AddTownLandHearingCandidates(world, candidates, actor, currentTown);
             if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
                 throw new InvalidOperationException("The hearing choice no longer has current authority or informed eligibility.");
-            item = hearings.Cases.Single(item => CivicAgentToken(TownLandHearingRules.RevisionToken(item)) == subject ||
-                item.Contest is { } contest && CivicAgentToken(TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest)) == subject);
+            item = hearings.Cases.Single(item => LandHearingJudgeActionToken(item, LandHearingJudgeKind.Register) == subject ||
+                item.Contest is not null && LandHearingJudgeActionToken(item, LandHearingJudgeKind.Vote) == subject);
         }
         var revision = TownLandHearingRules.CurrentRevision(item);
         var parties = LandHearingParties(world, currentTown, revision.Tiles, item);

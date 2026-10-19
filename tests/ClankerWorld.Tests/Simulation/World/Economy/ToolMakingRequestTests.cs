@@ -14,6 +14,10 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ToolMakingRequestTests
 {
+    private static readonly Lazy<PreparedRequest> RequestSetup = new(CreatePrepared);
+
+    private sealed record PreparedRequest(byte[] Bytes, string Buyer, string Seller, string ShopId);
+
     private static readonly JsonSerializerOptions PayloadOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     [Fact]
@@ -576,7 +580,21 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(ToolMakingRequestStatus.Interrupted, request.Status);
         Assert.Null(request.JobId);
         Assert.Equal(3, placing.Society.Inventory.GetLot("request-payment").Quantity);
-        _ = Roundtrip(placing);
+        state = Roundtrip(placing);
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == buyer
+                ? person with { LastDecisionContext = null } : person).ToArray(),
+        };
+        var choices = new RequestChoices("tool_request_place:");
+        using var continued = Restore(state, buyer, seller, choices, new RequestChoices());
+        Assert.True((await continued.AdvanceOneTickAsync()).Advanced);
+        Assert.Contains(choices.Offered, candidate => candidate.Id == "safe_idle");
+        Assert.DoesNotContain(choices.Offered, candidate => candidate.ActionPlan is ToolRequestConsentActionPlan
+        { Choice.Kind: ToolRequestConsentKind.Place } plan && plan.Shop.InstanceId == shop.InstanceId);
+        Assert.Equal(ToolMakingRequestStatus.Interrupted, Assert.Single(continued.ToolMakingRequests).Status);
+        Assert.Equal(3, continued.Society.Inventory.GetLot("request-payment").Quantity);
+        _ = Roundtrip(continued);
     }
 
     [Theory]
@@ -723,6 +741,14 @@ public sealed partial class ToolMakingRequestTests
 
     internal static (WorldRuntimeState State, string Buyer, string Seller, PlacedBuilding Shop) Prepared()
     {
+        var prepared = RequestSetup.Value;
+        var state = WorldRuntimeCodec.Decode(prepared.Bytes);
+        return (state, prepared.Buyer, prepared.Seller,
+            state.WorldSimulation!.Buildings.Single(building => building.InstanceId == prepared.ShopId));
+    }
+
+    private static PreparedRequest CreatePrepared()
+    {
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new RequestChoices());
         var state = setup.ExportState();
         var shop = state.WorldSimulation!.Buildings.Single(building => state.WorldContent!.Buildings.Single(definition =>
@@ -758,7 +784,7 @@ public sealed partial class ToolMakingRequestTests
                 Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
-        return (state, buyer, seller, shop);
+        return new(WorldRuntimeCodec.Encode(state), buyer, seller, shop.InstanceId);
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, string buyer, string seller,

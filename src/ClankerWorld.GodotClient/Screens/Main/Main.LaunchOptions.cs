@@ -95,7 +95,7 @@ public partial class Main
         try
         {
             if (LauncherPath is not { } path) throw new IOException("The launcher is no longer available.");
-            var start = new ProcessStartInfo(path) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(path) };
+            var start = GameStarter.LauncherStartInfo(path);
             start.ArgumentList.Add("--");
             start.ArgumentList.Add("--choose-version=" + failedLauncherVersion);
             if (DeveloperMode) start.ArgumentList.Add("--developer-mode");

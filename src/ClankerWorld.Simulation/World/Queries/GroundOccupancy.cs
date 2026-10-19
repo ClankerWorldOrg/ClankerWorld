@@ -17,13 +17,9 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
     internal IEnumerable<GridPoint> BuildingFootprints => simulation.Buildings.SelectMany(building =>
         WorldContentSimulationRules.Footprint(content.BuildingDefinitions[building.DefinitionId], building));
     internal IEnumerable<GridPoint> CheckedBuildingFootprints => simulation.Buildings.SelectMany(building =>
-        content.BuildingDefinitions.TryGetValue(building.DefinitionId, out var definition)
-            ? WorldContentSimulationRules.Footprint(definition, building)
-            : throw new InvalidDataException("A placed building has no active definition."));
+        WorldContentSimulationRules.Footprint(CheckedDefinition(building), building));
     internal IEnumerable<GridPoint> OriginalBuildingFootprints => simulation.Buildings.SelectMany(building =>
-        content.BuildingDefinitions.TryGetValue(building.DefinitionId, out var definition)
-            ? WorldContentSimulationRules.Footprint(definition, building.Position)
-            : throw new InvalidDataException("A placed building has no active definition."));
+        WorldContentSimulationRules.Footprint(CheckedDefinition(building), building.Position));
     internal IEnumerable<GridPoint> PlantingBuildingFootprints => simulation.Buildings.SelectMany(building =>
         content.BuildingDefinitions.TryGetValue(building.DefinitionId, out var definition)
             ? WorldContentSimulationRules.Footprint(definition, building) : [building.Position]);
@@ -57,22 +53,22 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
         .Where(building => include(building) && content.BuildingDefinitions.ContainsKey(building.DefinitionId))
         .SelectMany(building => WorldContentSimulationRules.Footprint(content.BuildingDefinitions[building.DefinitionId], building));
 
-    internal IEnumerable<GridPoint> ProjectFootprints(string? exceptProjectId = null) => (towns ?? [])
+    private BuildingDefinition CheckedDefinition(PlacedBuilding building) =>
+        content.BuildingDefinitions.GetValueOrDefault(building.DefinitionId) ??
+        throw new InvalidDataException("A placed building has no active definition.");
+
+    private IEnumerable<TownProject> BuildingProjects(string? exceptProjectId) => (towns ?? [])
         .SelectMany(town => town.Projects).Where(project => project.Id != exceptProjectId &&
-            project.Stage is not ("completed" or "cancelled"))
-        .SelectMany(project => TownProjectRules.Footprint(project.Plan));
+            project.Stage is not ("completed" or "cancelled") && project.Plan.BoatPortId is null);
+
+    internal IEnumerable<GridPoint> ProjectFootprints(string? exceptProjectId = null) =>
+        BuildingProjects(exceptProjectId).SelectMany(project => TownProjectRules.Footprint(project.Plan));
 
     internal IEnumerable<GridPoint> ProtectedProjectSites(string? exceptProjectId = null) =>
-        ProjectFootprints(exceptProjectId).Concat((towns ?? []).SelectMany(town => town.Projects)
-            .Where(project => project.Id != exceptProjectId && project.Plan.BoatPortId is null &&
-                project.Stage is not ("completed" or "cancelled"))
-            .Select(project => project.Plan.Entrance))
-        .Concat((towns ?? []).SelectMany(town => town.Projects)
-            .Where(project => project.Id != exceptProjectId && project.Stage is not ("completed" or "cancelled") &&
-                project.Plan.BoatPortId is null && TownProjectRules.DefinitionFor(project.Plan.DefinitionId) is { } definition &&
-                PortNavigationRules.IsPort(definition))
-            .SelectMany(project => PortNavigationRules.Geometry(map,
-                TownProjectRules.DefinitionFor(project.Plan.DefinitionId)!, project.Plan.Site).DockingTiles));
+        ProjectFootprints(exceptProjectId).Concat(BuildingProjects(exceptProjectId).Select(project => project.Plan.Entrance))
+        .Concat(BuildingProjects(exceptProjectId).Where(project => TownProjectRules.DefinitionFor(project.Plan.DefinitionId) is { } definition &&
+            PortNavigationRules.IsPort(definition)).SelectMany(project => PortNavigationRules.Geometry(map,
+            TownProjectRules.DefinitionFor(project.Plan.DefinitionId)!, project.Plan.Site).DockingTiles));
 
     internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) =>
         Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(y =>
@@ -80,8 +76,12 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
                 new GridPoint(job.TargetPosition.X + x, job.TargetPosition.Y + y)));
 
     // Callers select layer order deliberately: HashSet enumeration also follows insertion order.
-    internal static HashSet<GridPoint> Combine(params IEnumerable<GridPoint>[] layers) =>
-        layers.SelectMany(layer => layer).ToHashSet();
+    internal static HashSet<GridPoint> Combine(params IEnumerable<GridPoint>[] layers)
+    {
+        var occupied = new HashSet<GridPoint>(layers.Sum(layer => layer.TryGetNonEnumeratedCount(out var count) ? count : 0));
+        foreach (var layer in layers) occupied.UnionWith(layer);
+        return occupied;
+    }
 
     internal static HashSet<GridPoint> InitialObstacles(WorldMap map) =>
         Combine(map.MapObjects.Select(item => item.Position), map.Resources.Select(item => item.Position));

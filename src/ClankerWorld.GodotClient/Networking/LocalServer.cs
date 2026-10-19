@@ -22,6 +22,9 @@ public sealed record LocalServerLayout(
     string ServerDirectory,
     string DataDirectory)
 {
+    public const string HostingMarker = "# Launcher options: host-app-v1";
+    public string? HostKind { get; init; }
+    public bool StopWhenGameQuits { get; init; }
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
     public string StartupLockPath => Path.Combine(DataDirectory, "server", "startup.lock");
     public string LogPath => Path.Combine(DataDirectory, "logs", "server.log");
@@ -30,6 +33,24 @@ public sealed record LocalServerLayout(
     public string ReportDirectory => Path.Combine(DataDirectory, "reports");
     public string SaveDirectory => Path.Combine(DataDirectory, "saves");
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
+
+    public static LocalServerLayout ForHosting(InstalledVersion version, LauncherLayout launcher, bool stopWhenGameQuits,
+        IReleaseSignatureVerifier? verifier = null)
+    {
+        GameVersionStore.RequireSigned(version, verifier);
+        if (!File.ReadLines(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).Contains(HostingMarker, StringComparer.Ordinal))
+            throw new GameInstallException("This version doesn't support hosting from the launcher. Install a newer version.");
+        if (version.SourceRevision is null)
+            throw new GameInstallException("This version's files need Repair before hosting. Your worlds are kept.");
+        var bundled = FindBundled(version.Executable, launcher.Root) ??
+            throw new GameInstallException("This version's world server is missing. Choose Repair before hosting.");
+        return bundled with
+        {
+            DataDirectory = launcher.Root,
+            HostKind = ClankerWorld.Contracts.OwnerHostInformation.Launcher,
+            StopWhenGameQuits = stopWhenGameQuits,
+        };
+    }
 
     /// <summary>
     /// Finds the world server named by the game's package root. A
@@ -63,6 +84,11 @@ public sealed record LocalServerLayout(
         $"--ClankerWorld:World:SavePath={Path.Combine(SaveDirectory, "world.json")}",
         $"--ClankerWorld:Providers:ConfigurationPath={Path.Combine(SettingsDirectory, "provider-configuration.json")}",
         $"--ClankerWorld:Providers:UsagePath={Path.Combine(SettingsDirectory, "provider-usage.json")}",
+        .. HostKind is null ? [] : new[]
+        {
+            "--ClankerWorld:Hosting:Kind=" + HostKind,
+            "--ClankerWorld:Hosting:StopWhenGameQuits=" + StopWhenGameQuits,
+        },
         .. detailedLogs ? new[] { "--Logging:LogLevel:ClankerWorld=Debug" } : [],
     ];
 
@@ -129,6 +155,8 @@ public enum LocalServerStartOutcome
     Reused,
     /// <summary>Something that is not this build's host holds the port.</summary>
     PortInUse,
+    ModeInUse,
+    HostedWorldUnavailable,
     /// <summary>The host exited before it was ready.</summary>
     Exited,
     /// <summary>The host did not answer in time.</summary>
@@ -147,6 +175,10 @@ public sealed record LocalServerStart(LocalServerStartOutcome Outcome, string? D
         LocalServerStartOutcome.Started or LocalServerStartOutcome.Reused => "Your world server is running on this PC.",
         LocalServerStartOutcome.PortInUse =>
             $"Another program is using the port the world server needs ({Detail}). Close it, or another copy of ClankerWorld, then try again. Your saves are safe.",
+        LocalServerStartOutcome.ModeInUse =>
+            "The server on this PC is already being used by the game or another host window. Close the game or stop hosting there, then try again. Your world is kept.",
+        LocalServerStartOutcome.HostedWorldUnavailable =>
+            "Your hosted world is not running on this PC. Return to the host screen and choose Start hosting, then try Play again. Your world is kept.",
         LocalServerStartOutcome.Exited =>
             "The world server closed while starting. Your saves are safe. Try again, and if it keeps happening, choose Report a problem and send the report.",
         LocalServerStartOutcome.TimedOut =>
@@ -173,6 +205,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly TimeSpan readyTimeout;
     private readonly TimeProvider timeProvider;
     private readonly bool detailedLogs;
+    private readonly bool joinHostedWorld;
     private Process? process;
     private StreamWriter? log;
     private string? secret;
@@ -182,7 +215,7 @@ public sealed class LocalServer : IAsyncDisposable
     private readonly object logGate = new();
 
     public LocalServer(LocalServerLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false, TimeProvider? timeProvider = null, bool joinHostedWorld = false)
     {
         this.layout = layout;
         this.http = http;
@@ -191,6 +224,7 @@ public sealed class LocalServer : IAsyncDisposable
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.detailedLogs = detailedLogs;
+        this.joinHostedWorld = joinHostedWorld;
     }
 
     /// <summary>
@@ -202,6 +236,8 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    public bool JoinedHostedServer { get; private set; }
+    public bool StartedProcessHasExited => process is { HasExited: true };
     internal int? StartedServerProcessId => process?.Id;
 
     public LocalServerLayout Layout => layout;
@@ -261,6 +297,18 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
+                    // Read with the proven credential without granting this client
+                    // shutdown authority while the mode check is still pending.
+                    var status = await HostReadAsync<ClankerWorld.Contracts.HostStatus>(
+                        "api/v1/approval/hosting", running, cancellationToken);
+                    var joiningHost = layout.HostKind is null &&
+                        status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
+                    if (joinHostedWorld && !joiningHost)
+                        return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
+                    if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
+                        status.StopWhenGameQuits != layout.StopWhenGameQuits))
+                        return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
+                    JoinedHostedServer = joiningHost;
                     (secret, proven) = (running, true);
                     return new LocalServerStart(LocalServerStartOutcome.Reused);
                 }
@@ -276,6 +324,8 @@ public sealed class LocalServer : IAsyncDisposable
             if (timeProvider.GetUtcNow() >= deadline) return new LocalServerStart(LocalServerStartOutcome.TimedOut);
             await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
+
+        if (joinHostedWorld) return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
 
         byte[]? previousSecret = null;
         var secretWritten = false;
@@ -353,16 +403,47 @@ public sealed class LocalServer : IAsyncDisposable
     /// Approves this game's own pending pairing on the host's approval
     /// listener, using the comparison code the host returned to it.
     /// </summary>
-    public async Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken)
+    public Task<bool> ApprovePairingAsync(string pairingId, string pairingCode, CancellationToken cancellationToken) =>
+        HostActionAsync($"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve", new { pairingCode }, cancellationToken);
+
+    public Task<bool> DeclinePairingAsync(string pairingId, CancellationToken cancellationToken) =>
+        HostActionAsync($"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/decline", new { }, cancellationToken);
+
+    public Task<ClankerWorld.Contracts.HostDeviceRequest[]> PendingPairingsAsync(CancellationToken cancellationToken) =>
+        HostReadAsync<ClankerWorld.Contracts.HostDeviceRequest[]>("api/v1/approval/pairings", cancellationToken);
+
+    public Task<ClankerWorld.Contracts.HostStatus> HostStatusAsync(CancellationToken cancellationToken) =>
+        HostReadAsync<ClankerWorld.Contracts.HostStatus>("api/v1/approval/hosting", cancellationToken);
+
+    private Task<T> HostReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
+    {
+        if (secret is null || !proven) throw new InvalidOperationException("The host has not started.");
+        return HostReadAsync<T>(path, secret, cancellationToken);
+    }
+
+    private async Task<T> HostReadAsync<T>(string path, string credential, CancellationToken cancellationToken) where T : class
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, path));
+        request.Headers.Add(SecretHeader, credential);
+        using var response = await http.SendAsync(request, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>(deadline.Token) ??
+            throw new InvalidDataException("The host response could not be read.");
+    }
+
+    private async Task<bool> HostActionAsync(string path, object body, CancellationToken cancellationToken)
     {
         if (secret is null || !proven) return false;
-        using var request = new HttpRequestMessage(HttpMethod.Post,
-            new Uri(ApprovalOrigin, $"api/v1/approval/pairings/{Uri.EscapeDataString(pairingId)}/approve"))
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(ApprovalOrigin, path))
         {
-            Content = JsonContent.Create(new { pairingCode }),
+            Content = JsonContent.Create(body),
         };
         request.Headers.Add(SecretHeader, secret);
-        using var response = await http.SendAsync(request, cancellationToken);
+        using var response = await http.SendAsync(request, deadline.Token);
         return response.IsSuccessStatusCode;
     }
 
@@ -372,6 +453,14 @@ public sealed class LocalServer : IAsyncDisposable
     /// </summary>
     public async Task<bool> StopAsync(CancellationToken cancellationToken)
     {
+        if (JoinedHostedServer)
+        {
+            // This game joined the launcher's process; only the host app stops it.
+            (secret, proven) = (null, false);
+            JoinedHostedServer = false;
+            await ForgetProcessAsync();
+            return true;
+        }
         var acknowledged = false;
         if (secret is not null && proven)
         {
@@ -393,6 +482,8 @@ public sealed class LocalServer : IAsyncDisposable
                 // Already gone, or not answering: handled below for a host we started.
             }
         }
+        // A reused host has no child handle. A timeout is not proof it stopped.
+        if (proven && !acknowledged && process is null && !CanBindPort()) return false;
         if (process is { HasExited: false } running)
         {
             // Our child never answered the launch check, so whatever holds the

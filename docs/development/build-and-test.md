@@ -65,6 +65,13 @@ its own runtime and providers. Setup stops when the real output appears;
 protected-stock cases require a valid trade control and an ordinary action
 observation before checking refusal, ownership, reservations and capacity.
 
+Empty-vessel return fixtures place their paid Clinic near the House. Positive
+cases still walk both ways and preserve completed input receipts through reload.
+Original refusal checks, storage limits and paired replay remain.
+
+Clinic-supply fixtures choose nearby legal building sites, retaining actual paid
+placement, native gathering and carrying, and strict reload/paired replay.
+
 Named meal fixtures share strict setup checkpoints from one generated Small
 world, including separately paid native 1×2 and 2×2 Restaurant placements.
 Every recipe case decodes fresh state, adds its own exact ingredients and
@@ -72,15 +79,60 @@ runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
 
+Released-material fixtures share strict bytes after actual Hall approval,
+delivery, a granted household claim and cancellation. Each recovery case decodes
+fresh state before its own cargo, ownership, survival and native return checks.
+
+Construction-order fixtures capture one native generated setup and its actual
+construction offers. Payment and lifecycle cases use a nearby offered site with
+real travel; warehouse controls keep their original distant site so doorway
+access still distinguishes communal collection from gathering. Each case decodes
+fresh state and retains full work, stock, receipts, strict reload and paired replay.
+
+Hall-approval fixtures build personal-stock and Town-stock variants through
+native Council approval and bound-plan checks once. Every case strictly decodes
+fresh world bytes and creates its own policy before its original work and checks.
+
 Restaurant pipeline fixtures also share strict bytes from their original
 generated world and genuinely paid Restaurant placement. Each case decodes
 fresh state before adding its own ingredients, payment, cargo and visitor
 positions, then uses independent runtime and providers. Real milling, cooking,
 travel, trade, order survival, refusal and exact checkpoint replay stay checked.
 
+Animal-yard fixtures cache strict checkpoint bytes by their original seed and
+calendar after native generation, reachable placement and actual wood/rope
+payment. Each caller strictly decodes fresh mutable state before adding its
+animals and orders; no runtime, provider or live checkpoint is shared.
+
+Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
+Generation and paid placement run once per kind; each caller decodes fresh state
+before changing stock and using independent runtimes and providers.
+
+Tool-request fixtures share private strict bytes from their original generated
+world, exact stock and buyer/seller positions. Each caller decodes fresh mutable
+state and uses independent runtime and providers; real work, payment, refusal
+windows and replay checks remain in each case.
+
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.
+Paid-boat fixtures use twelve-tick test days, including the full native day
+before a blocked arrival returns. The permission-order fixture keeps its
+96-tick day so every resident has time to read and vote. All native journeys,
+approved budget quantities, strict reload and paired replay stay checked.
+
+Jug-return selection fixtures share strict bytes from their original generated
+world and clear weather. Each case decodes independent state before placing its
+jugs, reservations and House stock; actual return, refusal and replay stay checked.
+
+Guardian-care fixtures share strict checkpoint bytes for infant and older-child
+setups. Each variant keeps all 605 native birth ticks, naming and parent deaths;
+every caller decodes fresh state and uses independent runtimes and providers.
+
+Parenthood fixtures reuse strict bytes after their five native setup ticks,
+real shelter placement and accepted partnership. Each caller decodes fresh
+state before its own changes; birth and age windows, rollback, provider and
+replay checks remain unchanged.
 
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
@@ -88,6 +140,10 @@ clocks are rescaled together. Later-generation family growth keeps its forty-tic
 day; only the completed family checkpoint is reclocked for hearing setup.
 Personal consent, saved election ties, strict reload and paired checkpoint
 replay remain checked through the real runtime transitions.
+
+Native memory fixtures share adult-growth checkpoints while keeping the original
+helper policy and paused boundary. Each case decodes fresh state; native identity,
+ordinary decision windows and full checkpoint replay remain checked.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
@@ -290,6 +346,11 @@ The first command records each test's duration in
 `tests/ClankerWorld.Tests/TestResults/timings.trx`; the second lists
 the tests job 1 would run without timings.
 
+Launcher log-handoff checks hold a real native command child at an asynchronous
+named pipe. Its connection proves entry and a release line lets it exit,
+without cold PowerShell startup or a blocking thread-pool waiter. The inherited
+log control and repeated production shell handoffs keep their real handles.
+
 The native Windows storage job also runs the repeated checkpoint-compaction
 test and checks that a refused overwrite preserves the previous checkpoint.
 It uploads the test report as `windows-storage-evidence`. If the repeated-save
@@ -384,7 +445,9 @@ For C# changes, run `dotnet format --no-restore` first if formatting needs
 applying, then verify that no changes remain.
 
 `verify-godot-client.sh` downloads the pinned engine archive, checks its
-SHA-256, builds the scripts and starts the scene headlessly.
+SHA-256, builds the scripts and starts the scene headlessly. Each engine run
+keeps its full output and fails if shutdown reports leaked native objects,
+rendering allocations or resources still in use, even when Godot exits zero.
 It also prepares a disposable generated world with the hard-world and
 accepted-birth fixtures, advances it for three normal game days with local
 model replies, and opens every agent's Profile in fresh Godot processes at
@@ -430,10 +493,47 @@ since the game reuses only a server of its own exact build
 ([Device pairing](device-pairing.md#local-server-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
-`clankerworld-windows-11-x64-portable` artifact. It is unsigned, and a built
-zip is not a Windows playtest.
+`clankerworld-windows-11-x64-portable` artifact. The protected release workflow adds an
+[automatic release signature](releasing.md#automatic-release-signatures) before
+distribution. A built zip is not a Windows playtest.
+
+### Linux server package
+
+`bash scripts/package-linux-server.sh` stages committed inputs, publishes a
+self-contained `linux-x64` server with locked restore, and writes
+`export/linux-server/ClankerWorld-Server-<version>-linux-x64.tar.gz` and its
+`.sha256`. The archive contains the matching build, a complete file manifest,
+the systemd unit, a fresh-install script and the local approval command.
+CI builds it alongside the Windows packages; nightly publication attaches it
+with its checksum. Players follow the [Linux hosting guide](../hosting-linux.md).
+No Linux desktop game is included. Automated checks do not replace the fresh
+machine, reboot and Windows join checks in the playtest list.
 
 ### Windows launcher
+
+Downloaded releases require an [automatic workflow signature](releasing.md#automatic-release-signatures).
+The launcher checks that approval before extraction, retains its approved
+manifest hash, and checks the signed manifest and installed files before Play.
+The bundled official Sigstore verifier checks the main release-workflow identity
+and public trust root offline; no personal signing key is needed. Explicitly
+selected local builds keep the existing Developer mode path.
+
+Release metadata must name files under this repository's GitHub release-download
+path. Package and signature responses also check the final HTTPS address after
+redirects against GitHub's download hosts. The package stays open exclusively
+from download and hashing through extraction; extraction never reopens its path.
+The portable README directs players to unpack inside their own Windows user folder.
+
+The portable game's manifest includes `# Launcher options: host-app-v1` when
+it supports the launcher host app. Hosting refuses a version without that
+marker, authenticated release approval or original installed files, then reuses
+the bundled
+`LocalServer` startup proof. `# Launcher options: host-local-game-v1` additionally
+allows Play on this PC to launch the matching game with `--hosted-world` and
+the running host's data choice; older games are refused before launch.
+The host screen and sign-in behavior are described
+in [Playing](../playing.md#host-a-world-for-other-devices); its pending
+Windows/Tailscale checks are in the playtest list.
 
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
 is the same Godot project exported with the `launcher` feature, which makes
@@ -685,6 +785,11 @@ refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals
 including food consumption, parentage, care and household membership, then adds
 the physical agent and Town residency. It retains the production-generated child ID.
 
+The autonomous field expansion and replanting fixture chooses a 144-tick day
+before Start World. Crops still grow through native ticks, with real field work,
+food consumption and reserved planting stock. The staged crop-cycle fixtures
+keep the normal day and their full growth and work durations.
+
 ### Every offered choice
 
 `OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
@@ -696,7 +801,8 @@ runs in its own trusted server trial copy, through normal admission, action
 application and post-action reconciliation. The test requires a strict save
 round-trip, acceptance of the exact offered choice without fallback, and progress
 or a native refusal reason. It does not recover or skip a throwing action.
-Progress includes medical consent, treatment and supply trips; model admission metadata alone does not count.
+Progress includes native tool-request creation and transitions, medical consent,
+treatment and supply trips; model admission metadata alone does not count.
 
 The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
 with:

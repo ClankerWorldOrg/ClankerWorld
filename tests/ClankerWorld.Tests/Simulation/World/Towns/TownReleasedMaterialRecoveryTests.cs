@@ -7,6 +7,25 @@ namespace ClankerWorld.Tests;
 
 public sealed class TownReleasedMaterialRecoveryTests
 {
+    private static readonly Lazy<Task<byte[]>> CancelledHall = new(CreateCancelledCheckpointAsync);
+
+    [Fact]
+    public async Task CancelledFixturesKeepRecoveryStatesIndependent()
+    {
+        var first = await CancelledStateAsync();
+        var second = await CancelledStateAsync();
+        var before = WorldRuntimeCodec.Encode(second);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(first));
+        Assert.NotSame(first, second);
+        Assert.NotSame(first.Society.Society.Inventory, second.Society.Society.Inventory);
+        using var world = WorldRuntime.Restore(first, _ => new RecoveryChoice());
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(second));
+        var third = await CancelledStateAsync();
+        Assert.Equal(before, WorldRuntimeCodec.Encode(third));
+        Assert.NotSame(second, third);
+    }
+
     [Fact]
     public async Task ResidentsReturnActualGroundLoadsAfterAHallIsCancelledByGrantedHouseholdRights()
     {
@@ -39,7 +58,10 @@ public sealed class TownReleasedMaterialRecoveryTests
         world.Validate();
     }
 
-    private static async Task<WorldRuntimeState> CancelledStateAsync()
+    private static async Task<WorldRuntimeState> CancelledStateAsync() =>
+        WorldRuntimeCodec.Decode(await CancelledHall.Value);
+
+    private static async Task<byte[]> CreateCancelledCheckpointAsync()
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
         scenario.Policy.Supply = true;
@@ -52,7 +74,7 @@ public sealed class TownReleasedMaterialRecoveryTests
         await scenario.UntilAsync(() => scenario.Project.Stage == "blocked", 4);
         scenario.Policy.AcceptLandUse = true;
         await scenario.UntilAsync(() => scenario.Project.Stage == "cancelled", 160);
-        return scenario.World.ExportState();
+        return WorldRuntimeCodec.Encode(scenario.World.ExportState());
     }
 
     [Theory]

@@ -358,6 +358,7 @@ public sealed class TownProjectRuntimeTests
         using var scenario = TownProjectScenario.Create(TownProjectScenario.PlayableSeed, new TownProjectPolicy { NoVotes = true });
         await scenario.UntilAsync(() => scenario.World.Towns[0].Council!.Proposals.Any(proposal => proposal.Kind == "project"), 40);
         var proposal = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
+        var selectedPlan = JsonSerializer.Serialize(proposal.Project);
         var hall = TownHallContent.Hall3x4();
         var taken = WorldContentSimulationRules.Footprint(hall, proposal.Project!.Site).Append(proposal.Project.Entrance).ToHashSet();
         bool Overlaps(GridPoint site) => WorldContentSimulationRules.Footprint(hall, site).Append(TownHallContent.Entrance(site)).Any(taken.Contains);
@@ -376,6 +377,8 @@ public sealed class TownProjectRuntimeTests
         await scenario.UntilAsync(() => scenario.Policy.Observations.Count(observation => observation.WorldTick > since &&
             observation.Candidates.Any(candidate => candidate.Id.Contains("|propose|", StringComparison.Ordinal))) >= 3, 20);
         Assert.Equal("pending", Assert.Single(scenario.World.Towns[0].Council!.Proposals).Status);
+        Assert.Equal(selectedPlan,
+            JsonSerializer.Serialize(Assert.Single(scenario.World.Towns[0].Council!.Proposals).Project));
         Assert.DoesNotContain(OfferedSites(observation => observation.WorldTick > since), Overlaps);
     }
 
@@ -570,6 +573,8 @@ public sealed class TownProjectRuntimeTests
 
 internal sealed class TownProjectScenario : IDisposable
 {
+    private static readonly Lazy<Task<byte[]>> ApprovedPersonalStock = new(() => CreateApprovedCheckpointAsync(false));
+    private static readonly Lazy<Task<byte[]>> ApprovedTownStock = new(() => CreateApprovedCheckpointAsync(true));
     internal const string Author = NormalPathWorld.Founder1;
     internal const string PlayableSeed = "town-project-real-donation";
     internal const string Name = "Communal Hall";
@@ -639,27 +644,32 @@ internal sealed class TownProjectScenario : IDisposable
 
     internal static async Task<TownProjectScenario> ApprovedAsync(bool initialTownStock = false)
     {
-        var scenario = Create(PlayableSeed, initialTownStock: initialTownStock);
-        try
+        var bytes = await (initialTownStock ? ApprovedTownStock : ApprovedPersonalStock).Value;
+        var policy = new TownProjectPolicy { Proposed = true, PersonalSupply = !initialTownStock };
+        return new(WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), policy.CreateProvider), policy);
+    }
+
+    private static async Task<byte[]> CreateApprovedCheckpointAsync(bool initialTownStock)
+    {
+        using var scenario = Create(PlayableSeed, initialTownStock: initialTownStock);
+        var plans = new List<TownProjectProposalActionPlan>();
+        await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count == 1, 80, result =>
         {
-            var plans = new List<TownProjectProposalActionPlan>();
-            await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count == 1, 80, result =>
-            {
-                plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectProposalActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
-                    .Select(decision => Assert.IsType<TownProjectProposalActionPlan>(decision.ActionPlan)));
-            });
-            var proposal = scenario.World.Towns[0].Council!.Proposals.Single(item => item.Kind == "project");
-            Assert.NotEmpty(plans);
-            Assert.All(plans, plan =>
-            {
-                Assert.True(plan.Bound);
-                Assert.Equal(plan.Choice, TownProjectProposalChoice.Decode(plan.CandidateId));
-                Assert.Equal(TownHearingProcedure.Digest(proposal.Project), TownHearingProcedure.Digest(plan.Project));
-                Assert.Equal(plan.Actor, proposal.AuthorId);
-            });
-            return scenario;
-        }
-        catch { scenario.Dispose(); throw; }
+            plans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is TownProjectProposalActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
+                .Select(decision => Assert.IsType<TownProjectProposalActionPlan>(decision.ActionPlan)));
+        });
+        var proposal = scenario.World.Towns[0].Council!.Proposals.Single(item => item.Kind == "project");
+        Assert.NotEmpty(plans);
+        Assert.All(plans, plan =>
+        {
+            Assert.True(plan.Bound);
+            Assert.Equal(plan.Choice, TownProjectProposalChoice.Decode(plan.CandidateId));
+            Assert.Equal(TownHearingProcedure.Digest(proposal.Project), TownHearingProcedure.Digest(plan.Project));
+            Assert.Equal(plan.Actor, proposal.AuthorId);
+        });
+        Assert.Equal(scenario.InitialLayerDigest,
+            MapLayerManifestCodec.Digest(scenario.World.ExportState().Map));
+        return WorldRuntimeCodec.Encode(scenario.World.ExportState());
     }
 
     internal async Task UntilAsync(Func<bool> reached, int maximumTicks, Action<WorldStepResult>? observe = null)

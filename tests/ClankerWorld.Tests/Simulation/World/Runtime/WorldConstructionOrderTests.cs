@@ -53,6 +53,7 @@ public sealed partial class WorldConstructionOrderTests
         Assert.Equal(("finished", 1), (completed.Status, completed.CompletedUnits));
         Assert.NotNull(completed.LastEffectId);
         Assert.Equal("completed", Person(world, setup.Actor).Project!.Stage);
+        Assert.Equal(10, Person(world, setup.Actor).Project!.WorkDone);
         AssertInputs(world, 0, 0);
         var paid = world.Society.Inventory.Reservations.Where(item => item.LotId is "construction-wood" or "construction-stone").ToArray();
         Assert.Equal(14, paid.Sum(item => item.Quantity));
@@ -342,14 +343,20 @@ public sealed partial class WorldConstructionOrderTests
         var capture = new ConstructionChoices();
         using var world = WorldRuntime.Restore(state, id => id == actor ? capture : new ConstructionChoices());
         await Tick(world);
-        var candidate = capture.Observations.SelectMany(item => item.Candidates)
+        var candidates = capture.Observations.SelectMany(item => item.Candidates)
             .Select(item => TownConstructionCandidateIds.TryParse(item.Id, out var selected) ? (item.Id, Selected: selected) : default)
             .Where(item => item.Selected.IsBuilding && item.Selected.DefinitionId == definition && item.Selected.SitePosition is not null)
-            .OrderByDescending(item => state.Map.FootDistance(home.Position, item.Selected.SitePosition!.Value)).First();
+            .ToArray();
+        var candidate = candidates.Where(item => state.Map.FootDistance(home.Position, item.Selected.SitePosition!.Value) >= 2)
+            .OrderBy(item => state.Map.FootDistance(home.Position, item.Selected.SitePosition!.Value)).First();
+        // Warehouse controls need their original distant route to distinguish
+        // communal stock collection from gathering. Other cases need only real travel.
+        var warehouse = candidates.OrderByDescending(item => state.Map.FootDistance(home.Position, item.Selected.SitePosition!.Value)).First();
         var site = candidate.Selected.SitePosition!.Value;
         Assert.True(state.Map.FootDistance(home.Position, site) >= 2);
         Assert.Null(Person(world, actor).Project);
-        return new(WorldRuntimeCodec.Encode(world.ExportState()), actor, definition, site, candidate.Id);
+        return new(WorldRuntimeCodec.Encode(world.ExportState()), actor, definition, site, candidate.Id,
+            warehouse.Selected.SitePosition!.Value, warehouse.Id);
     }
     private static WorldRuntimeState Decode(ConstructionSetup setup) => WorldRuntimeCodec.Decode(setup.Bytes);
     private static PlacedBuilding Home(WorldRuntimeState state) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
@@ -386,7 +393,8 @@ public sealed partial class WorldConstructionOrderTests
         for (var tick = 0; tick < 60 && Order(world, receipt).Status != "finished"; tick++) await TickTogether(world, replay);
         Assert.Equal("finished", Order(world, receipt).Status);
     }
-    private sealed record ConstructionSetup(byte[] Bytes, string Actor, string DefinitionId, GridPoint Site, string CandidateId);
+    private sealed record ConstructionSetup(byte[] Bytes, string Actor, string DefinitionId, GridPoint Site, string CandidateId,
+        GridPoint WarehouseSite, string WarehouseCandidateId);
     private sealed class ConstructionChoices(string? nativeCandidate = null) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;

@@ -47,14 +47,14 @@ public sealed partial class WorldStartupRecovery
         catch (Exception exception) when (File.Exists(stateFile.Path) &&
             exception is InvalidDataException or IOException or JsonException)
         {
-            damagedBytes = File.ReadAllBytes(stateFile.Path);
+            damagedBytes = SavedFile.Read(stateFile.Path, SavedFile.CheckpointLimit);
             reason = RefusalReason(damagedBytes);
             savedByVersion = SavedBuild.TryRead(stateFile.Path)?.GameVersion;
             identity = ReadCheckpointIdentity(damagedBytes)
                 ?? WorldCatalogStore.ReadActiveIdentity(stateFile.Path)?.WorldId
                 ?? ReadAutosaveIdentity(stateFile.Path)
                 ?? (File.Exists(authorityPath)
-                    ? JsonSerializer.Deserialize<OwnerAuthorityState>(File.ReadAllBytes(authorityPath))?.Authority.WorldId : null)
+                    ? JsonSerializer.Deserialize<OwnerAuthorityState>(SavedFile.Read(authorityPath))?.Authority.WorldId : null)
                 ?? "checkpoint-recovery";
             LogRecovery(logger, "waiting_for_owner", "checkpoint_refused", -1);
         }
@@ -164,7 +164,7 @@ public sealed partial class WorldStartupRecovery
     {
         var settingsPath = path + ".autosave.json";
         if (!File.Exists(settingsPath)) return null;
-        var settings = JsonSerializer.Deserialize<WorldAutosaveSettings>(File.ReadAllBytes(settingsPath))
+        var settings = JsonSerializer.Deserialize<WorldAutosaveSettings>(SavedFile.Read(settingsPath))
             ?? throw new InvalidDataException("Autosave settings are empty.");
         WorldAutosaveStore.Validate(settings.IntervalMinutes, settings.RotationCount);
         return string.IsNullOrWhiteSpace(settings.WorldId) ? null : settings.WorldId;
