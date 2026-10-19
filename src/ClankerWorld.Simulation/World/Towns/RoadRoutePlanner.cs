@@ -51,8 +51,7 @@ public static class RoadRouteOutcomes
 /// and pays extra for each tile beside an existing Road so it meets streets
 /// rather than shadowing them. It may also cross an existing bridge, or a
 /// validated new crossing of a river up to two tiles wide, in a straight
-/// cardinal line. Ties break by cost, then row, then column, then discovery
-/// order.
+/// cardinal line. Ties break by cost, then row, then column.
 /// </summary>
 public static class RoadRoutePlanner
 {

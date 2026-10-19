@@ -1,1 +1,0 @@
-- Reduce memory used by Road and handcart route searches while keeping their routes and bridge choices.
