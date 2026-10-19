@@ -360,6 +360,7 @@ public sealed record WorldMap(
         ? elevation >= PeakElevationThreshold
         : TerrainAt(point) == (byte)TerrainKind.Peak;
 
+    // These tile-crossing helpers are called only after classifying river water.
     private bool IsOneTileRiverCrossing(GridPoint point)
     {
         var west = new GridPoint(point.X - 1, point.Y);
@@ -377,8 +378,8 @@ public sealed record WorldMap(
     /// Bridge decks do not change this: they decide only which steps a deck allows.
     /// </summary>
     private bool IsTwoTileRiverCrossing(GridPoint point) =>
-        (IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
-            IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1));
+        IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
+            IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1);
 
     // A tile that also lies on a two-tile line across the other axis is a
     // corner of a river one tile thick that runs diagonally. Wading through it
