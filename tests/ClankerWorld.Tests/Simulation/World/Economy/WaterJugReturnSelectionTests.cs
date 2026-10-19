@@ -103,6 +103,43 @@ public sealed class WaterJugReturnSelectionTests
         world.Validate();
     }
 
+    [Fact]
+    public void ReturnFixtureCopiesKeepIndependentPeopleStockAndTerrain()
+    {
+        var first = Prepared(true, "contents", false, false, -1);
+        var expected = WorldRuntimeCodec.Encode(first.State);
+        var second = Prepared(true, "contents", false, false, -1);
+        Assert.Equal((first.Actor, first.Other, first.Returned), (second.Actor, second.Other, second.Returned));
+        Assert.Equal(expected, WorldRuntimeCodec.Encode(second.State));
+        Assert.NotSame(first.State.Agents, second.State.Agents);
+        Assert.NotSame(first.State.Society.Society.Inventory.Lots, second.State.Society.Society.Inventory.Lots);
+        Assert.NotSame(first.State.Map.ElevationLevels, second.State.Map.ElevationLevels);
+        Assert.Equal((first.Actor, 1), (second.State.Society.Society.Inventory.GetLot(second.Returned + "-water").OwnerId,
+            second.State.Society.Society.Inventory.GetLot(second.Returned + "-water").Quantity));
+        Assert.Contains(second.State.Society.Society.Inventory.Reservations, item => item.Id == Claim && item.Quantity == 1);
+
+        var people = Assert.IsAssignableFrom<IList<AgentState>>(first.State.Agents);
+        people[0] = people[0] with { FullnessBasisPoints = 1 };
+        var stock = Assert.IsAssignableFrom<IList<InventoryLot>>(first.State.Society.Society.Inventory.Lots);
+        stock[0] = stock[0] with { Quantity = stock[0].Quantity + 1 };
+        first.State.Map.ElevationLevels![^1] ^= 1;
+        Assert.Equal(expected, WorldRuntimeCodec.Encode(second.State));
+        Assert.Equal(expected, WorldRuntimeCodec.Encode(Prepared(true, "contents", false, false, -1).State));
+        using var restored = Restore(second.State, second.Actor, new ReturnChoices(false));
+        Assert.Equal(expected, WorldRuntimeCodec.Encode(restored.ExportState()));
+    }
+
+    [Fact]
+    public void RepeatedReturnSetupFitsItsAllocationBudget()
+    {
+        _ = Prepared(true, "contents", false, false, -1);
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var fixture = Prepared(true, "contents", false, false, -1);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.InRange(allocated, 1, 16L * 1024 * 1024);
+        GC.KeepAlive(fixture.State);
+    }
+
     private static (WorldRuntimeState State, string Actor, string Other, string Returned) Prepared(
         bool otherFirst, string heldPart, bool returnedFull, bool walk, int houseRoom)
     {
