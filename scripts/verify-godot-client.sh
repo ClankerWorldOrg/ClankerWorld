@@ -34,7 +34,7 @@ export XDG_CACHE_HOME="${scratch_root}/cache"
 # its complete output visible, and fail specifically on shutdown allocations.
 run_godot() {
     "$@" 2>&1 | tee "${scratch_root}/engine.log"
-    if grep -Eq 'ObjectDB instances were leaked at exit|RID allocations.*were leaked at exit|resources still in use at exit|RIDs of type.*were leaked' "${scratch_root}/engine.log"; then
+    if grep -Eq 'ObjectDB instances were leaked at exit|RID allocations.*were leaked at exit|resources still in use at exit|RIDs? of type.*(was|were) leaked' "${scratch_root}/engine.log"; then
         printf 'Godot left native resources alive at shutdown\n' >&2
         return 1
     fi
