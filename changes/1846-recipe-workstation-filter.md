@@ -1,1 +1,0 @@
-- Reduce repeated work while residents consider building and recipe choices, keeping the same work and cold-weather clothing options.
