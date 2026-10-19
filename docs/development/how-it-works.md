@@ -883,6 +883,8 @@ change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
 The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
+Cache misses pass the existing factory directly to the BCL cache; verified hits
+still recompute and compare the complete derived value before returning it.
 `SocietyAgentIndex` uses the immutable agent-list identity for an
 ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
