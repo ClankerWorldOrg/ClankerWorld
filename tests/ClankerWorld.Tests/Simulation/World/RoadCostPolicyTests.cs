@@ -26,6 +26,42 @@ public sealed class RoadCostPolicyTests
         Assert.Null(RoadRoutePlanner.Validate(request, proposal));
     }
 
+    [Theory]
+    [InlineData(1, false)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    [InlineData(2, true)]
+    public void NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(int width, bool reuse)
+    {
+        var row = new string('.', width);
+        var elevations = new byte[width * 3];
+        var map = RiverBridgeTests.Map(row, row, row) with
+        {
+            WrapsEastWest = true,
+            ElevationLevels = elevations,
+        };
+        var request = new RoadRouteRequest(map, [new(0, 0)], new HashSet<GridPoint> { new(0, 2) },
+            new HashSet<GridPoint>(), [], ReuseRoads: reuse);
+        AssertOpen();
+        Array.Fill(elevations, byte.MaxValue, width, width);
+        var blocked = RoadRoutePlanner.Plan(request);
+        Assert.Equal(RoadRouteOutcomes.RouteUnavailable, blocked.Outcome);
+        Assert.Null(blocked.Proposal);
+        Array.Clear(elevations);
+        AssertOpen();
+
+        void AssertOpen()
+        {
+            var result = RoadRoutePlanner.Plan(request);
+            Assert.Equal(RoadRouteOutcomes.Connected, result.Outcome);
+            var proposal = Assert.IsType<RoadRouteProposal>(result.Proposal);
+            Assert.Equal(new GridPoint[] { new(0, 0), new(0, 1), new(0, 2) }, proposal.RoadTiles);
+            Assert.Empty(proposal.NewCrossings);
+            Assert.Empty(proposal.UsedBridgeIds);
+            Assert.Null(RoadRoutePlanner.Validate(request, proposal));
+        }
+    }
+
     [Fact]
     public void RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal()
     {

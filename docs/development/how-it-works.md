@@ -3861,11 +3861,13 @@ Layout and shared route queues order equal costs by the tile index used by their
 arrays, preserving row/column order without a separate enqueue counter.
 Live movement and planned ground/bridge routes share the same Road cost
 adjustment, including its minimum cost and Road-bridge distinction.
-Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
+Layout foot-cost, Road, attached-cart and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped
 maps before checking legality. Each step reads current terrain and bridge axes;
 no neighbor result is cached between steps or searches.
+The attached-cart search applies its cart step restrictions directly: entering
+that branch already established the actor's hitch for this synchronous query.
 See [layout neighbor measurements](layout-neighbor-query-measurements.md)
 for profiling, native state-change comparisons, lower allocations and mixed timings.
 The later [walking-route neighbor measurements](route-neighbor-query-measurements.md)
