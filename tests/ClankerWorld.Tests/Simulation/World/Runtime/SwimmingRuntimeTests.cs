@@ -94,12 +94,21 @@ public sealed class SwimmingRuntimeTests
     [Fact]
     public async Task NativeRoadApproachAndSwimmingKeepTheirStepDelaysAcrossReplay()
     {
-        var approach = new GridPoint(83, 80);
-        var bank = new GridPoint(84, 80);
-        var water = new GridPoint(85, 80);
-        var state = CrossingState(bank, "traffic-bridge-0");
-        Assert.True(state.Map.CanFootStep(approach, bank));
-        Assert.True(SwimmingRules.IsSwimmingWater(state.Map, water));
+        var state = CrossingState(new GridPoint(84, 80), "traffic-bridge-0");
+        var occupied = state.Map.Resources.Select(item => item.Position)
+            .Concat(state.Map.MapObjects.Select(item => item.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != Actor).Select(person => person.Position))
+            .Concat(state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building.Position)))
+            .ToHashSet();
+        var crossing = state.Map.Tiles.SelectMany(tile => new[] { (X: 0, Y: -1), (X: 1, Y: 0), (X: 0, Y: 1), (X: -1, Y: 0) }
+            .Select(direction => (Bank: tile.Position,
+                Approach: new GridPoint(tile.Position.X - direction.X, tile.Position.Y - direction.Y),
+                Water: new GridPoint(tile.Position.X + direction.X, tile.Position.Y + direction.Y))))
+            .First(item => state.Map.IsBuildable(item.Bank) && state.Map.CanFootStep(item.Approach, item.Bank) &&
+                SwimmingRules.IsSwimmingWater(state.Map, item.Water) && SwimmingRules.CanStep(state.Map, item.Bank, item.Water) &&
+                !occupied.Contains(item.Approach) && !occupied.Contains(item.Bank) && !occupied.Contains(item.Water));
+        var (bank, approach, water) = crossing;
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == Actor
@@ -110,7 +119,7 @@ public sealed class SwimmingRuntimeTests
         using var world = Restore(WorldRuntimeCodec.Decode(baseline));
         using var replay = Restore(WorldRuntimeCodec.Decode(baseline));
         var instruction = new OwnerInstructionRequest("road-into-water", "owner:test", Actor,
-            OwnerInstructionKind.Order, "Move to tile (85, 80)");
+            OwnerInstructionKind.Order, $"Move to tile ({water.X}, {water.Y})");
         world.SubmitInstruction(instruction);
         replay.SubmitInstruction(instruction);
         var visited = new List<GridPoint>();
