@@ -308,7 +308,8 @@ public sealed partial class WorldRuntime
     /// <summary>The household's own building of a kind, such as its Farmhouse; first by instance ID.</summary>
     private PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => worldSimulation.Buildings
         .Where(building => building.HouseholdId == householdId &&
-            worldContent.BuildingDefinitions.GetValueOrDefault(building.DefinitionId)?.Tags.Contains(tag, StringComparer.Ordinal) == true)
+            worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
+                definition.Tags.Contains(tag, StringComparer.Ordinal)))
         .OrderBy(building => building.InstanceId, StringComparer.Ordinal).FirstOrDefault();
 
     private GridPoint HouseholdStockPosition(InventoryLot lot) => AgentQueries.HouseholdStockPosition(agentWorld, lot);
