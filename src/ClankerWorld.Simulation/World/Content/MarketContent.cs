@@ -15,15 +15,19 @@ public static class MarketContent
     public const int MaximumStalls = 8;
     public static IReadOnlyList<int> StarterSlotIndexes { get; } = Array.AsReadOnly(new[] { 0, 4 });
 
-    private static string Digest => "sha256:" + Convert.ToHexStringLower(SHA256.HashData(
+    private static readonly string Digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(
         Encoding.UTF8.GetBytes("clankerworld-market-v1:1.0.0:hall2x2-plaza7x4-starters0,4-wood24-stone8-fiber4:stall1x1-wood4-fiber2")));
 
-    public static BuildingDefinition Hall2x2() => new(Digest, "market-2x2", ContentVersion.Parse("1.0.0"),
+    private static readonly BuildingDefinition HallDefinition = new(Digest, "market-2x2", ContentVersion.Parse("1.0.0"),
         "Market", 2, 2, 0, [new("wood", 24), new("stone", 8), new("fiber", 4)],
         [HallTag, "civic", "communal"]);
 
-    public static BuildingDefinition Stall1x1() => new(Digest, "market-stall-1x1", ContentVersion.Parse("1.0.0"),
+    private static readonly BuildingDefinition StallDefinition = new(Digest, "market-stall-1x1", ContentVersion.Parse("1.0.0"),
         "Market stall", 1, 1, 0, [new("wood", 4), new("fiber", 2)], [StallTag, "communal"]);
+
+    public static BuildingDefinition Hall2x2() => HallDefinition;
+
+    public static BuildingDefinition Stall1x1() => StallDefinition;
 
     public static GridPoint HallEntrance(GridPoint hallSite) => new(hallSite.X + 1, hallSite.Y + 2);
     public static GridPoint PlazaOrigin(GridPoint hallSite) => new(hallSite.X - 2, hallSite.Y + 2);
@@ -56,10 +60,7 @@ public static class MarketContent
     public static string StarterStallBuildingId(string projectId, int slot) =>
         TownProjectRules.BuildingId(projectId + ":starter-stall:" + slot.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-    public static ContentPackageManifest Create()
-    {
-        var hall = Hall2x2();
-        return StarterContent.BuildManifest(PackageId, hall.Version, hall.PackageDigest, [hall, Stall1x1()], [],
-            [new(TownHallContent.PackageId, new(hall.Version, ContentVersion.Parse("2.0.0")))]);
-    }
+    public static ContentPackageManifest Create() => StarterContent.BuildManifest(
+        PackageId, HallDefinition.Version, HallDefinition.PackageDigest, [HallDefinition, StallDefinition], [],
+        [new(TownHallContent.PackageId, new(HallDefinition.Version, ContentVersion.Parse("2.0.0")))]);
 }
