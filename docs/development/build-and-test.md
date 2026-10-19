@@ -96,6 +96,11 @@ Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
 Generation and paid placement run once per kind; each caller decodes fresh state
 before changing stock and using independent runtimes and providers.
 
+Tool-request fixtures share private strict bytes from their original generated
+world, exact stock and buyer/seller positions. Each caller decodes fresh mutable
+state and uses independent runtime and providers; real work, payment, refusal
+windows and replay checks remain in each case.
+
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.
