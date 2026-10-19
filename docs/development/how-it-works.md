@@ -423,7 +423,9 @@ the shared goods query before applying the original child load and trip limits.
 fields, roads, bridges, Town projects, Markets and animals. Its named layers
 retain each source's enumeration order. Callers combine the layers in their
 existing order and add resident positions or ownership constraints for that
-query. Original building footprints, expanded footprints and protected Port
+query. Unions reserve capacity from cheap layer counts; unknown-size layers
+are read once, and duplicate points keep their first position in the order.
+Original building footprints, expanded footprints and protected Port
 tiles remain separate choices. Occupancy is recomputed from current snapshots;
 no layer cache, saved field or tick phase is added. The immutable declarative
 content snapshot supplies one read-only definition index shared by these queries.
