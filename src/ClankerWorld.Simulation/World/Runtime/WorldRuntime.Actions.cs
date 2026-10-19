@@ -153,19 +153,18 @@ public sealed partial class WorldRuntime
         if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
             animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
             return null;
-        if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
+        if (interactionRange != 0 || !occupied.Contains(destination)) return occupied;
+        if (worldSimulation.Buildings.Any(building =>
                 building.Position == destination &&
                 building.HouseholdId is not null &&
                 (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
                  WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))))
-            occupied.Remove(destination);
-        if (interactionRange == 0 && occupied.Contains(destination) &&
+                 CanEnterGuardianPlacementHouse(agentId, building))) ||
             CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching
         // an entire map when neither household nor public Town sharing applies.
-        if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
+        else if (origin != destination)
             return null;
         return occupied;
     }
