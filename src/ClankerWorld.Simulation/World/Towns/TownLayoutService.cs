@@ -96,7 +96,7 @@ public sealed class TownLayoutContext
         if (!relatedBuildings.TryGetValue(definition, out var related))
         {
             related = Buildings.Where(item => (Town is null || item.Building.TownId == Town.Id) &&
-                item.Definition.Tags.Intersect(definition.Tags, StringComparer.Ordinal).Any()).ToArray();
+                item.Definition.Tags.Any(definition.Tags.Contains)).ToArray();
             relatedBuildings[definition] = related;
         }
         return related;
@@ -385,8 +385,7 @@ public static class TownLayoutService
         if (related is null)
             return;
 
-        var role = definition.Tags.Intersect(related.Definition.Tags, StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal).First();
+        var role = definition.Tags.First(related.Definition.Tags.Contains);
         score += nearest <= 2 ? 10 : 5;
         var relationship = context.Town is null ? "existing" : "Town's existing";
         reasons.Add(new(TownConstructionSiteReasonCodes.PurposeCluster, $"Near {relationship} {role} building."));
