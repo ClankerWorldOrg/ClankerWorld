@@ -67,6 +67,55 @@ public sealed class TownLayoutSnapshotTests
         Assert.False(context.ReachableFootCosts.TryGetValue(unlisted, out _));
     }
 
+    [Fact]
+    public void ImmutableOccupiedTilesFitTheContextAllocationBudget()
+    {
+        var map = Meadow(64);
+        var town = new TownRuntimeState("town:layout", "Layout", "founded", 0, [], [], [new GridPoint(2, 2)]);
+        var occupied = map.Tiles.Select(tile => tile.Position).ToFrozenSet();
+        var costs = map.Tiles.ToFrozenDictionary(tile => tile.Position, _ => 100);
+        _ = new TownLayoutContext(map, town, occupied, costs, [], []);
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var context = new TownLayoutContext(map, town, occupied, costs, [], []);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.InRange(allocated, 1, 64L * 1024);
+        Assert.Equal(occupied.Count, context.OccupiedTiles.Count);
+        Assert.All(occupied, point => Assert.True(context.OccupiedTiles.Contains(point)));
+    }
+
+    [Fact]
+    public void MutableOccupiedTilesCannotChangeAnExistingContext()
+    {
+        var map = Meadow(8);
+        var stored = new GridPoint(2, 2);
+        var later = new GridPoint(3, 3);
+        var occupied = new HashSet<GridPoint> { stored };
+        var context = new TownLayoutContext(map, null, occupied, FrozenDictionary<GridPoint, int>.Empty, [], []);
+        occupied.Clear();
+        occupied.Add(later);
+        Assert.Equal(stored, Assert.Single(context.OccupiedTiles));
+        Assert.False(context.OccupiedTiles.Contains(later));
+        var next = new TownLayoutContext(map, null, occupied, FrozenDictionary<GridPoint, int>.Empty, [], []);
+        Assert.Equal(later, Assert.Single(next.OccupiedTiles));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OccupiedSnapshotsKeepOrdinaryCoordinateEquality(bool frozen)
+    {
+        var map = Meadow(8);
+        var stored = new GridPoint(2, 2);
+        var unlisted = new GridPoint(2, 3);
+        var comparer = EqualityComparer<GridPoint>.Create((left, right) => left.X == right.X, point => point.X);
+        var mutable = new HashSet<GridPoint>(comparer) { stored };
+        IReadOnlySet<GridPoint> input = frozen ? mutable.ToFrozenSet(comparer) : mutable;
+        Assert.True(input.Contains(unlisted));
+        var context = new TownLayoutContext(map, null, input, FrozenDictionary<GridPoint, int>.Empty, [], []);
+        Assert.Equal(stored, Assert.Single(context.OccupiedTiles));
+        Assert.False(context.OccupiedTiles.Contains(unlisted));
+    }
+
     private static WorldMap Meadow(int size) => new(size, size, 0,
         (from y in Enumerable.Range(0, size)
          from x in Enumerable.Range(0, size)
