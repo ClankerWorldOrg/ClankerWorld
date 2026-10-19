@@ -3815,8 +3815,8 @@ Household planning computes each prospective building's identity once per design
 before checking placed buildings for it. Each later query reads current reservations
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
-Layout and shared route searches reuse the step legality just established by
-foot-neighbor enumeration when computing Road costs. Public step costs and movement still
+Layout, A* and shared route searches reuse the step legality just established by
+foot-neighbor enumeration when computing step costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
