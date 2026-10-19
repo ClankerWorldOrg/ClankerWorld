@@ -65,6 +65,10 @@ its own runtime and providers. Setup stops when the real output appears;
 protected-stock cases require a valid trade control and an ordinary action
 observation before checking refusal, ownership, reservations and capacity.
 
+Empty-vessel return fixtures place their paid Clinic near the House. Positive
+cases still walk both ways and preserve completed input receipts through reload.
+Original refusal checks, storage limits and paired replay remain.
+
 Named meal fixtures share strict setup checkpoints from one generated Small
 world, including separately paid native 1×2 and 2×2 Restaurant placements.
 Every recipe case decodes fresh state, adds its own exact ingredients and
