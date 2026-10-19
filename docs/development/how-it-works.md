@@ -121,6 +121,8 @@ owns the archive count and recovery contract.
 - **Content is bounded and validated.** Current content definitions are data-only.
   Arbitrary executable agent code is disabled. The intended restricted script
   system remains design work, not permission to run generated code today.
+  New worlds share lazily initialized shipped manifests with read-only collections.
+  Each world still imports definitions and runs its complete package and asset lifecycle separately.
 - **Recovery preserves evidence.** Unsupported or corrupt saves must fail
   visibly without replacing valid state or inventing replacement credentials.
   [Saves and replay](saves-and-replay.md) owns formats, migration and backup rules.
