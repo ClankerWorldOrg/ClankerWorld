@@ -425,25 +425,25 @@ public sealed partial class WorldRuntime
     private bool NeedsHouseTool(RecipeDefinition recipe, string? householdId)
     {
         if (householdId is null) return false;
-        var adults = agents.Keys.Where(actor => HouseholdFor(actor) == householdId && IsAdult(actor)).ToArray();
+        var adults = agents.Keys.Where(actor => IsAdult(actor) && HouseholdFor(actor) == householdId).ToArray();
         if (adults.Length == 0) return false;
         var family = ToolProgressionRules.Find(recipe.Outputs[0].ResourceId)!.Family;
         var tools = society.Checkpoint.Inventory.Lots.Where(lot => lot.ContainerLotId is null &&
             lot.DeliveryBuildingId is null && ToolProgressionRules.Find(lot.ItemKind)?.Family == family &&
             AvailableLotQuantity(lot) > 0).ToArray();
         // Private extras and borrowed tools held by the same adult cover only that adult.
-        var uncovered = adults.Count(actor => !tools.Any(lot =>
+        var uncovered = adults.Where(actor => !tools.Any(lot =>
             lot.OwnerId == householdId && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
             lot.OwnerId == actor && (ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
-                lot.CarrierId is null && CanReachHouseToolStock(actor, householdId, lot))));
-        if (uncovered == 0) return false;
+                lot.CarrierId is null && CanReachHouseToolStock(actor, householdId, lot)))).ToArray();
+        if (uncovered.Length == 0) return false;
         // Free shared stock can wait for an adult's route to reopen; do not keep making
         // replacements merely because that adult is temporarily away from the household.
         var available = tools.Where(lot => lot.OwnerId == householdId && lot.CarrierId is null &&
                 adults.Any(actor => CanReachHouseToolStock(actor, householdId, lot)))
             .Sum(lot => (long)AvailableLotQuantity(lot));
-        if (available >= uncovered) return false;
-        return available + worldSimulation.ProductionJobs.Where(job => job.OwnerId == householdId &&
+        if (available >= uncovered.Length) return false;
+        var committed = worldSimulation.ProductionJobs.Where(job => job.OwnerId == householdId &&
                 job.ToolMakingRequestId is null &&
                 job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused &&
                 worldSimulation.Buildings.Any(building => building.InstanceId == job.BuildingInstanceId &&
@@ -452,7 +452,8 @@ public sealed partial class WorldRuntime
                         FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0).Count > 0)))
             .SelectMany(job => worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == job.RecipeId)?.Outputs ?? [])
             .Where(output => ToolProgressionRules.Find(output.ResourceId)?.Family == family)
-            .Sum(output => (long)output.Amount) < uncovered;
+            .Sum(output => (long)output.Amount);
+        return available + committed < uncovered.Length;
     }
 
     private bool CanReachHouseToolStock(string actor, string householdId, InventoryLot lot)
