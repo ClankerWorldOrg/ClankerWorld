@@ -3772,6 +3772,8 @@ and any new one- or two-tile river crossings validate before commitment.
 Inter-Town search uses admissible distance bounds to direct it toward the
 selected Town within the existing 32,768-tile search budget; local side streets
 keep Dijkstra ordering.
+Road and attached-cart queues use row-major tile indices after their existing
+score/cost fields, preserving row/column ties without enqueue counters.
 `town_road_linked` records the selected pair; `town_road_link_unconnected`
 records a refused route. A failed link does not choose a farther Town. These
 inter-Town Roads use the ordinary saved Road tiles and bridge records, keep the
@@ -4206,8 +4208,9 @@ calls, failing if these offers disappear or cross households. The owner's direct
 production request checks the same workstation ownership and age. Crop
 recipes are refused; crops need tilled land, a hoe and real planting stock.
 
-For workstation recipes, site selection checks the actor’s current walking route as well as
-ownership and unused production capacity. An occupied or inaccessible workstation
+Recipe planning classifies workstations through the immutable canonical-ID
+definition lookup and shared household-layout rule. Site selection checks the
+actor’s current walking route, ownership and unused production capacity. An occupied or inaccessible workstation
 does not hide another reachable one. Movement’s existing diagonal and household
 access rules still apply. If no site is reachable, an existing project uses its
 blocked/reconsideration path rather than travelling toward an unreachable tile.
