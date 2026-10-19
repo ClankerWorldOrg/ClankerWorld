@@ -3850,6 +3850,8 @@ before computing step costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Layout and shared route queues order equal costs by the tile index used by their
+arrays, preserving row/column order without a separate enqueue counter.
 Live movement and planned ground/bridge routes share the same Road cost
 adjustment, including its minimum cost and Road-bridge distinction.
 Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of

@@ -104,7 +104,7 @@ public sealed partial class WorldRuntime
             anchors = anchors.Contains(chosenSite) ? [chosenSite] : [];
         var pendingAnchors = anchors?.Where(point => map.IsBuildable(point) && !occupiedSites.Contains(point))
             .ToHashSet();
-        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X)>();
+        var open = new PriorityQueue<GridPoint, (int Cost, int TileIndex)>();
         // Layout searches can visit most of a generated map. The rented array
         // stores tentative costs, -1 for unseen tiles and -2 for settled tiles,
         // avoiding a second map-sized dictionary and settled membership lookups.
@@ -117,7 +117,7 @@ public sealed partial class WorldRuntime
         {
             Array.Fill(best, -1, 0, tileCount);
             best[origin.Y * map.Width + origin.X] = 0;
-            open.Enqueue(origin, (0, origin.Y, origin.X));
+            open.Enqueue(origin, (0, origin.Y * map.Width + origin.X));
             while (open.TryDequeue(out var current, out var priority))
             {
                 if (!settled.TryAdd(current, priority.Cost))
@@ -143,7 +143,7 @@ public sealed partial class WorldRuntime
                     if (best[index] >= 0 && best[index] <= cost)
                         continue;
                     best[index] = cost;
-                    open.Enqueue(next, (cost, next.Y, next.X));
+                    open.Enqueue(next, (cost, index));
                 }
             }
             return settled;
