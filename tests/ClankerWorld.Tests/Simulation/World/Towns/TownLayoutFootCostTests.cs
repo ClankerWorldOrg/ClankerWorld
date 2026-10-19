@@ -11,9 +11,11 @@ public sealed class TownLayoutFootCostTests
     [InlineData(false, 2)]
     [InlineData(false, 3)]
     [InlineData(false, 4)]
+    [InlineData(false, 5)]
     [InlineData(true, 0)]
     [InlineData(true, 1)]
     [InlineData(true, 2)]
+    [InlineData(true, 5)]
     public void LayoutCostsKeepIndependentRouteCostsAndExactStopping(bool withoutTown, int selection)
     {
         using var world = NormalPathWorld.CreateGenerated("town-project-real-donation", _ => new DeterministicDecisionProvider());
@@ -25,6 +27,9 @@ public sealed class TownLayoutFootCostTests
         var town = withoutTown ? null : Assert.Single(world.Towns);
         var ground = new GroundOccupancy(map, state.WorldContent!, state.WorldSimulation!);
         var sites = GroundOccupancy.Combine(ground.MapObjects, ground.Resources, ground.BuildingFootprints);
+        if (selection == 5)
+            origin = map.Tiles.Last(tile => map.IsBuildable(tile.Position) && !sites.Contains(tile.Position) &&
+                state.Agents.All(agent => agent.Position != tile.Position)).Position;
         var bounds = TownLayoutContext.CandidateBounds(map, town).ToHashSet();
         GridPoint? selected = null;
         KeyValuePair<GridPoint, int>[] expected;

@@ -3816,11 +3816,11 @@ Purpose scoring filters related buildings once per context and keeps its
 distance, building-ID and tag tie rules. Border-growth scoring counts the same
 rounded footprint margin that actual placement adds, without sorting those
 tiles for every candidate.
-Site evaluation checks an origin that belongs to the footprint before allocating
-the complete tile array. An already blocked origin refuses the site; custom
-shapes that omit it still check only their covered tiles. Market Road permissions,
-protected tiles and all later footprint, title, route and ranking checks retain
-their existing rules. See [footprint query measurements](footprint-query-measurements.md)
+Site evaluation first checks an origin that belongs to the footprint.
+An already blocked origin refuses the site; custom
+shapes that omit it still check only their covered tiles. Clearance and required
+Town titles share one footprint walk. Market Road permissions, protected tiles
+and later route and ranking checks retain their existing rules. See [footprint query measurements](footprint-query-measurements.md)
 for the allocation comparison and mixed native timings.
 Continuing an idle intention skips a second full candidate query after the
 ordinary enqueue phase has reconsidered current choices. Orders, conversations,
@@ -3832,10 +3832,10 @@ Town Hall, Market, stall and lantern offers use their shared action-plan
 validator for the full site check, including pending proposals. Port proposals
 also share physical placement obstacles within their synchronous query.
 Market slots stay separate from other occupied
-objects, and actual placement gathers current facts again. Layout searches
-rent tentative tile costs while preserving their settled tiles, costs and
-stopping rules. Neighbours with settled costs skip repeated terrain checks; all
-remaining edges check the current terrain, building walls and occupied corners.
+objects, and actual placement gathers current facts again. Layout searches rent
+tile costs and mark settlement in the same array, preserving cost/Y/X order
+and stopping rules. Settled neighbours skip repeated terrain checks; remaining
+edges check current terrain, building walls and occupied corners.
 See [placement query measurements](placement-query-measurements.md)
 for the follow-up comparison.
 The [Warehouse query measurements](warehouse-query-measurements.md) record a
