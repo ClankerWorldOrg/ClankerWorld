@@ -1067,8 +1067,9 @@ public sealed partial class WorldRuntime
         Lazy<PlacedBuilding[]> accessibleWarehouses,
         List<string> buildingsWithoutSites)
     {
+        var needsWarmth = NeedsUrgentWarmth(state);
         if (agent.HouseholdId is { } planningHousehold)
-            AddHouseholdBuildingPlans(candidates, agent, state, planningHousehold, buildingsWithoutSites);
+            AddHouseholdBuildingPlans(candidates, agent, needsWarmth, planningHousehold, buildingsWithoutSites);
 
         // Work follows what the household holds, not a role: crops need the
         // household's Farmhouse, and workstation recipes need a building the
@@ -1077,7 +1078,7 @@ public sealed partial class WorldRuntime
         foreach (var recipe in worldContent.Recipes.Where(item =>
                      !item.Outputs.Any(output => output.ResourceId == "bedding") &&
                      !item.IsCrop && !IsGenericFoodRecipe(item) &&
-                     (!NeedsUrgentWarmth(state) || item.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId))) &&
+                     (!needsWarmth || item.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId))) &&
                      item.WorkstationBuildingId is { } placedId && placedWorkstations.Contains(placedId)))
         {
             var householdWorkstation = recipe.WorkstationBuildingId is { } workstationId &&
