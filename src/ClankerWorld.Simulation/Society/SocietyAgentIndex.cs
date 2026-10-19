@@ -3,14 +3,17 @@ namespace ClankerWorld.Simulation.Society;
 /// <summary>Pure lookup state keyed by the immutable agent-list snapshot.</summary>
 internal static class SocietyAgentIndex
 {
-    private sealed record Index(Dictionary<string, SocietyAgent> ById, SocietyAgent[] Agents);
+    private sealed class Index(SocietyAgent[] agents) : Dictionary<string, SocietyAgent>(agents.Length, StringComparer.Ordinal)
+    {
+        public SocietyAgent[] Agents { get; } = agents;
+    }
 
     private static readonly Derived<IReadOnlyList<SocietyAgent>, Index> Indexes = new(Build, Equal);
 
     public static SocietyAgent Get(IReadOnlyList<SocietyAgent> agents, string id)
     {
         var index = Indexes.Get(agents);
-        return index.ById.Count == index.Agents.Length && id is not null && index.ById.TryGetValue(id, out var person)
+        return index.Count == index.Agents.Length && id is not null && index.TryGetValue(id, out var person)
             ? person : GetSingle(agents, id);
     }
 
@@ -20,11 +23,10 @@ internal static class SocietyAgentIndex
 
     private static Index Build(IReadOnlyList<SocietyAgent> agents)
     {
-        var snapshot = agents.ToArray();
-        var byId = new Dictionary<string, SocietyAgent>(snapshot.Length, StringComparer.Ordinal);
-        foreach (var person in snapshot)
-            if (person.Id is not null) byId.TryAdd(person.Id, person);
-        return new(byId, snapshot);
+        var index = new Index(agents.ToArray());
+        foreach (var person in index.Agents)
+            if (person.Id is not null) index.TryAdd(person.Id, person);
+        return index;
     }
 
     private static bool Equal(Index left, Index right) => left.Agents.AsSpan().SequenceEqual(right.Agents, ReferenceEqualityComparer.Instance);
