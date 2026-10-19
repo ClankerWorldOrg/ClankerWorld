@@ -119,6 +119,8 @@ owns the archive count and recovery contract.
   of saves, exports, observations and telemetry. See
   [device pairing](device-pairing.md) for transport and access rules.
 - **Content is bounded and validated.** Current content definitions are data-only.
+  Fixed Town Hall and Market metadata is shared, with read-only costs and tags.
+  Definitions still undergo their normal validation; no world state is retained.
   Arbitrary executable agent code is disabled. The intended restricted script
   system remains design work, not permission to run generated code today.
 - **Recovery preserves evidence.** Unsupported or corrupt saves must fail
