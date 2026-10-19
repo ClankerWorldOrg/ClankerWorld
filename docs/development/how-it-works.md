@@ -3823,7 +3823,9 @@ Town proposal site checks also share physical placement obstacles only within
 their synchronous query. Market slots stay separate from other occupied
 objects, and actual placement gathers current facts again. Layout searches
 rent tentative tile costs while preserving their settled tiles, costs and
-stopping rules. See [placement query measurements](placement-query-measurements.md)
+stopping rules. Neighbours with settled costs skip repeated terrain checks; all
+remaining edges check the current terrain, building walls and occupied corners.
+See [placement query measurements](placement-query-measurements.md)
 for the follow-up comparison.
 The [Warehouse query measurements](warehouse-query-measurements.md) record a
 later bounded repair, exact native equivalence and its mixed small-case timings.
