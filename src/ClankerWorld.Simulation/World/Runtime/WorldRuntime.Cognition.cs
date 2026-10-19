@@ -1004,18 +1004,24 @@ public sealed partial class WorldRuntime
         }
         var context = new ChoiceContext(candidates, agentId, state, currentConversation is not null);
         AddRegisteredChoices(ChoiceGroup.Prelude, context);
-        var adult = IsAdult(agentId);
-        if (adult) AddRegisteredChoices(ChoiceGroup.Adult, context);
+        if (IsAdult(agentId)) AddRegisteredChoices(ChoiceGroup.Adult, context);
         if (!NeedsUrgentWarmth(state) && IsChild(agentId)) AddRegisteredChoices(ChoiceGroup.Child, context);
-        if (!NeedsUrgentFood(state) && adult)
+        if (!NeedsUrgentFood(state) && IsAdult(agentId))
+        {
+            var agent = society.Checkpoint.GetAgent(agentId);
+            var reachableToolCache = new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
+            var accessibleWarehouses = new Lazy<PlacedBuilding[]>(() => WarehousesAccessibleTo(agentId).ToArray(),
+                LazyThreadSafetyMode.None);
+            var buildingsWithoutSites = new List<string>();
             AddRegisteredChoices(ChoiceGroup.UnhurriedAdult, context with
             {
-                Agent = society.Checkpoint.GetAgent(agentId),
-                ReachableTools = new(),
-                AccessibleWarehouses = new(() => WarehousesAccessibleTo(agentId).ToArray(), LazyThreadSafetyMode.None),
-                BuildingsWithoutSites = [],
+                Agent = agent,
+                ReachableTools = reachableToolCache,
+                AccessibleWarehouses = accessibleWarehouses,
+                BuildingsWithoutSites = buildingsWithoutSites,
             });
-        if (NeedsUrgentFood(state) && adult) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
+        }
+        if (NeedsUrgentFood(state) && IsAdult(agentId)) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
         AddRegisteredChoices(ChoiceGroup.Final, context);
         if (restrictForOrder && PendingInstructionFor(agentId) is { } order)
             return RestrictCandidatesForOrder(candidates, order, state);
