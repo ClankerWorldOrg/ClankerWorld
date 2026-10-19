@@ -874,12 +874,13 @@ change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
 The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
-`SocietyAgentIndex` uses the immutable agent-list identity for an
-ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
-method. Inventory-only snapshot changes can reuse the index; identity, age,
+`SocietyAgentIndex` uses the immutable agent-list identity for checked resident
+lookups behind `SocietyCheckpoint.GetAgent`. Snapshots of eight or fewer agents
+reuse the checked linear read; larger snapshots retain an ordinal ID dictionary.
+Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
-the existing validation. Its fallback runs separately from valid lookups, and
+the existing validation. The capturing linear predicate stays off the dictionary path, and
 verification compares an immutable copy of the complete agent references.
 The index changes no checkpoint fields or ordering.
 Conversation
