@@ -83,6 +83,10 @@ calendar after native generation, reachable placement and actual wood/rope
 payment. Each caller strictly decodes fresh mutable state before adding its
 animals and orders; no runtime, provider or live checkpoint is shared.
 
+Paid-shop fixtures share strict checkpoint bytes for their original shop kinds.
+Generation and paid placement run once per kind; each caller decodes fresh state
+before changing stock and using independent runtimes and providers.
+
 Boat-history fixtures stop after 44 native cancellations: 40 recent records
 and four older records for compaction and corruption checks. Paid construction,
 queuing, cancellation, failed writes and exact checkpoint replay stay checked.

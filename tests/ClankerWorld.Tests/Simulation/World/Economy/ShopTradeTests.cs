@@ -10,6 +10,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ShopTradeTests
 {
+    private static readonly ConcurrentDictionary<string, Lazy<PaidShopFixture>> PaidShops = new(StringComparer.Ordinal);
+
     [Fact]
     public async Task OlderOpenExchangeRemainsVisibleWhenRecentCancelledOffersFillHistory()
     {
@@ -766,6 +768,14 @@ public sealed partial class ShopTradeTests
 
     private static (WorldRuntimeState State, string Buyer, string Seller, string ShopId) CreateShopState(string kind = "blacksmith")
     {
+        var fixture = PaidShops.GetOrAdd(kind, static key => new(() => BuildShopFixture(key))).Value;
+        return (WorldRuntimeCodec.Decode(fixture.Bytes), fixture.Buyer, fixture.Seller, fixture.ShopId);
+    }
+
+    private sealed record PaidShopFixture(byte[] Bytes, string Buyer, string Seller, string ShopId);
+
+    private static PaidShopFixture BuildShopFixture(string kind)
+    {
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new ShopProvider("safe_idle"));
         var state = setup.ExportState();
         if (!state.WorldSimulation!.Buildings.Any(building => state.WorldContent!.Buildings
@@ -814,7 +824,7 @@ public sealed partial class ShopTradeTests
                 Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
-        return (state, buyer, seller, shop.InstanceId);
+        return new(WorldRuntimeCodec.Encode(state), buyer, seller, shop.InstanceId);
     }
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
