@@ -57,19 +57,18 @@ internal sealed class GroundOccupancy(WorldMap map, DeclarativeWorldContentState
         content.BuildingDefinitions.GetValueOrDefault(building.DefinitionId) ??
         throw new InvalidDataException("A placed building has no active definition.");
 
-    private IEnumerable<TownProjectPayload> ProjectPlans(string? exceptProjectId) => (towns ?? [])
+    private IEnumerable<TownProject> BuildingProjects(string? exceptProjectId) => (towns ?? [])
         .SelectMany(town => town.Projects).Where(project => project.Id != exceptProjectId &&
-            project.Stage is not ("completed" or "cancelled")).Select(project => project.Plan)
-        .Where(plan => plan.BoatPortId is null);
+            project.Stage is not ("completed" or "cancelled") && project.Plan.BoatPortId is null);
 
     internal IEnumerable<GridPoint> ProjectFootprints(string? exceptProjectId = null) =>
-        ProjectPlans(exceptProjectId).SelectMany(TownProjectRules.Footprint);
+        BuildingProjects(exceptProjectId).SelectMany(project => TownProjectRules.Footprint(project.Plan));
 
     internal IEnumerable<GridPoint> ProtectedProjectSites(string? exceptProjectId = null) =>
-        ProjectFootprints(exceptProjectId).Concat(ProjectPlans(exceptProjectId).Select(plan => plan.Entrance))
-        .Concat(ProjectPlans(exceptProjectId).Where(plan => TownProjectRules.DefinitionFor(plan.DefinitionId) is { } definition &&
-            PortNavigationRules.IsPort(definition)).SelectMany(plan => PortNavigationRules.Geometry(map,
-            TownProjectRules.DefinitionFor(plan.DefinitionId)!, plan.Site).DockingTiles));
+        ProjectFootprints(exceptProjectId).Concat(BuildingProjects(exceptProjectId).Select(project => project.Plan.Entrance))
+        .Concat(BuildingProjects(exceptProjectId).Where(project => TownProjectRules.DefinitionFor(project.Plan.DefinitionId) is { } definition &&
+            PortNavigationRules.IsPort(definition)).SelectMany(project => PortNavigationRules.Geometry(map,
+            TownProjectRules.DefinitionFor(project.Plan.DefinitionId)!, project.Plan.Site).DockingTiles));
 
     internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) =>
         Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(y =>
