@@ -117,7 +117,7 @@ public static class MarketTradeValidation
                         if (!activeSellers.Add(occupancy.SellerAgentId) || market.RemovedTick is not null ||
                             market.Stalls.Single(stall => stall.BuildingId == occupancy.StallBuildingId).RemovedTick is not null ||
                             seller.Status != SocietyAgentStatus.Active || seller.HouseholdId != occupancy.SellerHouseholdId ||
-                            seller.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+                            !LifeStageRules.IsAdult(seller.AgeBand) ||
                             physical is null || !MarketTradeRules.IsInside(market, physical.Position))
                             throw Invalid("A live seller must borrow one existing stall for their actual household.");
                     }

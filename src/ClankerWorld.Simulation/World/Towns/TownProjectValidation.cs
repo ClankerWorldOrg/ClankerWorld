@@ -114,7 +114,7 @@ public static class TownProjectValidation
                             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed) ||
                         !town.ResidentIds.Contains(delivery.ContributorId, StringComparer.Ordinal) ||
                         !society.Agents.Any(person => person.Id == delivery.ContributorId &&
-                            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
+                            person.Status == SocietyAgentStatus.Active && LifeStageRules.IsAdult(person.AgeBand)))
                         throw Invalid("Incoming Town materials need actual adult resident custody.");
                 }
                 var allDelivered = project.Plan.Budget.All(cost => TownProjectRules.DeliveredQuantity(project, town.Id, inventory, cost.ResourceId) == cost.Amount);

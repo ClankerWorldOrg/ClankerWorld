@@ -196,9 +196,9 @@ internal sealed partial class TownSystem
         var caregiver = world.Society.GetAgent(guardian);
         if (!world.Agents.ContainsKey(child) || !world.Agents.ContainsKey(guardian) ||
             person.Status != SocietyAgentStatus.Active ||
-            person.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent) ||
+            !LifeStageRules.IsDependent(person.AgeBand) ||
             caregiver.Status != SocietyAgentStatus.Active ||
-            caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+            !LifeStageRules.IsAdult(caregiver.AgeBand) ||
             person.PrimaryCaregiverId != guardian || !SocietyRules.HasActivePrimaryCaregiver(world.Society, child) ||
             TownForResident(world, guardian) is not { } destination)
             return false;
@@ -242,7 +242,7 @@ internal sealed partial class TownSystem
 
     internal string[] TownCareGroup(ITownWorld world, string adult, string? fromTownId) => world.Society.Agents
             .Where(person => person.Status == SocietyAgentStatus.Active && (person.Id == adult ||
-                person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
+                LifeStageRules.IsDependent(person.AgeBand) &&
                 person.PrimaryCaregiverId == adult && TownForResident(world, person.Id) == fromTownId))
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 

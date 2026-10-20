@@ -2,25 +2,8 @@
   "src/ClankerWorld.Simulation/World/Animals/WorldRuntime.AnimalWorld.cs": [
     "runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
   ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs": [
-    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingValidation.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
     "world.FindUnoccupiedRoute(actor, position, destination, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs": [
-    "caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)",
-    "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent",
-    "person.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent)"
   ],
   "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs": [
     "runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
@@ -143,30 +126,5 @@
   ],
   "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": [
     "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs": [
-    "seller.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs": [
-    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs": [
-    "p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownLandCasePartyRules.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownNonLandPartyRules.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs": [
-    "people[judge.AgentId].AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
-  "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
   ]
 }
