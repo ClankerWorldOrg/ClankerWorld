@@ -17,10 +17,6 @@ public sealed partial class WorldRuntime
     private bool ReadyForLesson(string actor) => agents.TryGetValue(actor, out var person) &&
         !NeedsUrgentFood(person) && !NeedsUrgentWarmth(person);
 
-    private bool CanReachLessonSite(string actor) =>
-        IsWithinInteractionRange(agents[actor].Position, SharedStoragePosition, ResourceInteractionRange) ||
-        Reach(actor, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private bool CanMentor(string teacher, SkillKind skill) =>
         IsAdult(teacher) && !ActiveLesson(agents[teacher].Lesson) && HasSkill(teacher, skill);
 

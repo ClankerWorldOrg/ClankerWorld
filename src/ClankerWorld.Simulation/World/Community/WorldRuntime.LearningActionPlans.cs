@@ -27,11 +27,14 @@ public sealed partial class WorldRuntime
     private bool MayRequestLesson(string student, string teacher, SkillKind skill) => student != teacher &&
         IsAdult(student) && !HasSkill(student, skill) && ReadyForLesson(student) && !ActiveLesson(agents[student].Lesson) &&
         (agents[student].Lesson is null || WorldTick - agents[student].Lesson!.LastTransitionTick >= 300) &&
-        CanMentor(teacher, skill) && FreeToMentor(teacher) && CanReachLessonSite(student) && CanReachLessonSite(teacher);
+        CanMentor(teacher, skill) && FreeToMentor(teacher) &&
+        CanReach(student, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable) &&
+        CanReach(teacher, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable);
 
     private bool MayAcceptLesson(string teacher, string student, SkillLesson lesson) => lesson.Stage == "requested" &&
         ReadyForLesson(student) && CanMentor(teacher, lesson.Skill) && FreeToMentor(teacher, student) &&
-        CanReachLessonSite(teacher) && CanReachLessonSite(student);
+        CanReach(teacher, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable) &&
+        CanReach(student, SharedStoragePosition, ReachPurpose.Learning, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable);
 
     private ActionCheck CheckLearningActionPlan(LearningActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
