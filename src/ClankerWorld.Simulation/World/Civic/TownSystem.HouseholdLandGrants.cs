@@ -54,7 +54,7 @@ internal sealed partial class TownSystem
                     householdLandUseRights = householdLandUseRights.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
                     state = TownCouncilRules.LandUseNotice(state, request.Id,
                         "Household land use granted for " + TownLandClaimRules.DescribeTiles(request.Tiles) + ".", world.WorldTick);
-                    world.AppendEvent("land_use_granted", $"{request.Id}:{town.Id}:{request.HouseholdId}:{request.Tiles.Count}");
+                    world.AppendEvent(new LandUseGrantedEventPayload(null, request.Id, town.Id, request.HouseholdId, request.Tiles.Count));
                 }
             }
             if (request != saved)
@@ -114,7 +114,9 @@ internal sealed partial class TownSystem
                     TownLandClaimRules.DescribeTiles(extra) + ".", 190)
                 { ActionPlan = plan });
         }
-        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id))
+        var history = CivicHistory(town);
+        foreach (var request in householdLandUseRequests.Where(request => request.TownId == town.Id && request.Status == "pending" &&
+                     history.Knows(actor, "land_use", request.Id)))
         {
             var terms = request.HearingResolutions.Count == 0 ? LandUseTerms(world, request) :
                 "Remaining unheard requested tiles: " + TownLandClaimRules.DescribeTiles(TownLandRightsRules.UnresolvedRequestTiles(request)) +
@@ -196,7 +198,7 @@ internal sealed partial class TownSystem
         var selectedTiles = plan?.SelectedTiles ?? landTiles?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray();
         if (selectedTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
             throw new InvalidOperationException("Choose exact land tiles for the household request.");
-        var (result, updated) = FileHouseholdLandUse(world, TownRecordIds.LandRequest(town.Id, state.Notices.Count + 1),
+        var (result, updated) = FileHouseholdLandUse(world, TownRecordIds.LandRequest(town.Id, TownCouncilRules.NextNoticeSequence(state)),
             actor, town.Id, selectedTiles, null, state);
         if (!result.Applied) throw new InvalidOperationException(result.Failure);
         return updated;

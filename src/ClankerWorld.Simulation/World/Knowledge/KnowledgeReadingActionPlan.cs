@@ -8,7 +8,8 @@ public sealed record KnowledgeReadingActionPlan(string ActorId, AgentKnowledgeAr
 
 public sealed record KnowledgeReadingChoice(string ArtifactId, string RecipientId, bool Share)
 {
-    public string Encode() => Share ? "knowledge_share:" + ArtifactId + "|" + RecipientId : "knowledge_read:" + ArtifactId;
+    public string Encode() => IdentityRules.PrefixedReference(Share ? "knowledge_share:" : "knowledge_read:",
+        Share ? ArtifactId + "|" + RecipientId : ArtifactId);
 
     public static KnowledgeReadingChoice? Decode(string candidate)
     {

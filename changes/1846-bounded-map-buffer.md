@@ -1,0 +1,1 @@
+- Terrain checksums use less temporary memory while keeping saved map bytes unchanged.

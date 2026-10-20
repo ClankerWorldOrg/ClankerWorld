@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Tests;
@@ -22,7 +23,7 @@ public sealed class InventoryEquipmentTests
         Assert.Equal(2, inventory.Lots.Where(lot => lot.ItemKind == "clothing").Sum(lot => lot.Quantity));
         inventory = InventoryAuthority.Reserve(inventory, "repair-cloth", "owner", "cloth", 1, "equipment_repair", 10);
         inventory = InventoryCheckpointCodec.Decode(InventoryCheckpointCodec.Encode(inventory));
-        var repaired = InventoryAuthority.RepairSingleUnit(inventory, "worn-garment", 4_000, ["repair-cloth"]);
+        var repaired = InventoryAuthority.RepairSingleUnit(inventory, "worn-garment", 4_000, [Identity.Parse("repair-cloth")]);
         Assert.Equal(4_000, repaired.GetLot("worn-garment").ConditionBasisPoints);
         Assert.Equal(10_000, repaired.GetLot("clothing").ConditionBasisPoints);
         Assert.Equal(2, repaired.GetLot("cloth").Quantity);
@@ -46,7 +47,7 @@ public sealed class InventoryEquipmentTests
         inventory = InventoryAuthority.Reserve(inventory, "input", materialOwner, "cloth", 1, purpose, expiry);
         if (advance) inventory = inventory with { WorldTick = 1 };
         var bytes = InventoryCheckpointCodec.Encode(inventory);
-        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.RepairSingleUnit(inventory, "gear", 5_000, ["input"]));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.RepairSingleUnit(inventory, "gear", 5_000, [Identity.Parse("input")]));
         Assert.Equal(bytes, InventoryCheckpointCodec.Encode(inventory));
     }
 
@@ -66,7 +67,7 @@ public sealed class InventoryEquipmentTests
             Lots = inventory.Lots.Select(lot => lot.Id == "b-rope" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
         };
         var bytes = InventoryCheckpointCodec.Encode(inventory);
-        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.RepairSingleUnit(inventory, "gear", 5_000, ["a-input", "b-input"]));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.RepairSingleUnit(inventory, "gear", 5_000, [Identity.Parse("a-input"), Identity.Parse("b-input")]));
         Assert.Equal(bytes, InventoryCheckpointCodec.Encode(inventory));
         Assert.Equal(InventoryReservationState.Reserved, inventory.GetReservation("a-input").State);
     }

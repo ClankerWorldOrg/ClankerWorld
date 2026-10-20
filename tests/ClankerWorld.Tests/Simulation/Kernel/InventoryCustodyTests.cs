@@ -4,6 +4,40 @@ namespace ClankerWorld.Tests;
 
 public sealed class InventoryCustodyTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MovingAWholeRemainderDoesNotRequireAnUnusedSplitIdentity(bool reserved)
+    {
+        var inventory = InventoryAuthority.CreateGenesis(
+            [new("stone", "stone", "adult", 8, 7_000, 9_000, 0)]);
+        var split = InventoryAuthority.Relocate(inventory, "store", "stone", "adult", 4, storageBuildingId: "house");
+        if (reserved)
+            split = InventoryAuthority.Reserve(split, "held", "adult", "stone", 2, "work", 20);
+        var before = InventoryCheckpointCodec.Encode(split);
+        // Another partial move really would reuse the sibling's identity.
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(split,
+            "store", "stone", "adult", 2, storageBuildingId: "house"));
+        Assert.Equal(before, InventoryCheckpointCodec.Encode(split));
+        if (reserved)
+        {
+            Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(split,
+                "store", "stone", "adult", 4, storageBuildingId: "house"));
+            Assert.Equal(before, InventoryCheckpointCodec.Encode(split));
+            Assert.Equal(InventoryReservationState.Reserved, split.GetReservation("held").State);
+            return;
+        }
+        var moved = InventoryAuthority.Relocate(split, "store", "stone", "adult", 4, storageBuildingId: "house");
+        Assert.Equal(8, moved.Lots.Sum(lot => lot.Quantity));
+        Assert.Equal(split.Lots.Select(lot => lot.Id), moved.Lots.Select(lot => lot.Id));
+        Assert.All(moved.Lots, lot => Assert.Equal(("adult", "house", 7_000, 9_000),
+            (lot.OwnerId, lot.StorageBuildingId, lot.ConditionBasisPoints, lot.FreshnessBasisPoints)));
+        Assert.Equal(split.GetLot("stone").ProvenanceLotId, moved.GetLot("stone").ProvenanceLotId);
+        Assert.Equal(new InventoryStorageChange("house", "stone", 4), Assert.Single(moved.Events[^1].StorageChanges!));
+        var saved = InventoryCheckpointCodec.Encode(moved);
+        Assert.Equal(saved, InventoryCheckpointCodec.Encode(InventoryCheckpointCodec.Decode(saved)));
+    }
+
     [Fact]
     public void SplittingOrChangingTheOwnerOfStockInPlaceCreatesNoPhysicalStorageChange()
     {

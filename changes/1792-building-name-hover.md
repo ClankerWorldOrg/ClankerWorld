@@ -1,1 +1,0 @@
-- Hover over a clipped building name on its quick card or Details to read it in full.

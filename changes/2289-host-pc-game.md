@@ -1,0 +1,1 @@
+- Choose Play on this PC while hosting to join your running world without pairing or a second server. Quitting the game keeps hosting available for other devices.

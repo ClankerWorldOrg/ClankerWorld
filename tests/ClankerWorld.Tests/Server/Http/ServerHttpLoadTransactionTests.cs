@@ -44,8 +44,8 @@ public sealed partial class ServerHttpTests
             using var other = new WorldRuntime("load-selection-other");
             other.Pause();
             var entryB = catalog.Add("Other", other.ExportState());
-            var loadAction = new OwnerManualSaveAction("load", earlier.Id);
-            var selectAction = new OwnerManualSaveAction("select-world", entryB.Id);
+            var loadAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", earlier.Id);
+            var selectAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", entryB.Id);
             var loadEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/saves/load", loadAction, OwnerHttpBinding.ManualSavePayload(loadAction));
             var selectEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
@@ -89,7 +89,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(worldA, worldDuringLoad);
             Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
-            var returnAction = new OwnerManualSaveAction("select-world", entryA.Id);
+            var returnAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", entryA.Id);
             using var returned = await SendSignedAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/worlds/select", returnAction, OwnerHttpBinding.ManualSavePayload(returnAction));
             Assert.Equal(HttpStatusCode.OK, returned.StatusCode);

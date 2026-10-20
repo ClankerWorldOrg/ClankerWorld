@@ -11,13 +11,14 @@ using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Saves;
 using Microsoft.Extensions.DependencyInjection;
-using ClientAction = ClankerWorld.GodotClient.Protocol.OwnerOrderCancelAction;
+using ClientAction = ClankerWorld.Contracts.OwnerOrderCancelAction;
 using ClientAuthority = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
-using OwnerInstructionReceipt = ClankerWorld.GodotClient.Protocol.OwnerInstructionReceipt;
+using OwnerInstructionReceipt = ClankerWorld.Contracts.OwnerInstructionReceipt;
+using static ClankerWorld.Tests.ServerHttpTests;
 
 namespace ClankerWorld.Tests;
 
-public sealed partial class ServerHttpTests
+public sealed class ServerHttpNativeClientCancellationTests
 {
     [Theory]
     [InlineData(true)]
@@ -40,7 +41,7 @@ public sealed partial class ServerHttpTests
             var device = await StartAndActivateAsync(host, pairingClient, key);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             Assert.True(runtime.Society.IsPaused);
-            var instruction = new ClankerWorld.Server.Pairing.OwnerInstructionAction(
+            var instruction = new ClankerWorld.Contracts.OwnerInstructionAction(
                 "native-client-order", actor, "order", "Eat 1 food", runtime.Society.WorldId);
             using var submitted = await SendSignedAsync(host, pairingClient, key, device.DeviceId,
                 "/api/v1/owner/instructions", instruction, OwnerHttpBinding.InstructionPayload(instruction));
@@ -65,10 +66,12 @@ public sealed partial class ServerHttpTests
 
             using var handler = new LostCancellationReceiptHandler(host.Server.CreateHandler());
             using var client = new HttpClient(handler) { BaseAddress = pairingClient.BaseAddress };
-            using var signer = new SettingsKeySigner(key);
-            var api = new OwnerWorldApi(client);
-            await Assert.ThrowsAsync<HttpRequestException>(() => api.CancelOrderAsync(client.BaseAddress,
-                authority, device.DeviceId, action, signer, CancellationToken.None));
+            using var signer = new ActionCompatibilitySigner(key);
+            // This tests lost receipts and retries; runner delay must not spend the signed-flow deadline.
+            var clock = new ManualTimeProvider();
+            var api = new OwnerWorldApi(client, clock);
+            await Assert.ThrowsAsync<HttpRequestException>(() => ModelWorkHarness.WaitForSignalAsync(api.CancelOrderAsync(client.BaseAddress,
+                authority, device.DeviceId, action, signer, CancellationToken.None)));
             Assert.Equal("cancelled", Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!.Status);
             var original = Assert.Single(runtime.ExportState().OrderCancellations!);
             Assert.Equal((actor, action.OrderId, action.WorldId), (original.TargetAgentId, original.OrderId, original.WorldId));
@@ -82,8 +85,8 @@ public sealed partial class ServerHttpTests
             Assert.Null(restartedStore.TryLoad(binding with { DeviceId = "other-device" }));
             Assert.Null(restartedStore.TryLoad(binding with { ObservedWorldId = "other-world" }));
             Assert.Null(restartedStore.TryLoad(binding with { Timeline = new(timeline.InstanceId, timeline.Generation + 1) }));
-            var confirmed = await new OwnerWorldApi(client).CancelOrderAsync(client.BaseAddress,
-                authority, device.DeviceId, retained.OrderCancel.ToAction(), signer, CancellationToken.None);
+            var confirmed = await ModelWorkHarness.WaitForSignalAsync(new OwnerWorldApi(client, clock).CancelOrderAsync(client.BaseAddress,
+                authority, device.DeviceId, retained.OrderCancel.ToAction(), signer, CancellationToken.None));
             Assert.Equal((original.Receipt.OrderId, original.Receipt.Status, original.Receipt.Changed),
                 (confirmed.OrderId, confirmed.Status, confirmed.Changed));
             Assert.Equal(new[] { action, action }, handler.Actions);
