@@ -188,7 +188,9 @@ public sealed class CognitionTests
                 "m1", "actor-scout", "friend", "Mira told me about the private campfire promise.", 8,
                 Kind: "belief", Provenance: "hearsay", ConfidenceBasisPoints: 4_200,
                 SourceAgentId: "friend", SourceEventId: 9, IsCorrected: true,
-                ImportanceBasisPoints: 7_500, ImportanceConfidenceBasisPoints: 8_200)]);
+                ImportanceBasisPoints: 7_500, ImportanceConfidenceBasisPoints: 8_200)],
+            Self: new CognitionSelfContext("actor-scout", "Aster Vale", "Adult", "Curious", "Explore",
+                "household:one", 4_000, 1_000, "I remember the path."));
         var request = new CognitionDecisionRequest("cognition-openai-test", 2, observation);
 
         var response = await provider.DecideAsync(request);
@@ -212,6 +214,12 @@ public sealed class CognitionTests
         using var question = JsonDocument.Parse(body.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
         Assert.False(question.RootElement.TryGetProperty("energy_basis_points", out _));
         Assert.True(question.RootElement.GetProperty("needs_name").GetBoolean());
+        var self = question.RootElement.GetProperty("self");
+        Assert.Equal("Aster Vale", self.GetProperty("name").GetString());
+        Assert.Equal(4_000, self.GetProperty("warmth_basis_points").GetInt32());
+        Assert.Equal("I remember the path.", self.GetProperty("recent_thought").GetString());
+        Assert.Contains("0 is starving", systemPrompt, StringComparison.Ordinal);
+        Assert.Contains("Null condition fields mean unknown", systemPrompt, StringComparison.Ordinal);
         var memory = Assert.Single(question.RootElement.GetProperty("retrieved_memories").EnumerateArray());
         Assert.Equal("Mira told me about the private campfire promise.", memory.GetProperty("summary").GetString());
         Assert.Equal("friend", memory.GetProperty("subject_id").GetString());
@@ -224,6 +232,18 @@ public sealed class CognitionTests
         Assert.Equal("test-model", response.Usage?.ModelId);
         Assert.Equal(44, response.Usage?.InputTokens);
         Assert.Equal(9, response.Usage?.OutputTokens);
+    }
+
+    [Fact]
+    public void CognitionSelfContextRejectsAnotherOwnerAndOversizedThoughts()
+    {
+        var observation = new InhabitantObservation("actor", 1, 0, 1, "digest", 5_000,
+            [new CognitionCandidate("safe_idle", "Wait")],
+            Self: new CognitionSelfContext("other", "Aster", "Adult", "Curious", "Explore", null, null, null, null));
+        Assert.Throws<ArgumentException>(observation.Validate);
+        observation = observation with { Self = observation.Self! with { OwnerId = "actor", RecentThought = new string('x', 161) } };
+        Assert.Throws<ArgumentException>(observation.Validate);
+        (observation with { Self = observation.Self with { RecentThought = null } }).Validate();
     }
 
     [Fact]

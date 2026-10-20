@@ -414,7 +414,7 @@ public partial class Main
         }
         founderSetupButton.Text = $"Add founders {setup.Placed}/{setup.Required}";
         founderSetupHint.Text = setup.Placed < setup.Required
-            ? $"Pick a provider, model and key for this founder, then click an empty spot near your Town. The first two join Camp Alpha and the next two join Camp Beta. {setup.Placed}/{setup.Required} placed. Select a placed founder to move them, or undo the last one."
+            ? $"Choose this founder’s model and key, then place them near your Town. The first two share one household; the next two share another. {setup.Placed}/{setup.Required} placed."
             : "All four founders are placed. Move or undo one if you need to, then choose Start World to let time run.";
     }
 

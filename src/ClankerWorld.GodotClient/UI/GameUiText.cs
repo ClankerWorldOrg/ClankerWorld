@@ -9,6 +9,71 @@ public static class GameUiText
 {
     private const int MinutesPerDay = 1_440;
 
+    public static string ActorMapLabel(string displayName)
+    {
+        var words = displayName.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 0) return "?";
+        var given = words[0];
+        return new System.Globalization.StringInfo(given).LengthInTextElements <= 12
+            ? given : System.Globalization.StringInfo.GetNextTextElement(given) + ".";
+    }
+
+    public static string ActivityMapGlyph(string? candidateId) => candidateId switch
+    {
+        "seek_food" => "→",
+        "harvest_food" or "gather_smith_ore" => "✦",
+        "consume_food" or "collect_shared_food" => "♥",
+        "seek_warmth" or "wear_clothing" or "tend_fire" => "♨",
+        "explore" => "⌖",
+        "child_help_food" => "+",
+        not null when candidateId.StartsWith("build:", StringComparison.Ordinal) => "◆",
+        not null when candidateId.StartsWith("trade_", StringComparison.Ordinal) => "⇄",
+        not null when candidateId.StartsWith("child_converse:", StringComparison.Ordinal) ||
+            candidateId.StartsWith("knowledge_share:", StringComparison.Ordinal) => "…",
+        not null when candidateId.StartsWith("child_play:", StringComparison.Ordinal) => "☆",
+        not null when candidateId.StartsWith("child_learn:", StringComparison.Ordinal) => "?",
+        not null when candidateId.StartsWith("care:", StringComparison.Ordinal) => "+",
+        "safe_idle" => "·",
+        _ => "○",
+    };
+
+    public static string ResourceMapCaption(OwnerWorldResource resource, float tileSize)
+    {
+        // At overview scale the existing terrain sprite/glyph carries the site;
+        // full facts stay in hover and selected-tile inspection.
+        if (tileSize < 32) return string.Empty;
+        var title = NaturalObjectName(resource.NaturalObjectKind) ?? resource.Kind switch
+        {
+            "construction" => "Wood",
+            "fertile_land" => "Plot",
+            _ => HumanizeIdentifier(resource.Kind),
+        };
+        var quantity = ResourceQuantity(resource.Kind, resource.Quantity, resource.Capacity);
+        return quantity.Length == 0 ? title : title + " " + quantity;
+    }
+
+    public static string FriendlyFailure(Exception exception) => exception switch
+    {
+        System.Net.Http.HttpRequestException { StatusCode: { } code } => code switch
+        {
+            System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden =>
+                "this device is not allowed in. Try connecting it again",
+            System.Net.HttpStatusCode.NotFound => "the server does not know about that",
+            System.Net.HttpStatusCode.Conflict => "the server's state changed. Try again",
+            System.Net.HttpStatusCode.TooManyRequests => "the server is busy. Try again later",
+            >= System.Net.HttpStatusCode.InternalServerError => "the server had a problem. Try again",
+            _ => "the server could not accept that request",
+        },
+        System.Net.Http.HttpRequestException => "cannot reach the world server",
+        OperationCanceledException => "the server took too long to answer",
+        System.Text.Json.JsonException or InvalidDataException => "the server sent something unexpected",
+        UnauthorizedAccessException => "the game could not access a needed file. Check its access permissions",
+        System.Security.Cryptography.CryptographicException => "the device key could not be used. Try connecting this device again",
+        IOException => "the game could not read or save a needed file. Check storage and try again",
+        ArgumentException => "a setting could not be used. Check the entered values",
+        _ => "the action could not be completed. Try again",
+    };
+
     public static string ResourceQuantity(string kind, int? quantity, int? capacity) => quantity is null ? "" :
         (kind == "fertile_land" ? "Soil " : "") + quantity + (capacity is null ? "" : "/" + capacity);
 
@@ -102,25 +167,15 @@ public static class GameUiText
     public static bool IsPlayerFacingEvent(string kind)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(kind);
-        return kind switch
-        {
-            "tick_advanced" or
-            "inhabitant_moved" or
-            "actor_moved" or
-            "destination_reached" or
-            "movement_blocked" or
-            "inhabitant_idle" => false,
-            "estate_will_started" => false,
-            _ when kind.StartsWith("cognition_", StringComparison.Ordinal) => false,
-            _ when kind.StartsWith("hosted_decision_", StringComparison.Ordinal) => false,
-            _ when kind.StartsWith("instruction_", StringComparison.Ordinal) => false,
-            _ when kind.StartsWith("content_", StringComparison.Ordinal) => false,
-            _ when kind.StartsWith("initial_content_", StringComparison.Ordinal) => false,
-            _ when kind.StartsWith("owner_", StringComparison.Ordinal) => false,
-            _ when kind.EndsWith("_failed", StringComparison.Ordinal) => false,
-            _ when kind.EndsWith("_rejected", StringComparison.Ordinal) => false,
-            _ => true,
-        };
+        return kind is "world_created" or "world_started" or "weather_changed" or "building_placed" or
+            "build_started" or "build_completed" or "recipe_started" or "recipe_completed" or
+            "crop_moisture_effect" or "food_harvested" or "food_consumed" or "child_born" or
+            "inhabitant_removed" or "estate_will_accepted" or "estate_will_default" or
+            "partnership_accepted" or "partnership_ended" or "caregiver_assigned" or
+            "council_policy_adopted" or "settlement_trade_completed" or
+            "inhabitant_building_proposed" or "settlement_founded" or "town_founding_started" or
+            "town_resident_joined" or "town_resident_left" or "town_membership_evaluated" or
+            "town_building_assigned" or "town_border_expanded" or "town_founded" or "paused" or "resumed";
     }
 
     /// <summary>

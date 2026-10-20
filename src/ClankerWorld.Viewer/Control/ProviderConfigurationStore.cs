@@ -351,7 +351,8 @@ public sealed class ProviderConfigurationStore
                 return created;
             }
 
-            var json = File.ReadAllText(Path);
+            var stored = File.ReadAllText(Path);
+            var json = ProviderCredentialFile.Decode(stored);
             var loaded = JsonSerializer.Deserialize<ProviderConfigurationState>(json, JsonOptions) ??
                 throw new InvalidDataException("The provider-configuration state file is empty.");
             if (loaded.SchemaVersion == 2)
@@ -361,6 +362,8 @@ public sealed class ProviderConfigurationStore
                 SaveUnsafe(loaded);
             }
             ValidateState(loaded);
+            if (OperatingSystem.IsWindows() && !ProviderCredentialFile.IsProtected(stored))
+                SaveUnsafe(loaded);
             RestrictPermissions(Path);
             return loaded;
         }
@@ -605,7 +608,16 @@ public sealed class ProviderConfigurationStore
             $".{System.IO.Path.GetFileName(Path)}.{Guid.NewGuid():N}.tmp");
         try
         {
-            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(next, JsonOptions));
+            var encoded = ProviderCredentialFile.Encode(JsonSerializer.Serialize(next, JsonOptions));
+            var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            using (var stream = new FileStream(temporaryPath, options))
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(encoded);
+                stream.Write(bytes);
+                stream.Flush(flushToDisk: true);
+            }
             RestrictPermissions(temporaryPath);
             File.Move(temporaryPath, Path, overwrite: true);
             RestrictPermissions(Path);

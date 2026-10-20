@@ -6,6 +6,61 @@ namespace ClankerWorld.Simulation.Tests;
 
 public sealed class ProviderUsageStoreTests
 {
+    [Theory]
+    [InlineData("{broken private sk-secret-meter")]
+    [InlineData("null")]
+    [InlineData("{\"SchemaVersion\":1,\"Rows\":[null],\"Pending\":[]}")]
+    [InlineData("{\"SchemaVersion\":1,\"Rows\":[],\"Pending\":[null]}")]
+    public void UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence(string damaged)
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-damaged-meter-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "usage.json");
+            File.WriteAllText(path, damaged);
+            var store = new ProviderUsageStore(path);
+            Assert.True(store.Capture().LimitReached);
+            Assert.Equal(ProviderUsageStore.RecoveryMessage, store.Capture().AccountingError);
+            Assert.Throws<InvalidOperationException>(() => store.Begin("openai", "test", "planning"));
+            Assert.Throws<InvalidOperationException>(() => store.Configure(new ProviderUsageLimitAction(null)));
+            Assert.Equal(damaged, File.ReadAllText(path));
+            Assert.DoesNotContain("sk-secret", System.Text.Json.JsonSerializer.Serialize(store.Capture()));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public void InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-interrupted-meter-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "usage.json");
+            var original = new ProviderUsageStore(path);
+            original.Configure(new ProviderUsageLimitAction(2));
+            original.Begin("openai", "test", "planning");
+            var trusted = File.ReadAllText(path);
+            var interrupted = path + ".interrupted.tmp";
+            File.WriteAllText(interrupted, "{partial");
+            var restarted = new ProviderUsageStore(path);
+            Assert.Equal(1, restarted.Capture().Attempts);
+            Assert.Equal(1, restarted.Capture().Abandoned);
+            Assert.Equal(2, restarted.Capture().AttemptLimit);
+            Assert.Equal("{partial", File.ReadAllText(interrupted));
+            File.WriteAllText(path, "{broken");
+            var blocked = new ProviderUsageStore(path);
+            File.WriteAllText(path, trusted);
+            Assert.Throws<InvalidOperationException>(() => blocked.Begin("openai", "test", "planning"));
+            var recovered = new ProviderUsageStore(path);
+            Assert.Null(recovered.Capture().AccountingError);
+            Assert.Equal(1, recovered.Capture().Attempts);
+            Assert.Equal(1, recovered.Capture().Abandoned);
+            recovered.Begin("openai", "test", "planning");
+            Assert.True(recovered.Capture().LimitReached);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task LimitReservesConcurrentAttemptsAndPersistsAbandonedCalls()
     {

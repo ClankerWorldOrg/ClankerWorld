@@ -284,7 +284,12 @@ public sealed class OwnerWorldObservationStore
                 .OrderBy(inhabitant => inhabitant.Id, StringComparer.Ordinal)
                 .ToArray(),
             Stockpiles = state.Society.Society.Households.Select(household =>
-                new ViewerStockpile(household.Id, household.Name, InventoryFor(state, household.Id))).ToArray(),
+                new ViewerStockpile(household.Id, (household.Id, household.Name) switch
+                {
+                    ("household:camp-alpha", "Camp Alpha") => "First household",
+                    ("household:camp-beta", "Camp Beta") => "Second household",
+                    _ => household.Name,
+                }, InventoryFor(state, household.Id))).ToArray(),
             Council = state.Council is { } council ? new ViewerCouncil(
                 state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == council.StewardId)?.Name,
                 council.FoodPolicy, council.Ballot?.Policy, council.Ballot?.Approvals.Count ?? 0,

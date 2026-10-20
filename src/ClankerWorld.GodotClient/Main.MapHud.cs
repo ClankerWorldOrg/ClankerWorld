@@ -4,13 +4,12 @@ using Godot;
 namespace ClankerWorld.GodotClient;
 
 /// <summary>
-/// Light on-map feedback that never takes clicks: a badge while the world is
-/// paused, and a one-line readout of the ground under the pointer so the map
-/// can be explored without opening the tile card.
+/// Light on-map feedback that never takes clicks: a one-line readout of the
+/// ground under the pointer so the map can be explored without opening the
+/// tile card. The HUD's pause control already shows when time is stopped.
 /// </summary>
 public partial class Main
 {
-    private readonly PanelContainer pausedBadge = new();
     private readonly PanelContainer hoverReadout = new();
     private readonly Label hoverReadoutLabel = new();
     private Vector2I? hoverReadoutTile;
@@ -18,49 +17,24 @@ public partial class Main
 
     private void BuildMapHud(Control canvas)
     {
-        var badgeLabel = new Label { Text = "Paused · press Space to resume" };
-        badgeLabel.ThemeTypeVariation = "SectionLabel";
-        badgeLabel.AddThemeFontSizeOverride("font_size", 15);
-        pausedBadge.ThemeTypeVariation = "HudPanel";
-        pausedBadge.AddChild(badgeLabel);
-        pausedBadge.Hide();
-
         hoverReadoutLabel.AddThemeFontSizeOverride("font_size", 13);
         hoverReadout.ThemeTypeVariation = "HudPanel";
         hoverReadout.AddChild(hoverReadoutLabel);
         hoverReadout.Hide();
 
-        foreach (var control in new Control[] { pausedBadge, badgeLabel, hoverReadout, hoverReadoutLabel })
+        foreach (var control in new Control[] { hoverReadout, hoverReadoutLabel })
             control.MouseFilter = Control.MouseFilterEnum.Ignore;
-        foreach (var hud in new[] { pausedBadge, hoverReadout })
-        {
-            hud.ZIndex = 60;
-            hud.Resized += PositionMapHud;
-            canvas.AddChild(hud);
-        }
+        hoverReadout.ZIndex = 60;
+        hoverReadout.Resized += PositionMapHud;
+        canvas.AddChild(hoverReadout);
     }
 
     private void PositionMapHud()
     {
-        pausedBadge.Size = pausedBadge.GetCombinedMinimumSize();
-        pausedBadge.Position = new Vector2(Math.Max(14, (mapCanvas.Size.X - pausedBadge.Size.X) / 2), HudTop);
         hoverReadout.Size = hoverReadout.GetCombinedMinimumSize();
         hoverReadout.Position = new Vector2(
             Math.Max(14, mapCanvas.Size.X - hoverReadout.Size.X - 14),
             Math.Max(14, mapCanvas.Size.Y - hoverReadout.Size.Y - 14));
-    }
-
-    /// <summary>
-    /// Shows the paused badge once time has started; during founder setup the
-    /// world is also paused, but the setup controls already explain that.
-    /// </summary>
-    private void UpdatePausedBadge(OwnerWorldSnapshot snapshot)
-    {
-        var show = isInWorld && HasMap(snapshot) && snapshot.Authoring?.IsPaused == true &&
-            snapshot.FounderSetup is not { Started: false };
-        if (pausedBadge.Visible == show) return;
-        pausedBadge.Visible = show;
-        if (show) PositionMapHud();
     }
 
     /// <summary>Names the hovered ground in one line; refreshes when the tile or observed world changes.</summary>

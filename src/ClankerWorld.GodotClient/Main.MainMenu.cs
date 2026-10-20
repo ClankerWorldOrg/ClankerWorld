@@ -49,6 +49,9 @@ public partial class Main
     private bool isInWorld;
     private bool returnToMainMenu;
     private bool resumeWorldOnContinue;
+    private readonly Button mainMenuSettingsButton = new();
+    private readonly Button worldBackButton = new();
+    private readonly HSeparator menuQuitSeparator = new();
 
     private void BuildMainMenu()
     {
@@ -99,10 +102,10 @@ public partial class Main
         mainMenuLoadButton.Pressed += () => OpenWorldMenu(create: false);
         body.AddChild(mainMenuLoadButton);
 
-        var settings = new Button { Text = "Settings" };
-        StyleButton(settings);
-        settings.Pressed += OpenMainMenuSettings;
-        body.AddChild(settings);
+        mainMenuSettingsButton.Text = "Settings";
+        StyleButton(mainMenuSettingsButton);
+        mainMenuSettingsButton.Pressed += OpenMainMenuSettings;
+        body.AddChild(mainMenuSettingsButton);
 
         mainMenuConnectButton.Text = "Connect / Pair development host";
         StyleButton(mainMenuConnectButton);
@@ -228,6 +231,7 @@ public partial class Main
         worldSettingsCategoryButton.Visible = visible;
         developerToggleButton.Visible = visible;
         menuQuitToMainButton.Visible = visible;
+        menuQuitSeparator.Visible = visible;
         modLibraryPanel.Hide();
     }
 
@@ -330,7 +334,7 @@ public partial class Main
         worldPreviewFrame.ThemeTypeVariation = "InsetPanel";
         worldPreview.ShowCameraBounds = false;
         worldPreview.MouseFilter = MouseFilterEnum.Ignore;
-        worldPreview.TooltipText = "Map preview. You will choose where your Town goes after creating the world.";
+        worldPreview.TooltipText = "Map preview. You will choose where your first Town goes after creating the world.";
         worldPreview.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         worldPreview.Hide();
         worldPreviewFrame.AddChild(worldPreview);
@@ -362,11 +366,11 @@ public partial class Main
 
         var actions = new HBoxContainer();
         actions.AddThemeConstantOverride("separation", 8);
-        var back = new Button { Text = "Back", CustomMinimumSize = new Vector2(110, 0) };
-        StyleButton(back);
-        back.CustomMinimumSize = new Vector2(110, 38);
-        back.Pressed += () => { if (!worldMenuBusy) worldMenuOverlay.Hide(); };
-        actions.AddChild(back);
+        worldBackButton.Text = "Back";
+        StyleButton(worldBackButton);
+        worldBackButton.CustomMinimumSize = new Vector2(110, 38);
+        worldBackButton.Pressed += () => { if (!worldMenuBusy) worldMenuOverlay.Hide(); };
+        actions.AddChild(worldBackButton);
         actions.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
         worldPreviewButton.Text = "Preview again";
         worldPreviewButton.TooltipText = "The preview updates by itself when you change an option. Use this if it failed.";
@@ -443,7 +447,7 @@ public partial class Main
         if (registration is null || deviceKey is null || registeredEndpointInvalid) return;
         worldMenuHeading.Text = create ? "New World" : "Load World";
         worldMenuStatus.Text = create
-            ? "Choose a seed and size. Then choose your Town site and add four founders before starting time."
+            ? "Choose a seed and size. Then choose your first Town's site and add four founders before starting time."
             : "Choose a world. The current world is saved before switching.";
         worldMenuColumns.Visible = create;
         worldPreviewButton.Visible = create;
@@ -567,7 +571,7 @@ public partial class Main
             previewedWorldOptions = action;
             worldCreateButton.Disabled = false;
             worldPreviewStatus.Text = $"Map preview · {result.ResourceSites} resource sites. " +
-                "You will choose where your Town goes after creating the world.";
+                "You will choose where your first Town goes after creating the world.";
         }
         catch (Exception exception)
         {
@@ -656,5 +660,34 @@ public partial class Main
             worldMenuBusy = false;
             worldSelectButton.Disabled = listedWorlds[selected[0]].Compatibility == "incompatible";
         }
+    }
+
+    /// <summary>Menu buttons carry the same pixel icons as the HUD, redrawn for the current theme.</summary>
+    private void RefreshMenuIcons()
+    {
+        foreach (var button in new[] { mainMenuContinueButton, mainMenuNewButton, mainMenuLoadButton, mainMenuSettingsButton,
+                     mainMenuConnectButton, quitGameButton, menuResumeButton, menuSaveWorldButton, settingsButton,
+                     modLibraryButton, menuQuitToMainButton })
+            button.Alignment = HorizontalAlignment.Left;
+        var palette = UiTheme.Current;
+        var scale = HudIconScale;
+        var dark = palette.Name == "dark";
+        var wood = dark ? new Color("C99A62") : new Color("9C6C42");
+        var green = dark ? new Color("8DBA6A") : palette.Primary;
+        var warm = dark ? new Color("D89A5A") : new Color("B8733A");
+        var play = PixelIcons.Texture(PixelGlyph.Play, palette.PrimaryInk, palette.PrimaryInk, scale);
+        mainMenuContinueButton.Icon = play;
+        menuResumeButton.Icon = play;
+        mainMenuNewButton.Icon = PixelIcons.Themed(PixelGlyph.Globe, green, scale);
+        mainMenuLoadButton.Icon = PixelIcons.Themed(PixelGlyph.Folder, warm, scale);
+        mainMenuSettingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
+        mainMenuConnectButton.Icon = PixelIcons.Themed(PixelGlyph.Link, green, scale);
+        settingsButton.Icon = PixelIcons.Themed(PixelGlyph.Gear, wood, scale);
+        menuSaveWorldButton.Icon = PixelIcons.Themed(PixelGlyph.Book, wood, scale);
+        modLibraryButton.Icon = PixelIcons.Themed(PixelGlyph.Box, wood, scale);
+        var door = PixelIcons.Themed(PixelGlyph.Door, palette.Bad, scale);
+        menuQuitToMainButton.Icon = door;
+        quitGameButton.Icon = door;
+        worldBackButton.Icon = PixelIcons.Themed(PixelGlyph.Back, palette.Ink, scale);
     }
 }

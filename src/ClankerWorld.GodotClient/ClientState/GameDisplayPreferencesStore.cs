@@ -16,7 +16,9 @@ public sealed record GameDisplayPreferences(
     bool? AutoRenderResolution = null,
     int UiScalePercent = 100,
     bool? Fullscreen = null,
-    string Theme = "light")
+    string Theme = "light",
+    bool CloudHaze = true,
+    bool LightningFlashes = true)
 {
     // Older settings did not record window mode. Default those installations
     // to fullscreen, while honoring an explicit windowed choice thereafter.

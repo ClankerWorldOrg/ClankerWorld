@@ -8,7 +8,7 @@ public sealed record ProviderUsageRow(string Provider, string Model, string Role
 
 public sealed record ProviderUsageStatus(long Attempts, long Completed, long Failed,
     long Abandoned, long InputTokens, long OutputTokens, long? AttemptLimit,
-    bool LimitReached, IReadOnlyList<ProviderUsageRow> Rows);
+    bool LimitReached, IReadOnlyList<ProviderUsageRow> Rows, string? AccountingError = null);
 
 public sealed record ProviderUsageLimitAction(long? AttemptLimit, long AdditionalCalls = 0);
 
@@ -31,6 +31,8 @@ public sealed class ProviderUsageStore
     private readonly string path;
     private State state;
     private bool limitNotified;
+    private string? accountingError;
+    public const string RecoveryMessage = "Model-call accounting could not be read. Paid calls are blocked. Restore the usage file from a trusted backup, then restart the host; do not delete it or reset spent calls.";
 
     private sealed record Pending(string Id, string Provider, string Model, string Role);
     private sealed record State(int SchemaVersion, long? AttemptLimit,
@@ -41,23 +43,53 @@ public sealed class ProviderUsageStore
     public ProviderUsageStore(string path)
     {
         this.path = path ?? throw new ArgumentNullException(nameof(path));
-        if (File.Exists(path))
+        state = new State(SchemaVersion, null, [], []);
+        try
         {
-            state = JsonSerializer.Deserialize<State>(File.ReadAllText(path))
-                ?? throw new InvalidDataException("Provider usage state is empty.");
-            if (state.SchemaVersion != SchemaVersion || state.Rows is null || state.Pending is null ||
-                state.AttemptLimit < 0 || state.Rows.Count > MaximumRows ||
-                state.Rows.Any(row => row.Attempts < 0 || row.Completed < 0 || row.Failed < 0 ||
-                    row.Abandoned < 0 || row.InputTokens < 0 || row.OutputTokens < 0))
-                throw new InvalidDataException("Provider usage state is invalid.");
-            // A process exit can abandon a charged call, but must not make
-            // that reserved call disappear from the lifetime meter.
-            foreach (var pending in state.Pending)
-                AddOutcome(state, pending, "abandoned", 0, 0);
-            state.Pending.Clear();
-            if (state.Rows.Sum(row => row.Attempts) > 0) Save();
+            // Read directly: File.Exists hides access errors as a missing file.
+            State loaded;
+            try
+            {
+                loaded = JsonSerializer.Deserialize<State>(File.ReadAllText(path))
+                    ?? throw new InvalidDataException("Provider usage state is empty.");
+            }
+            catch (FileNotFoundException) { return; }
+            catch (DirectoryNotFoundException) { return; }
+            Validate(loaded);
+            var next = Copy(loaded);
+            foreach (var pending in next.Pending)
+                AddOutcome(next, pending, "abandoned", 0, 0);
+            next.Pending.Clear();
+            if (loaded.Pending.Count > 0) Save(next);
+            state = next;
         }
-        else state = new State(SchemaVersion, null, [], []);
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+            JsonException or InvalidDataException or OverflowException)
+        {
+            // Unknown accounting is never permission to start again at zero.
+            accountingError = RecoveryMessage;
+        }
+    }
+
+    private static void Validate(State loaded)
+    {
+        if (loaded.SchemaVersion != SchemaVersion || loaded.Rows is null || loaded.Pending is null ||
+            loaded.AttemptLimit < 0 || loaded.Rows.Count > MaximumRows ||
+            loaded.Rows.Any(row => row is null || row.Attempts < 0 || row.Completed < 0 || row.Failed < 0 ||
+                row.Abandoned < 0 || row.InputTokens < 0 || row.OutputTokens < 0) ||
+            loaded.Pending.Any(item => item is null || string.IsNullOrEmpty(item.Id)) ||
+            loaded.Pending.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != loaded.Pending.Count ||
+            loaded.Rows.Select(row => (row.Provider, row.Model, row.Role)).Distinct().Count() != loaded.Rows.Count)
+            throw new InvalidDataException("Provider usage state is invalid.");
+        foreach (var row in loaded.Rows)
+            if (row.Attempts != checked(row.Completed + row.Failed + row.Abandoned +
+                loaded.Pending.Count(item => Same(row, item))))
+                throw new InvalidDataException("Provider usage totals are inconsistent.");
+        if (loaded.Pending.Any(item => !loaded.Rows.Any(row => Same(row, item))))
+            throw new InvalidDataException("Provider usage reservation has no accounting row.");
+        _ = loaded.Rows.Sum(row => row.Attempts);
+        _ = loaded.Rows.Sum(row => row.InputTokens);
+        _ = loaded.Rows.Sum(row => row.OutputTokens);
     }
 
     public ProviderUsageStatus Capture()
@@ -69,7 +101,7 @@ public sealed class ProviderUsageStore
             return new ProviderUsageStatus(rows.Sum(row => row.Attempts), rows.Sum(row => row.Completed),
                 rows.Sum(row => row.Failed), rows.Sum(row => row.Abandoned),
                 rows.Sum(row => row.InputTokens), rows.Sum(row => row.OutputTokens),
-                state.AttemptLimit, IsBlocked(), rows);
+                state.AttemptLimit, IsBlocked(), rows, accountingError);
         }
     }
 
@@ -83,6 +115,7 @@ public sealed class ProviderUsageStore
         ProviderUsageStatus result;
         lock (gate)
         {
+            if (accountingError is not null) throw new InvalidOperationException(accountingError);
             var before = IsBlocked();
             State next;
             if (action.AdditionalCalls > 0)
@@ -133,6 +166,7 @@ public sealed class ProviderUsageStore
             }
         }
         if (notify) LimitReached?.Invoke();
+        if (accountingError is not null) throw new InvalidOperationException(accountingError);
         return ticket ?? throw new ProviderUsageLimitReachedException();
     }
 
@@ -156,8 +190,8 @@ public sealed class ProviderUsageStore
         if (notify) LimitReached?.Invoke();
     }
 
-    private bool IsBlocked() => state.AttemptLimit is { } cap &&
-        state.Rows.Sum(row => row.Attempts) >= cap;
+    private bool IsBlocked() => accountingError is not null || (state.AttemptLimit is { } cap &&
+        state.Rows.Sum(row => row.Attempts) >= cap);
 
     private static State Copy(State source) => source with
     {
@@ -195,10 +229,22 @@ public sealed class ProviderUsageStore
     private void Save(State? candidate = null)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var temp = path + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(candidate ?? state));
-        File.Move(temp, path, true);
-        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        var temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            using (var stream = new FileStream(temp, options))
+            {
+                JsonSerializer.Serialize(stream, candidate ?? state);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temp, path, true);
+        }
+        finally
+        {
+            if (File.Exists(temp)) File.Delete(temp);
+        }
     }
 }

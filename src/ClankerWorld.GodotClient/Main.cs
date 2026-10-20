@@ -145,12 +145,14 @@ public partial class Main : Control
     private readonly ColorRect appBackdrop = new();
     private readonly ColorRect worldBackdrop = new();
     private readonly OptionButton themeChoice = new();
+    private readonly CheckButton cloudHazeToggle = new();
+    private readonly CheckButton lightningToggle = new();
     private readonly Label menuHeadingLabel = new();
     private readonly Button menuCloseButton = new();
     private readonly Button menuResumeButton = new();
     private readonly Button quitGameButton = new();
     private readonly ConfirmationDialog quitGameConfirmation = new();
-    private readonly CheckBox fullscreenToggle = new();
+    private readonly CheckButton fullscreenToggle = new();
     private readonly OptionButton windowSizeChoice = new();
     private readonly OptionButton renderResolutionChoice = new();
     private readonly OptionButton uiScaleChoice = new();
@@ -209,6 +211,7 @@ public partial class Main : Control
     private string? selectedInhabitantId;
     private string? renamingAgentId;
     private bool isRefreshing;
+    private CancellationTokenSource? refreshCancellation;
     private int successfulRefreshCount;
     private bool isPairingOperation;
     private bool isOwnerAction;
@@ -414,8 +417,8 @@ public partial class Main : Control
                     throw new InvalidOperationException($"Save/load panel escaped its centered bounds at {size}.");
                 manualSaveOverlay.Hide();
                 worldMenuHeading.Text = "New World";
-                worldMenuStatus.Text = "Pick a seed and size. After creating the world, choose where your Town goes and add four founders, then start time.";
-                worldPreviewStatus.Text = "Map preview · you will choose where your Town goes after creating the world.";
+                worldMenuStatus.Text = "Pick a seed and size. After creating the world, choose where your first Town goes and add four founders, then start time.";
+                worldPreviewStatus.Text = "Map preview · you will choose where your first Town goes after creating the world.";
                 worldPreview.Show();
                 worldMenuOverlay.Show();
                 if (!worldNameInput.GetParent().GetChildren().OfType<Label>().Any(label => label.Text == "Name") ||
@@ -490,6 +493,14 @@ public partial class Main : Control
                 throw new InvalidOperationException("Choosing a theme must restyle the open window at once and be remembered.");
             themeChoice.Select((int)UiTheme.Parse(themeBefore));
             SetUiTheme((int)UiTheme.Parse(themeBefore));
+            var (hazeBefore, flashesBefore) = (displayPreferences.CloudHaze, displayPreferences.LightningFlashes);
+            cloudHazeToggle.ButtonPressed = !hazeBefore;
+            lightningToggle.ButtonPressed = !flashesBefore;
+            if (weatherLayer.CloudsEnabled == hazeBefore || weatherLayer.LightningEnabled == flashesBefore ||
+                displayPreferences.CloudHaze == hazeBefore || displayPreferences.LightningFlashes == flashesBefore)
+                throw new InvalidOperationException("The cloud haze and lightning switches must take effect at once and be remembered.");
+            cloudHazeToggle.ButtonPressed = hazeBefore;
+            lightningToggle.ButtonPressed = flashesBefore;
             if (!topBarShade.Visible || topBarShade.ZIndex <= mainMenuOverlay.ZIndex)
                 throw new InvalidOperationException("Main Menu Settings must shade the top bar like the rest of the title backdrop.");
             SetStatus("Settings status check", good: true);
@@ -713,6 +724,12 @@ public partial class Main : Control
                 !usageMeterStatus.Text.Contains("openai / test-model", StringComparison.Ordinal) ||
                 !grantUsageCallsButton.Visible || usageAttemptLimitInput.Text != "2")
                 throw new InvalidOperationException("World Settings must present paid attempts, scope, provider/model and explicit consent at the cap.");
+            usageStatus = usageStatus with { AccountingError = "Accounting unavailable. Restore a trusted backup and restart." };
+            RenderUsageStatus();
+            if (!usageMeterStatus.Text.Contains("Restore a trusted backup", StringComparison.Ordinal) ||
+                usageMeterStatus.Text.Contains("calls used", StringComparison.Ordinal) ||
+                grantUsageCallsButton.Visible || !applyUsageLimitButton.Disabled || usageAttemptLimitInput.Editable)
+                throw new InvalidOperationException("Unavailable accounting must not display zero usage or offer a cap bypass.");
             usageStatus = null;
             RenderUsageStatus();
             Render(sample, []);
@@ -1410,7 +1427,7 @@ public partial class Main : Control
                 throw new InvalidOperationException("Middle-drag did not pan the world camera.");
             GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
             var beforeKeyboardPan = mapStage.Position;
-            _UnhandledKeyInput(new InputEventKey { Keycode = Key.S, Pressed = true });
+            PanCameraForFrame(new Vector2(0, 1), 0.1);
             if (mapStage.Position.DistanceTo(beforeKeyboardPan) < 1)
                 throw new InvalidOperationException("Keyboard panning did not move the world camera.");
             var eventDestination = cameraCenterTiles.X < 8 ? new OwnerWorldPosition(15, 11) : new OwnerWorldPosition(0, 0);
@@ -1508,16 +1525,22 @@ public partial class Main : Control
             var startedMap = largeMap with { FounderSetup = null };
             RenderWorldHud(startedMap);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!pausedBadge.Visible || !mapCanvas.GetGlobalRect().Encloses(pausedBadge.GetGlobalRect()))
-                throw new InvalidOperationException($"A paused, started world must show a paused badge inside the world view: visible={pausedBadge.Visible} badge={pausedBadge.GetGlobalRect()}.");
+            // The HUD's pause control shows stopped time on its own, and the
+            // weather holds still until time runs again.
+            var frozenAt = weatherLayer.AnimationTime;
+            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            if (pauseButton.ThemeTypeVariation != "EmberButton" || pauseButton.Text != "Paused" ||
+                !weatherLayer.Paused || weatherLayer.AnimationTime != frozenAt)
+                throw new InvalidOperationException($"A paused world must show Paused on its pause control and freeze its weather: {pauseButton.Text}, {weatherLayer.AnimationTime - frozenAt}s.");
             RenderWorldHud(startedMap with { Authoring = startedMap.Authoring! with { IsPaused = false } });
-            if (pausedBadge.Visible)
-                throw new InvalidOperationException("The paused badge must disappear while time runs.");
+            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            if (pauseButton.ThemeTypeVariation == "EmberButton" || weatherLayer.Paused || weatherLayer.AnimationTime <= frozenAt)
+                throw new InvalidOperationException("Weather must move again, and the pause control return to normal, once time runs.");
             RenderWorldHud(largeMap);
             UpdateTileHover(mapCanvas.Size / 2);
             var hoveredCenter = TileAtCanvas(mapCanvas.Size / 2, largeMap);
             if (!hoverReadout.Visible || !hoverReadoutLabel.Text.EndsWith($"{hoveredCenter.X}, {hoveredCenter.Y}", StringComparison.Ordinal) ||
-                hoverReadout.MouseFilter != Control.MouseFilterEnum.Ignore || pausedBadge.MouseFilter != Control.MouseFilterEnum.Ignore)
+                hoverReadout.MouseFilter != Control.MouseFilterEnum.Ignore)
                 throw new InvalidOperationException($"Hovering ground must show a click-through readout ending in the tile position: {hoverReadoutLabel.Text}");
             var beforeRoad = largeMap with { RoadTiles = [] };
             UpdateHoverReadout(beforeRoad, hoveredCenter);
@@ -1650,20 +1673,35 @@ public partial class Main : Control
                 !selectedTileText.Text.Contains("Tile 255, 64", StringComparison.Ordinal))
                 throw new InvalidOperationException("Selecting a wrapped seam marker must inspect its canonical tile.");
 
+            GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
+            var beforeFramePan = cameraCenterTiles;
+            cameraCenterTiles = new Vector2(128, 64);
+            PanCameraForFrame(new Vector2(1, 0), 0.1);
+            var cardinalDistance = cameraCenterTiles.DistanceTo(new Vector2(128, 64));
+            cameraCenterTiles = new Vector2(128, 64);
+            PanCameraForFrame(new Vector2(1, 1), 0.05);
+            PanCameraForFrame(new Vector2(1, 1), 0.05);
+            if (Math.Abs(cameraCenterTiles.DistanceTo(new Vector2(128, 64)) - cardinalDistance) > 0.01f)
+                throw new InvalidOperationException("Diagonal pan must match cardinal speed and depend on elapsed time, not repeat count.");
+            var beforeEcho = cameraCenterTiles;
+            _UnhandledKeyInput(new InputEventKey { Keycode = Key.Right, Pressed = true, Echo = true });
+            if (cameraCenterTiles != beforeEcho)
+                throw new InvalidOperationException("Keyboard repeat events must not add camera movement.");
+            cameraCenterTiles = beforeFramePan;
             var repeatedKeyStart = cameraCenterTiles.X;
             var previousKeyCenter = repeatedKeyStart;
             for (var step = 0; step < 512; step++)
             {
-                _UnhandledKeyInput(new InputEventKey { Keycode = Key.Right, Pressed = true });
+                PanCameraForFrame(new Vector2(1, 0), 0.1);
                 if (Math.Abs(PositiveMod(cameraCenterTiles.X - previousKeyCenter, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Repeated right-key input must keep moving through multiple wrapped laps.");
+                    throw new InvalidOperationException("Held right movement must keep moving through multiple wrapped laps.");
                 previousKeyCenter = cameraCenterTiles.X;
             }
             for (var step = 0; step < 512; step++)
             {
-                _UnhandledKeyInput(new InputEventKey { Keycode = Key.Left, Pressed = true });
+                PanCameraForFrame(new Vector2(-1, 0), 0.1);
                 if (Math.Abs(PositiveMod(previousKeyCenter - cameraCenterTiles.X, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Repeated left-key input must keep moving through multiple wrapped laps.");
+                    throw new InvalidOperationException("Held left movement must keep moving through multiple wrapped laps.");
                 previousKeyCenter = cameraCenterTiles.X;
             }
             if (Math.Abs(cameraCenterTiles.X - repeatedKeyStart) > 0.01f)
@@ -2001,7 +2039,7 @@ public partial class Main : Control
             if (!quitGameConfirmation.Visible)
                 throw new InvalidOperationException("Quit Game must ask for confirmation before exiting.");
             quitGameConfirmation.Hide();
-            GD.Print("UI checks passed: startup Main Menu and settings, compact in-world pause menu and read-only Mod Library, confirmed quit, settlement panel, resource hover, square tile hover and agent priority, bounded marker hitboxes at zoom, building footprints, camera-bounded large terrain and regional weather, zoom, middle-drag, WASD, overview navigation, Event Log jumps without pop-ups, keyboard shortcuts and the F1 controls list, private thoughts, memories, deceased inspection and family tree.");
+            GD.Print("UI checks passed: startup Main Menu and settings, compact in-world pause menu and read-only Mod Library, confirmed quit, World Info Towns page, resource hover, square tile hover and agent priority, bounded marker hitboxes at zoom, building footprints, camera-bounded large terrain and regional weather, zoom, middle-drag, WASD, overview navigation, Event Log jumps without pop-ups, keyboard shortcuts and the F1 controls list, private thoughts, memories, deceased inspection and family tree.");
             GetTree().Quit();
         }
         catch (Exception exception)
@@ -2013,6 +2051,7 @@ public partial class Main : Control
 
     public override void _ExitTree()
     {
+        refreshCancellation?.Cancel();
         UiTheme.Changed -= ApplyThemeColors;
         deviceKey?.Dispose();
         httpClient.Dispose();
@@ -2249,6 +2288,7 @@ public partial class Main : Control
 
     private void ForgetLocalRegistration()
     {
+        refreshCancellation?.Cancel();
         registrationStore.Forget();
         registration = null;
         registeredEndpointInvalid = false;
@@ -2280,6 +2320,8 @@ public partial class Main : Control
         }
 
         isRefreshing = true;
+        using var refresh = new CancellationTokenSource();
+        refreshCancellation = refresh;
         try
         {
             var requestedCursor = observationSession.EventCursor;
@@ -2302,7 +2344,9 @@ public partial class Main : Control
                 cachedTerrain?.MapManifestDigest,
                 cachedMapLayersDigest,
                 deviceKey,
-                CancellationToken.None);
+                refresh.Token);
+            // An owner action or shutdown superseded this snapshot.
+            if (refresh.IsCancellationRequested) return;
             if (!observationSession.TryAccept(reconnect, requestedCursor, out var failure))
             {
                 ShowHeldState(failure);
@@ -2328,12 +2372,17 @@ public partial class Main : Control
                 }
             }
         }
+        catch (OperationCanceledException) when (refresh.IsCancellationRequested)
+        {
+            // Superseded refresh is not a connection failure.
+        }
         catch (Exception exception)
         {
             ShowHeldState(FriendlyFailure(exception));
         }
         finally
         {
+            refreshCancellation = null;
             isRefreshing = false;
             RefreshControlAvailability();
         }
@@ -2622,6 +2671,14 @@ public partial class Main : Control
         if (usageStatus is null)
         {
             usageMeterStatus.Text = "Loading model calls…";
+            return;
+        }
+        if (usageStatus.AccountingError is not null)
+        {
+            usageMeterStatus.Text = usageStatus.AccountingError;
+            usageMeterStatus.TooltipText = "Call totals are unavailable until accounting is restored.";
+            grantUsageCallsButton.Visible = false;
+            RefreshControlAvailability();
             return;
         }
         if (!usageAttemptLimitInput.HasFocus())
@@ -3143,6 +3200,7 @@ public partial class Main : Control
         }
 
         isOwnerAction = true;
+        refreshCancellation?.Cancel();
         RefreshControlAvailability();
         try
         {
@@ -3514,6 +3572,8 @@ public partial class Main : Control
 
         // Weather falls over buildings and agents alike.
         weatherLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        weatherLayer.CloudsEnabled = displayPreferences.CloudHaze;
+        weatherLayer.LightningEnabled = displayPreferences.LightningFlashes;
         weatherLayer.Follow(terrainLayer);
         mapStage.AddChild(weatherLayer);
 
@@ -3694,6 +3754,7 @@ public partial class Main : Control
             ApplyResponsiveLayout();
         };
 
+        menuActions.AddChild(menuQuitSeparator);
         menuQuitToMainButton.Text = "Quit to Menu";
         StyleButton(menuQuitToMainButton);
         menuQuitToMainButton.Pressed += () => quitToMenuConfirmation.PopupCentered(new Vector2I(470, 180));
@@ -3707,10 +3768,29 @@ public partial class Main : Control
 
         gameSettingsContent.AddThemeConstantOverride("separation", 8);
         worldSettingsContent.AddThemeConstantOverride("separation", 8);
-        fullscreenToggle.Text = "Fullscreen";
+        gameSettingsContent.AddChild(SettingsSection("Interface"));
+        themeChoice.AddItem("Light", (int)UiThemeChoice.Light);
+        themeChoice.AddItem("Dark", (int)UiThemeChoice.Dark);
+        themeChoice.AddItem("Match system", (int)UiThemeChoice.System);
+        themeChoice.Selected = (int)UiTheme.Parse(displayPreferences.Theme);
+        themeChoice.TooltipText = "Light parchment or dark wood panels. Match system follows your computer's setting.";
+        themeChoice.ItemSelected += SetUiTheme;
+        gameSettingsContent.AddChild(DisplaySettingRow("Theme", themeChoice));
+
+        foreach (var percentage in DisplayUiScalePolicy.SupportedPercentages)
+            uiScaleChoice.AddItem($"{percentage}%");
+        uiScaleChoice.Selected = DisplayUiScalePolicy.IndexOfPercent(displayPreferences.UiScalePercent);
+        uiScaleChoice.TooltipText = "Makes menus and text bigger or smaller.";
+        uiScaleChoice.ItemSelected += SetUiScale;
+        gameSettingsContent.AddChild(DisplaySettingRow("UI Scale", uiScaleChoice));
+
+        gameSettingsContent.AddChild(SettingsSection("Display"));
+        fullscreenToggle.Text = string.Empty;
+        fullscreenToggle.TooltipText = "Fill the whole screen.";
         fullscreenToggle.ButtonPressed = DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen;
         fullscreenToggle.Toggled += SetFullscreen;
-        gameSettingsContent.AddChild(fullscreenToggle);
+        fullscreenToggle.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
+        gameSettingsContent.AddChild(DisplaySettingRow("Fullscreen", fullscreenToggle));
 
         foreach (var preset in DisplaySizePresets)
         {
@@ -3727,21 +3807,18 @@ public partial class Main : Control
         renderResolutionChoice.ItemSelected += SetRenderResolution;
         gameSettingsContent.AddChild(DisplaySettingRow("Render Resolution", renderResolutionChoice));
 
-        themeChoice.AddItem("Light", (int)UiThemeChoice.Light);
-        themeChoice.AddItem("Dark", (int)UiThemeChoice.Dark);
-        themeChoice.AddItem("Match system", (int)UiThemeChoice.System);
-        themeChoice.Selected = (int)UiTheme.Parse(displayPreferences.Theme);
-        themeChoice.TooltipText = "Light parchment or dark wood panels. Match system follows your computer's setting.";
-        themeChoice.ItemSelected += SetUiTheme;
-        gameSettingsContent.AddChild(DisplaySettingRow("Theme", themeChoice));
 
-        foreach (var percentage in DisplayUiScalePolicy.SupportedPercentages)
-            uiScaleChoice.AddItem($"{percentage}%");
-        uiScaleChoice.Selected = DisplayUiScalePolicy.IndexOfPercent(displayPreferences.UiScalePercent);
-        uiScaleChoice.TooltipText = "Makes menus and text bigger or smaller.";
-        uiScaleChoice.ItemSelected += SetUiScale;
-        gameSettingsContent.AddChild(DisplaySettingRow("UI Scale", uiScaleChoice));
+        gameSettingsContent.AddChild(SettingsSection("Weather"));
+        cloudHazeToggle.TooltipText = "A faint haze of cloud that drifts over the land now and then.";
+        cloudHazeToggle.ButtonPressed = displayPreferences.CloudHaze;
+        cloudHazeToggle.Toggled += SetCloudHaze;
+        gameSettingsContent.AddChild(DisplaySettingRow("Cloud haze", cloudHazeToggle));
+        lightningToggle.TooltipText = "A soft flash every several seconds during storms.";
+        lightningToggle.ButtonPressed = displayPreferences.LightningFlashes;
+        lightningToggle.Toggled += SetLightningFlashes;
+        gameSettingsContent.AddChild(DisplaySettingRow("Lightning flashes", lightningToggle));
 
+        gameSettingsContent.AddChild(SettingsSection("Date and time"));
         clockFormatChoice.AddItem("24-hour", 0);
         clockFormatChoice.AddItem("12-hour (AM/PM)", 1);
         clockFormatChoice.Selected = displayPreferences.UseTwelveHourClock ? 1 : 0;
@@ -4379,13 +4456,21 @@ public partial class Main : Control
 
     // Every labelled settings row shares one caption column so the choices
     // line up; ApplyResponsiveLayout widens it with the caption text.
-    private HBoxContainer DisplaySettingRow(string label, OptionButton choice)
+    /// <summary>A small heading that groups related settings.</summary>
+    private static Label SettingsSection(string text)
+    {
+        var heading = new Label { Text = text.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
+        heading.AddThemeFontSizeOverride("font_size", 12);
+        return heading;
+    }
+
+    private HBoxContainer DisplaySettingRow(string label, Control choice)
     {
         var row = new HBoxContainer();
         var caption = new Label { Text = label, CustomMinimumSize = new Vector2(SettingCaptionWidth, 0) };
         settingCaptionLabels.Add(caption);
         row.AddChild(caption);
-        choice.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        if (choice is not CheckButton) choice.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         row.AddChild(choice);
         return row;
     }
@@ -4423,6 +4508,20 @@ public partial class Main : Control
         var percent = DisplayUiScalePolicy.SupportedPercentages[(int)index];
         SaveDisplayPreferences(displayPreferences with { UiScalePercent = percent });
         ApplyUiScale(percent);
+    }
+
+    private void SetCloudHaze(bool enabled)
+    {
+        SaveDisplayPreferences(displayPreferences with { CloudHaze = enabled });
+        weatherLayer.CloudsEnabled = enabled;
+        weatherLayer.QueueRedraw();
+    }
+
+    private void SetLightningFlashes(bool enabled)
+    {
+        SaveDisplayPreferences(displayPreferences with { LightningFlashes = enabled });
+        weatherLayer.LightningEnabled = enabled;
+        weatherLayer.QueueRedraw();
     }
 
     private void SetUiTheme(long index)
@@ -4669,7 +4768,7 @@ public partial class Main : Control
                 WorldTerrainMap.NaturalObjectName(resource.NaturalObjectKind) is null &&
                     (resource.NaturalObjectKind is not null || NatureSprites.ForCampResource(resource.Kind) is null)
                     ? ResourceGlyph(resource.Kind, resource.NaturalObjectKind) : string.Empty,
-                ResourceMarker(resource.Kind, resource.NaturalObjectKind) + (resource.Quantity is null ? "" : " " + GameUiText.ResourceQuantity(resource.Kind, resource.Quantity, resource.Capacity)),
+                GameUiText.ResourceMapCaption(resource, currentTileSize),
                 GameUiText.ResourceTooltip(resource));
         }
 
@@ -4741,7 +4840,7 @@ public partial class Main : Control
                     entityLayer.AddChild(actorMarker);
                     inhabitantVisuals.Add(inhabitant.Id, actorMarker);
                 }
-                actorMarker.Caption = $"{ActivityGlyph(inhabitant.PublicIntention?.CandidateId)} {ActorLabel(inhabitant.DisplayName)}";
+                actorMarker.Caption = $"{GameUiText.ActivityMapGlyph(inhabitant.PublicIntention?.CandidateId)} {GameUiText.ActorMapLabel(inhabitant.DisplayName)}";
                 actorMarker.Variant = AgentSprites.VariantFor(inhabitant.Id);
                 actorMarker.Stage = AgentSprites.StageIndex(
                     inhabitant.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail);
@@ -4897,7 +4996,7 @@ public partial class Main : Control
     {
         clockLabel.Text = DisplayWorldClock(snapshot.WorldTick);
         RenderHudState(snapshot);
-        UpdatePausedBadge(snapshot);
+        weatherLayer.Paused = snapshot.Authoring?.IsPaused == true;
         menuResumeButton.Text = menuPausedWorld ? "Resume" : "Close menu";
     }
 
@@ -5458,10 +5557,10 @@ public partial class Main : Control
         cognitionApiKeyInput.Editable = !actionDisabled && SelectedProviderId() != "deterministic";
         cognitionCredentialLabelInput.Editable = !actionDisabled;
         refreshCognitionProviderButton.Disabled = actionDisabled;
-        applyUsageLimitButton.Disabled = actionDisabled;
+        applyUsageLimitButton.Disabled = actionDisabled || usageStatus?.AccountingError is not null;
         grantUsageCallsButton.Disabled = actionDisabled || usageStatus?.LimitReached != true;
         refreshUsageButton.Disabled = actionDisabled;
-        usageAttemptLimitInput.Editable = !actionDisabled;
+        usageAttemptLimitInput.Editable = !actionDisabled && usageStatus?.AccountingError is null;
         var selectedProvider = SelectedProviderId();
         var selectedProviderStatus = providerConfiguration?.Providers.FirstOrDefault(item =>
             string.Equals(item.Provider, selectedProvider, StringComparison.Ordinal));
@@ -5915,19 +6014,26 @@ public partial class Main : Control
             return;
         }
 
-        var direction = key.Keycode switch
-        {
-            Key.W or Key.Up => new Vector2(0, -1),
-            Key.A or Key.Left => new Vector2(-1, 0),
-            Key.S or Key.Down => new Vector2(0, 1),
-            Key.D or Key.Right => new Vector2(1, 0),
-            _ => Vector2.Zero,
-        };
-        if (direction != Vector2.Zero)
-        {
-            PanCamera(direction * 1.5f);
+        if (key.Keycode is Key.W or Key.Up or Key.A or Key.Left or Key.S or Key.Down or Key.D or Key.Right)
             GetViewport().SetInputAsHandled();
-        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!GetWindow().HasFocus()) return;
+        var direction = new Vector2(
+            (Input.IsPhysicalKeyPressed(Key.D) || Input.IsPhysicalKeyPressed(Key.Right) ? 1 : 0) -
+            (Input.IsPhysicalKeyPressed(Key.A) || Input.IsPhysicalKeyPressed(Key.Left) ? 1 : 0),
+            (Input.IsPhysicalKeyPressed(Key.S) || Input.IsPhysicalKeyPressed(Key.Down) ? 1 : 0) -
+            (Input.IsPhysicalKeyPressed(Key.W) || Input.IsPhysicalKeyPressed(Key.Up) ? 1 : 0));
+        PanCameraForFrame(direction, delta);
+    }
+
+    private void PanCameraForFrame(Vector2 direction, double delta)
+    {
+        if (direction == Vector2.Zero || mainMenuOverlay.Visible || gameMenuPanel.Visible ||
+            worldMenuOverlay.Visible || GetViewport().GuiGetFocusOwner() is not null) return;
+        PanCamera(direction.Normalized() * (float)(15 * Math.Clamp(delta, 0, 0.1)));
     }
 
     /// <summary>
@@ -6274,23 +6380,13 @@ public partial class Main : Control
             good: false, StatusToastKind.Connection);
     }
 
-    private static string FriendlyFailure(Exception exception) => exception switch
+    private static string FriendlyFailure(Exception exception)
     {
-        System.Net.Http.HttpRequestException { StatusCode: { } code } => code switch
-        {
-            System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden =>
-                "this device is not allowed in. Try connecting it again",
-            System.Net.HttpStatusCode.NotFound => "the server does not know about that",
-            System.Net.HttpStatusCode.Conflict => "the server's state changed. Try again",
-            System.Net.HttpStatusCode.TooManyRequests => "the server cannot handle another connection request right now. Try again later",
-            >= System.Net.HttpStatusCode.InternalServerError => "the server had a problem",
-            _ => $"the server said no ({(int)code})",
-        },
-        System.Net.Http.HttpRequestException => "cannot reach the world server",
-        OperationCanceledException => "the server took too long to answer",
-        System.Text.Json.JsonException => "the server sent something unexpected",
-        _ => exception.Message,
-    };
+        // Keep diagnostics bounded and separate; exception messages can contain
+        // private paths, server payloads or credentials.
+        GD.PushWarning($"owner_action_failed type={exception.GetType().Name}");
+        return GameUiText.FriendlyFailure(exception);
+    }
 
     private static string DescribeWorldEvent(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
@@ -6313,6 +6409,7 @@ public partial class Main : Control
         return worldEvent.Kind switch
         {
             "world_created" => "A new world has begun.",
+            "world_started" => "Time has started in this world.",
             "weather_changed" when parts.Length >= 2 => $"The weather changed to {ThingAt(1)}.",
             "building_placed" => $"{ThingAt(1)} was built.",
             "build_started" => $"Work began on {ThingAt(1)}.",
@@ -6329,6 +6426,11 @@ public partial class Main : Control
             "inhabitant_removed" => $"{NameAt(0)} died.",
             "estate_will_accepted" => "A final will decided who gets their belongings.",
             "estate_will_default" => "Their belongings went to their household.",
+            "partnership_accepted" => "Two agents formed a partnership.",
+            "partnership_ended" => "A partnership ended.",
+            "caregiver_assigned" => "A child has a new caregiver.",
+            "council_policy_adopted" => "The Town adopted a new policy.",
+            "settlement_trade_completed" => "A trade was completed.",
             "inhabitant_building_proposed" => $"{NameAt(0)} suggested a new building design.",
             "settlement_founded" => "A new Town was founded.",
             "town_founding_started" => "Your first Town is being set up.",
@@ -6345,53 +6447,6 @@ public partial class Main : Control
     }
 
     private static string PositionKey(OwnerWorldPosition position) => $"{position.X},{position.Y}";
-
-    private static string ActorLabel(string displayName)
-    {
-        var trimmed = displayName.Trim();
-        if (string.IsNullOrEmpty(trimmed))
-        {
-            return "?";
-        }
-
-        return trimmed.Length <= 8 ? trimmed : $"{trimmed[..7]}…";
-    }
-
-    private static string ActivityGlyph(string? candidateId) => candidateId switch
-    {
-        "seek_food" => "→",
-        "harvest_food" => "✦",
-        "consume_food" => "♥",
-        not null when candidateId.StartsWith("build:", StringComparison.Ordinal) => "◆",
-        "safe_idle" => "·",
-        _ => "○",
-    };
-
-    private static string ResourceMarker(string kind, string? naturalObjectKind) => naturalObjectKind switch
-    {
-        "berry_bush" => "BERRIES",
-        "wild_greens" => "GREENS",
-        "fiber_plant" => "FIBER",
-        "reeds" => "REEDS",
-        "stone_outcrop" => "STONE",
-        "iron_outcrop" => "IRON",
-        "gold_outcrop" => "GOLD",
-        "diamond_outcrop" => "DIAMOND",
-        "clay_bank" => "CLAY",
-        "wild_seed_patch" => "SEEDS",
-        "fertile_soil" => "SOIL",
-        _ => ResourceMarker(kind),
-    };
-
-    private static string ResourceMarker(string kind) => kind switch
-    {
-        "food" => "FOOD",
-        "construction" => "WOOD",
-        "stone" => "STONE",
-        "fiber" => "FIBER",
-        "seed" => "SEEDS",
-        _ => ShortMarker(kind),
-    };
 
     private static string ResourceGlyph(string kind, string? naturalObjectKind) => naturalObjectKind switch
     {

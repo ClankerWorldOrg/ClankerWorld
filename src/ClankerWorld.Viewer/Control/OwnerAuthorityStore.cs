@@ -416,6 +416,29 @@ public sealed class OwnerAuthorityStore
         return store;
     }
 
+    /// <summary>Host-local recovery can displace one unapproved request, never an approved or active device.</summary>
+    public OwnerAuthorityResult<OwnerPairingStart> StartPairingLocally(OwnerPairingRequest request)
+    {
+        // Validate before displacing any existing request.
+        if (request is null || !TryImportP256PublicKey(request.PublicKeySpkiBase64, out var publicKey))
+            return OwnerAuthorityResult<OwnerPairingStart>.Fail(OwnerAuthorityFailure.InvalidPublicKey);
+        lock (gate)
+        {
+            ExpireOperationalStateUnsafe(UtcNow());
+            var fingerprint = CreatePublicKeyFingerprint(publicKey);
+            if (devices.Values.Any(device => device.State == OwnerDeviceState.Active &&
+                device.PublicKeyFingerprint == fingerprint))
+                return OwnerAuthorityResult<OwnerPairingStart>.Fail(OwnerAuthorityFailure.PublicKeyAlreadyRegistered);
+            var first = StartPairing(request);
+            if (first.IsSuccess || first.Failure != OwnerAuthorityFailure.PairingCapacityExceeded) return first;
+            var oldest = pairings.Values.Where(item => item.State == OwnerPairingState.Pending)
+                .OrderBy(item => item.ExpiresAtUtc).ThenBy(item => item.PairingId, StringComparer.Ordinal).FirstOrDefault();
+            if (oldest is null) return first;
+            oldest.State = OwnerPairingState.Expired;
+            return StartPairing(request);
+        }
+    }
+
     public OwnerAuthorityResult<OwnerPairingStart> StartPairing(OwnerPairingRequest request)
     {
         if (request is null || !TryImportP256PublicKey(request.PublicKeySpkiBase64, out var publicKeySpki))

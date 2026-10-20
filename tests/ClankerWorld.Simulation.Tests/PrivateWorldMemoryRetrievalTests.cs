@@ -9,6 +9,38 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed class PrivateWorldMemoryRetrievalTests
 {
     [Fact]
+    public async Task PersonalSelfContextUsesOnlyTheActorsSavedIdentityAndThought()
+    {
+        using var seed = new PrivateWorldRuntime("personal-self");
+        var state = seed.ExportState();
+        state = state with
+        {
+            JevEnabled = false,
+            Inhabitants = state.Inhabitants.Select(person => person with
+            {
+                RecentThoughts = [new PlaytestPrivateThought(0, person.InhabitantId + " private thought")],
+            }).ToArray(),
+        };
+        var observations = new List<InhabitantObservation>();
+        using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state)),
+            _ => new CapturingProvider(observations));
+        world.Resume();
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.NotEmpty(observations);
+        foreach (var observation in observations)
+        {
+            var self = Assert.IsType<CognitionSelfContext>(observation.Self);
+            var identity = state.Society.Society.Inhabitants.Single(person => person.Id == observation.InhabitantId);
+            var physical = state.Inhabitants.Single(person => person.InhabitantId == observation.InhabitantId);
+            Assert.Equal(identity.Name, self.Name);
+            Assert.Equal(identity.HouseholdId, self.HouseholdId);
+            Assert.Equal(physical.Personality, self.Personality);
+            Assert.Equal(observation.InhabitantId + " private thought", self.RecentThought);
+            observation.Validate();
+        }
+    }
+
+    [Fact]
     public async Task JevOffRetrievesOnlyLivingOwnersExistingMemoriesAndKeepsThemAcrossSave()
     {
         using var seed = new PrivateWorldRuntime("memory-fallback");

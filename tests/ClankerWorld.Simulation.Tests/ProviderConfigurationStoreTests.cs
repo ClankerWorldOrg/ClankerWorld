@@ -7,6 +7,39 @@ namespace ClankerWorld.Simulation.Tests;
 
 public sealed class ProviderConfigurationStoreTests
 {
+    [WindowsCredentialFact]
+    public void WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-windows-protection-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "providers.json");
+            const string key = "test-only-legacy-windows-secret";
+            var legacy = new ProviderConfigurationState(3, 0, "deterministic", "openai",
+                new("jev-test", null), new("test-model", key), new("ollama-test", null), [], [], []);
+            File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(legacy));
+            var migrated = new ProviderConfigurationStore(path, EmptySeed());
+            Assert.Equal(key, migrated.CaptureRuntimeConfiguration().OpenAi.ApiKey);
+            var log = new RecordingLogger<ProviderConfigurationStoreTests>();
+            ProviderCredentialTelemetry.Ready(log, "windows_current_user");
+            Assert.Contains(log.Messages, message => message.Contains("provider_credential_storage outcome=ready", StringComparison.Ordinal));
+            Assert.DoesNotContain(log.Messages, message => message.Contains(key, StringComparison.Ordinal) || message.Contains(path, StringComparison.Ordinal));
+            var encrypted = File.ReadAllText(path);
+            Assert.DoesNotContain(key, encrypted, StringComparison.Ordinal);
+            Assert.Equal(key, new ProviderConfigurationStore(path, EmptySeed()).CaptureRuntimeConfiguration().OpenAi.ApiKey);
+            // Truncate the native protected blob, leaving its format identifier intact.
+            var damaged = encrypted[..(encrypted.IndexOf('\n') + 1)] + "AAAA";
+            File.WriteAllText(path, damaged);
+            var error = Assert.Throws<System.Security.Cryptography.CryptographicException>(() =>
+                new ProviderConfigurationStore(path, EmptySeed()));
+            Assert.DoesNotContain(key, error.Message, StringComparison.Ordinal);
+            Assert.Equal(damaged, File.ReadAllText(path));
+            File.WriteAllText(path, encrypted);
+            Assert.Equal(key, new ProviderConfigurationStore(path, EmptySeed()).CaptureRuntimeConfiguration().OpenAi.ApiKey);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment()
     {
@@ -337,7 +370,9 @@ public sealed class ProviderConfigurationStoreTests
             var assigned = Assert.Throws<InvalidOperationException>(() => store.DeleteCredentialSlot(slotId));
             Assert.Contains("assigned", assigned.Message, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(revision, store.CaptureStatus().Revision);
-            Assert.Contains(secret, File.ReadAllText(path), StringComparison.Ordinal);
+            Assert.Equal(secret, store.CaptureRuntimeConfiguration().CredentialSlots!.Single().ApiKey);
+            if (OperatingSystem.IsWindows())
+                Assert.DoesNotContain(secret, File.ReadAllText(path), StringComparison.Ordinal);
 
             _ = store.Configure(new("personal", "inherit", null, null, false, "inhabitant-test"));
             var deleted = store.DeleteCredentialSlot(slotId);
@@ -418,12 +453,17 @@ public sealed class ProviderConfigurationStoreTests
             var path = Path.Combine(directory.FullName, "providers.json");
             var store = new ProviderConfigurationStore(path, EmptySeed());
             _ = store.Configure(new("planning", "openai", "prior-model", "prior-secret", false));
-            var prior = File.ReadAllText(path).Replace("\"SchemaVersion\":3", "\"SchemaVersion\":2", StringComparison.Ordinal);
+            var current = store.CaptureRuntimeConfiguration();
+            var prior = System.Text.Json.JsonSerializer.Serialize(new ProviderConfigurationState(2, current.Revision,
+                current.RoutineProvider, current.PlanningProvider, current.Jev, current.OpenAi, current.OllamaCloud,
+                current.Assignments));
             File.WriteAllText(path, prior);
             var migrated = new ProviderConfigurationStore(path, EmptySeed());
             Assert.Equal("prior-secret", migrated.CaptureRuntimeConfiguration().OpenAi.ApiKey);
             Assert.Equal("openai", migrated.CaptureStatus().PlanningProvider);
-            Assert.Contains("\"SchemaVersion\":3", File.ReadAllText(path), StringComparison.Ordinal);
+            Assert.Equal("prior-secret", new ProviderConfigurationStore(path, EmptySeed()).CaptureRuntimeConfiguration().OpenAi.ApiKey);
+            if (OperatingSystem.IsWindows())
+                Assert.DoesNotContain("prior-secret", File.ReadAllText(path), StringComparison.Ordinal);
         }
         finally
         {
@@ -715,5 +755,13 @@ public sealed class ProviderConfigurationStoreTests
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
             throw new HttpRequestException(message);
+    }
+}
+
+public sealed class WindowsCredentialFactAttribute : FactAttribute
+{
+    public WindowsCredentialFactAttribute()
+    {
+        if (!OperatingSystem.IsWindows()) Skip = "Requires native Windows current-user protection.";
     }
 }

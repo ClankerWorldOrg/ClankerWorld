@@ -85,17 +85,17 @@ proposed fixes as owner decisions.
 | Prompt shape and cost | Internal epoch/tick and Jev-salience fields are sent to the personal model; candidate lists are code-ordered and may include several site-coordinate variants. The response asks for a full probability map and confidence, and sets no explicit output-token or temperature limit. | Simplify model-facing text and bound output/candidate volume; measure quality and cost. **Keep a confidence policy or replace it explicitly:** confidence below 0.5 currently invokes `safe_idle`. Probabilities do not select the action. Do not assume `response_format: json_object` works uniformly across endpoints. |
 | Conversation and memory | The legal-candidate interface has no free-form adult dialogue turn, gossip/lie propagation, generated invention proposal or free-form will. Child conversation is a fixed result. Recent thoughts are not fed back, and experiences are not automatically turned into memories. | Design separately bounded dialogue/planning/invention/will call contracts with validated structured effects and a safe failure path; preserve speech-versus-truth provenance. This is a finished-game vision gap, not authorization for arbitrary text to mutate world state. |
 | Provider parity and observability | Jev's choice payload differs from the personal-model payload and lacks retrieved memories/map facts/persona. A malformed hosted response falls to the safe fallback without an adapter-level repair retry. Player-visible reason for an idle agent is still weak after a provider failure. | Define Jev's limited role, expose a clear agent-level waiting/failure/limit state, and assess a bounded repair retry against extra paid attempts. Record safe, bounded outcome telemetry; never raw prompts, responses or keys. |
-| Tick failure and recovery | The background one-second loop awaits `TryAdvanceOnceAsync` without a catch around the main tick or active recovery save. Only rotating autosave failure is caught. A thrown tick/save exception can stop the hosted service under its default behavior. | Prove the failure with a tiny host or injected save/tick error; hold the world and report a recoverable halt without silently discarding state. Distinguish corrupt persisted state from a transient write failure. |
+| Tick failure and recovery | The tick boundary now holds and pauses on faults. Active checkpoint I/O failures retry the retained state while paused; other faults latch for inspection. Startup corrupt-save errors remain separate. | Filesystem fault injection verifies retained tick, bounded safe logs, paused recovery and explicit resume. Detailed owner recovery status/control and arbitrary tick-fault injection remain unfinished; do not restart before preserving unsaved state. |
 | Persistence scale and retention | Each advanced tick re-encodes the active world and fsyncs a replacement file. Manual-save overwrite creates a full recovery copy every time; only autosaves rotate. History segments are digest-addressed, with no retention policy found in the state-file path. | Measure bytes and encode/fsync latency on a representative larger world before changing cadence; preserve pause/quit/crash guarantees. Decide backup and history retention with the save policy, not an arbitrary silent deletion rule. |
 | Save-list isolation | Source repair isolates malformed, unreadable, missing-checkpoint or ID-mismatched metadata instead of aborting the whole list. Damaged files remain untouched. | Focused regressions cover sound-save access, autosave rotation, metadata repair and safe warning deduplication. Normal Windows save-list playtest remains pending; see [#261](https://github.com/compoodment/ClankerWorld/issues/261). |
-| Usage-meter durability | `ProviderUsageStore` throws on an unreadable existing meter during construction, preventing host startup; its fixed `.tmp` write has no fsync. This is separate from the already-repaired reservation write rollback and the live meter-path incident above. | Start with hosted calls blocked and an actionable owner error on unreadable accounting; use durable atomic replacement and test restart after an interrupted write. Never reset spent attempts silently. |
-| Client presence/network | Only authenticated reconnect renews the default five-second presence lease. The client polls every second with the default 100-second `HttpClient` timeout and no refresh cancellation; a hung refresh suppresses later polls and gates UI actions. | Exercise a stalled signed reconnect on Windows. Bound/cancel refresh, show connection state and keep pause available; evaluate a cheap signed heartbeat or a measured lease change without permitting unattended calls. |
-| Pairing/API limits | Eight ten-minute pending pairings can fill the unauthenticated creation capacity; the loopback-bound public listener has no explicit request-body/rate policy. | Assess reachable tailnet threat and legitimate retry flow, then bound pairing/request volume without weakening local-only approval or blocking the real owner. This is hardening, not a demonstrated exploit. |
-| Local credential storage | Provider keys are written as JSON in an installation-local file; Unix file modes are tightened, but Windows has no equivalent encryption in this store. | Before the player-local Windows release, use appropriate current-user protected storage and a clear forget-key flow while preserving save/credential separation. Existing in-app deletion does not erase backups. |
-| Event parsing | Event `Detail` is a delimiter-joined string parsed by the host and client; the client humanizes unknown kinds in the player Event Log. | Replace fragile positional parsing with typed payloads as event contracts change and explicitly select player-visible kinds; assess actual IDs/text before claiming a current misparse. |
+| Usage-meter durability | Source fix keeps the host reachable with paid calls blocked when accounting is unreadable or inconsistent. The owner sees a restore-and-restart error instead of an apparent reset. Unique private replacement files are flushed before rename. | Restart and damaged-meter regressions cover preserved accounting and interrupted temporary files. Windows recovery playtest remains pending. Restore only trusted accounting; never reset spent attempts silently. |
+| Client presence/network | Only authenticated reconnect renews the five-second presence lease. Source now bounds the whole signed refresh to four seconds and cancels obsolete refreshes on owner actions, registration removal and exit. Pause remains available during refresh. | Transport cancellation is regression-covered; stalled-refresh and Pause interaction on Windows remains pending. The lease is unchanged: no unsigned heartbeat or longer unattended-call window is introduced. |
+| Pairing/API limits | Source now limits public pairing creation to eight attempts/minute, pairing bodies to 16 KiB, and the general listener to 30,000,000 bytes. A separate host-local recovery start can expire one unapproved pending request when full. | Signed owner actions bypass the creation budget; local-only approval and signed activation remain required. Recovery cannot evict approved/active devices. Tests cover rejected volume, signed reconnect, hidden local endpoint and pending recovery; this is hardening, not a DoS-proof claim. |
+| Local credential storage | Source now protects installation-local provider configuration with Windows current-user DPAPI, migrates validated legacy JSON and preserves unreadable protected files. Unix permissions remain private. | Native Windows CI covers protected restart, legacy migration, damaged-file preservation and existing key deletion. The local-game Windows UI flow remains to be playtested. Backups and provider-account revocation are separate; no secure-erasure claim. |
+| Event parsing | Event `Detail` is a delimiter-joined string parsed by the host and client; the client now explicitly selects known player-facing kinds for the Event Log and unread badge. | Replace fragile positional parsing with typed payloads as event contracts change; assess actual IDs/text before claiming a current misparse. |
 | Delivery drift | The repository has verification scripts and a systemd template, but no checked-in end-to-end live deployment/meter-migration command. The current live process predates several repository fixes. | Make the next authorized deployment repeatable with preflight, meter migration, save/credential preservation and rollback checks; do not redeploy during the active playtest without owner authorization. |
-| Map readability | Marker captions, including agent name tags shown on hover or selection, truncate every name after seven characters; most activities share `○`; resource names remain uppercase text overlays alongside prototype glyphs, although buildings, camp objects, trees, natural sites, older camp resources and agents now draw as provisional sprites. Full names already appear in marker tooltips. | Try given name or initials at map scale, distinct activity categories and zoom-aware resource icons without losing selection/hover facts. Do visual review on the Windows client before claiming a specific layout/contrast defect. |
-| Client feedback/input/layout | `FriendlyFailure` exposes most exception messages; several controls/tooltips use technical copy; many panels use fixed pixel minimums; camera panning occurs per key event rather than frame time. The existing UI-scale report above remains open. | Map errors to plain states with separate technical detail, trim help copy, test 720p/200% scale and keyboard/focus paths on Windows. Evaluate Escape/Space and smooth diagonal pan with actual UI interaction. |
+| Map readability | Source now uses whole given names or text-element initials, distinct activity categories, and sentence-case resource captions hidden below 32-pixel tiles. Existing site sprites/glyphs and full hover/inspection facts remain. | Text/category/zoom regressions cover the display policy; Windows visual review of readability, glyph support and contrast is still pending. Provisional sprites are not approved final art. |
+| Client feedback/input/layout | Source now maps failures to fixed player recovery messages with separate exception-type diagnostics, and pans from held keys once per frame with normalized diagonal speed. Layout/UI-scale and remaining copy reports are tracked separately. | Failure redaction is regression-covered; Godot smoke exercises frame-time pan, diagonal speed and repeat rejection. Windows keyboard/focus, 720p/200% layout and real interaction acceptance remain pending (#281, #282, #285). |
 
 Two recommendations in the review are **not adopted as stated**: removing
 response confidence would change the current low-confidence safety gate, and
@@ -169,8 +169,9 @@ review and is not carried forward.
   technical/AI wording throughout player-facing screens (for example,
   `Inhabitant cognition` with `Agent model`), explain the model-call limit in
   ordinary language, and tighten oversized empty agent/settings panels. The
-  placeholder household names `Camp Alpha`/`Camp Beta` are disliked; the
-  naming flow needs a player-facing replacement without changing membership.
+  default household names now display as First household/Second household,
+  preserving saved IDs, membership, property and custom names. Founder setup
+  uses shorter two-household wording; Windows acceptance remains pending.
   The repository build now replaces raw household IDs, `Deterministic` and
   fallback labels, internal tick/revision wording and the unreported-condition
   placeholder in the agent card and status messages; laptop check pending.
@@ -261,6 +262,18 @@ test; computment's Windows playtest remains pending.
   survival. There is no separate numeric safety need; `safe_idle` is a fallback
   action, not a safety meter. The current runtime now removes energy and sleeping; food and urgent
   weather exposure still constrain some actions.
+- **Adults without a household have no built heat or shelter — confirmed
+  gap:** agents no longer start Shelters, Storehouses, Cooking fires or Stone
+  hearths, because House and Warehouse replace them in the accepted roster. A
+  House needs a household, so an adult added on unclaimed Town land cannot
+  build one and, in a new world, has only clothing and natural storm cover
+  against cold. Old saves keep their standing Shelters and fires. The fix
+  belongs to the open housing rules (invitation into an existing House, or
+  forming a household), not to bringing back the retired buildings.
+- **Clothing still comes from the Weaving frame — confirmed gap:** the roster
+  removes the Weaving frame and assigns clothing to a Tailor Shop whose
+  production chain is still open. Until a Tailor Shop exists, agents may still
+  build a Weaving frame, since it is the only clothing source.
 - **Save compatibility policy remains open:** Load World now preflights saved
   checkpoints and required local model credentials, labels compatible,
   incompatible or unknown, and preserves and blocks only proven-unloadable
@@ -480,3 +493,28 @@ pages retain reproductions and regression requirements.
 - When a fix lands, update the affected canonical current-state document in
   the same change and preserve detailed evidence in tests or the relevant
   implementation ledger.
+
+### Inherited physical knowledge items (#317)
+
+An indivisible quantity-one field map/record retains its physical lot ID during
+estate distribution. Only ownership/location changes; creator, discovery facts
+and artifact linkage remain. Ordinary divisible estate stock retains its split
+IDs and quantity rules. Regression uses a naturally created artifact with default
+and selected-heir settlement, actual recovery-file reload and heir inspection;
+receiving it does not broadcast facts to the population. Existing trade/share
+paths continue to use the same stable physical link.
+
+### Death and barter reservations (#316)
+
+Estate escrow now cancels only open offers using the ordinary barter cancellation
+transition, which releases both parties’ reservations. Completed exchanges keep
+their state, and unrelated surviving reservations remain. The defect was a
+temporary lock until expiry, not demonstrated permanent inventory loss.
+
+### Cross-world autosave configuration (#312)
+
+The configuration handler now passes the configured world ID when trimming
+autosaves. Rotation off retains the existing one-checkpoint behavior for that
+world only. The signed endpoint regression uses two worlds and compares every
+other-world metadata/checkpoint byte for rotation 0, 5 and 10. This does not
+change retention policy or attempt recovery of previously deleted files.

@@ -8,6 +8,35 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed class OwnerAuthorityStoreTests
 {
     [Fact]
+    public void LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction()
+    {
+        var store = NewStore(NewClock());
+        using var activeKey = CreateP256Key();
+        var active = StartPairing(store, activeKey);
+        Assert.True(store.ApprovePendingPairingLocally(active.PairingId, active.PairingCode).IsSuccess);
+        Assert.True(store.ActivatePairing(new(active.PairingId, active.ActivationCanonicalProof,
+            Sign(activeKey, active.ActivationCanonicalProof))).IsSuccess);
+        using var approvedKey = CreateP256Key();
+        var approved = StartPairing(store, approvedKey);
+        Assert.True(store.ApprovePendingPairingLocally(approved.PairingId, approved.PairingCode).IsSuccess);
+        for (var index = 1; index < OwnerAuthorityStore.MaximumPendingPairings; index++)
+        {
+            using var key = CreateP256Key();
+            StartPairing(store, key);
+        }
+        Assert.False(store.StartPairingLocally(new("invalid")).IsSuccess);
+        Assert.Equal(OwnerAuthorityFailure.PublicKeyAlreadyRegistered,
+            store.StartPairingLocally(new(Convert.ToBase64String(activeKey.ExportSubjectPublicKeyInfo()))).Failure);
+        Assert.Equal(OwnerAuthorityStore.MaximumPendingPairings,
+            store.ExportState().Pairings.Count(item => item.State is OwnerPairingState.Pending or OwnerPairingState.Approved));
+        using var ownerKey = CreateP256Key();
+        var recovered = store.StartPairingLocally(new(Convert.ToBase64String(ownerKey.ExportSubjectPublicKeyInfo())));
+        Assert.True(recovered.IsSuccess);
+        Assert.Equal(OwnerPairingState.Approved, store.GetPairingStatus(approved.PairingId).Value!.State);
+        Assert.Single(store.ExportState().Pairings, item => item.State == OwnerPairingState.Expired);
+    }
+
+    [Fact]
     public void LocalApprovalRejectsTheWrongVisibleCodeWithoutChangingPendingState()
     {
         var clock = NewClock();

@@ -139,3 +139,27 @@ device key, complete a paired reconnect, and reject a server response that
 lacks the negotiated owner capability. The export path must be verified
 separately from a real Windows 11 owner test; the latter is not implied by a
 Linux CI export.
+
+## Pairing volume and local recovery
+
+Public pairing creation has a shared eight-attempt, one-minute budget, including
+invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
+429 response includes Retry-After: 60. Signed challenges, reconnect and pause do
+not consume it. All pairing route bodies are capped at 16 KiB before normal JSON
+binding on Kestrel; the general host request cap is explicitly 30,000,000 bytes.
+This is bounded ingress, not a claim that the Tailnet endpoint is DoS-proof.
+
+If unauthenticated requests fill the eight pending slots, the existing separate
+loopback approval listener also accepts POST /api/v1/local/pairings with the same
+public-key-only body as public pairing creation. It bypasses the public creation
+budget and, only when necessary, expires the oldest **unapproved** pending request
+to admit the operator's new request. It never expires an approved pairing or
+revokes an active device; if all slots are approved, it refuses. Invalid keys and
+already active keys must not displace a pending request. Approval and signed
+activation still follow their existing checks. The ordinary forwarded listener
+returns 404 for this recovery endpoint. Never forward the approval listener.
+
+This is an operator recovery path, not automatic queue eviction on behalf of an
+untrusted remote client. Keep the returned code and proof local/private. Tests
+cover capacity recovery and signed owner availability; chunked-body enforcement
+is a Kestrel boundary, not claimed from TestServer's Content-Length test alone.

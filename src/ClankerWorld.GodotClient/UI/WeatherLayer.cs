@@ -40,6 +40,11 @@ public partial class WeatherLayer : Control
     private Image? stormImage;
     private ImageTexture? stormTexture;
     private float cloudiness = 0.5f;
+    private double animationTime;
+    private Rect2 drawnCamera;
+    private int drawnTileSize;
+    private float drawnCloudiness;
+    private bool paused;
     private static ImageTexture? cloudTexture;
 
     public WeatherLayer()
@@ -75,27 +80,61 @@ public partial class WeatherLayer : Control
         return field[row * fieldWidth + column];
     }
 
+    /// <summary>
+    /// Weather holds still while the world's time is stopped: drops, drift
+    /// and creeping edges resume where they left off, and no lightning flashes.
+    /// </summary>
+    public bool Paused
+    {
+        get => paused;
+        set
+        {
+            if (paused == value) return;
+            paused = value;
+            // Clear a flash already painted when time stops, without waiting
+            // for another weather or camera update.
+            QueueRedraw();
+        }
+    }
+
+    /// <summary>Seconds of weather motion shown so far; it stands still while paused.</summary>
+    internal double AnimationTime => animationTime;
+
     /// <summary>The terrain layer whose camera and weather regions this layer follows.</summary>
     public void Follow(WorldTerrainLayer terrain) => source = terrain;
 
     public override void _Process(double delta)
     {
         if (source is null || !IsVisibleInTree() || source.TileSize <= 0) return;
-        var now = Time.GetTicksMsec() / 1000.0;
+        // The weather's own clock only runs while world time does.
+        if (!Paused) animationTime += delta;
+        var now = animationTime;
+        var rebuilt = false;
         if (source.WeatherVersion != fieldVersion || !FieldCoversCamera() ||
             source.TileSize != fieldTileSize || (source.HasActiveWeather && now - fieldTime >= FieldRefreshSeconds))
         {
             RebuildField(now);
+            rebuilt = true;
         }
-        var target = TargetCloudiness();
-        cloudiness += (target - cloudiness) * (float)Math.Min(1, delta * 0.5);
-        if (source.HasActiveWeather || CloudsEnabled) QueueRedraw();
+        if (!Paused)
+        {
+            var target = TargetCloudiness();
+            cloudiness += (target - cloudiness) * (float)Math.Min(1, delta * 0.5);
+        }
+        if (!source.HasActiveWeather && !CloudsEnabled) return;
+        // A paused frame only needs redrawing when the view itself changes.
+        if (!Paused || rebuilt || source.VisibleTiles != drawnCamera || source.TileSize != drawnTileSize ||
+            Math.Abs(cloudiness - drawnCloudiness) > 0.005f)
+            QueueRedraw();
     }
 
     public override void _Draw()
     {
         if (source is null || fieldWidth == 0) return;
-        var time = Time.GetTicksMsec() / 1000.0;
+        var time = animationTime;
+        drawnCamera = source.VisibleTiles;
+        drawnTileSize = source.TileSize;
+        drawnCloudiness = cloudiness;
         var stride = source.Stride;
         var fieldRect = new Rect2(fieldLeft * stride, fieldTop * stride,
             fieldWidth * fieldResolution * stride, fieldHeight * fieldResolution * stride);
@@ -108,7 +147,7 @@ public partial class WeatherLayer : Control
         if (source.HasActiveWeather) DrawPrecipitation(time, stride);
         if (source.HasActiveWeather && LightningEnabled && stormTexture is not null && shown.HasArea())
         {
-            var flash = LightningFlash(time);
+            var flash = Paused ? 0 : LightningFlash(time);
             if (flash > 0) DrawTextureRectRegion(stormTexture, shown, fieldSource, new Color(0.86f, 0.9f, 1f, flash));
         }
         if (CloudsEnabled) DrawClouds(time, stride);

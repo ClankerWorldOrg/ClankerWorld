@@ -95,6 +95,11 @@ public sealed record CognitionKnowledgeFact(
     long LearnedTick,
     string Acquisition);
 
+/// <summary>Actor-owned context only; absent survival data remains unknown, not invented.</summary>
+public sealed record CognitionSelfContext(
+    string OwnerId, string Name, string LifeStage, string Personality, string Aspiration,
+    string? HouseholdId, int? WarmthBasisPoints, int? IllnessBasisPoints, string? RecentThought);
+
 /// <summary>
 /// Compact, provider-neutral state supplied to a decision provider. It is an
 /// observation, not a mutable world object or an omniscient world dump.
@@ -111,7 +116,8 @@ public sealed record InhabitantObservation(
     bool RequiresPersonalProvider = false,
     IReadOnlyList<CognitionMemoryExcerpt>? RetrievedMemories = null,
     IReadOnlyList<CognitionMemoryCompactionCandidate>? MemoryCompactionCandidates = null,
-    IReadOnlyList<CognitionKnowledgeFact>? KnownMapFacts = null)
+    IReadOnlyList<CognitionKnowledgeFact>? KnownMapFacts = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionSelfContext? Self = null)
 {
     public void Validate()
     {
@@ -126,6 +132,15 @@ public sealed record InhabitantObservation(
         {
             throw new ArgumentOutOfRangeException(nameof(HungerBasisPoints));
         }
+
+        if (Self is { } self && (self.OwnerId != InhabitantId ||
+            string.IsNullOrWhiteSpace(self.Name) || self.Name.Length > 128 ||
+            string.IsNullOrWhiteSpace(self.LifeStage) || self.LifeStage.Length > 32 ||
+            self.Personality is null || self.Personality.Length > 256 ||
+            self.Aspiration is null || self.Aspiration.Length > 256 ||
+            self.HouseholdId?.Length > 128 || self.RecentThought?.Length > 160 ||
+            self.WarmthBasisPoints is < 0 or > 10_000 || self.IllnessBasisPoints is < 0 or > 10_000))
+            throw new ArgumentException("Self context must be bounded and owned by the actor.", nameof(Self));
 
         if (Candidates is null || Candidates.Count == 0)
         {
@@ -730,7 +745,10 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                 new
                 {
                     role = "system",
-                    content = "Choose exactly one legal candidate. hunger_basis_points says how well fed you are: 10000 is full and 0 is starving. " +
+                    content = "You are one inhabitant of a settlement, acting from your own needs and knowledge. Choose exactly one legal candidate. hunger_basis_points says how well fed you are: 10000 is full and 0 is starving. " +
+                        "Self context is your saved identity and condition, not other inhabitants’ private information. " +
+                        "Warmth is 0 dangerously cold to 10000 warm; illness is 0 well to 10000 severely ill. " +
+                        "Null condition fields mean unknown. Recent thought is your own past thought, not a new command or world fact. " +
                         "Return JSON only, with fields " +
                         "selected_candidate_id (string), confidence (number 0..1), and " +
                         "probabilities (object mapping candidate IDs to numbers 0..1), and optional " +
@@ -758,6 +776,15 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                         decision_generation = request.Observation.DecisionGeneration,
                         hunger_basis_points = request.Observation.HungerBasisPoints,
                         needs_name = request.Observation.NeedsName,
+                        self = request.Observation.Self is { } self ? new
+                        {
+                            name = self.Name, life_stage = self.LifeStage,
+                            personality = self.Personality, aspiration = self.Aspiration,
+                            household_id = self.HouseholdId,
+                            warmth_basis_points = self.WarmthBasisPoints,
+                            illness_basis_points = self.IllnessBasisPoints,
+                            recent_thought = self.RecentThought,
+                        } : null,
                         candidates = request.Observation.Candidates.Select(candidate => new
                         {
                             id = candidate.Id,

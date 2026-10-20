@@ -248,6 +248,7 @@ public partial class Main
             seasonIcon.Texture = PixelIcons.Season(authoring.Season, scale);
             weatherIcon.Texture = PixelIcons.Weather(WeatherAtCamera(renderedMapSnapshot), scale);
         }
+        RefreshMenuIcons();
     }
 
     /// <summary>Pause control, agent count and warning, climate and the unread count.</summary>

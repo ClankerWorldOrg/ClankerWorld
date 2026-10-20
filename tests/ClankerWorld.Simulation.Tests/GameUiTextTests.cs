@@ -7,7 +7,95 @@ namespace ClankerWorld.Simulation.Tests;
 
 public sealed class GameUiTextTests
 {
+    [Theory]
+    [InlineData("future_internal_diagnostic", false)]
+    [InlineData("saved_road_footprints_repaired", false)]
+    [InlineData("estate_will_started", false)]
+    [InlineData("town_resident_joined", true)]
+    [InlineData("child_born", true)]
+    [InlineData("world_started", true)]
+    [InlineData("partnership_accepted", true)]
+    [InlineData("partnership_ended", true)]
+    [InlineData("caregiver_assigned", true)]
+    [InlineData("council_policy_adopted", true)]
+    [InlineData("settlement_trade_completed", true)]
+    [InlineData("paused", true)]
+    public void EventLogSelectsKnownPlayerEventsInsteadOfPublishingUnknownDiagnostics(string kind, bool visible)
+    {
+        Assert.Equal(visible, GameUiText.IsPlayerFacingEvent(kind));
+    }
+
     private static readonly int[] UiScalePercentages = [100, 125, 150, 175, 200];
+
+    [Theory]
+    [InlineData("Alexandria Smith", "Alexandria")]
+    [InlineData("  Mira   Rowan  ", "Mira")]
+    [InlineData("Alexandriannnnnnnn", "A.")]
+    [InlineData("Álexandriannnnnnnn", "Á.")]
+    [InlineData("李 小龙", "李")]
+    [InlineData("  ", "?")]
+    public void MapNamesUseWholeGivenNamesOrWholeTextElementInitials(string fullName, string expected) =>
+        Assert.Equal(expected, GameUiText.ActorMapLabel(fullName));
+
+    [Fact]
+    public void MapActivityCategoriesRemainDistinctFromIdleAndUnknownActions()
+    {
+        var categories = new[] { "seek_food", "harvest_food", "consume_food", "seek_warmth", "explore",
+            "build:house", "trade_accept:offer", "child_converse:other", "child_play:other", "child_learn:other", "care:child", "safe_idle" };
+        var symbols = categories.Select(GameUiText.ActivityMapGlyph).ToArray();
+        Assert.Equal(categories.Length, symbols.Distinct(StringComparer.Ordinal).Count());
+        Assert.DoesNotContain(GameUiText.ActivityMapGlyph("future_action"), symbols);
+        Assert.Equal(GameUiText.ActivityMapGlyph("care:child"), GameUiText.ActivityMapGlyph("child_help_food"));
+    }
+
+    [Fact]
+    public void PlayerFailuresDescribeRecoveryWithoutExposingRawExceptionText()
+    {
+        const string secret = "sk-private /home/private/save provider-response";
+        Exception[] failures = [new InvalidOperationException(secret), new IOException(secret),
+            new UnauthorizedAccessException(secret), new ArgumentException(secret),
+            new System.Text.Json.JsonException(secret), new System.Security.Cryptography.CryptographicException(secret),
+            new HttpRequestException(secret, null, System.Net.HttpStatusCode.Forbidden),
+            new TaskCanceledException(secret)];
+        foreach (var failure in failures)
+        {
+            var message = GameUiText.FriendlyFailure(failure);
+            Assert.DoesNotContain(secret, message, StringComparison.Ordinal);
+            Assert.DoesNotContain(failure.GetType().Name, message, StringComparison.Ordinal);
+            Assert.NotEmpty(message);
+        }
+        Assert.Contains("connecting", GameUiText.FriendlyFailure(failures[6]), StringComparison.Ordinal);
+        Assert.Contains("storage", GameUiText.FriendlyFailure(failures[1]), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HouseholdDisplayCleanupPreservesSavedMembershipAndCustomNames()
+    {
+        using var world = new PrivateWorldRuntime("household-display");
+        var state = world.ExportState();
+        Assert.Equal("First household", Assert.Single(state.Society.Society.Households).Name);
+        foreach (var name in new[] { "Camp Alpha", "River family" })
+        {
+            var legacy = state with
+            {
+                Society = state.Society with
+                {
+                    Society = state.Society.Society with
+                    {
+                        Households = state.Society.Society.Households.Select(home => home with { Name = name }).ToArray(),
+                    },
+                },
+            };
+            using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(legacy)));
+            var before = PrivateWorldRuntimeCodec.Encode(restored.ExportState());
+            var stockpile = Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Stockpiles);
+            Assert.Equal(name == "Camp Alpha" ? "First household" : name, stockpile.Name);
+            Assert.Equal("household:camp-alpha", stockpile.OwnerId);
+            Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
+            Assert.Equal(state.Society.Society.Households[0].MemberIds,
+                restored.ExportState().Society.Society.Households[0].MemberIds);
+        }
+    }
 
     [Fact]
     public void OwnerSnapshotReportsTheSavedWorldCalendarPace()
@@ -30,6 +118,10 @@ public sealed class GameUiTextTests
         Assert.Equal("Soil 3/3", GameUiText.ResourceQuantity("fertile_land", 3, 3));
         var legacy = new OwnerWorldResource("old", "food", new(0, 0), true, "available");
         Assert.Contains("Grows back.", GameUiText.ResourceTooltip(legacy), StringComparison.Ordinal);
+        Assert.Equal(string.Empty, GameUiText.ResourceMapCaption(legacy, 16));
+        Assert.Equal("Food", GameUiText.ResourceMapCaption(legacy, 48));
+        Assert.Equal("Wood 0/12", GameUiText.ResourceMapCaption(wood, 48));
+        Assert.Equal("Plot Soil 3/3", GameUiText.ResourceMapCaption(wood with { Kind = "fertile_land", Quantity = 3, Capacity = 3 }, 48));
         Assert.DoesNotContain("0/", GameUiText.ResourceTooltip(legacy), StringComparison.Ordinal);
     }
 
