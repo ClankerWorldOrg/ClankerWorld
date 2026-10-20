@@ -759,6 +759,9 @@ valid earlier accounts; an unavailable version requires a fresh choice.
 Shared-food policy proposals and votes retain the original steward, policy
 and ballot scope. One check validates the same personal authority and response;
 other votes accumulate while native expiry and living-majority resolution run.
+The ordered food-policy definition owns the codec, planner and named capability
+policy and calls the same TownSystem check used by offers and native entry points.
+After that check, TownSystem alone applies the retained proposal or ballot vote.
 Shop offer responses retain the original shop binding and barter terms.
 The same check verifies the buyer or current household responder before native
 cancellation, waiting or acceptance; changed offer state refuses reuse.

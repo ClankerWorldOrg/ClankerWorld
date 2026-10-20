@@ -27,6 +27,5 @@ public sealed partial class WorldRuntime
     private void AdvanceFoodStewardship() => townSystem.AdvanceFoodStewardship(civicWorld);
     private void ResolveFoodPolicyBallot() => townSystem.ResolveFoodPolicyBallot(civicWorld);
     private void AddFoodPolicyCandidates(List<CognitionCandidate> candidates, string actor) => townSystem.AddFoodPolicyCandidates(civicWorld, candidates, actor);
-    private void ApplyFoodPolicyCandidate(string actor, string candidate, ActionPlan? plan = null) => townSystem.ApplyFoodPolicyCandidate(civicWorld, actor, candidate, plan);
     private static void ValidateFoodStewardship(WorldRuntimeState state) => TownSystem.ValidateFoodStewardship(state);
 }

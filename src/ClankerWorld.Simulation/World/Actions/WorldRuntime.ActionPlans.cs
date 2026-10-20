@@ -10,7 +10,6 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
     {
         ProjectInputActionPlan projectInput => CheckProjectInput(projectInput),
-        FoodPolicyActionPlan foodPolicy => townSystem.CheckFoodPolicy(civicWorld, foodPolicy),
         TownProjectRecoveryActionPlan projectRecovery => CheckTownProjectRecovery(projectRecovery),
         TownProjectWorkActionPlan projectWork => CheckTownProjectWork(projectWork),
         TownProjectLoadActionPlan projectLoad => CheckTownProjectLoad(projectLoad),
