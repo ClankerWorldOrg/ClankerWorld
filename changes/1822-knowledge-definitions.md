@@ -1,1 +1,0 @@
-- Knowledge writing, reading, sharing and artifact storage now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining exact contents, supplies and custody.

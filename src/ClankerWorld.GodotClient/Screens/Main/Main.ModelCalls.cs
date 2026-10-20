@@ -26,13 +26,13 @@ public partial class Main
         var owner = registration;
         if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
-            usageMeterStatus.Text = "Connect this device to see model-call usage.";
+            usageMeterStatus.Text = "Start the game through the launcher to see model-call usage.";
             return;
         }
         try
         {
             var status = await ownerApi.GetUsageStatusAsync(ResolveWorldUri(), authority, deviceId,
-                signer, CancellationToken.None);
+                signer, OwnerRequestToken);
             if (read != usageReads || !ReferenceEquals(owner, registration)) return;
             usageStatus = status;
             RenderUsageStatus();
@@ -52,7 +52,7 @@ public partial class Main
         try
         {
             var status = await AwaitCurrentWorldResultAsync(ownerApi.GetUsageStatusAsync(ResolveWorldUri(), authority, deviceId,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             if (read != usageReads || !ReferenceEquals(owner, registration)) return;
             usageStatus = status;
             RenderUsageStatus();
@@ -124,7 +124,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var status = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureUsageLimitAsync(ResolveWorldUri(), authority, deviceId,
-                action, signer, CancellationToken.None));
+                action, signer, OwnerRequestToken));
             usageReads++;
             usageStatus = status;
             usageLimitEdited = false;

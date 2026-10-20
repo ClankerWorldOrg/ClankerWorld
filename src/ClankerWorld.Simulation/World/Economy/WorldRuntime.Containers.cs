@@ -161,11 +161,10 @@ public sealed partial class WorldRuntime
         GridPoint? returnTo = null)
     {
         foreach (var point in FreshWaterShorePositions()
-                     .Where(point => ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0)
-                     .OrderBy(point => map.FootDistance(origin, point))
-                     .ThenBy(point => point.Y).ThenBy(point => point.X))
+                     .OrderBy(point => map.FootDistance(origin, point)))
         {
-            if ((point == origin || ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, additionalCarriedUnits, SwimmingPolicy.WhenCapable).Count > 0) &&
+            if (ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, 0, SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0 &&
+                (point == origin || ReachLeg(actor, origin, point, ReachPurpose.HouseholdVessel, 0, additionalCarriedUnits, SwimmingPolicy.WhenCapable).Count > 0) &&
                 (returnTo is null || PickupCarryCapacity(actor, point, returnTo.Value) > additionalCarriedUnits))
                 return point;
         }
