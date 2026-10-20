@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
@@ -196,14 +197,13 @@ public sealed partial class WorldConversationTests
 
         for (var attempt = 0; attempt < 40 && provider.TurnRequests.Count == 0; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
 
         var request = Assert.Single(provider.TurnRequests);
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, Assert.Single(world.Conversations).Status);
         var firstCommitCheck = 0;
-        var step = await world.AdvanceOneTickNonBlockingAsync(() =>
+        var step = await world.TickModelWorkAsync(() =>
         {
             if (Interlocked.Exchange(ref firstCommitCheck, 1) == 0)
                 provider.CurrentProviderEpoch++;
@@ -238,8 +238,7 @@ public sealed partial class WorldConversationTests
 
         for (var attempt = 0; attempt < 40 && world.Conversations.All(item => item.Turns.Count == 0); attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
 
         var conversation = Assert.Single(world.Conversations, item => item.Turns.Count > 0);
@@ -252,8 +251,7 @@ public sealed partial class WorldConversationTests
 
         for (var attempt = 0; attempt < 40 && world.Conversations.Single().Turns.Count < 2; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
 
         conversation = Assert.Single(world.Conversations, item => item.Turns.Count >= 2);
@@ -324,8 +322,7 @@ public sealed partial class WorldConversationTests
         restored.Resume();
         for (var attempt = 0; attempt < 80 && restored.Conversations.Single().Turns.Count < 3; attempt++)
         {
-            _ = await restored.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await restored.TickModelWorkAsync();
         }
 
         var resumedConversation = Assert.Single(restored.Conversations);
@@ -373,18 +370,18 @@ public sealed partial class WorldConversationTests
         }
 
         var oldClaim = new SocietyAgentBelief(
-            oldBeliefId, ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
+            Identity.Parse(oldBeliefId), ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
             5_000, old.Turn.WorldTick, old.Turn.SpeakerId, SourceTurnId: old.Turn.Id);
         society = SocietyRules.RecordAgentBelief(society, oldClaim);
         var correctedClaim = SocietyRules.CorrectAgentBelief(society, ListenerId, oldClaim.Id,
             new SocietyAgentBelief(
-                correctionId, ListenerId, "I later learned the speaker had been mistaken about the trail.",
+                Identity.Parse(correctionId), ListenerId, "I later learned the speaker had been mistaken about the trail.",
                 SocietyBeliefProvenance.Hearsay, 7_500, old.Turn.WorldTick,
                 old.Turn.SpeakerId, SourceTurnId: old.Turn.Id));
         society = SocietyRules.RecordAgentMemoryCompaction(correctedClaim, ListenerId,
         [
             new SocietyAgentMemoryImportance(
-                correctionId, SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
+                Identity.Parse(correctionId), SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
                 old.Turn.WorldTick),
         ]);
 
@@ -394,7 +391,7 @@ public sealed partial class WorldConversationTests
             society = SocietyRules.AdvanceTo(society, archiveTick).Checkpoint;
             society = SocietyMemoryArchiveRules.Archive(society,
                 new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal));
-            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id);
+            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id.Value);
             var systems = initial.WorldSystems!;
             while (systems.WorldTick < archiveTick) systems = WorldSystemsRules.AdvanceOneTick(systems);
             initial = initial with { WorldSystems = systems };
@@ -409,8 +406,7 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 50 && world.Conversations.All(item =>
                  item.Status != AgentConversationStatus.Proposed); attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
 
         var newConversation = Assert.Single(world.Conversations, item => item.Status == AgentConversationStatus.Proposed);
@@ -424,16 +420,15 @@ public sealed partial class WorldConversationTests
         Assert.Null(retainedCorrection.SourceTurnId);
         Assert.Equal(old.Turn.SpeakerId, retainedCorrection.SourceAgentId);
         Assert.Equal("I later learned the speaker had been mistaken about the trail.", retainedCorrection.Statement);
-        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId);
-        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId);
+        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId?.Value);
+        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId?.Value);
         Assert.Contains(Assert.Single(afterTrim.MemoryCompactions!, item => item.OwnerId == ListenerId).Sources,
             item => item.Kind == SocietyMemorySourceKind.Belief && item.SourceId == correctionId);
 
         for (var attempt = 0; attempt < 90 && world.Conversations.Single(item => item.Id == newConversation.Id)
                  .Turns.Count == 0; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
         var firstNewTurn = Assert.Single(world.Conversations.Single(item => item.Id == newConversation.Id).Turns);
         Assert.Contains(ListenerId, firstNewTurn.ListenerIds);
@@ -454,8 +449,7 @@ public sealed partial class WorldConversationTests
             for (var attempt = 0; attempt < 120 && reloaded.Conversations.Single(item => item.Id == newConversation.Id)
                      .Turns.Count < 2; attempt++)
             {
-                _ = await reloaded.AdvanceOneTickNonBlockingAsync();
-                await Task.Delay(5);
+                _ = await reloaded.TickModelWorkAsync();
             }
             var retainedConversation = Assert.Single(reloaded.Conversations, item => item.Id == newConversation.Id);
             Assert.True(retainedConversation.Turns.Count >= 2);
@@ -517,8 +511,7 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 40 && world.Conversations.All(item =>
                  item.Status != AgentConversationStatus.Suspended); attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
         }
 
         var conversation = Assert.Single(world.Conversations);
@@ -549,7 +542,7 @@ public sealed partial class WorldConversationTests
         var timeout = await Assert.ThrowsAsync<TimeoutException>(async () =>
             await AgentConversationProviderExecution.SpeakAsync(
                 provider, request, TimeSpan.FromMilliseconds(25), CancellationToken.None));
-        await provider.CancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await ModelWorkHarness.WaitForSignalAsync(provider.CancellationObserved.Task);
 
         Assert.Equal(AgentConversationInterruption.ProviderTimedOut,
             AgentConversationFailureClassifier.Classify(timeout));
@@ -683,30 +676,12 @@ public sealed partial class WorldConversationTests
     private static async Task AdvanceConfiguredConversationTickAsync(
         WorldRuntime world, ConversationHttpHandler handler)
     {
-        // Only this fixture advances ticks, so pending work can be snapshotted
-        // between ticks. Await its tasks before advancing simulation deadlines;
-        // deliberately held responses wait only for their request-start barrier.
-        static object[] PendingWork(WorldRuntime runtime, string fieldName)
-        {
-            var field = typeof(WorldRuntime).GetField(fieldName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.NotNull(field);
-            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field.GetValue(runtime));
-            return pending.Values.Cast<object>().ToArray();
-        }
-
-        static Task WorkTask(object pending) =>
-            Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
-
-        var decisions = PendingWork(world, "pendingModelCalls").Select(pending =>
-        {
-            var request = Assert.IsType<CognitionDecisionRequest>(
-                pending.GetType().GetProperty("Request")!.GetValue(pending));
-            return handler.HeldDecisionStarted(request) ?? WorkTask(pending);
-        });
-        var turns = PendingWork(world, "pendingConversationTurns").Select(WorkTask);
-        await Task.WhenAll(decisions.Concat(turns)).WaitAsync(TimeSpan.FromSeconds(30));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        var harness = ModelWorkHarness.For(world);
+        harness.RunPendingWork();
+        var tasks = world.PendingModelWork.Select(pending => pending.DecisionRequest is { } request
+            ? handler.HeldDecisionStarted(request) ?? pending.Completion : pending.Completion);
+        await ModelWorkHarness.WaitForSignalAsync(Task.WhenAll(tasks));
+        Assert.True((await harness.TickAsync()).Advanced);
     }
 
     private static OwnerProviderConfigurationAction Personal(string agentId, string model, string key) =>
@@ -732,7 +707,7 @@ public sealed partial class WorldConversationTests
         public Exception? ConversationFailure { get; init; }
         public bool BlockConversationUntilCanceled { get; init; }
         public Action? BeforeSpeaking { get; init; }
-        public TaskCompletionSource CancellationObserved { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource CancellationObserved { get; } = new(TaskCreationOptions.None);
 
         public bool CanSpeakAs(string agentId) => assignedAgents.Contains(agentId);
 
@@ -828,14 +803,14 @@ public sealed partial class WorldConversationTests
     private sealed class ConversationHttpHandler(string blockedInviteeId, bool holdInitialChoices = false) : HttpMessageHandler
     {
         public const string PrivateDecisionThought = "private decision thought must never enter a conversation";
-        private readonly TaskCompletionSource releaseWrapUpAcceptance = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource releaseInitiatorTalk = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource releaseStaleInviteeTalk = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource releaseWrapUpAcceptance = new(TaskCreationOptions.None);
+        private readonly InlineCompletionSource releaseInitiatorTalk = new(TaskCreationOptions.None);
+        private readonly InlineCompletionSource releaseStaleInviteeTalk = new(TaskCreationOptions.None);
         private int initiatorTalkHeld;
         private int staleInviteeTalkHeld;
-        public TaskCompletionSource WrapUpAcceptanceStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource InitiatorTalkStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource StaleInviteeTalkStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource WrapUpAcceptanceStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource InitiatorTalkStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource StaleInviteeTalkStarted { get; } = new(TaskCreationOptions.None);
         public ConcurrentQueue<ConversationProviderCall> ConversationCalls { get; } = new();
         public ConcurrentQueue<string> DecisionCalls { get; } = new();
         public ConcurrentQueue<string> InviteeDecisionCalls { get; } = new();

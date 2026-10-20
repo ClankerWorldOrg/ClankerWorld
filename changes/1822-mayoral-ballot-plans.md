@@ -1,1 +1,0 @@
-- Mayoral ballots retain the selected round and candidate through shared checks without changing other residents' ballots.

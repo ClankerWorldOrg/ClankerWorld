@@ -4,7 +4,7 @@ public sealed record HouseGuestChoice(string GuestId, bool Invited)
 {
     public const string InvitePrefix = "invite_house_guest:";
     public const string RevokePrefix = "revoke_house_guest:";
-    public string Encode() => (Invited ? InvitePrefix : RevokePrefix) + GuestId;
+    public string Encode() => IdentityRules.PrefixedReference(Invited ? InvitePrefix : RevokePrefix, GuestId);
     public static HouseGuestChoice? Decode(string candidate) => candidate.StartsWith(InvitePrefix, StringComparison.Ordinal)
         ? new(candidate[InvitePrefix.Length..], true) : candidate.StartsWith(RevokePrefix, StringComparison.Ordinal)
             ? new(candidate[RevokePrefix.Length..], false) : null;

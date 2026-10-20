@@ -32,7 +32,7 @@ internal static class MarketSeedTradeScenario
 
         // Controlled near-event arrangement. Actual Town food is consumed as
         // meals and existing spare seed is held by actual reservations. Nothing is
-        // deleted, and no map, title, building, field or actor position is invented.
+        // deleted, and no map, title, building or field is invented.
         var initial = FarmFieldTests.FeedFarmTownFromAvailableStock(paidBoundary, alpha);
         var inventory = initial.Society.Society.Inventory;
         var holds = new List<string>();
@@ -72,6 +72,7 @@ internal static class MarketSeedTradeScenario
                 }
                 : person).ToArray(),
         };
+        initial = MovementTestWorld.ClearOtherBuildingAccess(initial);
         var heldClaims = holds.Select(inventory.GetReservation).ToArray();
         var policy = new Policy(buyer, seller, stall.BuildingId);
         WorldRuntimeState prepared;

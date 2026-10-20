@@ -1,1 +1,0 @@
-- Adults can reclaim their spoiled goods from Market stalls, freeing physical space while preserving ownership and freshness. Urgent food recovery still selects only usable food.

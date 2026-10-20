@@ -31,11 +31,41 @@ public sealed class ApprovalListenerTests
     [Fact]
     public void ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp()
     {
-        var server = new ApprovalListenerOptions(ApprovalPort);
-        Assert.True(server.IsApprovalRequest(Request(ApprovalPort, null)));
+        var server = new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret);
+        Assert.True(server.IsApprovalRequest(Request(ApprovalPort, Secret, header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, null)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret[..^1] + "x", header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(5188, Secret, header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(server.IsApprovalRequest(Request(ApprovalPort, Secret, IPAddress.Parse("192.0.2.4"), header: ApprovalListenerOptions.ApprovalSecretHeader)));
+        Assert.False(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null)));
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, null)));
         Assert.False(server.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret)));
         Assert.False(new ApprovalListenerOptions(0).IsApprovalRequest(Request(0, null)));
+        Assert.Null(server.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), LocalServerLaunchCheck.NewChallenge())));
+    }
+
+    [Fact]
+    public void OnlyALocalServersApprovalListenerAnswersALaunchCheck()
+    {
+        var localServer = new ApprovalListenerOptions(ApprovalPort, Secret);
+        var challenge = LocalServerLaunchCheck.NewChallenge();
+        // The answer proves the secret without the caller sending it.
+        var answer = localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge));
+        Assert.True(LocalServerLaunchCheck.Matches(Secret, challenge, answer));
+        Assert.False(LocalServerLaunchCheck.Matches(Secret[..^1] + "x", challenge, answer));
+        Assert.Null(localServer.LaunchCheckAnswer(Request(ApprovalPort, Secret)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge[..^1])));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null), challenge[..^1] + "=")));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(5188, null), challenge)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null, IPAddress.Parse("192.0.2.4")), challenge)));
+        Assert.Null(localServer.LaunchCheckAnswer(Challenged(Request(ApprovalPort, null, host: "example.test"), challenge)));
+    }
+
+    private static DefaultHttpContext Challenged(DefaultHttpContext context, string challenge)
+    {
+        context.Request.Headers[LocalServerLaunchCheck.ChallengeHeader] = challenge;
+        return context;
     }
 
     [Theory]
@@ -47,7 +77,8 @@ public sealed class ApprovalListenerTests
     [InlineData("LocalHost:5189")]
     public void ApprovalListenerAcceptsALiteralLoopbackHostName(string host)
     {
-        Assert.True(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null, host: host)));
+        Assert.True(new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret)
+            .IsApprovalRequest(Request(ApprovalPort, Secret, host: host, header: ApprovalListenerOptions.ApprovalSecretHeader)));
         var localServer = new ApprovalListenerOptions(ApprovalPort, Secret);
         Assert.True(localServer.IsApprovalRequest(Request(ApprovalPort, Secret, host: host)));
         Assert.True(localServer.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret, host: host)));
@@ -91,6 +122,13 @@ public sealed class ApprovalListenerTests
     }
 
     [Fact]
+    public void ApprovalOptionsNeverPrintEitherSecret()
+    {
+        Assert.DoesNotContain(Secret, new ApprovalListenerOptions(ApprovalPort, Secret).ToString());
+        Assert.DoesNotContain(Secret, new ApprovalListenerOptions(ApprovalPort, approvalSecret: Secret).ToString());
+    }
+
+    [Fact]
     public async Task StoppingTheServerSavesTheLatestTickAndCancelsModelWork()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-shutdown-save-{Guid.NewGuid():N}");
@@ -104,8 +142,8 @@ public sealed class ApprovalListenerTests
             using var service = new WorldRuntimeService(runtime, new WorldStateFile(path),
                 new OwnerClientPresenceLease(TimeSpan.FromMinutes(1)), logger);
             // Ticks committed in memory but not yet written, as when the host stops mid-loop.
-            Assert.True((await runtime.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await runtime.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             var tick = runtime.WorldTick;
 
             Assert.Equal(ShutdownSaveOutcome.Saved, service.SaveBeforeShutdown(pauseWorld: true));
@@ -114,7 +152,7 @@ public sealed class ApprovalListenerTests
             using var reloaded = new WorldStateFile(path).LoadOrCreate("shutdown-save");
             Assert.Equal(tick, reloaded.WorldTick);
             Assert.True(reloaded.Society.IsPaused);
-            Assert.False((await reloaded.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await reloaded.TickModelWorkAsync()).Advanced);
             Assert.Equal(tick, reloaded.WorldTick);
             Assert.Contains(logger.Messages, message => message.Contains("server_shutdown outcome=saved", StringComparison.Ordinal));
         }
@@ -126,7 +164,7 @@ public sealed class ApprovalListenerTests
 
     private sealed class WaitingModelProvider : IDecisionProvider
     {
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new(TaskCreationOptions.None);
         public CancellationToken Cancellation { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
@@ -143,13 +181,13 @@ public sealed class ApprovalListenerTests
 
     // The game's HttpClient names the approval listener as 127.0.0.1 and its port.
     private static DefaultHttpContext Request(int localPort, string? secret, IPAddress? remote = null,
-        string host = "127.0.0.1:5189")
+        string host = "127.0.0.1:5189", string header = ApprovalListenerOptions.LaunchSecretHeader)
     {
         var context = new DefaultHttpContext();
         context.Connection.LocalPort = localPort;
         context.Connection.RemoteIpAddress = remote ?? IPAddress.Loopback;
         context.Request.Host = new HostString(host);
-        if (secret is not null) context.Request.Headers[ApprovalListenerOptions.LaunchSecretHeader] = secret;
+        if (secret is not null) context.Request.Headers[header] = secret;
         return context;
     }
 }

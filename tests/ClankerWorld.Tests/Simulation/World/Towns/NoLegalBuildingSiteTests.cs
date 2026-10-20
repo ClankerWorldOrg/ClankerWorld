@@ -22,10 +22,9 @@ public sealed class NoLegalBuildingSiteTests
         var dimension = blocked ? 32 : 1;
         var definition = new BuildingDefinition(digest, "land-test-clinic", version, "Land test clinic",
             dimension, dimension, 1, [], ["clinic"]);
-        var manifest = new ContentPackageManifest("land-test-clinic", version, digest, [],
-        [new ContentDefinition(BuildingDefinition.SchemaKind, definition.LocalId, version, definition.DisplayName,
-            definition.PayloadDigest,
-            $$"""{"schema":"building/v1","width":{{dimension}},"height":{{dimension}},"capacity":1,"buildCosts":[],"tags":["clinic"]}""")], []);
+        var recipe = new RecipeDefinition(digest, "land-test-work", version, "Prepare care supplies",
+            [new("wood", 1)], [new("medicine", 1)], 1, definition.CanonicalId);
+        var manifest = StarterContent.BuildManifest("land-test-clinic", version, digest, [definition], [recipe], []);
         setup.ProposeContent(manifest);
         setup.ValidateContent(manifest.PackageId, setup.ResolveContent(manifest.PackageId));
         setup.ApproveContent(manifest.PackageId);

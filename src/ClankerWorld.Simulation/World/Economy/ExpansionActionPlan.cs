@@ -5,7 +5,7 @@ public sealed record ExpansionChoice(string BuildingId)
     public const string Prefix = "expand_building:";
     public static ExpansionChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
         ? new(candidate[Prefix.Length..]) : null;
-    public string Encode() => Prefix + BuildingId;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, BuildingId);
 }
 
 public sealed record ExpansionMaterialInput(string LotId, string OwnerId, string ItemKind, int Quantity);
