@@ -181,6 +181,17 @@ preparations until their original commit points. Creation, death, equipment
 rollback and trusted tick preparation keep existing record and insertion order.
 The semantic writer scan rejects physical-agent writes outside this store.
 
+`Family/FamilySystem.cs` owns saved population continuity and family rules for
+partnerships, parenthood and births, dependent care and guardian travel, medical
+consent and treatment, and child social/helping actions. Its per-call ports use
+current world queries and named society, inventory and other-system operations.
+Local family component checks run at the physical-agent store boundary in tests.
+`FamilyWillService` owns live will requests and cancellation reasons; it stays
+with the live coordinator when a prepared tick commits. `FamilyTurnState` owns
+scratch guardian-action marks and resets each tick. Saved continuity alone
+transfers with prepared state. Will reply validation handles declared contract
+failures without hiding other failures in an empty catch-all.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

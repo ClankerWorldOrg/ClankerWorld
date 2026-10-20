@@ -1,3 +1,4 @@
+using PendingWillDecision = ClankerWorld.Simulation.World.FamilyWillService.PendingWillDecision;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -325,7 +326,7 @@ public sealed partial class WorldRuntime
                         }
                         foreach (var item in completedWills)
                         {
-                            pendingWills.Remove(item.EstateId);
+                            familyWills.ForgetCompleted(item.EstateId);
                             item.Cancellation.Dispose();
                         }
                         foreach (var item in completedConversationTurns)
@@ -337,7 +338,7 @@ public sealed partial class WorldRuntime
                         }
                         CancelNoLongerAwaitingConversationTurns();
                         foreach (var id in inactiveWillReasons.Keys)
-                            pendingWillCancellationReasons.Remove(id);
+                            familyWills.ForgetCancellation(id);
                         if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
                         if (writeFailure is null && (commitPermitted is null || commitPermitted()))
                             StartModelDecisions(completed.Select(item => item.Request.Observation.AgentId));
@@ -469,7 +470,7 @@ public sealed partial class WorldRuntime
         environmentSystem = proposed.environmentSystem;
         survivalState = proposed.survivalState;
         townSystem = proposed.townSystem;
-        continuity = proposed.continuity;
+        familySystem = proposed.familySystem;
         worldContent = proposed.worldContent;
         constructionSystem = proposed.constructionSystem;
         productionSystem = proposed.productionSystem;
@@ -583,7 +584,7 @@ public sealed partial class WorldRuntime
                 return new WorldStepResult(false, "paused", WorldTick, [], []);
             }
 
-            guardianPlacementActions.Clear();
+            guardianPlacementActions.Reset();
             var startingEvent = events.Count;
             var targetTick = checked(WorldTick + 1);
             actionRefusals.RemoveAll(refusal => refusal.RetryAfterTick <= targetTick);

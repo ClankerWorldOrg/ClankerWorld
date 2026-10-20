@@ -240,7 +240,6 @@ public sealed class ChildDeliveryHouseholdChangeTests
 
     private sealed class CheckpointHost : IDisposable
     {
-        private static readonly string[] PendingInputQueues = ["pendingModelCalls", "pendingIdentityMoments", "pendingWills", "pendingConversationTurns"];
         private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("child-house-change-");
         private readonly WorldStateFile file;
         private readonly WorldRuntimeService service;

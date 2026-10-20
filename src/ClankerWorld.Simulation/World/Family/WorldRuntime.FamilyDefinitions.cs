@@ -2,21 +2,13 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActorCapabilityPolicy FamilyCareCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy FamilyCareCapabilities => FamilySystem.FamilyCareCapabilities;
 
-    private static ActorCapabilityPolicy ParenthoodCapabilities(ParenthoodChoiceKind kind) =>
-        new(kind is ParenthoodChoiceKind.Propose or ParenthoodChoiceKind.Accept ? ActionLifeStages.ReproductiveAdults : ActionLifeStages.Adults,
-            AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy ParenthoodCapabilities(ParenthoodChoiceKind kind) => FamilySystem.ParenthoodCapabilities(kind);
 
-    private static ActorCapabilityPolicy GuardianTravelCapabilities(GuardianTravelKind kind) =>
-        new(kind == GuardianTravelKind.Follow ? ActionLifeStages.Dependents : ActionLifeStages.Adults,
-            AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: false);
+    private static ActorCapabilityPolicy GuardianTravelCapabilities(GuardianTravelKind kind) => FamilySystem.GuardianTravelCapabilities(kind);
 
-    private static ActorCapabilityPolicy DependentCareCapabilities(DependentCareActionPlan plan) =>
-        new(plan.AcceptsGuardianSearch || plan.Choice.Kind is DependentCareChoiceKind.Offer or DependentCareChoiceKind.Primary
-            ? ActionLifeStages.Adults : ActionLifeStages.NonInfants,
-            AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: plan.Choice.Kind == DependentCareChoiceKind.End, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy DependentCareCapabilities(DependentCareActionPlan plan) => FamilySystem.DependentCareCapabilities(plan);
 
     private static ActionDefinition<PartnershipChoice, PartnershipActionPlan> PartnershipDefinition => FamilyActions.Partnership;
     private static ActionDefinition<ParenthoodChoice, ParenthoodActionPlan> ParenthoodDefinition => FamilyActions.Parenthood;

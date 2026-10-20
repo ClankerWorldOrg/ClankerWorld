@@ -411,7 +411,7 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.assetReservations = WorldAssetReservationLedger.Restore(state.AssetReservations);
         runtime.survivalState = state.Survival;
         runtime.foodStewardship = state.FoodStewardship;
-        runtime.continuity = state.Continuity!;
+        runtime.familySystem = new(state.Continuity!);
         RegionalWeatherRules.ValidateMap(runtime.worldSystems, runtime.map);
         runtime.agentStore = new(state.Agents, state.DeceasedAgents ?? []);
 
