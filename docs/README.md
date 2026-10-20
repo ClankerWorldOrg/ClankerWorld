@@ -13,6 +13,7 @@ pages to understand the game or give feedback.
 | I want to… | Read |
 | --- | --- |
 | Start playing and learn the controls | [Playing the current game](playing.md) |
+| Host a world on a Linux machine | [Linux hosting guide](hosting-linux.md) |
 | Know what the current build can do | [What works today](what-works.md) |
 | Understand the game we are making | [Game design](game-design/README.md) |
 | Browse planned items, buildings and art | [Planned game content](game-design/content-list.md) |

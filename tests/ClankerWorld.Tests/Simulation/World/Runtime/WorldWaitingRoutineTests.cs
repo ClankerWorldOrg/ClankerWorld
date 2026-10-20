@@ -18,18 +18,18 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal("seek_food", world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == HarvestInstructionActor).CurrentIntention!.CandidateId);
         world.SubmitInstruction(new("waiting-trip-suggestion", "owner:test", HarvestInstructionActor,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
-        var dispatch = await world.AdvanceOneTickNonBlockingAsync();
+        var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == HarvestInstructionActor);
-        // Native dispatch is committed; a loaded thread pool can start the held provider later.
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        // Native dispatch and held provider entry are controlled by the scheduler.
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         var position = CancellationActorPosition(world.ExportState());
         for (var tick = 0; tick < 5; tick++)
         {
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
             Assert.DoesNotContain(step.Decisions, item => item.AgentId == HarvestInstructionActor);
         }
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntimeTests
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
         world.Pause();
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.False((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(paused, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(paused));
         Assert.Equal(paused, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -50,8 +50,8 @@ public sealed partial class WorldRuntimeTests
         duplicate.Resume();
         for (var tick = 0; tick < 3; tick++)
         {
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.True((await duplicate.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
+            Assert.True((await duplicate.TickModelWorkAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(replay.ExportState()), WorldRuntimeCodec.Encode(duplicate.ExportState()));
         }
     }
@@ -101,13 +101,13 @@ public sealed partial class WorldRuntimeTests
         using var world = RestoreWaitingWorld(state, actor, provider);
         if (ordered) world.SubmitInstruction(new("waiting-care-order", "owner:test", actor,
             OwnerInstructionKind.Order, "gather food"));
-        var dispatch = await world.AdvanceOneTickNonBlockingAsync();
+        var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == actor);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         var relationships = world.Society.Relationships.ToArray();
         var position = world.Agents.Single(person => person.AgentId == actor).Position;
-        for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(relationships, world.Society.Relationships);
         if (nearby)
         {
@@ -167,14 +167,14 @@ public sealed partial class WorldRuntimeTests
         state = WeatherTestFixture.WithWeather(state, weather);
         var provider = new WaitingRoutineProvider("safe_idle");
         using var world = RestoreWaitingWorld(state, actor, provider);
-        var dispatch = await world.AdvanceOneTickNonBlockingAsync();
+        var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == actor);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Contains(provider.Requests.Single().Candidates, candidate => candidate.Id == "household_leave");
         var buildings = world.WorldSimulation.Buildings.ToArray();
         var relationships = world.Society.Relationships.ToArray();
-        for (var tick = 0; tick < 20; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 20; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         var person = world.Agents.Single(person => person.AgentId == actor);
         if (hungry)
         {
@@ -204,8 +204,8 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        private readonly InlineCompletionSource<bool> release = new(TaskCreationOptions.None);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

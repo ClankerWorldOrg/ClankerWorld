@@ -68,6 +68,7 @@ public static partial class InventoryAuthority
             Id = splitId,
             Quantity = quantity,
             ContainerLotId = null,
+            Holds = CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), cargo).ToArray()),
             GroundPosition = ontoGround ? cart.GroundPosition : null,
             ProvenanceLotId = splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id,
         };

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -69,7 +70,7 @@ public sealed class SameKindKnowledgeTradeTests
                 foreach (var id in adults)
                     if (exploring.Agents.Single(person => person.AgentId == id).Exploration is
                         { Returning: false, OutingPath.Count: > 8 } && returning.Add(id))
-                        exploring.SubmitInstruction(new OwnerInstructionRequest("trade-record-return-" + id,
+                        exploring.SubmitInstruction(new OwnerInstructionRequest(DerivedId.Create("trade-record-return-" + id),
                             "owner:test", id, OwnerInstructionKind.Suggestion, "Please return from scouting."));
             }
             state = exploring.ExportState();

@@ -1,1 +1,0 @@
-- Orders for agents born in the world can now be cancelled normally.
