@@ -32,5 +32,5 @@ internal interface ICommunityLearningWorld
     void IncreaseTrust(string actor, string other, int amount, string reason);
     void RecordLessonGratitude(string student, string teacher, SkillKind skill);
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

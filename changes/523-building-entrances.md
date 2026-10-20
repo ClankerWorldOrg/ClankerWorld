@@ -1,1 +1,0 @@
-- Buildings show their door on the side that faces their Road, not always on the bottom edge.

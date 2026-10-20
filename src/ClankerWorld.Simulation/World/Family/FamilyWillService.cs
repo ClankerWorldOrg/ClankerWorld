@@ -66,10 +66,10 @@ internal sealed class FamilyWillService
                 }
 
                 var request = new CognitionDecisionRequest(
-                    $"will:{estate.Id}", provider.ProviderEpoch, observation);
+                    IdentityRules.PrefixedReference("will:", estate.Id), provider.ProviderEpoch, observation);
                 request.Validate();
-                var cancellation = new CancellationTokenSource(WillDecisionTimeout);
-                var task = Task.Run(async () =>
+                var cancellation = new CancellationTokenSource(WillDecisionTimeout, world.ModelTimeProvider);
+                var task = world.ScheduleWillWork(request, async () =>
                 {
                     try
                     {
@@ -89,7 +89,7 @@ internal sealed class FamilyWillService
                 pendingWills.Add(estate.Id, new PendingWillDecision(estate.Id, request,
                     observation.Candidates.Select(item => item.Id).ToHashSet(StringComparer.Ordinal),
                     context.HeirKeys, context.ItemKeys, task, cancellation));
-                world.AppendEvent("estate_will_started", estate.Id);
+                world.AppendEvent(new EstateWillStartedEventPayload(estate.DeceasedId, estate.Id));
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
@@ -116,7 +116,7 @@ internal sealed class FamilyWillService
                 .Select(item => $"{item.Quantity} {WillDisplayKind(item.ItemKind, key)}"));
             itemKeys.Add(key, lot.LotId);
             items.Add(new CognitionWillItem(key, WillDisplayKind(lot.ItemKind, key), lot.Quantity,
-                contents.Length is > 0 and <= 128 ? contents : null));
+                !string.IsNullOrEmpty(contents) && BoundedText.Excerpt(contents, 128).Value == contents ? contents : null));
         }
 
         var people = checkpoint.Agents
@@ -173,7 +173,7 @@ internal sealed class FamilyWillService
             world.Towns.SingleOrDefault(item => item.Id == archived.TownId)?.Name);
         var memories = WorldMemoryRetrieval.Retrieve(checkpoint.Memories, checkpoint.Beliefs ?? [],
             (checkpoint.MemoryCompactions ?? []).SingleOrDefault(item => item.OwnerId == deceased.Id),
-            deceased.Id, estate.CreatedTick, candidates);
+            deceased.Id, estate.CreatedTick, candidates, checkpoint);
         var digestInput = estate.Id + "|" + string.Join("|", snapshot.Select(item =>
             $"{item.LotId}:{item.ItemKind}:{item.Quantity}")) + "|" +
             string.Join("|", candidates.Select(item => $"{item.Id}:{item.Description}")) + "|" +
@@ -259,6 +259,7 @@ internal sealed class FamilyWillService
                     continue;
                 }
 
+                world.RecordWillReplyAdmission(pending.Request.RequestId);
                 // Final words belong to an admitted reply; they stand even when
                 // its division is unusable and default inheritance applies.
                 var finalWords = response.Will?.FinalWords;
@@ -275,9 +276,7 @@ internal sealed class FamilyWillService
                 }
                 var result = world.ResolveWill(estate.Id, directive, "accepted", finalWords, TownsThatMayInherit(world));
                 var accepted = result.Checkpoint.GetEstate(estate.Id).WillStatus == "accepted";
-                world.AppendEvent(accepted ? "estate_will_accepted" : "estate_will_default", accepted
-                    ? $"{estate.Id}:{directive.Split}:{directive.HeirIds.Count.ToString(CultureInfo.InvariantCulture)}"
-                    : $"{estate.Id}:invalid_estate_or_heir");
+                world.AppendEvent(accepted ? new EstateWillAcceptedEventPayload(estate.DeceasedId, estate.Id, directive.Split, directive.HeirIds.Count) : new EstateWillDefaultEventPayload(estate.DeceasedId, estate.Id, "invalid_estate_or_heir"));
             }
             else if (!active.Contains(estate.Id))
             {
@@ -300,14 +299,16 @@ internal sealed class FamilyWillService
 
     internal static void ResolveWillDefault(IFamilyWillWorld world, string estateId, string reason, string? finalWords = null)
     {
+        var actor = world.Society.Estates.FirstOrDefault(estate => estate.Id == estateId)?.DeceasedId;
         world.ResolveWill(estateId, null, reason, finalWords, null);
-        world.AppendEvent("estate_will_default", $"{estateId}:{reason}");
+        world.AppendEvent(new EstateWillDefaultEventPayload(actor, estateId, reason));
     }
 
     internal void CancelPendingWill(IFamilyWillWorld world, string estateId, string reason = "interrupted", bool underRuntimeGate = true)
     {
         var estateIsPending = world.Society.Estates.Any(item => item.Id == estateId && item.WillStatus == "pending");
         if (!pendingWills.Remove(estateId, out var pending)) return;
+        world.CancelWillWork(pending.Request);
         if (estateIsPending) pendingWillCancellationReasons[estateId] = reason;
         else pendingWillCancellationReasons.Remove(estateId);
         world.CancelProviderCall(pending.Cancellation, underRuntimeGate);

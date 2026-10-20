@@ -1,1 +1,0 @@
-- Town admission choices keep their selected applicant, approval and dependent group when checked before they apply.

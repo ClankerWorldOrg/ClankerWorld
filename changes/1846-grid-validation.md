@@ -1,0 +1,1 @@
+- World checks use less temporary memory while saving and loading larger maps.

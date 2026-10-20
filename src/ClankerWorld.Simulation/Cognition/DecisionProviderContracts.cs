@@ -1,4 +1,5 @@
 using System.Buffers;
+using ClankerWorld.Contracts;
 using ClankerWorld.Simulation.Content;
 using System.Net;
 using System.Collections.ObjectModel;
@@ -148,20 +149,17 @@ public sealed record CognitionWillContext(
         var keys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in Items)
         {
-            if (item is null || !IsBoundedText(item.Key, 16) || !IsBoundedText(item.Kind, MaximumItemKindLength) ||
-                item.Quantity <= 0 || item.Contents is not null && !IsBoundedText(item.Contents, 128) || !keys.Add(item.Key))
+            if (item is null || !BoundedText.IsValid(item.Key, 16) || !BoundedText.IsValid(item.Kind, MaximumItemKindLength) ||
+                item.Quantity <= 0 || item.Contents is not null && !BoundedText.IsValid(item.Contents, 128) || !keys.Add(item.Key))
                 throw new ArgumentException("A will item is malformed.", nameof(Items));
         }
         foreach (var heir in Heirs)
         {
-            if (heir is null || !IsBoundedText(heir.Key, MaximumHeirKeyLength) || !IsBoundedText(heir.Name, 128) ||
-                heir.Relation is not null && !IsBoundedText(heir.Relation, 32) || !keys.Add(heir.Key))
+            if (heir is null || !BoundedText.IsValid(heir.Key, MaximumHeirKeyLength) || !BoundedText.IsValid(heir.Name, 128) ||
+                heir.Relation is not null && !BoundedText.IsValid(heir.Relation, 32) || !keys.Add(heir.Key))
                 throw new ArgumentException("A will heir is malformed.", nameof(Heirs));
         }
     }
-
-    private static bool IsBoundedText(string? value, int maximumLength) =>
-        !string.IsNullOrWhiteSpace(value) && value.Length <= maximumLength && !value.Any(char.IsControl);
 }
 
 /// <summary>
@@ -193,8 +191,8 @@ public sealed record CognitionWillChoice(
         {
             var status = Rune.DecodeFromUtf16(value.AsSpan(offset), out var character, out var consumed);
             offset += consumed;
-            if (status != OperationStatus.Done || Rune.IsWhiteSpace(character) || Rune.IsControl(character) ||
-                Rune.GetUnicodeCategory(character) is System.Globalization.UnicodeCategory.Format or
+            if (status != OperationStatus.Done || Rune.IsWhiteSpace(character) || Rune.IsControl(character) || BoundedText.IsInvisibleFormatting(character) ||
+                Rune.GetUnicodeCategory(character) is
                     System.Globalization.UnicodeCategory.LineSeparator or System.Globalization.UnicodeCategory.ParagraphSeparator or
                     System.Globalization.UnicodeCategory.Surrogate or System.Globalization.UnicodeCategory.PrivateUse or
                     System.Globalization.UnicodeCategory.OtherNotAssigned)
@@ -236,7 +234,7 @@ public sealed record CognitionParentIdentity(string ParentId, string Name, strin
 /// <summary>
 /// Actor context; absent survival data remains unknown, not invented.
 /// <paramref name="HousingNote"/> explains the actor's housing and current House capacity when known.
-/// <paramref name="ContinuityNote"/> explains the low-population continuity rule to a partner it applies to.
+/// <paramref name="ContinuityNote"/> explains the low-population continuity rule to an adult it applies to.
 /// <paramref name="DepartureNote"/> summarizes goods to collect or return and paused household work after a departure.
 /// <paramref name="TownMembershipNote"/> states recorded Town membership, its rights and any admission the actor knows of.
 /// <paramref name="AllowedChildSurnames"/> lists the chosen biological parents' surnames during a child's naming request;
@@ -637,33 +635,17 @@ public sealed record CognitionDecisionResponse(
     public const int MaximumChosenNameLength = 48;
     public const int MaximumIdentityTextLength = 256;
 
-    public static string? NormalizeIdentityText(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumIdentityTextLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeIdentityText(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumIdentityTextLength);
 
-    public static string? NormalizePrivateThought(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumPrivateThoughtLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizePrivateThought(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumPrivateThoughtLength);
 
-    public static string? NormalizeObserverReply(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumObserverReplyLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeObserverReply(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumObserverReplyLength);
 
-    public static string? NormalizeChosenName(string? value)
-    {
-        var text = value?.Trim();
-        return text is { Length: > 0 and <= MaximumChosenNameLength } &&
-            !text.Any(char.IsControl) ? text : null;
-    }
+    public static string? NormalizeChosenName(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumChosenNameLength);
 
     public void Validate()
     {
@@ -755,6 +737,9 @@ public sealed record CognitionUsage(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProviderId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Role = null)
 {
+    private string? modelId = ModelOutputLimits.ReportedModelName(ModelId);
+    public string? ModelId { get => modelId; init => modelId = ModelOutputLimits.ReportedModelName(value); }
+
     public void Validate()
     {
         if (InputTokens < 0 || OutputTokens < 0 || LatencyMilliseconds < 0)
@@ -855,7 +840,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
         HttpClient httpClient,
         Func<string?> apiKeyAccessor,
         Uri? endpoint = null,
-        string model = "jev-1.13.0",
+        string model = RoutineHelperDefaults.JevModel,
         TimeSpan? requestTimeout = null,
         long providerEpoch = 1,
         ModelNeedFormat needFormat = ModelNeedWords.DefaultFormat)
@@ -1254,7 +1239,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                             ? "Family background gives your biological parents' chosen identities alongside your household and Town. It contains no private thoughts or memories. Choose your own personality and aspiration; you need not copy or combine your parents' choices. "
                             : string.Empty) +
                         "Housing, when present, says why you have no home of your own. " +
-                        "Continuity, when present, is this world's rule on having a child with your partner while few people live here. " +
+                        "Continuity, when present, explains this world's rule on choosing a partner or having a child while few eligible couples live here. " +
                         "Return JSON only, with fields " +
                         "selected_candidate_id (string), confidence (number 0..1), " +
                         "and optional " +
@@ -1399,6 +1384,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         {
             ["model"] = model,
             ["response_format"] = new JsonObject { ["type"] = "json_object" },
+            ["max_completion_tokens"] = ModelOutputLimits.MaximumCompletionTokens,
             ["messages"] = new JsonArray(
                 new JsonObject { ["role"] = "system", ["content"] = prompt.Instructions },
                 new JsonObject { ["role"] = "user", ["content"] = prompt.Input }),
@@ -1420,8 +1406,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
             timeout.Token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(
-                $"OpenAI-compatible provider returned HTTP {(int)response.StatusCode} ({response.StatusCode}).", null, response.StatusCode);
+            throw await ProviderHttpException.ReadAsync(response, timeout.Token).ConfigureAwait(false);
         }
 
         var responseBody = await ProviderResponseBody.ReadAsync(response.Content, timeout.Token).ConfigureAwait(false);

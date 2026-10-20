@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         var invitation = new HouseGuestInvitation(houseId, guestId, actor, WorldTick, invited);
         constructionSystem.Buildings.RecordGuestInvitation(invitation);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(invited ? "house_guest_invited" : "house_guest_revoked", $"{houseId}:{actor}:{guestId}");
+        AppendEvent(invited ? new HouseGuestInvitedEventPayload(actor, houseId, guestId) : new HouseGuestRevokedEventPayload(actor, houseId, guestId));
         return new(true);
     }
 

@@ -42,7 +42,7 @@ internal sealed partial class ConstructionSystem
         Buildings.StartExpansion(job);
         world.AdvanceExpansionSequence();
         if (orderInstruction is not null) world.BindStartedExpansionOrder(orderInstruction, job);
-        world.AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
+        world.AppendEvent(new BuildingExpansionStartedEventPayload(actor, buildingId, jobId));
         return new ProductionStartResult(true, jobId, buildingId, null);
     }
 
@@ -76,8 +76,7 @@ internal sealed partial class ConstructionSystem
             }
             Buildings.FinishExpansion(job.JobId, failure);
             if (failure is null) world.CreditExpansionOrderJob(job);
-            world.AppendEvent(failure is null ? "building_expanded" : "building_expansion_cancelled",
-                $"{job.BuildingInstanceId}:{job.JobId}" + (failure is null ? "" : $":{failure}"));
+            world.AppendEvent(failure is null ? new BuildingExpandedEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId) : new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, failure));
         }
     }
 }

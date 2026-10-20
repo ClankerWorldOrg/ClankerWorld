@@ -193,11 +193,11 @@ public sealed partial class WorldRuntime
     private void ContinueMarketTrade(string actor, AgentState state, MarketChoice choice, bool cancel, DirectBarterOffer? originalOffer = null) =>
         MarketSystem.ContinueMarketTrade(MarketStallWorld, actor, state, choice, cancel, originalOffer);
 
-    private void CancelMarketTrade(string townId, TownMarketState market, MarketTradeState trade, string reason) =>
-        MarketSystem.CancelMarketTrade(MarketStallWorld, townId, market, trade, reason);
+    private void CancelMarketTrade(string townId, TownMarketState market, MarketTradeState trade, string reason, string? actor = null) =>
+        MarketSystem.CancelMarketTrade(MarketStallWorld, townId, market, trade, reason, actor);
 
-    private void EndMarketOccupancy(string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason) =>
-        MarketSystem.EndMarketOccupancy(MarketStallWorld, townId, market, occupancy, reason);
+    private void EndMarketOccupancy(string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason, string? actor = null) =>
+        MarketSystem.EndMarketOccupancy(MarketStallWorld, townId, market, occupancy, reason, actor);
 
     private void MaintainMarkets() =>
         MarketSystem.MaintainMarkets(MarketStallWorld);

@@ -1,1 +1,0 @@
-- Agents collect and keep handcart materials only when the remaining household supplies can be physically reached, avoiding partial cart sets blocked by inaccessible fittings.

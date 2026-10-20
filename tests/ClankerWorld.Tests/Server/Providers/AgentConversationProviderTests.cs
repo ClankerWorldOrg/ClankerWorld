@@ -21,7 +21,7 @@ public sealed partial class AgentConversationProviderTests
             _ = store.Configure(Personal("agent-a", "agent-a-model", "agent-a-key"));
             _ = store.Configure(Personal("agent-b", "agent-b-model", "agent-b-key"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            var handler = new ConversationResponseHandler("A bounded public reply.");
+            var handler = new ConversationResponseHandler("A bounded\u202e public\u200b reply.");
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
             var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler),
                 logger, usageStore: usage);
@@ -39,6 +39,7 @@ public sealed partial class AgentConversationProviderTests
             Assert.Equal("Bearer agent-a-key", handler.Authorizations[0]);
             using (var body = JsonDocument.Parse(handler.Bodies[0]))
             {
+                Assert.Equal(ModelOutputLimits.MaximumCompletionTokens, body.RootElement.GetProperty("max_completion_tokens").GetInt32());
                 var prompt = body.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!;
                 Assert.Contains("public_turn", prompt, StringComparison.Ordinal);
                 Assert.Contains("public history only", prompt, StringComparison.Ordinal);

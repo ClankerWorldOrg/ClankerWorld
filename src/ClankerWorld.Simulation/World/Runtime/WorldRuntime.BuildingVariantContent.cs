@@ -47,6 +47,6 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent("building_variant_content_staged", manifest.PackageId);
+        AppendEvent(new BuildingVariantContentStagedEventPayload(null, manifest.PackageId));
     }
 }
