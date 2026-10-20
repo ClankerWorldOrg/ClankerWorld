@@ -6,6 +6,20 @@ namespace ClankerWorld.Tests;
 public sealed class ActorCapabilitiesTests
 {
     [Theory]
+    [InlineData("safe_idle")]
+    [InlineData("build:recipe:example")]
+    [InlineData("child_play:example")]
+    [InlineData("civic|town:first|law_case_statement|case|revision")]
+    [InlineData("native:project")]
+    public void DeclaredLifeStagesDoNotDependOnCandidateSpelling(string candidate)
+    {
+        var child = new ActorCapabilityState(SocietyAgeBand.Child, false, false, false, false, false);
+        Assert.True(ActorCapabilities.Check(child, candidate, new(ActionLifeStages.NonInfants)).Allowed);
+        var adultAction = ActorCapabilities.Check(child, candidate, new(ActionLifeStages.Adults));
+        Assert.Equal(ActionRefusalReason.LifeStage, adultAction.Refusal!.Reason);
+    }
+
+    [Theory]
     [InlineData("boat", ActionRefusalReason.Boat)]
     [InlineData("mounted", ActionRefusalReason.Mounted)]
     [InlineData("food", ActionRefusalReason.UrgentNeed)]
