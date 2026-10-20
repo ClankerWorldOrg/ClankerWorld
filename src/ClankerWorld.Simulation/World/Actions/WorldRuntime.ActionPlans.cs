@@ -54,7 +54,6 @@ public sealed partial class WorldRuntime
         CouncilBallotActionPlan councilBallot => TownSystem.CheckCouncilBallot(civicWorld, councilBallot),
         CouncilConsentActionPlan councilConsent => TownSystem.CheckCouncilConsent(civicWorld, councilConsent),
         CivicVisitActionPlan civicVisit => townSystem.CheckCivicVisit(civicWorld, civicVisit),
-        ConversationActionPlan conversation => conversationSystem.CheckConversationPlan(conversationWorld, conversation),
         OrnamentActionPlan ornament => CheckOrnamentPlan(ornament),
         FoodCargoActionPlan foodCargo => CheckFoodCargoPlan(foodCargo),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
