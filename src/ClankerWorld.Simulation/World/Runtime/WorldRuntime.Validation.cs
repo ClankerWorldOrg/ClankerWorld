@@ -57,7 +57,7 @@ public sealed partial class WorldRuntime
             !society.Checkpoint.Households.Any(household => household.Id == householdId)))
             throw new InvalidDataException("A House references a missing household.");
         var inventoryReservationIds = society.Checkpoint.Inventory.Reservations
-            .Select(item => item.Id)
+            .Select(item => item.Id.Value)
             .ToHashSet(StringComparer.Ordinal);
         var productionOwners = society.Checkpoint.Households.Select(home => home.Id)
             .Concat(society.Checkpoint.Agents.Select(person => person.Id)).ToHashSet(StringComparer.Ordinal);
@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
         var previousTick = 0L;
         foreach (var worldEvent in events)
         {
-            if (worldEvent.EventId != expectedEventId ||
+            if (worldEvent.Payload is null || !worldEvent.Payload.FieldsAreValid || worldEvent.EventId != expectedEventId ||
                 worldEvent.WorldTick < previousTick ||
                 worldEvent.WorldTick > WorldTick ||
                 worldEvent.Position is { } eventPosition && !map.Contains(eventPosition))
@@ -483,7 +483,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ConversationSchemaVersion} requires conversation state and daily budgets.");
         if (state.SchemaVersion >= OrderLifecycleSchemaVersion && state.OrderCancellations is null)
             throw new InvalidDataException($"World schema {OrderLifecycleSchemaVersion} requires order-cancellation retry state.");
-        var hasArchivedEvents = state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
+        var hasArchivedEvents = WorldHistory.RequiredRecordCounts(state).Count > 0 || state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
             state.Society.Society.Inventory.EventHistoryFloor > 0 || state.Society.Cognition.EventHistoryFloor > 0 ||
             state.Society.Cognition.Runtimes.Any(runtime => runtime.EventHistoryFloor > 0);
         if ((hasArchivedEvents && state.HistoryArchiveHead is null) ||
@@ -496,6 +496,11 @@ public sealed partial class WorldRuntime
             state.Map.HydrologyKinds is null || state.Map.SurfaceKinds is null || state.Map.VegetationKinds is null))
             throw new InvalidDataException("The current generated geography is missing required map layers.");
 
+        if (state.MapAuthoring is { } authoring && (!authoring.IsValid(state.Map) ||
+            authoring.Resources.Any(resource => !state.Map.Resources.Contains(resource)) ||
+            authoring.Objects.Any(item => !state.Map.MapObjects.Contains(item))))
+            throw new InvalidDataException("The saved Developer map edits are invalid or do not match the map.");
+
         if (!MapAcceptance.Validate(state.Map, allowEmptyStartingSite: state.FounderSetup is not null).IsValid)
         {
             throw new InvalidDataException("The world runtime contains an invalid map.");
@@ -506,12 +511,12 @@ public sealed partial class WorldRuntime
 
         using var society = SocietyRuntime.Restore(state.Society);
         if (state.SchemaVersion >= ObserverGuidanceSchemaVersion &&
-            (state.Instructions is null || state.CompletedInstructionIds is null))
+            (state.Instructions is null || state.CompletedInstructionIds is null || state.InstructionReceipts is null))
             throw new InvalidDataException($"World schema {ObserverGuidanceSchemaVersion} requires authoritative instruction state.");
         var latestWorldEventId = state.Events.Count == 0 ? state.EventHistoryFloor : state.Events[^1].EventId;
         ValidateSavedInstructions(state.Instructions ?? [], state.CompletedInstructionIds ?? [], society.Checkpoint,
             state.Society.Society.WorldId, latestWorldEventId,
-            state.OrderCancellations ?? [], state.WorldContent);
+            state.OrderCancellations ?? [], state.WorldContent, state.InstructionReceipts);
         ValidateBeliefEventSources(state.Society.Society.AllBeliefs(), state.Events, state.EventHistoryFloor);
         ValidateConversationState(state, society.Checkpoint);
         AgentMarriageValidation.Validate(state, society.Checkpoint);
@@ -651,21 +656,24 @@ public sealed partial class WorldRuntime
         string worldId,
         long latestEventId,
         IReadOnlyList<OwnerOrderCancellation> cancellations,
-        DeclarativeWorldContentState worldContent)
+        DeclarativeWorldContentState worldContent,
+        IReadOnlyList<RecordedInstructionReceipt> receipts)
     {
         var people = checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var instructionIds = new HashSet<string>(StringComparer.Ordinal);
+        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
+        var byId = new Dictionary<string, OwnerQueuedInstruction>(StringComparer.Ordinal);
         var idempotencyKeys = new HashSet<string>(StringComparer.Ordinal);
         var sequences = new HashSet<long>();
         foreach (var instruction in instructions)
         {
             if (instruction is null || string.IsNullOrWhiteSpace(instruction.InstructionId) ||
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
-                instruction.InstructionId != $"private-instruction-{instruction.SubmissionSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}" ||
+                instruction.InstructionId != InstructionIdFor(instruction.SubmissionSequence) ||
                 !instructionIds.Add(instruction.InstructionId) ||
-                !IsValidInstructionIdentifier(instruction.IdempotencyKey) ||
+                !IdentityRules.Reference(instruction.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
-                !IsValidInstructionIdentifier(instruction.IssuerId) ||
+                !IdentityRules.Reference(instruction.IssuerId, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !people.Contains(instruction.TargetAgentId) ||
                 instruction.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order) ||
                 instruction.State != OwnerInstructionState.Queued ||
@@ -683,24 +691,50 @@ public sealed partial class WorldRuntime
                      CognitionDecisionResponse.NormalizeObserverReply(instruction.ObserverReply) != instruction.ObserverReply) ||
                 instruction.Kind == OwnerInstructionKind.Suggestion && instruction.Task is not null ||
                 instruction.Kind == OwnerInstructionKind.Order && instruction.Task is null ||
-                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completedInstructionIds,
+                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completed,
                     people, checkpoint.WorldTick, worldContent))
                 throw new InvalidDataException("The saved owner instruction or observer response is invalid.");
+            byId.Add(instruction.InstructionId, instruction);
         }
 
         if (completedInstructionIds.Any(id => string.IsNullOrWhiteSpace(id) || !instructionIds.Contains(id)) ||
-            completedInstructionIds.Distinct(StringComparer.Ordinal).Count() != completedInstructionIds.Count)
+            completed.Count != completedInstructionIds.Count)
             throw new InvalidDataException("The completed owner instruction list is invalid.");
-        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
         if (instructions.Any(item => item.Kind == OwnerInstructionKind.Suggestion &&
                 completed.Contains(item.InstructionId) && item.ObservedTick is null))
             throw new InvalidDataException("A suggestion cannot be completed before an agent's personal model observes it.");
 
+        if (instructions.Where(item => item.Kind == OwnerInstructionKind.Order && item.Task?.IsTerminal == true)
+                .GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent) ||
+            cancellations.Where(item => item is not null).GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)
+                .Any(group => group.Count() > OwnerQueuedInstruction.RecentClosedOrderLimitPerAgent))
+            throw new InvalidDataException("The closed order or cancellation history exceeds its per-agent display limit.");
+
+        var receiptKeys = new HashSet<string>(StringComparer.Ordinal);
+        var receiptIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var recorded in receipts)
+        {
+            if (recorded is null || recorded.Receipt is not { } receipt ||
+                !IdentityRules.Reference(receipt.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) || !receiptKeys.Add(receipt.IdempotencyKey) ||
+                receipt.Revision <= 0 || receipt.InstructionId != InstructionIdFor(receipt.Revision) || !receiptIds.Add(receipt.InstructionId) ||
+                receipt.SubmittedTick < 0 || receipt.SubmittedTick > checkpoint.WorldTick ||
+                receipt.RunEpoch < 0 || receipt.RunEpoch > checkpoint.RunEpoch ||
+                recorded.RequestDigest is not { } digest || !digest.StartsWith(InstructionRequestDigestPrefix, StringComparison.Ordinal) ||
+                digest.Length != InstructionRequestDigestPrefix.Length + System.Security.Cryptography.SHA256.HashSizeInBytes * 2 ||
+                !digest[InstructionRequestDigestPrefix.Length..].All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f') ||
+                byId.TryGetValue(receipt.InstructionId, out var instruction) &&
+                    (receipt.IdempotencyKey != instruction.IdempotencyKey || receipt.SubmittedTick != instruction.SubmittedTick ||
+                     receipt.RunEpoch != instruction.RunEpoch || recorded.RequestDigest != InstructionRequestDigest(instruction)))
+                throw new InvalidDataException("The saved instruction submission receipt is invalid.");
+        }
+        if (instructions.Any(instruction => !receiptIds.Contains(instruction.InstructionId)))
+            throw new InvalidDataException("An owner instruction is missing its stable submission receipt.");
+
         var cancellationKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var cancellation in cancellations)
         {
-            var instruction = cancellation is null ? null : instructions.SingleOrDefault(item =>
-                item.InstructionId == cancellation.OrderId);
+            var instruction = cancellation is null ? null : byId.GetValueOrDefault(cancellation.OrderId);
             if (cancellation is null || string.IsNullOrWhiteSpace(cancellation.IdempotencyKey) ||
                 cancellation.IdempotencyKey.Length > DerivedId.MaximumLength || cancellation.IdempotencyKey.Any(char.IsControl) ||
                 cancellation.IdempotencyKey != cancellation.IdempotencyKey.Trim() ||
@@ -721,304 +755,24 @@ public sealed partial class WorldRuntime
     }
 
     private static bool IsValidSavedOrder(
-        OrderTask order,
-        OwnerQueuedInstruction instruction,
-        IReadOnlyList<string> completedInstructionIds,
-        HashSet<string> people,
-        long worldTick,
-        DeclarativeWorldContentState worldContent)
-    {
-        var knownStatus = order.Status is "queued" or "waiting" or "doing" or "interrupted" or "blocked" or
-            "finished" or "cancelled" or "not_understood";
-        var terminal = order.Status is "finished" or "cancelled" or "not_understood";
-        var isCompleted = completedInstructionIds.Contains(instruction.InstructionId, StringComparer.Ordinal);
-        if (order.Action != "read_knowledge" && (order.TargetKnowledgeArtifactId is not null || order.KnowledgeReadCompletion is not null)) return false;
-        if (!IsConversationOrder(order.Action) && (order.TalkConversationId is not null || order.TalkOutcome is not null)) return false;
-        if (!IsCartOrder(order.Action) && order.TargetCartLotId is not null) return false;
-        if ((order.TargetAnimalId is not null) != IsAnimalOrder(order.Action)) return false;
-        if ((order.BoatTravel is not null) != (order.Action == "travel_by_boat")) return false;
-        if (!IsKnowledgeOrder(order.Action) && (order.TargetKnowledgeKind is not null || order.KnowledgeWritingProjectId is not null) ||
-            order.Action != "copy_knowledge" && order.KnowledgeCopySourceArtifactId is not null)
-            return false;
-        if (!knownStatus || (order.Status == "queued" && !instruction.Queue) ||
-            order.BlockedReason is { Length: > 256 } || order.BlockedReason?.Any(char.IsControl) == true ||
-            order.LastEffectId is { Length: > DerivedId.MaximumLength } || order.LastEffectId?.Any(char.IsControl) == true ||
-            order.TargetResourceId is { Length: > ContentPackageRules.MaximumContentIdLength } || order.TargetResourceId?.Any(char.IsControl) == true ||
-            order.Action != "produce_item" && (order.TargetRecipeId is not null || order.TargetOutputKind is not null ||
-                order.ProductionBuildingId is not null || order.ProductionJobId is not null || order.ProductionProjectStartedTick is not null) ||
-            order.Action is not ("collect_goods" or "store_goods" or "return_borrowed" or "deliver_stock" or "read_knowledge" or "load_handcart" or "unload_handcart" or "unload_handcart_ground") && order.TargetItemKind is not null ||
-            order.Action != "deliver_stock" && (order.DeliveryPurpose is not null ||
-                order.DeliveryRoute is not null || order.DeliveryLotId is not null || order.DeliveryQuantity is not null) ||
-            order.Action is not ("deliver_stock" or "construct_building" or "expand_building" or "seek_shelter" or "tend_fire") && order.TargetBuildingKind is not null ||
-            order.Action != "construct_building" && (order.TargetDefinitionId is not null || order.ConstructionOwnerId is not null ||
-                order.ConstructionPosition is not null || order.ConstructionStartedTick is not null || order.ConstructionInstanceId is not null) ||
-            order.Action != "expand_building" && order.ExpansionBinding is not null ||
-            order.Action is not ("seek_shelter" or "tend_fire") && (order.ShelterBinding is not null || order.ShelterCompletion is not null) ||
-            !IsValidCustodyBindingShape(order) ||
-            order.TargetFoodKind is not (null or "berries" or "fruit" or "wild_greens") &&
-                (order.Action is not ("consume_food" or "collect_food") || !IsEdibleFood(order.TargetFoodKind)) ||
-            !IsFieldOrder(order.Action) && order.TargetCropKind is not null ||
-            order.Action is not ("repair_equipment" or "repair_tool" or "collect_equipment" or "store_equipment") && order.TargetEquipmentKind is not null ||
-            order.Action is not ("gather_material" or "store_material" or "collect_material") && order.TargetMaterialKind is not null ||
-            order.TargetPosition is { X: < -10_000_000 or > 10_000_000 } ||
-            order.TargetPosition is { Y: < -10_000_000 or > 10_000_000 } ||
-            order.WaitForDecisionAfterFailure && (order.Status != "blocked" || order.BlockedReason is null) ||
-            order.Status == "blocked" && string.IsNullOrWhiteSpace(order.BlockedReason) ||
-            terminal != isCompleted)
-            return false;
+        OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> completedInstructionIds,
+        HashSet<string> people, long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.Definition is not null &&
+        (order.LifecycleStatus != OrderStatus.Queued || instruction.Queue) &&
+        order.BlockedReason is not { Length: > 256 } && order.BlockedReason?.Any(char.IsControl) != true &&
+        (order.LastEffectId is null || IdentityRules.Reference(order.LastEffectId.Value, DerivedId.MaximumLength)) &&
+        order.TargetResourceId is not { Length: > ContentPackageRules.MaximumContentIdLength } && order.TargetResourceId?.Any(char.IsControl) != true &&
+        (order.TargetFoodKind is null or "berries" or "fruit" or "wild_greens" ||
+            order.Action is "consume_food" or "collect_food" && IsEdibleFood(order.TargetFoodKind)) &&
+        order.TargetPosition is not { X: < -10_000_000 or > 10_000_000 } &&
+        order.TargetPosition is not { Y: < -10_000_000 or > 10_000_000 } &&
+        (!order.WaitForDecisionAfterFailure || order.LifecycleStatus == OrderStatus.Blocked && order.BlockedReason is not null) &&
+        (order.LifecycleStatus != OrderStatus.Blocked || !string.IsNullOrWhiteSpace(order.BlockedReason)) &&
+        order.IsTerminal == completedInstructionIds.Contains(instruction.InstructionId) &&
+        IsValidCustodyBindingShape(order) &&
+        order.Definition.IsValid(order, instruction, people, worldTick, worldContent);
 
-        if (order.Action == "read_knowledge") return IsValidKnowledgeReadOrderShape(order, instruction, worldTick);
-        if (order.Action == "propose_marriage") return IsValidMarriageOrder(instruction, people);
-        if (order.Action == "talk_to")
-            return order.TargetAgentId is { } target && people.Contains(target) && target != instruction.TargetAgentId &&
-                order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                order.ProgressUnit == "conversations" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
-                (order.TalkConversationId is null || !string.IsNullOrWhiteSpace(order.TalkConversationId) && order.TalkConversationId.Length <= DerivedId.MaximumLength &&
-                    order.TalkConversationId == order.TalkConversationId.Trim() && !order.TalkConversationId.Any(char.IsControl)) &&
-                (order.CompletedUnits == 0 ? order.TalkOutcome is null && order.LastEffectId is null :
-                    order.TalkConversationId is not null && IsTalkOutcome(order.TalkOutcome) && order.LastEffectId == TalkOrderEffectId(instruction));
-        if (IsKnowledgeOrder(order.Action))
-            return order.TargetKnowledgeKind is { } kind && AgentKnowledgeRules.IsArtifactKind(kind) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == (order.Action == "copy_knowledge" ? "copies" : "artifacts") &&
-                (order.KnowledgeCopySourceArtifactId is null || order.KnowledgeCopySourceArtifactId.Length <= DerivedId.MaximumLength &&
-                    IsValidProductionBindingId(order.KnowledgeCopySourceArtifactId)) &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.KnowledgeWritingProjectId is null || !terminal && order.Status != "queued" &&
-                    IsValidProductionBindingId(order.KnowledgeWritingProjectId)) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null :
-                    order.LastEffectId is { } receipt && receipt.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
-                    receipt.Length <= DerivedId.MaximumLength && IsValidProductionBindingId(receipt["writing:artifact:".Length..]));
-
-        if (IsCartCargoOrder(order.Action)) return IsValidCartCargoOrder(instruction);
-        if (IsCartOrder(order.Action))
-            return (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
-                order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                order.ProgressUnit == "cart_tasks" && order.TargetFoodKind is null && order.TargetAgentId is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.TargetCartLotId is not null &&
-                    (order.Action == "repair_handcart" ? CartRepairOrderReceiptTick(instruction, worldTick) is not null :
-                        order.LastEffectId == CartOrderEffectId(instruction)));
-        if (IsAnimalOrder(order.Action))
-            return !string.IsNullOrWhiteSpace(order.TargetAnimalId) && order.TargetAnimalId.Length <= DerivedId.MaximumLength &&
-                !order.TargetAnimalId.Any(char.IsControl) && order.RequestedUnits == 1 && order.CompletedUnits >= 0 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= 1) && order.ProgressUnit == "animal_tasks" &&
-                order.TargetResourceId is null && order.TargetAgentId is null && order.TargetPosition is null &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("animal-order:", StringComparison.Ordinal) == true);
-        if (order.Action == "unknown")
-            return order.Status == "not_understood" && order.RequestedUnits == 0 && order.CompletedUnits == 0 &&
-                order.ProgressUnit == "none" && !order.RepeatUntilCancelled && order.TargetFoodKind is null &&
-                order.TargetResourceId is null && order.TargetPosition is null && order.LastEffectId is null &&
-                order.TargetAgentId is null;
-
-        if (order.Action is "seek_shelter" or "tend_fire")
-            return IsValidShelterOrderShape(order, instruction, worldTick);
-
-        if (order.Action is "construct_building" or "expand_building")
-        {
-            var construction = order.Action == "construct_building";
-            if (!WorldBuildingOrderCatalog.Supports(order.Action, order.TargetBuildingKind) ||
-                !WorldBuildingOrderCatalog.Available(worldContent).Any(item => item.BuildingKind == order.TargetBuildingKind) ||
-                order.RequestedUnits != 1 || order.CompletedUnits is < 0 or > 1 || order.RepeatUntilCancelled ||
-                order.ProgressUnit != (construction ? "buildings" : "expansions") ||
-                order.Status == "not_understood" || (order.Status == "finished") != (order.CompletedUnits == 1) ||
-                order.TargetAgentId is not null || order.TargetFoodKind is not null || order.TargetResourceId is not null ||
-                (order.CompletedUnits == 0 ? order.LastEffectId is not null :
-                    !IsValidCustodyReceipt(order.LastEffectId, construction ? "construction:building:" : "expand:job:")))
-                return false;
-            if (!construction) return order.ExpansionBinding is not null || order.CompletedUnits == 0;
-            return WorldBuildingOrderCatalog.Find(worldContent, order.TargetDefinitionId)?.BuildingKind == order.TargetBuildingKind &&
-                (order.ConstructionInstanceId is null
-                    ? order.ConstructionOwnerId is null && order.ConstructionPosition is null &&
-                        order.ConstructionStartedTick is null && order.CompletedUnits == 0
-                    : IsValidProductionBindingId(order.ConstructionInstanceId) &&
-                        order.ConstructionOwnerId is { } owner && IsValidProductionBindingId(owner) &&
-                        order.ConstructionPosition is { X: >= -10_000_000 and <= 10_000_000, Y: >= -10_000_000 and <= 10_000_000 } site &&
-                        (order.TargetPosition is null || order.TargetPosition == site) &&
-                        order.ConstructionStartedTick >= instruction.SubmittedTick && order.ConstructionStartedTick <= worldTick);
-        }
-
-        if (order.Action == "deliver_stock")
-            return WorldDeliveryOrderCatalog.IsValidTarget(order.DeliveryPurpose, order.TargetItemKind,
-                    order.TargetBuildingKind, WorldDeliveryOrderCatalog.AvailableInputs(worldContent)) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
-                    : order.ProgressUnit == "delivery_loads" && order.RequestedUnits == 1) &&
-                (order.Status != "finished" || order.DeliveryLotId is null) &&
-                (order.TargetStorageBuildingId is null
-                    ? order.DeliveryRoute is null && order.DeliveryLotId is null && order.DeliveryQuantity is null
-                    : WorldDeliveryOrderCatalog.IsValidRoute(order.DeliveryPurpose, order.DeliveryRoute,
-                        order.TargetItemKind, order.TargetBuildingKind)) &&
-                (order.DeliveryLotId is null ? order.DeliveryQuantity is null :
-                    !string.IsNullOrWhiteSpace(order.DeliveryLotId) && order.DeliveryLotId == order.DeliveryLotId.Trim() &&
-                    !order.DeliveryLotId.Any(char.IsControl) && order.DeliveryQuantity is > 0 and <= 1_000_000 &&
-                    (!order.QuantityIsExplicit || order.RepeatUntilCancelled ||
-                        order.DeliveryQuantity <= order.RequestedUnits - order.CompletedUnits)) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : IsValidCustodyReceipt(order.LastEffectId, "delivery:stock:"));
-
-        if (order.Action is "collect_goods" or "store_goods" or "return_borrowed")
-        {
-            var defaultProgress = order.Action switch
-            {
-                "collect_goods" => "collection_loads",
-                "store_goods" => "storage_loads",
-                _ => "return_loads",
-            };
-            var receiptPrefix = order.Action switch
-            {
-                "collect_goods" => "collect:personal:",
-                "store_goods" => "store:personal:",
-                _ => "return:borrowed:",
-            };
-            return (order.Action == "return_borrowed"
-                    ? WorldCustodyOrderCatalog.IsReturnKind(order.TargetItemKind)
-                    : WorldCustodyOrderCatalog.IsGoodsKind(order.TargetItemKind)) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
-                    : order.ProgressUnit == defaultProgress && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : IsValidCustodyReceipt(order.LastEffectId, receiptPrefix));
-        }
-
-        if (order.Action == "produce_item")
-        {
-            var recipe = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
-            return recipe is not null && order.TargetOutputKind == recipe.OutputKind &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.ProgressUnit == "output_items"
-                    ? order.QuantityIsExplicit && order.RequestedUnits % recipe.OutputQuantity == 0 &&
-                        order.CompletedUnits % recipe.OutputQuantity == 0
-                    : order.ProgressUnit == "production_batches" && (order.QuantityIsExplicit || order.RequestedUnits == 1)) &&
-                (order.ProductionBuildingId is null ? order.ProductionProjectStartedTick is null && order.ProductionJobId is null :
-                    IsValidProductionBindingId(order.ProductionBuildingId) && order.ProductionProjectStartedTick is >= 0 &&
-                    order.ProductionProjectStartedTick <= worldTick &&
-                    (order.ProductionJobId is null || IsValidProductionBindingId(order.ProductionJobId))) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : IsValidProductionReceipt(order.LastEffectId));
-        }
-
-        if (IsTreePlantingOrder(order.Action))
-            return order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "trees" &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null :
-                    IsValidTreePlantingReceipt(order.LastEffectId, order.TargetPosition));
-
-        if (IsFieldOrder(order.Action))
-            return (order.Action == "till_field" ? order.TargetCropKind is null :
-                    order.TargetCropKind is null ? order.Action != "plant_field" : FarmFieldRules.IsCrop(order.TargetCropKind)) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "fields" &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("field:work:", StringComparison.Ordinal) == true);
-
-        if (order.Action is "repair_equipment" or "repair_tool")
-            return (order.Action == "repair_tool" ? OrderTaskParser.IsToolKind(order.TargetEquipmentKind) :
-                    OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind)) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "repairs" &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
-
-        if (order.Action is "collect_material" or "collect_food" or "collect_equipment")
-            return (order.Action switch
-            {
-                "collect_material" => OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) && order.TargetFoodKind is null,
-                "collect_equipment" => (OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind) ||
-                    OrderTaskParser.IsToolKind(order.TargetEquipmentKind)) && order.TargetFoodKind is null,
-                _ => order.TargetMaterialKind is null,
-            }) && order.TargetAgentId is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action switch
-                {
-                    "collect_food" => "food_items",
-                    "collect_equipment" => "equipment_items",
-                    _ => "material_items",
-                }) : order.ProgressUnit == "collection_loads" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
-
-        if (order.Action is "store_material" or "store_equipment")
-            return (order.Action == "store_equipment"
-                ? OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind) ||
-                    OrderTaskParser.IsToolKind(order.TargetEquipmentKind)
-                : OrderTaskParser.IsMaterialKind(order.TargetMaterialKind)) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action == "store_equipment" ? "equipment_items" : "material_items")
-                    : order.ProgressUnit == "storage_loads" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("store:personal:", StringComparison.Ordinal) == true);
-
-        if (order.Action == "gather_material")
-            return OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) &&
-                order.TargetAgentId is null && order.TargetFoodKind is null && !(order.TargetResourceId is not null && order.TargetPosition is not null) &&
-                order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                order.Status != "not_understood" &&
-                (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                (order.QuantityIsExplicit ? order.ProgressUnit == "material_items" : order.ProgressUnit == "harvests" && order.RequestedUnits == 1) &&
-                (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("gather:material:", StringComparison.Ordinal) == true);
-
-        if (order.Action == "travel_by_boat") return IsValidBoatOrderShape(order);
-
-        if (order.Action == "move_to")
-            return order.TargetPosition is { } destination && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                order.TargetAgentId is null &&
-                order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
-                (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
-                order.ProgressUnit == "arrivals" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                order.LastEffectId == (order.CompletedUnits == 1 ? MovementOrderEffectId(destination) : null);
-
-        if (order.Action == "accept_guardianship")
-            return order.TargetAgentId is { } child && people.Contains(child) && child != instruction.TargetAgentId &&
-                order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
-                (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
-                order.ProgressUnit == "guardianships" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                order.LastEffectId == (order.CompletedUnits == 1 ? GuardianOrderEffectId(instruction.TargetAgentId, child) : null);
-
-        if (order.TargetAgentId is not null || order.Action is not ("consume_food" or "seek_food" or "harvest_food") ||
-            order.RequestedUnits is < 1 or > 1000 || order.CompletedUnits is < 0 or > 1_000_000 ||
-            order.Status == "finished" && (order.RepeatUntilCancelled || order.CompletedUnits < order.RequestedUnits) ||
-            order.Action == "consume_food" && order.ProgressUnit != "food_items" ||
-            order.Action == "seek_food" && order.ProgressUnit != "arrivals" ||
-            order.Action == "harvest_food" && order.ProgressUnit is not ("harvests" or "food_items") ||
-            order.Action == "harvest_food" && order.QuantityIsExplicit != (order.ProgressUnit == "food_items"))
-            return false;
-
-        return true;
-    }
-
-    private static bool IsValidShelterOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick)
+    internal static bool IsValidShelterOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick)
     {
         var seeking = order.Action == "seek_shelter";
         if (order.TargetAgentId is not null || order.TargetBuildingKind is not (null or "house") || order.TargetFoodKind is not null ||
@@ -1061,7 +815,7 @@ public sealed partial class WorldRuntime
     private static bool IsBoundedShelterPosition(GridPoint position) =>
         position.X is >= -10_000_000 and <= 10_000_000 && position.Y is >= -10_000_000 and <= 10_000_000;
 
-    private static bool IsValidProductionBindingId(string id) => id.Length > 0 &&
+    internal static bool IsValidProductionBindingId(string id) => id.Length > 0 &&
         id == id.Trim() && !id.Any(char.IsControl);
 
     private static bool IsValidCustodyBindingShape(OrderTask order)
@@ -1084,7 +838,7 @@ public sealed partial class WorldRuntime
                 order.TargetLotId == order.TargetLotId.Trim() && !order.TargetLotId.Any(char.IsControl));
     }
 
-    private static bool IsValidTreePlantingReceipt(string? receipt, GridPoint? target)
+    internal static bool IsValidTreePlantingReceipt(string? receipt, GridPoint? target)
     {
         const string prefix = "tree:plant:" + TreeGrowthRules.PlantedTreeIdPrefix;
         if (receipt?.StartsWith(prefix, StringComparison.Ordinal) != true) return false;
@@ -1096,11 +850,11 @@ public sealed partial class WorldRuntime
             receipt == TreePlantingReceipt(TreeGrowthRules.PlantedTreeId(new(x, y)));
     }
 
-    private static bool IsValidCustodyReceipt(string? receipt, string prefix) =>
+    internal static bool IsValidCustodyReceipt(string? receipt, string prefix) =>
         receipt is not null && receipt.Length == prefix.Length + 64 && receipt.StartsWith(prefix, StringComparison.Ordinal) &&
         receipt.Skip(prefix.Length).All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f');
 
-    private static bool IsValidProductionReceipt(string? receipt) => receipt is { Length: 76 } &&
+    internal static bool IsValidProductionReceipt(string? receipt) => receipt is { Length: 76 } &&
         receipt.StartsWith("produce:job:", StringComparison.Ordinal) &&
         receipt.Skip(12).All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f');
 

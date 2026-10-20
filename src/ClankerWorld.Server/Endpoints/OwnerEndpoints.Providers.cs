@@ -68,7 +68,7 @@ internal static partial class OwnerEndpoints
         });
 
         // A setup check is an explicit paid call through the game's actual
-        // personal-model adapter. It never stores the supplied key or changes
+        // model or helper adapter. It never stores the supplied key or changes
         // provider configuration, and never retries with different options.
         app.MapPost("/api/v1/owner/providers/setup-check", async (
             OwnerSignedHttpRequest<OwnerProviderSetupCheckAction> request,
@@ -162,6 +162,7 @@ internal static partial class OwnerEndpoints
             OwnerSignedHttpRequest<OwnerCredentialSlotDeletionAction> request,
             OwnerRequestAuthorizer authorizer,
             ProviderConfigurationStore providers,
+            WorldRuntime runtime,
             ILogger<ProviderConfigurationStore> logger) =>
         {
             if (request?.Action is null)
@@ -190,7 +191,9 @@ internal static partial class OwnerEndpoints
 
             try
             {
-                var status = providers.DeleteCredentialSlot(request.Action.CredentialSlotId);
+                OwnerProviderConfigurationStatus status;
+                lock (providers.WorldMutationGate)
+                    status = providers.DeleteCredentialSlot(request.Action.CredentialSlotId, runtime.RoutineHelper);
                 OwnerCredentialSlotTelemetry.Deleted(logger, "deleted", request.Action.CredentialSlotId);
                 return Results.Ok(status);
             }

@@ -18,8 +18,12 @@ public sealed class ReachableHouseHaulingTests
         const string home = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == home && person.AgeBand == SocietyAgeBand.Adult).Id;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var blocked = new GridPoint(house.Position.X, house.Position.Y - 1);
-        var reachable = new GridPoint(house.Position.X + 1, house.Position.Y);
+        var buildingTiles = state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+            state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
+        var piles = state.Map.FootNeighbors(house.Position).Where(point => state.Map.IsPassable(point) &&
+            !buildingTiles.Contains(point) && point != house.Entrance).Take(2).ToArray();
+        var blocked = piles[0];
+        var reachable = piles[1];
         Assert.True(state.Map.IsPassable(blocked));
         Assert.True(state.Map.IsPassable(reachable));
         var inventory = state.Society.Society.Inventory;
@@ -33,15 +37,16 @@ public sealed class ReachableHouseHaulingTests
         inventory = InventoryAuthority.AddLot(inventory, "b-reachable-haul-stock", "wood", home, 4,
             groundPosition: new(reachable.X, reachable.Y));
         var others = state.Agents.Where(person => person.AgentId != actor).ToArray();
-        var positions = state.Map.FootNeighbors(house.Position).Where(point => state.Map.IsPassable(point) &&
-            point != blocked && point != reachable).Take(others.Length - 1).Prepend(blocked).ToArray();
+        var positions = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
+            state.Map.FootDistance(point, house.Position) > 3 && !buildingTiles.Contains(point))
+            .Take(others.Length - 1).Prepend(blocked).ToArray();
         var occupied = positions.ToHashSet();
-        using (var routes = new UnoccupiedRouteSearch(state.Map, house.Position, occupied, state.Map.FootStepCost))
+        using (var routes = MovementTestWorld.Routes(state, house.Position, occupied))
         {
             Assert.Empty(routes.RouteTo(blocked, 0));
             Assert.True(routes.RouteTo(reachable, 0).Count > 0);
         }
-        using (var routes = new UnoccupiedRouteSearch(state.Map, reachable, occupied, state.Map.FootStepCost))
+        using (var routes = MovementTestWorld.Routes(state, reachable, occupied))
             Assert.True(routes.RouteTo(house.Position, 0).Count > 0);
         var assignments = others.Select((person, index) => (person.AgentId, Position: positions[index]))
             .ToDictionary(item => item.AgentId, item => item.Position, StringComparer.Ordinal);

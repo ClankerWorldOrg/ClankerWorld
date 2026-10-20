@@ -22,13 +22,13 @@ public sealed class GameUiTextTests
     [InlineData("housing_blocked", true)]
     [InlineData("relocation_notice", true)]
     [InlineData("relocation_cancelled", true)]
-    [InlineData("household_delivery_recovered", true)]
+    [InlineData("household_delivery_recovered", false)]
     [InlineData("market_built", true)]
     [InlineData("market_stall_built", true)]
     [InlineData("market_stall_borrowed", true)]
     [InlineData("market_stock_loaded", false)]
-    [InlineData("market_stock_delivered", true)]
-    [InlineData("market_stock_collected", true)]
+    [InlineData("market_stock_delivered", false)]
+    [InlineData("market_stock_collected", false)]
     [InlineData("market_stall_left", true)]
     [InlineData("market_trade_offered", true)]
     [InlineData("market_trade_completed", true)]
@@ -39,13 +39,14 @@ public sealed class GameUiTextTests
     [InlineData("town_project_cancelled", true)]
     [InlineData("town_project_donated", true)]
     [InlineData("town_project_material_picked_up", false)]
-    [InlineData("town_project_material_delivered", true)]
-    [InlineData("town_project_material_returned", true)]
+    [InlineData("town_project_material_delivered", false)]
+    [InlineData("town_project_material_returned", false)]
     [InlineData("town_project_worked", false)]
     [InlineData("town_project_completed", true)]
     [InlineData("housing_answer_recorded", false)]
     [InlineData("housing_request_cancelled", false)]
     [InlineData("model_call_warning", true)]
+    [InlineData("continuity_partnership_formed", true)]
     public void EventLogSelectsKnownPlayerEventsInsteadOfPublishingUnknownDiagnostics(string kind, bool visible)
     {
         Assert.Equal(visible, GameUiText.IsPlayerFacingEvent(kind));
@@ -70,13 +71,13 @@ public sealed class GameUiTextTests
             new TaskCanceledException(secret)];
         foreach (var failure in failures)
         {
-            var message = GameUiText.FriendlyFailure(failure);
+            var message = ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure);
             Assert.DoesNotContain(secret, message, StringComparison.Ordinal);
             Assert.DoesNotContain(failure.GetType().Name, message, StringComparison.Ordinal);
             Assert.NotEmpty(message);
         }
-        Assert.Contains("connecting", GameUiText.FriendlyFailure(failures[6]), StringComparison.Ordinal);
-        Assert.Contains("storage", GameUiText.FriendlyFailure(failures[1]), StringComparison.Ordinal);
+        Assert.Contains("connecting", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failures[6]), StringComparison.Ordinal);
+        Assert.Contains("storage", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failures[1]), StringComparison.Ordinal);
     }
 
     [Theory]

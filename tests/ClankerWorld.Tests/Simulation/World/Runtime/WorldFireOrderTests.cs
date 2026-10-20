@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Globalization;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
@@ -23,7 +24,7 @@ public sealed partial class WorldFireOrderTests
         await Tick(world);
         AssertPaidFire(world, receipt, actor, House(state), lotId);
         var completion = Order(world, receipt).ShelterCompletion!;
-        Assert.InRange(completion.FuelReservationId!.Length, 1, DerivedId.MaximumLength);
+        Assert.InRange(completion.FuelReservationId!.Value.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(0, Wood(world, lotId));
         using var replay = Reload(world);
         Assert.Equal(completion, Order(replay, receipt).ShelterCompletion);
@@ -306,9 +307,9 @@ public sealed partial class WorldFireOrderTests
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();
