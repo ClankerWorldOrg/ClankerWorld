@@ -70,6 +70,8 @@ public sealed partial class WorldRuntime
                 HouseholdBuildingProjectInProgress(household, kind, plan.Actor) &&
                 !(agents[plan.Actor].Project is { } own && own.CandidateId == plan.CandidateId)))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected household building is already held or planned");
+        if (plan.ActorHouseholdId is { } workHousehold && !WorkBuildingHasInputs(plan.Actor, workHousehold, plan.Definition))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected building has no reachable inputs for its work");
         if (plan.Definition.Tags.Contains("warehouse", StringComparer.Ordinal) &&
             (plan.TownId is null || worldSimulation.Buildings.Any(building => building.TownId == plan.TownId &&
                 worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("warehouse", StringComparer.Ordinal)))))

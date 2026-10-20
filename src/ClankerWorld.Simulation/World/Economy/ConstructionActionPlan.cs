@@ -7,7 +7,7 @@ public sealed record ConstructionMaterialInput(int QuantityIndex, string LotId, 
 public abstract record ConstructionProjectActionPlan(string ActorId, string ProjectCandidateId) : ActionPlan(ActorId, ProjectCandidateId);
 
 public sealed record ConstructionGoalActionPlan(string ActorId, BuildingDefinition Definition)
-    : ConstructionProjectActionPlan(ActorId, "build:building:" + Definition.CanonicalId)
+    : ConstructionProjectActionPlan(ActorId, new ConstructionChoice(Definition.CanonicalId, null).Encode())
 {
     public override string Activity => "start that building goal without a selected site";
 }

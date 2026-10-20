@@ -63,7 +63,7 @@ public partial class Main
                 throw new InvalidOperationException("F12 must do nothing outside Developer mode.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.F1, Pressed = true });
             var keys = controlsColumns.FindChildren("*", nameof(Label), recursive: true, owned: false)
-                .OfType<Label>().Select(label => label.Text).ToArray();
+                .OfType<Label>().Select(CaptionForChecks).ToArray();
             if (!controlsPanel.Visible || keys.Contains("F12"))
                 throw new InvalidOperationException("The real F1 list must omit F12 outside Developer mode.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });

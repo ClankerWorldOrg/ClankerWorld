@@ -22,6 +22,8 @@ public sealed partial class WorldRuntime
         if (!agents.TryGetValue(plan.ApplicantId, out var applicant) ||
             HouseForHousehold(plan.HouseholdId) is not { } house ||
             house.InstanceId != plan.House.InstanceId || house.HouseholdId != plan.House.HouseholdId || house.TownId != plan.House.TownId ||
+            house.DefinitionId != plan.House.DefinitionId ||
+            house.PlacedTick != plan.House.PlacedTick ||
             !HouseholdAdults(plan.HouseholdId).SequenceEqual(plan.AdultMembers, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House or its adult members have changed");
         if (plan.Choice.Kind == HousingChoiceKind.Ask)

@@ -294,13 +294,16 @@ public sealed class SurvivalTests
 
         // A live heater plus access to it is the causal recovery condition; one
         // final-position snapshot after autonomous choices is not that condition.
+        // Infants use caregiver actions, so choose a living adult for clothing recovery.
+        static bool CanRecover(SocietyAgent agent) => agent.Status == SocietyAgentStatus.Active &&
+            LifeStageRules.IsAdult(agent.AgeBand);
         var heater = world.WorldSimulation.Buildings.First(building => world.WorldContent.Buildings.Any(definition =>
             definition.CanonicalId == building.DefinitionId &&
             definition.Tags.Any(tag => tag is "cooking" or "warmth") &&
             (building.HouseholdId is null || state.Society.Society.Agents.Any(agent =>
-                agent.HouseholdId == building.HouseholdId))));
+                agent.HouseholdId == building.HouseholdId && CanRecover(agent)))));
         var recoveringId = state.Society.Society.Agents.First(agent =>
-            heater.HouseholdId is null || agent.HouseholdId == heater.HouseholdId).Id;
+            CanRecover(agent) && (heater.HouseholdId is null || agent.HouseholdId == heater.HouseholdId)).Id;
         var recoveringPosition = state.Agents.Single(person => person.AgentId == recoveringId).Position;
         var recoveryState = state with
         {
@@ -347,7 +350,11 @@ public sealed class SurvivalTests
         var recovered = recovering.Agents.Single(person => person.AgentId == recoveringId);
         var recoveryInventory = recovering.Society.Inventory;
         var equipped = recoveryInventory.Lots.FirstOrDefault(lot => lot.Id == recovered.Equipment?.ClothingLotId);
-        Assert.True(recoveryProvider.WearOffered);
+        Assert.True(recoveryProvider.WearOffered,
+            $"Actor={recoveringId} status={recovering.Society.GetAgent(recoveringId).Status} " +
+            $"age={recovering.Society.GetAgent(recoveringId).AgeBand} " +
+            $"equipment={recovered.Equipment} position={recovered.Position} " +
+            $"project={recovered.Project} warmth={recovered.Survival!.WarmthBasisPoints}");
         Assert.Equal("recovery-coat", recovered.Equipment?.ClothingLotId);
         Assert.Contains(recovering.ExportState().Events, item => item.Kind == "equipment_equipped" &&
             item.Detail == $"{recoveringId}|recovery-coat|padded_coat");

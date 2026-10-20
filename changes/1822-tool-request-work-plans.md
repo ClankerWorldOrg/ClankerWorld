@@ -1,1 +1,0 @@
-- Tool commission choices now explain when their request, worker or project changes before they can continue.
