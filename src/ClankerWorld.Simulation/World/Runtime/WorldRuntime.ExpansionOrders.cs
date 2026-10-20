@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
             PauseExpansionForOrder(instruction);
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         if (BoundExpansionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
             if (ExpansionOrderCandidateFor(instruction, person) is null || ExpansionOrderBuilding(instruction) is not { } building)
             {
                 PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
+                SetOrderStatus(instruction, OrderStatus.Blocked, ExpansionOrderBlockedReason(instruction));
                 return;
             }
             if (person.Position != building.Position)
@@ -115,24 +115,28 @@ public sealed partial class WorldRuntime
                 var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
                 ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.InputReservationIds, deadline));
                 constructionSystem.Buildings.ResumeExpansion(job.JobId, deadline);
-                AppendEvent("expansion_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
+                AppendEvent(new ExpansionOrderResumedEventPayload(null, instruction.InstructionId, job.JobId));
             }
             return;
         }
         if (ExpansionPlanFor(instruction, person) is not { } plan)
         {
-            SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ExpansionOrderBlockedReason(instruction));
             return;
         }
         if (instruction.Task!.ExpansionBinding is null)
         {
             instruction = instruction with
             {
-                Task = instruction.Task with
-                {
-                    ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
-                    plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint),
-                }
+                Task = instruction.Task.UpdateDefinition(definition => definition switch
+{
+    ExpandBuildingOrderDefinition task => task with
+    {
+        ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
+                    plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint)
+    },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
             };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             checkpointSchemaVersion = StateSchemaVersion;
@@ -145,7 +149,11 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[instruction.IdempotencyKey] = current with
         {
-            Task = current.Task! with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ExpandBuildingOrderDefinition task => task with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
         };
     }
 
@@ -175,13 +183,13 @@ public sealed partial class WorldRuntime
                 ExpansionOrderBuilding(instruction) is not { } building || !ExpansionOrderInputsAvailable(job, building))
             {
                 CancelExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The selected building, worker or committed materials are no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The selected building, worker or committed materials are no longer available.");
                 continue;
             }
             if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
             {
                 PauseExpansionForOrder(instruction);
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             }
             else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
                      instruction.Task!.WaitForDecisionAfterFailure)
@@ -194,7 +202,7 @@ public sealed partial class WorldRuntime
         if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running } job) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, job.InputReservationIds));
         constructionSystem.Buildings.PauseExpansion(job.JobId, WorldTick);
-        AppendEvent("expansion_order_paused", $"{instruction.InstructionId}:{job.JobId}");
+        AppendEvent(new ExpansionOrderPausedEventPayload(null, instruction.InstructionId, job.JobId));
     }
 
     private void CancelExpansionForOrder(OwnerQueuedInstruction instruction)
@@ -209,7 +217,7 @@ public sealed partial class WorldRuntime
             return inventory;
         });
         constructionSystem.Buildings.CancelPausedExpansions(new HashSet<string>(StringComparer.Ordinal) { job.JobId }, "The expansion order stopped.");
-        AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:The expansion order stopped.");
+        AppendEvent(new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, "The expansion order stopped."));
     }
 
     private void CreditExpansionOrderJob(BuildingExpansionJob job)
@@ -218,7 +226,7 @@ public sealed partial class WorldRuntime
         var instruction = instructionsByIdempotency.Values.SingleOrDefault(item => item.InstructionId == id);
         if (instruction is null || BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Completed } completed ||
             completed.JobId != job.JobId) return;
-        CreditOrderEffect(instruction, ExpansionOrderReceipt(job.JobId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(ExpansionOrderReceipt(job.JobId)), 1);
     }
 
     private static string ExpansionOrderReceipt(string jobId) =>

@@ -1,1 +1,0 @@
-- Care orders pick up yard feed and a water jug before walking to an animal on another tile, preventing repeated trips without care.

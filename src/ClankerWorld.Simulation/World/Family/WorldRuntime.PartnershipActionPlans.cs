@@ -8,6 +8,9 @@ public sealed partial class WorldRuntime
     private PartnershipActionPlan? PlanPartnershipAction(string actor, PartnershipChoice choice)
     {
         if (!agents.ContainsKey(actor)) return null;
+        if (choice.Kind is PartnershipChoiceKind.Choose or PartnershipChoiceKind.Postpone)
+            return agents.ContainsKey(choice.TargetId) && ContinuitySingleOf(actor) is { } single
+                ? new(actor, choice, choice.TargetId, null, single) : null;
         if (choice.Kind == PartnershipChoiceKind.Propose)
             return agents.ContainsKey(choice.TargetId) ? new(actor, choice, choice.TargetId, null) : null;
         var relationship = Partnerships(actor).FirstOrDefault(item => item.Id == choice.TargetId);
@@ -20,6 +23,11 @@ public sealed partial class WorldRuntime
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
             policy ?? FamilyCareCapabilities);
         if (!capability.Allowed) return capability;
+        if (plan.Choice.Kind is PartnershipChoiceKind.Choose or PartnershipChoiceKind.Postpone)
+            return continuity.Active && ContinuitySingleOf(plan.Actor) is { } single && single.DeadlineTick == plan.OriginalSingle?.DeadlineTick && WorldTick < single.DeadlineTick &&
+                (plan.Choice.Kind == PartnershipChoiceKind.Choose ? single.ChosenPartnerId != plan.PartnerId && CanContinuityPair(plan.Actor, plan.PartnerId)
+                    : !single.Postponed && plan.PartnerId == plan.Actor && IsContinuitySingle(plan.Actor))
+                ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that continuity partner choice is no longer available");
         if (plan.Choice.Kind == PartnershipChoiceKind.Propose)
             return agents.ContainsKey(plan.PartnerId) && CanProposePartnership(plan.Actor, plan.PartnerId)
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that person is no longer available for a partnership proposal");

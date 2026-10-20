@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Pairing;
 using Godot;
 
 namespace ClankerWorld.GodotClient;
@@ -88,7 +89,7 @@ public partial class Main
         RenderMap(world);
         try
         {
-            var controlLabels = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text).ToArray();
+            var controlLabels = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
             if (!ControlGroups.SelectMany(group => group.Rows).Any(row => row.Keys is ["F12"] && row.Action == "Developer tools") ||
                 !controlLabels.Contains("F12") || !controlLabels.Contains("Developer tools"))
                 throw new InvalidOperationException("The F1 controls list must name F12 for Developer tools.");
@@ -116,6 +117,19 @@ public partial class Main
             };
             if (tools.Any(tool => !developerPanel.IsAncestorOf(tool)) || pauseMenuPanel.IsAncestorOf(developerBody))
                 throw new InvalidOperationException("Every older developer tool must live in the F12 panel, not the Pause Menu.");
+
+            var previousDevices = pairedDevices;
+            try
+            {
+                const string approval = "Approved by device comparison-device";
+                pairedDevices = [new OwnerDevice("display-device", "public-key", "fingerprint", OwnerDeviceState.Active,
+                    DateTimeOffset.UnixEpoch, null, "comparison-device", approval)];
+                RenderPairedDevices();
+                if (!pairedDeviceList.GetItemText(0).Contains(approval, StringComparison.Ordinal) ||
+                    pairedDeviceList.GetItemTooltip(0) != approval)
+                    throw new InvalidOperationException("Paired devices must show the server's approval origin.");
+            }
+            finally { pairedDevices = previousDevices; RenderPairedDevices(); }
 
             foreach (var size in new[] { new Vector2I(1920, 1080), new Vector2I(1280, 720) })
             {

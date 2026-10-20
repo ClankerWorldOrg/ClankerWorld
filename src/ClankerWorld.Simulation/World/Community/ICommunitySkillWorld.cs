@@ -9,5 +9,5 @@ internal interface ICommunitySkillWorld
     DeclarativeWorldContentState Content { get; }
     long WorldTick { get; }
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

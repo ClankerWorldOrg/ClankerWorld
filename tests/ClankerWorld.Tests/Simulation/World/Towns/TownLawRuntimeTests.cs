@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class TownLawRuntimeTests
 {
-    private const string Author = "founder:00000000000000000000000000000001";
+    private const string Author = NormalPathWorld.Founder1;
     private const string Grove = "Grove: Do not cut trees near the notice place.";
     private const string Amended = "Grove: Cut only fallen wood near the notice place.";
 

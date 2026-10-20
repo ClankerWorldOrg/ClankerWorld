@@ -180,8 +180,8 @@ public static class WorldCalendarRules
 
         // Keep elapsed time unchanged, and carry only the day's remainder so
         // adding the morning offset cannot overflow a long-running world tick.
-        var shiftedTickOfDay = worldTick % config.TicksPerDay + config.CalendarOffsetTicks;
-        var dayIndex = worldTick / config.TicksPerDay + shiftedTickOfDay / config.TicksPerDay;
+        var (dayIndex, tickOfDay) = ClankerWorld.Contracts.CalendarRules.FromTick(
+            worldTick, config.TicksPerDay, config.CalendarOffsetTicks);
         var dayOfYear = (int)(dayIndex % config.DaysPerYear);
         var (season, firstDayOfSeason) = SeasonAtDay(dayOfYear, config);
         return new(
@@ -189,7 +189,7 @@ public static class WorldCalendarRules
             dayIndex,
             dayOfYear,
             dayOfYear - firstDayOfSeason,
-            (int)(shiftedTickOfDay % config.TicksPerDay),
+            tickOfDay,
             season);
     }
 
@@ -207,24 +207,9 @@ public static class WorldCalendarRules
 
     private static (SeasonKind Season, int FirstDay) SeasonAtDay(int dayOfYear, WorldSystemsConfig config)
     {
-        if (dayOfYear < config.SpringDays)
-        {
-            return (SeasonKind.Spring, 0);
-        }
-
-        if (dayOfYear < config.SpringDays + config.SummerDays)
-        {
-            return (SeasonKind.Summer, config.SpringDays);
-        }
-
-        if (dayOfYear < config.SpringDays + config.SummerDays + config.AutumnDays)
-        {
-            return (SeasonKind.Autumn, config.SpringDays + config.SummerDays);
-        }
-
-        return (
-            SeasonKind.Winter,
-            config.SpringDays + config.SummerDays + config.AutumnDays);
+        var (season, firstDay) = ClankerWorld.Contracts.CalendarRules.SeasonAtDay(
+            dayOfYear, config.SpringDays, config.SummerDays, config.AutumnDays);
+        return ((SeasonKind)season, firstDay);
     }
 }
 

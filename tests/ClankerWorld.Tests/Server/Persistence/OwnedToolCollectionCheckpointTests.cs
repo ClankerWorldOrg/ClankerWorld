@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class OwnedToolCollectionCheckpointTests
 {
-    private const string Actor = "founder:00000000000000000000000000000003";
+    private const string Actor = NormalPathWorld.Founder3;
     private const string House = "first-town-house-b";
     private static readonly Lazy<byte[]> Generated = new(() =>
     {
@@ -51,7 +51,7 @@ public sealed class OwnedToolCollectionCheckpointTests
             using var service = new WorldRuntimeService(world, file, presence);
             for (var tick = 0; tick < 16 && !Carried(world, lotId); tick++)
             {
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.AdvanceWithModelWorkAsync(world));
                 Assert.False(world.Society.IsPaused);
                 Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
             }
@@ -68,7 +68,7 @@ public sealed class OwnedToolCollectionCheckpointTests
             choices.Wanted = "safe_idle";
             world.Pause();
             world.Resume();
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             using var replay = file.LoadOrCreate(state.WorldSeed);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             using var original = Restore(replay.ExportState(), new Choices());

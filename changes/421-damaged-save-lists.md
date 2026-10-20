@@ -1,1 +1,0 @@
-- A save with an empty entry in any saved list, or an unplayable world size, no longer hides healthy worlds in Load World. The damaged save is refused and kept for recovery.

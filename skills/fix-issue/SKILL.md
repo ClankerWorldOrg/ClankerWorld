@@ -24,13 +24,17 @@ Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 is:issue is:open label:"status:needs-pr" -label:"type:decision" -label:owner-task -label:"status:in-progress" -label:"status:blocked" -label:"status:needs-decision" sort:created-asc
 ```
 
-While a release is being prepared
-([Release scope](../../CONTRIBUTING.md#release-scope)), first add its label,
-now `label:"release:alpha-1"`, and take issues without it only when none with
-it is ready. Take the highest priority first: add `label:"priority:p0"` to the
-search, then p1, p2 and p3. At that level, pick one of the five oldest results
-at random, so sessions that search at the same moment don't all land on the
-same issue.
+While release labels are in use
+([Release scope](../../CONTRIBUTING.md#release-scope)), first add the current
+release's label, now `label:"release:alpha-2"`. Only when none with it is
+ready, search again without that filter for issues with no release label.
+No next release after alpha 2 has been named. If the owner names one, exclude
+its label from this second search: never start a next-release issue before
+the current release is published, even when nothing else is ready.
+Take the highest priority first: add
+`label:"priority:p0"` to the search, then p1, p2 and p3. At that level, pick
+one of the five oldest results at random, so sessions that search at the same
+moment don't all land on the same issue.
 Before you claim, check whether an owner decision outranks it: search
 `is:open label:"status:needs-decision"` and
 `is:issue is:open label:"type:decision"` for the same or a higher priority,

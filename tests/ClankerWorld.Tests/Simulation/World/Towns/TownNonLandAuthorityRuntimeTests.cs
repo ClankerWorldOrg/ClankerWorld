@@ -67,7 +67,7 @@ public sealed class TownNonLandAuthorityRuntimeTests
         try
         {
             await AdvanceModelDecisionsUntilAsync(world, () => held.Started.Task.IsCompleted, 12);
-            await held.Started.Task.WaitAsync(Deadline);
+            await ModelWorkHarness.WaitForSignalAsync(held.Started.Task);
             Assert.Contains("|law_case_find|", held.CandidateId!, StringComparison.Ordinal);
             Assert.Equal(originalAuthority, TownGovernmentRules.CurrentNonLandAuthority(world.Towns[0].Government!, world.WorldTick));
             Assert.Empty(Assert.Single(world.Towns[0].NonLandHearings.Cases).Findings);
@@ -107,16 +107,16 @@ public sealed class TownNonLandAuthorityRuntimeTests
 
             // Inline completion propagates the exact original provider reply before the next
             // admission tick; neither the case nor the request is reconstructed for this reply.
-            await Task.Run(held.Release).WaitAsync(Deadline);
+            await ModelWorkHarness.WaitForSignalAsync(Task.Run(held.Release));
             WorldStepResult? admitted = null;
             for (var attempt = 0; attempt < 12 && admitted is null; attempt++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline);
+                var step = await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline);
                 Assert.True(step.Advanced);
                 if (step.Decisions.Any(decision => decision.AgentId == NonLandRuntimeFixture.Judge) ||
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == NonLandRuntimeFixture.Judge))
                     admitted = step;
-                else await Task.Delay(10);
+                else await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.NotNull(admitted);
             var file = Assert.Single(world.Towns[0].NonLandHearings.Cases);
@@ -154,8 +154,8 @@ public sealed class TownNonLandAuthorityRuntimeTests
     {
         for (var attempt = 0; attempt < limit && !complete(); attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(complete(), "The actual hosted civic action did not reach its bounded admission checkpoint. " +
             string.Join("\n", world.ExportState().Events.TakeLast(20)));
@@ -163,12 +163,12 @@ public sealed class TownNonLandAuthorityRuntimeTests
 
     private sealed class HeldFindingProvider(IReadOnlyList<string> evidence) : IDecisionProvider
     {
-        private readonly TaskCompletionSource<CognitionDecisionResponse> pending = new();
+        private readonly InlineCompletionSource<CognitionDecisionResponse> pending = new();
         private CognitionDecisionResponse? response;
         private bool released;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        internal TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         internal string? CandidateId { get; private set; }
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)

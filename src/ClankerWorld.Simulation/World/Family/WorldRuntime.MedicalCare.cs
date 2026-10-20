@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
         agentStore.RecordMedicalConsent(patient, person, ids.Count == 0 ? null : new(ids), !allowed && person.MedicalTreatment?.CaregiverId == caregiver
                 ? null : person.MedicalTreatment);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(allowed ? "medical_care_allowed" : "medical_care_revoked", $"{patient}:medical_caregiver:{caregiver}");
+        AppendEvent(allowed ? new MedicalCareAllowedEventPayload(patient, caregiver) : new MedicalCareRevokedEventPayload(patient, caregiver));
     }
 
     private InventoryLot? MedicalSupplyAtHand(string caregiver) => MedicalDoseStock(caregiver).FirstOrDefault()?.Lot;
@@ -97,12 +97,12 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
             MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
-        agentStore.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, id, kind, WorldTick, WorldTick,
+        agentStore.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, Identity.Parse(id), kind, WorldTick, WorldTick,
                 MedicalCareRules.TreatmentTicks));
         if (agents[caregiver].MedicalSupplyTrip?.PatientId == patient)
             agentStore.RecordMedicalSupplyTrip(caregiver, agents[caregiver], null);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("medical_treatment_started", $"{patient}:medicine:{caregiver}:{supply.Id}");
+        AppendEvent(new MedicalTreatmentStartedEventPayload(patient, caregiver, supply.Id));
         return new(true);
     }
 
@@ -136,7 +136,7 @@ public sealed partial class WorldRuntime
             {
                 CloseMedicalDose(person.AgentId, treatment);
                 agentStore.RecordMedicalTreatment(person.AgentId, person, null);
-                AppendEvent("medical_treatment_interrupted", person.AgentId);
+                AppendEvent(new MedicalTreatmentInterruptedEventPayload(person.AgentId));
                 continue;
             }
             if (treatment.LastProcessedTick >= WorldTick) continue;
@@ -149,7 +149,7 @@ public sealed partial class WorldRuntime
                     survival.IllnessBasisPoints - MedicalCareRules.MedicineIllnessPerTick)
             }, remaining == 0 ? null : treatment with
             { LastProcessedTick = WorldTick, RemainingTicks = remaining });
-            if (remaining == 0) AppendEvent("medical_treatment_completed", person.AgentId);
+            if (remaining == 0) AppendEvent(new MedicalTreatmentCompletedEventPayload(person.AgentId));
         }
     }
 
@@ -258,7 +258,7 @@ public sealed partial class WorldRuntime
                 treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
                 treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick) ||
                 string.IsNullOrWhiteSpace(treatment.SupplyLotId) || string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) ||
-                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Length > DerivedId.MaximumLength ||
+                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Value.Length > DerivedId.MaximumLength ||
                 !doses.Add(treatment.DoseReservationId) ||
                 checkpoint.Inventory.Lots.Any(lot => lot.Id == treatment.SupplyLotId && lot.ItemKind != "medicine") ||
                 !checkpoint.Inventory.Reservations.Any(reservation => reservation.Id == treatment.DoseReservationId &&

@@ -123,7 +123,7 @@ internal sealed partial class CommunitySystem
             ContinueLesson(world, plan.Actor, plan.WaitingForModel, plan);
             return;
         }
-        SetLesson(world, plan.StudentId, plan.Original! with
+        SetLesson(world, plan.StudentId, world.PhysicalAgents.Living[plan.StudentId].Lesson! with
         {
             Stage = plan.Choice.Kind switch
             { LearningChoiceKind.Accept => "accepted", LearningChoiceKind.Cancel => "cancelled", _ => "declined" }
@@ -171,7 +171,7 @@ internal sealed partial class CommunitySystem
         var changed = person.Lesson?.Stage != lesson.Stage;
         if (changed) lesson = lesson with { LastTransitionTick = world.WorldTick };
         if (SystemInvariantChecks.Enabled) ValidateLocalLesson(lesson);
-        if (changed) world.AppendEvent("lesson_" + lesson.Stage, student);
+        if (changed) world.AppendEvent(WorldEvents.Lesson(lesson.Stage, student));
         world.PhysicalAgents.RecordLesson(student, person, lesson);
     }
 

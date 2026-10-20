@@ -4,7 +4,8 @@ public sealed record NonLandFilingChoice(string TownId, string Verb, string Repo
 {
     public string Encode() => $"civic|{TownId}|{Verb}|{ReportToken}|";
     public static NonLandFilingChoice? Decode(string value) =>
-        value.Split('|') is ["civic", var town, var verb, var report, ""] && town.Length > 0 && report.Length > 0 &&
+        value.Split('|') is ["civic", var town, var verb, var report, ""] && IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(report, DerivedId.MaximumLength) &&
         verb is "law_case_file" or "law_case_file_affected" or "law_case_file_town" or "law_case_propose_town"
             ? new(town, verb, report) : null;
 }

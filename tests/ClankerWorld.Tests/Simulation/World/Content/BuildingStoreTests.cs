@@ -6,7 +6,7 @@ public sealed class BuildingStoreTests
 {
     private static PlacedBuilding House => new("house-first", "definition:test", new(1, 1), 0, "town:first", "household:first");
     private static BuildingExpansionJob Job => new("expansion-first", House.InstanceId, "worker:first", "household:first",
-        0, House.Position, new(1, 1), new(2, 1, 1), 0, 10, WorldProductionJobState.Running, ["reservation:first"]);
+        0, House.Position, new(1, 1), new(2, 1, 1), 0, 10, WorldProductionJobState.Running, [ClankerWorld.Simulation.Identity.Parse("reservation:first")]);
     private static BuildingStore Store => new(WorldConstructionState.From(WorldContentSimulationState.Empty with { Buildings = [House] }));
 
     [Fact]

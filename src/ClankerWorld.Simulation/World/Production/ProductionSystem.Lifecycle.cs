@@ -19,9 +19,9 @@ internal sealed partial class ProductionSystem
     internal void CancelProductionJobs(IProductionWorld world, WorldProductionJob[] cancelled, string reason)
     {
         if (cancelled.Length == 0) return;
-        world.ReleaseProductionInputs(cancelled.SelectMany(job => job.InputReservationIds.Order(StringComparer.Ordinal)).ToArray(), reason);
+        world.ReleaseProductionInputs(cancelled.SelectMany(job => job.InputReservationIds.Order()).ToArray(), reason);
         CancelJobs(cancelled.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal), includeCropBuilds: true);
-        foreach (var job in cancelled) world.AppendEvent(reason, job.JobId);
+        foreach (var job in cancelled) world.AppendEvent(WorldEvents.ProductionFailure(reason, job.WorkerId, job.JobId));
     }
 
     internal void ProcessProduction(IProductionWorld world, long targetTick)
@@ -43,10 +43,10 @@ internal sealed partial class ProductionSystem
 
             FinishJob(job.JobId, completed);
             if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
-                world.AppendEvent("house_tool_made", $"{job.WorkerId}|{recipe.Outputs.Single().ResourceId}",
+                world.AppendEvent(new HouseToolMadeEventPayload(job.WorkerId, recipe.Outputs.Single().ResourceId),
                     world.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
             else
-                world.AppendEvent(completed ? "recipe_completed" : "recipe_cancelled", $"{job.JobId}:{recipe.CanonicalId}");
+                world.AppendEvent(completed ? new RecipeCompletedEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null) : new RecipeCancelledEventPayload(job.WorkerId, job.JobId, recipe.CanonicalId, null));
             if (completed)
             {
                 world.LearnProducedRecipe(job, recipe, targetTick);
@@ -61,7 +61,7 @@ internal sealed partial class ProductionSystem
         long targetTick)
     {
         var inventoryState = world.Society.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
+        var inputs = job.InputReservationIds.Select(id => inventoryState.GetReservation(id)).ToArray();
         var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
             job.WorkerId, ToolFamily.Knife, job.ToolLotId);
         var inputUnusable = inputs.Any(reservation =>
@@ -72,8 +72,8 @@ internal sealed partial class ProductionSystem
         {
             world.ReleaseProductionInputs(inputs.Where(reservation => reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
                 .Select(reservation => reservation.Id).ToArray(), unsupportedOutput ? "production_output_unsupported" : "production_input_unusable");
-            world.AppendEvent(unsupportedOutput ? "production_output_unsupported" :
-                inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.JobId);
+            world.AppendEvent(WorldEvents.ProductionFailure(unsupportedOutput ? "production_output_unsupported" :
+                inputUnusable ? "production_input_unusable" : "production_tool_unusable", job.WorkerId, job.JobId));
             return false;
         }
         world.CompleteRecipeInventory(job, recipe, knifePlan, targetTick);

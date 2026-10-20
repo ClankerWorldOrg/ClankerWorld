@@ -1,1 +1,0 @@
-- Native movement and shared pickup planning use the common reach service with explicit swimming and load policies. Pickup return legs keep their prospective origins, and six direct route-call allowances are removed.

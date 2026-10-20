@@ -12,7 +12,7 @@ public sealed record KnowledgeStorageActionPlan(string ActorId, AgentKnowledgeAr
 
 public sealed record KnowledgeStorageChoice(string ArtifactId, bool Collect)
 {
-    public string Encode() => (Collect ? "knowledge_collect:" : "knowledge_store:") + ArtifactId;
+    public string Encode() => IdentityRules.PrefixedReference(Collect ? "knowledge_collect:" : "knowledge_store:", ArtifactId);
     public static KnowledgeStorageChoice? Decode(string candidate) => candidate.StartsWith("knowledge_collect:", StringComparison.Ordinal)
         ? new(candidate["knowledge_collect:".Length..], true)
         : candidate.StartsWith("knowledge_store:", StringComparison.Ordinal) ? new(candidate["knowledge_store:".Length..], false) : null;

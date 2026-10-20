@@ -27,9 +27,14 @@ public sealed partial class WorldRuntime
         LifeStageRules.CanHaveChildren(society.Checkpoint.GetAgent(actor).AgeBand);
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
-    private bool Partners(string actor, string other) => CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
+    private bool EligibleContinuityParents(string actor, string other) => actor != other &&
+        CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
+        society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active &&
+        society.Checkpoint.GetAgent(other).Status == SocietyAgentStatus.Active &&
         society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
-        society.Checkpoint.GetAgent(other).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(other).HouseholdId is not null;
+
+    private bool Partners(string actor, string other) => EligibleContinuityParents(actor, other) &&
         Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted &&
             (item.ProposerId == other || item.TargetId == other));
 
@@ -311,7 +316,7 @@ public sealed partial class WorldRuntime
             if (housingBlocker is not null)
             {
                 SetHousing(birth.ChildId, new(Blocker: housingBlocker));
-                AppendEvent("housing_blocked", $"{birth.ChildId}:{housingBlocker}");
+                AppendEvent(new HousingBlockedEventPayload(birth.ChildId, housingBlocker));
             }
             if (TownForResident(caregiverId) is { } parentTownId)
                 AddTownResident(parentTownId, birth.ChildId, "child_joined");
@@ -321,7 +326,7 @@ public sealed partial class WorldRuntime
                 ChildId = birth.ChildId,
                 BirthHouseholdId = birth.HouseholdId,
             });
-            AppendEvent("child_born", birth.ChildId);
+            AppendEvent(new ChildBornEventPayload(birth.ChildId));
         }
     }
 
@@ -352,7 +357,7 @@ public sealed partial class WorldRuntime
             IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - IllnessCareReliefBasisPoints),
         });
         agentStore.CompleteDependentCare(childId, child);
-        AppendEvent("child_cared_for", childId);
+        AppendEvent(new ChildCaredForEventPayload(childId));
     }
 
     private void SetParenthood(string owner, ParenthoodPlan plan)
@@ -360,7 +365,7 @@ public sealed partial class WorldRuntime
         if (agents[owner].Parenthood?.Stage != plan.Stage)
         {
             plan = plan with { LastTransitionTick = WorldTick };
-            AppendEvent("parenthood_" + plan.Stage, owner);
+            AppendEvent(WorldEvents.Parenthood(plan.Stage, owner));
         }
         agentStore.RecordParenthood(owner, agents[owner], plan);
     }

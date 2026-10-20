@@ -30,5 +30,5 @@ internal interface ICommunityGoodsWorld
     void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
     string PersonalMoveId(string actor, long tick, string lot);
     void MovePersonalGoods(PersonalGoodsActionPlan plan, string moveId);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }
