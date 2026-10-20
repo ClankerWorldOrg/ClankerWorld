@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -15,7 +16,9 @@ public sealed class FarmFieldTests
     [Fact]
     public async Task OrdinaryChooserExpandsAndReplantsGeneratedFieldsThroughARealFoodShortageAndReload()
     {
-        var (state, _, household, _) = PreparedFarmer("field-normal-cycle");
+        // This checks autonomous expansion and replanting, with native growth
+        // on a short calendar. The staged crop-cycle cases keep the normal day.
+        var (state, _, household, _) = PreparedFarmer("field-normal-cycle", ticksPerDay: 144);
         // The Town has eaten its starter rations. Keep all real planting
         // stock and let ordinary choices arrange every field operation.
         state = FeedFarmTownFromAvailableStock(state, household);
@@ -323,7 +326,7 @@ public sealed class FarmFieldTests
         state = WithInventory(state, inventory) with
         {
             Fields = [state.Fields!.Single() with { Stage = FarmFieldStage.Harvested, Cycle = 1,
-                ReplantingReservationId = "old-replanting" }],
+                ReplantingReservationId = Identity.Parse("old-replanting") }],
         };
         using var starting = Restore(state);
         Assert.True(starting.StartFieldWork(actor, point, FarmWorkKind.Plant, crop, "new-crop-seed").Accepted);
@@ -862,9 +865,11 @@ public sealed class FarmFieldTests
         Assert.Equal(3, world.Society.Inventory.GetLot("potted-potatoes").Quantity);
     }
 
-    internal static (WorldRuntimeState State, string Actor, string Household, GridPoint Point) PreparedFarmer(string seed)
+    internal static (WorldRuntimeState State, string Actor, string Household, GridPoint Point) PreparedFarmer(string seed, int? ticksPerDay = null)
     {
-        var state = GeographyGeneratorTests.StartedGeneratedWorld(new(seed, WorldSizePreset.Small));
+        using var shortDay = ticksPerDay is { } day
+            ? NormalPathWorld.CreateGenerated(seed, _ => new IdleProvider(), ticksPerDay: day) : null;
+        var state = shortDay?.ExportState() ?? GeographyGeneratorTests.StartedGeneratedWorld(new(seed, WorldSizePreset.Small));
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;

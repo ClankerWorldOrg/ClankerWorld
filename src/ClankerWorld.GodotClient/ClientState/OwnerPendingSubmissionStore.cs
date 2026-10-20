@@ -204,7 +204,11 @@ public sealed record OwnerPendingAuthoringOperation(
 /// </summary>
 public sealed record OwnerPendingAuthoringSubmission(
     string BatchId,
-    IReadOnlyList<OwnerPendingAuthoringOperation> Operations)
+    IReadOnlyList<OwnerPendingAuthoringOperation> Operations,
+    string? WorldId = null,
+    long ExpectedEventId = -1,
+    long RunEpoch = -1,
+    OwnerObserverTimeline? Timeline = null)
 {
     internal bool IsValid =>
         !string.IsNullOrWhiteSpace(BatchId) &&
@@ -213,7 +217,7 @@ public sealed record OwnerPendingAuthoringSubmission(
 
     public OwnerAuthoringBatchAction ToAction() => new(
         BatchId,
-        Operations.Select(operation => operation.ToAction()).ToArray());
+        Operations.Select(operation => operation.ToAction()).ToArray(), WorldId, ExpectedEventId, RunEpoch, Timeline);
 
     public static OwnerPendingAuthoringSubmission FromAction(OwnerAuthoringBatchAction action)
     {
@@ -221,7 +225,7 @@ public sealed record OwnerPendingAuthoringSubmission(
         ArgumentNullException.ThrowIfNull(action.Operations);
         return new OwnerPendingAuthoringSubmission(
             action.BatchId,
-            action.Operations.Select(OwnerPendingAuthoringOperation.FromAction).ToArray());
+            action.Operations.Select(OwnerPendingAuthoringOperation.FromAction).ToArray(), action.WorldId, action.ExpectedEventId, action.RunEpoch, action.Timeline);
     }
 }
 

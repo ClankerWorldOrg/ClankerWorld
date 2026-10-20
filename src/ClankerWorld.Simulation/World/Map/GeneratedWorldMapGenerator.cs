@@ -27,7 +27,6 @@ public static class GeneratedWorldMapGenerator
         var width = geography.Width;
         var height = geography.Height;
         var tiles = new TerrainTile[checked(width * height)];
-        var kinds = new TerrainKind[tiles.Length];
         var climateZones = new byte[tiles.Length];
         var elevationLevels = new byte[tiles.Length];
         var hydrologyKinds = new byte[tiles.Length];
@@ -64,7 +63,6 @@ public static class GeneratedWorldMapGenerator
                     _ => TerrainKind.Meadow,
                 };
                 var index = y * width + x;
-                kinds[index] = kind;
                 climateZones[index] = (byte)tile.Climate;
                 elevationLevels[index] = tile.Elevation;
                 hydrologyKinds[index] = (byte)tile.Water;
@@ -121,27 +119,8 @@ public static class GeneratedWorldMapGenerator
             width, height, objects, placed.Concat(distributed).Concat(geology).ToArray());
         List<MapResource> orchards = GenerateOrchards(options, geography, surfaceKinds, vegetationKinds, width, height, objects,
             placed.Concat(distributed).Concat(geology).Concat(trees).ToArray());
-        // Pass 5: the north and south edge rows become polar sea last
-        // (#1249), so every other tile and object stays where it was.
-        var seaLevel = hydrologyKinds.Select((water, index) => (water, index))
-            .Where(item => item.water != (byte)WaterKind.Land).Select(item => elevationLevels[item.index]).DefaultIfEmpty((byte)0).Max();
-        for (var y = 0; y < height; y++)
-        {
-            if (!GeographyGenerator.IsPolarEdgeRow(y, height)) continue;
-            for (var x = 0; x < width; x++)
-            {
-                var index = y * width + x;
-                kinds[index] = TerrainKind.Ocean;
-                tiles[index] = new TerrainTile(new GridPoint(x, y), TerrainKind.Ocean);
-                climateZones[index] = (byte)ClimateZone.Polar;
-                elevationLevels[index] = Math.Min(elevationLevels[index], seaLevel);
-                hydrologyKinds[index] = (byte)WaterKind.Ocean;
-                surfaceKinds[index] = (byte)SurfaceKind.Water;
-                vegetationKinds[index] = (byte)VegetationCover.None;
-            }
-        }
         var allResources = placed.Concat(distributed).Concat(geology).Concat(trees).Concat(orchards)
-            .Where(resource => !GeographyGenerator.IsPolarEdgeRow(resource.Position.Y, height)).ToArray();
+            .ToArray();
         var withoutDigest = new WorldMap(width, height, 0, tiles, objects, allResources, string.Empty)
         {
             ClimateZones = climateZones,

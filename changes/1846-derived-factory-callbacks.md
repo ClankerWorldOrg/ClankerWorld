@@ -1,0 +1,1 @@
+- World updates use less temporary memory when caching fresh simulation data.

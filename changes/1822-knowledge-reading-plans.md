@@ -1,1 +1,0 @@
-- Voluntary knowledge reading and sharing retain the selected artifact contents and recipient through shared checks.

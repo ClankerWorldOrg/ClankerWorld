@@ -1,1 +1,0 @@
-- Agents now repair another worn personal item when the preferred item's materials or work site are unavailable. A basket still comes first when both it and a garment can be repaired; real material costs and equipped items are preserved.

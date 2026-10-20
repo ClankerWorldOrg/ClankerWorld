@@ -1,1 +1,0 @@
-- Guardians can collect another accepted child with a clear route while an earlier collection is blocked. Accepted care stays intact, and the waiting journey resumes when its route clears.

@@ -1,0 +1,1 @@
+- Host a world on a Linux x64 machine with a server-only download, a service installer and a private comparison-code approval command. The hosting guide covers private HTTPS access, joining and preserving your world when updating.

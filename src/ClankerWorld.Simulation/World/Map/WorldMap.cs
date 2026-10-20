@@ -59,8 +59,8 @@ public sealed record WorldMap(
         point.X >= 0 && point.X < Width && point.Y >= 0 && point.Y < Height;
 
     public bool IsPassable(GridPoint point) =>
-        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) || IsOneTileRiverCrossing(point) ||
-            IsTwoTileRiverCrossing(point) || IsBridgeDeck(point));
+        Contains(point) && (IsOpenGroundAt(point) || IsMountainAt(point) ||
+            IsRiverAt(point) && (IsOneTileRiverCrossing(point) || IsTwoTileRiverCrossing(point)) || IsBridgeDeck(point));
 
     /// <summary>
     /// The cost of entering a tile on foot. A river tile costs what its
@@ -69,7 +69,9 @@ public sealed record WorldMap(
     /// </summary>
     public int FootTravelCost(GridPoint point) => !IsPassable(point)
         ? throw new ArgumentOutOfRangeException(nameof(point), "The tile cannot be crossed on foot.")
-        : IsBridgeDeck(point) ? 100
+        : LegalFootTravelCost(point);
+
+    private int LegalFootTravelCost(GridPoint point) => IsBridgeDeck(point) ? 100
         : IsRiverAt(point) ? IsOneTileRiverCrossing(point) ? 200 : TwoTileWadingFootCost
         : IsMountainAt(point) ? 200 : 100;
 
@@ -101,18 +103,16 @@ public sealed record WorldMap(
         return checked(diagonal * 141 + (Math.Max(horizontal, vertical) - diagonal) * 100);
     }
 
-    public bool IsDiagonalFootStep(GridPoint origin, GridPoint destination)
-    {
-        if (!Contains(origin) || !Contains(destination)) return false;
-        var horizontal = Math.Abs(origin.X - destination.X);
-        if (WrapsEastWest) horizontal = Math.Min(horizontal, Width - horizontal);
-        return horizontal == 1 && Math.Abs(origin.Y - destination.Y) == 1;
-    }
+    public bool IsDiagonalFootStep(GridPoint origin, GridPoint destination) =>
+        Contains(origin) && Contains(destination) && Math.Abs(origin.Y - destination.Y) == 1 &&
+        (Math.Abs(origin.X - destination.X) == 1 ||
+         WrapsEastWest && Width > 1 && Math.Abs(origin.X - destination.X) == Width - 1);
 
     public bool CanFootStep(GridPoint origin, GridPoint destination)
     {
-        if (!IsPassable(origin) || !IsPassable(destination) || FootDistance(origin, destination) != 1)
+        if (!Contains(origin) || !Contains(destination) || FootDistance(origin, destination) != 1)
             return false;
+        // These complete crossing checks also establish both endpoints' passability.
         if (BridgeDecks is { } decks)
         {
             var originIsDeck = decks.TryGetValue(origin, out var originAxis);
@@ -154,11 +154,11 @@ public sealed record WorldMap(
             var beyond = Step(river, -outX, -outY);
             return IsDryBank(bank) && (IsDryBank(beyond) || IsTwoTileLine(river, -outX, -outY));
         }
-        if (!IsDiagonalFootStep(origin, destination)) return true;
         // Both orthogonal shoulders must be traversable. A diagonal cannot
         // squeeze around a wall, peak, deep river, or map edge.
-        return IsPassable(new GridPoint(destination.X, origin.Y)) &&
-            IsPassable(new GridPoint(origin.X, destination.Y));
+        return IsPassable(origin) && IsPassable(destination) &&
+            (!IsDiagonalFootStep(origin, destination) || IsPassable(new GridPoint(destination.X, origin.Y)) &&
+                IsPassable(new GridPoint(origin.X, destination.Y)));
     }
 
     public int FootStepCost(GridPoint origin, GridPoint destination) =>
@@ -166,10 +166,10 @@ public sealed record WorldMap(
             ? throw new ArgumentOutOfRangeException(nameof(destination), "The foot step is illegal.")
             : LegalFootStepCost(origin, destination);
 
-    // Only for a step just returned by FootNeighbors on this same map. Public
+    // Only for a step just validated by CanFootStep on this same map. Public
     // callers still validate the complete step, including river and bridge axes.
     internal int LegalFootStepCost(GridPoint origin, GridPoint destination) =>
-        checked(FootTravelCost(destination) * (IsDiagonalFootStep(origin, destination) ? 141 : 100) / 100);
+        checked(LegalFootTravelCost(destination) * (IsDiagonalFootStep(origin, destination) ? 141 : 100) / 100);
 
     private static readonly (int X, int Y)[] FootNeighborOffsets =
     [
@@ -187,18 +187,24 @@ public sealed record WorldMap(
     // rather than allocating the public IEnumerable iterator for each tile.
     internal FootNeighborEnumerator FootNeighborsForSearch(GridPoint point) => new(this, point);
 
+    // Reachability discards visited positions before asking the canonical
+    // walking or swimming rule whether the remaining edge is legal.
+    internal FootNeighborEnumerator NeighborPositionsForSearch(GridPoint point) => new(this, point, footSteps: false);
+
     internal struct FootNeighborEnumerator
     {
         private readonly WorldMap map;
         private readonly GridPoint origin;
+        private readonly bool footSteps;
         private int offset;
 
-        internal FootNeighborEnumerator(WorldMap map, GridPoint point)
+        internal FootNeighborEnumerator(WorldMap map, GridPoint point, bool footSteps = true)
         {
             if (!map.Contains(point))
                 throw new ArgumentOutOfRangeException(nameof(point));
             this.map = map;
             origin = point;
+            this.footSteps = footSteps;
             offset = 0;
             Current = default;
         }
@@ -226,9 +232,9 @@ public sealed record WorldMap(
                     }
                     if (repeated) continue;
                 }
-                // Recheck the live map for every yielded step; no walkability
-                // or bridge-axis result survives between steps or searches.
-                if (!map.CanFootStep(origin, next)) continue;
+                // Walking checks the live map for each step; raw adjacency leaves
+                // legality to its search. Neither caches walkability or bridge axes.
+                if (footSteps ? !map.CanFootStep(origin, next) : !map.Contains(next)) continue;
                 Current = next;
                 return true;
             }
@@ -320,13 +326,10 @@ public sealed record WorldMap(
         (byte)TerrainKind.Meadow or (byte)TerrainKind.Sand or
         (byte)TerrainKind.Forest or (byte)TerrainKind.Snow;
 
-    private bool IsOpenGroundAt(GridPoint point)
-    {
-        var terrain = TerrainAt(point);
-        if (!IsLandAt(point) || IsMountainAt(point) || IsPeakAt(point)) return false;
-        return HydrologyAt(point) is not null || ElevationAt(point) is not null ||
-            SurfaceAt(point) is not null || IsOpenGround(terrain);
-    }
+    private bool IsOpenGroundAt(GridPoint point) => IsLandAt(point) &&
+        (ElevationAt(point) is { } elevation ? elevation < MountainElevationThreshold :
+            TerrainAt(point) is not ((byte)TerrainKind.Mountain or (byte)TerrainKind.Peak) &&
+            (HydrologyAt(point) is not null || SurfaceAt(point) is not null || IsOpenGround(TerrainAt(point))));
 
     private bool IsLandAt(GridPoint point) => HydrologyAt(point) is { } water
         ? water == WaterKind.Land
@@ -354,10 +357,9 @@ public sealed record WorldMap(
         ? elevation >= PeakElevationThreshold
         : TerrainAt(point) == (byte)TerrainKind.Peak;
 
+    // These tile-crossing helpers are called only after classifying river water.
     private bool IsOneTileRiverCrossing(GridPoint point)
     {
-        if (!IsRiverAt(point))
-            return false;
         var west = new GridPoint(point.X - 1, point.Y);
         var east = new GridPoint(point.X + 1, point.Y);
         var north = new GridPoint(point.X, point.Y - 1);
@@ -373,9 +375,8 @@ public sealed record WorldMap(
     /// Bridge decks do not change this: they decide only which steps a deck allows.
     /// </summary>
     private bool IsTwoTileRiverCrossing(GridPoint point) =>
-        IsRiverAt(point) &&
-        (IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
-            IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1));
+        IsTwoTileLine(point, 1, 0) || IsTwoTileLine(Step(point, -1, 0), 1, 0) ||
+            IsTwoTileLine(point, 0, 1) || IsTwoTileLine(Step(point, 0, -1), 0, 1);
 
     // A tile that also lies on a two-tile line across the other axis is a
     // corner of a river one tile thick that runs diagonally. Wading through it
