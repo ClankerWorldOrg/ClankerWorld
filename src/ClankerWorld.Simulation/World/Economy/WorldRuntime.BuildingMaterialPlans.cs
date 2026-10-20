@@ -20,10 +20,9 @@ public sealed partial class WorldRuntime
                 checked(harvest.Quantity + harvest.TreeSeedQuantity), range));
     }
 
-    private ActionCheck CheckBuildingMaterial(BuildingMaterialActionPlan plan)
+    private ActionCheck CheckBuildingMaterial(BuildingMaterialActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? ProjectMaterialCapabilities);
         if (!capability.Allowed) return capability;
         var house = HouseForHousehold(plan.HouseholdId);
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || house?.InstanceId != plan.HouseId ||
@@ -48,7 +47,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyBuildingMaterial(BuildingMaterialActionPlan plan)
     {
-        if (CheckBuildingMaterial(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedBuildingMaterial(plan);
+    }
+
+    private void ApplyCheckedBuildingMaterial(BuildingMaterialActionPlan plan)
+    {
         GatherPlannedProjectMaterial(plan.Actor, agents[plan.Actor], plan.Choice.ItemKind, plan.Source, plan.Harvest, plan.HouseId);
     }
 }

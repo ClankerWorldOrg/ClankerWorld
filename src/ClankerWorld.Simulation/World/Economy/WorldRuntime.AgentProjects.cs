@@ -1044,7 +1044,7 @@ public sealed partial class WorldRuntime
             var choice = new ProjectAssistanceChoice(request.Input.ResourceId);
             if (candidates.Any(candidate => candidate.Id == choice.Encode())) continue;
             var plan = PlanProjectAssistance(helperId, request);
-            if (plan is not null && CheckProjectAssistance(plan).Allowed)
+            if (plan is not null && CheckActionPlan(plan).Allowed)
                 candidates.Add(new CognitionCandidate(plan.CandidateId,
                     $"Help {society.Checkpoint.GetAgent(request.Requester).Name}: gather and share {request.Input.ResourceId} for their project.", 15)
                 { ActionPlan = plan });
@@ -1062,12 +1062,15 @@ public sealed partial class WorldRuntime
     private void AssistProject(string helperId, AgentState state, string itemKind, ActionPlan? originalPlan = null)
     {
         var plan = originalPlan as ProjectAssistanceActionPlan;
-        if (plan is null)
-            foreach (var candidate in ProjectRequests(helperId).Where(request => request.Input.ResourceId == itemKind))
-                if (PlanProjectAssistance(helperId, candidate) is { } selected && CheckProjectAssistance(selected).Allowed)
-                { plan = selected; break; }
+        plan ??= PlanRequestedAssistance(helperId, itemKind);
         if (plan is null) return;
-        if (CheckProjectAssistance(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedProjectAssistance(plan, state, itemKind);
+    }
+
+    private void ApplyCheckedProjectAssistance(ProjectAssistanceActionPlan plan, AgentState state, string itemKind)
+    {
+        var helperId = plan.Actor;
         if (plan.LotId is null)
         {
             GatherPlannedProjectMaterial(helperId, state, itemKind, plan.Source!, plan.Harvest!);

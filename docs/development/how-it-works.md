@@ -179,6 +179,10 @@ Construction and expansion also own typed definitions. Construction resolves
 its warmth policy from the retained design and keeps legacy site-less requests
 on their existing fallback path. Both retain selected sites, footprints and
 material steps through the same check before native application.
+Household building preparation and project assistance also own typed
+definitions. They keep the requested material, selected recipient, source,
+tool and load through their shared check and native effect; legacy callers
+use the same eligibility and effect.
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
