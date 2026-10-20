@@ -196,36 +196,38 @@ public sealed partial class WorldRuntime
         if (plan.Kind == HouseholdStockActionKind.Collect)
         {
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"house-haul-pickup:{WorldTick}:{plan.Actor}", plan.HouseholdId, plan.Actor, plan.StockId, plan.Quantity,
+                DerivedId.Create($"house-haul-pickup:{WorldTick}:{plan.Actor}"), plan.HouseholdId, plan.Actor, plan.StockId, plan.Quantity,
                 "household_stock_picked_up", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
-            AppendEvent("household_stock_picked_up", $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.HouseId}");
+            AppendEvent(new HouseholdStockPickedUpEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!));
         }
         else if (plan.Kind == HouseholdStockActionKind.RecoverDelivery)
         {
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"house-delivery-recovery:{WorldTick}:{plan.Actor}:{plan.StockId}", plan.Actor, plan.HouseholdId, plan.StockId, plan.Quantity,
+                DerivedId.Create($"house-delivery-recovery:{WorldTick}:{plan.Actor}:{plan.StockId}"), plan.Actor, plan.HouseholdId, plan.StockId, plan.Quantity,
                 "household_delivery_recovered", destinationGroundPosition: new(plan.Destination.X, plan.Destination.Y),
                 holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.DeliveryBuildingId)));
-            AppendEvent("household_delivery_recovered", $"{plan.Actor}:{plan.StockId}:{plan.PhysicalQuantity}:pile");
+            AppendEvent(new HouseholdDeliveryRecoveredEventPayload(plan.Actor, plan.StockId, plan.PhysicalQuantity));
         }
         else if (plan.Kind == HouseholdStockActionKind.StorePreparationTool)
         {
             ApplyInventoryTransition(inventory => plan.OwnerId == plan.HouseholdId
-                ? InventoryAuthority.Relocate(inventory, $"house-preparation-tool:{WorldTick}:{plan.Actor}", plan.StockId,
+                ? InventoryAuthority.Relocate(inventory, DerivedId.Create($"house-preparation-tool:{WorldTick}:{plan.Actor}"), plan.StockId,
                     plan.HouseholdId, plan.Quantity, storageBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId))
-                : InventoryAuthority.Transfer(inventory, $"house-preparation-tool:{WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId,
+                : InventoryAuthority.Transfer(inventory, DerivedId.Create($"house-preparation-tool:{WorldTick}:{plan.Actor}"), plan.Actor, plan.HouseholdId,
                     plan.StockId, plan.Quantity, "household_preparation_tool_stored", destinationStorageBuildingId: plan.HouseId,
                     holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-            AppendEvent("household_preparation_tool_stored", $"{plan.Actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
+            AppendEvent(new HouseholdPreparationToolStoredEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.HouseId!));
         }
         else
         {
             var food = plan.Kind == HouseholdStockActionKind.StoreFood;
-            var operation = food ? $"house-food-storage:{WorldTick}:{plan.Actor}" : $"house-haul-delivery:{WorldTick}:{plan.Actor}";
+            var operation = food ? DerivedId.Create($"house-food-storage:{WorldTick}:{plan.Actor}") : DerivedId.Create($"house-haul-delivery:{WorldTick}:{plan.Actor}");
             var eventKind = food ? "household_food_stored" : "household_stock_delivered";
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, plan.OwnerId, plan.HouseholdId,
                 plan.StockId, plan.Quantity, eventKind, plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-            AppendEvent(eventKind, $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.HouseId}");
+            AppendEvent(food
+                ? new HouseholdFoodStoredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!)
+                : new HouseholdStockDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!));
         }
     }
 }

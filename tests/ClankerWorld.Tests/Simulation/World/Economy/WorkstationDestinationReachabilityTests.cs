@@ -11,16 +11,18 @@ public sealed class WorkstationDestinationReachabilityTests
     [InlineData("opened")]
     public async Task NativeWorkstationSupplySkipsAnOccupiedShopAndDeliversToTheReachableHouseAcrossReplay(string mode)
     {
-        var (state, shopId) = TailorTestWorld.Create("workstation-destination-audit", 0);
+        var (state, shopId) = TailorTestWorld.Create("workstation-destination-audit", 0,
+            (houseDoor, shopSite) => Math.Max(Math.Abs(houseDoor.X - shopSite.X), Math.Abs(houseDoor.Y - shopSite.Y)) > 1);
         var shop = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == shopId);
         var household = shop.HouseholdId!;
         var house = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var start = new GridPoint(119, 49);
-        Assert.Equal(new GridPoint(125, 55), shop.Position);
-        Assert.Equal(new GridPoint(125, 56), house.Position);
+        Assert.Equal(1, state.Map.FootDistance(shop.Position, house.Position));
+        var shopDefinition = state.WorldContent!.Buildings.Single(item => item.CanonicalId == shop.DefinitionId);
+        var shopDoor = BuildingMovementRules.EntranceFor(shopDefinition, shop);
         var ring = state.Map.FootNeighbors(shop.Position).Where(state.Map.IsPassable)
-            .OrderBy(point => point.X == shop.Position.X + 1 && point.Y == shop.Position.Y ? 0 : 1)
+            .OrderBy(point => point == shopDoor ? 0 : point == house.Position ? 1 : 2)
             .ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
         Assert.Equal(8, ring.Length);
         var others = state.Agents.Where(person => person.AgentId != actor).ToArray();
@@ -63,6 +65,14 @@ public sealed class WorkstationDestinationReachabilityTests
             AnimalWorld = new(true, animals, []),
         };
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position)
+            .Concat(animals.Select(animal => animal.Position)).ToHashSet();
+        // House destinations are shareable with another resident; animals
+        // remain hard obstacles, so keep the House blocker among the people.
+        using (var houseRoutes = MovementTestWorld.Routes(state, start, occupied.Where(point => point != house.Position).ToHashSet()))
+            Assert.NotEmpty(houseRoutes.RouteTo(house.Position, 0));
+        using (var shopRoutes = MovementTestWorld.Routes(state, start, occupied))
+            Assert.Equal(mode == "opened", shopRoutes.RouteTo(shop.Position, 0).Count > 0);
         var choices = new FoodCapacityTestFixture.Choices("supply_workstation:", "haul_household_stock");
         using var world = FoodCapacityTestFixture.Restore(state, actor, choices);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());

@@ -1,1 +1,0 @@
-- Refined gold, gold ore, plain gold ornaments, iron fittings, saddles, cooked eggs, milk, berry and fruit porridge, rich meals and leather sacks now have their own item icons instead of a crate or another item's picture. Crude wooden axes and pickaxes show the wooden tool icons.

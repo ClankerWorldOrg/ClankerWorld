@@ -91,14 +91,15 @@ public sealed partial class ParenthoodTests
                 providers.WorldMutationGate);
             var originalWorldId = catalog.Active().Id;
             var selection = new WorldSelectionCoordinator(catalog, world, stateFile, providers, autosave,
-                new WorldJevPolicy(), NullLogger<WorldSelectionCoordinator>.Instance, ProviderFor);
+                new WorldJevPolicy(), NullLogger<WorldSelectionCoordinator>.Instance, ProviderFor,
+                new ManualWorldSaveStore(stateFile.Path, mutationGate: providers.WorldMutationGate));
             var switchOptions = new GeographyOptions("child-binding-switch", WorldSizePreset.Small,
                 WaterPercent: 50, HydrologyVersion: GeographyGenerator.CurrentHydrologyVersion);
             var switchPreview = selection.Preview(switchOptions);
             Assert.NotNull(switchPreview.MapLayersDigest);
             _ = selection.Create("Child binding check", switchOptions, switchPreview.Coverage!.Attempt,
                 switchPreview.ManifestDigest, switchPreview.MapLayersDigest, acceptUnmetTargets: true);
-            _ = selection.Select(originalWorldId);
+            _ = selection.SelectApprovedModels(originalWorldId);
 
             _ = providers.Configure(new("personal", "ollama-cloud", "later-parent-model", "later-parent-secret",
                 false, initiatorId));

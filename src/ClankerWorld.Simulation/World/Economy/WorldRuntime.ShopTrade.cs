@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private List<ShopTradeState> shopTrades = [];
 
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
-        .OrderBy(trade => trade.OfferId, StringComparer.Ordinal).ToArray();
+        .OrderBy(trade => (string?)trade.OfferId, StringComparer.Ordinal).ToArray();
 
     private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
         shopTrades.Select(trade => (Trade: trade, Offer: (inventory ?? society.Checkpoint.Inventory).Offers
@@ -239,17 +239,22 @@ public sealed partial class WorldRuntime
     {
         if (!ShopQuoteContext(buyer, building))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shop exchange is no longer available");
+        var index = InventoryIndex.For(society.Checkpoint.Inventory);
+        var goods = SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
+            .Where(match => match.Lot.Id == quote.Goods.Id && match.Lot.OwnerId == quote.Goods.OwnerId &&
+                match.Lot.ItemKind == quote.Goods.ItemKind && match.Quantity >= quote.GoodsQuantity)
+            .Select(match => match.Lot).FirstOrDefault();
+        var payment = ShopPaymentLots(buyer, building).FirstOrDefault(lot => lot.Id == quote.Payment.Id &&
+            lot.OwnerId == quote.Payment.OwnerId && lot.ItemKind == quote.Payment.ItemKind);
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        if (ShopRules.KindOf(definition) is not { } kind || !ShopRules.MaySell(kind, quote.Goods.ItemKind) ||
-            !IsLooseShopLot(quote.Goods) || quote.Goods.ItemKind == quote.Payment.ItemKind ||
-            !SpendingGoods(buyer, GoodsUse.Sell, [building.HouseholdId!], building: building.InstanceId)
-                .Any(match => match.Lot == quote.Goods && match.Quantity >= quote.GoodsQuantity) ||
-            !ShopPaymentLots(buyer, building).Any(lot => lot == quote.Payment) ||
-            AvailableLotQuantity(quote.Payment) < quote.PaymentQuantity ||
-            ShopQuoteAmounts(building, quote.Goods, quote.Payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
-            !requestedGoods && (!ShopBuyerWants(buyer, quote.Goods) ||
-                !ShopBuyerWantsWithoutRestaurant(buyer, quote.Goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, quote.Goods.ItemKind)) ||
-            RestaurantInputDemand(buyer, quote.Payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, quote.Payment.ItemKind))
+        if (goods is null || payment is null || ShopRules.KindOf(definition) is not { } kind ||
+            !ShopRules.MaySell(kind, goods.ItemKind) || !IsLooseShopLot(goods) || goods.ItemKind == payment.ItemKind ||
+            !InventoryHoldRules.Allows(index, goods) || !InventoryHoldRules.Allows(index, payment) ||
+            AvailableLotQuantity(payment) < quote.PaymentQuantity ||
+            ShopQuoteAmounts(building, goods, payment) != (quote.GoodsQuantity, quote.PaymentQuantity) ||
+            !requestedGoods && (!ShopBuyerWants(buyer, goods) ||
+                !ShopBuyerWantsWithoutRestaurant(buyer, goods) && quote.GoodsQuantity > RestaurantInputDemand(buyer, goods.ItemKind)) ||
+            RestaurantInputDemand(buyer, payment.ItemKind, quote.PaymentQuantity) > RestaurantInputDemand(buyer, payment.ItemKind))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected goods or payment are no longer available");
         return ShopReceivingSpace(buyer, building, quote.GoodsQuantity, quote.PaymentQuantity)
             ? new() : ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected shop exchange");
@@ -277,7 +282,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private bool IsShopFoodCandidate(string actor, string candidateId)
+    private bool IsShopFoodCandidate(string actor, string candidateId, ShopBuyActionPlan? selectedPlan = null)
     {
         // Only the buyer's ready food can interrupt an order. Raw ingredients,
         // equipment and a seller's response still follow ordinary work rules.
@@ -287,8 +292,10 @@ public sealed partial class WorldRuntime
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
         if (building is null) return false;
-        if (ShopOpportunity(actor, building) is { } quote)
-            return IsEdibleFood(quote.Goods.ItemKind) && WantsTradeFoodKind(actor, quote.Goods.ItemKind);
+        var kind = selectedPlan?.Quote?.Goods.ItemKind ??
+            (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
+        if (kind is not null)
+            return IsEdibleFood(kind) && WantsTradeFoodKind(actor, kind);
         return RestaurantMealShopTrip(actor, building);
     }
 
@@ -309,7 +316,7 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || NeedsUrgentWarmth(agents[actor])) return;
         if (!NeedsUrgentFood(agents[actor])) AddStoreStockCandidate(candidates, actor);
-        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId, StringComparer.Ordinal))
+        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
             if (!buyer && !MayRespondAtShop(actor, trade)) continue;
@@ -395,7 +402,7 @@ public sealed partial class WorldRuntime
             };
         });
         ReplaceShopTrade(trade with { SellerActorId = actor });
-        AppendEvent("shop_trade_completed", actor + ":" + offer.Id);
+        AppendEvent(new ShopTradeCompletedEventPayload(actor, offer.Id));
     }
 
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice)
@@ -403,13 +410,13 @@ public sealed partial class WorldRuntime
         var id = ShopTradeOfferId(WorldTick, actor, building.InstanceId);
         // Quotes name exact actual quantities; future goods are never reserved.
         ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
-            InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1,
+            InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(id), 1,
                 building.HouseholdId!, actor, choice.Goods.Id, choice.GoodsQuantity,
                 choice.Payment.Id, choice.PaymentQuantity, WorldTick + 120)),
             id, 1, actor));
-        shopTrades.Add(new(id, building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
+        shopTrades.Add(new(Identity.Parse(id), building.InstanceId, building.HouseholdId!, actor, building.Position, WorldTick,
             choice.Goods.ItemKind, choice.Payment.ItemKind));
-        AppendEvent("shop_trade_offered", actor + ":" + id);
+        AppendEvent(new ShopTradeOfferedEventPayload(actor, id));
         return id;
     }
 
@@ -460,7 +467,7 @@ public sealed partial class WorldRuntime
             ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory,
                 offer.Id, offer.Revision, offer.FirstPartyId));
         ReplaceShopTrade(trade with { CancellationReason = reason });
-        AppendEvent("shop_trade_cancelled", trade.BuyerId + ":" + trade.OfferId);
+        AppendEvent(new ShopTradeCancelledEventPayload(null, trade.BuyerId, trade.OfferId));
     }
 
     private void MaintainShopTrades()
@@ -475,8 +482,8 @@ public sealed partial class WorldRuntime
                     ? "The offer ran out of time." : "The exchange was interrupted.");
         }
         var retired = shopTrades.Where(trade => society.Checkpoint.Inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open)
-            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
-            .Skip(32).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId.Value, StringComparer.Ordinal)
+            .Skip(32).Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         if (retired.Count == 0) return;
         shopTrades.RemoveAll(trade => retired.Contains(trade.OfferId));
         ApplyInventoryTransition(inventory => inventory with
@@ -491,19 +498,19 @@ public sealed partial class WorldRuntime
         SocietyCheckpoint societyState, WorldMap map, long worldTick)
     {
         var inventory = societyState.Inventory;
-        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => trade.OfferId).SequenceEqual(
-                trades.Select(trade => trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
+        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => (string?)trade.OfferId).SequenceEqual(
+                trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("The checkpoint is missing canonical shop trade records.");
         foreach (var trade in trades)
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
-            if (offer is null || !offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
+            if (offer is null || !offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
                 offer.Id != ShopTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
-                !BoundedShopText(trade.BuildingInstanceId, 256) ||
+                !BoundedText.IsValid(trade.BuildingInstanceId, 256, requireTrimmed: true) ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||
                 !societyState.Agents.Any(person => person.Id == trade.BuyerId) ||
-                !ShopItemKind(trade.GoodsKind) || !ShopItemKind(trade.PaymentKind) ||
+                !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) ||
                 trade.Position.X < 0 || trade.Position.X >= map.Width || trade.Position.Y < 0 || trade.Position.Y >= map.Height ||
                 inventory.Lots.Any(lot => lot.Id == offer.FirstLotId && lot.ItemKind != trade.GoodsKind) ||
                 inventory.Lots.Any(lot => lot.Id == offer.SecondLotId && lot.ItemKind != trade.PaymentKind) ||
@@ -517,19 +524,12 @@ public sealed partial class WorldRuntime
                 offer.State == DirectBarterState.Settled && (trade.SellerActorId is null ||
                     !societyState.Agents.Any(person => person.Id == trade.SellerActorId)) ||
                 trade.SellerActorId is not null && offer.State != DirectBarterState.Settled ||
-                offer.State == DirectBarterState.Cancelled && !BoundedShopText(trade.CancellationReason, 160) ||
+                offer.State == DirectBarterState.Cancelled && !BoundedText.IsValid(trade.CancellationReason, 160, requireTrimmed: true) ||
                 trade.CancellationReason is not null && offer.State != DirectBarterState.Cancelled)
                 throw new InvalidDataException("A shop trade does not match its authoritative inventory offer.");
         }
-        if (inventory.Offers.Any(offer => offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
+        if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
                 !trades.Any(trade => trade.OfferId == offer.Id)))
             throw new InvalidDataException("An inventory shop offer has no physical shop binding.");
     }
-
-    // Content quantities and inventory resource kinds have no separate trade-record length limit.
-    private static bool ShopItemKind(string? text) => text is { Length: > 0 } &&
-        text == text.Trim() && !text.Any(char.IsControl);
-
-    private static bool BoundedShopText(string? text, int limit) => text is { Length: > 0 } &&
-        text.Length <= limit && text == text.Trim() && !text.Any(char.IsControl);
 }

@@ -580,7 +580,12 @@ public sealed partial class ParenthoodTests
         }
     }
 
-    private static async Task<WorldRuntimeState> PreparedState()
+    private static readonly Lazy<Task<byte[]>> PreparedCheckpoint = new(CreatePreparedCheckpoint);
+
+    private static async Task<WorldRuntimeState> PreparedState() =>
+        WorldRuntimeCodec.Decode(await PreparedCheckpoint.Value);
+
+    private static async Task<byte[]> CreatePreparedCheckpoint()
     {
         using var world = new WorldRuntime("settlement-parenthood", _ => new ParentProvider("safe_idle"));
         world.StageStarterContent();
@@ -604,7 +609,7 @@ public sealed partial class ParenthoodTests
         society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
             new("parents", 1, SocietyRelationshipType.Partnership, first, second, checkpoint.WorldTick)));
         society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, "parents", 1, second));
-        return state with
+        return WorldRuntimeCodec.Encode(state with
         {
             Society = society.ExportState(),
             Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
@@ -617,7 +622,7 @@ public sealed partial class ParenthoodTests
                 },
                 Climate = state.WorldSystems.Climate with { Weather = WeatherKind.Clear },
             },
-        };
+        });
     }
 
     /// <summary>Ages one agent into the elder stage, keeping their saved birth, age and stage consistent.</summary>

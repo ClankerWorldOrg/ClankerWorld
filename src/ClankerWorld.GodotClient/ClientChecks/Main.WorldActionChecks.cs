@@ -61,6 +61,31 @@ public partial class Main
                 launcherPath = originalLauncher;
                 launcherPathRead = originalLauncherRead;
             }
+            using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
+            {
+                registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
+                serverUrlInput.Text = host.Address;
+                ShowWorldActionSmokeMenu();
+                host.Catalog = WorldActionSmokeCatalog(["A", "B"]);
+                host.ModelSettingsPreview = new("approved-model-settings", true,
+                    ["Ada: openai, test-model, Test planning key", "Routine helper: Off"]);
+                await RefreshWorldListAsync();
+                ChooseWorldActionSmokeRow(1);
+                await SelectListedWorldAsync();
+                if (!worldModelLoadConfirmation.Visible ||
+                    !worldModelLoadConfirmation.DialogText.Contains("Test planning key", StringComparison.Ordinal) ||
+                    !worldModelLoadConfirmation.DialogText.Contains("test-model", StringComparison.Ordinal) ||
+                    host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("Changed model settings must be shown for consent before world selection.");
+                var approved = pendingWorldModelLoad;
+                worldModelLoadConfirmation.Hide();
+                worldModelLoadConfirmation.EmitSignal(ConfirmationDialog.SignalName.Canceled);
+                ChooseWorldActionSmokeRow(0);
+                await SelectListedWorldAsync(approved);
+                if (host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("A cancelled or obsolete model-settings confirmation cannot open another world.");
+                pendingWorldModelLoad = null;
+            }
             foreach (var compatibility in new[] { "compatible", "incompatible", OtherVersion })
             {
                 using var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64);
@@ -216,8 +241,8 @@ public partial class Main
                     throw new InvalidOperationException("Retry must retain the failed hand-off version after another selection.");
                 launcherStartFailure.Hide();
                 ChooseWorldActionSmokeRow(0);
-                if (worldSelectButton.Text != "Open World" || worldSelectButton.ThemeTypeVariation != "PrimaryButton")
-                    throw new InvalidOperationException("Other worlds keep the green Open World button.");
+                if (worldSelectButton.Text != "Load" || worldSelectButton.ThemeTypeVariation != "PrimaryButton")
+                    throw new InvalidOperationException("Other worlds keep the green Load button.");
             }
         }
         finally
@@ -312,6 +337,7 @@ public partial class Main
         public SaveDiskSpaceStatus DiskSpace { get; set; } = new("ok", 4L * 1024 * 1024 * 1024, 1024L * 1024 * 1024, DateTimeOffset.UtcNow);
         public bool FailDiskSpace { get; set; }
         public StartupRecoveryStatus StartupRecovery { get; set; } = new(false, null, null);
+        public bool FailRecoveryStatus { get; set; }
         public TaskCompletionSource RecoveryReceived { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? ReleaseRecovery { get; set; }
         public bool LoseRecoveryReply { get; set; }
@@ -326,12 +352,15 @@ public partial class Main
         public OwnerPairingStart? PairingStart { get; set; }
         public OwnerPairingStatus? PairingStatus { get; set; }
         public bool LoseActivationReply { get; set; }
+        public TaskCompletionSource ActivationReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource? ReleaseActivation { get; set; }
         public TaskCompletionSource ReconnectReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? ReleaseReconnect { get; set; }
         public bool HostPaused { get; private set; } = true;
         public IReadOnlyList<string>? SupportedActionPayloads { get; set; }
         public OwnerWorldPreview? Preview { get; set; }
         public CatalogWorld? SelectedWorld { get; set; }
+        public OwnerModelSettingsPreview? ModelSettingsPreview { get; set; }
         public CatalogWorld? CreatedWorld { get; set; }
         public OwnerWorldReconnect? CreatedObservation { get; set; }
         public System.Collections.Concurrent.ConcurrentQueue<string> Requests { get; } = new();
@@ -342,6 +371,7 @@ public partial class Main
         public TaskCompletionSource RenameReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         // When set, the host holds its rename reply until the check releases it.
         public TaskCompletionSource? ReleaseRename { get; set; }
+        public Func<string, JsonElement, HttpListenerResponse, Task<object?>>? ActionHandler { get; set; }
         public bool FailAgentPlacement { get; set; }
         public HttpStatusCode SubmissionStatus { get; set; } = HttpStatusCode.BadRequest;
         public Func<string, JsonElement, object>? PendingSubmissionReceipt { get; set; }
@@ -404,6 +434,8 @@ public partial class Main
                 if (envelope.GetProperty("canonicalProof").GetString() != activation.ActivationCanonicalProof)
                     throw new InvalidOperationException("Activation must prove possession of the pending pairing key.");
                 Requests.Enqueue(path);
+                ActivationReceived.TrySetResult();
+                if (ReleaseActivation is { } releaseActivation) await releaseActivation.Task.ConfigureAwait(false);
                 PairingStatus = new(activation.Authority, activation.PairingId, activation.DeviceId,
                     activation.PublicKeyFingerprint, OwnerPairingState.Active, activation.ExpiresAtUtc);
                 if (LoseActivationReply)
@@ -420,6 +452,12 @@ public partial class Main
             }
             object response;
             Requests.Enqueue(context.Request.Url!.AbsolutePath);
+            if (ActionHandler is { } handler &&
+                await handler(path, envelope, context.Response).ConfigureAwait(false) is { } handledResponse)
+            {
+                await WriteResponseAsync(context, handledResponse).ConfigureAwait(false);
+                return;
+            }
             switch (context.Request.Url!.AbsolutePath)
             {
                 case OwnerPairingEndpoints.OwnerInstructions:
@@ -451,7 +489,12 @@ public partial class Main
                     response = new { error = "Controlled owner request refusal." };
                     break;
                 case "/api/v1/owner/recovery/status":
-                    response = StartupRecovery;
+                    if (FailRecoveryStatus)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                        response = new { error = "Controlled recovery-status refusal." };
+                    }
+                    else response = StartupRecovery;
                     break;
                 case "/api/v1/owner/recovery/restore":
                     var recoveryId = envelope.GetProperty("action").GetProperty("value").GetString()!;
@@ -503,6 +546,12 @@ public partial class Main
                     }
                     else response = Catalog;
                     break;
+                case "/api/v1/owner/worlds/saves":
+                    var historyWorldId = envelope.GetProperty("action").GetProperty("value").GetString()!;
+                    var historyWorld = Catalog.Worlds.Single(world => world.Id == historyWorldId);
+                    response = new WorldSaveHistory(historyWorld.WorldId, ManualSaves ?? [],
+                        new(null, null, false), null, ManualSaves?.Select(save => save.WorldTick).DefaultIfEmpty().Max() ?? 0);
+                    break;
                 case OwnerPairingEndpoints.OwnerSaveList when ManualSaves is { } saves:
                     response = saves;
                     break;
@@ -532,6 +581,10 @@ public partial class Main
                         response = new { error = "Controlled disk advisory failure." };
                     }
                     else response = DiskSpace;
+                    break;
+                case OwnerPairingEndpoints.OwnerWorldSelect when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-world-models":
+                case OwnerPairingEndpoints.OwnerSaveLoad when envelope.GetProperty("action").GetProperty("operation").GetString() == "inspect-save-models":
+                    response = ModelSettingsPreview ?? new OwnerModelSettingsPreview("smoke-model-settings", false, ["Routine helper: Off"]);
                     break;
                 case OwnerPairingEndpoints.OwnerSaveLoad when LoadReceipt is { } loadReceipt:
                     LoadReceived.TrySetResult(envelope.GetProperty("action").GetProperty("value").GetString()!);

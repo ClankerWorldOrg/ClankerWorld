@@ -1,0 +1,1 @@
+- Join a world on another computer from the launcher, approve its comparison code once, and reconnect through Play. The game no longer asks you to pair it. The launcher explains connection, approval and certificate problems and gives startup guidance for known host kinds.

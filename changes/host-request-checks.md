@@ -1,1 +1,0 @@
-- The world server now refuses oversized requests before reading them. Its local approval routes answer only when addressed as `127.0.0.1`, `[::1]` or `localhost`, as the game already does.

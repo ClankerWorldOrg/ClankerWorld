@@ -10,21 +10,23 @@ namespace ClankerWorld.Tests;
 public sealed class SharedReadServicesTests
 {
     [Fact]
-    public void EventLogPreservesLongestPrefixExplicitPositionsAndHistoryIds()
+    public void EventLogUsesCompletePayloadActorsExplicitPositionsAndHistoryIds()
     {
+        const string actor = "world:agent:birth:agent:parent:agent:other:00000000000000000000000000000001";
         var world = new ReadWorld();
-        world.People.Add("agent:child", new("agent:child", new(8, 2), 10_000, 0, "kind", "learn"));
+        world.Dead.Add("world:agent", new(3, 4));
+        world.People.Add(actor, new(actor, new(8, 2), 10_000, 0, "kind", "learn"));
         world.Dead.Add("agent", new(3, 4));
-        var source = new List<WorldEventEntry> { new(42, 9, "prior", "prior", null) };
+        var source = new List<WorldEventEntry> { new(42, 9, new TickAdvancedEventPayload(null, 9)) };
         var log = new WorldEventLog(source, 41, "archive-head");
         source.Clear();
         var version = log.Version;
-        log.AppendEvent(world, "living", "agent:child:effect:extra");
+        log.AppendEvent(world, new RecipeCancelledEventPayload(actor, "world:agent:job:effect", "recipe:extra", null));
         Assert.NotSame(version, log.Version);
-        log.AppendEvent(world, "deceased", "agent:effect");
-        log.AppendEvent(world, "explicit", "agent:child", new(7, 7));
-        log.AppendEvent(world, "unlocated", "unknown:effect");
-        log.AppendEvent(world, "empty", "");
+        log.AppendEvent(world, new InstructionNotUnderstoodEventPayload("agent", "effect"));
+        log.AppendEvent(world, new AgentIdleEventPayload(actor), new(7, 7));
+        log.AppendEvent(world, new InstructionNotUnderstoodEventPayload("unknown", "effect"));
+        log.AppendEvent(world, new PausedEventPayload(null));
         Assert.Equal(Enumerable.Range(42, 6).Select(id => (long)id), log.Events.Select(item => item.EventId));
         Assert.Equal(new GridPoint?[] { null, new(8, 2), new(3, 4), new(7, 7), null, null },
             log.Events.Select(item => item.Position));
@@ -34,7 +36,7 @@ public sealed class SharedReadServicesTests
         Assert.Equal("archive-head", log.ArchiveHead);
         Assert.Throws<NotSupportedException>(() => ((IList<WorldEventEntry>)log.Events).Clear());
         var prepared = new WorldEventLog(log.Events, log.HistoryFloor, log.ArchiveHead);
-        prepared.AppendEvent(world, "discarded", "agent:child");
+        prepared.AppendEvent(world, new AgentIdleEventPayload(actor));
         Assert.Equal(6, log.Events.Count);
         Assert.Equal(48, log.NextEventId);
         Assert.Equal(49, prepared.NextEventId);
@@ -92,6 +94,23 @@ public sealed class SharedReadServicesTests
         var duplicates = checkpoint with { Agents = [person, person, checkpoint.Agents[1]] };
         Assert.Same(checkpoint.Agents[1], duplicates.GetAgent(checkpoint.Agents[1].Id));
         Assert.Throws<InvalidOperationException>(() => duplicates.GetAgent(person.Id));
+        var nullId = person with { Id = null! };
+        var malformed = checkpoint with { Agents = [nullId, person, checkpoint.Agents[1]] };
+        Assert.Same(nullId, malformed.GetAgent(null!));
+        Assert.Same(person, malformed.GetAgent(person.Id));
+        var nullDuplicates = checkpoint with { Agents = [nullId, nullId, person] };
+        Assert.Throws<InvalidOperationException>(() => nullDuplicates.GetAgent(null!));
+        Assert.Same(person, nullDuplicates.GetAgent(person.Id));
+        var inserted = checkpoint.Agents.ToList();
+        var changedCount = checkpoint with { Agents = inserted };
+        Assert.Same(person, changedCount.GetAgent(person.Id));
+        inserted.Add(person);
+        Assert.Throws<InvalidOperationException>(() => changedCount.GetAgent(checkpoint.Agents[1].Id));
+        var sameValues = checkpoint.Agents.ToList();
+        var replacedReference = checkpoint with { Agents = sameValues };
+        Assert.Same(person, replacedReference.GetAgent(person.Id));
+        sameValues[0] = person with { };
+        Assert.Throws<InvalidOperationException>(() => replacedReference.GetAgent(person.Id));
         var list = checkpoint.Agents.ToList();
         var mutable = checkpoint with { Agents = list };
         Assert.Same(person, mutable.GetAgent(person.Id));
@@ -101,6 +120,25 @@ public sealed class SharedReadServicesTests
         var replaced = mutable with { Agents = list.ToArray() };
         Assert.Equal("Changed Name", replaced.GetAgent(person.Id).Name);
         Assert.Same(person, checkpoint.GetAgent(person.Id));
+    }
+
+    [Fact]
+    public void ReplacingAnUnqueriedValueEqualResidentFailsFullReferenceVerification()
+    {
+        var original = new ReadWorld().Society;
+        var agents = original.Agents.ToArray();
+        var requested = agents[0];
+        var unqueried = agents[1];
+        var checkpoint = original with { Agents = agents };
+        Assert.Same(requested, checkpoint.GetAgent(requested.Id));
+        agents[1] = unqueried with { };
+        Assert.Equal(unqueried, agents[1]);
+        Assert.NotSame(unqueried, agents[1]);
+        Assert.True(DerivedVerification.RecomputeOnHit);
+        Assert.Throws<InvalidOperationException>(() => checkpoint.GetAgent(requested.Id));
+        var replaced = checkpoint with { Agents = agents.ToArray() };
+        Assert.Same(requested, replaced.GetAgent(requested.Id));
+        Assert.Same(unqueried, original.GetAgent(unqueried.Id));
     }
 
     [Fact]
