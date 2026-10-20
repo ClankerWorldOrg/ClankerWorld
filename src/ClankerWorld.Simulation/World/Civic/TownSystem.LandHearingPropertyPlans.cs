@@ -34,7 +34,7 @@ internal sealed partial class TownSystem
     {
         if (plan.Bound || plan.Choice.Kind != LandHearingPropertyKind.Request) return plan;
         var raw = terms?.Statement ?? proposal;
-        return plan with { Bound = true, Statement = raw?.Trim(), InvalidStatement = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength) };
+        return plan with { Bound = true, Statement = raw?.Trim(), InvalidStatement = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength) };
     }
 
     internal ActionCheck CheckLandHearingProperty(ITownWorld world, LandHearingPropertyActionPlan plan, TownRuntimeState? currentTown = null)

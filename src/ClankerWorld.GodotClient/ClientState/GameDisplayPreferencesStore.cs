@@ -13,7 +13,7 @@ namespace ClankerWorld.GodotClient.ClientState;
 /// </remarks>
 public sealed record GameDisplayPreferences(
     bool UseTwelveHourClock = false,
-    string DateStyle = UI.GameUiText.SeasonDates,
+    string DateStyle = ClankerWorld.Contracts.GameUiText.SeasonDates,
     int WindowWidth = 1280,
     int WindowHeight = 720,
     bool? Fullscreen = null,

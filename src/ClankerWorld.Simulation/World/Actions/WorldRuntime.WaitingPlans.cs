@@ -37,8 +37,8 @@ public sealed partial class WorldRuntime
     private bool ApplyWaiting(ActionContext action, WaitingActionPlan plan, bool beforeAge)
     {
         if (beforeAge && plan.LegacyAgePermitted) return false;
-        if (!plan.LegacyAgePermitted) AppendEvent("age_action_rejected", $"{plan.Actor}:{plan.CandidateId}");
-        else if (action.ReportIdle) AppendEvent("agent_idle", plan.Actor);
+        if (!plan.LegacyAgePermitted) AppendEvent(new AgeActionRejectedEventPayload(plan.Actor, plan.CandidateId));
+        else if (action.ReportIdle) AppendEvent(new AgentIdleEventPayload(plan.Actor));
         return true;
     }
 }

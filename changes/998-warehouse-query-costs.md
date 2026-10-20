@@ -1,1 +1,0 @@
-- Grown Towns avoid repeated Warehouse checks while planning buildings and recipes.
