@@ -8,8 +8,7 @@ public sealed partial class WorldRuntime
     {
         var design = BuildingStorageRules.EffectiveDefinition(
             worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building);
-        return WorldContentSimulationRules.Footprint(design, building).SelectMany(point => map.FootNeighbors(point)
-                .Where(next => !map.IsDiagonalFootStep(point, next)))
+        return BuildingMovementRules.EntrancesFor(map, design, building.Position)
             .Where(point => (!occupied.Contains(point) || roadTiles.Contains(point)) && map.IsBuildable(point) &&
                 WorldContentSimulationRules.IsEntrance(design, building.Position, point) &&
                 (!design.Tags.Contains(TownHallContent.HallTag, StringComparer.Ordinal) || point == TownHallContent.Entrance(building.Position)) &&
@@ -45,13 +44,13 @@ public sealed partial class WorldRuntime
         var failure = result.Proposal is { } proposal ? RoadRoutePlanner.Validate(request, proposal) : result.Outcome;
         if (failure is not null)
         {
-            AppendEvent("town_road_link_unconnected", $"{town.Id}|{nearest.Id}|{failure}");
+            AppendEvent(new TownRoadLinkUnconnectedEventPayload(null, town.Id, nearest.Id, failure));
             return;
         }
         var route = result.Proposal!;
         var added = route.RoadTiles.Count(roadTiles.Add);
         if (localBuilding) SetBuildingEntrance(firstBuilding.InstanceId, route.RoadTiles[0]);
         CommitRoadBridges(route.NewCrossings, $"road:town-link:{town.Id}:{nearest.Id}");
-        AppendEvent("town_road_linked", $"{town.Id}|{nearest.Id}|tiles:{added}");
+        AppendEvent(new TownRoadLinkedEventPayload(null, town.Id, nearest.Id, added));
     }
 }

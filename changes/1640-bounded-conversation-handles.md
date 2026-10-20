@@ -1,1 +1,0 @@
-- Later-generation relatives can start conversations with each other without halting the world when their combined internal identities are long.

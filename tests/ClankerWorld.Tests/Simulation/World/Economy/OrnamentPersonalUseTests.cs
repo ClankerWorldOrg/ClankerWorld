@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -44,8 +45,12 @@ public sealed class OrnamentPersonalUseTests
         using var resumed = Restore(WorldRuntimeCodec.Decode(transit), actor,
             new OrnamentChoices("wear_ornament:", DecisionProviderKind.LargeLanguageModel));
         // The walk continues between model turns; putting the ornament on still waits for a fresh choice.
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
+        for (var tick = 0; tick < 60 && Physical(world, actor).Position != house.Position; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(resumed.ExportState()));
+        }
         Assert.Equal(house.Position, Physical(world, actor).Position);
         Assert.Null(Physical(world, actor).Equipment?.OrnamentLotId);
         for (var tick = 0; tick < 181 && Physical(world, actor).Equipment?.OrnamentLotId is null; tick++)
@@ -418,7 +423,7 @@ public sealed class OrnamentPersonalUseTests
         if (instruction is not null)
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "ornament-forced-berry");
-            Assert.Contains(instruction.InstructionId, world.ExportState().CompletedInstructionIds!);
+            Assert.Contains(instruction.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         }
         using var replay = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 3; tick++) Assert.True((await replay.AdvanceOneTickAsync()).Advanced);

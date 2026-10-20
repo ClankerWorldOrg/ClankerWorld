@@ -48,7 +48,8 @@ public sealed record OwnerPairingStart(
     string PairingCode,
     string PublicKeyFingerprint,
     DateTimeOffset ExpiresAtUtc,
-    string ActivationCanonicalProof);
+    string ActivationCanonicalProof,
+    ClankerWorld.Contracts.OwnerHostInformation? Host = null);
 
 /// <summary>
 /// Safe pairing status response for polling. It intentionally contains no
@@ -91,7 +92,9 @@ public sealed record OwnerDevice(
     string PublicKeyFingerprint,
     OwnerDeviceState State,
     DateTimeOffset ActivatedAtUtc,
-    DateTimeOffset? RevokedAtUtc);
+    DateTimeOffset? RevokedAtUtc,
+    string? ApprovedBy = null,
+    string? ApprovalDescription = null);
 
 /// <summary>
 /// Signed request to mint a short-lived, one-use challenge.

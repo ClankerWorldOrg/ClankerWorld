@@ -1,1 +1,0 @@
-- Agents can follow orders to haul household stock, supply workstations, share spare food, stock a Store and donate Town Warehouse materials. Tasks keep their destination and count actual deliveries while respecting normal demand, reserves, space and ownership.

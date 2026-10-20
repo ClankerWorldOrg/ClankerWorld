@@ -1,1 +1,0 @@
-- Agents can follow a named talk order by walking to the person and making a real invitation, with each person’s own consent, visible outcomes and queued work that waits for the conversation.

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -51,7 +52,7 @@ public sealed partial class TownLandTransferRuntimeTests
         Assert.Contains(LandTransferText.Details(pendingClient, tick => tick.ToString(CultureInfo.InvariantCulture)), line => line.Contains("Goods price: 2 wood", StringComparison.Ordinal));
         provider.PaySales = true;
         foreach (var actor in pending.Parties.SelectMany(party => party.AdultIds))
-            restored.SubmitInstruction(new("sale-payment-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestion,
+            restored.SubmitInstruction(new(DerivedId.Create("sale-payment-" + actor), "owner:test", actor, OwnerInstructionKind.Suggestion,
                 "Consider bringing the actual agreed goods to the notice place to finish the accepted land-use sale."));
         var collectionPlans = new List<LandSaleCollectionActionPlan>();
         var exchangePlans = new List<LandSaleExchangeActionPlan>();
@@ -484,7 +485,7 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         return Assert.Single(Assert.Single(client.Towns).LandTransfers);
     }
 }

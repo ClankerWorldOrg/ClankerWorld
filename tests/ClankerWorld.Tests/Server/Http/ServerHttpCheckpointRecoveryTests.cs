@@ -301,7 +301,7 @@ public sealed partial class ServerHttpTests
                 selectedCatalogId = entry.Id;
                 selectedSaveId = saves.CreateAutosave(target, [], settings with { WorldId = selectedWorldId }).Id;
                 priorCatalog = File.ReadAllBytes(catalogPath);
-                original.Services.GetRequiredService<WorldSelectionCoordinator>().Select(entry.Id);
+                original.Services.GetRequiredService<WorldSelectionCoordinator>().SelectApprovedModels(entry.Id);
                 Assert.Equal(selectedWorldId, runtime.Society.WorldId);
                 Assert.Equal(selectedCatalogId, catalog.Active().Id);
             }

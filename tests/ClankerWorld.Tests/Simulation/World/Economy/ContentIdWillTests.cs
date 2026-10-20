@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -37,11 +38,11 @@ public sealed partial class ShopTradeTests
         var provider = new ModWillProvider(heir);
         using var world = WorldRuntime.Restore(state with { Society = state.Society with { Society = checkpoint } },
             actor => actor == deceased ? provider : new ContentIdFixture.Idle());
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         if (world.Society.Estates.Single(item => item.DeceasedId == deceased).WillStatus == "pending")
-            await provider.Called.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
         for (var tick = 0; tick < 12 && !world.Society.Estates.Any(estate => estate.DeceasedId == deceased && estate.WillStatus == "accepted"); tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates, item => item.DeceasedId == deceased);
         Assert.Equal("accepted", estate.WillStatus);
         Assert.Equal("Keep tending the orchard.", estate.FinalWords);
@@ -79,7 +80,7 @@ public sealed partial class ShopTradeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int Calls { get; private set; }
-        public TaskCompletionSource Called { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Called { get; } = new(TaskCreationOptions.None);
         public IReadOnlyList<CognitionWillItem>? Items { get; private set; }
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
@@ -88,7 +89,7 @@ public sealed partial class ShopTradeTests
             Items = context.Items;
             Calls++;
             Called.TrySetResult();
-            var heir = Assert.Single(context.Heirs, item => item.Key == "will:heir:" + heirId).Key;
+            var heir = Assert.Single(context.Heirs, item => item.Key == DerivedId.Create("will:heir:" + heirId, "will:heir:sha256:")).Key;
             // The production lot is the only x-prefixed good. Reply with its offered key, never its kind or lot ID.
             var item = Assert.Single(context.Items, item => item.Kind.StartsWith('x'));
             var choice = new CognitionWillChoice([heir], CognitionWillContext.ItemSplit,
