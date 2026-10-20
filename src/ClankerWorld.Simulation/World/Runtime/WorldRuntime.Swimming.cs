@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
     {
         var position = agents[actor].Position;
         if (IsWithinInteractionRange(position, source, sourceRange)) return position;
-        var approach = FindUnoccupiedRoute(actor, position, source, sourceRange);
+        var approach = Reach(actor, source, ReachPurpose.PickupApproach, sourceRange, 0, SwimmingPolicy.WhenCapable);
         return approach.Count == 0 ? null : approach[^1];
     }
 

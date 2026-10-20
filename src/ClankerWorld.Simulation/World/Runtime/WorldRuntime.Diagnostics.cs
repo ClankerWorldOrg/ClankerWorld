@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>
@@ -65,10 +67,10 @@ public sealed partial class WorldRuntime
     }
 
     /// <summary>Remembers the rest of a route after one step along it; the next tile is already taken.</summary>
-    private void RecordPlannedRoute(string agentId, string reason, GridPoint destination, List<GridPoint> route)
+    private void RecordPlannedRoute(string agentId, string reason, GridPoint destination, ReadOnlyCollection<GridPoint> route)
     {
         if (route.Count > 2)
-            plannedRoutes[agentId] = new PlannedRoute(reason, destination, route.GetRange(2, route.Count - 2));
+            plannedRoutes[agentId] = new PlannedRoute(reason, destination, route.Skip(2).ToArray());
     }
 
     /// <summary>An agent waiting out a slow step keeps the route it was already walking.</summary>

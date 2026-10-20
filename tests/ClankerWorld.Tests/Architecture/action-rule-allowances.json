@@ -27,9 +27,6 @@
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
     "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs": [
-    "FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange)"
-  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartCargoOrders.cs": [
     "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
     "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
@@ -75,9 +72,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Swimming.cs": [
-    "FindUnoccupiedRoute(actor, position, source, sourceRange)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TalkOrders.cs": [
     "FindUnoccupiedRoute(actor, person.Position, other.Position, ResourceInteractionRange)"

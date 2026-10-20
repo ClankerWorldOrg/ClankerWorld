@@ -508,7 +508,10 @@ food exploration, household delivery and illness exposure/recovery. Source
 scanning covers both need properties and the local fullness/warmth variables.
 Child routes use
 one per-call reach service with an explicit swimming policy and separate
-prospective return origin. Route-call scanning covers bare calls, member calls
+prospective return origin. Native movement and pickup approaches use the same
+service from the actor's current position; prospective pickup returns explicitly
+keep their selected origin, foot-only policy or additional carried unit.
+Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The source guard in `ActionRuleBoundaryTests` records
 remaining direct route calls; copied age-band and unnamed need
