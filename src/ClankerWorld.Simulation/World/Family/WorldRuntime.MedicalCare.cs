@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         string caregiver)
     {
         var recipient = checkpoint.GetAgent(patient.AgentId);
-        if (recipient.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+        if (LifeStageRules.IsAdult(recipient.AgeBand))
             return caregiver == patient.AgentId ||
                 patient.MedicalConsent?.CaregiverIds.Contains(caregiver, StringComparer.Ordinal) == true;
         return checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
@@ -255,7 +255,7 @@ public sealed partial class WorldRuntime
             if (person.MedicalSupplyTrip is { } trip &&
                 (!people.TryGetValue(person.AgentId, out var caregiver) ||
                  caregiver.Status != SocietyAgentStatus.Active ||
-                 caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+                 !LifeStageRules.IsAdult(caregiver.AgeBand) ||
                  !active.TryGetValue(trip.PatientId, out var patient) ||
                  !MedicalPermission(checkpoint, patient, person.AgentId) ||
                  trip.StartedTick < 0 || trip.StartedTick > checkpoint.WorldTick || !map.Contains(trip.LastSeenPosition)))
@@ -263,7 +263,7 @@ public sealed partial class WorldRuntime
             if (person.MedicalTreatment is not { } treatment) continue;
             if (treatment.Kind != "medicine" || !active.ContainsKey(treatment.CaregiverId) ||
                 !people.TryGetValue(treatment.CaregiverId, out var provider) || provider.Status != SocietyAgentStatus.Active ||
-                provider.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+                !LifeStageRules.IsAdult(provider.AgeBand) ||
                 people[person.AgentId].Status != SocietyAgentStatus.Active ||
                 !MedicalPermission(checkpoint, person, treatment.CaregiverId) || treatment.StartedTick < 0 ||
                 treatment.StartedTick > checkpoint.WorldTick || treatment.LastProcessedTick != checkpoint.WorldTick ||
@@ -299,9 +299,9 @@ public sealed partial class WorldRuntime
             ids.Count != ids.Distinct(StringComparer.Ordinal).Count() ||
             !ids.SequenceEqual(ids.Order(StringComparer.Ordinal), StringComparer.Ordinal) ||
             !people.TryGetValue(person.AgentId, out var recipient) ||
-            recipient.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+            !LifeStageRules.IsAdult(recipient.AgeBand) ||
             ids.Any(id => id == person.AgentId || !people.TryGetValue(id, out var caregiver) ||
-                caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)))
+                !LifeStageRules.IsAdult(caregiver.AgeBand)))
             throw new InvalidDataException("Medical permission must name distinct known adult caregivers.");
     }
 }

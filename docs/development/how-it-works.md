@@ -500,7 +500,9 @@ the same plan again. Only the owner-order compatibility age gate remains under
 migration.
 
 `Actions/LifeStageRules.cs` owns action age eligibility and the shared adult and
-dependent checks used by Town membership, governance, hearings and markets, and
+dependent checks used by Town membership, governance, hearings, markets and care.
+Medical permission, retained care trips, guardian placement and infant-family
+continuity use these same primitives without changing their allowed life stages.
 `Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
 one per-call reach service with an explicit swimming policy and separate
 prospective return origin. Route-call scanning covers bare calls, member calls

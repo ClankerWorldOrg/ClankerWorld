@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         item.Type is SocietyRelationshipType.BiologicalParentage or SocietyRelationshipType.Caregiver &&
         item.State == SocietyRelationshipState.Accepted && item.ProposerId == parent &&
         agents.ContainsKey(item.TargetId) &&
-        society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant);
+        LifeStageRules.IsInfant(society.Checkpoint.GetAgent(item.TargetId).AgeBand));
 
     /// <summary>
     /// Living adult couples who could have children. Having an infant does not remove a partnership
