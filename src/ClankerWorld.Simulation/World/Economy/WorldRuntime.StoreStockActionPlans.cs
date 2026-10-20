@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
                 var reserve = lot.OwnerId == actor ? 2 : 2 * society.Checkpoint.GetHousehold(household)
                     .MemberIds.Count(id => agents.ContainsKey(id));
                 foodSurplus = Math.Max(0, sources.Where(source => source.OwnerId == lot.OwnerId && source.ItemKind == lot.ItemKind &&
-                    CanReachStoreStock(actor, store, source)).Sum(source => StoreStockLotQuantity(actor, source, protectedTools)) - reserve);
+                    StoreStockTripIsReachable(actor, store, source)).Sum(source => StoreStockLotQuantity(actor, source, protectedTools)) - reserve);
                 foodSurpluses?.Add(key, foodSurplus);
             }
             surplus = Math.Min(surplus, foodSurplus);
@@ -34,13 +34,12 @@ public sealed partial class WorldRuntime
         return lot.OwnerId == actor ? quantity : Math.Min(quantity, PickupCarryCapacity(actor, lot, store.Position));
     }
 
-    private bool CanReachStoreStock(string actor, PlacedBuilding store, InventoryLot lot)
+    private bool StoreStockTripIsReachable(string actor, PlacedBuilding store, InventoryLot lot)
     {
         var source = lot.OwnerId == actor ? agents[actor].Position : HouseholdStockPosition(lot);
         var range = lot.OwnerId == actor ? 0 : HouseholdStockInteractionRange(lot);
-        return (IsWithinInteractionRange(agents[actor].Position, source, range) ||
-            Reach(actor, source, ReachPurpose.StoreStock, range, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
-            (source == store.Position || ReachLeg(actor, source, store.Position, ReachPurpose.StoreStock, 0, 0, SwimmingPolicy.WhenCapable).Count > 0);
+        return CanReach(actor, source, ReachPurpose.StoreStock, range, 0, SwimmingPolicy.WhenCapable) &&
+            CanReachLeg(actor, source, store.Position, ReachPurpose.StoreStock, 0, 0, SwimmingPolicy.WhenCapable);
     }
 
     private StoreStockActionPlan? PlanStoreStock(string actor)
@@ -75,7 +74,7 @@ public sealed partial class WorldRuntime
         var protectedTools = BestUsableToolIds(society.Checkpoint.Inventory, plan.Actor);
         if (StoreStockLoadLimit(plan.Actor, plan.HouseholdId, store, match.Lot, sources, protectedTools) < plan.Quantity)
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected load would use supplies that must stay");
-        return CanReachStoreStock(plan.Actor, store, match.Lot) ? new() :
+        return StoreStockTripIsReachable(plan.Actor, store, match.Lot) ? new() :
             ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected Store trip is out of reach now");
     }
 
