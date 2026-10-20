@@ -126,7 +126,7 @@ public sealed partial class WorldRuntime
                     if (surname != marriage.CurrentSurname)
                         SetMarriageAt(marriageIndex, marriage with { LatestPlayerRename = new AgentMarriageRename(agentId, surname, WorldTick) });
                 }
-                AppendEvent("agent_renamed", agentId);
+                AppendEvent(new AgentRenamedEventPayload(agentId));
             }
             return changed;
         }

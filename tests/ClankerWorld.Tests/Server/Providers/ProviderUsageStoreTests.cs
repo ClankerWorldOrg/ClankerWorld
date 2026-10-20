@@ -185,7 +185,7 @@ public sealed class ProviderUsageStoreTests
     public void UsagePayloadMatchesGodotAndNeverContainsProviderSecrets()
     {
         var server = new ProviderUsageLimitAction(30, 0);
-        var client = new ClankerWorld.GodotClient.Protocol.OwnerUsageLimitAction(30, 0);
+        var client = new ClankerWorld.Contracts.OwnerUsageLimitAction(30, 0);
         Assert.Equal(OwnerHttpBinding.UsageLimitPayload(server),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.UsageLimit(client));
         Assert.Equal(OwnerHttpBinding.UsageStatusPayload(),

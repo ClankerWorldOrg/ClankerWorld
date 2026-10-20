@@ -73,29 +73,19 @@ public sealed class ShelterSiteInspectionCheckpointTests
 
     private static (GridPoint Origin, GridPoint Target) InspectionSite(WorldRuntimeState state, string actor, string site)
     {
-        if (site is "ocean" or "land")
-        {
-            // Just inside the north polar sea: an origin with walkable ground two
-            // steps east, and the sea one row up and two steps west.
-            var y = GeographyGenerator.PolarEdgeRows;
-            var x = Enumerable.Range(0, state.Map.Width - 4).First(x =>
-                Enumerable.Range(1, 4).All(dx => state.Map.IsPassable(new(x + dx, y))) &&
-                state.Agents.All(person => person.Position.Y != y || person.Position.X < x || person.Position.X > x + 4));
-            var origin = new GridPoint(x + 2, y);
-            if (site == "land") return (origin, new(x + 4, y));
-            var target = new GridPoint(x, y - 1);
-            Assert.Equal(TerrainKind.Ocean, state.Map.TerrainKindAt(target));
-            return (origin, target);
-        }
-
-        // Use an actual generated non-Ocean obstacle and a free two-step
-        // approach. Starting position/weather are controlled; terrain is untouched.
+        // Use actual generated terrain and a free two-step approach rather
+        // than depending on a particular coast or a forced edge strip.
         var occupied = state.Agents.Where(person => person.AgentId != actor)
             .Select(person => person.Position).ToHashSet();
         var buildings = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
         foreach (var target in state.Map.Tiles.Select(tile => tile.Position)
-            .Where(point => !state.Map.IsPassable(point) && state.Map.TerrainKindAt(point) != TerrainKind.Ocean))
+            .Where(point => !occupied.Contains(point) && !buildings.Contains(point) && (site switch
+            {
+                "ocean" => state.Map.TerrainKindAt(point) == TerrainKind.Ocean,
+                "land" => state.Map.IsPassable(point),
+                _ => !state.Map.IsPassable(point) && state.Map.TerrainKindAt(point) != TerrainKind.Ocean,
+            })))
         {
             foreach (var shore in state.Map.Tiles.Select(tile => tile.Position).Where(point =>
                 state.Map.FootDistance(point, target) == 1 && state.Map.IsPassable(point) &&
@@ -108,7 +98,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
                     return (origin, target);
             }
         }
-        throw new InvalidOperationException("The generated fixture needs another impassable site with a free approach.");
+        throw new InvalidOperationException("The generated fixture needs a site with a free approach.");
     }
 
     private sealed class CheckpointHost : IDisposable
