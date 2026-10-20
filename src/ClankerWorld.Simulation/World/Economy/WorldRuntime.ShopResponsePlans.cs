@@ -2,16 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckShopResponse(ShopResponseActionPlan plan, ActorCapabilityPolicy? policy = null)
-    {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? ShopCapabilities);
-        if (!capability.Allowed) return capability;
-        if (shopTrades.SingleOrDefault(trade => trade.OfferId == plan.Offer.Id) != plan.Trade ||
-            plan.Actor != plan.Trade.BuyerId && !MayRespondAtShop(plan.Actor, plan.Trade) || !ShopResponseOfferIsCurrent(plan))
-            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the original shop offer or their personal response authority has changed");
-        return new();
-    }
+    private ActionCheck CheckShopResponse(ShopResponseActionPlan plan, ActorCapabilityPolicy? policy = null) =>
+        marketSystem.CheckShopResponse(MarketShopPlanningWorld, plan, policy);
 
     private void ApplyShopResponse(ShopResponseActionPlan plan)
     {
@@ -19,8 +11,6 @@ public sealed partial class WorldRuntime
         ApplyCheckedShopResponse(plan);
     }
 
-    private void ApplyCheckedShopResponse(ShopResponseActionPlan plan)
-    {
-        ApplyRetainedShopResponse(plan.Actor, agents[plan.Actor], plan);
-    }
+    private void ApplyCheckedShopResponse(ShopResponseActionPlan plan) =>
+        marketSystem.ApplyCheckedShopResponse(MarketShopPlanningWorld, plan);
 }

@@ -2,17 +2,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActorCapabilityPolicy ShopCapabilities =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
-    private static ActorCapabilityPolicy PersonalBarterCapabilities =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
-    private static ActorCapabilityPolicy MarketStockCapabilities(MarketStockActionPlan plan) =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: plan.Choice.Kind == MarketStockKind.Collect && IsEdibleFood(plan.ItemKind),
-            AllowUrgentWarmth: plan.Choice.Kind == MarketStockKind.Collect, AllowActiveOrder: true);
-    private static ActorCapabilityPolicy MarketExchangeCapabilities(MarketExchangeKind kind) =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: kind == MarketExchangeKind.Cancel, AllowActiveOrder: true);
-    private static ActorCapabilityPolicy MarketOccupancyCapabilities(bool leave) =>
-        new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: leave, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy ShopCapabilities => MarketSystem.ShopCapabilities;
+    private static ActorCapabilityPolicy PersonalBarterCapabilities => MarketSystem.PersonalBarterCapabilities;
+    private static ActorCapabilityPolicy MarketStockCapabilities(MarketStockActionPlan plan) => MarketSystem.MarketStockCapabilities(plan);
+    private static ActorCapabilityPolicy MarketExchangeCapabilities(MarketExchangeKind kind) => MarketSystem.MarketExchangeCapabilities(kind);
+    private static ActorCapabilityPolicy MarketOccupancyCapabilities(bool leave) => MarketSystem.MarketOccupancyCapabilities(leave);
 
     private static ActionDefinition<ShopBuyChoice, ShopBuyActionPlan> ShopBuyDefinition => MarketActions.ShopBuy;
     private static ActionDefinition<ShopResponseChoice, ShopResponseActionPlan> ShopResponseDefinition => MarketActions.ShopResponse;

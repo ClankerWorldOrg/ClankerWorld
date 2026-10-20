@@ -150,16 +150,16 @@ internal static class MarketTradeScenario
         var pending = offering.ExportState();
         var bytes = WorldRuntimeCodec.Encode(pending);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(bytes)));
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(pending with
-        {
-            Towns = pending.Towns!.Select(town => town with
+        foreach (var nullReceiptIdentity in new[] { false, true })
+            Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(pending with
             {
-                Markets = town.Markets.Select(item => item with
+                Towns = pending.Towns!.Select(town => town with
                 {
-                    Trades = item.Trades.Select(record => record with { OfferId = null! }).ToArray(),
+                    Markets = town.Markets.Select(item => nullReceiptIdentity
+                        ? item with { StockReceipts = item.StockReceipts.Select(record => record with { Id = null! }).ToArray() }
+                        : item with { Trades = item.Trades.Select(record => record with { OfferId = null! }).ToArray() }).ToArray(),
                 }).ToArray(),
-            }).ToArray(),
-        }));
+            }));
         var forged = pending with
         {
             Towns = pending.Towns!.Select(town => town with

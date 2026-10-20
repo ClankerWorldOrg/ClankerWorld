@@ -491,7 +491,6 @@ public sealed partial class WorldRuntime
         bridges = proposed.bridges;
         bridgeTraffic = proposed.bridgeTraffic;
         conversationSystem = proposed.conversationSystem;
-        shopTrades = proposed.shopTrades;
         roadBridgeDecks = proposed.roadBridgeDecks;
         nextInstructionSequence = proposed.nextInstructionSequence;
         actionRefusals = proposed.actionRefusals;
