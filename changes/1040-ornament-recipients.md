@@ -1,1 +1,0 @@
-- Full-handed neighbors no longer hide a nearby adult who can receive an ornament.

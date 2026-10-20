@@ -1,1 +1,0 @@
-- Market stall borrowing and leaving retain the selected stall, household, qualifying goods and occupancy through shared checks.

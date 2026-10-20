@@ -97,6 +97,11 @@ public partial class Main
     private void ActivateMapTile(OwnerWorldSnapshot snapshot, Vector2I tile, Vector2 canvasPoint, bool selectAgent = false)
     {
         if (!MapContains(snapshot, tile.X, tile.Y)) return;
+        if (CanPickWorldEditTile)
+        {
+            PickWorldEditTile(snapshot, tile);
+            return;
+        }
         if (movingFounderId is not null && snapshot.FounderSetup is { Started: false })
             _ = MoveFounderAtAsync(tile);
         else if (choosingFirstTownSite && snapshot.FounderSetup is { CanChooseTownSite: true })

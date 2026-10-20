@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -47,16 +48,16 @@ public sealed partial class ServerHttpTests
             var actionA = Action(runtime.Society.WorldId);
             // Obtain real authorization while A is active; delay only delivery.
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             var activeBytes = File.ReadAllBytes(file.Path);
             var runtimeBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             using var refused = await client.PostAsJsonAsync(path, held);
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
             Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
 
             // Changing just the target world cannot retarget an already signed proof.
@@ -77,9 +78,9 @@ public sealed partial class ServerHttpTests
             var current = Action(runtime.Society.WorldId);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, current, Payload(current));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
-            selection.Select(entryA.Id);
+            selection.SelectApprovedModels(entryA.Id);
             Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
-            selection.Select(entryB.Id);
+            selection.SelectApprovedModels(entryB.Id);
             Assert.Equal(jev ? (1, false) : (365, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
         }
         finally { directory.Delete(recursive: true); }
@@ -350,7 +351,7 @@ public sealed partial class ServerHttpTests
         var instructionReceipt = await instruction.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
         Assert.Equal(HttpStatusCode.OK, instruction.StatusCode);
         Assert.NotNull(instructionReceipt);
-        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId);
+        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId.Value);
 
         var beforeAuthoring = WorldRuntimeCodec.Encode(runtime.ExportState());
         var authoringAction = new OwnerAuthoringBatchAction(
@@ -366,11 +367,11 @@ public sealed partial class ServerHttpTests
         var failure = await authoring.Content.ReadFromJsonAsync<OwnerControlFailure>();
 
         Assert.Equal(HttpStatusCode.Conflict, authoring.StatusCode);
-        Assert.Equal("game_world_authoring_pending", failure!.Code);
+        Assert.Equal("world_edit_refused", failure!.Code);
         Assert.Equal(beforeAuthoring, WorldRuntimeCodec.Encode(runtime.ExportState()));
         var queued = Assert.Single(runtime.ExportState().Instructions!);
         Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);
-        Assert.Equal(instructionReceipt.InstructionId, queued.InstructionId);
+        Assert.Equal(instructionReceipt.InstructionId.Value, queued.InstructionId);
         Assert.Equal(instructionAction.TargetAgentId, queued.TargetAgentId);
     }
 }

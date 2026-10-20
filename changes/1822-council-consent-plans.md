@@ -1,1 +1,0 @@
-- Council candidacy choices retain their selected nominee and term when checked again before they apply.

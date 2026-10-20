@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
     private const int ComfortableFullness = NeedThresholds.ComfortableFullness;
     private const int ComfortableWarmth = NeedThresholds.ComfortableWarmth;
     private const int UrgentFullness = NeedThresholds.UrgentFullness;
-    private const int UrgentWarmth = NeedThresholds.UrgentWarmth;
+    private const int UrgentWarmth = ClankerWorld.Contracts.NeedStates.ColdThreshold;
     // Provisional routine and outing reserves, not owner-approved balance.
     private const int RoutineFoodSeekFullness = NeedThresholds.RoutineFoodSeekFullness;
     private const int OutingFullnessReserve = 3_000;
@@ -244,12 +244,12 @@ public sealed partial class WorldRuntime
             survivalState = new SurvivalState(WorldTick, []);
             // Do not retroactively rot years of legacy inventory on migration.
             ApplyInventoryTransition(inventory => InventoryAuthority.ProcessSpoilage(inventory, WorldTick, 0));
-            AppendEvent("survival_activated", "weather_equipment_and_food");
+            AppendEvent(new SurvivalActivatedEventPayload(null));
         }
         var existingIds = worldSimulation.Buildings.Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);
         foreach (var fire in survivalState.Fires.Where(fire => fire.FuelUntilTick <= WorldTick || !existingIds.Contains(fire.BuildingId)))
         {
-            AppendEvent("fire_extinguished", fire.BuildingId);
+            AppendEvent(new FireExtinguishedEventPayload(null, fire.BuildingId));
         }
         survivalState = survivalState with
         {
@@ -276,7 +276,7 @@ public sealed partial class WorldRuntime
             agents[person.AgentId] = person with { Survival = old with { WarmthBasisPoints = warmth, IllnessBasisPoints = illness } };
             if (old.WarmthBasisPoints / 2_500 != warmth / 2_500 || old.IllnessBasisPoints / 2_500 != illness / 2_500)
             {
-                AppendEvent("survival_condition_changed", $"{person.AgentId}:warmth={warmth}:illness={illness}");
+                AppendEvent(new SurvivalConditionChangedEventPayload(person.AgentId, warmth, illness));
             }
         }
     }
@@ -335,11 +335,12 @@ public sealed partial class WorldRuntime
         var borrowedTool = pickup.ItemKind == "tool" || ToolProgressionRules.Find(pickup.ItemKind) is not null;
         var keepOwner = pickup.OwnerId == actor ||
             borrowedTool && pickup.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId;
+        var operationId = DerivedId.Create($"equipment:{WorldTick}:{actor}:{pickup.ItemKind}");
         ApplyInventoryTransition(inventory => keepOwner
-            ? InventoryAuthority.Relocate(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}", pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, $"equipment:{WorldTick}:{actor}:{pickup.ItemKind}",
+            ? InventoryAuthority.Relocate(inventory, operationId, pickup.StockId, pickup.OwnerId, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
+            : InventoryAuthority.Transfer(inventory, operationId,
                 pickup.OwnerId, actor, pickup.StockId, 1, "equipment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-        AppendEvent("equipment_collected", $"{actor}:{pickup.ItemKind}");
+        AppendEvent(new EquipmentCollectedEventPayload(actor, pickup.ItemKind));
     }
 
     private bool HasCarriedEquipmentAtLeast(string actor, string kind)
@@ -350,7 +351,7 @@ public sealed partial class WorldRuntime
         return carried is not null && ToolProgressionRules.Find(carried.ItemKind)!.Tier >= requested.Tier;
     }
 
-    private sealed record FireFuelEffect(string BuildingId, string FuelReservationId);
+    private sealed record FireFuelEffect(string BuildingId, Identity FuelReservationId);
 
     private FireFuelEffect? TendFireAt(string actor, AgentState person, PlacedBuilding building)
     {
@@ -378,13 +379,13 @@ public sealed partial class WorldRuntime
 
     private FireFuelEffect CompleteFireFuel(string actor, PlacedBuilding building, string fuelId)
     {
-        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
         var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuelId, 1, "heating_fuel"));
-        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id) &&
+        var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id.Value) &&
             item.OwnerId == actor && item.LotId == fuelId && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
             item.State == InventoryReservationState.Completed && item.ExpiryTick == WorldTick);
         survivalState = survivalState! with { Fires = survivalState.Fires.Append(new BuildingFireState(building.InstanceId, WorldTick + 120)).ToArray() };
-        AppendEvent("fire_fuelled", building.InstanceId);
+        AppendEvent(new FireFuelledEventPayload(null, building.InstanceId));
         return new FireFuelEffect(building.InstanceId, payment.Id);
     }
 
@@ -414,11 +415,9 @@ public sealed partial class WorldRuntime
         var kinds = IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId))
             ? PreparedMealGoods : GoodsKinds.One(output.ResourceId);
         var available = HoldingsTotal(owners, kinds);
-        var residentCount = ownerId is null ? agents.Count :
-            agents.Values.Count(person => society.Checkpoint.GetAgent(person.AgentId).HouseholdId == ownerId);
-        var target = IsPreparedMeal(output.ResourceId) ? Math.Max(2, residentCount * 2)
-            : output.ResourceId == "food" ? agents.Count * 4 : Math.Max(1, agents.Count);
-        return available < target;
+        return available < (IsPreparedMeal(output.ResourceId) ? Math.Max(2, (ownerId is null ? agents.Count :
+            society.Checkpoint.Agents.Count(person => person.HouseholdId == ownerId && agents.ContainsKey(person.Id))) * 2)
+            : output.ResourceId == "food" ? agents.Count * 4 : Math.Max(1, agents.Count));
     }));
 
     /// <summary>One usable family tool per adult, counting better tools and work already paid for.</summary>
@@ -472,19 +471,8 @@ public sealed partial class WorldRuntime
     {
         if (IsPreparedMeal(lot.ItemKind)) return lot.ItemKind;
         var inventory = society.Checkpoint.Inventory;
-        var visited = new HashSet<string>(StringComparer.Ordinal);
-        var originId = lot.Id;
-        while (lot.ProvenanceLotId is { } parent && visited.Add(lot.Id))
-        {
-            originId = parent;
-            if (inventory.Lots.FirstOrDefault(item => item.Id == parent) is not { } source)
-            {
-                break;
-            }
-            lot = source;
-        }
-        var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
-            .FirstOrDefault(job => originId.StartsWith(job.JobId + ":output:", StringComparison.Ordinal));
+        (lot, var originId) = InventoryIndex.For(inventory).ProvenanceOrigin(lot);
+        var job = WorldProductionJob.OutputSource(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? []), originId);
         if (job is not null)
         {
             return worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == job.RecipeId)?.IsCrop == true ? "crops" : "cooked";
@@ -538,7 +526,7 @@ public sealed partial class WorldRuntime
             (food.ItemKind == "restaurant_meal" ? 500 : food.ItemKind is "berry_porridge" or "fruit_porridge" ? 250 : 0), 0, 10_000);
         var illness = Math.Clamp(condition.IllnessBasisPoints +
             (food.FreshnessBasisPoints < 2_500 ? SpoiledMealIllnessIncreaseBasisPoints : -FreshMealIllnessReliefBasisPoints), 0, 10_000);
-        AppendEvent("meal_eaten", $"{person.AgentId}:{kind}:nutrition={nutrition}");
+        AppendEvent(new MealEatenEventPayload(person.AgentId, kind, nutrition));
         return condition with { NutritionBasisPoints = nutrition, LastMealKind = kind, IllnessBasisPoints = illness };
     }
 

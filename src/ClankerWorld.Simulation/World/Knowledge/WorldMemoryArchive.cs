@@ -34,6 +34,6 @@ public sealed partial class WorldRuntime
         if (ReferenceEquals(before, archived)) return;
         society.Apply(_ => new SocietyOperationResult(archived));
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_memories_archived", $"{archived.ArchivedMemories.Count - before.ArchivedMemories.Count}:{archived.ArchivedBeliefs.Count - before.ArchivedBeliefs.Count}");
+        AppendEvent(new AgentMemoriesArchivedEventPayload(null, archived.ArchivedMemories.Count - before.ArchivedMemories.Count, archived.ArchivedBeliefs.Count - before.ArchivedBeliefs.Count));
     }
 }

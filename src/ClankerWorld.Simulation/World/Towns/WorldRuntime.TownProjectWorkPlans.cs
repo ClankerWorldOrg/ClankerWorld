@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
             if (!TownProjectHasAllMaterials(town, project) || !project.Deliveries.Where(delivery => delivery.DeliveredTick is not null && delivery.ReleasedTick is null)
                     .SequenceEqual(plan.DeliveredMaterials))
                 return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected delivered project budget has changed");
-            if (plan.Hammer is { } hammer && (TownProjectGatheringTool(plan.Actor, hammer.ToolLotId) is not { } selectedHammer || selectedHammer.ConditionBasisPoints <= 0 ||
+            if (plan.Hammer is { } hammer && (CarriedTownProjectTool(plan.Actor, hammer.ToolLotId) is not { } selectedHammer || selectedHammer.ConditionBasisPoints <= 0 ||
                     selectedHammer.FreshnessBasisPoints <= 0 || AvailableLotQuantity(selectedHammer) <= 0 ||
                     ToolProgressionRules.Find(selectedHammer.ItemKind) is not { Family: ToolFamily.Hammer } definition ||
                     definition.WorkUnits != hammer.WorkUnits || definition.WearLossBasisPoints != hammer.WearLossBasisPoints))

@@ -31,14 +31,8 @@ internal static class WorldProductionOrderCatalog
 
     private static Dictionary<string, Entry> BuildEntries()
     {
-        ContentPackageManifest[] packages =
-        [
-            StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseCookingContent.Create(), FarmContent.Create(),
-            AnimalContent.Create(), BlacksmithContent.Create(), TailorContent.Create(), PotteryContent.Create(), OrnamentContent.Create(), CareContent.Create(),
-            RestaurantContent.Create(), RestaurantVariantContent.Create(),
-        ];
         var result = new Dictionary<string, Entry>(StringComparer.Ordinal);
-        foreach (var package in packages)
+        foreach (var package in StarterContent.InitialTownManifests)
             foreach (var definition in package.Definitions.Where(definition => definition.Kind == RecipeDefinition.SchemaKind))
             {
                 var names = NamesFor(package.PackageId, definition.LocalId);

@@ -1,0 +1,1 @@
+- Walking checks avoid temporary terrain work when the saved geography layers already answer the question.
