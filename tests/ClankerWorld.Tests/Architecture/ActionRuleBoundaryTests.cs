@@ -32,10 +32,12 @@ public sealed class ActionRuleBoundaryTests
                     var third = actor.FullnessBasisPoints < 6_000;
                     var fourth = actor is { WarmthBasisPoints: < 3_500 };
                     FindUnoccupiedRoute(actor, origin, target, 0);
+                    world.FindUnoccupiedRoute(actor, origin, target, 0);
+                    world?.FindUnoccupiedRoute(actor, origin, target, 0);
                     return LifeStageRules.IsChild(actor.AgeBand) && actor.FullnessBasisPoints < NeedThresholds.ChildHelpingFullness;
                 }
             }
             """;
-        Assert.Equal(5, ActionRuleScan.Expressions(source).Length);
+        Assert.Equal(7, ActionRuleScan.Expressions(source).Length);
     }
 }
