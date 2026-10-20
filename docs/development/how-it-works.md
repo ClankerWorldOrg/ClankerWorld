@@ -3465,6 +3465,14 @@ keeps its original site, budget, selected goods and quantities. Named capability
 policies feed the existing checks, including urgent personal returns, before
 the original native effects apply. Project names bind on the retained proposal.
 
+Internal project-input delivery, pickup, harvest and waiting share one native
+definition. The existing continuation passes its selected input, owner and site
+to the planner once, then checks and applies that retained step. It keeps the
+public project goal ID and has no personal-action decoder. A dedicated internal
+phase requires the typed plan, so it cannot grant fresh property authority.
+Every registered plan now checks through its definition; the legacy check switch
+has been removed. Shared age/need/route rules and offer caps remain under audit.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may
