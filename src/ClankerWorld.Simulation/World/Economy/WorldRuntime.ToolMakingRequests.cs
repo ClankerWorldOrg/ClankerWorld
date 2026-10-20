@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
                 candidates.Add(new(ToolRequestChoice("withdraw", request.Id),
                     "Withdraw your tool request. Household materials and work remain household property.", PersonalToolRequestPriority, request.BuildingInstanceId));
                 if (ToolRequestCollectionChoice.Decode(ToolRequestChoice("collect", request.Id)) is { } collectChoice &&
-                    PlanToolRequestCollection(actor, collectChoice) is { } collection && CheckToolRequestCollectionPlan(collection).Allowed)
+                    PlanToolRequestCollection(actor, collectChoice) is { } collection && CheckActionPlan(collection).Allowed)
                 {
                     if (!IsWithinInteractionRange(agents[actor].Position, collection.Smith.Position, ResourceInteractionRange))
                         candidates.Add(new(ToolRequestChoice("collect", request.Id), "Walk to the Blacksmith to discuss payment for the finished tool.", 14, collection.Smith.InstanceId) { ActionPlan = collection });
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
             }
             else if (ToolRequestWorkChoice.Decode(ToolRequestChoice("work", request.Id)) is { } workChoice &&
                      PlanToolRequestWork(actor, workChoice) is { } work &&
-                     CheckToolRequestWorkPlan(work).Allowed)
+                     CheckActionPlan(work).Allowed)
                 candidates.Add(new(ToolRequestChoice("work", request.Id),
                     "Continue the accepted tool work using its ordinary household production plan.", 30, request.BuildingInstanceId)
                 { ActionPlan = work });
@@ -176,27 +176,6 @@ public sealed partial class WorldRuntime
     }
 
     // Authority-changing actions above never execute from a continuing or fallback intention.
-    private void ApplyToolMakingRequestCandidate(string actor, AgentState person, string candidate, bool freshChoice, ActionPlan? originalPlan = null)
-    {
-        if (ToolRequestVisitChoice.Decode(candidate) is { } choice)
-        {
-            var plan = originalPlan as ToolRequestVisitActionPlan ?? PlanToolRequestVisit(actor, choice);
-            if (plan is not null) ApplyToolRequestVisitPlan(plan);
-            return;
-        }
-        if (ToolRequestWorkChoice.Decode(candidate) is { } workChoice)
-        {
-            var plan = originalPlan as ToolRequestWorkActionPlan ?? PlanToolRequestWork(actor, workChoice);
-            if (plan is not null) ApplyToolRequestWorkPlan(plan, freshChoice);
-            return;
-        }
-        if (ToolRequestCollectionChoice.Decode(candidate) is { } collectionChoice)
-        {
-            var plan = originalPlan as ToolRequestCollectionActionPlan ?? PlanToolRequestCollection(actor, collectionChoice);
-            if (plan is not null) ApplyToolRequestCollectionPlan(plan);
-        }
-    }
-
     private void CompleteToolRequestCollection(ToolRequestCollectionActionPlan plan)
     {
         if (!IsWithinInteractionRange(agents[plan.Actor].Position, plan.Smith.Position, ResourceInteractionRange))

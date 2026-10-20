@@ -20,11 +20,11 @@ public sealed partial class WorldRuntime
         return new(actor, choice, building, definition, request);
     }
 
-    private ActionCheck CheckToolRequestConsentPlan(ToolRequestConsentActionPlan plan)
+    private ActionCheck CheckToolRequestConsentPlan(ToolRequestConsentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var placing = plan.Choice.Kind == ToolRequestConsentKind.Place;
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: !placing, AllowUrgentWarmth: !placing, AllowActiveOrder: true));
+            policy ?? ToolRequestConsentCapabilities(plan.Choice.Kind));
         if (!capability.Allowed) return capability;
         if (PendingInstructionFor(plan.Actor)?.Kind == OwnerInstructionKind.Order ||
             worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == plan.Shop.InstanceId) != plan.Shop ||
@@ -59,32 +59,31 @@ public sealed partial class WorldRuntime
             if (ToolRequestCollectionChoice.Decode(candidate.Id) is { } collect)
             {
                 if ((candidate.ActionPlan as ToolRequestCollectionActionPlan ?? PlanToolRequestCollection(actor, collect)) is { } collection &&
-                    CheckToolRequestCollectionPlan(collection).Allowed)
+                    CheckActionPlan(collection).Allowed)
                     candidates.Add(candidate with { ActionPlan = collection });
                 continue;
             }
             if (ToolRequestWorkChoice.Decode(candidate.Id) is { } work)
             {
                 if ((candidate.ActionPlan as ToolRequestWorkActionPlan ?? PlanToolRequestWork(actor, work)) is { } continuation &&
-                    CheckToolRequestWorkPlan(continuation).Allowed)
+                    CheckActionPlan(continuation).Allowed)
                     candidates.Add(candidate with { ActionPlan = continuation });
                 continue;
             }
             if (ToolRequestVisitChoice.Decode(candidate.Id) is { } visit)
             {
-                if (PlanToolRequestVisit(actor, visit) is { } journey && CheckToolRequestVisitPlan(journey).Allowed)
+                if (PlanToolRequestVisit(actor, visit) is { } journey && CheckActionPlan(journey).Allowed)
                     candidates.Add(candidate with { ActionPlan = journey });
                 continue;
             }
             if (ToolRequestConsentChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (PlanToolRequestConsent(actor, choice) is { } plan && CheckToolRequestConsentPlan(plan).Allowed)
+            if (PlanToolRequestConsent(actor, choice) is { } plan && CheckActionPlan(plan).Allowed)
                 candidates.Add(candidate with { ActionPlan = plan });
         }
     }
 
     private void ApplyToolRequestConsentPlan(ToolRequestConsentActionPlan plan)
     {
-        if (CheckToolRequestConsentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteToolRequestConsent(plan);
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(plan.Actor, agents[plan.Actor], plan.CandidateId, false, plan));
     }
 }
