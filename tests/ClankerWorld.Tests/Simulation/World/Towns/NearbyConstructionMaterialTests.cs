@@ -62,6 +62,37 @@ public sealed class NearbyConstructionMaterialTests
             reason => reason.Code == TownConstructionSiteReasonCodes.NearbyMaterial);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DenseMaterialRingsAtNorthEdgeUseCanonicalWrappedDistance(bool wrap)
+    {
+        var map = Meadow(40, 40, wrap);
+        var anchor = new GridPoint(wrap ? 39 : 10, 0);
+        var costs = new Dictionary<GridPoint, int> { [anchor] = 100 };
+        var definition = Definition();
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(
+            new(map, null, [], costs, [], []), definition, anchor, out var plain));
+        var far = Enumerable.Range(0, 30).Select(index =>
+            new TownLayoutResource(new("far-" + index, "wood", new(index, 30), false), true)).ToArray();
+
+        for (var dy = 0; dy <= 6; dy++)
+            for (var dx = -6; dx <= 6; dx++)
+            {
+                var source = map.WrapColumn(new GridPoint(anchor.X + dx, anchor.Y + dy));
+                var nearby = new TownLayoutResource(new("nearest", "construction", source, false), true);
+                var context = new TownLayoutContext(map, null, [], costs, far.Append(nearby), []);
+                var candidate = Assert.Single(TownLayoutService.RankConstructionSites(context, definition));
+                var distance = map.FootDistance(anchor, source);
+                Assert.Equal(plain!.Score + (distance <= 1 ? 12 : distance <= 3 ? 8 : distance <= 5 ? 4 : 0), candidate.Score);
+                var reasons = candidate.Reasons.Where(reason => reason.Code == TownConstructionSiteReasonCodes.NearbyMaterial);
+                if (distance <= 5)
+                    Assert.Equal($"Available wood is {distance} map tile(s) away.", Assert.Single(reasons).Description);
+                else
+                    Assert.Empty(reasons);
+            }
+    }
+
     private static WorldMap Meadow(int width, int height, bool wrap) => new(width, height, 0,
         (from y in Enumerable.Range(0, height)
          from x in Enumerable.Range(0, width)

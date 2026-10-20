@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
                 .ThenBy(item => item.GuestId, StringComparer.Ordinal).ToArray(),
         });
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent(invited ? "house_guest_invited" : "house_guest_revoked", $"{houseId}:{actor}:{guestId}");
+        AppendEvent(invited ? new HouseGuestInvitedEventPayload(actor, houseId, guestId) : new HouseGuestRevokedEventPayload(actor, houseId, guestId));
         return new(true);
     }
 

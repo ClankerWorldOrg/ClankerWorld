@@ -6,8 +6,9 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>
 /// A building in the world. <see cref="Entrance"/> is the ground tile just
 /// outside its door, beside one edge of the footprint; the door is on that
-/// side. It is set when the building's Road is laid, and is null for a
-/// building without a Road.
+/// side. Town placements retain a usable entrance even if their Road cannot
+/// connect; a connected Road can choose another side. A null entrance uses
+/// the effective footprint's south-facing door.
 /// For a paid street lantern, Position is its one-tile roadside site and
 /// Entrance is the immutable adjacent Road tile approved by the Council.
 /// Their cardinal difference binds the fitting's Road edge, rather than a door.
@@ -38,10 +39,13 @@ public sealed record WorldProductionJob(
     long StartedTick,
     long CompletionTick,
     WorldProductionJobState State,
-    IReadOnlyList<string> InputReservationIds,
+    IReadOnlyList<Identity> InputReservationIds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolLotId = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ToolMakingRequestId = null)
 {
+    internal static WorldProductionJob? OutputSource(IEnumerable<WorldProductionJob> jobs, string originId) =>
+        jobs.FirstOrDefault(job => originId.StartsWith(job.JobId + ":output:", StringComparison.Ordinal));
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public long? PausedAtTick { get; init; }
 
@@ -61,6 +65,8 @@ public sealed record WorldContentSimulationState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HouseGuestInvitation>? GuestInvitations = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WorldConstructionReceipt>? ConstructionReceipts = null)
 {
+    [JsonRequired] public long ArchivedProductionJobCount { get; init; }
+
     public static WorldContentSimulationState Empty { get; } = new([], [], 1, []);
 }
 
@@ -113,7 +119,7 @@ public static class WorldContentSimulationRules
         ArgumentNullException.ThrowIfNull(map);
         ArgumentOutOfRangeException.ThrowIfNegative(worldTick);
         definitions.Validate();
-        ProductionSystem.ValidateJobs(state.ProductionJobs, state.NextProductionJobSequence, state.CropBuilds);
+        ProductionSystem.ValidateJobs(state.ProductionJobs, state.NextProductionJobSequence, state.CropBuilds, state.ArchivedProductionJobCount);
 
         var buildingDefinitions = definitions.BuildingDefinitions;
         var recipeDefinitions = definitions.Recipes.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
@@ -150,8 +156,9 @@ public static class WorldContentSimulationRules
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid footprint.");
             }
 
-            if (building.Entrance is { } entrance &&
-                (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance)))
+            var entrance = BuildingMovementRules.EntranceFor(definition, building);
+            if (!map.IsBuildable(entrance) || !IsEntrance(definition, building.Position, entrance) ||
+                existing.Any(item => Footprint(item.Definition, item.Placement).Contains(entrance)))
             {
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid entrance.");
             }

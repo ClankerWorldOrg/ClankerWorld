@@ -136,7 +136,7 @@ public sealed partial class WorldRuntime
             ContinueLesson(plan.Actor, plan.WaitingForModel, plan);
             return;
         }
-        SetLesson(plan.StudentId, plan.Original! with
+        SetLesson(plan.StudentId, agents[plan.StudentId].Lesson! with
         {
             Stage = plan.Choice.Kind switch
             { LearningChoiceKind.Accept => "accepted", LearningChoiceKind.Cancel => "cancelled", _ => "declined" }
@@ -176,7 +176,7 @@ public sealed partial class WorldRuntime
             var memoryId = LessonGratitudeMemoryId(student.AgentId, actor, lesson.Skill);
             if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
             {
-                society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(memoryId, student.AgentId, actor,
+                society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(memoryId), student.AgentId, actor,
                     $"Learned {lesson.Skill.ToString().ToLowerInvariant()} with {checkpoint.GetAgent(actor).Name}.", "public", WorldTick)
                 { Kind = SocietyMemoryKind.Skill }));
             }
@@ -190,7 +190,7 @@ public sealed partial class WorldRuntime
         if (person.Lesson?.Stage != lesson.Stage)
         {
             lesson = lesson with { LastTransitionTick = WorldTick };
-            AppendEvent("lesson_" + lesson.Stage, student);
+            AppendEvent(WorldEvents.Lesson(lesson.Stage, student));
         }
         agents[student] = person with { Lesson = lesson };
     }

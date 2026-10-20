@@ -112,7 +112,8 @@ public sealed partial class HandcartRuntimeTests
         var chooser = new ActionCoverageRecorder();
         IDecisionProvider Provider(string id) => id == actor ? chooser : new ActionCoverageRecorder(chooseIdle: true);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
-        for (var tick = 0; tick < 40; tick++)
+        // Field work can occupy several ticks between ordinary choices.
+        for (var tick = 0; tick < 120 && chooser.Chosen.Values.Sum() < 5; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), Provider);
@@ -438,7 +439,7 @@ public sealed partial class HandcartRuntimeTests
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         Assert.Equal(percent, Assert.Single(snapshot.Handcarts).ConditionPercent);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         var text = GameUiText.HandcartDescription(Assert.Single(client.Handcarts));
         Assert.StartsWith("Handcart · " + status, text, StringComparison.Ordinal);
         Assert.Contains($"Condition: {percent}%", text, StringComparison.Ordinal);
@@ -464,7 +465,7 @@ public sealed partial class HandcartRuntimeTests
         Assert.Equal((16, 32, 100, person.AgentId), (cart.Cargo.Sum(item => item.Quantity), cart.Capacity, cart.ConditionPercent, cart.PullerId));
         Assert.DoesNotContain(snapshot.Agents.Single(item => item.Id == person.AgentId).Inventory, item => item.Kind == "handcart" || item.Kind == "wood");
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         var text = GameUiText.HandcartDescription(Assert.Single(client.Handcarts));
         Assert.Contains("Pulled by", text, StringComparison.Ordinal);
         Assert.Contains("Cargo: 16/32", text, StringComparison.Ordinal);

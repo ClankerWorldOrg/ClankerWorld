@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace ClankerWorld.Server.Pairing;
@@ -27,6 +28,22 @@ public sealed class OwnerAuthorityStateFile
 
     public string Path { get; }
     public long WriteCount => Interlocked.Read(ref writeCount);
+
+    /// <summary>
+    /// The server authority ID this file already holds, or a new random one for
+    /// a server that has none yet. New IDs carry nothing about the computer;
+    /// stored IDs stay unchanged across restarts so existing pairings remain valid.
+    /// </summary>
+    public string StoredOrNewServerAuthorityId()
+    {
+        lock (gate)
+        {
+            if (!File.Exists(Path)) return Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+            var state = JsonSerializer.Deserialize<OwnerAuthorityState>(File.ReadAllText(Path), JsonOptions);
+            return state?.Authority?.ServerAuthorityId ??
+                throw new InvalidDataException("The owner-authority state file has no server authority.");
+        }
+    }
 
     public OwnerAuthorityStore LoadOrCreate(
         OwnerAuthorityIdentity initialIdentity,
@@ -69,6 +86,20 @@ public sealed class OwnerAuthorityStateFile
         }
     }
 
+    /// <summary>
+    /// Revokes a device so that the revocation is on disk before any request
+    /// can see it. A failed write leaves the device active and throws.
+    /// </summary>
+    public OwnerAuthorityResult<OwnerDevice> RevokeDevice(OwnerAuthorityStore store, string deviceId)
+    {
+        ArgumentNullException.ThrowIfNull(store);
+        // Same lock order as Save: this file's gate, then the store's.
+        lock (gate)
+        {
+            return store.RevokeDevice(deviceId, SaveUnsafe);
+        }
+    }
+
     public void Save(OwnerAuthorityStore store)
     {
         ArgumentNullException.ThrowIfNull(store);
@@ -87,17 +118,19 @@ public sealed class OwnerAuthorityStateFile
         }
         var directory = System.IO.Path.GetDirectoryName(Path) ??
             throw new InvalidOperationException("The owner-authority state path has no directory.");
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
 
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(Path)}.{Guid.NewGuid():N}.tmp");
         try
         {
-            File.WriteAllText(temporaryPath, json);
-            RestrictPermissions(temporaryPath);
+            using (var stream = PrivateStorage.CreateNew(temporaryPath))
+            {
+                stream.Write(System.Text.Encoding.UTF8.GetBytes(json));
+            }
             File.Move(temporaryPath, Path, overwrite: true);
-            RestrictPermissions(Path);
+            PrivateStorage.RestrictFile(Path);
             lastSavedJson = json;
             Interlocked.Increment(ref writeCount);
         }
@@ -112,14 +145,4 @@ public sealed class OwnerAuthorityStateFile
 
     private static string SerializeDurable(OwnerAuthorityState state) =>
         JsonSerializer.Serialize(state with { Challenges = [] }, JsonOptions);
-
-    private static void RestrictPermissions(string path)
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(
-                path,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-    }
 }
