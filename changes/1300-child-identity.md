@@ -1,1 +1,0 @@
-- Children born in the world choose their own personality and aspiration after infancy, using their parents' chosen identities as background. Unusable replies keep the choice pending for a later ordinary decision.

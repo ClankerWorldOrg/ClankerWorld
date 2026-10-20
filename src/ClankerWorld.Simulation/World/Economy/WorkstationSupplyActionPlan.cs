@@ -3,7 +3,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed record WorkstationSupplyChoice(string ItemKind)
 {
     public const string Prefix = "supply_workstation:";
-    public string Encode() => Prefix + ItemKind;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ItemKind);
     public static WorkstationSupplyChoice? Decode(string value) => value.StartsWith(Prefix, StringComparison.Ordinal) && value.Length > Prefix.Length
         ? new(value[Prefix.Length..]) : null;
 }

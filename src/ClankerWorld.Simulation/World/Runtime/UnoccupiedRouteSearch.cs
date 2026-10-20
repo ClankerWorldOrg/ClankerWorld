@@ -6,8 +6,8 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>
 /// Dijkstra's search over legal traveler steps from one origin, for routes that
 /// avoid occupied tiles, run only as far as the questions asked of it need.
-/// Tiles leave the queue in one fixed order (cost, then row, column and the
-/// order they were queued) whatever is asked, and a tile's route is final once
+/// Tiles leave the queue by cost and row-major tile index (row then column),
+/// whatever is asked, and a tile's route is final once
 /// it leaves. So the first tile within range of a destination, and the route to
 /// it, are exactly what a fresh search for that destination alone would find,
 /// and many questions from one origin cost at most one search of the map.
@@ -18,11 +18,12 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, GridPoint, int> stepCost;
     private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly Func<GridPoint, GridPoint, bool>? canStep;
+    private readonly Func<GridPoint, GridPoint, bool>? canStop;
     private readonly int[] best;
     private readonly int[] predecessor;
     private readonly int[] finishedOrder;
-    private readonly PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)> open = new();
-    private int order;
+    private readonly PriorityQueue<GridPoint, (int Cost, int TileIndex)> open = new();
     private int finished;
     private bool disposed;
 
@@ -31,13 +32,18 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     /// <param name="occupied">Tiles a route may not enter, nor cut past diagonally. The search keeps the set, so it must not change.</param>
     /// <param name="stepCost">The cost of one foot step; it must stay the same while the search is used.</param>
     /// <param name="neighbors">Legal steps for this traveler; defaults to ordinary foot movement. It must stay the same while the search is used.</param>
+    /// <param name="canStep">Additional reversible edge rules, such as building walls; stable for this search.</param>
+    /// <param name="canStop">Whether a reached tile is an eligible approach to the destination.</param>
     public UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
-        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null)
+        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
     {
         this.map = map ?? throw new ArgumentNullException(nameof(map));
         this.occupied = occupied ?? throw new ArgumentNullException(nameof(occupied));
         this.stepCost = stepCost ?? throw new ArgumentNullException(nameof(stepCost));
         this.neighbors = neighbors;
+        this.canStep = canStep;
+        this.canStop = canStop;
         if (!map.Contains(origin))
             throw new ArgumentOutOfRangeException(nameof(origin));
         Origin = origin;
@@ -48,7 +54,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         Array.Fill(best, int.MaxValue, 0, tileCount);
         Array.Fill(finishedOrder, -1, 0, tileCount);
         best[Index(origin)] = 0;
-        open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+        open.Enqueue(origin, (0, Index(origin)));
     }
 
     public GridPoint Origin { get; }
@@ -73,7 +79,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
                 continue;
             finishedOrder[index] = finished++;
             Expand(current, index, priority.Cost);
-            if (map.FootDistance(current, destination) <= interactionRange)
+            if (map.FootDistance(current, destination) <= interactionRange && MayStop(current, destination))
                 goal = index;
         }
         if (goal < 0)
@@ -115,7 +121,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void VisitNeighbor(GridPoint current, int index, int cost, GridPoint next)
     {
-        if (occupied.Contains(next) ||
+        if (canStep?.Invoke(current, next) == false || occupied.Contains(next) ||
             map.IsDiagonalFootStep(current, next) &&
             (occupied.Contains(new GridPoint(next.X, current.Y)) ||
              occupied.Contains(new GridPoint(current.X, next.Y))))
@@ -129,7 +135,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
             return;
         best[nextIndex] = nextCost;
         predecessor[nextIndex] = index;
-        open.Enqueue(next, (nextCost, next.Y, next.X, order++));
+        open.Enqueue(next, (nextCost, nextIndex));
     }
 
     // The tile within range that left the queue first, if any has left it yet.
@@ -147,13 +153,18 @@ public sealed class UnoccupiedRouteSearch : IDisposable
             {
                 var index = y * map.Width + x;
                 if (finishedOrder[index] < 0 || first >= 0 && finishedOrder[index] >= finishedOrder[first] ||
-                    map.FootDistance(new GridPoint(x, y), destination) > interactionRange)
+                    map.FootDistance(new GridPoint(x, y), destination) > interactionRange ||
+                    !MayStop(new GridPoint(x, y), destination))
                     continue;
                 first = index;
             }
         }
         return first;
     }
+
+    // Preserve existing zero-step interactions, even when already inside a building.
+    private bool MayStop(GridPoint point, GridPoint destination) =>
+        point == Origin || canStop?.Invoke(point, destination) != false;
 
     private int Index(GridPoint point) => point.Y * map.Width + point.X;
 }

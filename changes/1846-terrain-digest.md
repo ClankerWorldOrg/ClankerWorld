@@ -1,0 +1,1 @@
+- Terrain checks use less temporary memory when starting or reloading a world.

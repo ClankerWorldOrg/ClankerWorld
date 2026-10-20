@@ -1,1 +1,0 @@
-- Handcart attach, park and give choices retain the selected cart, cargo and recipient, with a reasoned refusal when they change.

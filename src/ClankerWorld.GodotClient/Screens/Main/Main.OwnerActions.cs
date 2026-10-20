@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
@@ -25,7 +26,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(
-                ResolveWorldUri(), authority, deviceId, paused, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, paused, signer, OwnerRequestToken));
             accepted = true;
             return receipt.Changed
                 ? paused ? "World paused" : "World resumed"
@@ -79,7 +80,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             await AwaitCurrentWorldResultAsync(ownerApi.SubmitInstructionAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             completed = true;
             instructionText.Text = string.Empty;
             return InstructionSubmissionResultText(action.Kind, action.Queue);
@@ -116,7 +117,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.CancelOrderAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             completed = true;
             return OrderCancellationResultText(receipt);
         }, retainedSubmission: pending);
@@ -145,7 +146,7 @@ public partial class Main
     private async Task SubmitWorldEditAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            observationSession.Current?.Baseline.Snapshot.Authoring is not { IsPaused: true })
+            observationSession.Current?.Baseline.Snapshot is not { Authoring: { IsPaused: true } authoring } snapshot)
         {
             SetStatus("World editing works only once the world server shows the world as paused. Pause it, then try again.", good: false);
             return;
@@ -161,7 +162,12 @@ public partial class Main
             worldEditRenewable.ButtonPressed);
         var batch = new OwnerAuthoringBatchAction(
             $"authoring_{OwnerPairingProtocol.CreateRequestId()}",
-            [operation]);
+            worldEditAdvanced.ButtonPressed ? [operation] :
+                PickedWorldEditTool is { } tool && PickedWorldEditKind is { } kind
+                ? worldEditTiles.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).Select(tile =>
+                    new OwnerAuthoringOperationAction(tool.Operation, null, kind.Value, null, tile.X, tile.Y, kind.IsRenewable)).ToArray()
+                : [], snapshot.WorldId, authoring.Revision, authoring.RunEpoch, observationSession.Timeline);
+        if (batch.Operations.Count == 0) return;
         if (!TryBeginPendingAuthoring(batch, out var pending))
         {
             return;
@@ -171,12 +177,13 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SubmitAuthoringAsync(
-                ResolveWorldUri(), authority, deviceId, batch, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, batch, signer, OwnerRequestToken));
+            if (!receipt.Applied)
+                throw new OwnerWorldEditRefusedException(receipt.Failure ?? "The server did not say why. Refresh the world, then try again.");
             completed = true;
-            return receipt.Applied
-                ? $"World edit applied: {operation.Kind.Replace('_', ' ')}."
-                : $"World edit refused; nothing changed · {receipt.Failure ?? "the world server did not say why"}";
-        }, retainedSubmission: pending);
+            ClearWorldEditPreview();
+            return "World edit saved. See Developer edit in the Event Log.";
+        }, retainedSubmission: pending, sendingPanel: developerPanel);
         if (completed)
         {
             CompletePendingSubmission(pending);
@@ -227,6 +234,7 @@ public partial class Main
             observationSession.AwaitingFreshBaseline;
         menuResumeButton.Disabled = observationSession.AwaitingFreshBaseline;
         menuSaveWorldButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
+        menuLoadSaveButton.Disabled = menuSaveWorldButton.Disabled;
         menuQuitToMainButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var paused = snapshot?.Authoring?.IsPaused == true;
@@ -238,6 +246,8 @@ public partial class Main
         buildingManagementChoice.Disabled = actionDisabled;
         buildingRemoveButton.Disabled = actionDisabled;
         saveApiKeyButton.Disabled = actionDisabled;
+        deleteApiKeyButton.Disabled = actionDisabled;
+        savedApiKeyChoice.Disabled = actionDisabled;
         apiKeyProviderChoice.Disabled = actionDisabled;
         apiKeyLabelInput.Editable = !actionDisabled;
         apiKeyInput.Editable = !actionDisabled;
@@ -250,8 +260,10 @@ public partial class Main
         var helper = SelectedRoutineHelper();
         var helperModel = helper == "off" ? string.Empty : routineHelperModelPicker.Model;
         applyRoutineHelperButton.Disabled = routineHelperChoice.Disabled ||
-            helper != "off" && (helperModel.Length is < 1 or > 128 || helperModel.Any(char.IsControl));
+            helper != "off" && (!BoundedText.IsValid(helperModel, 128, requireTrimmed: true));
         routineHelperKeyChoice.Disabled = routineHelperChoice.Disabled;
+        routineHelperSetupCheckButton.Disabled = actionDisabled || !supportsRoutineHelper || helper == "off" ||
+            !BoundedText.IsValid(helperModel, 128, requireTrimmed: true);
         applyAgingOverrideButton.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         agingOverrideChoice.Disabled = actionDisabled || !paused || !supportsAgingOverride;
         applyAgingOverrideButton.TooltipText = !supportsAgingOverride ? "This world server can't use the aging override." :
@@ -262,10 +274,6 @@ public partial class Main
             lastObservedAgingOverride = rate;
             lastAgingOverrideWorldId = snapshot.WorldId;
         }
-        serverUrlInput.Editable = registration is null && pendingPairing is null && !isPairingOperation && !isOwnerAction && !isRefreshing;
-        connectButton.Disabled = registeredEndpointInvalid || pendingPairing is not null || isPairingOperation || isOwnerAction || isRefreshing;
-        pairAgainButton.Visible = registration is not null;
-        pairAgainButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
         pauseButton.Disabled = actionDisabled || snapshot is null;
         pauseButton.Visible = snapshot?.FounderSetup is not { Started: false };
         founderSetupButton.Disabled = actionDisabled || snapshot?.FounderSetup is not { Started: false };
@@ -295,7 +303,12 @@ public partial class Main
         submitInstructionButton.TooltipText = deceasedSelected ? "You can't send messages to someone who has died." :
             infantSelected ? "Send messages to an adult who cares for them instead." : "Send this message to the agent.";
         RenderDeveloperEdits(snapshot, actionDisabled);
-        submitWorldEditButton.Disabled = actionDisabled || !paused;
+        submitWorldEditButton.Disabled = actionDisabled || !paused ||
+            !worldEditAdvanced.ButtonPressed && (worldEditTiles.Count == 0 || PickedWorldEditKind is null);
+        worldEditTool.Disabled = actionDisabled || !paused || worldEditTools.Count == 0;
+        worldEditPick.Disabled = worldEditPaint.Disabled = actionDisabled || !paused || PickedWorldEditKind is null;
+        worldEditAdvanced.Disabled = actionDisabled || !paused;
+        worldEditClear.Disabled = isOwnerAction || worldEditTiles.Count == 0;
         worldEditKind.Disabled = actionDisabled || !paused;
         worldEditId.Editable = !actionDisabled && paused;
         worldEditValue.Editable = !actionDisabled && paused;
@@ -312,7 +325,7 @@ public partial class Main
         retryPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing || !CanRetryPendingSubmission(pendingSubmission);
         reviewPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing ||
             observationSession.AwaitingFreshBaseline || snapshot is null;
-        forgetPendingSubmissionButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
+        forgetPendingSubmissionButton.Disabled = isOwnerAction || isRefreshing;
         pairingApprovalId.Editable = !actionDisabled;
         pairingApprovalCode.Editable = !actionDisabled;
         approvePairingButton.Disabled = actionDisabled;
@@ -344,10 +357,6 @@ public partial class Main
         deleteAgentModelCredentialSlotButton.Disabled = actionDisabled ||
             providerConfiguration?.Assignments?.Any(item =>
                 item.CredentialSlotId == SelectedCredentialChoice() && item.SelectionReason is null) == true;
-        // A public key can have only one pending server pairing. Keep the
-        // visible comparison value stable until it expires or activates.
-        pairButton.Disabled = isPairingOperation || deviceKey is null || pendingPairing is not null || registration is not null;
-        forgetRegistrationButton.Disabled = isPairingOperation || registration is null;
     }
 
 }

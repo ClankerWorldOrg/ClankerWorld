@@ -1,1 +1,0 @@
-- Fire tending and warmth choices keep their selected hearth, fuel and protection destination. Changed supplies or routes get a plain refusal; fuel costs, heat duration and the ability to stay in existing cover remain the same.

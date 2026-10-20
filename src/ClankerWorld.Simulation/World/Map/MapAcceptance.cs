@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace ClankerWorld.Simulation.World;
@@ -15,6 +17,16 @@ public sealed record MapValidationResult(bool IsValid, string? Failure)
 public static class MapAcceptance
 {
     private static readonly ConditionalWeakTable<WorldMap, StartingSiteTraversalCache> StartingSiteTraversals = new();
+    internal static readonly SearchValues<byte> ClimateValues = DefinedBytes<ClimateZone>();
+    internal static readonly SearchValues<byte> WaterValues = DefinedBytes<WaterKind>();
+    internal static readonly SearchValues<byte> SurfaceValues = DefinedBytes<SurfaceKind>();
+    internal static readonly SearchValues<byte> VegetationValues = DefinedBytes<VegetationCover>();
+
+    private static SearchValues<byte> DefinedBytes<T>() where T : struct, Enum =>
+        SearchValues.Create(Enum.GetValues<T>().Select(value => Convert.ToByte(value, CultureInfo.InvariantCulture)).ToArray());
+
+    internal static bool IsValidLayer(byte[]? layer, int length, SearchValues<byte>? values = null) =>
+        layer is null || layer.Length == length && (values is null || !layer.AsSpan().ContainsAnyExcept(values));
 
     private sealed class StartingSiteTraversalCache
     {
@@ -74,6 +86,24 @@ public static class MapAcceptance
     private static bool SameLayer(byte[]? current, byte[]? snapshot) =>
         current is null ? snapshot is null : snapshot is not null && current.AsSpan().SequenceEqual(snapshot);
 
+    private static bool HasMisplacedCactus(WorldMap map, byte[] vegetation)
+    {
+        // The complete rectangle and layer length are checked before this scan.
+        var offset = 0;
+        while (offset < vegetation.Length)
+        {
+            var next = vegetation.AsSpan(offset).IndexOf((byte)VegetationCover.Cactus);
+            if (next < 0) break;
+            offset += next;
+            var point = new GridPoint(offset % map.Width, offset / map.Width);
+            if (map.SurfaceAt(point) != SurfaceKind.Sand || map.ClimateAt(point) != ClimateZone.Dry ||
+                map.HydrologyAt(point) != WaterKind.Land || map.ElevationAt(point) >= WorldMap.MountainElevationThreshold)
+                return true;
+            offset++;
+        }
+        return false;
+    }
+
     public static MapValidationResult Validate(WorldMap map, bool allowEmptyStartingSite = false)
     {
         ArgumentNullException.ThrowIfNull(map);
@@ -83,23 +113,18 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("The map dimensions or generation attempt are invalid.");
         }
 
-        if (map.Tiles.Count != map.Width * map.Height ||
-            map.Tiles.Select(tile => tile.Position).Distinct().Count() != map.Tiles.Count ||
-            map.Tiles.Any(tile => !map.Contains(tile.Position)))
+        if (ValidateGrid(map) is not null)
         {
             return MapValidationResult.Invalid("The logical grid is not a complete bounded rectangle.");
         }
 
-        if (map.ClimateZones is { } zones &&
-            (zones.Length != map.Width * map.Height || zones.Any(zone => !Enum.IsDefined((ClimateZone)zone))))
+        var length = checked(map.Width * map.Height);
+        if (!IsValidLayer(map.ClimateZones, length, ClimateValues))
             return MapValidationResult.Invalid("The climate layer is invalid.");
-        if (map.ElevationLevels is { } elevation && elevation.Length != map.Width * map.Height ||
-            map.HydrologyKinds is { } hydrology &&
-                (hydrology.Length != map.Width * map.Height || hydrology.Any(value => !Enum.IsDefined((WaterKind)value))) ||
-            map.SurfaceKinds is { } surfaces &&
-                (surfaces.Length != map.Width * map.Height || surfaces.Any(value => !Enum.IsDefined((SurfaceKind)value))) ||
-            map.VegetationKinds is { } vegetation &&
-                (vegetation.Length != map.Width * map.Height || vegetation.Any(value => !Enum.IsDefined((VegetationCover)value))))
+        if (!IsValidLayer(map.ElevationLevels, length) ||
+            !IsValidLayer(map.HydrologyKinds, length, WaterValues) ||
+            !IsValidLayer(map.SurfaceKinds, length, SurfaceValues) ||
+            !IsValidLayer(map.VegetationKinds, length, VegetationValues))
             return MapValidationResult.Invalid("A generated geography layer is invalid.");
 
         var founder = map.MapObjects.SingleOrDefault(mapObject =>
@@ -112,7 +137,9 @@ public static class MapAcceptance
             return MapValidationResult.Invalid("An empty starting site cannot contain a founder marker.");
 
         var requiredKinds = new[] { "shelter", "storage", "cooking" };
-        if ((!allowEmptyStartingSite || map.MapObjects.Count > 0) && requiredKinds.Any(kind => !map.MapObjects.Any(mapObject =>
+        // Generated settlements use real buildings; their authored camp objects
+        // may be placed individually after founding. Legacy camps require the trio.
+        if (!allowEmptyStartingSite && requiredKinds.Any(kind => !map.MapObjects.Any(mapObject =>
                 string.Equals(mapObject.Kind, kind, StringComparison.Ordinal))))
         {
             return MapValidationResult.Invalid("A required starting-site placement is missing.");
@@ -147,10 +174,7 @@ public static class MapAcceptance
                 !TerrainPlacementRules.CanHoldOrdinaryVegetation(surface)))
             return MapValidationResult.Invalid("A tree or plant stands on sand or other ground that cannot hold it.");
 
-        if (map.VegetationKinds is not null && map.Tiles.Any(tile =>
-                map.VegetationAt(tile.Position) == VegetationCover.Cactus &&
-                (map.SurfaceAt(tile.Position) != SurfaceKind.Sand || map.ClimateAt(tile.Position) != ClimateZone.Dry ||
-                    map.HydrologyAt(tile.Position) != WaterKind.Land || map.ElevationAt(tile.Position) >= WorldMap.MountainElevationThreshold)))
+        if (map.VegetationKinds is { } cover && HasMisplacedCactus(map, cover))
             return MapValidationResult.Invalid("Cacti must stand on desert sand.");
 
         if (!map.Resources.Any(resource => resource.IsRenewable &&
@@ -183,7 +207,24 @@ public static class MapAcceptance
         return MapValidationResult.Valid;
     }
 
-    private static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>
+    internal static string? ValidateGrid(WorldMap map, Span<byte> terrain = default)
+    {
+        if (map.Tiles.Count != (long)map.Width * map.Height)
+            return "The world terrain dimensions are invalid.";
+        var occupied = new bool[map.Tiles.Count];
+        foreach (var tile in map.Tiles)
+        {
+            if (!map.Contains(tile.Position) || !terrain.IsEmpty && !Enum.IsDefined(tile.Terrain))
+                return "The world terrain tile is invalid.";
+            var index = tile.Position.Y * map.Width + tile.Position.X;
+            if (occupied[index]) return "The world terrain has duplicate tiles.";
+            occupied[index] = true;
+            if (!terrain.IsEmpty) terrain[index] = checked((byte)tile.Terrain);
+        }
+        return null;
+    }
+
+    internal static bool IsValidResourcePosition(WorldMap map, MapResource resource) =>
         resource.NaturalObjectKind is "stone_outcrop" or "iron_outcrop" or "gold_outcrop" or "diamond_outcrop"
             ? map.IsPassable(resource.Position)
             : map.IsBuildable(resource.Position);
