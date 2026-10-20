@@ -71,6 +71,11 @@ public sealed partial class WorldRuntime
             .Distinct().GroupBy(definition => definition.PlanType)
             .ToFrozenDictionary(group => group.Key, group => group.ToArray());
 
+    private ActionPlan? PlanRegisteredOrdinaryAction(string actor, string candidate) =>
+        ActionRegistrations.Where(row => row.Phase == ActionPhase.Ordinary && row.Definition is not null)
+            .Select(row => row.Definition!).FirstOrDefault(definition => definition.Matches(candidate))?
+            .PlanCandidate(this, actor, candidate);
+
     private static ActionDefinition? DefinitionFor(ActionPlan plan)
     {
         for (Type? type = plan.GetType(); type is not null; type = type.BaseType)

@@ -829,9 +829,10 @@ public sealed partial class WorldRuntime
         if (attemptedActions is not null) attemptedActions[agentId] = candidateId;
         if (candidateId != "safe_idle") guardianPlacementActions.Add(agentId);
         if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle, plan))) return;
-        if (!AgePermitsCandidate(agentId, candidateId))
+        plan ??= PlanRegisteredOrdinaryAction(agentId, candidateId);
+        if (plan is not null && CheckActionPlan(plan).Refusal is { } refusal)
         {
-            AppendEvent(new AgeActionRejectedEventPayload(agentId, candidateId));
+            RefuseChoice(plan, refusal);
             return;
         }
         if (agents[agentId].Equipment?.Repair is not null && candidateId != "repair_equipment")

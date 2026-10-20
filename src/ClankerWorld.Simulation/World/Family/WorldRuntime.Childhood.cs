@@ -12,9 +12,8 @@ public sealed partial class WorldRuntime
 
     private bool IsChild(string actor) => AgentQueries.IsChild(agentWorld, actor);
 
-    // This is the final world-side gate, in addition to the legal candidate list
-    // used by cognition admission. It also protects continuing intentions after
-    // an age transition and any future direct action caller.
+    // Remaining owner-order compatibility gate. Cognition checks the retained
+    // action plan through its definition, including its declared life stages.
     private bool AgePermitsCandidate(string actor, string candidate) =>
         LifeStageRules.Permits(society.Checkpoint.GetAgent(actor).AgeBand, candidate);
 

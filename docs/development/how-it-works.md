@@ -494,7 +494,10 @@ keeps the original swimming and carried-load rules, with a named purpose.
 
 `ActorCapabilities` checks the life-stage policy declared by each action
 definition. Candidate spelling does not add a second age rule inside that
-primitive. The remaining world/order age gates are still under migration.
+primitive. Cognition prepares an unplanned ordinary step through its registered
+definition once and checks the retained plan before dispatch; application checks
+the same plan again. Only the owner-order compatibility age gate remains under
+migration.
 
 `Actions/LifeStageRules.cs` owns action age eligibility, and
 `Actions/NeedThresholds.cs` names the shared food and warmth thresholds. Child routes use
