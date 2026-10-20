@@ -155,7 +155,7 @@ public sealed partial class WorldRuntime
         public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);
         public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);
         public void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding) => runtime.GenerateRoadBetweenTowns(town, firstBuilding);
-        public bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination) => runtime.CanReachByFootOrSwimming(actor, from, destination);
+        public bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming) => runtime.CanReachTerrain(actor, target, purpose, load, swimming);
         public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
         public bool CanFitHouseResident(string householdId, SocietyAgent proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
         public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);

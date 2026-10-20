@@ -977,7 +977,7 @@ public sealed partial class WorldRuntime
             .ThenBy(resource => resource.Id, StringComparer.Ordinal)
             .FirstOrDefault(resource =>
                 CanGatherFromSource(actor, itemKind, resource, reachableToolCache) &&
-                CanReachByFootOrSwimming(actor, agents[actor].Position, resource.Position) &&
+                CanReachTerrain(actor, resource.Position, ReachPurpose.ProjectInput, 0, SwimmingPolicy.WhenCapable) &&
                 (IsWithinInteractionRange(agents[actor].Position, resource.Position, ResourceInteractionRange) ||
                  Reach(actor, resource.Position, ReachPurpose.ProjectInput, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0) &&
                 (returnTo is null || CanReturnWithHarvest(actor, itemKind, resource, returnTo.Value, returnRange, useHarvestBonus)));
@@ -1011,7 +1011,6 @@ public sealed partial class WorldRuntime
             if (residentId is null)
                 return false;
 
-            var position = agents[residentId].Position;
             foreach (var resource in map.Resources)
             {
                 // Most sources cannot supply this input. Check the cheap kind
@@ -1021,7 +1020,7 @@ public sealed partial class WorldRuntime
                     continue;
 
                 var sourceQuantity = worldSystems.Ecology.GetResource(resource.Id).Quantity;
-                if (sourceQuantity <= 0 || !CanReachByFootOrSwimming(residentId, position, resource.Position))
+                if (sourceQuantity <= 0 || !CanReachTerrain(residentId, resource.Position, ReachPurpose.ProjectInput, 0, SwimmingPolicy.WhenCapable))
                     continue;
 
                 var gatherQuantity = AvailableGatherQuantity(residentId, input.ResourceId, resource, reachableToolCache);

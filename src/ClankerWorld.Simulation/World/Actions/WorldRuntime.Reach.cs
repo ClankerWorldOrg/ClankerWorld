@@ -29,6 +29,15 @@ public sealed partial class WorldRuntime
         IsWithinInteractionRange(origin, target, range) ||
         ReachLeg(actor, origin, target, purpose, range, load, swimming, obstacles).Count > 0;
 
+    // Geography eligibility ignores temporary occupants and needs no physical route.
+    private bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming)
+    {
+        var origin = agents[actor].Position;
+        return map.IsReachableOnFoot(origin, target) ||
+            swimming == SwimmingPolicy.WhenCapable && SwimmingRules.IsReachable(map, origin, target) &&
+            CanSwim(actor, additionalCarriedUnits: load);
+    }
+
     private ReadOnlyCollection<GridPoint> HarvestReturnRoute(string actor, MapResource source, GridPoint destination,
         ReachPurpose purpose, int load, int destinationRange = 0)
     {

@@ -28,11 +28,6 @@ public sealed partial class WorldRuntime
             !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor);
     }
 
-    // Preserve occupancy-independent task selection while permitting an eligible freshwater route.
-    private bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination) =>
-        map.IsReachableOnFoot(from, destination) ||
-        SwimmingRules.IsReachable(map, from, destination) && CanSwim(actor);
-
     private int AgentStepCost(GridPoint from, GridPoint to) =>
         SwimmingRules.IsSwimmingWater(map, from) || SwimmingRules.IsSwimmingWater(map, to)
             ? SwimmingRules.StepCost : RoadStepCost(from, to);

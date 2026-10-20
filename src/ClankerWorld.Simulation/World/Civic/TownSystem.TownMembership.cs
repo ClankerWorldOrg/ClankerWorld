@@ -48,13 +48,12 @@ internal sealed partial class TownSystem
     internal static bool CanWalkToCivicBoard(ITownWorld world, string actor, TownRuntimeState town)
     {
         if (CivicBoard(world, town) is not { } board) return false;
-        var position = world.Agents[actor].Position;
         for (var dy = -WorldRuntime.CivicSharedRules.ResourceInteractionRange; dy <= WorldRuntime.CivicSharedRules.ResourceInteractionRange; dy++)
             for (var dx = -WorldRuntime.CivicSharedRules.ResourceInteractionRange; dx <= WorldRuntime.CivicSharedRules.ResourceInteractionRange; dx++)
             {
                 var tile = world.Map.WrapColumn(new GridPoint(board.X + dx, board.Y + dy));
                 if (world.Map.Contains(tile) && world.IsWithinInteractionRange(tile, board, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
-                    world.CanReachByFootOrSwimming(actor, position, tile))
+                    world.CanReachTerrain(actor, tile, ReachPurpose.CivicVisit, 0, SwimmingPolicy.WhenCapable))
                     return true;
             }
         return false;

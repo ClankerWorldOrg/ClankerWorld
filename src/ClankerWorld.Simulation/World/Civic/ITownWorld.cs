@@ -112,7 +112,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     IEnumerable<PlacedBuilding> WarehousesForTown(string townId);
     bool VesselFits(InventoryLot lot, int room);
     void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding);
-    bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination);
+    bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming);
     PlacedBuilding? HouseForHousehold(string householdId);
     bool CanFitHouseResident(string householdId, SocietyAgent proposedResident);
     List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null);

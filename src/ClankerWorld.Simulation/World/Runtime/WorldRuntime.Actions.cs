@@ -196,7 +196,7 @@ public sealed partial class WorldRuntime
     private IEnumerable<MapResource> EligibleFoodSources(string actor, GridPoint position) => map.Resources
         .Where(resource => resource.Kind is "food" or "fruit" &&
             resources.GetValueOrDefault(resource.Id) == ResourceState.Available &&
-            CanReachByFootOrSwimming(actor, position, resource.Position))
+            CanReachTerrain(actor, resource.Position, ReachPurpose.MaterialGathering, 0, SwimmingPolicy.WhenCapable))
         .OrderBy(resource => map.FootDistance(resource.Position, position))
         .ThenBy(resource => resource.Id, StringComparer.Ordinal)
         .Where(resource => IsWithinInteractionRange(position, resource.Position, ResourceInteractionRange) ||

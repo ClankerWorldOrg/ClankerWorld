@@ -148,7 +148,7 @@ public sealed partial class WorldRuntime
                  knowledge.Facts.Any(fact => fact.OwnerId == instruction.TargetAgentId &&
                     fact.Position == resource.Position &&
                     fact.ResourceKinds.Contains(FoodKnowledgeKind(resource), StringComparer.Ordinal))) &&
-                CanReachByFootOrSwimming(instruction.TargetAgentId, person.Position, resource.Position))
+                CanReachTerrain(instruction.TargetAgentId, resource.Position, ReachPurpose.FoodSource, 0, SwimmingPolicy.WhenCapable))
             .OrderBy(resource => map.FootDistance(person.Position, resource.Position))
             .ThenBy(resource => resource.Id, StringComparer.Ordinal)
             .FirstOrDefault(resource => IsWithinInteractionRange(person.Position, resource.Position, ResourceInteractionRange) ||
