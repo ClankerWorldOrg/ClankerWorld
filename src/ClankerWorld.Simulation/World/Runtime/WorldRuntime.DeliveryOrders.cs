@@ -193,15 +193,11 @@ public sealed partial class WorldRuntime
         var order = current.Task!;
         current = current with
         {
-            Task = order with
-            {
-                TargetStorageBuildingId = order.TargetStorageBuildingId ?? destination.InstanceId,
-                TargetStorageOwnerId = order.TargetStorageOwnerId ?? ownerId,
-                TargetStoragePosition = order.TargetStoragePosition ?? destination.Position,
-                DeliveryRoute = order.DeliveryRoute ?? route,
-                DeliveryLotId = lotId ?? order.DeliveryLotId,
-                DeliveryQuantity = quantity ?? order.DeliveryQuantity,
-            }
+            Task = order.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => task with { TargetStorageBuildingId = order.TargetStorageBuildingId ?? destination.InstanceId, TargetStorageOwnerId = order.TargetStorageOwnerId ?? ownerId, TargetStoragePosition = order.TargetStoragePosition ?? destination.Position, DeliveryRoute = order.DeliveryRoute ?? route, DeliveryLotId = lotId ?? order.DeliveryLotId, DeliveryQuantity = quantity ?? order.DeliveryQuantity },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         checkpointSchemaVersion = StateSchemaVersion;
@@ -232,8 +228,7 @@ public sealed partial class WorldRuntime
                 plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
                 destinationStorageBuildingId: plan.DirectDelivery ? plan.Destination.InstanceId : null,
                 destinationDeliveryBuildingId: plan.DirectDelivery ? null : plan.Destination.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.DirectDelivery ? plan.Destination.InstanceId : null)));
-        AppendEvent(plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
-            $"{actor}:{movedSource.Id}:{plan.ResourceQuantity}:{plan.Destination.InstanceId}");
+        AppendEvent(plan.DirectDelivery ? new OwnerStockDeliveredEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId) : new OwnerStockPickedUpEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId));
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);
     }
 
@@ -248,7 +243,7 @@ public sealed partial class WorldRuntime
                 GatherProjectMaterial(actor, person, instruction.Task!.TargetItemKind!, gather.Source, returnTo: gather.Building.Position);
                 return;
             }
-            SetOrderStatus(instruction, "blocked", DeliveryOrderBlockedReason(instruction, person));
+            SetOrderStatus(instruction, OrderStatus.Blocked, DeliveryOrderBlockedReason(instruction, person));
             return;
         }
         instruction = BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route,
@@ -260,12 +255,16 @@ public sealed partial class WorldRuntime
             BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route, effect.LotId, effect.Quantity);
             return;
         }
-        CreditOrderEffect(instruction, StockDeliveryReceipt(effect.OperationId),
+        CreditOrderEffect(instruction, Identity.Parse(StockDeliveryReceipt(effect.OperationId)),
             instruction.Task!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
         {
-            Task = current.Task! with { DeliveryLotId = null, DeliveryQuantity = null },
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => task with { DeliveryLotId = null, DeliveryQuantity = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
         };
     }
 

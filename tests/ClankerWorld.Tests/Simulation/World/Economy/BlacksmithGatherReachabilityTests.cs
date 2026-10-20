@@ -1,3 +1,4 @@
+using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -21,7 +22,10 @@ public sealed class BlacksmithGatherReachabilityTests
     [InlineData("iron_ore", "unreachable", "gather")]
     public async Task UnreachableStockDoesNotSuppressNativeBlacksmithGathering(string kind, string stock, string orderKind)
     {
-        using var generated = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new ActionCoverageRecorder(chooseIdle: true));
+        // Keep a real return walk and its mid-trip replay, with a nearer
+        // selectable Town for the ore cases. Terrain and sources stay unchanged.
+        using var generated = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new ActionCoverageRecorder(chooseIdle: true),
+            roughTownSite: kind == "iron_ore" ? new GridPoint(90, 64) : null);
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
@@ -79,6 +83,7 @@ public sealed class BlacksmithGatherReachabilityTests
         if (receipt is not null)
         {
             // The ore source is much farther from the smith than the wood source.
+            if (kind == "iron_ore" && orderKind == "supply") Assert.NotEqual("finished", Order(world).Status);
             using var walkingReplay = Restore(world.ExportState(), actor, new SmithChoices(kind));
             for (var tick = 0; tick < 180 && Order(world).Status != "finished"; tick++)
             {

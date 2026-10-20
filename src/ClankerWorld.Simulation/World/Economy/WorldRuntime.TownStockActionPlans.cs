@@ -95,6 +95,6 @@ public sealed partial class WorldRuntime
             holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.WarehouseId)));
         RecordNonLandGoodsCompletion(plan.Actor, lot, plan.Choice.TownId, plan.Quantity, plan.WarehouseId,
             operation, "public_service_goods", availableBefore);
-        AppendEvent("town_resources_stored", $"{plan.Actor}:{plan.Choice.StockId}:{plan.Quantity}:{plan.WarehouseId}");
+        AppendEvent(new TownResourcesStoredEventPayload(plan.Actor, plan.Choice.StockId, plan.Quantity, plan.WarehouseId!));
     }
 }

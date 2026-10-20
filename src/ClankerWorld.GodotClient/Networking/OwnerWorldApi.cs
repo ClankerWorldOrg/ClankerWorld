@@ -13,10 +13,12 @@ namespace ClankerWorld.GodotClient.Networking;
 public sealed class OwnerWorldApi
 {
     private readonly OwnerPairingClient pairing;
+    private readonly TimeProvider timeProvider;
 
-    public OwnerWorldApi(HttpClient httpClient)
+    public OwnerWorldApi(HttpClient httpClient, TimeProvider? timeProvider = null)
     {
-        pairing = new OwnerPairingClient(httpClient);
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        pairing = new OwnerPairingClient(httpClient, timeProvider: this.timeProvider);
     }
 
     public Task<OwnerPairingStart> StartPairingAsync(
@@ -49,8 +51,8 @@ public sealed class OwnerWorldApi
         IOwnerDeviceSigner deviceKey,
         CancellationToken cancellationToken)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(4));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4), timeProvider);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         var action = new OwnerReconnectAction(afterEventId, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
         return await pairing.SendSignedActionAsync<OwnerReconnectAction, OwnerWorldReconnect>(
@@ -213,6 +215,17 @@ public sealed class OwnerWorldApi
             action, deviceKey, cancellationToken);
     }
 
+    public Task<WorldSaveHistory> ReadWorldSaveHistoryAsync(
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string worldId,
+        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        var action = new OwnerManualSaveAction("world-saves", worldId);
+        return pairing.SendSignedActionAsync<OwnerManualSaveAction, WorldSaveHistory>(
+            serverUri, authority, deviceId, "/api/v1/owner/worlds/saves",
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
+            action, deviceKey, cancellationToken);
+    }
+
     public Task<WorldCatalogSnapshot> ListWorldsAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
         IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
@@ -244,9 +257,9 @@ public sealed class OwnerWorldApi
 
     public Task<CatalogWorld> SelectWorldAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
-        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken, string? modelSettingsApproval = null)
     {
-        var action = new OwnerManualSaveAction("select-world", id);
+        var action = new OwnerManualSaveAction("select-world", id, modelSettingsApproval);
         return pairing.SendSignedActionAsync<OwnerManualSaveAction, CatalogWorld>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerWorldSelect,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
@@ -255,11 +268,22 @@ public sealed class OwnerWorldApi
 
     public Task<ManualSaveLoadReceipt> LoadManualSaveAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
-        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+        string id, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken, string? modelSettingsApproval = null)
     {
-        var action = new OwnerManualSaveAction("load", id);
+        var action = new OwnerManualSaveAction("load", id, modelSettingsApproval);
         return pairing.SendSignedActionAsync<OwnerManualSaveAction, ManualSaveLoadReceipt>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerSaveLoad,
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
+            action, deviceKey, cancellationToken);
+    }
+
+    public Task<OwnerModelSettingsPreview> InspectLoadModelsAsync(
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string id, bool world,
+        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        var action = new OwnerManualSaveAction(world ? "inspect-world-models" : "inspect-save-models", id);
+        return pairing.SendSignedActionAsync<OwnerManualSaveAction, OwnerModelSettingsPreview>(
+            serverUri, authority, deviceId, world ? OwnerPairingEndpoints.OwnerWorldSelect : OwnerPairingEndpoints.OwnerSaveLoad,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.ManualSave(action),
             action, deviceKey, cancellationToken);
     }
@@ -771,6 +795,7 @@ public sealed class OwnerWorldApi
             action,
             deviceKey,
             cancellationToken,
+            action.Provider?.Trim().ToLowerInvariant() is "jev" or "decisions" ? OwnerWorldActionPayload.HelperSetupCheckPayloadDomain :
             OwnerWorldActionPayload.NeedsModelThinkingHost(action.Provider, action.Thinking)
                 ? OwnerWorldActionPayload.ModelThinkingPayloadDomain : null);
 }

@@ -68,6 +68,7 @@ internal static class MarketPausedPlanTradeScenario
                 }
                 : person).ToArray(),
         };
+        initial = MovementTestWorld.ClearOtherBuildingAccess(initial);
         var policy = new Policy(seller, buyer, stall.BuildingId);
         WorldRuntimeState deposited;
         MarketStockReceipt receipt;

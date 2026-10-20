@@ -1,1 +1,0 @@
-- Map dragging now stops when the pause menu opens, the game loses focus or the middle mouse button is released. Returning to the world no longer lets ordinary pointer movement pan the camera.

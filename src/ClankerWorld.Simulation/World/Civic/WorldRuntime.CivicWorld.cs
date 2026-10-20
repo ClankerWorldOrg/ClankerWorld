@@ -14,6 +14,6 @@ public sealed partial class WorldRuntime
         public bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

@@ -48,11 +48,11 @@ public sealed partial class WorldRuntime
             if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
             {
                 survivalState = survival with { Fires = survival.Fires.Where(item => item.BuildingId != instanceId).ToArray() };
-                AppendEvent("fire_extinguished", instanceId);
+                AppendEvent(new FireExtinguishedEventPayload(null, instanceId));
             }
 
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("building_removed", $"{instanceId}:{definitionId}");
+            AppendEvent(new BuildingRemovedEventPayload(null, instanceId, definitionId));
             return new BuildingManagementResult(true, instanceId, null, townId, building.HouseholdId);
         }
         finally { gate.Release(); }
@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
                 RefreshTownLandHearings();
             }
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("building_reassigned", $"{instanceId}:town={nextTownId ?? "none"}:household={nextHouseholdId ?? "none"}");
+            AppendEvent(new BuildingReassignedEventPayload(null, instanceId, nextTownId ?? "none", nextHouseholdId ?? "none"));
             return new BuildingManagementResult(true, instanceId, null, nextTownId, nextHouseholdId);
         }
         finally { gate.Release(); }
