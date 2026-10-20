@@ -3472,6 +3472,12 @@ definition. The existing continuation passes its selected input, owner and site
 to the planner once, then checks and applies that retained step. It keeps the
 public project goal ID and has no personal-action decoder. A dedicated internal
 phase requires the typed plan, so it cannot grant fresh property authority.
+Native building goals without a selected site and recipe goals awaiting a
+workstation have typed goal plans in the same definitions as their placed plans.
+Goal checks preserve the original goal IDs and start-only age rule. Existing
+native continuation selects and rechecks the physical target when it is ready.
+Normal offers keep their selected site/workstation, and subsequent native
+material/work steps retain their checks.
 Every registered plan now checks through its definition; the legacy check switch
 has been removed. Shared age/need/route rules and offer caps remain under audit.
 

@@ -468,7 +468,7 @@ public sealed partial class WorldRuntime
                 previousSelection.DefinitionId == selected.DefinitionId ? previousBuilding.StartedTick : WorldTick, constructionPlan);
 
         var recipePlan = originalPlan as RecipeProjectActionPlan;
-        if (!selected.IsBuilding && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
+        if (!selected.IsBuilding && originalPlan is not RecipeGoalActionPlan && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
             recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
         if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
