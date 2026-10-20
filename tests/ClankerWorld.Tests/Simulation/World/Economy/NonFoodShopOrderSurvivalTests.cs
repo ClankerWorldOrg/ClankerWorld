@@ -40,7 +40,7 @@ public sealed partial class ShopTradeTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(candidate, ordered.Seen);
         Assert.Equal(openQuote ? 1 : 0, world.ShopTrades.Count);
-        Assert.DoesNotContain(receipt.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.DoesNotContain(receipt.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         world.Validate();
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
     }

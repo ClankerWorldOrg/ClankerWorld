@@ -1,0 +1,49 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Content;
+using ClankerWorld.Simulation.World;
+
+namespace ClankerWorld.Tests;
+
+/// <summary>Small seeded maps keep an exhaustive choice sweep inexpensive.</summary>
+internal static class OfferedChoiceWorld
+{
+    internal static async Task<WorldRuntimeState> CreateAsync(int seed)
+    {
+        using var world = NormalPathWorld.CreateGenerated("choice-sweep-" + seed, _ => new SweepChoiceProvider(), ticksPerDay: 8);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var state = world.ExportState();
+        var prepared = OfferedChoiceScenario.Prepare(SecondGenerationFixture.Add(state).State, seed);
+        using var ordered = WorldRuntime.Restore(prepared, _ => new SweepChoiceProvider());
+        ordered.SubmitInstruction(new("sweep-full-carrier-order", "owner:choice-test", NormalPathWorld.Founder2,
+            OwnerInstructionKind.Order, "store four stone in my House"));
+        return ordered.ExportState();
+    }
+}
+
+internal sealed class SweepChoiceProvider(string? actor = null, string? choice = null) : IDecisionProvider
+{
+    internal List<AgentObservation> Observations { get; } = [];
+    public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
+    public long ProviderEpoch => 0;
+    public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+    {
+        var observation = request.Observation;
+        // Identity moments are background lifecycle replies, not physical actions.
+        // Keep the existing identity so a longer sweep can reach ordinary child turns.
+        var identityMoment = observation.IdentityMoment is not null;
+        if (!identityMoment)
+            Observations.Add(observation);
+        var selected = identityMoment ? observation.Candidates.Single()
+            : observation.AgentId == actor && choice is not null
+            ? observation.Candidates.Single(candidate => candidate.Id == choice)
+            : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
+            Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
+            selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
+                candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
+            ChosenName: observation.NeedsName ? observation.Self!.Name : null,
+            ChosenPersonality: !identityMoment && observation.NeedsPersonality ? "curious" : null,
+            ChosenAspiration: !identityMoment && observation.NeedsAspiration ? "explore" : null,
+            CivicProposal: selected.Id.Contains("|propose|", StringComparison.Ordinal) ? "Take care of shared places." : null));
+    }
+}

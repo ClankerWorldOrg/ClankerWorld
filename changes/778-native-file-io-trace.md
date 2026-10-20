@@ -1,1 +1,0 @@
-- Add an optional Windows checkpoint trace job that retains synthetic file-I/O evidence and existing save-failure diagnostics without changing persistence behavior.

@@ -48,31 +48,6 @@ public partial class Main
         ApplyResponsiveLayout();
     }
 
-    private void BuildConnectionPanel()
-    {
-        var body = new VBoxContainer();
-        body.AddThemeConstantOverride("separation", 6);
-        var controls = new HBoxContainer();
-        controls.AddThemeConstantOverride("separation", 8);
-        serverUrlInput.PlaceholderText = "https://your-world-server:8443";
-        serverUrlInput.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        controls.AddChild(serverUrlInput);
-        connectButton.Text = "Connect";
-        connectButton.Pressed += () => _ = ConnectUsingCurrentUrlAsync();
-        controls.AddChild(connectButton);
-        pairAgainButton.Text = "Pair again";
-        pairAgainButton.TooltipText = "Forget this device's saved connection and connect again.";
-        pairAgainButton.Visible = false;
-        pairAgainButton.Pressed += () => _ = PairAgainAsync();
-        controls.AddChild(pairAgainButton);
-        body.AddChild(controls);
-        connectionStatusLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        connectionStatusLabel.Hide();
-        body.AddChild(connectionStatusLabel);
-        AddPanelContents(connectionPanel, "World connection", body);
-        connectionPanel.ThemeTypeVariation = "InsetPanel";
-    }
-
     private void ShowSettingsSection(bool worldSpecific)
     {
         if (worldSpecific && (!isInWorld || returnToMainMenu)) return;
@@ -105,38 +80,6 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         await RefreshAutosaveSettingsAsync();
         if (IsCurrentWorldRequest(generation)) await RefreshProviderConfigurationAsync();
-    }
-
-    private void BuildPairingPanel()
-    {
-        var body = new VBoxContainer();
-        body.AddThemeConstantOverride("separation", 6);
-        var heading = new Label { Text = "Pair this Windows device", ThemeTypeVariation = "HeadingLabel" };
-        body.AddChild(heading);
-        pairingInstructionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        body.AddChild(pairingInstructionLabel);
-        var codeRow = new HBoxContainer();
-        codeRow.AddChild(new Label { Text = "Comparison code:" });
-        pairingCodeLabel.AddThemeFontSizeOverride("font_size", UiFonts.Body * 2);
-        codeRow.AddChild(pairingCodeLabel);
-        body.AddChild(codeRow);
-        var idRow = new HBoxContainer();
-        idRow.AddChild(new Label { Text = "Pairing ID:" });
-        pairingIdLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        idRow.AddChild(pairingIdLabel);
-        body.AddChild(idRow);
-        body.AddChild(pairingExpiryLabel);
-        var buttons = new HBoxContainer();
-        pairButton.Text = "Start pairing";
-        pairButton.Pressed += () => _ = StartPairingAsync();
-        buttons.AddChild(pairButton);
-        forgetRegistrationButton.Text = "Forget saved connection";
-        forgetRegistrationButton.Pressed += ForgetLocalRegistration;
-        buttons.AddChild(forgetRegistrationButton);
-        body.AddChild(buttons);
-        AddPanelContents(pairingPanel, body);
-        pairingPanel.ThemeTypeVariation = "InsetPanel";
-        pairingPanel.Hide();
     }
 
     private void BuildWorldColumn(Control content)
@@ -186,6 +129,9 @@ public partial class Main
         // Developer tools draw an agent's planned path between objects and agents.
         plannedPathLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         mapStage.AddChild(plannedPathLayer);
+        worldEditPreview.Follow(terrainLayer);
+        worldEditPreview.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        mapStage.AddChild(worldEditPreview);
 
         entityLayer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         entityLayer.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -359,6 +305,10 @@ public partial class Main
         StyleMenuChoice(menuSaveWorldButton);
         menuSaveWorldButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: false);
         menuActions.AddChild(menuSaveWorldButton);
+        menuLoadSaveButton.Text = "Load Save";
+        StyleMenuChoice(menuLoadSaveButton);
+        menuLoadSaveButton.Pressed += () => _ = OpenManualSavesAsync(loadMode: true);
+        menuActions.AddChild(menuLoadSaveButton);
 
         settingsButton.Text = "Settings";
         StyleMenuChoice(settingsButton);
@@ -451,10 +401,6 @@ public partial class Main
         // One call count and limit covers every world, so it is a Game setting.
         BuildUsageLimitPanel();
         gameSettingsContent.AddChild(usageLimitPanel);
-        BuildConnectionPanel();
-        gameSettingsContent.AddChild(connectionPanel);
-        BuildPairingPanel();
-        gameSettingsContent.AddChild(pairingPanel);
         var settingsPages = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         settingsPages.AddChild(gameSettingsContent);
         settingsPages.AddChild(worldSettingsContent);
@@ -547,6 +493,7 @@ public partial class Main
     }
 
     private const string TextPanelLimit = "text_panel_limit";
+    private readonly HashSet<RichTextLabel> queuedTextPanelFits = [];
 
     /// <summary>A text panel as tall as its text, up to <paramref name="maximumHeight"/>; longer text scrolls.</summary>
     private void ConfigureTextPanel(RichTextLabel label, float maximumHeight)
@@ -558,9 +505,18 @@ public partial class Main
         // Long readers need ordinary Tab/arrow navigation as well.
         ConfigureKeyboardScrollBar(label.GetVScrollBar());
         label.SetMeta(TextPanelLimit, maximumHeight);
-        // A new width rewraps the text, but only after the resized signal, so
-        // measure it once this frame's layout is done.
-        label.Resized += () => Callable.From(() => FitTextPanel(label)).CallDeferred();
+        // A new width rewraps text. Coalesce its height measurements in the
+        // next process frame, so a resize cannot refit itself in an idle loop.
+        label.Resized += () => queuedTextPanelFits.Add(label);
+    }
+
+    private void FitQueuedTextPanels()
+    {
+        if (queuedTextPanelFits.Count == 0) return;
+        var labels = queuedTextPanelFits.ToArray();
+        queuedTextPanelFits.Clear();
+        foreach (var label in labels)
+            if (GodotObject.IsInstanceValid(label)) FitTextPanel(label);
     }
 
     /// <summary>
@@ -648,7 +604,7 @@ public partial class Main
         if (!string.IsNullOrWhiteSpace(title) && closable)
         {
             var headingRow = new HBoxContainer();
-            var heading = new Label { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            var heading = new FittedLabel { Text = title, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             heading.ThemeTypeVariation = "HeadingLabel";
             headingRow.AddChild(heading);
             var close = CloseButton($"Close {title}");
@@ -665,7 +621,7 @@ public partial class Main
         {
             // A box inside a menu, such as API keys, takes a small section label
             // so several fit on screen together.
-            var heading = new Label { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
+            var heading = new FittedLabel { Text = title.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" };
             body.AddChild(heading);
         }
 

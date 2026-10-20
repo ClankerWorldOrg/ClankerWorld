@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
         if (chosenName is null || chosenKey is null)
         {
             CloseNameRequest(agentId);
-            AppendEvent("agent_name_unavailable", agentId);
+            AppendEvent(new AgentNameUnavailableEventPayload(agentId));
             return;
         }
 
@@ -40,19 +40,19 @@ public sealed partial class WorldRuntime
             if (!AgentNameRules.IsAllowedChildName(society.Checkpoint, agentId, chosenName))
             {
                 CloseNameRequest(agentId);
-                AppendEvent("agent_name_unavailable", agentId);
+                AppendEvent(new AgentNameUnavailableEventPayload(agentId));
                 return;
             }
             society.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, agentId, chosenName));
-            AppendEvent("agent_named", agentId);
+            AppendEvent(new AgentNamedEventPayload(agentId));
             return;
         }
 
-        AppendEvent("agent_name_rejected", agentId);
+        AppendEvent(new AgentNameRejectedEventPayload(agentId));
         if (request.Observation.IsNameRetry)
         {
             CloseNameRequest(agentId);
-            AppendEvent("agent_name_retry_exhausted", agentId);
+            AppendEvent(new AgentNameRetryExhaustedEventPayload(agentId));
             return;
         }
 
@@ -65,14 +65,14 @@ public sealed partial class WorldRuntime
             request.Observation with { IsNameRetry = false }));
         if (queued)
         {
-            AppendEvent("agent_name_retry_requested", agentId);
+            AppendEvent(new AgentNameRetryRequestedEventPayload(agentId));
             return;
         }
 
         // The original queue entry has just been consumed, so this is only a
         // defensive bound for an unexpectedly full or unavailable queue.
         CloseNameRequest(agentId);
-        AppendEvent("agent_name_retry_unavailable", agentId);
+        AppendEvent(new AgentNameRetryUnavailableEventPayload(agentId));
     }
 
     private void CloseNameRequest(string agentId) =>
@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
         }
 
         CloseNameRequest(agentId);
-        AppendEvent("agent_name_retry_unusable", agentId);
+        AppendEvent(new AgentNameRetryUnusableEventPayload(agentId));
     }
 
 }

@@ -14,7 +14,10 @@ public sealed record LandHearingJudgeChoice(string TownId, LandHearingJudgeKind 
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{RevisionOrRoundToken}|{CandidateToken}";
     public static LandHearingJudgeChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var terms, var candidate] || town.Length == 0 || terms.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var terms, var candidate] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(terms, DerivedId.MaximumLength) ||
+            candidate is not "" && !IdentityRules.Reference(candidate, DerivedId.MaximumLength)) return null;
         LandHearingJudgeKind? kind = verb switch
         {
             "hearing_judge_register" => LandHearingJudgeKind.Register,

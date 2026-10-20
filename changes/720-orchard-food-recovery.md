@@ -1,1 +1,0 @@
-- Hungry agents can set down some reserved orchard seeds to make room for food after a carrying aid breaks, preserving the seeds for their household and keeping other reserved supplies protected.
