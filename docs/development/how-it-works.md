@@ -527,6 +527,9 @@ plans use their existing purpose-specific reach calls.
 Learning, market, dependent-care and workstation-supply eligibility use the shared
 service's boolean reach query, including the existing in-range shortcut, rather
 than site-specific wrappers.
+Farming uses that same query with terrain-only eligibility for field planning
+and occupancy checks for an actual seed-pickup approach; its unused coordinator
+forwarder and field-specific route predicate are removed.
 Exploration supply, household tool coverage and tool repair also use actor-position
 reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
 predicate, unnamed need comparison or direct route call outside the shared rules.

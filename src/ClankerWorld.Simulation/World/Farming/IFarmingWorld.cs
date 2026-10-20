@@ -46,7 +46,8 @@ internal interface IFarmingWorld
     bool OnBorrowedMarketStall(InventoryLot lot);
     int PickupCarryCapacity(string actor, InventoryLot stock, GridPoint destination, int destinationRange = 0);
     GridPoint HouseholdStockPosition(InventoryLot lot);
-    bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0);
+    bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load,
+        SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles);
     void MoveToward(string actor, AgentState state, GridPoint destination, string reason, int interactionRange = 0);
     void PickUpEquipment(string actor, PlannedEquipmentPickup pickup);
     bool HasCarriedOwnItem(string actor, string kind);

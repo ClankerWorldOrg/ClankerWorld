@@ -19,9 +19,6 @@ public sealed partial class WorldRuntime
     private bool HasOtherAgentClaimedPlanting(FarmFieldState field, string actor) =>
         farmingSystem.HasOtherAgentClaimedPlanting(farmingWorld, field, actor);
 
-    private bool CanReachField(string actor, GridPoint from, GridPoint destination) =>
-        FarmingSystem.CanReachField(farmingWorld, actor, from, destination);
-
     private bool FarmNeedsFood(string householdId) =>
         farmingSystem.FarmNeedsFood(farmingWorld, householdId);
 
