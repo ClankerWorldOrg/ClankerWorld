@@ -150,9 +150,8 @@ public sealed partial class WorldRuntime
             {
                 ValidateProject(project, WorldTick);
             }
-            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position) ||
-                agent.FullnessBasisPoints is < 0 or > 10_000 ||
-                agent.MoveWaitTicks < 0 || agent.TravelCooldownTicks < 0)
+            AgentStore.ValidateLocalAgent(agent, agent.AgentId);
+            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position))
             {
                 throw new InvalidDataException($"Physical state for '{agent.AgentId}' is invalid.");
             }

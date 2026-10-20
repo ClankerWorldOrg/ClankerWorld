@@ -245,7 +245,7 @@ public sealed partial class WorldRuntime
         if ((ToolMakingRequestRules.IsTerminal(request.Status) || request.Status == ToolMakingRequestStatus.Ready) &&
             request.WorkerId is { } worker && agents.TryGetValue(worker, out var person) &&
             person.Project?.ToolMakingRequestId == request.Id)
-            agents[worker] = person with { Project = person.Project with { ToolMakingRequestId = null } };
+            agentStore.RecordProject(worker, person, person.Project with { ToolMakingRequestId = null });
         checkpointSchemaVersion = StateSchemaVersion;
         if (eventKind is not null) AppendEvent(WorldEvents.ToolRequest(eventKind, actor ?? request.RequesterId, request.Id));
     }

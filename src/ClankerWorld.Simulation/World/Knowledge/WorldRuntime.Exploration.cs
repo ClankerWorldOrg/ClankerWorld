@@ -20,19 +20,8 @@ public sealed record ExplorationGoal(string Kind, string Target, string? OrderIn
 
 public sealed partial class WorldRuntime
 {
-    private void RetireClosedOrderExplorationGoals(HashSet<string> retired)
-    {
-        foreach (var person in agents.Values.Where(person =>
-                     retired.Contains(person.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
-            agents[person.AgentId] = person with { Exploration = person.Exploration! with { Goal = null } };
-        foreach (var person in deceasedAgents.Values.Where(person =>
-                     retired.Contains(person.LastPhysical.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
-            deceasedAgents[person.AgentId] = person with
-            {
-                LastPhysical = person.LastPhysical with
-                { Exploration = person.LastPhysical.Exploration! with { Goal = null } },
-            };
-    }
+    private void RetireClosedOrderExplorationGoals(HashSet<string> retired) =>
+        agentStore.RetireClosedOrderExplorationGoals(retired);
 
     private const int StartingExplorationWarmthBudgetSteps = 8;
     private const int ExplorationCooldownTicks = 180;
@@ -41,17 +30,14 @@ public sealed partial class WorldRuntime
     private AgentState CompleteExplorationGoal(string actor, AgentState person)
     {
         if (person.Exploration?.Goal is not { } goal) return person;
-        var completed = person with
+        var completed = AgentStore.PrepareExploration(person, person.Exploration with
         {
-            Exploration = person.Exploration with
-            {
-                OutingPath = [],
-                Returning = false,
-                Goal = null,
-                LastOutingTick = WorldTick,
-            },
-        };
-        agents[actor] = completed;
+            OutingPath = [],
+            Returning = false,
+            Goal = null,
+            LastOutingTick = WorldTick,
+        });
+        agentStore.CompleteExploration(actor, completed);
         AppendEvent(new ExplorationGoalFoundEventPayload(actor, goal.Kind, goal.Target));
         return completed;
     }
@@ -135,7 +121,7 @@ public sealed partial class WorldRuntime
 
         if (plan.Step == ExplorationStep.CompleteGoal)
         {
-            CompleteExplorationGoal(actor, person with { Exploration = exploration });
+            CompleteExplorationGoal(actor, AgentStore.PrepareExploration(person, exploration));
             return;
         }
 
@@ -143,7 +129,7 @@ public sealed partial class WorldRuntime
 
         // Movement still obeys the ordinary travel delay, weather, occupancy,
         // river-wading and mountain rules. Only a completed step joins memory.
-        agents[actor] = person with { Exploration = exploration };
+        agentStore.RecordExploration(actor, person, exploration);
         MoveToward(actor, agents[actor], next, "explore");
         var moved = agents[actor];
         if (moved.Position == person.Position)
@@ -152,17 +138,14 @@ public sealed partial class WorldRuntime
             ? exploration.VisitedTiles
             : exploration.VisitedTiles.Append(moved.Position).TakeLast(ExplorationMemoryLimit).ToArray();
         var learned = RecordKnowledgeFact(actor, moved.Position);
-        agents[actor] = moved with
+        agentStore.RecordExploration(actor, moved, exploration with
         {
-            Exploration = exploration with
-            {
-                VisitedTiles = visited,
-                OutingPath = exploration.OutingPath.Append(moved.Position).ToArray(),
-                OutingDiscoveries = learned
+            VisitedTiles = visited,
+            OutingPath = exploration.OutingPath.Append(moved.Position).ToArray(),
+            OutingDiscoveries = learned
                     ? (exploration.OutingDiscoveries ?? []).Append(moved.Position).TakeLast(ExplorationMemoryLimit).ToArray()
                     : exploration.OutingDiscoveries ?? [],
-            }
-        };
+        });
         if (!exploration.VisitedTiles.Contains(moved.Position))
         {
             var terrain = map.Tiles.First(tile => tile.Position == moved.Position).Terrain;
@@ -189,46 +172,37 @@ public sealed partial class WorldRuntime
     {
         if (plan.Step == ExplorationStep.CompleteReturn)
         {
-            agents[actor] = person with
+            agentStore.RecordExploration(actor, person, exploration with
             {
-                Exploration = exploration with
-                {
-                    OutingPath = [],
-                    Returning = false,
-                    LastOutingTick = WorldTick,
-                    Goal = null,
-                }
-            };
+                OutingPath = [],
+                Returning = false,
+                LastOutingTick = WorldTick,
+                Goal = null,
+            });
             AppendEvent(new ExplorationCompletedEventPayload(actor, exploration.VisitedTiles.Count));
             return;
         }
 
         var destination = plan.Target!.Value;
-        agents[actor] = person with { Exploration = exploration };
+        agentStore.RecordExploration(actor, person, exploration);
         MoveToward(actor, agents[actor], destination, "explore_return");
         var moved = agents[actor];
         if (moved.Position != person.Position)
             RecordKnowledgeFact(actor, moved.Position);
         if (moved.Position == destination && exploration.OutingPath.Count > 1)
-            agents[actor] = moved with
+            agentStore.RecordExploration(actor, moved, exploration with
             {
-                Exploration = exploration with
-                {
-                    OutingPath = exploration.OutingPath.Take(exploration.OutingPath.Count - 1).ToArray(),
-                }
-            };
+                OutingPath = exploration.OutingPath.Take(exploration.OutingPath.Count - 1).ToArray(),
+            });
         else if (moved.MoveWaitTicks >= 30)
         {
-            agents[actor] = moved with
+            agentStore.RecordExploration(actor, moved, exploration with
             {
-                Exploration = exploration with
-                {
-                    OutingPath = [],
-                    Returning = false,
-                    LastOutingTick = WorldTick,
-                    Goal = null,
-                }
-            };
+                OutingPath = [],
+                Returning = false,
+                LastOutingTick = WorldTick,
+                Goal = null,
+            });
             AppendEvent(new ExplorationAbortedEventPayload(actor, "return_blocked"));
         }
     }

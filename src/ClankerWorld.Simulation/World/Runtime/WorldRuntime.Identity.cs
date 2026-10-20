@@ -33,12 +33,7 @@ public sealed partial class WorldRuntime
         // reply leaves the ordinary next decision to ask again, without a
         // separate identity request or inheriting a parent's traits.
         if (society.Checkpoint.Births.Any(birth => birth.ChildId == id) && (personality is null || aspiration is null)) return;
-        agents[id] = physical with
-        {
-            Personality = personality ?? physical.Personality,
-            Aspiration = aspiration ?? physical.Aspiration,
-            IdentityChoicePending = false,
-        };
+        agentStore.ChooseIdentity(id, physical, personality ?? physical.Personality, aspiration ?? physical.Aspiration, false);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(personality is not null || aspiration is not null ? new AgentIdentityChosenEventPayload(id) : new AgentIdentityKeptEventPayload(id));
     }

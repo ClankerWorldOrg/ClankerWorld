@@ -32,7 +32,7 @@
   "src/ClankerWorld.Simulation/World/Production/ProductionSystem.Lifecycle.cs": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ToolRepairOrders.cs": 2,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs": 1,
-  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs": 3,
+  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs": 2,
   "src/ClankerWorld.Simulation/World/Economy/PersonalEquipmentRules.cs": 4,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs": 3,
@@ -56,5 +56,6 @@
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs": 3,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs": 4,
   "src/ClankerWorld.Simulation/World/Towns/TownProjectContracts.cs": 1,
-  "src/ClankerWorld.Simulation/Society/SocietyRules.cs": 11
+  "src/ClankerWorld.Simulation/Society/SocietyRules.cs": 11,
+  "src/ClankerWorld.Simulation/World/Community/CommunitySystem.HouseholdWork.cs": 1
 }

@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
     private void SetGuardianPlacement(string child, GuardianPlacementState? placement)
     {
         if (!agents.TryGetValue(child, out var physical) || physical.GuardianPlacement == placement) return;
-        agents[child] = physical with { GuardianPlacement = placement };
+        agentStore.RecordGuardianPlacement(child, physical, placement);
         checkpointSchemaVersion = StateSchemaVersion;
     }
 

@@ -22,13 +22,7 @@ public sealed partial class WorldRuntime
                 Requests = boatTransport.Requests.Select(request => retired.Contains(request.OrderInstructionId ?? "")
                     ? request with { OrderInstructionId = null } : request).ToArray(),
             };
-            knowledge = knowledge with
-            {
-                WritingProjects = knowledge.WritingProjects.Select(project => retired.Contains(project.OrderInstructionId ?? "")
-                    ? project with { OrderInstructionId = null } : project).ToArray(),
-                Artifacts = knowledge.Artifacts.Select(artifact => retired.Contains(artifact.OrderInstructionId ?? "")
-                    ? artifact with { OrderInstructionId = null } : artifact).ToArray(),
-            };
+            communitySystem.RetireOrderLinks(retired);
         }
 
         var expiredRetries = orderCancellations.Values.GroupBy(item => item.TargetAgentId, StringComparer.Ordinal)

@@ -69,10 +69,12 @@ public sealed partial class WorldRuntime : IDisposable
     private ProductionSystem productionSystem;
     private WorldContentSimulationState worldSimulation => productionSystem.Snapshot(constructionSystem.State);
     private WorldAssetReservationLedger assetReservations;
-    private Dictionary<string, AgentState> agents = new(StringComparer.Ordinal);
-    private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
+    private AgentStore agentStore = new();
+    private IReadOnlyDictionary<string, AgentState> agents => agentStore.Living;
+    private IReadOnlyDictionary<string, DeceasedAgentState> deceasedAgents => agentStore.Deceased;
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
-    private WorldKnowledgeState knowledge = WorldKnowledgeState.Empty;
+    private CommunitySystem communitySystem = new(WorldKnowledgeState.Empty);
+    private WorldKnowledgeState knowledge => communitySystem.State;
     private InstructionStore instructionsByIdempotency =
         new(StringComparer.Ordinal);
     private Dictionary<string, RecordedInstructionReceipt> instructionReceipts =
@@ -411,23 +413,14 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.foodStewardship = state.FoodStewardship;
         runtime.continuity = state.Continuity!;
         RegionalWeatherRules.ValidateMap(runtime.worldSystems, runtime.map);
-        runtime.agents.Clear();
-        foreach (var agent in state.Agents)
-        {
-            runtime.agents.Add(agent.AgentId, agent);
-        }
-        runtime.deceasedAgents.Clear();
-        foreach (var agent in state.DeceasedAgents ?? [])
-        {
-            runtime.deceasedAgents.Add(agent.AgentId, agent);
-        }
+        runtime.agentStore = new(state.Agents, state.DeceasedAgents ?? []);
 
         runtime.resources.Clear();
         foreach (var resource in state.Resources)
         {
             runtime.resources.Add(resource.ResourceId, resource.State);
         }
-        runtime.knowledge = state.Knowledge!;
+        runtime.communitySystem = new(state.Knowledge!);
 
         runtime.instructionsByIdempotency.Clear();
         runtime.instructionReceipts.Clear();

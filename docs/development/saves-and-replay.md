@@ -210,6 +210,14 @@ Town records and orders. Live construction plans copy across trusted tick
 preparation and stay outside checkpoints. Existing construction save fields
 and event order are unchanged.
 
+Living and deceased physical-agent records are captured from AgentStore;
+community knowledge is captured from CommunitySystem. Trusted preparation shares
+immutable physical records until a named store operation replaces one. It keeps
+local detached preparations and rollback commit points. Local lesson, housing
+and knowledge checks are shared with save validation, which still checks their
+links to society, inventory and the clock. These ownership changes preserve
+existing save fields, event ordering and replay bytes.
+
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
 Cognition diagnostics retain their world ticks through export and restore.

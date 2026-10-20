@@ -2,32 +2,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private RelocationActionPlan? PlanRelocationAction(string actor)
-    {
-        if (!agents.ContainsKey(actor) || HouseholdFor(actor) is not { } household || !MayVolunteerToRelocate(actor) ||
-            HouseForHousehold(household) is not { } house || RelocationSelection(household, actor) is not { } selection) return null;
-        var kept = selection.Chosen.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        var replaced = RelocationNotices(household).Where(item => !kept.Contains(item.Id))
-            .Select(item => new PlannedRelocationNotice(item.Id, item.Notice)).ToArray();
-        return new(actor, new(), household, house, selection.Chosen.ToArray(), replaced,
-            replaced.Select(item => (long?)item.Notice.DeadlineTick).Min());
-    }
+    private RelocationActionPlan? PlanRelocationAction(string actor) =>
+        CommunitySystem.PlanRelocationAction(CommunityRelocationWorld, actor);
 
-    private ActionCheck CheckRelocationActionPlan(RelocationActionPlan plan, ActorCapabilityPolicy? policy = null)
-    {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? HouseholdCommunityCapabilities);
-        if (!capability.Allowed) return capability;
-        if (HouseholdFor(plan.Actor) != plan.HouseholdId || HouseForHousehold(plan.HouseholdId) != plan.House ||
-            !MayVolunteerToRelocate(plan.Actor) || RelocationSelection(plan.HouseholdId, plan.Actor) is not { } selection ||
-            !selection.Chosen.SequenceEqual(plan.Selected))
-            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House or adults who need to move have changed");
-        var kept = plan.Selected.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        var replaced = RelocationNotices(plan.HouseholdId).Where(item => !kept.Contains(item.Id))
-            .Select(item => new PlannedRelocationNotice(item.Id, item.Notice));
-        return replaced.SequenceEqual(plan.Replaced) ? new() :
-            ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected move-out notices or inherited deadline have changed");
-    }
+    private ActionCheck CheckRelocationActionPlan(RelocationActionPlan plan, ActorCapabilityPolicy? policy = null) =>
+        CommunitySystem.CheckRelocationActionPlan(CommunityRelocationWorld, plan, policy);
 
     private void ApplyRelocationActionPlan(RelocationActionPlan plan)
     {

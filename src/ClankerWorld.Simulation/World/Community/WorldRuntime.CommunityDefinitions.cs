@@ -2,10 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActorCapabilityPolicy HouseholdCommunityCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
-    private static ActorCapabilityPolicy LearningCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    private static ActorCapabilityPolicy HouseholdCommunityCapabilities => CommunitySystem.HouseholdCommunityCapabilities;
+    private static ActorCapabilityPolicy LearningCapabilities => CommunitySystem.LearningCapabilities;
 
     private static ActionDefinition<HousingChoice, HousingActionPlan> HousingDefinition => CommunityActions.Housing;
     private static ActionDefinition<LearningChoice, LearningActionPlan> LearningDefinition => CommunityActions.Learning;

@@ -258,7 +258,7 @@ internal sealed partial class AnimalSystem
     {
         ConsumeAnimalInputs(world, actor, "drink_milk", [(milk, quantity)]);
         var person = world.Agents[actor];
-        world.SetAgent(actor, person with { FullnessBasisPoints = Math.Min(10_000, person.FullnessBasisPoints + 3_000) });
+        world.PhysicalAgents.RecordFullness(actor, person, Math.Min(10_000, person.FullnessBasisPoints + 3_000));
         world.AppendEvent(new MilkDrunkEventPayload(actor));
     }
 

@@ -300,12 +300,6 @@
     "Count": 1
   },
   {
-    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ActionRefusalTests.cs",
-    "Rule": "reflection",
-    "Expression": "typeof(WorldRuntime).GetField(\u0022agents\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
-    "Count": 2
-  },
-  {
     "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentRegistrationOrderTests.cs",
     "Rule": "reflection",
     "Expression": "typeof(WorldRuntime).GetField(field,BindingFlags.Static|BindingFlags.NonPublic)",

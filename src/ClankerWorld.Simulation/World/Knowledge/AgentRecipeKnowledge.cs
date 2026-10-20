@@ -27,10 +27,8 @@ internal static partial class AgentKnowledgeRules
             throw new InvalidDataException("Recipe production evidence contains duplicate job identities.");
         var jobs = simulation.ProductionJobs.ToDictionary(item => item.JobId, StringComparer.Ordinal);
         var artifacts = knowledge.Artifacts.ToDictionary(item => item.Id, StringComparer.Ordinal);
+        CommunitySystem.ValidateLocalRecipes(knowledge);
         if (knowledge.Recipes.Count > checked(agents.Count * MaximumRecipesPerAgent) ||
-            knowledge.Recipes.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Recipes.Count ||
-            knowledge.Recipes.Select(item => (item.OwnerId, item.RecipeId)).Distinct().Count() != knowledge.Recipes.Count ||
-            knowledge.Recipes.GroupBy(item => item.OwnerId).Any(group => group.Count() > MaximumRecipesPerAgent) ||
             knowledge.Recipes.Any(item => !ValidRecipe(item, worldTick)))
             throw new InvalidDataException("A person's recipe knowledge has invalid ownership, bounds or evidence.");
         foreach (var artifact in knowledge.Artifacts)

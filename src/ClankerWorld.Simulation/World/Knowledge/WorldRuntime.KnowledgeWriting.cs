@@ -197,12 +197,9 @@ public sealed partial class WorldRuntime
             materials.Add(new(Identity.Parse(reservationId), input.LotId, input.ItemKind, input.Quantity));
         }
         ApplyInventoryTransition(_ => inventory);
-        knowledge = knowledge with
-        {
-            WritingProjects = knowledge.WritingProjects.Append(new AgentKnowledgeWritingProject(
-                id, actor, kind, candidate, source?.Id, facts, WorldTick, WorldTick, 0, materials)
-            { Recipes = recipes }).ToArray(),
-        };
+        communitySystem.StartWriting(new AgentKnowledgeWritingProject(id, actor, kind, candidate, source?.Id, facts,
+            WorldTick, WorldTick, 0, materials)
+        { Recipes = recipes });
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(new AgentKnowledgeWritingStartedEventPayload(actor, kind, id));
     }
@@ -270,19 +267,15 @@ public sealed partial class WorldRuntime
         foreach (var input in project.Materials) inventory = InventoryAuthority.ConsumeReservation(inventory, input.ReservationId);
         inventory = InventoryAuthority.AddLot(inventory, lotId, project.Kind, actor, 1, WorldTick);
         ApplyInventoryTransition(_ => inventory);
-        knowledge = knowledge with
+        communitySystem.CompleteWriting(project.Id, new AgentKnowledgeArtifact(
+            artifactId, actor, lotId, project.Kind, title, WorldTick, project.Facts)
         {
-            WritingProjects = knowledge.WritingProjects.Where(item => item.Id != project.Id).ToArray(),
-            Artifacts = knowledge.Artifacts.Append(new AgentKnowledgeArtifact(
-                artifactId, actor, lotId, project.Kind, title, WorldTick, project.Facts)
-            {
-                Recipes = project.Recipes,
-                WritingProjectId = project.Id,
-                Materials = project.Materials,
-                SourceArtifactId = project.SourceArtifactId,
-                OrderInstructionId = project.OrderInstructionId,
-            }).ToArray(),
-        };
+            Recipes = project.Recipes,
+            WritingProjectId = project.Id,
+            Materials = project.Materials,
+            SourceArtifactId = project.SourceArtifactId,
+            OrderInstructionId = project.OrderInstructionId,
+        });
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(new AgentKnowledgeArtifactCreatedEventPayload(actor, artifactId, project.Kind, project.Facts.Count));
         CreditKnowledgeOrderCompletion(project, artifactId);
@@ -290,7 +283,7 @@ public sealed partial class WorldRuntime
 
     private void ReplaceKnowledgeWriting(AgentKnowledgeWritingProject project)
     {
-        knowledge = knowledge with { WritingProjects = knowledge.WritingProjects.Select(item => item.Id == project.Id ? project : item).ToArray() };
+        communitySystem.AdvanceWriting(project);
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
@@ -300,8 +293,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => project.Materials.Aggregate(inventory,
             (current, input) => current.Reservations.Any(item => item.Id == input.ReservationId)
                 ? InventoryAuthority.ReleaseReservation(current, input.ReservationId, "knowledge_writing_cancelled") : current));
-        knowledge = knowledge with { WritingProjects = knowledge.WritingProjects.Where(item => item.Id != project.Id).ToArray() };
-        knowledge = AgentKnowledgeRules.PruneEarlierFacts(knowledge);
+        communitySystem.CancelWriting(project.Id);
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(new AgentKnowledgeWritingCancelledEventPayload(project.ActorId, project.Kind, reason));
     }

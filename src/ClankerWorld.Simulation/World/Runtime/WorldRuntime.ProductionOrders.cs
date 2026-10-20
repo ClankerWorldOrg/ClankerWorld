@@ -102,7 +102,7 @@ public sealed partial class WorldRuntime
 });
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
-            agents[actor] = person with { Project = project };
+            agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }

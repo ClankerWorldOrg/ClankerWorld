@@ -273,7 +273,7 @@ public sealed partial class WorldRuntime
                     ? -(IllnessRecoveryPerTick + (NearShelter(person.AgentId, person.Position) ? ShelteredIllnessRecoveryBonusPerTick : 0))
                     : 0;
             var illness = Math.Clamp(old.IllnessBasisPoints + illnessChange, 0, 10_000);
-            agents[person.AgentId] = person with { Survival = old with { WarmthBasisPoints = warmth, IllnessBasisPoints = illness } };
+            agentStore.RecordSurvival(person.AgentId, person, old with { WarmthBasisPoints = warmth, IllnessBasisPoints = illness });
             if (old.WarmthBasisPoints / 2_500 != warmth / 2_500 || old.IllnessBasisPoints / 2_500 != illness / 2_500)
             {
                 AppendEvent(new SurvivalConditionChangedEventPayload(person.AgentId, warmth, illness));

@@ -229,7 +229,7 @@ public sealed partial class WorldRuntime
 
     private void SetGuardianSearch(string child, GuardianSearchState? search)
     {
-        agents[child] = agents[child] with { GuardianSearch = search };
+        agentStore.RecordGuardianSearch(child, agents[child], search);
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
@@ -386,15 +386,12 @@ public sealed partial class WorldRuntime
     private void CompleteIllDependentCare(string adult, string dependent)
     {
         var recipient = agents[dependent];
-        recipient = recipient with
+        recipient = AgentStore.PrepareSurvival(recipient, recipient.Survival! with
         {
-            Survival = recipient.Survival! with
-            {
-                WarmthBasisPoints = Math.Min(10_000, recipient.Survival.WarmthBasisPoints + 1_000),
-                IllnessBasisPoints = Math.Max(0, recipient.Survival.IllnessBasisPoints - IllnessCareReliefBasisPoints),
-            },
-        };
-        agents[dependent] = recipient;
+            WarmthBasisPoints = Math.Min(10_000, recipient.Survival.WarmthBasisPoints + 1_000),
+            IllnessBasisPoints = Math.Max(0, recipient.Survival.IllnessBasisPoints - IllnessCareReliefBasisPoints),
+        });
+        agentStore.CompleteDependentCare(dependent, recipient);
         AppendEvent(new DependentCaredForEventPayload(dependent));
     }
 }

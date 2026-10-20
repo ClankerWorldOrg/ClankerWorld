@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
     private void RetireClosedOrderProjectReferences(HashSet<string> retired)
     {
         foreach (var person in agents.Values.Where(person => person.Project?.OrderInstructionId is { } id && retired.Contains(id)).ToArray())
-            agents[person.AgentId] = person with { Project = person.Project! with { OrderInstructionId = null } };
+            agentStore.RecordProject(person.AgentId, person, person.Project! with { OrderInstructionId = null });
     }
 
     private static string ConstructionInstanceId(string instructionId) =>
@@ -146,7 +146,7 @@ public sealed partial class WorldRuntime
             var project = new AgentProject(TownConstructionCandidateIds.Building(definition!.CanonicalId, position),
                 definition.DisplayName, started, "acquiring", LastTransitionTick: WorldTick,
                 OrderInstructionId: instruction.InstructionId);
-            agents[actor] = person with { Project = project };
+            agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }

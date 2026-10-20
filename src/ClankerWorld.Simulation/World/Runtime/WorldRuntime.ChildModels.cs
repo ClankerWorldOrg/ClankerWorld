@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
             }
 
             ValidateChildModelSelection(selection);
-            agents[childId] = child with { ChildModelSelection = selection };
+            agentStore.SelectChildModel(childId, child, selection);
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent(new ChildModelSelectedEventPayload(childId, selection.ChoiceReason));
         }

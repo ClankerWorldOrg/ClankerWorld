@@ -88,14 +88,14 @@ public sealed partial class WorldRuntime
                     throw new ArgumentOutOfRangeException(nameof(edit), "Needs must be between 0 and 100 percent.");
                 var survival = person.Survival ?? new SurvivalCondition();
                 if (edit.Value != "fullness") survivalState ??= new SurvivalState(WorldTick, []);
-                agents[actor] = edit.Value switch
+                agentStore.ApplyDeveloperNeedEdit(actor, edit.Value switch
                 {
-                    "fullness" => person with { FullnessBasisPoints = edit.Amount * 100 },
-                    "warmth" => person with { Survival = survival with { WarmthBasisPoints = edit.Amount * 100 } },
-                    "illness" => person with { Survival = survival with { IllnessBasisPoints = edit.Amount * 100 } },
-                    "nutrition" => person with { Survival = survival with { NutritionBasisPoints = edit.Amount * 100 } },
+                    "fullness" => AgentStore.PrepareFullness(person, edit.Amount * 100),
+                    "warmth" => AgentStore.PrepareSurvival(person, survival with { WarmthBasisPoints = edit.Amount * 100 }),
+                    "illness" => AgentStore.PrepareSurvival(person, survival with { IllnessBasisPoints = edit.Amount * 100 }),
+                    "nutrition" => AgentStore.PrepareSurvival(person, survival with { NutritionBasisPoints = edit.Amount * 100 }),
                     _ => throw new ArgumentException("Choose fullness, warmth, illness or nutrition."),
-                };
+                });
                 break;
             case "give_goods":
                 if (!DeveloperGoods.Contains(edit.Value, StringComparer.Ordinal) || edit.Amount is < 1 or > 100)
@@ -143,7 +143,7 @@ public sealed partial class WorldRuntime
                 var skills = (person.Skills ?? []).Where(item => item.Kind != skill).ToList();
                 if (edit.Operation == "add_skill")
                     skills.Add(person.Skills?.FirstOrDefault(item => item.Kind == skill) ?? new LearnedSkill(skill, WorldTick));
-                agents[actor] = person with { Skills = skills.OrderBy(item => item.Kind).ToArray() };
+                agentStore.RecordSkills(actor, person, skills.OrderBy(item => item.Kind).ToArray());
                 break;
             case "start_partnership":
             case "end_partnership":
@@ -174,7 +174,7 @@ public sealed partial class WorldRuntime
             default:
                 throw new ArgumentException("Choose a supported developer edit.");
         }
-        agents[actor] = agents[actor] with { LastDecisionContext = null };
+        agentStore.RecordDecisionContext(actor, agents[actor], null);
         checkpointSchemaVersion = StateSchemaVersion;
     }
 }

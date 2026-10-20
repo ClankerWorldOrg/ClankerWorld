@@ -12,6 +12,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
 {
+    AgentStore PhysicalAgents { get; }
     bool HasCommunalBoatPort(string townId);
     void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person);
@@ -127,7 +128,4 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     ContentRegistryState ContentState { get; }
     void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation);
     void ResumeSociety();
-    void AddAgent(string id, AgentState person);
-    void SetAgent(string id, AgentState person);
-    void RemoveAgent(string id);
 }

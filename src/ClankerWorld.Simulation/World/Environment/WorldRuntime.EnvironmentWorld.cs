@@ -8,6 +8,7 @@ public sealed partial class WorldRuntime
 {
     private sealed class EnvironmentWorldAdapter(WorldRuntime runtime) : IEnvironmentAgentWorld
     {
+        public AgentStore PhysicalAgents => runtime.agentStore;
         public WorldMap Map => runtime.map;
         public GridPoint WeatherAnchor => runtime.WeatherAnchor;
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
@@ -15,10 +16,6 @@ public sealed partial class WorldRuntime
         public void SetResourceAvailability(string id, bool available) =>
             runtime.resources[id] = available ? ResourceState.Available : ResourceState.Depleted;
         public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
-        public void AddAgent(string id, AgentState state) => runtime.agents.Add(id, state);
-        public void SetAgent(string id, AgentState state) => runtime.agents[id] = state;
-        public void RemoveAgent(string id) => runtime.agents.Remove(id);
-        public void AddDeceasedAgent(string id, DeceasedAgentState state) => runtime.deceasedAgents.Add(id, state);
         public OwnerQueuedInstruction? PendingInstructionFor(string id) => runtime.PendingInstructionFor(id);
         public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
         public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);

@@ -347,7 +347,7 @@ public sealed partial class WorldRuntime
                 CollectSharedFood(actor, person, order.TargetFoodKind);
                 return;
             case "explore":
-                agents[actor] = person;
+                agentStore.ResumeExploration(actor, person);
                 Explore(actor, person, ExplorationGoalForOrder(instruction), replaceGoal: true);
                 return;
             case "seek_food":
