@@ -13,10 +13,10 @@ internal sealed partial class TownSystem
             reading ? CivicBoard(world, town) : null, council.Notices.Where(notice => reading || known.Contains(notice.Id)).ToArray());
     }
 
-    internal static ActionCheck CheckCivicNoticePlan(ITownWorld world, CivicNoticeActionPlan plan)
+    internal static ActionCheck CheckCivicNoticePlan(ITownWorld world, CivicNoticeActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CivicMembershipCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !world.Agents.TryGetValue(plan.Recipient, out var recipient) ||

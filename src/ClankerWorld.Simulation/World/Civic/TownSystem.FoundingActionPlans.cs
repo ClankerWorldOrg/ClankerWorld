@@ -23,10 +23,10 @@ internal sealed partial class TownSystem
         return new(actor, choice, town, person.Position, previous, TownCareGroup(world, actor, previous));
     }
 
-    internal ActionCheck CheckTownFoundingPlan(ITownWorld world, TownFoundingActionPlan plan)
+    internal ActionCheck CheckTownFoundingPlan(ITownWorld world, TownFoundingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CivicMembershipCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Agents[plan.Actor].Position != plan.Site || TownForResident(world, plan.Actor) != plan.PreviousTown ||
             !TownCareGroup(world, plan.Actor, plan.PreviousTown).SequenceEqual(plan.CareGroup))

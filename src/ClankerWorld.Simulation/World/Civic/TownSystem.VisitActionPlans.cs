@@ -4,17 +4,21 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy CivicMembershipCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    internal static ActorCapabilityPolicy CivicVisitCapabilities =>
+        new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static CivicVisitActionPlan? PlanCivicVisit(ITownWorld world, string actor, CivicVisitChoice choice) =>
         world.Agents.ContainsKey(actor) && world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is { } town &&
         CivicBoard(world, town) is { } board
             ? new(actor, choice, board, world.ReachCivicNoticePlace(actor, board)) : null;
 
-    internal ActionCheck CheckCivicVisit(ITownWorld world, CivicVisitActionPlan plan)
+    internal ActionCheck CheckCivicVisit(ITownWorld world, CivicVisitActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var actor = world.CapabilitiesFor(plan.Actor);
-        var capability = ActorCapabilities.Check(actor, plan.CandidateId,
-            new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: actor is not null && LifeStageRules.IsAdult(actor.Age),
-                AllowUrgentWarmth: false, AllowActiveOrder: true));
+        var visitPolicy = policy ?? CivicVisitCapabilities;
+        var capability = ActorCapabilities.Check(actor, plan.CandidateId, visitPolicy with
+        { AllowUrgentFood = visitPolicy.AllowUrgentFood && actor is not null && LifeStageRules.IsAdult(actor.Age) });
         if (!capability.Allowed) return capability;
         var town = world.Towns.SingleOrDefault(item => item.Id == plan.Choice.TownId);
         return town?.Council is not null && CivicBoard(world, town) == plan.NoticePlace &&
@@ -278,7 +282,7 @@ internal sealed partial class TownSystem
                 continue;
             }
             if (CivicVisitChoice.Decode(candidate.Id) is not { } choice) continue;
-            if (PlanCivicVisit(world, actor, choice) is { } plan && CheckCivicVisit(world, plan).Allowed)
+            if ((candidate.ActionPlan as CivicVisitActionPlan ?? PlanCivicVisit(world, actor, choice)) is { } plan && CheckCivicVisit(world, plan).Allowed)
                 candidates[index] = candidate with { ActionPlan = plan };
             else candidates.RemoveAt(index);
         }
