@@ -47,14 +47,13 @@ public sealed partial class WorldRuntime
             InventoryContainerRules.IsContainer(lot.ItemKind) ? GoodsPlanFamily.Capture(society.Checkpoint.Inventory, lot) : null);
     }
 
-    private ActionCheck CheckPersonalGoods(PersonalGoodsActionPlan plan)
+    private ActionCheck CheckPersonalGoods(PersonalGoodsActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         if (!agents.ContainsKey(plan.Actor)) return ActionCheck.Refuse(ActionRefusalReason.ActorUnavailable, "the person is no longer here");
         if (plan.Mode != PersonalGoodsMode.Native || plan.Choice.Kind != PersonalGoodsKind.Return)
         {
             var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-                new(ActionLifeStages.Adults, AllowBoat: plan.Mode != PersonalGoodsMode.Choice,
-                    AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+                policy ?? PersonalGoodsCapabilities(plan.Mode));
             if (!capability.Allowed) return capability;
             if (!ReadyForBriefInteraction(plan.Actor))
                 return ActionCheck.Refuse(ActionRefusalReason.ActorUnavailable, "they cannot handle the selected belongings yet");
@@ -96,11 +95,16 @@ public sealed partial class WorldRuntime
     private (string MoveId, string ItemKind, int Quantity)? ApplyPersonalGoods(PersonalGoodsActionPlan? plan)
     {
         if (plan is null) return null;
-        if (CheckPersonalGoods(plan).Refusal is { } refusal)
+        if (CheckActionPlan(plan).Refusal is { } refusal)
         {
             if (plan.Mode == PersonalGoodsMode.Choice) RefuseChoice(plan, refusal);
             return null;
         }
+        return ApplyCheckedPersonalGoods(plan);
+    }
+
+    private (string MoveId, string ItemKind, int Quantity)? ApplyCheckedPersonalGoods(PersonalGoodsActionPlan plan)
+    {
         if (plan.Mode == PersonalGoodsMode.BoundOrder)
             InterruptOrdinaryFieldWorkForCustody(plan.Actor, plan.Choice.LotId);
         if (!IsWithinInteractionRange(agents[plan.Actor].Position, plan.Target, plan.Range))

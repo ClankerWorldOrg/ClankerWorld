@@ -13,10 +13,10 @@ public sealed partial class WorldRuntime
             agents.ContainsKey(choice.GuestId) ? society.Checkpoint.GetAgent(choice.GuestId).Name : choice.GuestId, offeredChoice);
     }
 
-    private ActionCheck CheckHouseGuest(HouseGuestActionPlan plan)
+    private ActionCheck CheckHouseGuest(HouseGuestActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: !plan.OfferedChoice, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? HouseGuestCapabilities(plan.OfferedChoice));
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == plan.House.InstanceId) is not { } house ||
             house.DefinitionId != plan.House.DefinitionId || house.PlacedTick != plan.House.PlacedTick || house.HouseholdId is null ||
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
         if (HouseGuestChoice.Decode(candidate) is not { } choice) return;
         var plan = originalPlan ?? PlanHouseGuest(actor, choice);
         if (plan is null) return;
-        if (CheckHouseGuest(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         SetHouseGuestInvitationCore(actor, plan.House.InstanceId, choice.GuestId, choice.Invited, plan);
     }
 }
