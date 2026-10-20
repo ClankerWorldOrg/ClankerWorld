@@ -145,8 +145,28 @@ in the same tables until their own extraction. Follow-up work is tracked in
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
-retained plan through the same definition. Remaining areas move their existing
-plan checks from the compatibility dispatcher into their rows in later slices.
+retained plan through the same definition. Each action family in the ordered
+tables now owns its plan check; the type index resolves retained plans back to
+that definition. Legacy prefix sinks only consume unsupported spellings after
+the typed rows have had their turn.
+
+Reply payloads that supply names, terms, evidence or tiles bind those fields
+onto the retained plan at admission. Admission checks all replies against the
+prepared world, then application checks each plan against the changes made by
+earlier replies. A refusal uses the existing `choice_refused` event and a plain
+reason. Native project-input steps also plan their selected lot, quantity and
+route once before checking and applying it.
+
+Offer limits count checked choices. Tool-request placement and visiting,
+project donations and public-report filings apply their limits after the
+definition accepts the plan. Invitation, ornament, animal, Port and Town-project
+offers likewise filter eligibility before their final offer limit. Bounds on
+history, observation context, land-tile payloads and layout searches retain
+their separate purposes. Continuing work retains its existing job, lesson,
+repair or trip identity and reservations. Owner orders keep their typed task
+and existing step executor; their command age policy uses the shared
+capability check.
+
 Child social and household-helping actions also use one typed definition. Their
 existing selected person, resource or load reaches the same native effect after
 the definition rechecks it; legacy entry points share that check and effect.
