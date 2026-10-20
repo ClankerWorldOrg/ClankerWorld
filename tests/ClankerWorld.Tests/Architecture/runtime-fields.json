@@ -7,7 +7,7 @@
     "bridges",
     "shopTrades",
     "checkpointSchemaVersion",
-    "completedInstructionIds",
+    "completedSuggestionIds",
     "contentRegistry",
     "continuity",
     "conversationSystem",
@@ -22,6 +22,7 @@
     "jevPolicyRevision",
     "knowledge",
     "map",
+    "mapAuthoring",
     "nextInstructionSequence",
     "orderCancellations",
     "resources",
@@ -61,16 +62,25 @@
     "constructionProjectPlans",
     "agentWorld",
     "tickGate",
-    "farmingWorld"
+    "farmingWorld",
+    "modelWorkScheduler",
+    "modelWorkObserver",
+    "modelTimeProvider",
+    "modelWork"
   ],
   "scratch": [
+    "<RouteSearchesCreated>k__BackingField",
+    "buildingMovement",
     "guardianPlacementActions",
     "lastTickMilliseconds",
+    "movementBuildings",
     "nonLandRemedySelection",
     "plannedRoutes",
     "previousPlannedRoutes",
+    "reachabilitySearches",
     "routeSearches",
     "attemptedActions",
-    "withheldActions"
+    "withheldActions",
+    "admittedModelReplies"
   ]
 }

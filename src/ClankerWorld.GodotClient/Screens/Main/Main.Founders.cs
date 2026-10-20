@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.AgentPlacement;
@@ -14,7 +15,7 @@ public partial class Main
     private readonly Button addAgentButton = new();
     private readonly Button startWorldButton = new();
     private readonly PanelContainer founderSetupPanel = new();
-    private readonly Label founderSetupHint = new();
+    private readonly FittedLabel founderSetupHint = new();
     private readonly TextureRect founderPlacementIcon = new();
     private readonly OptionButton founderProviderChoice = new();
     private readonly OptionButton founderCredentialChoice = new();
@@ -66,7 +67,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.MoveFounderAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerFounderMoveAction(founderId, tile.X, tile.Y), signer, CancellationToken.None));
+                new OwnerFounderMoveAction(founderId, tile.X, tile.Y), signer, OwnerRequestToken));
             movingFounderId = null;
             moveFounderButton.Text = "Move founder";
             return result.Changed ? $"Founder moved to {result.X}, {result.Y}" : "The founder is already there";
@@ -83,12 +84,11 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.UndoFounderAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerFounderUndoAction(founderId), signer, CancellationToken.None));
-            if (selectedAgentId == founderId) selectedAgentId = null;
+                new OwnerFounderUndoAction(founderId), signer, OwnerRequestToken));
             movingFounderId = null;
             founderApiKeyInput.Text = string.Empty;
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             PopulateFounderCredentials();
             return $"Last founder removed · {result.Placed}/{result.Required} placed. Add another when you're ready.";
         });
@@ -147,7 +147,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.AcceptFirstTownLayoutAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerFirstTownLayoutAction(tile.X, tile.Y), signer, CancellationToken.None));
+                new OwnerFirstTownLayoutAction(tile.X, tile.Y), signer, OwnerRequestToken));
             choosingFirstTownSite = false;
             UpdateTownSiteGuidance(null);
             UpdateHoverReadout(snapshot, hoverReadoutTile);
@@ -294,7 +294,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             founderSetupPanel.Show();
             PopulateFounderCredentials();
             return "Pick a key and model, then click an empty spot to place the founder.";
@@ -321,7 +321,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             placingAddedAgent = true;
             ResetAddAgentPlacementHint();
             founderSetupPanel.Show();
@@ -373,15 +373,16 @@ public partial class Main
             CredentialSlotId: newKey ? Guid.NewGuid().ToString("N") : choice == "default" ? null : choice,
             NewCredentialLabel: newKey ? founderKeyLabelInput.Text.Trim() : null,
             Thinking: SelectedThinking(founderThinkingChoice));
+        var contextRetained = false;
+        var placed = false;
         try
         {
-            await RunOwnerActionAsync(async () =>
+            contextRetained = await RunOwnerActionAsync(async () =>
             {
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.PlaceAgentAsync(ResolveWorldUri(), authority, deviceId,
                     new OwnerAgentPlacementAction(agentId, tile.X, tile.Y, cognition,
-                        membership.HouseholdIdFor(agentId), membership.TownId), signer, CancellationToken.None));
-                placingAddedAgent = false;
-                founderSetupPanel.Hide();
+                        membership.HouseholdIdFor(agentId), membership.TownId), signer, OwnerRequestToken));
+                placed = true;
                 string detail;
                 if (receipt.HouseholdId is null)
                 {
@@ -397,19 +398,24 @@ public partial class Main
                 try
                 {
                     providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                        ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                        ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
                 }
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
-                    exception is not ObsoleteWorldRequestException)
+                    exception is not ObsoleteOwnerRequestException)
                 {
                     return $"{detail} · Model settings could not be refreshed. Open World Settings to refresh them.";
                 }
                 return detail;
-            }, conflictMessage: "The placement changed. Check the tile and try again.");
+            }, conflictMessage: "The placement changed. Check the tile and try again.", sendingPanel: founderSetupPanel);
+            if (contextRetained && placed)
+            {
+                placingAddedAgent = false;
+                founderSetupPanel.Hide();
+            }
         }
         finally
         {
-            if (IsCurrentWorldRequest(generation))
+            if (contextRetained && IsCurrentWorldRequest(generation))
             {
                 founderApiKeyInput.Text = string.Empty;
                 founderKeyLabelInput.Text = string.Empty;
@@ -452,21 +458,22 @@ public partial class Main
             CredentialSlotId: newKey ? Guid.NewGuid().ToString("N") : choice == "default" ? null : choice,
             NewCredentialLabel: newKey ? founderKeyLabelInput.Text.Trim() : null,
             Thinking: SelectedThinking(founderThinkingChoice));
+        var contextRetained = false;
         try
         {
-            await RunOwnerActionAsync(async () =>
+            contextRetained = await RunOwnerActionAsync(async () =>
             {
                 var receipt = await AwaitCurrentWorldResultAsync(ownerApi.PlaceFounderAsync(ResolveWorldUri(), authority, deviceId,
-                    new OwnerFounderPlacementAction(founderId, tile.X, tile.Y, cognition), signer, CancellationToken.None));
+                    new OwnerFounderPlacementAction(founderId, tile.X, tile.Y, cognition), signer, OwnerRequestToken));
                 providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                    ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
                 PopulateFounderCredentials();
                 return $"Founder {receipt.Placed}/{receipt.Required} placed · joins {GameUiText.PartyName(snapshot, receipt.HouseholdId)}";
-            });
+            }, sendingPanel: founderSetupPanel);
         }
         finally
         {
-            if (IsCurrentWorldRequest(generation))
+            if (contextRetained && IsCurrentWorldRequest(generation))
             {
                 founderApiKeyInput.Text = string.Empty;
                 founderKeyLabelInput.Text = string.Empty;
@@ -477,12 +484,14 @@ public partial class Main
     private async Task StartFounderWorldAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return;
-        await RunOwnerActionAsync(async () =>
+        var started = false;
+        var contextRetained = await RunOwnerActionAsync(async () =>
         {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.StartWorldAsync(ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
-            founderSetupPanel.Hide();
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.StartWorldAsync(ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
+            started = true;
             return "World started";
         });
+        if (contextRetained && started) founderSetupPanel.Hide();
     }
 
     private void RenderFounderSetup(OwnerWorldSnapshot snapshot)

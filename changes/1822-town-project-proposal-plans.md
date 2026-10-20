@@ -1,1 +1,0 @@
-- Town project proposals retain their selected site, entrance, budget and Port while binding the admitted name through shared native checks.

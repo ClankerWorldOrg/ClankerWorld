@@ -11,6 +11,26 @@ public static class StarterContent
     public const string PackageId = "clankerworld-starter-v1";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
+    private static readonly Lazy<IReadOnlyList<ContentPackageManifest>> InitialManifests = new(() =>
+        Array.AsReadOnly(new ContentPackageManifest[]
+        {
+            StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseToolsContent.Create(),
+            WarehouseContent.Create(), FarmContent.Create(), BlacksmithContent.Create(),
+            HouseCookingContent.Create(), PotteryContent.Create(), SiloContent.Create(), TailorContent.Create(),
+            RestaurantContent.Create(), StoreContent.Create(), CareContent.Create(), OrnamentContent.Create(), TownHallContent.Create(),
+            KnowledgeContent.Create(), MarketContent.Create(), StreetLanternContent.Create(), PortContent.Create(),
+            FarmhouseVariantContent.Create(), BlacksmithVariantContent.Create(), TailorVariantContent.Create(),
+            ClinicVariantContent.Create(), RestaurantVariantContent.Create(), AnimalContent.Create(),
+        }.Select(manifest => manifest with
+        {
+            Dependencies = Array.AsReadOnly(manifest.Dependencies.ToArray()),
+            Definitions = Array.AsReadOnly(manifest.Definitions.ToArray()),
+            DeclaredCapabilities = Array.AsReadOnly(manifest.DeclaredCapabilities.ToArray()),
+            AssetReservations = manifest.AssetReservations is null ? null : Array.AsReadOnly(manifest.AssetReservations.ToArray()),
+        }).ToArray()));
+
+    internal static IReadOnlyList<ContentPackageManifest> InitialTownManifests => InitialManifests.Value;
+
     public static ContentPackageManifest Create()
     {
         var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(

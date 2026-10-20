@@ -1,1 +1,0 @@
-- Medical permission choices retain the selected caregiver, consent state and interrupted dose, with shared checks before offering and applying.

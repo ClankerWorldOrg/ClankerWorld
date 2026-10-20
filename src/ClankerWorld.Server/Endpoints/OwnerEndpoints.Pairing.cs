@@ -20,10 +20,11 @@ internal static partial class OwnerEndpoints
 
         // Bound unauthenticated creation before JSON binding. Do not spend this budget
         // on signed owner challenges/reconnect/pause or host-local recovery. Pairing
-        // bodies are already capped by RequestBodyLimits.
+        // bodies are already capped by RequestBodyLimits. Routing has already chosen
+        // the endpoint, so every path spelling it accepts for the route is counted.
         app.Use(async (context, next) =>
         {
-            if (HttpMethods.IsPost(context.Request.Method) && context.Request.Path == "/api/v1/pairings" &&
+            if (context.GetEndpoint()?.Metadata.GetMetadata<PairingRequestBudget.Route>() is not null &&
                 !context.RequestServices.GetRequiredService<PairingRequestBudget>().TryAcquire())
             {
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -34,24 +35,25 @@ internal static partial class OwnerEndpoints
         });
 
         // Prove that this listener is the local server holding the game's secret,
-        // without creating a pairing or changing the world.
+        // without receiving it, creating a pairing or changing the world.
         app.MapGet("/api/v1/approval/launch-check", (HttpContext context, ApprovalListenerOptions options) =>
-            options.IsLocalServer && options.IsApprovalRequest(context)
-                ? Results.Ok() : Results.NotFound());
+            options.LaunchCheckAnswer(context) is { } answer
+                ? Results.Ok(new LocalServerLaunchCheckAnswer(answer)) : Results.NotFound());
 
         app.MapPost("/api/v1/approval/pairings", (
             StartOwnerPairingHttpRequest request, HttpContext context, ApprovalListenerOptions options,
-            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile, OwnerHostInformation host) =>
         {
             if (!options.IsApprovalRequest(context)) return Results.NotFound();
             var result = authority.StartPairingLocally(new OwnerPairingRequest(request?.PublicKeySpkiBase64 ?? string.Empty));
             stateFile.Save(authority);
             PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "created" : "refused");
-            return result.IsSuccess ? Results.Ok(result.Value) : OwnerFailures.ToHttpResult(result.Failure);
+            return result.IsSuccess ? Results.Ok(result.Value! with { Host = host }) : OwnerFailures.ToHttpResult(result.Failure);
         });
 
         app.MapPost("/api/v1/pairings", (
             StartOwnerPairingHttpRequest request,
+            OwnerHostInformation host,
             OwnerAuthorityStore authority,
             OwnerAuthorityStateFile stateFile) =>
         {
@@ -65,8 +67,8 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(result.Failure);
             }
 
-            return Results.Ok(result.Value);
-        });
+            return Results.Ok(result.Value! with { Host = host });
+        }).WithMetadata(PairingRequestBudget.Route.Instance);
 
         app.MapGet("/api/v1/pairings/{pairingId}", (
             string pairingId,
@@ -102,6 +104,46 @@ internal static partial class OwnerEndpoints
             return Results.Ok(result.Value);
         });
 
+        app.MapGet("/api/v1/approval/pairings", (HttpContext context, ApprovalListenerOptions options,
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var pending = authority.GetPendingPairingsLocally();
+            stateFile.Save(authority);
+            return Results.Ok(pending);
+        });
+
+        app.MapGet("/api/v1/approval/hosting", (HttpContext context, ApprovalListenerOptions options,
+            OwnerClientPresenceLease presence, WorldStartupRecovery recovery, OwnerHostInformation host) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            return Results.Ok(new HostStatus(presence.ActiveClientCount, !recovery.Pending &&
+                context.RequestServices.GetRequiredService<WorldRuntimeService>().HostIdleSaveFailed, recovery.Pending,
+                host.Kind, context.RequestServices.GetService<LauncherHostOptions>()?.StopWhenGameQuits ?? false));
+        });
+
+        app.MapPost("/api/v1/approval/pairings/{pairingId}/decline", (string pairingId,
+            HttpContext context, ApprovalListenerOptions options, OwnerAuthorityStore authority,
+            OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var result = authority.DeclinePendingPairingLocally(pairingId);
+            stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "declined" : "refused");
+            return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
+        });
+
+        app.MapPost("/api/v1/approval/pairings/approve", (
+            PairingApprovalHttpRequest request, HttpContext context, ApprovalListenerOptions options,
+            OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
+        {
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
+            var result = authority.ApprovePendingPairingLocally(request?.PairingCode ?? string.Empty);
+            stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "approved" : "refused");
+            return result.IsSuccess ? Results.NoContent() : OwnerFailures.ToHttpResult(result.Failure);
+        });
+
         // This route is served only by the second loopback-only listener configured by
         // the deployment. Tailscale Serve forwards the normal server port, never this
         // approval port, so a remote client cannot bootstrap itself.
@@ -122,6 +164,7 @@ internal static partial class OwnerEndpoints
             // A mismatch increments the durable bounded-attempt counter, so a restart
             // must not erase unsuccessful approval attempts.
             stateFile.Save(authority);
+            PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "approved" : "refused");
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);
@@ -147,8 +190,7 @@ internal static partial class OwnerEndpoints
                 return Results.NotFound();
             }
 
-            var result = authority.RevokeDeviceLocally(deviceId);
-            stateFile.Save(authority);
+            var result = stateFile.RevokeDevice(authority, deviceId);
             if (!result.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(result.Failure);
@@ -167,10 +209,9 @@ internal static partial class OwnerEndpoints
             if (!options.IsLocalServerShutdownRequest(context)) return Results.NotFound();
             var recovery = context.RequestServices.GetService<WorldStartupRecovery>();
             if (recovery is null) return Results.NotFound();
-            if (recovery.Pending) return Results.Conflict(new { message = "Choose world recovery before saving." });
-            var advancing = context.RequestServices.GetRequiredService<WorldRuntimeService>();
-            var outcome = advancing.SaveBeforeShutdown(pauseWorld: true);
-            if (outcome == ShutdownSaveOutcome.WriteFailed)
+            // A refused startup checkpoint has no loaded world to save.
+            if (!recovery.Pending && context.RequestServices.GetRequiredService<WorldRuntimeService>()
+                .SaveBeforeShutdown(pauseWorld: true) == ShutdownSaveOutcome.WriteFailed)
                 return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "The world could not be saved",
                     detail: "The host is still running and the world is paused. Try again.");
@@ -212,6 +253,7 @@ internal static partial class OwnerEndpoints
                     OwnerHttpBinding.JevAssistancePayloadDomain,
                     "clankerworld.owner-routine-helper.v1",
                     OwnerHttpBinding.ModelThinkingPayloadDomain,
+                    OwnerHttpBinding.HelperSetupCheckPayloadDomain,
                 ],
             });
         });

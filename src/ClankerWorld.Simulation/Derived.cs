@@ -17,9 +17,8 @@ public sealed class Derived<TKey, TValue>(Func<TKey, TValue> compute, Func<TValu
     public TValue Get(TKey key)
     {
         if (!values.TryGetValue(key, out var value))
-            return values.GetValue(key, snapshot => compute(snapshot));
-        if (DerivedVerification.RecomputeOnHit && !equal(value, compute(key)))
-            throw new InvalidOperationException("A snapshot-derived value differs from its recomputation.");
-        return value;
+            return values.GetOrAdd(key, compute);
+        return DerivedVerification.RecomputeOnHit && !equal(value, compute(key))
+            ? throw new InvalidOperationException("A snapshot-derived value differs from its recomputation.") : value;
     }
 }

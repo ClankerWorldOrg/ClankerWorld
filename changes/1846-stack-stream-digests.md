@@ -1,0 +1,1 @@
+- World creation and simulation use less temporary memory.

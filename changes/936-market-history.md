@@ -1,1 +1,0 @@
-- Long-running Markets keep bounded recent trading history and exact live stock and payment records. This changes the save format; earlier alpha saves are refused and preserved without conversion.

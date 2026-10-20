@@ -1,1 +1,0 @@
-- Voluntary agreements to return goods can now use a later carried lot with enough goods when an earlier lot is too small. Named source lots, reservations and recorded payments remain respected.

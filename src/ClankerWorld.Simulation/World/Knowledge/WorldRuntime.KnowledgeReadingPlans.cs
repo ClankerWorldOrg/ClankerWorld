@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
         if (learned > 0)
         {
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("agent_knowledge_shared", $"{plan.Actor}|{plan.RecipientId}|{plan.Artifact.Id}|{learned}");
+            AppendEvent(new AgentKnowledgeSharedEventPayload(plan.Actor, plan.RecipientId, plan.Artifact.Id, learned));
         }
     }
 }
