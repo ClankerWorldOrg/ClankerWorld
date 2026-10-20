@@ -18,10 +18,10 @@ internal sealed partial class AnimalSystem
             world.Reach(actor, carried ? choice.Yard.Position : position, ReachPurpose.AnimalSupply, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    internal ActionCheck CheckAnimalSupplyPlan(IAnimalWorld world, AnimalSupplyActionPlan plan)
+    internal ActionCheck CheckAnimalSupplyPlan(IAnimalWorld world, AnimalSupplyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capabilities = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ActionCapabilities);
         if (!capabilities.Allowed) return capabilities;
         var yard = world.Simulation.Buildings.FirstOrDefault(item => item.InstanceId == plan.Choice.YardId);
         if (yard is null || yard.HouseholdId != plan.HouseholdId || yard.Position != plan.Destination || !MaySupplyAnimalYard(world, plan.Actor, yard) ||
@@ -81,6 +81,11 @@ internal sealed partial class AnimalSystem
     private void ApplyAnimalSupplyPlan(IAnimalWorld world, AnimalSupplyActionPlan plan)
     {
         if (CheckAnimalSupplyPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalSupply(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalSupply(IAnimalWorld world, AnimalSupplyActionPlan plan)
+    {
         if (!plan.Carried && !world.IsWithinInteractionRange(world.Agents[plan.Actor].Position, plan.Pickup, plan.PickupRange))
         { world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Pickup, "animal_supply_pickup", plan.PickupRange); return; }
         CompleteAnimalSupplyPickup(world, plan, world.Society.Inventory.GetLot(plan.Choice.StockId));

@@ -97,23 +97,21 @@ internal sealed partial class AnimalSystem
         }
     }
 
-    internal bool ApplyAnimalConsentDecision(IAnimalWorld world, SocietyCognitionDispatchResult decision)
+    internal bool TryPlanAnimalConsentDecision(IAnimalWorld world, SocietyCognitionDispatchResult decision, out AnimalAgreementActionPlan? plan)
     {
+        plan = null;
         var selected = decision.Admission.Intention;
         if (selected is null || !selected.CandidateId.StartsWith("animal:agreement:", StringComparison.Ordinal)) return false;
         if (!decision.Admission.Accepted || decision.Admission.FellBack || selected.Provider != DecisionProviderKind.LargeLanguageModel ||
             selected.AgentId != decision.AgentId || world.PendingInstructionFor(decision.AgentId)?.Kind == OwnerInstructionKind.Order) return true;
         var actor = decision.AgentId;
-        var plan = decision.ActionPlan as AnimalAgreementActionPlan;
+        plan = decision.ActionPlan as AnimalAgreementActionPlan;
         if (plan is null && AnimalAgreements(world, actor).FirstOrDefault(item => item.Id == selected.CandidateId) is { } current)
             plan = PlanAnimalAgreement(world, actor, current);
-        if (plan is null) return true;
-        if (CheckAnimalAgreementPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return true; }
-        CompleteAnimalAgreement(world, plan);
         return true;
     }
 
-    private void CompleteAnimalAgreement(IAnimalWorld world, AnimalAgreementActionPlan plan)
+    internal void CompleteAnimalAgreement(IAnimalWorld world, AnimalAgreementActionPlan plan)
     {
         var actor = plan.Actor;
         var agreement = new AnimalAgreement(plan.Choice.Action, plan.Choice.AnimalId, plan.Choice.OtherId, plan.Choice.StockId);

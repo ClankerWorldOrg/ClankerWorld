@@ -30,6 +30,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "animal_agreement", ["animal:agreement:"], [], Definition: AnimalAgreementDefinition),
         new(ActionPhase.FreshAdmission, "medical_consent", [MedicalConsentChoice.AllowPrefix, MedicalConsentChoice.RevokePrefix], [], Definition: MedicalConsentDefinition),
         new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
         new(ActionPhase.BeforeAge, "IsOrnamentCandidate", [], [], static (runtime, action) =>
@@ -113,6 +114,11 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "CollectToolPrefix", [ToolCollectionChoice.Prefix], [], Definition: ToolCollectionDefinition),
         new(ActionPhase.Ordinary, "boat_trip", [BoatTripActionChoice.Prefix], [], Definition: BoatTripDefinition),
         new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], Definition: BoatWaitingDefinition),
+        new(ActionPhase.Ordinary, "animal_work", [], [], Definition: AnimalWorkDefinition),
+        new(ActionPhase.Ordinary, "animal_product", [], [], Definition: AnimalProductDefinition),
+        new(ActionPhase.Ordinary, "animal_travel", [], [], Definition: AnimalTravelDefinition),
+        new(ActionPhase.Ordinary, "animal_supply", [], [], Definition: AnimalSupplyDefinition),
+        new(ActionPhase.Ordinary, "animal_trip", [], [], Definition: AnimalTripDefinition),
         RegisterAnimalActions(),
         new(ActionPhase.Ordinary, "ApplyHandcartCandidate", [], [], Definition: HandcartControlDefinition),
         new(ActionPhase.Ordinary, "handcart_material", [], [], Definition: HandcartBuildMaterialDefinition),

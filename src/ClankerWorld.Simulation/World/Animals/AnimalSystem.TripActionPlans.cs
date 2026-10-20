@@ -24,10 +24,10 @@ internal sealed partial class AnimalSystem
             step == AnimalTripStep.Deliver ? world.Reach(actor, yard!.Position, ReachPurpose.AnimalTrip, 0, 0, SwimmingPolicy.WhenCapable) : Array.AsReadOnly<GridPoint>([]));
     }
 
-    internal ActionCheck CheckAnimalTripPlan(IAnimalWorld world, AnimalTripActionPlan plan)
+    internal ActionCheck CheckAnimalTripPlan(IAnimalWorld world, AnimalTripActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? ActionCapabilities);
         if (!capability.Allowed) return capability;
         if (State.SupplyTrips.FirstOrDefault(trip => trip.ActorId == plan.Actor) != plan.Trip)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected supply trip has changed");
@@ -48,6 +48,11 @@ internal sealed partial class AnimalSystem
     private void ApplyAnimalTripPlan(IAnimalWorld world, AnimalTripActionPlan plan)
     {
         if (CheckAnimalTripPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalTrip(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalTrip(IAnimalWorld world, AnimalTripActionPlan plan)
+    {
         if (plan.Step == AnimalTripStep.Release) { FinishAnimalSupplyTrip(world, plan.Actor); return; }
         if (plan.Step == AnimalTripStep.Work)
         {
