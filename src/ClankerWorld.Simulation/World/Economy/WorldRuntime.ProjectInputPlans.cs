@@ -142,11 +142,11 @@ public sealed partial class WorldRuntime
                     return;
                 }
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                    $"project-delivery:{WorldTick}:{plan.Actor}", plan.Actor, plan.OwnerId, delivery.LotId,
+                    IdentityRules.PrefixedReference("project-delivery:", $"{WorldTick}:{plan.Actor}"), plan.Actor, plan.OwnerId, delivery.LotId,
                     delivery.Quantity, "project_contribution", plan.HouseId,
                     destinationGroundPosition: plan.HouseId is null ? new InventoryGroundPosition(plan.Destination.Value.X, plan.Destination.Value.Y) : null,
                     holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
-                AppendEvent("project_material_delivered", $"{plan.Actor}:{plan.Input.ResourceId}");
+                AppendEvent(new ProjectMaterialDeliveredEventPayload(plan.Actor, plan.Input.ResourceId));
                 return;
             case ProjectInputPickup pickup:
                 SetProject(plan.Actor, project with { Stage = "gathering", Blocker = $"Collecting {plan.Input.ResourceId.Replace('_', ' ')} from the Town Warehouse" });
@@ -157,9 +157,9 @@ public sealed partial class WorldRuntime
                 }
                 if (pickup.Quantity == 0) return;
                 ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                    $"warehouse-pickup:{WorldTick}:{plan.Actor}", pickup.Warehouse.TownId!, plan.Actor,
+                    IdentityRules.PrefixedReference("warehouse-pickup:", $"{WorldTick}:{plan.Actor}"), pickup.Warehouse.TownId!, plan.Actor,
                     pickup.LotId, pickup.Quantity, "town_resource_collected", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
-                AppendEvent("town_resource_collected", $"{plan.Actor}:{pickup.LotId}:{pickup.Quantity}:{pickup.Warehouse.InstanceId}");
+                AppendEvent(new TownResourceCollectedEventPayload(plan.Actor, pickup.LotId, pickup.Quantity, pickup.Warehouse.InstanceId));
                 return;
             case ProjectInputHarvest harvest:
                 SetProject(plan.Actor, project with { Stage = "gathering", Blocker = $"Need {plan.Input.Amount} {plan.Input.ResourceId.Replace('_', ' ')}" });
@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
                     MoveToward(plan.Actor, agents[plan.Actor], source.Position, "materials", ResourceInteractionRange);
                     return;
                 }
-                AppendEvent("carrying_full", plan.Actor);
+                AppendEvent(new CarryingFullEventPayload(plan.Actor));
                 return;
             case ProjectInputWait waiting:
                 SetProject(plan.Actor, project with

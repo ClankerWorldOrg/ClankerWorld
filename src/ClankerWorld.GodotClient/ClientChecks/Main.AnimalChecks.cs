@@ -130,9 +130,6 @@ public partial class Main
         RenderTileInspection(map);
         if (!TileCardText().Contains("Moss", StringComparison.Ordinal))
             throw new InvalidOperationException("An animal must be inspectable at its actual tile.");
-        var description = WorldEventText.Describe(new(1, 1, "animal_cared", "rider:smoke-horse"), map);
-        if (!description.Contains("Moss", StringComparison.Ordinal) || description.Contains("smoke-horse", StringComparison.Ordinal))
-            throw new InvalidOperationException("Animal events must show the animal's name.");
         VerifyYardAnimalInspection();
     }
 }

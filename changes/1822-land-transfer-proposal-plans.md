@@ -1,1 +1,0 @@
-- Household permission-transfer proposals retain their source, exact plot, beneficiary and goods price through shared checks.

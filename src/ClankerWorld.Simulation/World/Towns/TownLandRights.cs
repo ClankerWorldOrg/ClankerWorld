@@ -219,7 +219,7 @@ public static class TownLandRightsRules
         var titledTiles = new HashSet<GridPoint>();
         foreach (var title in titles)
         {
-            if (!ValidId(title.Id) || !ValidId(title.TownId) ||
+            if (!IdentityRules.Reference(title.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(title.TownId, DerivedId.MaximumLength, requireTrimmed: true) ||
                 !townsById.TryGetValue(title.TownId, out var town) || town.OriginSite is null ||
                 !IsValidPlot(map, title.Tiles, worldTick, title.RecordedTick) ||
                 title.Tiles.Any(tile => !town.BorderTiles.Contains(tile) || !titledTiles.Add(tile)))
@@ -233,9 +233,9 @@ public static class TownLandRightsRules
         var grantedUseTiles = new HashSet<GridPoint>();
         foreach (var right in rights)
         {
-            if (!ValidId(right.Id) || !ValidId(right.TownId) || !townsById.ContainsKey(right.TownId) ||
-                !households.Contains(right.HouseholdId) || !TownHearingProcedure.Id(right.HouseholdId) ||
-                !ValidText(right.GrantSource, 64) ||
+            if (!IdentityRules.Reference(right.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(right.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !townsById.ContainsKey(right.TownId) ||
+                !households.Contains(right.HouseholdId) || !IdentityRules.Reference(right.HouseholdId, int.MaxValue, requireTrimmed: true) ||
+                !BoundedText.IsValid(right.GrantSource, 64, requireTrimmed: true) ||
                 !IsValidPlot(map, right.Tiles, worldTick, right.GrantedTick, right.AgreedEndTick) ||
                 right.Tiles.Any(tile => !IsCoveredByTownTitle(tile, right.TownId, titles) ||
                     !grantedUseTiles.Add(tile)))
@@ -244,9 +244,9 @@ public static class TownLandRightsRules
 
         foreach (var request in requests)
         {
-            if (!ValidId(request.Id) || !ValidId(request.TownId) || !townsById.ContainsKey(request.TownId) ||
-                !households.Contains(request.HouseholdId) || !TownHearingProcedure.Id(request.HouseholdId) ||
-                !TownHearingProcedure.Id(request.RequestedByAgentId) || !agents.Contains(request.RequestedByAgentId) ||
+            if (!IdentityRules.Reference(request.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(request.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !townsById.ContainsKey(request.TownId) ||
+                !households.Contains(request.HouseholdId) || !IdentityRules.Reference(request.HouseholdId, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(request.RequestedByAgentId, int.MaxValue, requireTrimmed: true) || !agents.Contains(request.RequestedByAgentId) ||
                 request.Tiles is not { Count: <= CognitionDecisionResponse.MaximumCivicLandTiles } ||
                 !IsValidPlot(map, request.Tiles, worldTick, request.RequestedTick, request.AgreedEndTick) ||
                 request.Tiles.Any(tile => !IsCoveredByTownTitle(tile, request.TownId, titles)))
@@ -267,12 +267,6 @@ public static class TownLandRightsRules
 
     private static string StableId(string prefix, string scope, int index) =>
         DerivedId.Create($"{prefix}:{scope}:{index.ToString(CultureInfo.InvariantCulture)}", prefix == "household-use" ? "household-use:" : null);
-
-    private static bool ValidId(string? value) => ValidText(value, DerivedId.MaximumLength);
-
-    private static bool ValidText(string? value, int maximumLength) =>
-        !string.IsNullOrWhiteSpace(value) && value == value.Trim() && value.Length <= maximumLength &&
-        !value.Any(char.IsControl);
 }
 
 public sealed partial class WorldRuntime
@@ -296,6 +290,5 @@ public sealed partial class WorldRuntime
     private HouseholdLandUseRequestResult ExistingLandRequestResult(HouseholdLandUseRequest request,
         bool isDuplicate) => townSystem.ExistingLandRequestResult(civicWorld, request, isDuplicate);
     private static HouseholdLandUseRequestResult RejectedLandRequest(string failure) => TownSystem.RejectedLandRequest(failure);
-    private static bool ValidLandRequestText(string? value, int maximumLength) => TownSystem.ValidLandRequestText(value, maximumLength);
     private static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) => TownSystem.SameLandRequest(left, right);
 }

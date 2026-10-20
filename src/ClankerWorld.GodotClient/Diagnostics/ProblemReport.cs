@@ -79,8 +79,7 @@ public static partial class ProblemReport
     /// Blanks anything in one log line that looks like a credential: values
     /// after names such as <c>api_key</c> or <c>Authorization</c>, bearer
     /// tokens, passwords in addresses, common provider key formats and long
-    /// random-looking strings. Plain hex IDs and hashes are kept, because they
-    /// are what a bug report needs to follow a request.
+    /// random-looking strings outside file paths. Long hex tokens and unlabelled comparison codes are also removed.
     /// </summary>
     public static string Redact(string line, IReadOnlyCollection<string>? knownSecrets = null)
     {
@@ -90,7 +89,12 @@ public static partial class ProblemReport
         line = NamedValue().Replace(line, match => match.Groups["prefix"].Value + Removed);
         line = AddressPassword().Replace(line, match => match.Groups["scheme"].Value + Removed + "@");
         line = ProviderKey().Replace(line, Removed);
-        return LongToken().Replace(line, match => LooksRandom(match.Value) ? Removed : match.Value);
+        line = PairingCode().Replace(line, Removed);
+        line = HexToken().Replace(line, Removed);
+        // Named, known and provider secrets have already been removed, even inside paths.
+        // Match paths as a whole so the generic token rule cannot eat their fragments.
+        return PathOrLongToken().Replace(line, match =>
+            !match.Groups["path"].Success && LooksRandom(match.Value) ? Removed : match.Value);
     }
 
     private static bool LooksRandom(string token) =>
@@ -183,13 +187,19 @@ public static partial class ProblemReport
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex AuthorizationScheme();
 
-    [GeneratedRegex("""(?<scheme>\b[A-Za-z][A-Za-z0-9+.-]*://)[^/\s:@]+:[^/\s@]+@""", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("""(?<scheme>\b[A-Za-z][A-Za-z0-9+.-]*://)[^/\s:@]+:[^/\s@]+@""", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
     private static partial Regex AddressPassword();
 
     [GeneratedRegex("""\b(?:sk-[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,})""",
         RegexOptions.CultureInvariant)]
     private static partial Regex ProviderKey();
 
-    [GeneratedRegex("""[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
-    private static partial Regex LongToken();
+    [GeneratedRegex(@"(?<![A-Za-z0-9])[A-Fa-f0-9]{32,}(?![A-Za-z0-9])", RegexOptions.CultureInvariant)]
+    private static partial Regex HexToken();
+
+    [GeneratedRegex(@"(?<![A-Za-z0-9])\d{6}(?![A-Za-z0-9])", RegexOptions.CultureInvariant)]
+    private static partial Regex PairingCode();
+
+    [GeneratedRegex("""(?<path>(?:[A-Za-z]:[\\/]|(?:res|user)://|/|\.{1,2}[\\/])[^\s"'<>|,;]+|(?<![A-Za-z0-9_.-])[A-Za-z0-9_.-]+\.(?i:dll|exe|pck)(?=$|[\s"'<>|,;).]))|[A-Za-z0-9+/_=-]{32,}""", RegexOptions.CultureInvariant)]
+    private static partial Regex PathOrLongToken();
 }

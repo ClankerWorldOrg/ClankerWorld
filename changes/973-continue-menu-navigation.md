@@ -1,1 +1,0 @@
-- Opening Settings while Continue waits keeps the world paused; a late reply no longer resumes it behind the menus.
