@@ -1,1 +1,0 @@
-- Save World can preview and confirm cleanup of older recovery copies, keeping a provisional number per save and its latest verified recovery. Manual saves, unclassified copies and unverifiable checkpoints are kept; cleanup never runs automatically.

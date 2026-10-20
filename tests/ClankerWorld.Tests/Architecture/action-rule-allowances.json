@@ -62,6 +62,9 @@
     "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0)",
     "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange)"
   ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.RouteSearch.cs": [
+    "FindUnoccupiedRoute(actor, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
+  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ShelterOrders.cs": [
     "FindUnoccupiedRoute(actor, origin, destination, 0)",
     "FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange)"
@@ -74,10 +77,6 @@
     "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Swimming.cs": [
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, additionalCarriedUnits: 1)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
-    "FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false)",
     "FindUnoccupiedRoute(actor, position, source, sourceRange)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TalkOrders.cs": [

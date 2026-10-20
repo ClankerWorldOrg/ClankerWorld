@@ -4,7 +4,8 @@ public sealed record NonLandAdjudicationChoice(string TownId, string Verb, strin
 {
     public string Encode() => $"civic|{TownId}|{Verb}|{CaseToken}|{OutcomeOrRequestToken}";
     public static NonLandAdjudicationChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var item, var terms] &&
-        town.Length > 0 && item.Length > 0 && terms.Length > 0 && verb is "law_case_find" or "law_case_reopen" or "law_case_assess_reopen"
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(item, DerivedId.MaximumLength) && IdentityRules.Reference(terms, DerivedId.MaximumLength) && verb is "law_case_find" or "law_case_reopen" or "law_case_assess_reopen"
             ? new(town, verb, item, terms) : null;
 }
 

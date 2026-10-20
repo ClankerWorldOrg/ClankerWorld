@@ -1,1 +1,0 @@
-- The inventory save format now records promises on goods. Earlier alpha saves cannot load in this build and are kept without migration.

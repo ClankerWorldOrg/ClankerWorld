@@ -1,1 +1,0 @@
-- Households can request land-use rights through Council approval and explicit acceptance from every current adult member. Plot details show approval progress, and building expansion waits for permission on its extra tiles. This changes the alpha save format; older saves are refused without being overwritten.

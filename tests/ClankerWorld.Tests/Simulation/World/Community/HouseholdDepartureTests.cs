@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
@@ -151,7 +152,7 @@ public sealed partial class HouseholdDepartureTests
                 initial.WorldTick, [fact])
             {
                 WritingProjectId = projectId,
-                Materials = [new AgentKnowledgeMaterial(reservationId, paperId, "paper", 1)],
+                Materials = [new AgentKnowledgeMaterial(Identity.Parse(reservationId), paperId, "paper", 1)],
             });
         }
         foreach (var kind in kinds)
@@ -533,7 +534,7 @@ public sealed partial class HouseholdDepartureTests
             WorldSimulation = state.WorldSimulation! with
             {
                 ProductionJobs = [new WorldProductionJob("departure-private-job", recipe.CanonicalId, house.InstanceId,
-                    actor, initial.WorldTick, initial.WorldTick + 30, WorldProductionJobState.Running, reservationIds) { OwnerId = Alpha }],
+                    actor, initial.WorldTick, initial.WorldTick + 30, WorldProductionJobState.Running, (reservationIds).Select(Identity.Parse).ToArray()) { OwnerId = Alpha }],
             },
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
@@ -589,7 +590,7 @@ public sealed partial class HouseholdDepartureTests
         Assert.True(resumeStep.Advanced);
         var selectedPlan = Assert.IsType<HouseholdResumeActionPlan>(resumeStep.Decisions.Single(decision => decision.AgentId == remaining).ActionPlan);
         Assert.Same(provider.SelectedPlans[remaining], selectedPlan);
-        Assert.Equal(reservationIds, selectedPlan.ReservationIds);
+        Assert.Equal(reservationIds.Select(Identity.Parse), selectedPlan.ReservationIds);
         Assert.Equal(("departure-private-job", house.InstanceId, Alpha),
             (selectedPlan.Choice.JobId, selectedPlan.Building.InstanceId, selectedPlan.HouseholdId));
         Assert.Equal(selectedPlan.Choice, HouseholdResumeChoice.Decode(selectedPlan.CandidateId));

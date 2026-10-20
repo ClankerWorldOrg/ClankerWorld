@@ -1,1 +1,0 @@
-- IDs derived by births, family records, stock splits and repeated milk sales now stay within one shared limit. Memories and work receipts keep their complete source links and remain eligible for recall. Short IDs keep their existing spelling. This changes the alpha save format; older saves are preserved and refused without migration.

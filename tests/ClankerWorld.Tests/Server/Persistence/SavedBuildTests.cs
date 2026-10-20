@@ -1,11 +1,38 @@
 using ClankerWorld.Server.Saves;
 using ClankerWorld.Simulation.World;
 using System.Text.Json.Nodes;
+using System.Text.Json;
 
 namespace ClankerWorld.Tests;
 
 public sealed class SavedBuildTests
 {
+    [Theory]
+    [InlineData(null, 0, false)]
+    [InlineData("", 0, false)]
+    [InlineData(" ", 0, true)]
+    [InlineData("Zoë 🌲", 0, true)]
+    [InlineData("\n", 0, false)]
+    [InlineData("x", 63, true)]
+    [InlineData("x", 64, false)]
+    public void SharedBuildMetadataKeepsItsOriginalTextAcceptance(string? prefix, int padding, bool accepted)
+    {
+        var value = prefix is null ? null : prefix + new string('x', padding);
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        var json = JsonSerializer.Serialize(new
+        {
+            Id = "save",
+            Name = "Named",
+            CreatedUtc = DateTimeOffset.UnixEpoch,
+            WorldTick = 0,
+            GameVersion = value,
+            SourceRevision = value,
+        }, options);
+        var save = JsonSerializer.Deserialize<ManualWorldSave>(json, options)!;
+        Assert.Equal(accepted ? value : null, save.GameVersion);
+        Assert.Equal(accepted ? value : null, save.SourceRevision);
+    }
+
     [Theory]
     [InlineData("GameVersion", "42")]
     [InlineData("GameVersion", "[]")]

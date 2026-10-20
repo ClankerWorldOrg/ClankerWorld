@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, ContentPackageRules.MaximumContentIdLength) &&
+    internal static bool LandSaleKind(string kind) => BoundedText.IsValid(kind, ContentPackageRules.MaximumContentIdLength) &&
             !kind.Any(char.IsWhiteSpace) && !InventoryContainerRules.IsContainer(kind) && kind != "handcart";
 
     internal static InventoryLot[] LandSaleCarriedLots(ITownWorld world, string actor, TownLandSalePrice price) =>

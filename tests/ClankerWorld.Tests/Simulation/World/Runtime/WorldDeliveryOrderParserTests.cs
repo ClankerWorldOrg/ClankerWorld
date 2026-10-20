@@ -124,7 +124,7 @@ public sealed class WorldDeliveryOrderParserTests
         using var world = CreateWorld();
         var original = Submit(world, "save", "donate two wood to my Town Warehouse at (2, 1)");
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!["definition"]!.AsObject();
         Assert.False(orderJson.ContainsKey("deliveryRoute"));
         Assert.False(orderJson.ContainsKey("deliveryLotId"));
         Assert.False(orderJson.ContainsKey("deliveryQuantity"));
@@ -155,7 +155,7 @@ public sealed class WorldDeliveryOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
+            OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, value);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
     }
@@ -168,14 +168,8 @@ public sealed class WorldDeliveryOrderParserTests
         var saved = world.ExportState();
         using var valid = WorldRuntime.Restore(saved);
         Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item with
-            {
-                Task = item.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(corrupt));
+        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     private static WorldRuntime CreateWorld(bool activeInputs = false)
