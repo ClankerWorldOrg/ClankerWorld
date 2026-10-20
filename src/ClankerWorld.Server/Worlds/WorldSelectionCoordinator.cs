@@ -18,7 +18,8 @@ public sealed class WorldSelectionCoordinator(
     WorldAutosaveStore autosave,
     WorldJevPolicy jevPolicy,
     ILogger<WorldSelectionCoordinator> logger,
-    Func<string, IDecisionProvider> providerFactory)
+    Func<string, IDecisionProvider> providerFactory,
+    ManualWorldSaveStore saves)
 {
     private readonly object gate = providers.WorldMutationGate;
     // Bound read-only generation without blocking the current world's transactions.
@@ -37,16 +38,32 @@ public sealed class WorldSelectionCoordinator(
         WorldJevPolicy jevPolicy,
         ILogger<WorldSelectionCoordinator> logger,
         Func<string, IDecisionProvider> providerFactory,
+        ManualWorldSaveStore saves,
         Func<GeographyOptions, GeographyCandidateSelection> selectCandidates)
-        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory)
+        : this(catalog, runtime, stateFile, providers, autosave, jevPolicy, logger, providerFactory, saves)
     {
         ArgumentNullException.ThrowIfNull(selectCandidates);
         selectGeographyCandidates = selectCandidates;
     }
 
     private sealed record CachedCheckpoint(string WorldId, string Seed, string Digest,
-        string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests,
-        bool Restorable, WorldThumbnail? Thumbnail);
+        string? HistoryArchiveHead, IReadOnlyList<RetiredBoatRequestRange> RetiredRequests, IReadOnlyDictionary<string, long> RecordCounts,
+        bool Restorable, WorldThumbnail? Thumbnail, RoutineHelperSettings? Helper = null);
+
+    /// <summary>Browse a catalog world's saves without activating its checkpoint.</summary>
+    public WorldSaveHistory ReadSaveHistory(string id)
+    {
+        lock (gate)
+        {
+            var world = catalog.Capture().Worlds.SingleOrDefault(world => world.Id == id)
+                ?? throw new FileNotFoundException("The selected world does not exist.");
+            var state = id == catalog.Active().Id ? runtime.ExportState() : catalog.Read(id);
+            var config = state.WorldSystems?.Config;
+            var calendar = config is null ? null : new OwnerWorldCalendarPace(config.TicksPerDay, config.DaysPerYear,
+                config.SpringDays, config.SummerDays, config.AutumnDays, config.WinterDays, config.CalendarOffsetTicks);
+            return new(world.WorldId, saves.List(world.WorldId), saves.CurrentPosition(world.WorldId), calendar, state.Society.Society.WorldTick);
+        }
+    }
 
     public WorldCatalogSnapshot List(CancellationToken cancellationToken = default)
     {
@@ -196,8 +213,8 @@ public sealed class WorldSelectionCoordinator(
                 return Unrestorable(world);
             // History files and provider credentials can change without a
             // checkpoint rewrite; never reuse their previous assessment.
-            stateFile.VerifyRequiredHistory(checkedCheckpoint.HistoryArchiveHead, checkedCheckpoint.RetiredRequests);
-            if (!providers.CanRestoreWorldAssignments(world.Assignments))
+            stateFile.VerifyRequiredHistory(checkedCheckpoint.HistoryArchiveHead, checkedCheckpoint.RetiredRequests, checkedCheckpoint.RecordCounts);
+            if (!providers.CanRestoreWorldAssignments(world.Assignments, checkedCheckpoint.Helper))
                 return world with
                 {
                     Compatibility = "incompatible",
@@ -205,6 +222,8 @@ public sealed class WorldSelectionCoordinator(
                 };
             return world with { Compatibility = "compatible", CompatibilityReason = null };
         }
+        catch (SavedFileLimitException exception)
+        { return world with { Compatibility = "incompatible", CompatibilityReason = exception.Message }; }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             FileNotFoundException or System.Text.Json.JsonException or FormatException or InvalidOperationException)
         {
@@ -234,12 +253,13 @@ public sealed class WorldSelectionCoordinator(
             // provider routing. Credentials and assignments are checked in Assess.
             using var verified = WorldRuntime.Restore(checkpoint);
             return new CachedCheckpoint(world.WorldId, world.Seed, digest,
-                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, true, thumbnail);
+                checkpoint.HistoryArchiveHead, checkpoint.BoatTransport.RetiredRequestRanges, WorldHistory.RequiredRecordCounts(checkpoint), true, thumbnail,
+                checkpoint.RoutineHelper);
         }
         catch (Exception exception) when (exception is InvalidDataException or ArgumentException or
             System.Text.Json.JsonException or FormatException or InvalidOperationException)
         {
-            return new CachedCheckpoint(world.WorldId, world.Seed, digest, null, [], false, thumbnail);
+            return new CachedCheckpoint(world.WorldId, world.Seed, digest, null, [], new Dictionary<string, long>(), false, thumbnail);
         }
     }
 
@@ -264,6 +284,13 @@ public sealed class WorldSelectionCoordinator(
     /// <summary>Compatibility of a world that another game version can open.</summary>
     public const string OtherVersion = "other_version";
 
+    private static OwnerWorldCandidateReport CandidateReport(GeographyCandidateReport report) => new(
+        report.Attempt, report.DryLandTiles, report.ForestTiles, report.MountainTiles,
+        report.ForestPercent, report.MountainPercent, report.ForestRegionCount,
+        report.LargestForestRegion, report.MountainRegionCount, report.LargestMountainRegion,
+        report.ForestTargetApplicable, report.MountainTargetApplicable,
+        report.ForestTargetMet, report.MountainTargetMet);
+
     public WorldPreviewView Preview(GeographyOptions geography)
     {
         ArgumentNullException.ThrowIfNull(geography);
@@ -285,9 +312,9 @@ public sealed class WorldSelectionCoordinator(
             {
                 PackedMapLayers = OwnerWorldObservationStore.PackMapLayers(map, geography.Seed),
                 MapLayersDigest = MapLayerManifestCodec.Digest(map),
-                Coverage = selection.Selected,
-                Candidates = selection.Candidates,
-                FailedCandidates = selection.FailedCandidates,
+                Coverage = CandidateReport(selection.Selected),
+                Candidates = selection.Candidates.Select(CandidateReport).ToArray(),
+                FailedCandidates = selection.FailedCandidates.Select(item => new OwnerWorldCandidateFailure(item.Attempt, item.Reason)).ToArray(),
             };
         }
     }
@@ -326,7 +353,20 @@ public sealed class WorldSelectionCoordinator(
         }
     }
 
-    public CatalogWorld Select(string id)
+    public OwnerModelSettingsPreview PreviewModels(string id)
+    {
+        lock (gate)
+        {
+            var entry = catalog.Capture().Worlds.SingleOrDefault(world => world.Id == id)
+                ?? throw new FileNotFoundException("The selected world does not exist.");
+            return WorldModelSettings.Preview(id,
+                entry.Id == catalog.Active().Id ? runtime.ExportState() : catalog.Read(id),
+                entry.Id == catalog.Active().Id ? providers.CaptureRuntimeConfiguration().Assignments ?? [] : entry.Assignments,
+                runtime, providers, targetKind: "world");
+        }
+    }
+
+    public CatalogWorld Select(string id, string? modelSettingsApproval = null)
     {
         lock (gate)
         {
@@ -340,6 +380,7 @@ public sealed class WorldSelectionCoordinator(
                 WorldSelectionTelemetry.Failed(logger, entry.Id, "incompatible_checkpoint");
                 throw new InvalidDataException(assessed.CompatibilityReason);
             }
+            WorldModelSettings.RequireApproval(PreviewModels(id), modelSettingsApproval);
             SelectCore(entry, catalog.Read(id));
             WorldSelectionTelemetry.Selected(logger, entry.Id);
             return entry;
@@ -391,6 +432,7 @@ public sealed class WorldSelectionCoordinator(
 
     private void RequirePaused()
     {
+        saves.RequireNoPendingLoad();
         if (!runtime.Society.IsPaused)
             throw new InvalidOperationException("Pause the current world before switching worlds.");
     }

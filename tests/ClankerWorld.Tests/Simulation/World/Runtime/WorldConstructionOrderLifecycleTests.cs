@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Kernel;
@@ -8,6 +9,34 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldConstructionOrderTests
 {
+    [Fact]
+    public async Task ConstructionOrderWaitsForTownShopRoomWithoutSpendingMaterials()
+    {
+        var setup = await Baseline.Value;
+        var state = Decode(setup);
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            "other-clinic-wood", "wood", Beta, 10);
+        inventory = InventoryAuthority.AddLot(inventory, "other-clinic-stone", "stone", Beta, 4);
+        using var world = Restore(WithInventory(state, inventory));
+        var town = world.Towns.Single();
+        Assert.Contains(state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, town.OriginSite!.Value)),
+            tile => world.PlaceBuilding("other-clinic", setup.DefinitionId, tile.Position, Beta).Applied);
+        var receipt = Submit(world, setup.Actor, "town-full-clinic", BuildClinic(setup.Site));
+        await Tick(world);
+        Assert.Equal(("blocked", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
+        Assert.Equal("The Town already has enough shops of this kind for its residents.", Order(world, receipt).BlockedReason);
+        AssertInputs(world, 10, 4);
+        Assert.Null(Person(world, setup.Actor).Project);
+        using var replay = Reload(world);
+        await TickTogether(world, replay);
+        AssertInputs(world, 10, 4);
+        var clinic = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "other-clinic");
+        Assert.True(world.RemoveBuilding(clinic.InstanceId, clinic.TownId, Beta).Applied);
+        using var reopened = Reload(world);
+        await FinishTogether(world, reopened, receipt);
+        Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
+    }
+
     [Fact]
     public async Task CancellingPartlyBuiltWorkPreservesMaterialsAndOnlyTheQueuedProjectsPlacementEarnsCredit()
     {
@@ -180,12 +209,11 @@ public sealed partial class WorldConstructionOrderTests
         await ReachWork(world, setup.Actor);
         var state = world.ExportState();
         var order = Order(world, receipt);
-        var forged = order with
+        var forged = (order with
         {
-            Status = "finished",
             CompletedUnits = 1,
-            LastEffectId = "construction:building:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(order.ConstructionInstanceId!))),
-        };
+            LastEffectId = Identity.Parse("construction:building:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(order.ConstructionInstanceId!)))),
+        }).Transition(OrderStatus.Finished);
         Assert.Throws<InvalidDataException>(() => Restore(state with
         {
             Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
@@ -194,17 +222,13 @@ public sealed partial class WorldConstructionOrderTests
             Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { Project = person.Project! with { Stage = "completed", WorkDone = 10 } } : person).ToArray(),
         }));
-        foreach (var bad in new[]
-        {
-            order with { ConstructionStartedTick = order.ConstructionStartedTick + 1 },
-            order with { ConstructionInstanceId = "a-different-building" },
-            order with { ConstructionOwnerId = null },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(state with
-            {
-                Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = bad } : item).ToArray(),
-            }));
+        foreach (var bad in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionStartedTick"] = order.ConstructionStartedTick + 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionInstanceId"] = "a-different-building" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionOwnerId"] = null })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, bad));
         using var replay = Reload(world);
         Assert.Equal(0, Order(replay, receipt).CompletedUnits);
         AssertInputs(replay, 10, 4);

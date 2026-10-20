@@ -8,6 +8,29 @@ namespace ClankerWorld.Tests;
 /// </summary>
 public sealed class UnoccupiedRouteSearchTests
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void TiedCustomRoutesKeepRowColumnOrderAndExpandTheGoal(int stepCost)
+    {
+        var map = new WorldMap(3, 3, 0,
+            [.. from y in Enumerable.Range(0, 3)
+                from x in Enumerable.Range(0, 3)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Meadow)], [], [], string.Empty);
+        var origin = new GridPoint(0, 1);
+        var goal = new GridPoint(2, 1);
+        var calls = new List<(GridPoint From, GridPoint To)>();
+        int Cost(GridPoint from, GridPoint to) { calls.Add((from, to)); return stepCost; }
+        using var search = new UnoccupiedRouteSearch(map, origin, [new(1, 1)], Cost,
+            point => map.FootNeighbors(point).Reverse().SelectMany(next => new[] { next, next }));
+        GridPoint[] expected = [origin, new(0, 0), new(1, 0), new(2, 0), goal];
+        Assert.Equal(expected, search.RouteTo(goal, 0));
+        Assert.Contains(calls, call => call.From == goal);
+        var count = calls.Count;
+        Assert.Equal(expected, search.RouteTo(goal, 0));
+        Assert.Equal(count, calls.Count);
+    }
+
     [Fact]
     public void SharedSearchFindsTheSameRoutesAsFreshSearchesOnAGeneratedMap()
     {

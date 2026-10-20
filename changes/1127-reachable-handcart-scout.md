@@ -1,1 +1,0 @@
-- Scouts pulling handcarts choose exits the cart can use instead of repeatedly trying to enter an unroaded mountain.
