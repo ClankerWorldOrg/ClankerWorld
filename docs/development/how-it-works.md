@@ -525,7 +525,8 @@ plans use their existing purpose-specific reach calls.
 Exploration supply, household tool coverage and tool repair also use actor-position
 reach. The source guard in `ActionRuleBoundaryTests` requires no copied age-band
 predicate, unnamed need comparison or direct route call outside the shared rules.
-The old source allowance file is removed. Child stock selection and exact-lot rechecks use
+Cached existence queries, including the cart-aware route fallback, live in the
+same shared reach core. The old source allowance file is removed. Child stock selection and exact-lot rechecks use
 the shared goods query before applying the original child load and trip limits.
 
 `GroundOccupancy` is a read view over the current map, content, placed buildings,

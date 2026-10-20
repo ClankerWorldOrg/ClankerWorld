@@ -47,4 +47,36 @@ public sealed partial class WorldRuntime
         return FindUnoccupiedRoute(actor, origin, target, range,
             allowSwimming: swimming == SwimmingPolicy.WhenCapable, additionalCarriedUnits: load).AsReadOnly();
     }
+
+    private bool HasUnoccupiedRoute(string actor, GridPoint origin, GridPoint destination,
+        int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0)
+    {
+        // Cart geometry depends on its actual hitch and load; keep its route planner.
+        if (AttachedHandcart(actor) is not null)
+            return FindUnoccupiedRoute(actor, origin, destination, interactionRange,
+                allowSwimming, additionalCarriedUnits).Count > 0;
+        var occupied = RouteOccupiedTiles(actor, origin, destination, interactionRange);
+        if (occupied is null) return false;
+        var swimming = allowSwimming && CanSwim(actor, origin, additionalCarriedUnits);
+        var buildings = MovementBuildings;
+        lock (routeSearches)
+        {
+            var index = reachabilitySearches.FindIndex(item => item.Swimming == swimming &&
+                ReferenceEquals(item.Search.Map, map) && item.Search.Destination == destination &&
+                item.Search.InteractionRange == interactionRange && occupied.SetEquals(item.Search.Occupied));
+            var search = index >= 0 ? reachabilitySearches[index].Search : NewSearch();
+            if (index < 0) RouteSearchesCreated++;
+            if (index >= 0) reachabilitySearches.RemoveAt(index);
+            else if (reachabilitySearches.Count == SharedRouteSearchLimit) reachabilitySearches.RemoveAt(reachabilitySearches.Count - 1);
+            reachabilitySearches.Insert(0, (search, swimming));
+            var answer = search.CanReachFrom(origin);
+            if (index >= 0 && DerivedVerification.RecomputeOnHit && answer != NewSearch().CanReachFrom(origin))
+                throw new InvalidOperationException("Shared route reachability differs from its recomputation.");
+            return answer;
+        }
+
+        UnoccupiedReachabilitySearch NewSearch() => new(map, occupied, destination, interactionRange,
+            swimming,
+            (from, to) => buildings.CanStep(map, from, to), buildings.CanStop);
+    }
 }
