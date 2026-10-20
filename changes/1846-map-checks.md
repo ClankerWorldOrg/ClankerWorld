@@ -1,0 +1,1 @@
+- Map checks during world saving and loading use less temporary memory and finish faster.

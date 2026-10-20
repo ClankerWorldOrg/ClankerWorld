@@ -1,1 +1,0 @@
-- Town Roads extend past doors across the map's east-west seam and keep their normal gap from nearby Roads on the opposite edge.

@@ -1,1 +1,0 @@
-- Production jobs, tool requests and retained recipe plans move into the production system, with named transitions and mutation checks in tests. Save fields and production timing stay the same.

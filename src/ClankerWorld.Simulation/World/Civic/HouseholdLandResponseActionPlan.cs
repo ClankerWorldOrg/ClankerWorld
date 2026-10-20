@@ -9,7 +9,9 @@ public sealed record HouseholdLandResponseChoice(string TownId, HouseholdLandRes
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{RequestId}|";
     public static HouseholdLandResponseChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var request, ""] || town.Length == 0 || request.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var request, ""] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(request, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         HouseholdLandResponseKind? kind = verb switch
         {
             "accept_land_use" => HouseholdLandResponseKind.Accept,

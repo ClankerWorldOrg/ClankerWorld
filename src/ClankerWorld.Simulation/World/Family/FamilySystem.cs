@@ -16,6 +16,16 @@ internal sealed partial class FamilySystem(PopulationContinuity continuity)
 
     internal static void ValidateLocalContinuity(PopulationContinuity saved)
     {
+        string? previousSingle = null;
+        foreach (var single in saved.Singles)
+        {
+            if (!saved.Active || single is null || string.IsNullOrWhiteSpace(single.AgentId) ||
+                previousSingle is not null && string.CompareOrdinal(previousSingle, single.AgentId) >= 0 ||
+                single.DeadlineTick < 0 ||
+                single.ChosenPartnerId is { } chosen && (single.Postponed || chosen == single.AgentId || string.IsNullOrWhiteSpace(chosen)))
+                throw new InvalidDataException("Family continuity has invalid local partner choices.");
+            previousSingle = single.AgentId;
+        }
         ContinuityCouple? previous = null;
         foreach (var couple in saved.Couples)
         {

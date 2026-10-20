@@ -5,6 +5,7 @@ namespace ClankerWorld.Simulation.World;
 internal interface IFamilyPartnershipWorld
 {
     AgentStore PhysicalAgents { get; }
+    IFamilyContinuityWorld ContinuityWorld { get; }
     SocietyCheckpoint Society { get; }
     long WorldTick { get; }
     int TicksPerDay { get; }
@@ -19,5 +20,5 @@ internal interface IFamilyPartnershipWorld
     void RefusePartnership(string id, int revision, string actor);
     void RevokePartnership(string id, string actor);
     void MaintainMarriages();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

@@ -1,1 +1,0 @@
-- Construction and expansion work move into the construction system. One building store owns placement, ownership, entrances, expansion history, guest access and receipts, with named operations and checks before test mutations publish. Existing save fields and construction behavior stay the same.

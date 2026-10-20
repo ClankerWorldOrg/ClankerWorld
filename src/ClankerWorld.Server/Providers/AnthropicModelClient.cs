@@ -21,7 +21,7 @@ namespace ClankerWorld.Server.Providers;
 public sealed class AnthropicModelClient(HttpClient httpClient, string apiKey, Uri? baseUrl = null) : IModelClient
 {
     /// <summary>Room for the model's thinking as well as the short JSON reply.</summary>
-    public const int MaximumOutputTokens = 16_000;
+    public const int MaximumOutputTokens = ModelOutputLimits.MaximumCompletionTokens;
 
     private const int MaximumReportedTokens = 1_000_000;
 

@@ -7,14 +7,20 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-/// <summary>Paid construction history survives removal, reassignment and later projects.</summary>
+/// <summary>Recent owner construction evidence survives removal and reassignment until its order retires.</summary>
 public sealed record WorldConstructionReceipt(
-    string InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
+    Identity InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
     string OwnerId, string MaterialOwnerId, GridPoint Position, long StartedTick,
-    long CompletedTick, IReadOnlyList<string> InputReservationIds);
+    long CompletedTick, IReadOnlyList<Identity> InputReservationIds);
 
 public sealed partial class WorldRuntime
 {
+    private void RetireClosedOrderProjectReferences(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person => person.Project?.OrderInstructionId is { } id && retired.Contains(id)).ToArray())
+            agentStore.RecordProject(person.AgentId, person, person.Project! with { OrderInstructionId = null });
+    }
+
     private static string ConstructionInstanceId(string instructionId) =>
         DerivedId.Hash(instructionId, "ordered-building-");
 
@@ -60,12 +66,18 @@ public sealed partial class WorldRuntime
         if (person.Project is { Stage: not ("completed" or "cancelled") } project &&
             !IsConstructionOrderProject(instruction, project) && !OrdinaryProjectCanYieldToOrder(project)) return false;
         var kind = HouseholdBuildingKind(definition);
+        failure = "The Town already has enough shops of this kind for its residents.";
+        if (!(IsConstructionOrderProject(instruction, person.Project) &&
+              person.Project is { Stage: not ("completed" or "cancelled") }) &&
+            !TownHasRoomForSharedShop(actor, kind)) return false;
         failure = "This household already holds the requested building.";
         if (HouseholdBuildingWithTag(household, kind!) is not null) return false;
         failure = "Only a household holding a Farmhouse can build a Silo.";
         if (kind == "silo" && FarmhouseForHousehold(household) is null) return false;
         failure = "The household needs a completed House before it can build an animal yard.";
         if (kind == AnimalContent.YardTag && HouseForHousehold(household) is null) return false;
+        failure = "This building has no reachable inputs for its work.";
+        if (!WorkBuildingHasInputs(actor, household, definition)) return false;
         failure = "Another household member is already planning this building.";
         var householdId = household;
         if (agents.Values.Any(other => other.AgentId != actor &&
@@ -112,25 +124,23 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         if (!TryConstructionOrderSite(instruction, person, out var definition, out var household, out var position, out var failure))
         {
-            SetOrderStatus(instruction, "blocked", failure);
+            SetOrderStatus(instruction, OrderStatus.Blocked, failure);
             return;
         }
         if (!IsConstructionOrderProject(instruction, person.Project) || person.Project!.Stage == "cancelled")
         {
             var order = instruction.Task!;
             var started = order.ConstructionStartedTick ?? WorldTick;
-            order = order with
-            {
-                ConstructionOwnerId = household,
-                ConstructionPosition = position,
-                ConstructionStartedTick = started,
-                ConstructionInstanceId = ConstructionInstanceId(instruction.InstructionId),
-            };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    ConstructBuildingOrderDefinition task => task with { ConstructionOwnerId = household, ConstructionPosition = position, ConstructionStartedTick = started, ConstructionInstanceId = ConstructionInstanceId(instruction.InstructionId) },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             var project = new AgentProject(TownConstructionCandidateIds.Building(definition!.CanonicalId, position),
@@ -138,13 +148,13 @@ public sealed partial class WorldRuntime
                 OrderInstructionId: instruction.InstructionId);
             agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
+            AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }
         if (agents[actor].Project is { Stage: "paused" } paused)
             SetProject(actor, paused with { Stage = "acquiring", Blocker = null, RequiresFreshChoice = false });
         ContinueProject(actor, agents[actor]);
         if (agents[actor].Project is { Stage: "blocked" or "cancelled" } blocked)
-            SetOrderStatus(instruction, "blocked", blocked.Blocker ?? "The ordered construction cannot continue yet.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, blocked.Blocker ?? "The ordered construction cannot continue yet.");
     }
 
     private void PauseConstructionForOrder(OwnerQueuedInstruction instruction)
@@ -174,10 +184,10 @@ public sealed partial class WorldRuntime
                 society.Checkpoint.GetAgent(instruction.TargetAgentId).HouseholdId != instruction.Task!.ConstructionOwnerId)
             {
                 CancelConstructionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The worker or household for this building is no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The worker or household for this building is no longer available.");
             }
             else if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
         }
     }
 
@@ -191,13 +201,13 @@ public sealed partial class WorldRuntime
     {
         var order = instruction.Task!;
         var purpose = "building:" + order.ConstructionInstanceId;
-        var receipt = new WorldConstructionReceipt(instruction.InstructionId, instruction.TargetAgentId,
+        var receipt = new WorldConstructionReceipt(Identity.Parse(instruction.InstructionId), instruction.TargetAgentId,
             order.ConstructionInstanceId!, order.TargetDefinitionId!, order.ConstructionOwnerId!, materialOwner,
             order.ConstructionPosition!.Value, order.ConstructionStartedTick!.Value, WorldTick,
             society.Checkpoint.Inventory.Reservations.Where(item => item.Purpose == purpose)
-                .Select(item => item.Id).OrderBy(id => id, StringComparer.Ordinal).ToArray());
+                .Select(item => item.Id).Order().ToArray());
         constructionSystem.Buildings.RecordConstructionReceipt(receipt);
-        CreditOrderEffect(instruction, ConstructionOrderReceipt(receipt.BuildingInstanceId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(ConstructionOrderReceipt(receipt.BuildingInstanceId)), 1);
     }
 
     private static void ValidateConstructionOrderBindings(WorldContentSimulationState? simulation,
@@ -205,7 +215,7 @@ public sealed partial class WorldRuntime
         IEnumerable<AgentState> agents, IEnumerable<OwnerQueuedInstruction> instructions, long worldTick)
     {
         var savedInstructions = instructions.ToArray();
-        if (savedInstructions.Any(item => item is null || !ValidConstructionIdentity(item.InstructionId)) ||
+        if (savedInstructions.Any(item => item is null || !IdentityRules.Reference(item.InstructionId, int.MaxValue, requireTrimmed: true)) ||
             savedInstructions.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != savedInstructions.Length)
             throw new InvalidDataException("Construction orders require unique instruction IDs.");
         var instructionById = savedInstructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
@@ -230,7 +240,7 @@ public sealed partial class WorldRuntime
             var purpose = "building:" + receipt.BuildingInstanceId;
             var definition = catalog.Definition;
             var paid = society.Inventory.Reservations.Where(item => item.Purpose == purpose).ToArray();
-            if (!paid.Select(item => item.Id).ToHashSet(StringComparer.Ordinal).SetEquals(receipt.InputReservationIds) ||
+            if (!paid.Select(item => item.Id).ToHashSet().SetEquals(receipt.InputReservationIds) ||
                 paid.Any(item => item.State != InventoryReservationState.Completed || item.OwnerId != receipt.MaterialOwnerId ||
                     item.ExpiryTick != receipt.CompletedTick) ||
                 definition.BuildCosts.Select((cost, index) => (cost, index)).Any(entry =>

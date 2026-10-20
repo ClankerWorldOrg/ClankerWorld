@@ -58,7 +58,7 @@ public sealed partial class ServerHttpTests
             Assert.Contains(listLog.Messages, message => message.Contains(
                 "world_list outcome=canceled worlds=0 cache_hits=0 scans=0", StringComparison.Ordinal));
             Assert.Equal("compatible", selection.List().Worlds.Single(world => world.Id == entry.Id).Compatibility);
-            selection.Select(entry.Id);
+            selection.SelectApprovedModels(entry.Id);
             Assert.Equal(entry.WorldId, runtime.Society.WorldId);
         }
         finally { directory.Delete(recursive: true); }
@@ -134,14 +134,14 @@ public sealed partial class ServerHttpTests
             Assert.Equal("compatible", selection.List().Worlds.Single(world => world.Id == firstId).Compatibility);
             Assert.Contains("world_list outcome=checked worlds=3 cache_hits=2 scans=0",
                 listLog.Messages.Last(message => message.Contains("world_list outcome=checked", StringComparison.Ordinal)));
-            selection.Select(firstId);
+            selection.SelectApprovedModels(firstId);
             var afterFirstSwitch = selection.List();
             Assert.Equal("compatible", afterFirstSwitch.Worlds.Single(world => world.Id == entry.Id).Compatibility);
             Assert.Equal("compatible", afterFirstSwitch.Worlds.Single(world => world.Id == bystanderEntry.Id).Compatibility);
             Assert.Contains("world_list outcome=checked worlds=3 cache_hits=1 scans=1",
                 listLog.Messages.Last(message => message.Contains("world_list outcome=checked", StringComparison.Ordinal)));
             Assert.Equal(firstId, catalog.Capture().ActiveId);
-            selection.Select(entry.Id);
+            selection.SelectApprovedModels(entry.Id);
             var afterSecondSwitch = selection.List();
             Assert.Equal("compatible", afterSecondSwitch.Worlds.Single(world => world.Id == firstId).Compatibility);
             Assert.Equal("compatible", afterSecondSwitch.Worlds.Single(world => world.Id == bystanderEntry.Id).Compatibility);

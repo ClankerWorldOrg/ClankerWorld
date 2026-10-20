@@ -78,7 +78,7 @@ internal sealed partial class ConstructionSystem
                 return BuildingPlacementResult.Rejected(normalizedInstanceId, normalizedDefinitionId, position,
                     "A Warehouse must join a Town that does not already have one.");
 
-            if (!world.CanPlaceBuilding(definition, position, out var placementFailure))
+            if (!world.CanPlaceBuilding(definition, position, out var placementFailure, out var entrance, mayFaceRoad: assignedTownId is not null))
             {
                 return BuildingPlacementResult.Rejected(
                     normalizedInstanceId,
@@ -107,12 +107,12 @@ internal sealed partial class ConstructionSystem
                 position,
                 world.WorldTick,
                 assignedTownId,
-                householdId);
+                householdId,
+                Entrance: assignedTownId is not null ? entrance : null);
             Buildings.PlaceBuildings([placed]);
             if (assignedTownId is not null)
                 world.AssignBuildingToTown(placed, definition);
-            world.AppendEvent(eventKind, $"{placed.InstanceId}:{placed.DefinitionId}:{position.X},{position.Y}" +
-                (householdId is null ? string.Empty : $":household={householdId}"));
+            world.AppendEvent(WorldEvents.BuildingPlacement(eventKind, null, placed.InstanceId, placed.DefinitionId, position.X, position.Y, householdId));
             return BuildingPlacementResult.Success(placed);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)

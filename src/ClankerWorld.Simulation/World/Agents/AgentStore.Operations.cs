@@ -78,4 +78,18 @@ internal sealed partial class AgentStore
 
     internal void SelectChildModel(string actor, AgentState basis, ChildPersonalModelSelection? childModelSelection) => Commit(actor, basis with { ChildModelSelection = childModelSelection });
 
+    internal void RetireClosedOrderExplorationGoals(HashSet<string> retired)
+    {
+        foreach (var person in living.Values.Where(person =>
+                     retired.Contains(person.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            living[person.AgentId] = person with { Exploration = person.Exploration! with { Goal = null } };
+        foreach (var person in deceased.Values.Where(person =>
+                     retired.Contains(person.LastPhysical.Exploration?.Goal?.OrderInstructionId ?? "")).ToArray())
+            deceased[person.AgentId] = person with
+            {
+                LastPhysical = person.LastPhysical with
+                { Exploration = person.LastPhysical.Exploration! with { Goal = null } },
+            };
+    }
+
 }

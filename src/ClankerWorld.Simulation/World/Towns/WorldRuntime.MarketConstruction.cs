@@ -25,7 +25,7 @@ public sealed partial class WorldRuntime
                     placed.InstanceId, project.Plan.Site, stalls, [], [])).OrderBy(market => market.Id, StringComparer.Ordinal).ToArray(),
             });
             foreach (var building in buildings) AssignBuildingToTown(building, definition);
-            AppendEvent("market_built", $"{townId}|{MarketContent.MarketId(project.Id)}|{placed.InstanceId}|{stalls.Length}", project.Plan.Site);
+            AppendEvent(new MarketBuiltEventPayload(null, townId, MarketContent.MarketId(project.Id), placed.InstanceId, stalls.Length), project.Plan.Site);
         }
         else if (project.Plan.DefinitionId == MarketContent.Stall1x1().CanonicalId)
         {
@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
                     .OrderBy(stall => stall.SlotIndex).ToArray(),
             };
             SetTown(town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
-            AppendEvent("market_stall_built", $"{townId}|{market.Id}|{placed.InstanceId}|{target.Slot}", placed.Position);
+            AppendEvent(new MarketStallBuiltEventPayload(null, townId, market.Id, placed.InstanceId, target.Slot), placed.Position);
         }
     }
 

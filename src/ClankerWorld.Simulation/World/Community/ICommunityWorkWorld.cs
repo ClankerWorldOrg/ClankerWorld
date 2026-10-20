@@ -1,3 +1,5 @@
+using ClankerWorld.Simulation.Kernel;
+
 using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Society;
 
@@ -17,11 +19,11 @@ internal interface ICommunityWorkWorld
     bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job);
     ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
     void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range = 0);
-    void SetReservationDeadline(IReadOnlyList<string> ids, long deadline);
+    void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline);
     void ResumeProduction(string job, long deadline, string? knife, string actor);
     void ResumeExpansion(string job, long deadline, string actor);
-    void ReleaseUnavailablePausedInputs(IReadOnlyList<string> ids);
+    void ReleaseUnavailablePausedInputs(IReadOnlyList<Identity> ids);
     void CancelProduction(IReadOnlySet<string> ids);
     void CancelPausedExpansions(IReadOnlySet<string> ids, string reason);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

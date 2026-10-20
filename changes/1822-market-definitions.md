@@ -1,1 +1,0 @@
-- Shop and Market quotes, responses, stock movement and stall occupancy now bind their codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining original goods, payments and permissions.

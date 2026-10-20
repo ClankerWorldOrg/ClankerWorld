@@ -3,6 +3,7 @@ namespace ClankerWorld.Simulation.World;
 internal sealed record ProductionState(
     IReadOnlyList<WorldProductionJob> Jobs,
     long NextSequence,
+    long ArchivedJobCount,
     IReadOnlyList<WorldProductionJob>? CropBuilds,
     IReadOnlyList<ToolMakingRequestState> Requests);
 
@@ -14,7 +15,7 @@ internal sealed partial class ProductionSystem
 
     internal ProductionSystem(WorldContentSimulationState snapshot, IReadOnlyList<ToolMakingRequestState> requests)
     {
-        State = new(snapshot.ProductionJobs, snapshot.NextProductionJobSequence, snapshot.CropBuilds, requests.ToArray());
+        State = new(snapshot.ProductionJobs, snapshot.NextProductionJobSequence, snapshot.ArchivedProductionJobCount, snapshot.CropBuilds, requests.ToArray());
         projection = snapshot;
     }
 
@@ -27,13 +28,21 @@ internal sealed partial class ProductionSystem
             ReferenceEquals(projection.ConstructionReceipts, construction.Receipts))
             constructionBasis = construction;
         if (ReferenceEquals(constructionBasis, construction) && ReferenceEquals(projection.ProductionJobs, State.Jobs) &&
-            ReferenceEquals(projection.CropBuilds, State.CropBuilds) && projection.NextProductionJobSequence == State.NextSequence)
+            ReferenceEquals(projection.CropBuilds, State.CropBuilds) && projection.NextProductionJobSequence == State.NextSequence && projection.ArchivedProductionJobCount == State.ArchivedJobCount)
             return projection;
         projection = new(construction.Buildings, State.Jobs, State.NextSequence, State.CropBuilds,
-            construction.Expansions, construction.Guests, construction.Receipts);
+            construction.Expansions, construction.Guests, construction.Receipts)
+        { ArchivedProductionJobCount = State.ArchivedJobCount };
         constructionBasis = construction;
         return projection;
     }
+
+    internal static WorldContentSimulationState ArchiveJobs(WorldContentSimulationState snapshot,
+        IReadOnlySet<string> retiredIds, long archivedCount) => snapshot with
+        {
+            ProductionJobs = snapshot.ProductionJobs.Where(job => !retiredIds.Contains(job.JobId)).ToArray(),
+            ArchivedProductionJobCount = archivedCount,
+        };
 
     internal void StartJob(WorldProductionJob job) => Commit(State with
     {
@@ -88,7 +97,11 @@ internal sealed partial class ProductionSystem
 
     internal bool TransitionRequest(ToolMakingRequestState request, long tick)
     {
-        if (request.Blocker is { Length: > 160 } blocker) request = request with { Blocker = blocker[..160].TrimEnd() };
+        if (request.Blocker is { } blocker)
+        {
+            var bounded = BoundedText.Excerpt(blocker, 160).Value;
+            if (bounded != blocker) request = request with { Blocker = bounded.TrimEnd() };
+        }
         var index = State.Requests.ToList().FindIndex(item => item.Id == request.Id);
         if (index < 0 || State.Requests[index] == request) return false;
         var requests = State.Requests.ToArray();
@@ -102,6 +115,12 @@ internal sealed partial class ProductionSystem
         Requests = State.Requests.Where(request => !ids.Contains(request.Id)).ToArray(),
         Jobs = State.Jobs.Select(job => job.ToolMakingRequestId is { } id && ids.Contains(id)
             ? job with { ToolMakingRequestId = null } : job).ToArray(),
+    });
+
+    internal void RetireOrderLinks(IReadOnlySet<string> retired) => Commit(State with
+    {
+        Jobs = State.Jobs.Select(job => retired.Contains(job.OrderInstructionId ?? "")
+            ? job with { OrderInstructionId = null } : job).ToArray(),
     });
 
     internal void RememberRecipePlan(string actor, long startedTick, string? instructionId, RecipeProjectActionPlan plan) =>
@@ -130,7 +149,7 @@ internal sealed partial class ProductionSystem
 
     internal static void ValidateLocalState(ProductionState state)
     {
-        ValidateJobs(state.Jobs, state.NextSequence, state.CropBuilds);
+        ValidateJobs(state.Jobs, state.NextSequence, state.CropBuilds, state.ArchivedJobCount);
         if (state.Requests.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count() != state.Requests.Count)
             throw new InvalidDataException("Production requests have duplicate identities.");
         foreach (var request in state.Requests)
@@ -139,9 +158,9 @@ internal sealed partial class ProductionSystem
                 request.AcceptedTick is { } accepted && (accepted < request.RequestedTick || accepted > request.LastTransitionTick))
                 throw new InvalidDataException("Production request has an invalid local state.");
     }
-    internal static void ValidateJobs(IReadOnlyList<WorldProductionJob> jobs, long nextSequence, IReadOnlyList<WorldProductionJob>? cropBuilds)
+    internal static void ValidateJobs(IReadOnlyList<WorldProductionJob> jobs, long nextSequence, IReadOnlyList<WorldProductionJob>? cropBuilds, long archivedJobCount)
     {
-        if (nextSequence <= 0)
+        if (nextSequence <= 0 || archivedJobCount < 0 || archivedJobCount >= nextSequence)
             throw new InvalidDataException("The next production job sequence must be positive.");
         if (cropBuilds is { Count: > 0 })
             throw new InvalidDataException("Crop work must belong to a tilled field.");
@@ -155,7 +174,7 @@ internal sealed partial class ProductionSystem
             if (!Enum.IsDefined(job.State) || string.IsNullOrWhiteSpace(job.WorkerId) || job.StartedTick < 0 ||
                 job.OwnerId is { } owner && (string.IsNullOrWhiteSpace(owner) || owner != owner.Trim()) ||
                 job.CompletionTick <= job.StartedTick || job.InputReservationIds is null ||
-                job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
+                job.InputReservationIds.Count != job.InputReservationIds.Distinct().Count() ||
                 job.ToolLotId is { } tool && (string.IsNullOrWhiteSpace(tool) || tool.Any(char.IsControl)) ||
                 job.State == WorldProductionJobState.Paused && (job.PausedAtTick is not { } paused || paused < job.StartedTick || paused >= job.CompletionTick) ||
                 job.State is not (WorldProductionJobState.Paused or WorldProductionJobState.Cancelled) && job.PausedAtTick is not null)

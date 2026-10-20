@@ -47,7 +47,7 @@ internal sealed partial class CommunitySystem
         }
         var physical = InventoryContainerRules.IsContainer(lot.ItemKind) ? index.FamilyQuantity(lot.Id) : quantity;
         return new(actor, choice, mode, lot.OwnerId, lot.ItemKind, quantity, physical, lot.CarrierId, lot.StorageBuildingId,
-            lot.GroundPosition, house?.InstanceId, house?.HouseholdId, target, range,
+            lot.GroundPosition, house?.InstanceId, house?.HouseholdId, house?.DefinitionId, house?.PlacedTick, target, range,
             world.Reach(actor, target, ReachPurpose.PersonalGoods, range, 0, SwimmingPolicy.WhenCapable),
             InventoryContainerRules.IsContainer(lot.ItemKind) ? GoodsPlanFamily.Capture(world.Society.Inventory, lot) : null);
     }
@@ -79,7 +79,8 @@ internal sealed partial class CommunitySystem
         else
         {
             var house = world.HouseForHousehold(plan.Choice.Kind == PersonalGoodsKind.Store ? world.HouseholdFor(plan.Actor) : plan.OwnerId);
-            if (house is null || house.InstanceId != plan.HouseId || house.HouseholdId != plan.HouseOwnerId || house.Position != plan.Target)
+            if (house is null || house.InstanceId != plan.HouseId || house.HouseholdId != plan.HouseOwnerId ||
+                house.DefinitionId != plan.HouseDefinitionId || house.PlacedTick != plan.HousePlacedTick || house.Position != plan.Target)
                 return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected House for these belongings has changed");
             var eligible = plan.Choice.Kind == PersonalGoodsKind.Store ? world.PersonalStorageLots(plan.Actor, house.InstanceId)
                 : plan.Mode == PersonalGoodsMode.BoundOrder ? world.ReturnableBorrowedGoods(plan.Actor) : world.BorrowedGoods(plan.Actor);
@@ -108,8 +109,13 @@ internal sealed partial class CommunitySystem
         if (plan.Quantity <= 0) return null;
         var moveId = world.PersonalMoveId(plan.Actor, world.WorldTick, plan.Choice.LotId);
         world.MovePersonalGoods(plan, moveId);
-        var eventType = plan.Choice.Kind switch { PersonalGoodsKind.Collect => "personal_goods_collected", PersonalGoodsKind.Store => "personal_goods_stored", _ => "borrowed_goods_returned" };
-        world.AppendEvent(eventType, $"{plan.Actor}|{plan.ItemKind}|{plan.Quantity}|{plan.OwnerId}");
+        WorldEventPayload payload = plan.Choice.Kind switch
+        {
+            PersonalGoodsKind.Collect => new PersonalGoodsCollectedEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.OwnerId),
+            PersonalGoodsKind.Store => new PersonalGoodsStoredEventPayload(plan.Actor, plan.ItemKind, plan.Quantity),
+            _ => new BorrowedGoodsReturnedEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.OwnerId),
+        };
+        world.AppendEvent(payload);
         return (moveId, plan.ItemKind, plan.Quantity);
     }
 }

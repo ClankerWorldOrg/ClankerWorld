@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Providers;
@@ -19,13 +20,17 @@ public sealed partial class WorldRuntimeService(
     WorldAutosaveStore? autosave = null,
     ManualWorldSaveStore? manualSaves = null,
     ProviderConfigurationStore? providers = null,
-    WorldTickFailurePolicy failurePolicy = WorldTickFailurePolicy.Strict) : BackgroundService
+    WorldTickFailurePolicy failurePolicy = WorldTickFailurePolicy.Strict,
+    LauncherHostOptions? hosting = null,
+    IHostApplicationLifetime? lifetime = null) : BackgroundService
 {
     private string? lastGateState;
     private bool recoveryWritePending;
     private bool invalidStateHalt;
     private bool writingCheckpoint;
-    private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
+    private bool hostedClientSeen;
+    public bool HostIdleSaveFailed { get; private set; }
+    private readonly ConcurrentDictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
         Message = "world_action_refused tick={WorldTick} agent={AgentId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
@@ -116,15 +121,23 @@ public sealed partial class WorldRuntimeService(
     private static partial void LogShutdownSave(ILogger logger, string outcome, long worldTick);
 
     /// <summary>
-    /// Cancels model work and writes the checkpoint. Local server shutdown pauses
+    /// Cancels model work, completes pending child bindings and writes the checkpoint. Local server shutdown pauses
     /// first, so a prepared tick cannot commit after this save. A failed write
     /// leaves the local server alive and paused; a halted world stays untouched.
     /// </summary>
-    public ShutdownSaveOutcome SaveBeforeShutdown(bool pauseWorld = false)
+    public ShutdownSaveOutcome SaveBeforeShutdown(bool pauseWorld = false) => SaveWorld(pauseWorld, shuttingDown: true);
+
+    private ShutdownSaveOutcome SaveWorld(bool pauseWorld, bool shuttingDown)
     {
+        void Log(string outcome)
+        {
+            if (logger is null) return;
+            if (shuttingDown) LogShutdownSave(logger, outcome, runtime.WorldTick);
+            else LogHostIdleSave(logger, outcome, runtime.WorldTick);
+        }
         if (invalidStateHalt)
         {
-            if (logger is not null) LogShutdownSave(logger, "skipped_halted", runtime.WorldTick);
+            Log("skipped_halted");
             return ShutdownSaveOutcome.PreservedHalted;
         }
         var gate = providers?.WorldMutationGate ?? new object();
@@ -134,15 +147,20 @@ public sealed partial class WorldRuntimeService(
             {
                 if (pauseWorld) runtime.Pause();
                 runtime.CancelPendingModelCalls();
+                if (!TryBindPendingChildModels(out _))
+                {
+                    Log("save_failed");
+                    return ShutdownSaveOutcome.WriteFailed;
+                }
                 _ = stateFile.Save(runtime);
             }
             recoveryWritePending = false;
-            if (logger is not null) LogShutdownSave(logger, "saved", runtime.WorldTick);
+            Log("saved");
             return ShutdownSaveOutcome.Saved;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            if (logger is not null) LogShutdownSave(logger, "save_failed", runtime.WorldTick);
+            Log("save_failed");
             return ShutdownSaveOutcome.WriteFailed;
         }
     }
@@ -156,12 +174,26 @@ public sealed partial class WorldRuntimeService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _ = await TryAdvanceOnceAsync(stoppingToken);
+            if (!clientPresence.HasActiveClient)
+            {
+                _ = await TryAdvanceOnceAsync(stoppingToken);
+                if (!HostIdleSaveFailed && !recoveryWritePending)
+                    await clientPresence.WaitForClientAsync(stoppingToken);
+            }
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                _ = await TryAdvanceOnceAsync(stoppingToken);
+                if (!clientPresence.HasActiveClient && !HostIdleSaveFailed && !recoveryWritePending) break;
+            }
         }
     }
+
+    [LoggerMessage(EventId = 2326, Level = LogLevel.Information,
+        Message = "launcher_host outcome={Outcome} tick={WorldTick}")]
+    private static partial void LogHostIdleSave(ILogger logger, string outcome, long worldTick);
 
     /// <summary>
     /// Advances one world tick only while at least one authenticated
@@ -222,9 +254,21 @@ public sealed partial class WorldRuntimeService(
         if (!clientPresence.HasActiveClient)
         {
             runtime.CancelPendingModelCalls();
+            if (hosting is not null && hostedClientSeen)
+            {
+                var saved = SaveWorld(pauseWorld: true, shuttingDown: false);
+                HostIdleSaveFailed = saved == ShutdownSaveOutcome.WriteFailed;
+                if (saved == ShutdownSaveOutcome.Saved)
+                {
+                    // A game can reconnect while the checkpoint waits or writes.
+                    hostedClientSeen = clientPresence.HasActiveClient;
+                    if (!hostedClientSeen && hosting.StopWhenGameQuits) lifetime?.StopApplication();
+                }
+            }
             LogGateTransition("waiting_for_client", runtime.WorldTick);
             return false;
         }
+        if (hosting is not null) hostedClientSeen = true;
 
         if (!TryBindPendingChildModels(out var recoveredChildBindings))
         {
@@ -247,7 +291,12 @@ public sealed partial class WorldRuntimeService(
         IReadOnlyList<PreparedChildModelSelection> PrepareModels(WorldRuntime proposed, IReadOnlyList<WorldEventEntry> worldEvents)
         {
             preparedChildBindings.Clear();
-            return PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+            var selections = PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+            // Keep each frozen key before its prepared birth can become visible.
+            // Shutdown can run before this tick handler resumes after the commit.
+            foreach (var (childId, binding) in preparedChildBindings)
+                pendingChildModelBindings[childId] = binding;
+            return selections;
         }
         Action PrepareCheckpoint(WorldRuntime proposed)
         {
@@ -255,15 +304,7 @@ public sealed partial class WorldRuntimeService(
             return () =>
             {
                 writingCheckpoint = true;
-                try { write(); }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                {
-                    // This admitted birth remains in memory for the paused write
-                    // retry. Its copied default key cannot be rebuilt from its slot ID.
-                    foreach (var (childId, binding) in preparedChildBindings)
-                        pendingChildModelBindings[childId] = binding;
-                    throw;
-                }
+                write();
                 writingCheckpoint = false;
                 checkpointCompacted = compacted;
             };
@@ -297,8 +338,6 @@ public sealed partial class WorldRuntimeService(
                     LogActionRefused(logger, worldEvent.WorldTick, refusal.AgentId,
                         RefusedChoiceKind(refusal.CandidateId), refusal.Check);
                 }
-            foreach (var (childId, binding) in preparedChildBindings)
-                pendingChildModelBindings[childId] = binding;
             var bornChildren = result.Events.Where(item => item.Kind == "child_born").Select(item => item.Detail)
                 .Distinct(StringComparer.Ordinal).ToArray();
             if (bornChildren.Length > 0)
@@ -474,7 +513,7 @@ public sealed partial class WorldRuntimeService(
                 foreach (var worldEvent in result.Events.Where(item => item.Kind is "partnership_proposed" or "partnership_accepted" or
                              "partnership_refused" or "partnership_ended" or "partnership_expired" or
                              "parenthood_requested" or "parenthood_preparing" or "parenthood_cancelled" or "parenthood_completed" or
-                             "parenthood_postponed" or "continuity_rule_on" or "continuity_rule_off" or "continuity_plan_proceeded" or
+                             "parenthood_postponed" or "continuity_partnership_formed" or "continuity_rule_on" or "continuity_rule_off" or "continuity_plan_proceeded" or
                              "child_born" or "child_cared_for" or "guardian_needed" or "guardian_assigned" or
                              "guardian_placement_pending" or "guardian_placement_completed" or "guardian_placement_cancelled" or
                              "primary_caregiver_assigned" or "caregiver_proposed" or "caregiver_assigned" or
@@ -535,7 +574,7 @@ public sealed partial class WorldRuntimeService(
                 {
                     if (!people.TryGetValue(childId, out var child))
                     {
-                        pendingChildModelBindings.Remove(childId);
+                        pendingChildModelBindings.TryRemove(childId, out _);
                         continue;
                     }
                     if (child.ChildModelSelection is null)
@@ -567,12 +606,12 @@ public sealed partial class WorldRuntimeService(
                             .All(role => childRows.Any(item => item.Role == role));
                         if (bothRolesConfigured)
                         {
-                            pendingChildModelBindings.Remove(child.AgentId);
+                            pendingChildModelBindings.TryRemove(child.AgentId, out _);
                             continue;
                         }
                     }
                     if (!pendingChildModelBindings.ContainsKey(child.AgentId))
-                        pendingChildModelBindings.Add(child.AgentId, new FrozenChildModelBinding(selection, null));
+                        pendingChildModelBindings.TryAdd(child.AgentId, new FrozenChildModelBinding(selection, null));
                 }
 
                 foreach (var childId in pendingChildModelBindings.Keys.Order(StringComparer.Ordinal).ToArray())
@@ -583,7 +622,7 @@ public sealed partial class WorldRuntimeService(
                         throw new InvalidDataException("The pending child model choice no longer matches the saved birth descriptor.");
                     providers.ConfigureChildModelSelectionWithCommit(childId, binding,
                         boundSelection => runtime.ApplyChildModelSelection(childId, boundSelection));
-                    pendingChildModelBindings.Remove(childId);
+                    pendingChildModelBindings.TryRemove(childId, out _);
                     changed = true;
                 }
             }
