@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -69,7 +70,7 @@ public sealed partial class WorldRuntime
         actionRefusals = actionRefusals.OrderBy(item => item.AgentId, StringComparer.Ordinal)
             .ThenBy(item => item.CandidateId, StringComparer.Ordinal).ToList();
         refusedActionCount = checked(refusedActionCount + 1);
-        AppendEvent("action_refused", JsonSerializer.Serialize(refusal));
+        AppendEvent(new ActionRefusedEventPayload(refusal.AgentId, refusal.CandidateId, refusal.RefusedTick, refusal.RetryAfterTick, refusal.Check));
     }
 
     private static void ValidateActionRefusals(WorldRuntimeState state)
@@ -125,6 +126,42 @@ public sealed partial class WorldRuntime
         ArgumentNullException.ThrowIfNull(prepareCheckpoint);
         return AdvanceOneTickCoreAsync(true, commitPermitted, prepareChildModels, cancellationToken,
             prepareCheckpoint, failurePolicy);
+    }
+
+    internal WorldRuntime CopyForChoiceTrial(Func<string, IDecisionProvider> providers) =>
+        RestoreCore(ExportState(), providers, maxCognitionDispatchPerCycle, trustedPreparedState: true,
+            applyLoadTransitions: false);
+
+    internal IReadOnlyList<AgentObservation> PrepareChoiceTrialOffers()
+    {
+        gate.Wait();
+        try
+        {
+            EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
+            return society.Capture().Cognition.Queue.Select(entry => entry.Observation).ToArray();
+        }
+        finally { gate.Release(); }
+    }
+
+    // Probe the native action phase in the same trusted copy used by tick preparation.
+    // Inline fixture replies keep unrelated background scheduling out of the invariant.
+    internal async ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> ApplyChoiceTrialAsync()
+    {
+        await gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            var decisions = new List<SocietyCognitionDispatchResult>();
+            for (var cycle = 0; cycle < agents.Count && society.Capture().Cognition.Queue.Count > 0; cycle++)
+            {
+                var dispatched = await society.DispatchCognitionAsync().ConfigureAwait(false);
+                decisions.AddRange(dispatched.Decisions);
+                foreach (var decision in dispatched.Decisions) ApplyDecision(decision);
+            }
+            var handledActors = ApplyContinuingIntentions(decisions.Select(decision => decision.AgentId), []);
+            CompleteActionPhase(handledActors);
+            return decisions;
+        }
+        finally { gate.Release(); }
     }
 
     /// <summary>Replay an accepted refusal alongside the same recorded decision inputs, without reproducing the defect.</summary>

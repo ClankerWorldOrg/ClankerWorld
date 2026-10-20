@@ -1,1 +1,0 @@
-- Keep tool collection tied to the chosen shared tool and explain when it is no longer available.

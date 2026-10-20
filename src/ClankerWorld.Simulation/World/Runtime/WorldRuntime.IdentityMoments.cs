@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
                     $"identity:{Guid.NewGuid():N}", provider.ProviderEpoch, observation);
                 request.Validate();
                 SetIdentityMoment(person.Id, moment with { Outcome = "requested", RequestedTick = WorldTick });
-                AppendEvent("agent_identity_moment_started", $"{person.Id}:{moment.Kind}");
+                AppendEvent(new AgentIdentityMomentStartedEventPayload(person.Id, Convert.ToString(moment.Kind, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty));
                 prepare(new(moment.Kind, request, provider));
                 capacity--;
             }
@@ -96,8 +96,8 @@ public sealed partial class WorldRuntime
 
     private void StartPreparedIdentityMoment(PreparedIdentityMoment prepared)
     {
-        var cancellation = new CancellationTokenSource(IdentityMomentTimeout);
-        var task = Task.Run(async () =>
+        var cancellation = new CancellationTokenSource(IdentityMomentTimeout, modelTimeProvider);
+        var task = ScheduleModelWork(ModelWorkKind.IdentityMoment, prepared.Request.Observation.AgentId, prepared.Request.RequestId, async () =>
         {
             try
             {
@@ -110,7 +110,7 @@ public sealed partial class WorldRuntime
                 // Neither provider replies nor their exception messages enter events or logs.
                 return new IdentityMomentOutcome(null);
             }
-        });
+        }, decision: prepared.Request);
         pendingIdentityMoments.Add(prepared.Request.Observation.AgentId,
             new(prepared.Kind, prepared.Request, task, cancellation));
     }
@@ -161,6 +161,7 @@ public sealed partial class WorldRuntime
                     response.SelectedCandidateId == "identity_optional";
             }
             catch (Exception exception) when (exception is not OutOfMemoryException) { }
+            if (valid) admittedModelReplies.Add(pending.Request.RequestId);
             var personality = valid ? response!.ChosenPersonality : null;
             var aspiration = valid ? response!.ChosenAspiration : null;
             if (personality == physical.Personality) personality = null;
@@ -198,7 +199,7 @@ public sealed partial class WorldRuntime
             Personality = personality,
             Aspiration = aspiration,
         });
-        AppendEvent(outcome == "accepted" ? "agent_identity_revised" : "agent_identity_moment_kept", $"{id}:{kind}");
+        AppendEvent(outcome == "accepted" ? new AgentIdentityRevisedEventPayload(id, kind.ToString()) : new AgentIdentityMomentKeptEventPayload(id, kind.ToString()));
     }
 
     private void SetIdentityMoment(string id, AgentIdentityMoment moment)
@@ -219,6 +220,7 @@ public sealed partial class WorldRuntime
     private void CancelIdentityMoment(string id, bool underRuntimeGate = true)
     {
         if (!pendingIdentityMoments.Remove(id, out var pending)) return;
+        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
         if (agents.TryGetValue(id, out var physical) &&
             (physical.IdentityMoments ?? []).Any(moment => moment.Kind == pending.Kind && moment.Outcome == "requested"))
             FinishIdentityMoment(id, pending.Kind, "interrupted");

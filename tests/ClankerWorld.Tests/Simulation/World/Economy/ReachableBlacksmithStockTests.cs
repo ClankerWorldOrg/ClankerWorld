@@ -19,7 +19,7 @@ public sealed class ReachableBlacksmithStockTests
         var warehouse = original.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
         var actor = original.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var blocker = original.Society.Society.Agents.First(person => person.HouseholdId != smith.HouseholdId).Id;
-        var blockedPosition = new GridPoint(smith.Position.X - 1, smith.Position.Y - 1);
+        var blockedPosition = MovementTestWorld.OpenGround(original, blocker, smith.Position);
         const string blockedId = "a-blocked-wood";
         const string reachableId = "b-reachable-wood";
         // Controlled starting stock and occupancy; the runtime performs all hauling below.
@@ -46,6 +46,7 @@ public sealed class ReachableBlacksmithStockTests
                 LastDecisionContext = null,
             }).ToArray(),
         };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         var chooser = new HaulChoices(true);
         using var world = Restore(state, actor, chooser);
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());

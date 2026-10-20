@@ -1,1 +1,0 @@
-- Unchanged Agents list refreshes keep their existing cards and portraits, reducing work while the world is paused and preserving browsing position.

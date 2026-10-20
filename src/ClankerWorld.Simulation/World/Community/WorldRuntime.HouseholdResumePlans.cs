@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
         var jobs = PausedHouseholdWork(plan.Actor).Where(job => job.Id == plan.Choice.JobId).ToArray();
         if (jobs.Length != 1 || jobs[0].BuildingId != plan.Building.InstanceId || jobs[0].Worker != plan.WorkerId ||
             jobs[0].Completion != plan.CompletionTick || jobs[0].PausedAt != plan.PausedAtTick ||
-            !jobs[0].Reservations.SequenceEqual(plan.ReservationIds, StringComparer.Ordinal))
+            !jobs[0].Reservations.SequenceEqual(plan.ReservationIds))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected paused job or its committed inputs have changed");
         var production = worldSimulation.ProductionJobs.SingleOrDefault(item => item.JobId == plan.Choice.JobId);
         var expansion = (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(item => item.JobId == plan.Choice.JobId);
