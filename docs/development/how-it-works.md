@@ -194,6 +194,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Medical supply, treatment and consent own their typed codecs, planners,
+capability policies, checks and native application in ordered action rows.
+Consent applies only in the fresh-admission phase after the provider and
+admission checks; continuing intentions still cannot change permission. The
+supply definition checks both retained pickup and return plan types.
+
 Partnership, parenthood and dependent care and travel own their codecs,
 planners, capability policies, checks and native application in the ordered
 action rows. Policies follow the retained care or consent step. Guardian travel

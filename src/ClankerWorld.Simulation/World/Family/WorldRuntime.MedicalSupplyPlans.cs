@@ -24,10 +24,10 @@ public sealed partial class WorldRuntime
             Reach(actor, pickup.Position, ReachPurpose.MedicalSupply, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckMedicalSupplyPlan(MedicalSupplyActionPlan plan)
+    private ActionCheck CheckMedicalSupplyPlan(MedicalSupplyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? MedicalCareCapabilities);
         if (!capability.Allowed) return capability;
         if (!LivingMedicalAdult(plan.Actor) || !agents.TryGetValue(plan.PatientId, out var patient) ||
             !HasMedicalPermission(plan.Actor, plan.PatientId) || agents[plan.Actor].MedicalSupplyTrip != plan.OriginalTrip ||
@@ -51,7 +51,7 @@ public sealed partial class WorldRuntime
 
     private void AddMedicalSupplyCandidate(List<CognitionCandidate> candidates, string actor)
     {
-        if (PlanMedicalSupply(actor) is not { } plan || !CheckMedicalSupplyPlan(plan).Allowed) return;
+        if (MedicalSupplyDefinition.Offer(this, actor, new()) is not { } plan) return;
         candidates.Add(new(plan.CandidateId, plan is MedicalSupplyReturnPlan
             ? "Return with the medicine to where you last saw the consenting patient."
             : "Visit accessible care stock and collect one real dose of medicine.", 8,
@@ -61,7 +61,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyMedicalSupplyPlan(MedicalSupplyActionPlan plan)
     {
-        if (CheckMedicalSupplyPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedMedicalSupply(plan);
+    }
+
+    private void ApplyCheckedMedicalSupply(MedicalSupplyActionPlan plan)
+    {
         BeginMedicalSupplyTrip(plan);
         if (plan is MedicalSupplyReturnPlan)
         { MoveToward(plan.Actor, agents[plan.Actor], plan.LastSeenPosition, "medical_patient", ResourceInteractionRange); return; }

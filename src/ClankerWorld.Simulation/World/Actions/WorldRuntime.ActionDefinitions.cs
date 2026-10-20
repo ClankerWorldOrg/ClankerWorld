@@ -66,7 +66,12 @@ public sealed partial class WorldRuntime
             .Distinct().GroupBy(definition => definition.PlanType)
             .ToFrozenDictionary(group => group.Key, group => group.ToArray());
 
-    private static ActionDefinition? DefinitionFor(ActionPlan plan) =>
-        RegisteredActionDefinitions.Value.TryGetValue(plan.GetType(), out var definitions)
-            ? definitions.FirstOrDefault(definition => definition.Matches(plan.CandidateId)) : null;
+    private static ActionDefinition? DefinitionFor(ActionPlan plan)
+    {
+        for (Type? type = plan.GetType(); type is not null; type = type.BaseType)
+            if (RegisteredActionDefinitions.Value.TryGetValue(type, out var definitions) &&
+                definitions.FirstOrDefault(definition => definition.Matches(plan.CandidateId)) is { } definition)
+                return definition;
+        return null;
+    }
 }

@@ -9,6 +9,7 @@ public sealed partial class WorldRuntime
     // Registration order is part of saved observation and event ordering.
     private enum ActionPhase
     {
+        FreshAdmission,
         BeforeAge,
         Ordinary
     }
@@ -29,6 +30,7 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "medical_consent", [MedicalConsentChoice.AllowPrefix, MedicalConsentChoice.RevokePrefix], [], Definition: MedicalConsentDefinition),
         new(ActionPhase.BeforeAge, "safe_idle_age_outcome", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
         new(ActionPhase.BeforeAge, "IsOrnamentCandidate", [], [], static (runtime, action) =>
     {
@@ -43,6 +45,8 @@ public sealed partial class WorldRuntime
         new(ActionPhase.BeforeAge, "TryApplyGuardianPlacementCandidate", [], [], Definition: GuardianTravelDefinition),
         new(ActionPhase.BeforeAge, "guardian_end:", ["guardian_end:"], [], Definition: DependentCareDefinition),
         new(ActionPhase.Ordinary, "safe_idle", [], [WaitingChoice.Candidate], Definition: WaitingDefinition),
+        new(ActionPhase.Ordinary, "medical_supply", [], [MedicalSupplyChoice.Id], Definition: MedicalSupplyDefinition),
+        new(ActionPhase.Ordinary, "medical_treatment", [MedicalTreatmentChoice.Prefix], [], Definition: MedicalTreatmentDefinition),
         new(ActionPhase.Ordinary, "medical_", ["medical_"], [], static (runtime, action) =>
     {
         runtime.ApplyMedicalCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);

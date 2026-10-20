@@ -27,10 +27,10 @@ public sealed partial class WorldRuntime
         return new(caregiver, choice, supply.Lot.Id, supply.Lot.OwnerId, supply.Place, minimumIllness, allowBoat);
     }
 
-    private ActionCheck CheckMedicalTreatmentPlan(MedicalTreatmentActionPlan plan)
+    private ActionCheck CheckMedicalTreatmentPlan(MedicalTreatmentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: plan.AllowBoat, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? MedicalTreatmentCapabilities(plan.AllowBoat));
         if (!capability.Allowed) return capability;
         var target = CheckMedicalTreatmentTarget(plan.Actor, plan.Choice.PatientId, plan.MinimumIllness);
         if (!target.Allowed) return target;
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyMedicalTreatmentPlan(MedicalTreatmentActionPlan plan)
     {
-        if (CheckMedicalTreatmentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteMedicalTreatment(plan.Actor, plan.Choice.PatientId, plan.Choice.ItemKind, society.Checkpoint.Inventory.GetLot(plan.StockId));
     }
 }
