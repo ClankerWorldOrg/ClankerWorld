@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
     {
         var plan = originalPlan ?? PlanExploration(actor, new(false, goal), native: true, replaceGoal);
         if (plan is null) return;
-        if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         var exploration = plan.Prepared;
         if (plan.Interrupted) AppendEvent(new ExplorationAbortedEventPayload(actor, "interrupted_movement"));
         if (plan.Starting)
@@ -179,7 +179,7 @@ public sealed partial class WorldRuntime
         if (person.Exploration is not { OutingPath.Count: > 0 } exploration) return;
         var plan = originalPlan ?? PlanExploration(actor, new(true), native: true);
         if (plan is null) return;
-        if (CheckExploration(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Original is { Returning: false })
             AppendEvent(new ExplorationReturnStartedEventPayload(actor));
         ReturnFromExploration(actor, person, plan.Prepared, plan);

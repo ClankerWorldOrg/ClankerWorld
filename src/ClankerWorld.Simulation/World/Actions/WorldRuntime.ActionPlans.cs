@@ -9,7 +9,6 @@ public sealed partial class WorldRuntime
 
     private ActionCheck CheckLegacyActionPlan(ActionPlan plan) => plan switch
     {
-        ExplorationActionPlan exploration => CheckExploration(exploration),
         PersonalGoodsActionPlan personalGoods => CheckPersonalGoods(personalGoods),
         HouseGuestActionPlan houseGuest => CheckHouseGuest(houseGuest),
         ProjectInputActionPlan projectInput => CheckProjectInput(projectInput),
