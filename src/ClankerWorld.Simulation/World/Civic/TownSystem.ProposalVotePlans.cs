@@ -8,10 +8,10 @@ internal sealed partial class TownSystem
         world.Towns.SingleOrDefault(town => town.Id == choice.TownId)?.Council?.Proposals.SingleOrDefault(proposal => proposal.Id == choice.ProposalId) is { } proposal
             ? new(actor, choice, proposal with { Voters = proposal.Voters.ToArray(), Votes = proposal.Votes.ToArray() }) : null;
 
-    internal static ActionCheck CheckCivicProposalVote(ITownWorld world, CivicProposalVoteActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckCivicProposalVote(ITownWorld world, CivicProposalVoteActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: { } council } town ||
             council.Proposals.SingleOrDefault(proposal => proposal.Id == plan.Proposal.Id) is not { Status: "pending" } current ||

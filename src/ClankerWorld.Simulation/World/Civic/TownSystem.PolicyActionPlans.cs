@@ -15,10 +15,10 @@ internal sealed partial class TownSystem
         return new(actor, choice, share, null, law?.Id, law is null ? null : TownLawRules.Current(law));
     }
 
-    internal static ActionCheck CheckTownPolicyPlan(ITownWorld world, TownPolicyActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckTownPolicyPlan(ITownWorld world, TownPolicyActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))

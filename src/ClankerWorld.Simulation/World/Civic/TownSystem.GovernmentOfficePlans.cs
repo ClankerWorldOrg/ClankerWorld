@@ -4,6 +4,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy GovernanceCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static GovernmentOfficeActionPlan? PlanGovernmentOffice(ITownWorld world, string actor, GovernmentOfficeChoice choice)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Government: { } government } town) return null;
@@ -15,10 +17,10 @@ internal sealed partial class TownSystem
             office, change, extending ? TownArrangementRules.Parse(choice.Subject) : null, extending ? CivicBoard(world, town) : null);
     }
 
-    internal static ActionCheck CheckGovernmentOffice(ITownWorld world, GovernmentOfficeActionPlan plan, TownRuntimeState? currentTown = null)
+    internal static ActionCheck CheckGovernmentOffice(ITownWorld world, GovernmentOfficeActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
