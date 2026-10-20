@@ -24,6 +24,10 @@ public sealed record LauncherLayout(string Root)
     public string GameDataDirectory(LauncherSettings settings) =>
         settings.DeveloperMode && settings.UseTestData ? TestDataDirectory : Root;
 
+    public string HostingDataDirectory(LauncherSettings settings, bool restoring) =>
+        (restoring ? settings.HostedUseTestData : settings.DeveloperMode && settings.UseTestData)
+            ? TestDataDirectory : Root;
+
     /// <summary>The game's own data folders, written by its host (#1564).</summary>
     public string SavesDirectory => Path.Combine(Root, "saves");
     public string LogsDirectory => Path.Combine(Root, "logs");
@@ -75,6 +79,27 @@ public sealed record PackageEntryPoints(string Game, string Server)
     /// <summary>The entry points of a version on disk, as when starting it.</summary>
     public static PackageEntryPoints? ReadInstalled(string directory) =>
         Read(directory, relative => File.Exists(Path.Combine(directory, relative)));
+
+    /// <summary>Find the installed package that names this game, including a game in a subfolder.</summary>
+    public static (string Directory, PackageEntryPoints EntryPoints)? FindInstalledForGame(string executable)
+    {
+        var game = Path.GetFullPath(executable);
+        if (Path.GetDirectoryName(game) is not { } parent) return null;
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        for (var directory = new DirectoryInfo(parent); directory is not null; directory = directory.Parent)
+        {
+            var hasManifest = File.Exists(Path.Combine(directory.FullName, FileName));
+            if (ReadInstalled(directory.FullName) is not { } entryPoints)
+            {
+                if (hasManifest) return null;
+                continue;
+            }
+            if (!string.Equals(Path.GetFullPath(Path.Combine(directory.FullName, entryPoints.Game)), game, comparison) ||
+                !hasManifest && !File.Exists(Path.Combine(directory.FullName, entryPoints.Server))) continue;
+            return (directory.FullName, entryPoints);
+        }
+        return null;
+    }
 
     private static string? RelativePath(JsonElement root, string name) =>
         root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String &&

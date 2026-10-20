@@ -44,10 +44,11 @@ public partial class Main
     private readonly PanelContainer thoughtsInset = new() { ThemeTypeVariation = "InsetPanel" };
     private readonly Button readThoughtsButton = new();
     private readonly PanelContainer thoughtsPanel = new();
-    private readonly Label thoughtsReaderTitle = new();
+    private readonly FittedLabel thoughtsReaderTitle = new();
     private readonly RichTextLabel thoughtsReaderText = new();
     private string? renderedThoughtsReader;
     private bool agentProfileRequested;
+    private bool measuredFirstAgentProfile;
 
     private void BuildAgentProfile()
     {
@@ -87,8 +88,7 @@ public partial class Main
         nameRow.AddChild(renameToggleButton);
         identity.AddChild(nameRow);
         selectedActorSummaryLabel.ThemeTypeVariation = "DimLabel";
-        selectedActorSummaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        identity.AddChild(selectedActorSummaryLabel);
+        AddProfileText(identity, selectedActorSummaryLabel);
         header.AddChild(identity);
         var tools = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkBegin };
         tools.AddThemeConstantOverride("separation", 4);
@@ -104,10 +104,9 @@ public partial class Main
         header.MinimumSizeChanged += QueueAgentProfileFit;
         body.AddChild(header);
         // Full width under the portrait, so what they are doing rarely wraps.
-        profileActivityLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        body.AddChild(profileActivityLabel);
+        AddProfileText(selectedAgentOverview, profileActivityLabel);
         ConfigureOrderLabel(profileOrderLabel);
-        body.AddChild(profileOrderLabel);
+        AddProfileText(selectedAgentOverview, profileOrderLabel);
 
         renameAgentInput.PlaceholderText = "Agent name";
         renameAgentInput.TooltipText = "Changing a married agent's surname also updates their spouse.";
@@ -125,15 +124,13 @@ public partial class Main
 
         selectedAgentOverview.AddThemeConstantOverride("separation", 5);
         selectedActorConditionLabel.ThemeTypeVariation = "DimLabel";
-        selectedActorConditionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        selectedAgentOverview.AddChild(selectedActorConditionLabel);
+        AddProfileText(selectedAgentOverview, selectedActorConditionLabel);
         profileMeters.AddThemeConstantOverride("h_separation", 14);
         profileMeters.AddThemeConstantOverride("v_separation", 4);
         foreach (var meter in new[] { profileFullnessMeter, profileWarmthMeter, profileDietMeter, profileIllnessMeter })
             profileMeters.AddChild(meter);
         selectedAgentOverview.AddChild(profileMeters);
-        ConfigureTextPanel(agentDetails, 90);
-        selectedAgentOverview.AddChild(agentDetails);
+        AddProfileText(selectedAgentOverview, agentDetails);
 
         // The Profile shows the latest thoughts; clicking them, or Read all,
         // opens every recent one in a larger reader beside it.
@@ -166,7 +163,7 @@ public partial class Main
         thoughtsInset.AddChild(privateThoughtHistory);
         selectedAgentOverview.AddChild(thoughtsInset);
 
-        selectedAgentOverview.AddChild(new Label { Text = "PEOPLE", ThemeTypeVariation = "SectionLabel" });
+        AddProfileText(selectedAgentOverview, new Label { Text = "PEOPLE", ThemeTypeVariation = "SectionLabel" });
         BuildProfilePeople(selectedAgentOverview);
 
         var profileActions = new HBoxContainer();
@@ -263,8 +260,7 @@ public partial class Main
         allOrdersButton.Hide();
         messagesRow.AddChild(allOrdersButton);
         speakSection.AddChild(messagesRow);
-        ConfigureTextPanel(instructionHistory, 105);
-        speakSection.AddChild(instructionHistory);
+        AddProfileText(speakSection, instructionHistory);
         selectedAgentOverview.AddChild(speakSection);
         // The details scroll once the Profile would pass the bottom of the screen.
         selectedAgentOverview.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -285,6 +281,22 @@ public partial class Main
         // Top-bar panels such as Filters open over the Profile while in use.
         agentProfilePanel.ZIndex = 75;
         agentProfilePanel.Hide();
+    }
+
+    /// <summary>Profile text takes its container's width and contributes its wrapped height to the single outer scroll.</summary>
+    private static void AddProfileText(Container parent, Control text)
+    {
+        text.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        if (text is Label label)
+            label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        else if (text is RichTextLabel rich)
+        {
+            rich.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            rich.BbcodeEnabled = false;
+            rich.FitContent = true;
+            rich.ScrollActive = false;
+        }
+        parent.AddChild(text);
     }
 
     /// <summary>Whether a decision came from an agent's own model rather than a routine helper or the built-in rules.</summary>
@@ -412,6 +424,13 @@ public partial class Main
     /// <summary>Opens the Profile from the quick card; Speak also puts the cursor in the message box.</summary>
     private void OpenAgentProfile(bool speak)
     {
+        var firstOpen = !measuredFirstAgentProfile;
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        if (firstOpen)
+        {
+            measuredFirstAgentProfile = true;
+            GD.Print("agent_profile_open stage=begin");
+        }
         agentProfileRequested = true;
         if (agentCardSnapshot is { } snapshot)
             RenderSelectedAgentCard(snapshot);
@@ -422,6 +441,17 @@ public partial class Main
         }
         else if (keyboardNavigation)
             Callable.From(() => FocusKeyboardPanel(agentProfilePanel)).CallDeferred();
+        if (firstOpen)
+        {
+            GD.Print(FormattableString.Invariant($"agent_profile_open stage=controls_ready elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
+            if (DisplayServer.GetName() != "headless") _ = LogFirstAgentProfileDrawAsync(started);
+        }
+    }
+
+    private async Task LogFirstAgentProfileDrawAsync(long started)
+    {
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GD.Print(FormattableString.Invariant($"agent_profile_open stage=first_draw elapsed_ms={System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds:F2}"));
     }
 
     /// <summary>
@@ -450,7 +480,7 @@ public partial class Main
         refusedAgentRename.Forget();
         renameRow.Visible = !renameRow.Visible;
         if (!renameRow.Visible) return;
-        renameAgentInput.Text = selectedActorNameLabel.Text;
+        renameAgentInput.Text = selectedActorNameLabel.FullText;
         renameAgentInput.CallDeferred(Control.MethodName.GrabFocus);
         renameAgentInput.CallDeferred(LineEdit.MethodName.SelectAll);
     }
@@ -476,16 +506,19 @@ public partial class Main
 
     private void QueueAgentProfileFit()
     {
-        if (agentProfileFitQueued) return;
+        // A deferred call runs in the same idle flush. Fitting can change the
+        // minimum size again, so leave that work for the next process frame.
         agentProfileFitQueued = true;
-        Callable.From(() =>
-        {
-            agentProfileFitQueued = false;
-            PositionAgentProfile();
-            // Keep the message box in view while typing, once the scroll has its new height.
-            if (instructionText.HasFocus())
-                Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
-        }).CallDeferred();
+    }
+
+    private void FitQueuedAgentProfile()
+    {
+        if (!agentProfileFitQueued) return;
+        agentProfileFitQueued = false;
+        PositionAgentProfile();
+        // Keep the message box in view once the scroll has its new height.
+        if (instructionText.HasFocus())
+            Callable.From(() => agentOverviewScroll.EnsureControlVisible(instructionText)).CallDeferred();
     }
 
     /// <summary>The Profile's details take the room they need and scroll once the panel would pass the bottom of the screen.</summary>
@@ -524,7 +557,7 @@ public partial class Main
             try
             {
                 var result = await AwaitCurrentWorldResultAsync(ownerApi.RenameAgentAsync(ResolveWorldUri(), authority, deviceId,
-                    new OwnerAgentRenameAction(agentId, name), signer, CancellationToken.None));
+                    new OwnerAgentRenameAction(agentId, name), signer, OwnerRequestToken));
                 renamingAgentId = null;
                 refusedAgentRename.Forget();
                 renameRow.Hide();

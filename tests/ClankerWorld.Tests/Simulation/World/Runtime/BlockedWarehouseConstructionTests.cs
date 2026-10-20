@@ -12,16 +12,25 @@ public sealed partial class WorldConstructionOrderTests
     public async Task ABlockedWarehouseCannotHideReachableConstructionWood(bool townStock, bool openApproach)
     {
         var setup = await Baseline.Value;
+        setup = setup with { Site = setup.WarehouseSite, CandidateId = setup.WarehouseCandidateId };
         var state = Decode(setup);
         var actor = setup.Actor;
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
-        var approaches = state.Map.FootNeighbors(warehouse.Position).Where(state.Map.IsPassable)
-            .OrderBy(point => point.X == warehouse.Position.X + 1 && point.Y == warehouse.Position.Y ? 0 : 1)
-            .ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
+        var footprint = state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+            state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)).ToHashSet();
+        // One occupant blocks the actual entrance. The remaining residents and
+        // animals stay clear so removing that occupant really opens the route.
+        var approaches = new[] { warehouse.Entrance!.Value }.Concat(state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => state.Map.IsBuildable(point) && !footprint.Contains(point) &&
+                state.Map.FootDistance(point, warehouse.Position) > 3 && state.Map.FootDistance(point, setup.Site) > 3))
+            .Take(8).ToArray();
         Assert.Equal(8, approaches.Length);
         Assert.DoesNotContain(setup.Site, approaches);
+        // Blocked-door cases need only one harvest's worth missing to prove
+        // gathering still works. Keep the full shortage in the open-door control
+        // so it still collects all ten communal wood through the actual entrance.
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "construction-drain", Alpha,
-            "construction-wood", 10, "fixture_work", long.MaxValue);
+            "construction-wood", openApproach ? 10 : 2, "fixture_work", long.MaxValue);
         inventory = InventoryAuthority.ConsumeReservation(inventory, "construction-drain");
         inventory = InventoryAuthority.AddLot(inventory, "construction-gather-axe", "crude_wooden_axe", actor, 1);
         if (townStock) inventory = InventoryAuthority.AddLot(inventory, "blocked-town-wood", "wood", warehouse.TownId!, 10,
@@ -48,7 +57,7 @@ public sealed partial class WorldConstructionOrderTests
             }).ToArray()
         };
         var occupied = positions.Values.Concat(horses.Select(animal => animal.Position)).ToHashSet();
-        using (var routes = new UnoccupiedRouteSearch(state.Map, setup.Site, occupied, state.Map.FootStepCost))
+        using (var routes = MovementTestWorld.Routes(state, setup.Site, occupied))
             Assert.Equal(openApproach, routes.RouteTo(warehouse.Position, 0).Count > 0);
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = Restore(WorldRuntimeCodec.Decode(bytes));
@@ -63,6 +72,10 @@ public sealed partial class WorldConstructionOrderTests
         var clinic = Assert.Single(world.WorldSimulation.Buildings, building => building.DefinitionId == setup.DefinitionId);
         Assert.Equal((Alpha, setup.Site), (clinic.HouseholdId, clinic.Position));
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "construction-stone");
+        var proof = Assert.Single(world.WorldSimulation.ConstructionReceipts!);
+        var payment = proof.InputReservationIds.Select(world.Society.Inventory.GetReservation).ToArray();
+        Assert.All(payment, input => Assert.Equal((Alpha, InventoryReservationState.Completed), (input.OwnerId, input.State)));
+        Assert.Equal(10, payment.Where(input => input.LotId != "construction-stone").Sum(input => input.Quantity));
         Assert.Equal(townStock && !openApproach ? 10 : 0, world.Society.Inventory.Lots
             .Where(lot => lot.OwnerId == warehouse.TownId && lot.ItemKind == "wood" && lot.StorageBuildingId == warehouse.InstanceId)
             .Sum(lot => lot.Quantity));

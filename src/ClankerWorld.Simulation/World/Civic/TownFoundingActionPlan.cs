@@ -4,7 +4,7 @@ public sealed record TownFoundingChoice(string TownId, bool Resettle)
 {
     public string Encode() => $"civic|{TownId}|{(Resettle ? "resettle" : "found")}||";
     public static TownFoundingChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, "", ""] &&
-        town.Length > 0 && verb is "found" or "resettle" ? new(town, verb == "resettle") : null;
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) && verb is "found" or "resettle" ? new(town, verb == "resettle") : null;
 }
 
 public sealed record TownFoundingActionPlan(string ActorId, TownFoundingChoice Choice, TownRuntimeState Town,

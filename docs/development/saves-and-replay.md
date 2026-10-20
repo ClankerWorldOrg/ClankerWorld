@@ -2,7 +2,7 @@
 title: Saves and replay
 type: persistence-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-18
 ---
 
 # Saves and replay
@@ -11,13 +11,83 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Stored-data bounds and model settings on load
+
+`SavedFile` checks the length on the same open handle before allocating or
+reading: checkpoints have a 256 MiB limit, individual history segments 64 MiB,
+the world catalog 16 MiB and adjacent metadata 4 MiB. It also refuses a file
+that grows during the read. Oversized files stay on disk. The checkpoint
+writer checks its encoded checkpoint and new history segment before publication;
+there is no trimming, migration or replacement world. An oversized active file
+stops startup with a size explanation rather than loading it into recovery memory.
+An oversized timeline refuses save publication before creating a recovery copy
+or another save. An oversized diagnostic `.build.json` stays untouched; its
+best-effort build recording does not fail an otherwise valid checkpoint save.
+Save creation, overwrite, load, world selection and timeline inspection share
+one `save_too_large` response with the size explanation.
+
+The world holds at most 256 content package records. Each manifest permits 256
+definitions and asset reservations, 128 dependencies and 64 capabilities. Display
+names have a 128 UTF-16-unit printable-text limit; capability names have the same
+limit and contain no whitespace. Each definition payload has a 256 KiB UTF-8
+limit, with 2 MiB of payload across the manifest. Manifest decoding is capped at
+16 MiB. Proposal and strict restore share these checks. Earlier alpha saves over
+the bounds are refused and preserved.
+
+The signed `content/remove` action removes only quarantined content, while
+paused. It validates and saves an isolated proposal before installing it. Ordered
+governance audit receipts remain, including a removal receipt; the package's
+payload and reservations are no longer retained as a package record. A removed
+package ID cannot be proposed again. Active content must first pass the existing
+rollback checks, including retained physical and order references.
+
+Before loading a named save or selecting another world, the game reads its model
+settings without applying them. A changed set of agent assignments or routine
+helper is shown with model names and installation key labels. Confirmation is
+bound to the selected identity and exact saved assignments, thinking levels and
+helper. The signed load carries that approval; changed settings require a new
+preview and confirmation. Missing approval refuses before recovery copies,
+timelines, provider assignments or checkpoints change. Keys themselves remain
+installation state and never enter previews, approvals or saves.
+
+These bounds and approval checks add no world fields or replay events. Existing
+strict reload, history verification, durable load intent and rollback remain
+required.
+
+## Developer map edits
+
+Paused terrain, resource and camp-object edits persist one validated proposal
+before changing the live world. A failed write preserves the prior checkpoint
+and live map, layers, ecology and history. Accepted batches use the existing
+`developer_edit` event with operation `edit_world`; its value retains the full
+world/event/epoch-bound command for deterministic replay and exact retry.
+Current-format saves retain edited terrain and resource/chunk manifests through
+strict reload and continuation. Schema 139 stores bounded current terrain
+overrides and added resource/object definitions in `MapAuthoring`. Reload checks
+the regenerated baseline with those overrides, including after history
+compaction. Earlier alpha saves are refused and preserved; no migration runs.
+The schema number is provisional until merge.
+
+## Browsing saves from Load World
+
+The signed `POST /api/v1/owner/worlds/saves` read takes a catalog world ID and
+returns its saves, timeline position, calendar and world time. It does not
+activate or write that world. The client uses the same timeline, list and
+save-description controls as Save World. A changed world selection cancels the
+read and discards late replies. Loading first uses the existing world selection
+and manual-save load operations, preserving the current world and keeping the
+loaded world paused. No checkpoint format or branch-creation rules change.
+
 ## Stock holds
 
-World schema 129 adds optional typed holds to inventory lots and the matching
+World schema 132 introduced optional typed holds to inventory lots and matching
 authorization to reservations. Each hold records a purpose and an exact holder;
 the inventory core checks both, including vessel families. Splits keep their
-holds, and a saved reservation rechecks its authorization before consumption or
-barter settlement. Delivery holders are destination buildings, borrowers and
+effective holds when goods leave a vessel, and a saved reservation rechecks its
+authorization before consumption or barter settlement.
+
+World schema 133 requires matching holds for saved custody and promises.
+Delivery holders are destination buildings, borrowers and
 supply-trip holders are their actors, and Market holders are occupancy IDs.
 Strict world validation checks each hold against its corresponding saved promise
 and refuses a missing or inconsistent link. Hold lists have unique entries in purpose/holder order and
@@ -29,11 +99,20 @@ refused and preserved without migration. This number is provisional until merge.
 ## Choice plans
 
 Child action plans are transient server data and add no checkpoint fields.
-The new `choice_refused` event records a plain Event Log reason when a selected
-person, resource, lot or quantity is no longer available. This raises the
-provisional world schema to 130. Earlier alpha saves are refused and preserved;
-no migration runs. The schema number is adjusted to current main when merged.
+The typed `choice_refused` event records the actor, their name, activity and
+plain refusal reason when a selected person, resource, lot or quantity becomes
+unavailable. World schema 137 adds this event payload. Earlier alpha saves are
+refused and preserved without migration.
 
+## Building doorways
+
+Doorway movement adds no saved fields or schema version. Strict validation
+checks the building's effective footprint and its recorded entrance, or the
+default south doorway when none is recorded. The doorway must be on buildable
+ground, directly beside the footprint and outside every other building.
+Older alpha layouts with sealed doors are refused and their files preserved;
+no migration moves a building or invents another entrance. Native placement,
+strict reload, refused-tick and paired continuation checks cover the rules.
 
 ## Mod content identities
 
@@ -85,6 +164,14 @@ mod content identifiers and parsed action payloads retain their own contracts.
 The [generator inventory](derived-identities.md#executable-generator-inventory)
 describes the native transition, factory, save and recall evidence.
 
+
+Typed memory, reservation, offer and receipt handles retain their existing JSON
+string spelling, including strings in saved input lists. Save readers retain
+existing nonblank spellings; validation applies each record's original rules.
+This preserves legal long or control-containing inventory keys while keeping
+the stricter belief, receipt and repair-material checks. Complete provenance
+references keep their own limits. No fields, schema, spelling or migration
+change. See [Derived identities](derived-identities.md).
 
 ## Save-space warning
 
@@ -192,13 +279,13 @@ roundtrips retain loaded parked carts and mid-journey hitches; rollback retains
 the previous physical position and every cargo quantity. Earlier alpha saves
 are refused and preserved; no migration is added.
 
-Current cart repair orders retain their stable target and a completion receipt
-in the existing order fields. The receipt binds the instruction, actor, cart
+Current cart repair orders retain their stable target in a typed cart definition
+and their completion receipt in common progress. The receipt binds the instruction, actor, cart
 and native repair tick; reload requires that tick's three exact consumed wood,
 iron-fitting and rope reservations. Real carried supplies, the broken cart's
 cargo and pending order survive reload and refused-tick rollback. Cancellation
-keeps collected goods and creates no unfinished repair reservation. The schema
-version stays unchanged; a build without cart repair orders refuses saves
+keeps collected goods and creates no unfinished repair reservation. The original
+cart-repair change kept the schema unchanged; a build without those orders refuses saves
 containing that action and keeps the original file.
 
 World schema 31 records an agent's learned skills and each lesson's
@@ -286,6 +373,19 @@ records a transition only if the flag changes, and preserves deadlines for
 couples still held by the procedure. Historical headcount events keep their
 original explanation. Eligible-couple transitions, rejected ticks and replay
 are checked with the current save format.
+
+World schema 138 extends continuity state with each held single adult's fixed
+partnering deadline, optional chosen partner and whether they said not yet.
+The single list is required,
+ordered by adult ID and empty while the rule is off. Loading refuses unknown
+adults or chosen partners, self choices, duplicate or unordered entries, and
+deadlines beyond two world days. Choices may become unavailable before the
+next maintenance check; pairing rechecks the same eligibility used by the
+continuity couple count. The typed `continuity_partnership_formed` event keeps
+both adults. Current-format reload, refused-tick rollback and paired exact-byte
+continuation preserve choices, deadlines and the resulting native partnership
+and family records. Earlier alpha saves are refused and preserved without
+migration. This version is provisional until merge.
 
 World schema 48 adds independent saved Town governance. It records the
 current council and fallback cause, term/retry schedules, personal full-term or
@@ -684,6 +784,12 @@ agent ID. A valid long-seed newborn can bind both roles, including when
 reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
+Shutdown completes pending newborn bindings in installation provider storage
+before acknowledging a saved world. Frozen bindings are staged before a prepared
+birth becomes visible, so shutdown during tick publication retains the original key.
+A failed binding refuses shutdown for a
+paused retry, retaining the frozen original default key even if that default
+changes. Key bytes never enter the world checkpoint; its format is unchanged.
 
 Schema 50 saves an unresolved dependent-guardian search, including its current
 relative, household or Town stage, start tick and offered adults. Each stage
@@ -736,12 +842,13 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The server keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a server restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
 After a server start, a background task makes the structural check for each
@@ -803,6 +910,42 @@ links inconsistent with approval or settlement. A runoff keeps the same
 identity while its current round opening moves forward. Current-format replay
 preserves forced attempts and ordinary elections independently; old alpha
 schemas are refused and preserved without migration or inferred ownership.
+
+## Order lifecycle
+
+Orders retain their existing saved status spelling. Runtime status is an
+`OrderStatus` enum changed only through the task transition operation; closed
+orders cannot return to active work. The runtime keeps a completion set only
+for suggestions and derives order completion from status when exporting the
+existing checkpoint list. The status foundation changed no saved fields or schema.
+Schema 134 bounds closed orders to the six newest submissions per agent,
+keeping all active work. Cancellation retries are also bounded to six per
+agent, ordered by world tick, event ID and idempotency key. A retired order can
+no longer be cancelled through its old ID. Compact submission receipts and
+request hashes remain authoritative: a duplicate submission returns its original
+receipt, even after its task and text have retired, and conflicting reuse is
+refused. These receipts contain no status and do not duplicate completion state.
+
+Retirement drops order-only construction evidence and clears optional owner
+order links on native work and written artifacts. It preserves the actual
+inventory, consumed reservations, buildings, artifact contents and native work
+outcomes. Retired exploration purposes are cleared in live and deceased records,
+while their recorded paths and discoveries stay intact. Construction completion
+uses the actual placed building even when its order receipt retires in the same
+action. Loading validates retained order links and rebuilds the active index.
+Earlier alpha schemas are refused and preserved without migration. The schema
+number is provisional until merge.
+Current-format reload, cancellation and rejected-tick checks retain the same
+physical effects and receipts.
+
+Schema 135 stores each task's `definition` with an explicit `kind` discriminator
+and only that kind's fields, beside common progress and the unchanged status
+spelling. Missing required targets, unknown kinds and fields belonging to
+another kind are refused during decoding. Each task record owns its shape
+validation; native receipts, authority and cross-system bindings keep their
+existing checks. Current-format progress, cancellation and replay remain the
+same. Earlier alpha schemas are refused and preserved without migration; this
+version is provisional until merge.
 
 ## Commit and restore rules
 
@@ -1128,7 +1271,7 @@ reading Details changes no stock, permissions or agent knowledge. Earlier
 alpha schemas are refused and preserved without migration or history backfill.
 
 World schema 95 adds a required routine-helper choice, model name and
-optional OpenAI credential-slot ID. API-key bytes remain installation-owned.
+optional credential-slot ID (OpenAI for Decisions, TypeSafe for Jev). API-key bytes remain installation-owned.
 Loading rejects invalid helper/model/slot formats or inconsistent availability;
 missing installation keys cannot be invented from a save. The existing helper
 routing revision invalidates earlier requests, and switches preserve memory
@@ -1154,12 +1297,13 @@ The save format and schema number do not change. As with any unloadable active
 world, the server will not start until that save is moved aside. Hills are drawn
 from the saved elevation and water layers, so nothing extra is saved for them.
 
-The polar sea rows at the north and south edges
-([#1317](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1317)) also change
+Removing the forced polar sea rows at the north and south edges
+([#2367](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2367)) also changes
 generated maps in the same way: there is no generator switch or migration.
-A saved map that differs from deterministic regeneration fails the check
+Existing save files keep their maps; restore never rewrites them to the new
+terrain. A saved map that differs from deterministic regeneration is refused
 with the same message, and its file is kept. The save format and schema number
-do not change for the polar rows.
+do not change.
 
 Mountain massifs ([#683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/683))
 change elevation, rivers, climate and resources for every generated world, so
@@ -1172,7 +1316,10 @@ not loaded; its save is kept." The file is left unchanged, the world list marks
 it as unable to load, and there is no migration. The save format and schema
 number do not change; the hill band still comes from the saved layers.
 
-Private checkpoint v2 stores verified 64×64 terrain-byte chunks. The old v1
+Private checkpoint v2 stores verified 64×64 terrain-byte chunks. Map acceptance
+and checkpoint writing share the complete-grid count, bounds and uniqueness
+proof; the writer fills terrain bytes during that same walk. Borrowed tiles
+are rechecked on every call. The old v1
 per-tile format is refused, and generated maps must match the current generator
 and package checks; there is no historical generator or package fallback.
 Damaged chunks are rejected without replacing the save. Restore also removes
@@ -1180,6 +1327,9 @@ Road tiles inside validated saved building footprints, leaving other Roads and
 state intact. The repair applies once and may expose an already broken Road
 connection; it does not reroute Roads or create bridges. Back up older saves
 before an upgrade.
+
+The terrain codec and map acceptance share per-layer length and declared-byte
+checks. Each boundary retains its own failure messages.
 
 World-systems resource manifests are separate from the terrain-byte chunks.
 Loaded or changed manifests require full structural validation and an exact
@@ -1267,7 +1417,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 128. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 139. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1408,7 +1558,7 @@ current alpha cutoff.
 | Schema 84 | Required marriage consent receipts and dedicated surname conversations preserve the original surnames, admitted turns and seeded result, including across history compaction. Later player surname changes update both spouses together without rewriting the original decision. |
 | Schema 91 | Non-land mandate consent, conduct-time law context, public hearings and voluntary remedy agreements retain their sources and real physical completion receipts. Earlier alpha saves are refused and preserved without migration. |
 | Schema 94 | Market receipts use required stable sequences and an explicit retirement boundary. Open trades retain their exact deposit proof; bounded closed outcomes may refer below the retired boundary. Live borrowing, current stock, exact payments and accepted offers remain authoritative; closed offers and claims retire together. Earlier alpha saves are refused and preserved without migration. |
-| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned OpenAI key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
+| Schema 95 | Required per-world routine-helper settings retain Off, Jev or OpenAI Decisions, its model and an optional installation-owned key-slot ID. Switches retain memories and scores, invalidate pending replies and replay with the saved routing revision. Earlier alpha saves are refused and preserved without migration; key bytes remain outside world saves. |
 | Schema 96 | Animals, held products and saddles, care trips, pregnancies, named permissions and exact animal/milk offers retain their physical custody. Current saves require the complete animal record; earlier alpha saves are refused and preserved without migration. |
 | Schema 97 | Native public-service receipts retain the usable personal carried quantity before donation separately from the actual source lot. The four-unit reserve may span carried lots; saved validation preserves source quantity, reservations and exact physical transfer evidence. Earlier alpha saves are refused and preserved without migration. |
 | Schema 98 | Existing inventory events retain exact physical storage additions/removals by building and item kind, with signed quantities. Event identities, trade receipts, rollback and bounded archival remain intact. Malformed changes and earlier alpha schemas are refused; no migration or history reconstruction is added. |
@@ -1833,6 +1983,12 @@ The cognition queue saves unresolved decision points. External HTTP tasks are
 not save authority. Pause or shutdown cancels them; a restored still-relevant
 decision may be retried and incur another attempt.
 
+Completed reply cohorts use ordinal saved queue identities: actor IDs for
+ordinary decisions and life-moment identities, conversation IDs for turns, and
+estate IDs for wills. Dictionary insertion and removal history cannot determine
+the order of accepted events. Live tasks and their request IDs remain transient;
+no extra ordering field or schema change is needed.
+
 The post-death will path is intentionally different: it freezes personally owned
 lot IDs/kinds/quantities and their original building storage in estate escrow.
 A cancellable final choice runs outside
@@ -1896,7 +2052,64 @@ Inventory lot splits leave all actively reserved stock in the original lot,
 including production and barter commitments. Only the unreserved remainder can
 move to the new lot; rejected splits leave state and event history unchanged.
 
+## Bounded Council history
+
+World schema 129 adds required cumulative retired-election and retired-notice
+counts. Checkpoint compaction uses the existing recent-window/dependency pattern:
+eight settled elections and 32 recent notices remain, together with forced
+Council elections, notices for retained contests, and each agent's three recent
+learned notice sources. Every retained notice keeps its read and relay chain.
+Other civic notices remain authority for laws, permissions and hearings.
+Notice numbering includes retired notices, so new notices and linked case
+records cannot reuse an earlier identity.
+
+Full retired elections, notices and their knowledge receipts go into the same
+digest-addressed segments as event prefixes. Archive publication precedes the
+smaller checkpoint and live-state replacement; a failed write leaves both
+unchanged. Required counts must match the reachable archive on load and world
+compatibility checks. Current-format reload and replay preserve retry state,
+latest visible outcomes and learned sources. Earlier alpha schemas are refused
+and preserved without migration. The version is provisional until merge.
+
+## Bounded production history
+
+World schema 131 adds the required cumulative `ArchivedProductionJobCount`.
+The shared checkpoint planner keeps all running and paused work and the newest
+32 terminal jobs by start tick, then identity. It also keeps exact jobs still
+used by recipe accounts, written recipes, unfinished projects, tool requests and
+retained orders. Production-order progress counts every paid batch, so those
+jobs remain until the order system retires their links; this does not change
+order history. Usable unprepared edible lots keep their original job while food
+variety still uses it, including after transfer or a provenance split.
+
+Older unreferenced jobs enter the existing digest-addressed archive before the
+smaller checkpoint is published. Their original owner, recipe, work times and
+input reservation references remain complete; physical goods and consumed
+payment receipts stay unchanged. The checkpoint's cumulative count must match
+the reachable archive. Owner responses independently show all current work
+and the 32-job terminal window, rather than resending old proof-only jobs.
+
+Native paid production, held work, retained-order progress, recipe learning,
+strict reload, continued play, refused ticks and failed archive/checkpoint
+writes are checked. Food classification shares the inventory index's original
+provenance walk, so retirement cannot change an existing meal's source.
+Earlier alpha schemas are refused and preserved without migration. This
+version is provisional until merge.
+
 ## Checkpoints, history and backups
+
+Schema 130 adds the required inventory `ArchivedRepairReservationCount`.
+Checkpoint compaction keeps the latest 32 completed or released repair-input
+reservations, ordered by their deadline and identity, plus the exact receipts
+required by retained cart orders and native hearing remedies. Active claims and
+other consumption purposes remain intact. Full older repair records enter the
+existing digest-addressed archive before the smaller checkpoint is published
+or installed in memory. Loading verifies the cumulative count against that
+archive; failed writes leave the previous live ledger and save intact.
+Inventory transitions and estate handling preserve the count. New repair
+identities still derive from the advancing world clock and complete actor/input
+scope. Earlier alpha checkpoints are refused and preserved without migration.
+The schema number is provisional until merge.
 
 The active recovery checkpoint is encoded and fsync-written after every advanced
 one-second tick. Older history is compacted into digest-addressed segments.
@@ -1933,7 +2146,11 @@ branch position rather than a possibly corrected clock. If play continues from
 an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
-rotation, and every required history segment must verify. A damaged newer autosave is retained and skipped. No usable
+rotation, and every required history segment must verify. Model preflight includes
+the saved routine helper's selected named key as well as agent assignments.
+Load World rechecks that key's availability even when its structural checkpoint
+proof is cached; a missing named key never substitutes the installation default.
+A damaged newer autosave is retained and skipped. No usable
 candidate leaves recovery pending; named saves and other worlds are not automatic
 fallbacks. An older alpha schema receives a format explanation, never a migration.
 
@@ -2097,6 +2314,21 @@ autosaves therefore does not create empty branches, while a missing or damaged
 checkpoint cannot replace a recovery copy. If loading fails, the branch record
 is restored along with the world.
 
+A manual load first records a private `pending-load.json` intent in `.manual`,
+naming the selected save, its before-load copy, effective autosave settings and
+the previous timeline. The intent stays until checkpoint, model assignments,
+autosave settings and loaded timeline all commit. Startup finishes that intent
+before opening the active world, including loads within the same world. If a
+load fails, its intent switches to rollback before restoring the before-load
+copy; an interrupted rollback therefore resumes in the same direction. The
+source snapshots remain unchanged. While its intent is pending, the shared save
+mutation gate refuses snapshot changes and world switching, including requests
+already admitted before shutdown. An unfinished live rollback stops the host;
+an unreadable intent or failed recovery stops startup and preserves the files.
+Include this intent in an installation
+backup; older binaries cannot resolve it, so complete recovery before rollback.
+No world schema or replay event changes.
+
 The branch record is written before a new save's metadata is published, so an
 interruption leaves it pointing at an unlisted save whose position still keeps the
 next save on the same branch. A missing or damaged record never blocks saving:
@@ -2230,9 +2462,9 @@ honestly and startup resumes only those already confirmed deletion intents.
 ## Developer edits
 
 A paused developer edit changes existing need, inventory, skill or partnership
-state and appends one `developer_edit` event whose JSON detail is the complete
-`WorldDeveloperEdit` command. No checkpoint fields or schema version
-change. Existing save validation still applies to the entire proposed world;
+state and appends one `developer_edit` event whose typed payload carries the
+complete `WorldDeveloperEdit` command. Existing save validation still applies
+to the entire proposed world;
 readers supporting the same checkpoint schema can load the representation,
 though they do not offer
 the edit UI or describe the new event kind.
@@ -2281,3 +2513,32 @@ Water jugs accept only fresh water; milk may remain loose or enter a food pot.
 An interrupted tick or refused durable developer edit restores both animal and
 inventory state. Older alpha checkpoints are refused and preserved; no animal
 inference or migration runs.
+
+## Event presentation
+
+Owner event observations include server-formatted `Text`. It is derived from the
+same captured state as the event slice and is not stored in accepted history.
+The snapshot refreshes potentially visible descriptions from its current names
+and relationships. A transient 2,048-event observer window preserves descriptions
+for connected clients after saved history compaction; a load or world switch
+resets it. Renaming still updates existing rows. The game displays this text
+without parsing event details. Event observations also carry the typed payload
+for fields the game uses directly, such as model status and weather. Diagnostic
+detail is not serialized in event observations. Descriptions remain derived
+and do not change checkpoint bytes. `EventLogPolicy` classifies every accepted
+kind once for the server and game. Routine chores and stale automatic choices
+remain in the event stream and archive. Event Log refusal coalescing uses complete
+typed actor/subject references and the saved calendar's day boundary; no saved
+field, event payload or schema changes.
+
+## Typed world events
+
+World schema 136 stores accepted events as event ID, world time and a
+kind-discriminated payload. The payload carries an explicit actor when there is
+one, its captured position, and only that kind's subject references and values.
+The event log looks up the complete actor ID. It never guesses an actor from
+colon prefixes, and IDs and canonical content references remain complete.
+Unknown kinds, foreign fields and missing required payload fields are refused.
+Text and diagnostic detail are derived; they are not authoritative saved fields.
+Earlier alpha schemas are refused and preserved without migration. Strict reload
+and matched continuation retain accepted event order, payload data and positions.

@@ -67,17 +67,17 @@ public sealed partial class WorldRuntime
         if (PendingInstructionFor(actor) is { Task.Action: "produce_item" } productionOrder)
         {
             CancelProductionForOrder(productionOrder);
-            SetOrderStatus(productionOrder, "blocked", "The agent left the household holding the ordered workstation.");
+            SetOrderStatus(productionOrder, OrderStatus.Blocked, "The agent left the household holding the ordered workstation.");
         }
         if (PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
         {
             CancelConstructionForOrder(constructionOrder);
-            SetOrderStatus(constructionOrder, "blocked", "The agent left the household arranging the requested construction.");
+            SetOrderStatus(constructionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested construction.");
         }
         if (PendingInstructionFor(actor) is { Task: { Action: "expand_building", TargetBuildingKind: "house" } } expansionOrder)
         {
             CancelExpansionForOrder(expansionOrder);
-            SetOrderStatus(expansionOrder, "blocked", "The agent left the household arranging the requested expansion.");
+            SetOrderStatus(expansionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested expansion.");
         }
         foreach (var id in group)
         {
@@ -119,13 +119,13 @@ public sealed partial class WorldRuntime
             .SelectMany(job => job.InputReservationIds)
             .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.WorkerId == actor &&
                 job.OwnerId == householdId && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            .Distinct().Order().ToArray();
         if (heldReservations.Length > 0)
             ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, heldReservations));
         foreach (var id in group) RestoreHouseholdDeliveries(id, householdId, "depart");
-        foreach (var job in personalJobs) AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
+        foreach (var job in personalJobs) AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("household_left", $"{actor}|{householdId}|{cause}|{allowance}");
+        AppendEvent(new HouseholdLeftEventPayload(actor, householdId, cause, allowance));
         ReconcileGuardianPlacements();
         return true;
     }
@@ -179,7 +179,7 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor)
     {
         var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null) yield break;
@@ -192,7 +192,7 @@ public sealed partial class WorldRuntime
             yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
     }
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds)
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds)
     {
         var building = worldSimulation.Buildings.Single(item => item.InstanceId == buildingId);
         var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
@@ -243,12 +243,12 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, plan.ReservationIds, deadline));
         productionSystem.ResumeJob(plan.Choice.JobId, deadline, plan.KnifeId, actor);
         constructionSystem.Buildings.ResumeExpansion(plan.Choice.JobId, deadline, actor);
-        AppendEvent("household_work_resumed", $"{actor}|{plan.Choice.JobId}|{building.HouseholdId}");
+        AppendEvent(new HouseholdWorkResumedEventPayload(actor, plan.Choice.JobId, building.HouseholdId));
     }
 
     private void ReconcilePausedHouseholdWork()
     {
-        bool Available(IReadOnlyList<string> ids) => ids.All(id =>
+        bool Available(IReadOnlyList<Identity> ids) => ids.All(id =>
         {
             var reservation = society.Checkpoint.Inventory.Reservations.SingleOrDefault(item => item.Id == id);
             var lot = reservation is null ? null : society.Checkpoint.Inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);
@@ -273,8 +273,8 @@ public sealed partial class WorldRuntime
         var expansionIds = cancelledExpansions.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
         productionSystem.CancelJobs(productionIds);
         constructionSystem.Buildings.CancelPausedExpansions(expansionIds, "Paused expansion materials are no longer available.");
-        foreach (var job in cancelledProduction) AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
-        foreach (var job in cancelledExpansions) AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:Paused expansion materials are no longer available.");
+        foreach (var job in cancelledProduction) AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
+        foreach (var job in cancelledExpansions) AppendEvent(new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, "Paused expansion materials are no longer available."));
     }
 
     /// <summary>Maps, field records and books are the belongings the built-in chooser stores at home and leaves there.</summary>
@@ -414,13 +414,13 @@ public sealed partial class WorldRuntime
             society.Checkpoint.GetAgent(plan.Actor).Name + "'s household", plan.CareGroup));
         foreach (var id in plan.CareGroup)
             agents[id] = agents[id] with { Housing = new(Blocker: HousingBlocker(id)), LastDecisionContext = null };
-        AppendEvent("household_founded", $"{plan.Actor}|{householdId}");
+        AppendEvent(new HouseholdFoundedEventPayload(plan.Actor, householdId));
     }
 
     private void CompleteReplacementCare(ReplacementCareActionPlan plan)
     {
         var result = society.Apply(checkpoint => SocietyRules.AcceptReplacementCare(checkpoint, plan.Actor, plan.Choice.ChildId));
-        if (result.CreatedId is not null) AppendEvent("replacement_care_accepted", $"{plan.Actor}|{plan.Choice.ChildId}");
+        if (result.CreatedId is not null) AppendEvent(new ReplacementCareAcceptedEventPayload(plan.Actor, plan.Choice.ChildId));
     }
 
     private void ApplyDepartureCandidate(string actor, string candidate, ActionPlan? originalPlan = null)

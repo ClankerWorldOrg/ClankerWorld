@@ -1,1 +1,0 @@
-- Agents keep their chosen physical task going while a model reply is pending. Built-in rules handle urgent hunger or cold and practical care for nearby dependants, while new important choices wait for the personal model.

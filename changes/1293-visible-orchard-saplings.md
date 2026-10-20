@@ -1,1 +1,0 @@
-- Newly planted orchard trees stay visible while they grow, using the approved fruitless orchard artwork.

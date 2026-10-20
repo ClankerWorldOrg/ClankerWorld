@@ -10,6 +10,13 @@ public sealed partial class RequestRefusals(ILogger<RequestRefusals> logger)
 {
     private readonly Window bodyTooLarge = new();
     private readonly Window approvalHostName = new();
+    private readonly Window approvalProof = new();
+    private readonly Window localGameHostName = new();
+
+    public void LocalGameHostNameRefused()
+    {
+        if (localGameHostName.TryEnter(out var skipped)) LogLocalGameRefused(logger, skipped);
+    }
 
     public void BodyTooLarge(string routeKind, long limitBytes)
     {
@@ -18,7 +25,12 @@ public sealed partial class RequestRefusals(ILogger<RequestRefusals> logger)
 
     public void ApprovalHostNameRefused()
     {
-        if (approvalHostName.TryEnter(out var skipped)) LogApprovalHostNameRefused(logger, skipped);
+        if (approvalHostName.TryEnter(out var skipped)) LogApprovalRefused(logger, "host_name", skipped);
+    }
+
+    public void ApprovalProofRefused()
+    {
+        if (approvalProof.TryEnter(out var skipped)) LogApprovalRefused(logger, "proof", skipped);
     }
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
@@ -26,8 +38,12 @@ public sealed partial class RequestRefusals(ILogger<RequestRefusals> logger)
     private static partial void LogBodyTooLarge(ILogger logger, string routeKind, long limitBytes, int skipped);
 
     [LoggerMessage(EventId = 2324, Level = LogLevel.Warning,
-        Message = "approval_listener outcome=refused reason=host_name skipped={Skipped}")]
-    private static partial void LogApprovalHostNameRefused(ILogger logger, int skipped);
+        Message = "approval_listener outcome=refused reason={Reason} skipped={Skipped}")]
+    private static partial void LogApprovalRefused(ILogger logger, string reason, int skipped);
+
+    [LoggerMessage(EventId = 2325, Level = LogLevel.Warning,
+        Message = "local_server outcome=refused reason=host_name skipped={Skipped}")]
+    private static partial void LogLocalGameRefused(ILogger logger, int skipped);
 
     private sealed class Window
     {

@@ -4,7 +4,9 @@ public sealed record CouncilBallotChoice(string TownId, string RoundToken, strin
 {
     public string Encode() => $"civic|{TownId}|{(CandidateToken is null ? "ballot" : "single")}|{RoundToken}|{CandidateToken ?? ""}";
     public static CouncilBallotChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var round, var candidate] &&
-        town.Length > 0 && round.Length > 0 && (verb == "ballot" && candidate.Length == 0 || verb == "single" && candidate.Length > 0)
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(round, DerivedId.MaximumLength) &&
+        (verb == "ballot" && candidate is "" || verb == "single" && IdentityRules.Reference(candidate, DerivedId.MaximumLength))
             ? new(town, round, verb == "single" ? candidate : null) : null;
 }
 

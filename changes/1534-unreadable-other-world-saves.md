@@ -1,1 +1,0 @@
-- Deleting a world is no longer blocked by damaged saves or saves from an older version recorded as belonging to another world. Those saves stay on disk.
