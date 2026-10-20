@@ -81,18 +81,18 @@ internal sealed partial class CommunitySystem
         {
             if (CanContinueLesson(world, actor))
             {
-                candidates.Add(new("lesson_teach:" + student.AgentId, "Continue the agreed practical lesson.", 17));
+                candidates.Add(new(new LearningChoice(LearningChoiceKind.Teach, student.AgentId).Encode(), "Continue the agreed practical lesson.", 17));
             }
-            candidates.Add(new("lesson_decline:" + student.AgentId, "Stop the lesson without granting the skill.", 110));
+            candidates.Add(new(new LearningChoice(LearningChoiceKind.Decline, student.AgentId).Encode(), "Stop the lesson without granting the skill.", 110));
         }
         else
         {
             foreach (var request in world.PhysicalAgents.Living.Values.Where(item => item.Lesson is { Stage: "requested" } lesson && lesson.TeacherId == actor))
             {
                 if (MayAcceptLesson(world, actor, request.AgentId, request.Lesson!))
-                    candidates.Add(new("lesson_accept:" + request.AgentId,
+                    candidates.Add(new(new LearningChoice(LearningChoiceKind.Accept, request.AgentId).Encode(),
                         $"Teach {world.Society.GetAgent(request.AgentId).Name} the requested {request.Lesson!.Skill.ToString().ToLowerInvariant()} skill.", 17));
-                candidates.Add(new("lesson_decline:" + request.AgentId, "Decline this teaching request.", 70));
+                candidates.Add(new(new LearningChoice(LearningChoiceKind.Decline, request.AgentId).Encode(), "Decline this teaching request.", 70));
             }
             if (world.IsAdult(actor) &&
                 (person.Lesson is null || world.WorldTick - person.Lesson.LastTransitionTick >= 300))
@@ -102,7 +102,7 @@ internal sealed partial class CommunitySystem
                     var mentor = world.PhysicalAgents.Living.Keys.Order(StringComparer.Ordinal).FirstOrDefault(id => MayRequestLesson(world, actor, id, skill));
                     if (mentor is not null)
                     {
-                        candidates.Add(new($"learn:{skill.ToString().ToLowerInvariant()}:{mentor}",
+                        candidates.Add(new(new LearningChoice(LearningChoiceKind.Request, mentor, skill).Encode(),
                             $"Ask {world.Society.GetAgent(mentor).Name} to teach {skill.ToString().ToLowerInvariant()}; they may refuse.", 35));
                     }
                 }

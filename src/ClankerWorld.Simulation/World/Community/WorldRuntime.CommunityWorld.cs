@@ -161,7 +161,7 @@ public sealed partial class WorldRuntime
                 .Concat((runtime.worldSimulation.BuildingExpansions ?? []).Where(job => job.WorkerId == actor &&
                     job.OwnerId == household && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
                 .Distinct().Order().ToArray();
-            if (heldReservations.Length > 0)
+            if (heldReservations.Length != 0)
                 runtime.ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, heldReservations));
             return personalJobs;
         }
