@@ -142,6 +142,22 @@ captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
 [#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
 
+`Production/ProductionSystem.cs` owns production jobs, their sequence, tool
+requests and retained recipe plans. Named operations start, pause, resume,
+finish and cancel work, including household departures and owner-order steps.
+Request retirement removes its job links in the same transition. The old
+checkpoint still combines these records with construction data; its production
+view is read-only. Tick preparation copies live recipe plans, and commit
+transfers the production system with the saved state. Local production
+invariants run before mutations publish in tests. Production completion uses
+`IProductionWorld` per call for current content, society, buildings and named
+inventory, learning, order-credit and event operations.
+Recipe planning and checking read `IRecipeWorld`; production admission uses
+`IProductionStartWorld` to reserve the selected inputs and bind the resulting
+job. Local job validation has one implementation in the system, used both
+before test mutations publish and by checkpoint validation. The remaining
+production save checks compare jobs with current recipes, buildings and time.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
@@ -955,9 +971,11 @@ current-world queries; no fertility or cache data enters saves or digests.
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and starting resources. Weather advances at its
 existing tick phase, and the runtime commits the system with one assignment.
-Map, declarative content and world-content simulation snapshots remain owned by
-the coordinator. Trusted tick preparation shares all four snapshots by reference
-until a write replaces one; external loads retain full validation and map
+Map and declarative content remain owned by the coordinator. Production
+records come from their system; construction records remain on the coordinator.
+Trusted tick preparation shares the immutable map, content, environment and
+combined simulation view by reference until a write replaces one; external
+loads retain full validation and map
 regeneration checks. Restore initializes saved services directly instead of
 creating founders, physical state or genesis events first.
 

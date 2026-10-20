@@ -31,15 +31,15 @@
     "routineHelper",
     "society",
     "survivalState",
-    "toolMakingRequests",
     "worldContent",
     "worldEventLog",
     "worldSeed",
-    "worldSimulation",
     "environmentSystem",
     "actionRefusals",
     "refusedActionCount",
-    "farmingSystem"
+    "farmingSystem",
+    "productionSystem",
+    "constructionState"
   ],
   "live": [
     "animalWorldAdapter",
@@ -58,7 +58,6 @@
     "pendingWillCancellationReasons",
     "pendingWills",
     "providerFactory",
-    "recipeProjectPlans",
     "constructionProjectPlans",
     "agentWorld",
     "tickGate",

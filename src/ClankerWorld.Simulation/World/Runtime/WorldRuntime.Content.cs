@@ -291,10 +291,10 @@ public sealed partial class WorldRuntime
                 assignedTownId,
                 householdId,
                 Entrance: assignedTownId is not null ? entrance : null);
-            worldSimulation = worldSimulation with
+            constructionState = WorldConstructionState.From(worldSimulation with
             {
                 Buildings = worldSimulation.Buildings.Append(placed).OrderBy(item => item.InstanceId, StringComparer.Ordinal).ToArray(),
-            };
+            });
             if (assignedTownId is not null)
                 AssignBuildingToTown(placed, definition);
             AppendEvent(WorldEvents.BuildingPlacement(eventKind, null, placed.InstanceId, placed.DefinitionId, position.X, position.Y, householdId));
@@ -326,140 +326,10 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private ProductionStartResult StartProductionCore(
-        string recipeId,
-        string buildingInstanceId,
-        string workerId,
-        string eventKind,
-        string? orderInstructionId = null,
-        RecipeProjectActionPlan? originalPlan = null)
-    {
-        try
-        {
-            var normalizedRecipeId = NormalizeRequiredText(recipeId, nameof(recipeId));
-            var normalizedBuildingId = NormalizeRequiredText(buildingInstanceId, nameof(buildingInstanceId));
-            var normalizedWorkerId = NormalizeRequiredText(workerId, nameof(workerId));
-            var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == normalizedRecipeId);
-            if (recipe is null)
-            {
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The recipe is not active.");
-            }
-            if (HasUnsupportedWaterOutput(recipe))
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "Workstation recipes cannot produce fresh water. Collect it into a water jug instead.");
-            if (IsGenericFoodRecipe(recipe))
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "Cook named ingredients at your household House or Restaurant.");
-            if (recipe.Outputs.Any(output => output.ResourceId == "bedding"))
-                return ProductionStartResult.Rejected(normalizedRecipeId, "Bedding production was retired with sleep.");
-            if (recipe.IsCrop)
-                return ProductionStartResult.Rejected(normalizedRecipeId, "Prepare and work a tilled field for crops; workstation production cannot grow them.");
-
-            var placed = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == normalizedBuildingId);
-            if (placed is null)
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The workstation building is not placed.");
-            if (recipe.WorkstationBuildingId != placed.DefinitionId)
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The placed building is not a valid workstation for this recipe.");
-            var buildingDefinition = worldContent.Buildings.Single(item => item.CanonicalId == placed.DefinitionId);
-            if (worldSimulation.ProductionJobs.Count(item => item.BuildingInstanceId == placed.InstanceId &&
-                    (item.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)) >= buildingDefinition.Capacity)
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The workstation has no free production capacity.");
-            var workPosition = placed.Position;
-
-            var worker = society.Checkpoint.Agents.SingleOrDefault(item => item.Id == normalizedWorkerId);
-            if (worker is null || worker.Status != SocietyAgentStatus.Active)
-            {
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The production worker is not active.");
-            }
-            if (!ActorCapabilities.Check(CapabilitiesFor(normalizedWorkerId), $"build:recipe:{recipe.CanonicalId}", ProjectGoalCapabilities).Allowed)
-            {
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "This worker is too young to start production. Choose an adult worker.");
-            }
-
-            var workstation = placed is null ? null : worldContent.Buildings.Single(item => item.CanonicalId == placed.DefinitionId);
-            if (placed?.HouseholdId is { } workOwner && worker.HouseholdId != workOwner)
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "Only a member of the building's household can work there.");
-
-            if (workstation?.Tags.Any(IsHouseholdBuildingTag) == true && placed?.HouseholdId is null)
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "The household workshop must be claimed before production.");
-
-            var personalCartRecipe = IsHandcartRecipe(recipe);
-            if (personalCartRecipe && !HasCarriedUnreservedQuantities(normalizedWorkerId, recipe.Inputs))
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    "Carry the wood, iron fittings and rope to the Blacksmith before building a handcart.");
-            var onSiteHouseholdRecipe = !personalCartRecipe && placed?.HouseholdId is not null && workstation?.Tags.Any(IsHouseholdBuildingTag) == true;
-            if (onSiteHouseholdRecipe && !HasIngredientsAtBuilding(recipe.Inputs, worker.HouseholdId!, placed!.InstanceId))
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    MissingProductionIngredients(recipe, worker.HouseholdId!, placed!.InstanceId));
-
-            if (!agents.TryGetValue(normalizedWorkerId, out var physical) || physical.Position != workPosition)
-            {
-                return ProductionStartResult.Rejected(normalizedRecipeId, "The worker must be standing at the build site.");
-            }
-
-            if (placed is not null && BuildingStorageRules.Capacity(workstation!, placed) is not null &&
-                Math.Max(0, recipe.Outputs.Sum(item => item.Amount) - recipe.Inputs.Sum(item => item.Amount)) > DestinationRoom(placed.InstanceId))
-                return ProductionStartResult.Rejected(normalizedRecipeId, "There is no storage room for this recipe's finished output.");
-
-            var plan = originalPlan ?? PlanRecipeProject(normalizedWorkerId, recipe, placed!);
-            if (plan.Inputs is null)
-                plan = plan with { Inputs = PlanRecipeInputs(recipe, plan.OwnerId, plan.RequiredStorageBuildingId, plan.RequireCarried) };
-            if (plan.Inputs is null)
-            {
-                var missing = recipe.Inputs.First(input => ProductionGoods(society.Checkpoint.Inventory,
-                    ProductionGoodsRequest(plan.OwnerId, input.ResourceId, plan.RequiredStorageBuildingId), plan.RequireCarried)
-                    .Sum(match => (long)match.Quantity) < input.Amount);
-                var available = ProductionGoods(society.Checkpoint.Inventory,
-                    ProductionGoodsRequest(plan.OwnerId, missing.ResourceId, plan.RequiredStorageBuildingId), plan.RequireCarried).Sum(match => (long)match.Quantity);
-                return ProductionStartResult.Rejected(normalizedRecipeId,
-                    $"Insufficient '{missing.ResourceId}' for production; missing {(missing.Amount - available).ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
-            }
-            if (CheckRecipeInputs(plan).Refusal is { } refusal)
-                return ProductionStartResult.Rejected(normalizedRecipeId, refusal.Explanation);
-            var knife = plan.Knife;
-            var workDuration = knife is null ? recipe.DurationTicks :
-                ToolProgressionRules.WorkDuration(recipe.DurationTicks, knife.WorkUnits);
-            workDuration = SkilledWorkTicks(normalizedWorkerId, SkillForRecipe(recipe), workDuration);
-            var jobId = $"production-{worldSimulation.NextProductionJobSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}";
-            var completionTick = checked(WorldTick + workDuration);
-            // A handcart belongs to the adult who builds it, not to the Blacksmith's household.
-            var productionOwner = plan.OwnerId;
-            IReadOnlyList<string> reservationIds = [];
-            ApplyInventoryTransition(inventory =>
-            {
-                var reserved = ReserveRecipeInputs(inventory, plan, $"{jobId}:input", completionTick, out reservationIds);
-                return reserved;
-            });
-
-            var job = new WorldProductionJob(
-                jobId,
-                recipe.CanonicalId,
-                normalizedBuildingId,
-                normalizedWorkerId,
-                WorldTick,
-                completionTick,
-                WorldProductionJobState.Running,
-                (reservationIds.ToArray()).Select(Identity.Parse).ToArray(), knife?.ToolLotId, ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
-            { OwnerId = productionOwner, OrderInstructionId = orderInstructionId };
-            worldSimulation = worldSimulation with
-            {
-                ProductionJobs = worldSimulation.ProductionJobs.Append(job).OrderBy(item => item.JobId, StringComparer.Ordinal).ToArray(),
-                NextProductionJobSequence = checked(worldSimulation.NextProductionJobSequence + 1),
-            };
-            BindToolMakingJob(job);
-            if (knife is not null)
-                checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(WorldEvents.ProductionStarted(eventKind, job.WorkerId, job.JobId, job.RecipeId, job.BuildingInstanceId));
-            return ProductionStartResult.Success(job);
-        }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
-        {
-            return ProductionStartResult.Rejected(recipeId?.Trim() ?? string.Empty, exception.Message);
-        }
-    }
+    private ProductionStartResult StartProductionCore(string recipeId, string buildingInstanceId, string workerId,
+        string eventKind, string? orderInstructionId = null, RecipeProjectActionPlan? originalPlan = null) =>
+        productionSystem.StartProduction(ProductionStartWorld, ProjectGoalCapabilities, recipeId, buildingInstanceId,
+            workerId, eventKind, orderInstructionId, originalPlan);
 
     public ContentPackageRecord RollbackContent(string packageId, string reason)
     {
@@ -500,7 +370,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
             var record = contentRegistry.Rollback(packageId, WorldTick, reason);
             worldContent = remainingContent;
-            worldSimulation = remainingSimulation;
+            constructionState = WorldConstructionState.From(remainingSimulation);
             if (survivalState is not null)
             {
                 survivalState = survivalState with

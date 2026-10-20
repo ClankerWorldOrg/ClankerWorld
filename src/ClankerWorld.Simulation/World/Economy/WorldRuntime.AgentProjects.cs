@@ -474,7 +474,7 @@ public sealed partial class WorldRuntime
         if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
-            recipeProjectPlans[agentId] = (state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
+            productionSystem.RememberRecipePlan(agentId, state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
                 ? previous.StartedTick : WorldTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
 
         if (state.Project is { Stage: not ("completed" or "cancelled") } existing &&
@@ -656,7 +656,7 @@ public sealed partial class WorldRuntime
             if (recipePlan is null && TryFindRecipeSite(recipe, out var restoredSite, out _, agentId))
             {
                 recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
-                recipeProjectPlans[agentId] = (project.StartedTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
+                productionSystem.RememberRecipePlan(agentId, project.StartedTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
             }
             if (recipePlan is null)
             {
@@ -1109,7 +1109,7 @@ public sealed partial class WorldRuntime
         var state = agents[agentId];
         if (state.Project is { RequiresFreshChoice: true } && !project.RequiresFreshChoice)
         {
-            recipeProjectPlans.Remove(agentId);
+            productionSystem.ForgetRecipePlan(agentId);
             constructionProjectPlans.Remove(agentId);
         }
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)

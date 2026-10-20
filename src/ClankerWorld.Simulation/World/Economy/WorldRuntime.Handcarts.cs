@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
     private const int UnassignedCartPriority = 110;
 
-    private static bool IsHandcartRecipe(RecipeDefinition recipe) => recipe.Outputs.Any(output => output.ResourceId == InventoryContainerRules.Handcart);
+    private static bool IsHandcartRecipe(RecipeDefinition recipe) => ProductionSystem.IsHandcartRecipe(recipe);
 
     private RecipeDefinition? HouseholdHandcartRecipe(string? household) =>
         household is not null && BlacksmithForHousehold(household) is { } blacksmith

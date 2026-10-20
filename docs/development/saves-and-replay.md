@@ -197,6 +197,12 @@ checkpoints, replay events or save metadata. The world schema is unchanged.
 
 ## Separate state by ownership
 
+Production jobs, their sequence and tool requests are captured from the
+production system in the existing save fields. Retained recipe plans remain
+live state and are copied during trusted tick preparation. The production
+system checks local job shape; save validation checks job links to recipes,
+buildings and the world clock. This ownership split changes no save shape.
+
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
 Cognition diagnostics retain their world ticks through export and restore.

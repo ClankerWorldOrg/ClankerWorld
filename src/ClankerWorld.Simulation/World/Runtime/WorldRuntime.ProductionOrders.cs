@@ -84,12 +84,7 @@ public sealed partial class WorldRuntime
                 }
                 var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
                 ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.InputReservationIds, deadline));
-                worldSimulation = worldSimulation with
-                {
-                    ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == job.JobId
-                        ? item with { State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null, ToolLotId = knifeId }
-                        : item).ToArray(),
-                };
+                productionSystem.ResumeJob(job.JobId, deadline, knifeId);
                 AppendEvent(new ProductionOrderResumedEventPayload(null, instruction.InstructionId, job.JobId));
             }
             return;
@@ -179,11 +174,7 @@ public sealed partial class WorldRuntime
     {
         if (job.State != WorldProductionJobState.Running) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, job.InputReservationIds));
-        worldSimulation = worldSimulation with
-        {
-            ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == job.JobId
-                ? item with { State = WorldProductionJobState.Paused, PausedAtTick = WorldTick } : item).ToArray(),
-        };
+        productionSystem.PauseJob(job.JobId, WorldTick);
         AppendEvent(new ProductionOrderPausedEventPayload(null, instruction.InstructionId, job.JobId));
     }
 
@@ -204,11 +195,7 @@ public sealed partial class WorldRuntime
                         inventory = InventoryAuthority.ReleaseReservation(inventory, id, "production_order_cancelled");
                 return inventory;
             });
-            worldSimulation = worldSimulation with
-            {
-                ProductionJobs = worldSimulation.ProductionJobs.Select(item => item.JobId == job.JobId
-                    ? item with { State = WorldProductionJobState.Cancelled } : item).ToArray(),
-            };
+            productionSystem.CancelJobs(new HashSet<string>(StringComparer.Ordinal) { job.JobId });
             AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         }
         if (agents.TryGetValue(instruction.TargetAgentId, out var person) &&

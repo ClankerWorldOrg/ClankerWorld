@@ -65,7 +65,9 @@ public sealed partial class WorldRuntime : IDisposable
     private EnvironmentSystem environmentSystem;
     private WorldSystemsState worldSystems => environmentSystem.State;
     private DeclarativeWorldContentState worldContent;
-    private WorldContentSimulationState worldSimulation;
+    private WorldConstructionState constructionState;
+    private ProductionSystem productionSystem;
+    private WorldContentSimulationState worldSimulation => productionSystem.Snapshot(constructionState);
     private WorldAssetReservationLedger assetReservations;
     private Dictionary<string, AgentState> agents = new(StringComparer.Ordinal);
     private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
@@ -185,9 +187,11 @@ public sealed partial class WorldRuntime : IDisposable
         contentRegistry = restoringState is null ? new ContentPackageRegistry() :
             ContentPackageRegistry.Restore(restoringState.Content);
         worldContent = restoringState?.WorldContent ?? new DeclarativeWorldContentState([], []);
-        worldSimulation = restoringState is null ? WorldContentSimulationState.Empty :
+        var simulation = restoringState is null ? WorldContentSimulationState.Empty :
             trustedPreparedState ? restoringState.WorldSimulation! :
             restoringState.WorldSimulation! with { CropBuilds = restoringState.WorldSimulation.CropBuilds ?? [] };
+        constructionState = WorldConstructionState.From(simulation);
+        productionSystem = new(simulation, restoringState?.ToolMakingRequests ?? []);
         assetReservations = new WorldAssetReservationLedger();
         map = preparedMap ?? (startPace == WorldStartPace.FounderSetup
             ? geographyOptions is null
@@ -401,7 +405,6 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.conversationSystem = new(trustedPreparedState && preparedConversations is not null
             ? preparedConversations : new(state.Conversations!, state.ConversationBudgets!, state.Marriages));
         runtime.shopTrades = state.ShopTrades!.ToList();
-        runtime.toolMakingRequests = state.ToolMakingRequests!.ToList();
         runtime.ApplyBridgeDecks();
         runtime.assetReservations = WorldAssetReservationLedger.Restore(state.AssetReservations);
         runtime.survivalState = state.Survival;

@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
     private const string ToolRequestPrefix = "tool_request_";
     // Routine choices cannot commit these verbs; keep safe idle ahead of them.
     private const int PersonalToolRequestPriority = 200;
-    private List<ToolMakingRequestState> toolMakingRequests = [];
+    private IReadOnlyList<ToolMakingRequestState> toolMakingRequests => productionSystem.State.Requests;
 
     public IReadOnlyList<ToolMakingRequestState> ToolMakingRequests => toolMakingRequests
         .OrderBy(request => request.Id, StringComparer.Ordinal).ToArray();
@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
         if (plan.Choice.Kind == ToolRequestConsentKind.Place)
         {
             var id = ToolMakingRequestId(actor, plan.Shop.InstanceId, plan.Recipe.CanonicalId, WorldTick);
-            toolMakingRequests.Add(new(id, actor, plan.Shop.HouseholdId!, plan.Shop.InstanceId,
+            productionSystem.PlaceRequest(new(id, actor, plan.Shop.HouseholdId!, plan.Shop.InstanceId,
                 plan.Recipe.CanonicalId, plan.Recipe.Outputs[0].ResourceId, WorldTick, WorldTick));
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent(new ToolRequestPlacedEventPayload(actor, id));
@@ -241,10 +241,7 @@ public sealed partial class WorldRuntime
 
     private void SetToolRequest(ToolMakingRequestState request, string? eventKind = null, string? actor = null)
     {
-        if (request.Blocker is { Length: > 160 } blocker) request = request with { Blocker = blocker[..160].TrimEnd() };
-        var index = toolMakingRequests.FindIndex(item => item.Id == request.Id);
-        if (index < 0 || toolMakingRequests[index] == request) return;
-        toolMakingRequests[index] = request with { LastTransitionTick = WorldTick };
+        if (!productionSystem.TransitionRequest(request, WorldTick)) return;
         if ((ToolMakingRequestRules.IsTerminal(request.Status) || request.Status == ToolMakingRequestStatus.Ready) &&
             request.WorkerId is { } worker && agents.TryGetValue(worker, out var person) &&
             person.Project?.ToolMakingRequestId == request.Id)
@@ -364,12 +361,7 @@ public sealed partial class WorldRuntime
             request.OfferId is { } offer && !society.Checkpoint.Inventory.Offers.Any(item => item.Id == offer))) retired.Add(request.Id);
         if (retired.Count > 0)
         {
-            toolMakingRequests.RemoveAll(request => retired.Contains(request.Id));
-            worldSimulation = worldSimulation with
-            {
-                ProductionJobs = worldSimulation.ProductionJobs.Select(job =>
-                job.ToolMakingRequestId is { } id && retired.Contains(id) ? job with { ToolMakingRequestId = null } : job).ToArray()
-            };
+            productionSystem.RetireRequests(retired);
         }
     }
 }

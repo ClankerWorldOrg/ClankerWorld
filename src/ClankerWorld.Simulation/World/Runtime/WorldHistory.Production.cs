@@ -40,10 +40,7 @@ public static partial class WorldHistory
         var retired = Retire(ClosedProductionJobs(simulation), RecentProductionJobLimit, job => required.Contains(job.JobId));
         if (retired.Length == 0) return simulation;
         var retiredIds = retired.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
-        return simulation with
-        {
-            ProductionJobs = simulation.ProductionJobs.Where(job => !retiredIds.Contains(job.JobId)).ToArray(),
-            ArchivedProductionJobCount = ArchiveRecords("production-jobs", retired, simulation.ArchivedProductionJobCount, archived),
-        };
+        return ProductionSystem.ArchiveJobs(simulation, retiredIds,
+            ArchiveRecords("production-jobs", retired, simulation.ArchivedProductionJobCount, archived));
     }
 }

@@ -102,7 +102,7 @@ public sealed partial class WorldRuntime
         public PlacedBuilding? WarehouseForResident(string actor) => runtime.WarehouseForResident(actor);
         public DeclarativeWorldContentState WorldContent { get => runtime.worldContent; }
         public string WorldSeed { get => runtime.worldSeed; }
-        public WorldContentSimulationState WorldSimulation { get => runtime.worldSimulation; set => runtime.worldSimulation = value; }
+        public WorldContentSimulationState WorldSimulation { get => runtime.worldSimulation; set => runtime.constructionState = WorldConstructionState.From(value); }
         public IEnumerable<InventoryLot> WornEquipmentItems(string actor) => runtime.WornEquipmentItems(actor);
         public WorldSystemsConfig CalendarConfig => runtime.worldSystems.Config;
         public string[] HouseholdAdults(string householdId) => runtime.HouseholdAdults(householdId);

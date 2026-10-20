@@ -119,11 +119,7 @@ public static class WorldContentSimulationRules
         ArgumentNullException.ThrowIfNull(map);
         ArgumentOutOfRangeException.ThrowIfNegative(worldTick);
         definitions.Validate();
-        if (state.NextProductionJobSequence <= 0 || state.ArchivedProductionJobCount < 0 ||
-            state.ArchivedProductionJobCount >= state.NextProductionJobSequence)
-        {
-            throw new InvalidDataException("The next production job sequence must be positive.");
-        }
+        ProductionSystem.ValidateJobs(state.ProductionJobs, state.NextProductionJobSequence, state.CropBuilds, state.ArchivedProductionJobCount);
 
         var buildingDefinitions = definitions.BuildingDefinitions;
         var recipeDefinitions = definitions.Recipes.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
@@ -168,43 +164,18 @@ public static class WorldContentSimulationRules
             }
         }
 
-        var jobIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var job in state.ProductionJobs)
         {
-            ArgumentNullException.ThrowIfNull(job);
-            ContentPackageRules.ValidateLocalId(job.JobId);
-            ContentPackageRules.ValidateLocalId(job.BuildingInstanceId);
-            if (!jobIds.Add(job.JobId) || !recipeDefinitions.TryGetValue(job.RecipeId, out var recipe) ||
-                recipe.IsCrop ||
+            if (!recipeDefinitions.TryGetValue(job.RecipeId, out var recipe) || recipe.IsCrop ||
                 job.State == WorldProductionJobState.Running && !buildingIds.Contains(job.BuildingInstanceId))
-            {
-                throw new InvalidDataException("Production jobs must have unique IDs and registered references.");
-            }
-
-            if (job.State == WorldProductionJobState.Paused &&
-                (job.PausedAtTick is not { } paused || paused < job.StartedTick || paused > worldTick || paused >= job.CompletionTick) ||
-                job.State != WorldProductionJobState.Paused && job.PausedAtTick is not null && job.State != WorldProductionJobState.Cancelled)
-                throw new InvalidDataException("The saved production pause is invalid.");
-            if (!Enum.IsDefined(job.State) || string.IsNullOrWhiteSpace(job.WorkerId) ||
-                job.OwnerId is { } owner && (string.IsNullOrWhiteSpace(owner) || owner != owner.Trim()) || job.StartedTick < 0 ||
-                job.CompletionTick <= job.StartedTick || job.CompletionTick < worldTick &&
-                job.State == WorldProductionJobState.Running ||
-                job.InputReservationIds is null ||
-                job.InputReservationIds.Count != job.InputReservationIds.Distinct().Count() ||
-                job.ToolLotId is { } toolLotId && (string.IsNullOrWhiteSpace(toolLotId) ||
-                    toolLotId.Any(char.IsControl) || !ToolProgressionRules.UsesKnife(recipe)))
-            {
-                throw new InvalidDataException($"Production job '{job.JobId}' is malformed.");
-            }
+                throw new InvalidDataException("Production jobs must have registered recipe and building references.");
+            if (job.State == WorldProductionJobState.Paused && job.PausedAtTick > worldTick || job.CompletionTick < worldTick && job.State == WorldProductionJobState.Running ||
+                job.ToolLotId is not null && !ToolProgressionRules.UsesKnife(recipe))
+                throw new InvalidDataException($"Production job '{job.JobId}' differs from its clock or recipe.");
         }
 
-        if ((state.CropBuilds?.Count ?? 0) != 0)
-            throw new InvalidDataException("Crop work must belong to a tilled field.");
-
         if (!state.Buildings.Select(item => item.InstanceId).SequenceEqual(
-                state.Buildings.Select(item => item.InstanceId).Order(StringComparer.Ordinal), StringComparer.Ordinal) ||
-            !state.ProductionJobs.Select(item => item.JobId).SequenceEqual(
-                state.ProductionJobs.Select(item => item.JobId).Order(StringComparer.Ordinal), StringComparer.Ordinal))
+                state.Buildings.Select(item => item.InstanceId).Order(StringComparer.Ordinal), StringComparer.Ordinal))
         {
             throw new InvalidDataException("World content simulation state is not in canonical order.");
         }
