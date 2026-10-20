@@ -49,10 +49,10 @@ public sealed partial class WorldRuntime
                     !content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                         definition.Tags.Contains("blacksmith", StringComparer.Ordinal)) ||
                     !physical.ContainsKey(request.RequesterId) ||
-                    societyState.GetAgent(request.RequesterId).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
+                    !LifeStageRules.IsAdult(societyState.GetAgent(request.RequesterId).AgeBand)) ||
                 request.Status == ToolMakingRequestStatus.Accepted &&
                     (!physical.ContainsKey(request.WorkerId!) || societyState.GetAgent(request.WorkerId!).HouseholdId != request.SellerHouseholdId ||
-                     societyState.GetAgent(request.WorkerId!).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
+                     !LifeStageRules.IsAdult(societyState.GetAgent(request.WorkerId!).AgeBand)) ||
                 recipe is not null && (!ToolMakingRequestRules.IsToolRecipe(recipe) || recipe.Outputs[0].ResourceId != request.ItemKind))
                 throw new InvalidDataException("A tool request has invalid identity, authority, status or timing.");
             if (request.JobId is { } jobId)

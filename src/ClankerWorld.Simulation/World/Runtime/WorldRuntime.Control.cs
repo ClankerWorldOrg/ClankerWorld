@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
             {
                 throw new ArgumentException($"No active agent with ID '{targetId}' exists.", nameof(request));
             }
-            if (target.AgeBand == SocietyAgeBand.Infant)
+            if (LifeStageRules.IsInfant(target.AgeBand))
             {
                 throw new ArgumentException("Infants cannot carry out owner instructions; direct care through an adult caregiver.", nameof(request));
             }

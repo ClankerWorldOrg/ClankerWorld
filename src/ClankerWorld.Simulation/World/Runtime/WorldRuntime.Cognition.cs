@@ -53,7 +53,7 @@ public sealed partial class WorldRuntime
                      .Where(item => item.Status == SocietyAgentStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (agent.AgeBand == SocietyAgeBand.Infant)
+            if (LifeStageRules.IsInfant(agent.AgeBand))
             {
                 continue;
             }
@@ -455,7 +455,7 @@ public sealed partial class WorldRuntime
             {
                 continue;
             }
-            if (agent.AgeBand == SocietyAgeBand.Infant)
+            if (LifeStageRules.IsInfant(agent.AgeBand))
             {
                 continue;
             }

@@ -44,7 +44,7 @@ internal sealed partial class FarmingSystem
                             work.WorkerId, ToolFamily.Sickle, work.SickleLotId) is not null
                         : work.SickleLotId is null));
                 if (work.OrderInstructionId is { } orderId && (string.IsNullOrWhiteSpace(orderId) || orderId.Length > DerivedId.MaximumLength || orderId.Any(char.IsControl)) ||
-                    worker is null || worker.Status != SocietyAgentStatus.Active || worker.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
+                    worker is null || worker.Status != SocietyAgentStatus.Active || !LifeStageRules.IsAdult(worker.AgeBand) ||
                     worker.HouseholdId != field.HouseholdId || !Enum.IsDefined(work.Kind) || work.LastWorkedTick < 0 ||
                     work.LastWorkedTick > society.WorldTick || work.LastWorkedTick != field.LastWorkedTick ||
                     work.RemainingTicks < 1 || work.RemainingTicks > FarmFieldRules.WorkTicks(work.Kind) ||

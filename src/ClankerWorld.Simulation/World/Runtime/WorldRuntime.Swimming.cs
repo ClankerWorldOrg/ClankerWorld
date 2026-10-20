@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
     private bool SwimmingStartingCondition(string actor, int additionalCarriedUnits = 0)
     {
         var person = agents[actor];
-        return person.GuardianPlacement is null && society.Checkpoint.GetAgent(actor).AgeBand != SocietyAgeBand.Infant &&
+        return person.GuardianPlacement is null && !LifeStageRules.IsInfant(society.Checkpoint.GetAgent(actor).AgeBand) &&
             (person.Survival?.WarmthBasisPoints ?? 10_000) >= SwimmingRules.MinimumStartingWarmth &&
             (person.Survival?.IllnessBasisPoints ?? 0) <= SwimmingRules.MaximumStartingIllness &&
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, person.Equipment) <=

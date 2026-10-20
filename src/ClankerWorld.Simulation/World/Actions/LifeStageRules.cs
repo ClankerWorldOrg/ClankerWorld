@@ -10,6 +10,7 @@ public static class LifeStageRules
     public static bool IsDependent(SocietyAgeBand age) => IsInfant(age) || IsChild(age);
     public static bool IsChild(SocietyAgeBand age) => age is SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
     public static bool IsInfant(SocietyAgeBand age) => age == SocietyAgeBand.Infant;
+    public static bool IsElder(SocietyAgeBand age) => age == SocietyAgeBand.Elder;
 
     public static bool Permits(SocietyAgeBand age, string candidate)
     {

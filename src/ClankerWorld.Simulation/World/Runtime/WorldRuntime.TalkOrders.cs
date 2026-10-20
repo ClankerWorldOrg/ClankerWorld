@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
 
     private OrderTask? ParseTalkOrder(string text, string actor)
     {
-        if (society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Infant) return null;
+        if (LifeStageRules.IsInfant(society.Checkpoint.GetAgent(actor).AgeBand)) return null;
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         foreach (var prefix in new[] { "talk to ", "talk with ", "speak to ", "speak with " })
         {
@@ -53,7 +53,7 @@ public sealed partial class WorldRuntime
         var target = instruction.Task.TargetAgentId ?? CurrentMarriageOrderPartner(actor)!;
         if (!agents.TryGetValue(target, out var other) || society.Checkpoint.GetAgent(target).Status != SocietyAgentStatus.Active)
             return "The named person is no longer available.";
-        if (society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant)
+        if (LifeStageRules.IsInfant(society.Checkpoint.GetAgent(target).AgeBand))
             return "The named person is too young for this conversation.";
         if (PassengerBoat(actor) is not null || PassengerBoat(target) is not null)
             return "Waiting for both people to be ashore for a face-to-face conversation.";
