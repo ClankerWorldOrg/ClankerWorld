@@ -303,7 +303,6 @@
   "src/ClankerWorld.Simulation/World/Knowledge/WorldMemoryRetrieval.cs|length|item.Summary.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldMemoryRetrieval.cs|length|part.Length \u003E= 3": 1,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs|length|\u003E 0": 1,
-  "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.Knowledge.cs|id|$\u0022knowledge-fact:{ownerId}:{position.X}:{position.Y}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.KnowledgeWriting.cs|id|$\u0022knowledge-artifact-{sequence:D6}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.KnowledgeWriting.cs|id|$\u0022knowledge-lot-{sequence:D6}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Map/GeneratedWorldMapGenerator.cs|id|$\u0022geology-stone_outcrop-{position.X}-{position.Y}\u0022": 1,
