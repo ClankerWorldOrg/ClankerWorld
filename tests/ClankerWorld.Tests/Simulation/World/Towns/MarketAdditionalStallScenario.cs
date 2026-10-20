@@ -12,10 +12,10 @@ namespace ClankerWorld.Tests;
 internal static class MarketAdditionalStallScenario
 {
     private const string Proposer = TownProjectScenario.Author;
-    private const string WoodWorker = "founder:00000000000000000000000000000002";
+    private const string WoodWorker = NormalPathWorld.Founder2;
     private static readonly int[] ExpectedStarterSlots = [0, 4];
     private static readonly string[] Sellers =
-    ["founder:00000000000000000000000000000003", "founder:00000000000000000000000000000004"];
+    [NormalPathWorld.Founder3, NormalPathWorld.Founder4];
 
     internal static async Task AssertRealBorrowingEnablesOnlyAnApprovedPaidThirdStallAsync(WorldRuntimeState paidBoundary)
     {
@@ -23,7 +23,7 @@ internal static class MarketAdditionalStallScenario
         Assert.Equal(ExpectedStarterSlots, paidMarket.Stalls.Select(item => item.SlotIndex).Order());
         Assert.Equal("completed", Assert.Single(paidBoundary.Towns[0].Projects).Stage);
         // Controlled initial sale goods only, never construction inputs. Retain
-        // the genuine map, titles, approvals, placed buildings and actor positions.
+        // the genuine map, titles, approvals and placed buildings.
         var inventory = paidBoundary.Society.Society.Inventory;
         foreach (var seller in Sellers)
             inventory = InventoryAuthority.AddLot(inventory, "extra-stall-sale-cloth:" + seller, "cloth", seller, 1);
@@ -53,6 +53,8 @@ internal static class MarketAdditionalStallScenario
                 }
                 : person).ToArray(),
         };
+        // Idle builders wait outside so they do not trap a seller inside the new hall.
+        initial = MovementTestWorld.ClearOtherBuildingAccess(initial);
         var policy = new ExpansionPolicy(initial);
         using var phases = new PhaseWorld(initial, policy);
         var world = phases.World;

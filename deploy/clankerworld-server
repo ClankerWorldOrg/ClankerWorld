@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+set +x
+
+if [[ $# != 1 || $1 != approve ]]; then
+    printf 'Usage: sudo clankerworld-server approve\n' >&2
+    exit 1
+fi
+if [[ "$(id -u)" == 0 ]]; then
+    exec runuser -u clanker -- /usr/local/bin/clankerworld-server approve
+fi
+if [[ "$(id -un)" != clanker ]]; then
+    printf 'Run sudo clankerworld-server approve on the hosting machine.\n' >&2
+    exit 1
+fi
+printf 'Enter the comparison code shown on the joining device: ' >&2
+IFS= read -r -s code
+printf '\n' >&2
+if [[ ! "${code}" =~ ^[0-9]{6}$ ]]; then
+    printf 'Expected six digits. Start pairing again if the code expired.\n' >&2
+    exit 1
+fi
+# Neither the code nor the account-private header goes in process arguments.
+if printf '{"pairingCode":"%s"}' "${code}" | curl --noproxy '*' --fail --silent --show-error \
+    --connect-timeout 3 --max-time 15 --output /dev/null \
+    --header @/var/lib/clankerworld-server/approval-header --json @- \
+    http://127.0.0.1:5189/api/v1/approval/pairings/approve; then
+    printf 'Device approved. Continue on the joining computer.\n'
+else
+    printf 'Could not approve one pending device. Check the service and start pairing again; no device was chosen if codes matched more than one request.\n' >&2
+    exit 1
+fi

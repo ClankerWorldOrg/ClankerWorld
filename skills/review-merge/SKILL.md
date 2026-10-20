@@ -167,7 +167,10 @@ In Claude Code, `/loop` keeps a session going, for example
 - **Check it fixes by simplifying.** A fix that adds a one-off check where a
   shared one exists, or another special case where removing a rule would do,
   is a finding. So is a description without its lines added and removed
-  ([Every change](../../CONTRIBUTING.md#every-change)).
+  ([Every change](../../CONTRIBUTING.md#every-change)), and a refactor that
+  doesn't delete more source lines than it adds without saying why and naming
+  what removes the old code, unless it falls under that rule's exemption for
+  older pull requests.
 - **Check that no doc still contradicts the change.** Run
   `node scripts/find-stale-docs.js` with the names of what changed and read
   every place it lists. A sentence elsewhere that the change made false, such
@@ -226,10 +229,14 @@ change needs, and what will stay unchecked.
 - List the tests a filter selects before you trust it, especially for classes
   split across files. Check that the tests and theory cases you meant actually
   ran: zero tests, or the wrong ones, is not a check.
-- Read the **test-times** summary CI posts. A pull request that makes tests
-  much slower than on main needs a fix or a stated reason before it merges:
-  slower tests usually mean slower ticks for players, and every later merge
-  waits longer for CI.
+- Read the **test-times** report. CI prints it in the **test-times** job's log
+  as well as the run summary, so read it from the log if you can't open the
+  summary. A pull request that makes tests much slower than on main needs a
+  fix or a stated reason before it merges: slower tests usually mean slower
+  ticks for players, and every later merge waits longer for CI.
+- **Never ask the owner to copy CI output,** logs or summaries for you. Read
+  them from the job logs. If a log really can't be read, say which one in your
+  review record and carry on with what you could check.
 - Use the [test-audit skill](../test-audit/SKILL.md) when judging, adding or
   removing tests. A repaired test must still exercise the real change and keep
   the contract's assertions. Prefer a small world close to the moment being

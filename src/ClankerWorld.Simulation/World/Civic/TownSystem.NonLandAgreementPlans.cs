@@ -87,11 +87,12 @@ internal sealed partial class TownSystem
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that selected finding cannot receive new voluntary terms now");
         if (plan.InvalidTerms || plan.Reason is null || plan.Terms is not { Count: > 0 } selected || !TownRemedyRules.ValidTerms(selected))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "a voluntary offer needs clear reasons and finite named contributions");
-        if (NonLandTermsRefusal(world, town, plan.Actor, selected.ToArray(), plan.CompletionTicks, plan.Agreement?.Id) is { } termsRefusal)
+        var terms = PublishedNonLandAgreementTerms(plan, town.NonLandHearings.Sequence);
+        if (NonLandTermsRefusal(world, town, plan.Actor, terms, plan.CompletionTicks, plan.Agreement?.Id) is { } termsRefusal)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, termsRefusal);
         var state = currentOffer is null ? town.NonLandHearings : town.NonLandHearings with
         { Offers = town.NonLandHearings.Offers.Select(offer => offer.Id == currentOffer.Id ? offer with { Status = "countered" } : offer).ToArray() };
-        return TownRemedyRules.OfferRefusal(state, item.Id, finding.Id, plan.Actor, selected, plan.CompletionTicks, plan.Reason,
+        return TownRemedyRules.OfferRefusal(state, item.Id, finding.Id, plan.Actor, terms, plan.CompletionTicks, plan.Reason,
             world.WorldTick, CivicDay(world), "planned-notice", true, currentOffer?.Id, plan.Agreement?.Id) is { } offerRefusal
                 ? ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, offerRefusal) : new();
     }

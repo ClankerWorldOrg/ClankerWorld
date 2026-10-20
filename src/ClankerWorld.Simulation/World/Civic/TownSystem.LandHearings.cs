@@ -41,7 +41,7 @@ internal sealed partial class TownSystem
         foreach (var item in hearings.Cases.Where(item => item.Status == "pending").ToArray())
         {
             var revision = TownLandHearingRules.CurrentRevision(item);
-            var noticeId = "notice:" + (council.Notices.Count + 1);
+            var noticeId = TownCouncilRules.NextNoticeId(council);
             TownPropertySnapshot? snapshot = null;
             var partiesItem = item;
             if (item.Property is { Transfer: null } property)
@@ -91,7 +91,7 @@ internal sealed partial class TownSystem
         var parties = LandHearingParties(world, town, tiles, filingHousehold: filingHousehold, townRepresentative: townRepresentative);
         if (property is not null) parties = TownPropertyRules.Parties(parties, property, town.Id, world.Society.Agents);
         hearings = TownLandHearingRules.File(hearings, town.Id, filing, tiles, householdLandUseRights,
-            parties, world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1), property);
+            parties, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), property);
         var item = hearings.Cases.Single(item => item.Status == "pending" && item.Filings.Contains(filing) &&
             TownLandHearingRules.CurrentRevision(item).Tiles.SequenceEqual(tiles));
         if (hearings.Cases.Count > before)
@@ -113,7 +113,6 @@ internal sealed partial class TownSystem
     }
 
     internal static void LandHearingEvent(ITownWorld world, string kind, TownRuntimeState town, TownLandCase item, string? actor, string status) =>
-            world.AppendEvent("land_case_" + kind,
-                $"{town.Id}|{item.Id}|{TownLandHearingRules.CurrentRevision(item).Number}|{actor ?? ""}|{status}", CivicBoard(world, town));
+            world.AppendEvent(WorldEvents.LandCase(kind, actor, town.Id, item.Id, TownLandHearingRules.CurrentRevision(item).Number, status), CivicBoard(world, town));
 
 }

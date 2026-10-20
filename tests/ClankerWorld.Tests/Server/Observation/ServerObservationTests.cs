@@ -7,6 +7,53 @@ namespace ClankerWorld.Tests;
 
 public sealed class ServerObservationTests
 {
+    [Theory]
+    [InlineData("person")]
+    [InlineData("household")]
+    [InlineData("town")]
+    public void GroundStockOwnerNamesReachClientWithoutChangingOwnership(string ownerKind)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("ground-owner-names",
+            _ => new ActionCoverageRecorder(chooseIdle: true));
+        var state = generated.ExportState();
+        var person = state.Society.Society.Agents[0];
+        var household = state.Society.Society.Households[0];
+        var town = state.Towns![0];
+        var (ownerId, ownerName) = ownerKind switch
+        {
+            "person" => (person.Id, person.Name),
+            "household" => (household.Id, household.Name),
+            _ => (town.Id, town.Name),
+        };
+        var inventory = state.Society.Society.Inventory;
+        var wood = inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.Quantity >= 2 && lot.ContainerLotId is null);
+        var point = state.Agents[0].Position;
+        inventory = wood.OwnerId == ownerId
+            ? InventoryAuthority.Relocate(inventory, "ground-label", wood.Id, ownerId, 2, groundPosition: new(point.X, point.Y))
+            : InventoryAuthority.Transfer(inventory, "ground-label", wood.OwnerId, ownerId, wood.Id, 2,
+                "ground ownership check", destinationGroundPosition: new(point.X, point.Y));
+        using var world = WorldRuntime.Restore(state with
+        {
+            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+        }, _ => new ActionCoverageRecorder(chooseIdle: true));
+        var store = new OwnerWorldObservationStore(world);
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        ClankerWorld.Contracts.OwnerWorldGroundStock Read() =>
+            JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
+                JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.GroundStocks.Single(stock =>
+                    stock.OwnerId == ownerId && stock.Kind == "wood" && stock.Position.X == point.X && stock.Position.Y == point.Y);
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        var stock = Read();
+        Assert.Equal((ownerId, ownerName, "wood", 2), (stock.OwnerId, stock.OwnerName, stock.Kind, stock.Quantity));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        if (ownerKind == "person")
+        {
+            Assert.True(world.RenameAgent(ownerId, "Élodie Lake"));
+            stock = Read();
+            Assert.Equal((ownerId, "Élodie Lake", "wood", 2), (stock.OwnerId, stock.OwnerName, stock.Kind, stock.Quantity));
+        }
+    }
+
     [Fact]
     public void GeneratedReconnectOmitsOnlyAlreadyHeldTerrain()
     {
@@ -19,7 +66,7 @@ public sealed class ServerObservationTests
         Assert.NotNull(initial.PackedMapLayers);
         Assert.Equal(MapLayerManifestCodec.Digest(runtime.ExportState().Map), initial.MapLayersDigest);
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(initial, options), options)!;
         Assert.Equal(initial.PackedMapLayers!.Width, client.PackedMapLayers!.Width);
         Assert.Equal(initial.PackedMapLayers.Height, client.PackedMapLayers.Height);
@@ -54,7 +101,7 @@ public sealed class ServerObservationTests
         using var runtime = new WorldRuntime("night-projection");
         var store = new OwnerWorldObservationStore(runtime);
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        int? ClientDarkness() => System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        int? ClientDarkness() => System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.DarknessBasisPoints;
 
         // A world's clock starts at midnight.
@@ -74,7 +121,7 @@ public sealed class ServerObservationTests
         using var runtime = new WorldRuntime("ecology-projection");
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(snapshot, options), options)!;
         foreach (var resource in runtime.WorldSystems.Ecology.Resources)
         {
@@ -112,7 +159,7 @@ public sealed class ServerObservationTests
         var beforeInspection = WorldRuntimeCodec.Encode(runtime.ExportState());
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         var displayedJob = Assert.Single(client.ProductionJobs);
         Assert.Equal("Mill grain into flour", displayedJob.Recipe!.Name);

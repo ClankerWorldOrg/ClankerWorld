@@ -1,1 +1,0 @@
-- Panning the map no longer rebuilds the agent card's appearance on every movement; changing the theme still updates it.

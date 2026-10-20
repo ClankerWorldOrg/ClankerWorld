@@ -1,1 +1,0 @@
-- A refused instruction or order cancellation no longer leaves the owner controls locked after the host answers. Requests with an uncertain result remain available for safe retry.
