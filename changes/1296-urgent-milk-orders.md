@@ -1,1 +1,0 @@
-- Urgently hungry agents can pause an owner order to drink milk from their carried jug, then resume the task with the jug intact.

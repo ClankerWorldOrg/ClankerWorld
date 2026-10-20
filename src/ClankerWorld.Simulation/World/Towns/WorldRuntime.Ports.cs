@@ -144,9 +144,8 @@ public sealed partial class WorldRuntime
         }
         foreach (var port in ports.Where(port => PortIsLegal(port, world)).OrderBy(port => port.InstanceId, StringComparer.Ordinal))
         {
-            if (FreePortDock(port) is null || town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port.InstanceId) ||
-                (town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port.InstanceId)) continue;
             var plan = BoatProjectPlan(port, "Communal boat");
+            if (FreePortDock(port) is null || !TownProjectDemandIsCurrent(town, plan)) continue;
             if (TownProjectSiteFailure(town, plan, actor: actor, world: world) is not null) continue;
             var choice = new TownProjectProposalChoice(town.Id, true, port.InstanceId, "");
             var proposal = TownSystem.PlanTownProjectProposal(civicWorld, actor, choice, plan);
@@ -173,7 +172,7 @@ public sealed partial class WorldRuntime
             Blocker = null,
             LastTransitionTick = WorldTick,
         });
-        AppendEvent("communal_boat_launched", $"{townId}:{id}:{port.InstanceId}:{project.Plan.Name}", dock);
+        AppendEvent(new CommunalBoatLaunchedEventPayload(null, townId, id, port.InstanceId, project.Plan.Name), dock);
     }
 
     private void SetBoat(BoatState boat) => boatTransport = boatTransport with

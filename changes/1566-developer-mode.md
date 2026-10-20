@@ -1,1 +1,0 @@
-- F12 Developer tools now open only in Developer mode: turn it on in the launcher, or start the game with `--developer-mode`. A game the launcher started has Quit to Launcher on its Main Menu.

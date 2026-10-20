@@ -104,7 +104,7 @@ public sealed partial class WorldRuntime
         var haul = new FarmStockHaulPlan(inventory.GetLot(plan.CarrierId), inventory.GetLot(plan.ResourceId),
             plan.TransferQuantity, plan.ResourceQuantity, plan.MoveContainerFamily);
         ApplyFarmStockHaul(plan.Actor, plan.HouseholdId, plan.DestinationId, haul,
-            plan.Kind == FarmStockActionKind.Grain ? $"farm-grain-pickup:{WorldTick}:{plan.Actor}" : $"farm-flour-pickup:{WorldTick}:{plan.Actor}",
+            plan.Kind == FarmStockActionKind.Grain ? DerivedId.Create($"farm-grain-pickup:{WorldTick}:{plan.Actor}") : DerivedId.Create($"farm-flour-pickup:{WorldTick}:{plan.Actor}"),
             plan.Kind == FarmStockActionKind.Grain ? "farm_grain_picked_up" : "farm_flour_picked_up");
     }
 }
