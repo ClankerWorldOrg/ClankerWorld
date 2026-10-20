@@ -226,7 +226,7 @@ public sealed partial class WorldRuntime
     private string ShelterOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Task!;
-        if (!AgePermitsCandidate(instruction.TargetAgentId, order.Action))
+        if (!MayFollowOwnerOrder(instruction.TargetAgentId, order))
             return order.Action == "tend_fire" ? "This agent is too young to light a fire." : "This agent needs a caregiver to reach shelter.";
         if (survivalState is null) return "Shelter and fire care are not available in this world yet.";
         if (order.ShelterBinding is not null && !ShelterBindingIsAvailable(instruction.TargetAgentId, order))

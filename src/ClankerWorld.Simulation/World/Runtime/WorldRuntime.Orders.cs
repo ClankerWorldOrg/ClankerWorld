@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
     private CognitionCandidate? OrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Task;
-        if (order is null || !IsActiveOrder(order.Status) || !AgePermitsCandidate(instruction.TargetAgentId, order.Action))
+        if (order is null || !IsActiveOrder(order.Status) || !MayFollowOwnerOrder(instruction.TargetAgentId, order))
             return null;
         if (order.TargetPosition is { } requestedPosition && !map.Contains(requestedPosition))
             return null;

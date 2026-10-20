@@ -49,7 +49,7 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         var order = instruction.Task!;
         var subject = StorageOrderSubject(order);
-        if (!AgePermitsCandidate(actor, order.Action))
+        if (!MayFollowOwnerOrder(actor, order))
             return $"This agent is too young to put {subject} in House storage.";
         if (order.TargetStorageBuildingId is not null && CustodyOrderHouse(instruction, HouseholdFor(actor)) is null)
             return "The selected House moved, changed owner or is no longer available to this agent; the order keeps its original destination.";

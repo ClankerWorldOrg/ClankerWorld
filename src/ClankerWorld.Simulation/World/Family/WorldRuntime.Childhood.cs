@@ -12,11 +12,6 @@ public sealed partial class WorldRuntime
 
     private bool IsChild(string actor) => AgentQueries.IsChild(agentWorld, actor);
 
-    // Remaining owner-order compatibility gate. Cognition checks the retained
-    // action plan through its definition, including its declared life stages.
-    private bool AgePermitsCandidate(string actor, string candidate) =>
-        LifeStageRules.Permits(society.Checkpoint.GetAgent(actor).AgeBand, candidate);
-
     private bool ChildSocialAvailable(string actor, string target, string kind) =>
         IsChild(actor) && actor != target && agents.ContainsKey(target) &&
         !LifeStageRules.IsInfant(society.Checkpoint.GetAgent(target).AgeBand) &&

@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
     private string RepairOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
         var actor = instruction.TargetAgentId;
-        if (!AgePermitsCandidate(actor, "repair_equipment"))
+        if (!MayFollowOwnerOrder(actor, instruction.Task!))
             return "This agent is too young to repair equipment.";
         var kind = instruction.Task!.TargetEquipmentKind!;
         var targets = WornEquipmentItems(actor).Where(lot => lot.ItemKind == kind).ToArray();

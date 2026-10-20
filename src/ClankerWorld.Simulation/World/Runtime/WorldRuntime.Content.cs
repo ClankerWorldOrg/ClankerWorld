@@ -371,7 +371,7 @@ public sealed partial class WorldRuntime
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The production worker is not active.");
             }
-            if (!AgePermitsCandidate(normalizedWorkerId, $"build:recipe:{recipe.CanonicalId}"))
+            if (!ActorCapabilities.Check(CapabilitiesFor(normalizedWorkerId), $"build:recipe:{recipe.CanonicalId}", ProjectGoalCapabilities).Allowed)
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId,
                     "This worker is too young to start production. Choose an adult worker.");

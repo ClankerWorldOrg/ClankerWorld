@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
     private string MaterialOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
-        if (!AgePermitsCandidate(actor, "gather_material"))
+        if (!MayFollowOwnerOrder(actor, instruction.Task!))
             return "This agent is too young to gather these materials.";
         if (instruction.Task!.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";
