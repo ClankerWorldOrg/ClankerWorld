@@ -22,7 +22,11 @@ public sealed partial class WorldRuntime
                 StringComparison.OrdinalIgnoreCase)).ToArray();
         if (named.Length != 1 || !NeedsCaregiver(named[0].Id) || agents[named[0].Id].GuardianSearch is null)
             return null;
-        return new("accept_guardianship", "queued", 1, 0, "guardianships", false, TargetAgentId: named[0].Id);
+        return new OrderTask(new AcceptGuardianshipOrderDefinition(TargetAgentId: (named[0].Id)!),
+    "queued",
+    1,
+    0,
+    "guardianships", false);
     }
 
     private CognitionCandidate? GuardianOrderCandidate(string adult, string child) =>
@@ -36,14 +40,14 @@ public sealed partial class WorldRuntime
         var child = instruction.Task!.TargetAgentId!;
         if (candidate.Id != "guardian_accept:" + child || !CanAcceptGuardian(adult, child))
         {
-            SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(adult, child));
+            SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
             return;
         }
         ApplyDependentCareCandidate(adult, candidate.Id, candidate.ActionPlan);
         if (society.Checkpoint.GetAgent(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
-            CreditOrderEffect(instruction, GuardianOrderEffectId(adult, child), 1);
+            CreditOrderEffect(instruction, Identity.Parse(GuardianOrderEffectId(adult, child)), 1);
         else
-            SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(adult, child));
+            SetOrderStatus(instruction, OrderStatus.Blocked, GuardianOrderBlockedReason(adult, child));
     }
 
     private string GuardianOrderBlockedReason(string adult, string child)
@@ -55,6 +59,6 @@ public sealed partial class WorldRuntime
         return "Waiting for this adult's turn in the search for the child's guardian.";
     }
 
-    private static string GuardianOrderEffectId(string adult, string child) =>
+    internal static string GuardianOrderEffectId(string adult, string child) =>
         DerivedId.Hash($"{adult}|{child}", "guardianship:");
 }

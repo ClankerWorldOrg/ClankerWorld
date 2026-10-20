@@ -14,6 +14,60 @@ public sealed class WorldTerrainChunkTests
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MapManifestDigestKeepsItsCanonicalBytesForOrderedAndUnorderedTiles(bool reverse)
+    {
+        var tiles = Enumerable.Range(0, 4).Select(index =>
+            new TerrainTile(new(index % 2, index / 2), TerrainKind.Meadow)).ToArray();
+        if (reverse) Array.Reverse(tiles);
+        var map = new WorldMap(2, 2, 0, tiles, [], [], string.Empty) { ClimateZones = [0, 1, 2, 3] };
+        Assert.Equal("08bb6588cf05686c13dfe64be3b9d4b1044fd00d1379701612aff677ff936bf5", MapManifestCodec.Digest(map));
+    }
+
+    [Fact]
+    public void MapLayerDigestKeepsItsCanonicalBytesAndValidation()
+    {
+        var tiles = Enumerable.Range(0, 4).Select(index =>
+            new TerrainTile(new(index % 2, index / 2), TerrainKind.Meadow)).ToArray();
+        var map = new WorldMap(2, 2, 0, tiles, [], [], string.Empty)
+        {
+            ClimateZones = [0, 1, 2, 3],
+            ElevationLevels = [0, 255, 1, 254],
+            HydrologyKinds = [3, 2, 1, 0],
+            SurfaceKinds = [0, 1, 2, 3],
+            VegetationKinds = [1, 0, 1, 0],
+        };
+        Assert.Equal("44b1026746e51953ac90ca092febb58325219bcf9f3761b7880ce7f1b56ba387",
+            MapLayerManifestCodec.Digest(map));
+        Assert.Null(MapLayerManifestCodec.Digest(map with { ClimateZones = null }));
+        Assert.Throws<InvalidDataException>(() => MapLayerManifestCodec.Digest(map with { ElevationLevels = [0, 1, 2] }));
+    }
+
+    [Theory]
+    [InlineData(WorldSizePreset.Small)]
+    [InlineData(WorldSizePreset.Medium)]
+    public void MapLayerDigestDoesNotAllocateAConcatenatedCopyOfTheLayers(WorldSizePreset size)
+    {
+        var geography = new GeographyOptions("map-layer-digest-allocation", size);
+        using var world = new WorldRuntime(geography.Seed,
+            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        var map = world.ExportState().Map;
+        var expected = MapLayerManifestCodec.Digest(map);
+        Assert.NotNull(expected);
+        for (var warm = 0; warm < 5; warm++) _ = MapLayerManifestCodec.Digest(map);
+        const int samples = 20;
+        const int bytesPerDigestBudget = 128 * 1024;
+        string? actual = null;
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var sample = 0; sample < samples; sample++) actual = MapLayerManifestCodec.Digest(map);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.Equal(expected, actual);
+        Assert.True(allocated <= bytesPerDigestBudget * samples,
+            $"{size} map digests allocated {allocated / samples:N0} bytes each; budget {bytesPerDigestBudget:N0}.");
+    }
+
     [Fact]
     public void GeneratedMapRoundTripsThroughCurrentCompactChunks()
     {

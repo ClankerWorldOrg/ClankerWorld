@@ -1,16 +1,20 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const labelPullRequest = require('./pr-labels.js');
-const { closingIssueNumbers, referencedIssueNumbers, typeLabel } = labelPullRequest;
+const { closingIssueNumbers, referencedIssueNumbers, typeLabel, earliestRelease } = labelPullRequest;
 
 const Bot = { login: 'github-actions[bot]' };
+// Stand-ins for the active release labels in labels.json, the release being
+// prepared first, so these tests don't change when a release is published.
+const TestReleases = ['release:test-1', 'release:test-2'];
 const Person = { login: 'compoodment' };
 const labeled = (name, actor = Bot) => ({ event: 'labeled', label: { name }, actor });
 const unlabeled = (name, actor = Bot) => ({ event: 'unlabeled', label: { name }, actor });
 
 function scenario({ live = {}, event = {}, action = 'edited', changes, files = ['src/ClankerWorld.Simulation/Kernel/InventoryAuthority.cs'],
   issueLabels = ['priority:p2', 'status:needs-pr', 'status:in-progress'], otherPrs = [], otherIssues = {},
-  compareFiles = [], compareError = null, events, recordEvents = true, beforeRemove = () => {}, beforeAdd = () => {} } = {}) {
+  compareFiles = [], compareError = null, events, recordEvents = true, beforeRemove = () => {}, beforeAdd = () => {},
+  releases = TestReleases } = {}) {
   const pr = {
     number: 25, state: 'open', draft: false, merged: false,
     body: '- [x] Bug fix\nCloses #4', labels: ['status:reviewing'],
@@ -84,7 +88,7 @@ function scenario({ live = {}, event = {}, action = 'edited', changes, files = [
   };
   return {
     pr, issue, records, compares, warnings, removals, reads: () => reads, eventReads: () => eventReads,
-    run: () => labelPullRequest({ github, context, core: { info() {}, warning: message => warnings.push(message) } }),
+    run: () => labelPullRequest({ github, context, core: { info() {}, warning: message => warnings.push(message) }, releases }),
     // The next event on the same PR, such as a push after its base changed.
     next({ action: nextAction, changes: nextChanges, files: nextFiles } = {}) {
       context.payload = { action: nextAction, pull_request: structuredClone(pr), changes: nextChanges };
@@ -627,6 +631,43 @@ test('the closing issues\' priority wins over Refs, which counts only when they 
     await state.run();
     assert.deepEqual(priorities(state.pr.labels), [expected]);
   }
+});
+
+const releases = labels => labels.filter(name => name.startsWith('release:')).sort();
+
+test('the earliest active release wins, in labels.json order', () => {
+  assert.equal(earliestRelease(['release:test-2', 'release:test-1'], TestReleases), 'release:test-1');
+  assert.equal(earliestRelease(['priority:p1', 'release:test-2'], TestReleases), 'release:test-2');
+  assert.equal(earliestRelease(['release:retired-0', 'priority:p1'], TestReleases), null);
+});
+
+test('a PR takes the earliest release of the issues it closes and drops any other', async () => {
+  const state = scenario({
+    live: { body: '- [x] Bug fix\nCloses #4, closes #7', labels: ['release:test-2'] },
+    issueLabels: ['priority:p2', 'release:test-2'], otherIssues: { 7: ['priority:p2', 'release:test-1'] },
+  });
+  await state.run();
+  assert.deepEqual(releases(state.pr.labels), ['release:test-1']);
+});
+
+test('Refs gives no release, and a release set by hand on a PR that closes nothing stays', async () => {
+  for (const labels of [[], ['release:test-1']]) {
+    const state = scenario({
+      live: { body: '- [x] Bug fix\nRefs #7', labels },
+      otherIssues: { 7: ['priority:p2', 'release:test-2'] },
+    });
+    await state.run();
+    assert.deepEqual(releases(state.pr.labels), labels);
+  }
+});
+
+test('a release label that is no longer active is not copied to the PR', async () => {
+  const state = scenario({
+    live: { body: '- [x] Bug fix\nCloses #4', labels: [] },
+    issueLabels: ['priority:p2', 'release:retired-0'],
+  });
+  await state.run();
+  assert.deepEqual(releases(state.pr.labels), []);
 });
 
 test('a PR with no issue and no workflow files has its stale bot priority reset to P2', async () => {

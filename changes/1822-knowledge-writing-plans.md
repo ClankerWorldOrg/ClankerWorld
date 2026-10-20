@@ -1,1 +1,0 @@
-- Knowledge writing and copying retain their selected contents, source, material lots and original work project through shared checks.

@@ -46,8 +46,10 @@ internal sealed partial class AnimalSystem
                 foreach (var root in sources.Where(lot => !PersonalEquipmentRules.IsCarried(lot, actor)))
                 {
                     var wanted = AnimalSupplyDemand(world, actor, yard, root, animal, action, animals);
-                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), world.FreeCarryCapacity(actor)));
-                    if (quantity <= 0 || !world.VesselFits(root, world.FreeCarryCapacity(actor)) ||
+                    if (wanted <= 0) continue;
+                    var capacity = world.PickupCarryCapacity(actor, root, animal.Position);
+                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), capacity));
+                    if (quantity <= 0 || !world.VesselFits(root, capacity) ||
                         AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(world, actor, animal, root, quantity)) continue;
                     yield return new(root, yard, quantity, animal.Id, action);
                 }
@@ -127,7 +129,7 @@ internal sealed partial class AnimalSystem
             InventoryAuthority.Transfer(current, "animal-donate-" + world.WorldTick + "-" + world.NextEventId, lot.OwnerId, plan.HouseholdId!,
                 lot.Id, plan.Quantity, "animal_yard_supplied", destinationStorageBuildingId: plan.Trip.YardId, holdAccess: InventoryHoldRules.SupplyTripFor(plan.Actor)));
         FinishAnimalSupplyTrip(world, plan.Actor);
-        world.AppendEvent("animal_yard_supplied", plan.Actor + ":" + plan.Trip.YardId);
+        world.AppendEvent(new AnimalYardSuppliedEventPayload(plan.Actor, plan.Trip.YardId));
     }
 
     internal void FinishAnimalSupplyTrip(IAnimalWorld world, string actor)
