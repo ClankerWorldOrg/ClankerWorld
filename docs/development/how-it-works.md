@@ -3445,6 +3445,12 @@ capability policy feeds the same checks used by offers and native entry points.
 Admitted plots and terms are bound on the retained plan before checking; the
 original TownSystem writer keeps the existing rights, consent and payment steps.
 
+Land-hearing filing, evidence, judge consent/ballots, rulings, reopenings and
+property responses use fresh-admission definitions with one named capability
+policy and the existing TownSystem checks. Accepted statements, plots and
+property terms bind on the retained plan before its original revision, authority
+and personal consent are checked for native application.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may
