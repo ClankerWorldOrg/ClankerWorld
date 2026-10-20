@@ -90,7 +90,7 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal(new ExplorationGoal(kind, target), Person(world, actor).Exploration!.Goal);
         var visible = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor);
         Assert.Equal("looking for " + target.ToLowerInvariant() + (kind == "terrain" ? " terrain" : ""), visible.PublicIntention!.Summary);
-        Assert.Equal(visible.PublicIntention.Summary, ClankerWorld.GodotClient.UI.GameUiText.ActivityPhrase(visible.PublicIntention.CandidateId, null));
+        Assert.Equal(visible.PublicIntention.Summary, ClankerWorld.Contracts.GameUiText.ActivityPhrase(visible.PublicIntention.CandidateId, null));
         Assert.DoesNotContain(world.ExportState().Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == source.Position);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var loaded = Restore(WorldRuntimeCodec.Decode(saved));

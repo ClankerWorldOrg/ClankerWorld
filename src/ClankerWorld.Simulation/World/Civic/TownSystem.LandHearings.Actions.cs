@@ -11,23 +11,26 @@ internal sealed partial class TownSystem
         var atBoard = NearCivicBoard(world, actor, town);
         if (!atBoard && MayVisitLandHearing(world, actor, town) && !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !MayVisitAsNewcomer(world, actor, town))
             candidates.Add(new(CivicAction(world, town.Id, "visit"), "Walk to the public notice place to inspect a land case you actually learned concerns you. Visiting changes no membership or property access.", 175));
-        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.Household, ""), bindAuthority: true) is { } householdFiling &&
-            CheckLandHearingFiling(world, householdFiling).Allowed)
-            candidates.Add(new(householdFiling.CandidateId,
-                "File a land disagreement affecting your household. State the disagreement and requested_outcome in civic_land_hearing, and exact connected civic_land_tiles. Filing supplies no agreement or permission. Nearby affected tiles: " +
-                TownLandClaimRules.DescribeTiles(householdFiling.NearbyAffectedTiles) + "." + (householdFiling.NearbyPending
-                    ? " Land already under a pending hearing can only be filed again as exactly that hearing's plot, which joins it." : ""), 185)
-            { ActionPlan = householdFiling });
-        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.TownOffice, ""), bindAuthority: true) is { } officeFiling &&
-            CheckLandHearingFiling(world, officeFiling).Allowed)
-            candidates.Add(new(officeFiling.CandidateId,
-                "File a land case on the Town's behalf under your recorded governing office. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome. You represent the Town and cannot judge this case.", 185)
-            { ActionPlan = officeFiling });
-        if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.CouncilProposal, ""), bindAuthority: true) is { } councilFiling &&
-            CheckLandHearingFiling(world, councilFiling).Allowed)
-            candidates.Add(new(councilFiling.CandidateId,
-                "Ask the current Council to authorize a specific Town land case. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome; actual Council approval is required before the Town files.", 185)
-            { ActionPlan = councilFiling });
+        if (atBoard)
+        {
+            if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.Household, ""), bindAuthority: true) is { } householdFiling &&
+                CheckLandHearingFiling(world, householdFiling).Allowed)
+                candidates.Add(new(householdFiling.CandidateId,
+                    "File a land disagreement affecting your household. State the disagreement and requested_outcome in civic_land_hearing, and exact connected civic_land_tiles. Filing supplies no agreement or permission. Nearby affected tiles: " +
+                    TownLandClaimRules.DescribeTiles(householdFiling.NearbyAffectedTiles) + "." + (householdFiling.NearbyPending
+                        ? " Land already under a pending hearing can only be filed again as exactly that hearing's plot, which joins it." : ""), 185)
+                { ActionPlan = householdFiling });
+            if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.TownOffice, ""), bindAuthority: true) is { } officeFiling &&
+                CheckLandHearingFiling(world, officeFiling).Allowed)
+                candidates.Add(new(officeFiling.CandidateId,
+                    "File a land case on the Town's behalf under your recorded governing office. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome. You represent the Town and cannot judge this case.", 185)
+                { ActionPlan = officeFiling });
+            if (PlanLandHearingFiling(world, actor, new(town.Id, LandHearingFilingKind.CouncilProposal, ""), bindAuthority: true) is { } councilFiling &&
+                CheckLandHearingFiling(world, councilFiling).Allowed)
+                candidates.Add(new(councilFiling.CandidateId,
+                    "Ask the current Council to authorize a specific Town land case. Name exact civic_land_tiles and civic_land_hearing statement/requested_outcome; actual Council approval is required before the Town files.", 185)
+                { ActionPlan = councilFiling });
+        }
         world.AddTownPropertyCandidates(candidates, actor, town);
         foreach (var item in hearings.Cases)
         {
@@ -40,11 +43,12 @@ internal sealed partial class TownSystem
             if (!open && !atBoard && !knows) continue;
             var parties = LandHearingParties(world, town, revision.Tiles, item);
             var isParty = parties.Any(party => party.AdultIds.Contains(actor, StringComparer.Ordinal) || party.RepresentativeId == actor);
-            OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Inspect, "",
-                "Read the actual public land-case file and formal records for " + TownLandClaimRules.DescribeTiles(revision.Tiles) +
-                ". Reading supplies evidence awareness and grants no private-building access.", 177);
+            if (atBoard)
+                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Inspect, "",
+                    "Read the actual public land-case file and formal records for " + TownLandClaimRules.DescribeTiles(revision.Tiles) +
+                    ". Reading supplies evidence awareness and grants no private-building access.", 177);
             if (!knows) continue;
-            if (item.Property is { } property)
+            if (item.Status == "pending" && item.Property is { Transfer: null } property)
                 foreach (var kind in new[] { LandHearingPropertyKind.Accept, LandHearingPropertyKind.Refuse })
                 {
                     var id = CivicAction(world, town.Id, LandHearingPropertyChoice.Verb(kind), token);
@@ -57,23 +61,31 @@ internal sealed partial class TownSystem
                             ". This records only your own property consent; other living owners must choose for themselves.", 174)
                         { ActionPlan = consent });
                 }
-            OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Statement, "",
-                "Submit your own statement to the current land-case file via civic_land_hearing.statement. It remains an allegation with your identity, not a verified fact.", 182);
-            OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Observe, "",
-                "Record what you can physically see on the nearby disputed plot. This supplies no unseen events, building access or permission.", 181);
-            foreach (var party in parties)
+            if (open && (isParty || TownAdults(world, town).Contains(actor, StringComparer.Ordinal)))
+                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Statement, "",
+                    "Submit your own statement to the current land-case file via civic_land_hearing.statement. It remains an allegation with your identity, not a verified fact.", 182);
+            if ((open && TownAdults(world, town).Contains(actor, StringComparer.Ordinal) || isParty) &&
+                revision.Tiles.Any(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Observe, "",
+                    "Record what you can physically see on the nearby disputed plot. This supplies no unseen events, building access or permission.", 181);
+            foreach (var party in parties.Where(party => item.Status == "pending" &&
+                         (party.AdultIds.Contains(actor, StringComparer.Ordinal) || party.RepresentativeId == actor)))
             {
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Answer, party.Id,
                     "Personally answer for " + party.Kind + " " + (party.HouseholdId ?? party.TownId) + " in this hearing via civic_land_hearing.statement. Your answer supplies neither another party's response nor permission to surrender rights.", 165);
                 OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Waive, party.Id,
                     "Explicitly waive your remaining response opportunity for " + party.Kind + " " + (party.HouseholdId ?? party.TownId) + ". This does not agree to a loss or transfer, or waive another party's answer.", 166);
             }
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Register, "",
-                "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180);
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Withdraw, "",
-                "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185);
-            OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Resign, "",
-                "Resign your mandate to adjudicate this case only.", 185);
+            if (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) &&
+                (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")))
+            {
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Register, "",
+                    "Personally agree to stand as an independent adjudicator for this case only; no general Town office is granted.", 180);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Withdraw, "",
+                    "Withdraw your willingness to hold this case mandate. The case file and completed response period remain.", 185);
+                OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Resign, "",
+                    "Resign your mandate to adjudicate this case only.", 185);
+            }
             if (item.Contest is { } contest)
                 foreach (var candidate in contest.Candidates)
                     OfferLandHearingJudge(world, candidates, actor, town, item, LandHearingJudgeKind.Vote, candidate,
@@ -81,24 +93,29 @@ internal sealed partial class TownSystem
                         " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167);
             if (item.Judge is { } adjudicator && adjudicator.AgentId == actor && LandHearingJudgeValid(world, town, item, adjudicator) && LandHearingReadCurrent(world, item, actor))
             {
-                var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
-                    (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
-                foreach (var kind in kinds)
+                if (item.Status == "pending" && TownLandHearingRules.CanCloseResponses(item, parties, world.WorldTick))
                 {
-                    var id = CivicAction(world, town.Id, "hearing_rule", token, kind);
-                    if (LandHearingRulingChoice.Decode(id) is { } rulingChoice && PlanLandHearingRuling(world, actor, rulingChoice) is { } ruling &&
-                        CheckLandHearingRuling(world, ruling).Allowed)
-                        candidates.Add(new(id,
-                            "Personally rule to " + kind + (item.Property is null ? " only the recorded plot permission." :
-                                " the exact noticed property transfer; accepting transfers the building, recorded shared goods and its footprint permission together.") +
-                            " Supply civic_land_hearing.statement reasons, actual evidence_ids and law_ids" +
-                            (kind == "end" ? ", and household_id from affected households" : kind is "renew" or "amend" ? ", household_id from affected households and any agreed_end_tick" : "") + ". " +
-                            (lapsed.Length == 0 ? "" : "The permission of household " + string.Join(", ", lapsed) +
-                                " on this plot is past its agreed end, so the ruling must renew, amend or end it. Renewing also renews every lapsed permission on this plot for its own household. ") +
-                            LandHearingCaseChoices(world, town, item, actor), 165)
-                        { ActionPlan = ruling });
+                    var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
+                        (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
+                    foreach (var kind in kinds)
+                    {
+                        var id = CivicAction(world, town.Id, "hearing_rule", token, kind);
+                        if (LandHearingRulingChoice.Decode(id) is { } rulingChoice && PlanLandHearingRuling(world, actor, rulingChoice) is { } ruling &&
+                            CheckLandHearingRuling(world, ruling).Allowed)
+                            candidates.Add(new(id,
+                                "Personally rule to " + kind + (item.Property is null ? " only the recorded plot permission." :
+                                    " the exact noticed property transfer; accepting transfers the building, recorded shared goods and its footprint permission together.") +
+                                " Supply civic_land_hearing.statement reasons, actual evidence_ids and law_ids" +
+                                (kind == "end" ? ", and household_id from affected households" : kind is "renew" or "amend" ? ", household_id from affected households and any agreed_end_tick" : "") + ". " +
+                                (lapsed.Length == 0 ? "" : "The permission of household " + string.Join(", ", lapsed) +
+                                    " on this plot is past its agreed end, so the ruling must renew, amend or end it. Renewing also renews every lapsed permission on this plot for its own household. ") +
+                                LandHearingCaseChoices(world, town, item, actor), 165)
+                            { ActionPlan = ruling });
+                    }
                 }
-                foreach (var request in item.ReopenRequests)
+                foreach (var request in item.ReopenRequests.Where(request => item.Status == "settled" && request.Status == "pending" &&
+                             item.Reads.Any(read => read.AgentId == actor && read.Revision == revision.Number &&
+                                 read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal))))
                 {
                     OfferLandHearingReopening(world, candidates, actor, town, item, true, request.Id + ":accept",
                         "Accept independently established grounds and open a fresh hearing; current rights remain until a valid correction. Give reasons in civic_land_hearing.statement. Filed " + request.Kind + " claim: " + request.Reasons, 165);
@@ -106,13 +123,15 @@ internal sealed partial class TownSystem
                         "Reject this reopening request with reasons in civic_land_hearing.statement; keep the old ruling and request in the case history. Filed " + request.Kind + " claim: " + request.Reasons, 166);
                 }
             }
-            foreach (var grounds in new[] { "material_evidence", "procedural_error" })
-                OfferLandHearingReopening(world, candidates, actor, town, item, false, grounds,
-                    "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184);
-            foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor &&
+            if (item.Status == "settled" && isParty && LandHearingReadCurrent(world, item, actor) && LandHearingReadRuling(world, item, actor))
+                foreach (var grounds in new[] { "material_evidence", "procedural_error" })
+                    OfferLandHearingReopening(world, candidates, actor, town, item, false, grounds,
+                        "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184);
+            foreach (var recipient in world.Agents.Values.Where(person => open && person.AgentId != actor &&
                          world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
-                OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Relay, recipient.AgentId,
-                    "Tell " + world.Society.GetAgent(recipient.AgentId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181);
+                if (LandHearingReadCurrent(world, item, actor) && LandHearingMayInspect(world, town, item, recipient.AgentId) && !LandHearingReadCurrent(world, item, recipient.AgentId))
+                    OfferLandHearingEvidence(world, candidates, actor, town, item, LandHearingEvidenceKind.Relay, recipient.AgentId,
+                        "Tell " + world.Society.GetAgent(recipient.AgentId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181);
         }
     }
 
@@ -124,7 +143,7 @@ internal sealed partial class TownSystem
         var propertyRecord = item.Property is null ? [] : item.Evidence.Where(evidence => known.Contains(evidence.Id) &&
             evidence.SourceRecordId == TownPropertyRules.RecordId(item, revision.Number)).Take(1).ToArray();
         var evidence = item.Evidence.Where(evidence => known.Contains(evidence.Id)).TakeLast(4).Concat(propertyRecord).DistinctBy(evidence => evidence.Id).Select(evidence =>
-            evidence.Id + "=" + evidence.Kind + " from " + evidence.SourceAgentId + ": " + NonLandExcerpt(evidence.Text, 160));
+            evidence.Id + "=" + evidence.Kind + " from " + evidence.SourceAgentId + ": " + BoundedText.Excerpt(evidence.Text, 160));
         return "Requested result: " + revision.RequestedOutcome.Kind + " " + revision.RequestedOutcome.HouseholdId +
             ". Affected households: " + string.Join(", ", LandHearingParties(world, town, revision.Tiles, item)
                 .Where(party => party.HouseholdId is not null).Select(party => party.HouseholdId)) +
@@ -226,8 +245,8 @@ internal sealed partial class TownSystem
             AddTownLandHearingCandidates(world, candidates, actor, currentTown);
             if (!candidates.Any(candidate => candidate.Id == $"civic|{town.Id}|{action}|{subject}|{choice}"))
                 throw new InvalidOperationException("The hearing choice no longer has current authority or informed eligibility.");
-            item = hearings.Cases.Single(item => CivicAgentToken(TownLandHearingRules.RevisionToken(item)) == subject ||
-                item.Contest is { } contest && CivicAgentToken(TownLandHearingRules.RevisionToken(item) + "#" + TownLandCaseJudgeRules.RoundToken(contest)) == subject);
+            item = hearings.Cases.Single(item => LandHearingJudgeActionToken(item, LandHearingJudgeKind.Register) == subject ||
+                item.Contest is not null && LandHearingJudgeActionToken(item, LandHearingJudgeKind.Vote) == subject);
         }
         var revision = TownLandHearingRules.CurrentRevision(item);
         var parties = LandHearingParties(world, currentTown, revision.Tiles, item);
@@ -320,7 +339,8 @@ internal sealed partial class TownSystem
                     { Snapshots = item.Property.Snapshots.Append(reopenedProperty).ToArray() }, town.Id, world.Society.Agents);
                 hearings = TownLandHearingRules.Reopen(hearings, item.Id, request.Id, reopeningPlan.Judge!, accept,
                     reopeningPlan.Reasons!, householdLandUseRights, parties, world.WorldTick, CivicDay(world),
-                    "notice:" + (council.Notices.Count + 1), validAuthority: true);
+                    TownCouncilRules.NextNoticeId(council), validAuthority: true);
+
                 if (accept)
                 {
                     var reopened = hearings.Cases.Single(c => c.Id == item.Id);
@@ -367,7 +387,7 @@ internal sealed partial class TownSystem
         return outcome;
     }
 
-    internal static string LandHearingText(string? text) => TownLandHearingRules.ValidText(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
+    internal static string LandHearingText(string? text) => BoundedText.IsValid(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
             throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
 
 }

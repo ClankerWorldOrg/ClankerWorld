@@ -1,1 +1,0 @@
-- Households can make replacement writing paper while their existing sheets are being sold at a borrowed Market stall, without taking the sale stock.

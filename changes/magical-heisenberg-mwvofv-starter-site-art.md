@@ -1,1 +1,0 @@
-- A new Town's starting clay deposit and grain-seed patch are drawn as a clay bank and a seed patch, instead of small white diamonds.

@@ -4,9 +4,7 @@ using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Server.Saves;
 
-public sealed record WorldAutosaveSettings(
-    string WorldId, bool Enabled, int IntervalMinutes, int RotationCount,
-    DateTimeOffset LastSavedUtc, long LastWorldTick);
+
 
 /// <summary>
 /// Per-world autosave schedule. The per-tick active checkpoint remains crash
@@ -26,7 +24,7 @@ public sealed class WorldAutosaveStore
         path = Path.GetFullPath(activeSavePath) + ".autosave.json";
         if (File.Exists(path))
         {
-            state = JsonSerializer.Deserialize<WorldAutosaveSettings>(File.ReadAllBytes(path))
+            state = JsonSerializer.Deserialize<WorldAutosaveSettings>(SavedFile.Read(path))
                 ?? throw new InvalidDataException("Autosave settings are empty.");
             if (state.WorldId != worldId)
             {
@@ -36,7 +34,7 @@ public sealed class WorldAutosaveStore
                 Save(state);
             }
             Validate(state.IntervalMinutes, state.RotationCount);
-            RestrictPermissions(path);
+            PrivateStorage.RestrictFile(path);
         }
         else
         {
@@ -142,25 +140,18 @@ public sealed class WorldAutosaveStore
     private void Save(WorldAutosaveSettings next)
     {
         var directory = Path.GetDirectoryName(path)!;
-        Directory.CreateDirectory(directory);
+        PrivateStorage.EnsureDirectory(directory);
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = PrivateStorage.CreateNew(temporary))
             {
                 stream.Write(JsonSerializer.SerializeToUtf8Bytes(next));
                 stream.Flush(flushToDisk: true);
             }
-            RestrictPermissions(temporary);
             File.Move(temporary, path, overwrite: true);
-            RestrictPermissions(path);
+            PrivateStorage.RestrictFile(path);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
-    }
-
-    private static void RestrictPermissions(string filename)
-    {
-        if (!OperatingSystem.IsWindows())
-            File.SetUnixFileMode(filename, UnixFileMode.UserRead | UnixFileMode.UserWrite);
     }
 }
