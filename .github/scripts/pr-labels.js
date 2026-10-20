@@ -29,6 +29,13 @@
 //   AGENTS.md or CLAUDE.md). A PR shows one priority: a priority someone
 //   added by hand takes the worked-out one's place when it is higher, and
 //   every other priority label comes off, including a lower one set by hand.
+// - A release label (CONTRIBUTING, Release scope), worked out again on every
+//   event: the earliest release of the open issues the PR closes, and any other
+//   release label comes off. When none of them has one, the PR's release labels
+//   stay as they are, so a release set by hand on a PR that closes nothing
+//   sticks. "Refs" doesn't count: a PR that only partly does an issue may belong
+//   to an earlier release than the rest of it. Releases count in their order in
+//   .github/labels.json: the first active one is the release being prepared.
 // - status:has-pr on open issues the PR closes ("Closes #N", "Fixes #N" or
 //   "Resolves #N", one keyword directly before each number, exactly as GitHub
 //   and close-fixed-issues.yml read them), replacing status:needs-pr. "Refs #N"
@@ -74,6 +81,10 @@ const HoldingStatuses = [Ready, ...HeldStatuses];
 const NotQueueable = ['type:decision', 'owner-task'];
 const Priorities = ['priority:p0', 'priority:p1', 'priority:p2', 'priority:p3'];
 const DefaultPriority = 'priority:p2';
+// Active release labels, the release being prepared first.
+const Releases = require('../labels.json').labels
+  .map(label => label.name)
+  .filter(name => name.startsWith('release:'));
 // Changes to CI, labels, templates or the contribution rules affect every
 // agent, so they are P0.
 const WorkflowPaths = ['.github/', '.claude/', '.agents/', 'skills/', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md'];
@@ -108,6 +119,14 @@ const IssueRefPattern = /(?<![\w./-])(?:([\w.-]+\/[\w.-]+))?#(\d+)\b/g;
 
 function labelNames(labels) {
   return (labels ?? []).map(label => (typeof label === 'string' ? label : label.name));
+}
+
+// The earliest of the given release labels, by their order in `releases`, or
+// null when none of them is an active release.
+function earliestRelease(names, releases = Releases) {
+  const found = names.filter(name => releases.includes(name));
+  if (found.length === 0) return null;
+  return found.reduce((a, b) => (releases.indexOf(a) <= releases.indexOf(b) ? a : b));
 }
 
 function withoutCode(body) {
@@ -431,7 +450,7 @@ async function clearInactiveReviewLabels(github, repo, number) {
   }
 }
 
-async function applyPullRequestLabels({ github, context, core, pr, previousBodies, addedPriorities, wentBackToDraft = false }) {
+async function applyPullRequestLabels({ github, context, core, pr, previousBodies, addedPriorities, wentBackToDraft = false, releases = Releases }) {
   const repo = context.repo;
   const action = context.payload.action;
   const repoName = `${repo.owner}/${repo.repo}`;
@@ -492,6 +511,7 @@ async function applyPullRequestLabels({ github, context, core, pr, previousBodie
   // next push or edit.
   const prHeld = current.includes(NeedsDecision) || current.includes(Blocked);
   let issuePriority = null;
+  const closingReleases = [];
   for (const number of linked) {
     const issue = await openIssue(github, repo, number);
     if (!issue) continue;
@@ -525,6 +545,7 @@ async function applyPullRequestLabels({ github, context, core, pr, previousBodie
     for (const name of Priorities) {
       if (issueLabels.includes(name)) issuePriority = higherPriority(issuePriority, name);
     }
+    closingReleases.push(...issueLabels);
   }
 
   // The PR takes the highest priority of the open issues it closes; if none has
@@ -544,6 +565,19 @@ async function applyPullRequestLabels({ github, context, core, pr, previousBodie
   const priority = higherPriority(workflowPriority, issuePriority ?? DefaultPriority);
   await setPriority({ github, core, repo, pr, current, priority, events: prEvents, addedThisRun: addedPriorities });
 
+  // The PR takes the earliest release of the open issues it closes.
+  const prReleases = current.filter(name => releases.includes(name));
+  const release = earliestRelease(closingReleases, releases);
+  if (release !== null) {
+    for (const name of prReleases) {
+      if (name !== release) await removeLabel(github, repo, pr.number, name);
+    }
+    if (!prReleases.includes(release)) {
+      await github.rest.issues.addLabels({ ...repo, issue_number: pr.number, labels: [release] });
+      core.info(`Set this pull request to ${release}, from its issues.`);
+    }
+  }
+
   // Release references from the event or an earlier reconciliation pass.
   for (const previousBody of previousBodies) {
     for (const number of closingIssueNumbers(previousBody, repoName)) {
@@ -554,7 +588,7 @@ async function applyPullRequestLabels({ github, context, core, pr, previousBodie
   }
 }
 
-async function labelPullRequest({ github, context, core }) {
+async function labelPullRequest({ github, context, core, releases = Releases }) {
   const request = { ...context.repo, pull_number: context.payload.pull_request.number };
   let { data: pr } = await github.rest.pulls.get(request);
   const previousBodies = new Set([
@@ -564,7 +598,7 @@ async function labelPullRequest({ github, context, core }) {
   const addedPriorities = new Set();
   let wentBackToDraft = false;
   for (let attempt = 0; attempt < 3; attempt++) {
-    await applyPullRequestLabels({ github, context, core, pr, previousBodies, addedPriorities, wentBackToDraft });
+    await applyPullRequestLabels({ github, context, core, pr, previousBodies, addedPriorities, wentBackToDraft, releases });
     const { data: live } = await github.rest.pulls.get(request);
     if (live.state === pr.state && live.draft === pr.draft &&
         live.merged === pr.merged && live.body === pr.body) return;
@@ -579,5 +613,6 @@ module.exports = labelPullRequest;
 module.exports.closingIssueNumbers = closingIssueNumbers;
 module.exports.referencedIssueNumbers = referencedIssueNumbers;
 module.exports.typeLabel = typeLabel;
+module.exports.earliestRelease = earliestRelease;
 module.exports.areaLabels = areaLabels;
 module.exports.isDocumentation = isDocumentation;

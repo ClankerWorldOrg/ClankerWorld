@@ -1,1 +1,0 @@
-- Ornaments and food-cargo space now bind their codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining exact items, recipients and cargo quantities.
