@@ -113,12 +113,7 @@ public sealed partial class WorldRuntime
             });
         var personalJobIds = personalJobs.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
         productionSystem.LeaveHousehold(actor, ownedBuildings, personalJobIds, WorldTick);
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = worldSimulation.BuildingExpansions?.Select(job => job.WorkerId == actor &&
-                job.OwnerId == householdId && job.State == WorldProductionJobState.Running
-                ? job with { State = WorldProductionJobState.Paused, PausedAtTick = WorldTick } : job).ToArray(),
-        });
+        constructionSystem.Buildings.PauseHouseholdExpansions(actor, householdId, WorldTick);
         var heldReservations = worldSimulation.ProductionJobs.Where(job => job.WorkerId == actor &&
                 ownedBuildings.Contains(job.BuildingInstanceId) && job.State == WorldProductionJobState.Paused)
             .SelectMany(job => job.InputReservationIds)
@@ -247,11 +242,7 @@ public sealed partial class WorldRuntime
         var deadline = checked(WorldTick + Math.Max(1, plan.CompletionTick - plan.PausedAtTick));
         ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, plan.ReservationIds, deadline));
         productionSystem.ResumeJob(plan.Choice.JobId, deadline, plan.KnifeId, actor);
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = worldSimulation.BuildingExpansions?.Select(item => item.JobId == plan.Choice.JobId
-                ? item with { WorkerId = actor, State = WorldProductionJobState.Running, CompletionTick = deadline, PausedAtTick = null } : item).ToArray(),
-        });
+        constructionSystem.Buildings.ResumeExpansion(plan.Choice.JobId, deadline, actor);
         AppendEvent(new HouseholdWorkResumedEventPayload(actor, plan.Choice.JobId, building.HouseholdId));
     }
 
@@ -281,11 +272,7 @@ public sealed partial class WorldRuntime
         var productionIds = cancelledProduction.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
         var expansionIds = cancelledExpansions.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
         productionSystem.CancelJobs(productionIds);
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = worldSimulation.BuildingExpansions?.Select(job => expansionIds.Contains(job.JobId)
-                ? job with { State = WorldProductionJobState.Cancelled, Failure = "Paused expansion materials are no longer available." } : job).ToArray(),
-        });
+        constructionSystem.Buildings.CancelPausedExpansions(expansionIds, "Paused expansion materials are no longer available.");
         foreach (var job in cancelledProduction) AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         foreach (var job in cancelledExpansions) AppendEvent(new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, "Paused expansion materials are no longer available."));
     }

@@ -14,12 +14,7 @@ public sealed partial class WorldRuntime
             // Retire order-only links and construction evidence. Consumed
             // reservations, native work outcomes and physical state stay intact.
             productionSystem.RetireOrderLinks(retired);
-            constructionState = WorldConstructionState.From(worldSimulation with
-            {
-                BuildingExpansions = worldSimulation.BuildingExpansions?.Select(job => retired.Contains(job.OrderInstructionId ?? "")
-                    ? job with { OrderInstructionId = null } : job).ToArray(),
-                ConstructionReceipts = worldSimulation.ConstructionReceipts?.Where(receipt => !retired.Contains(receipt.InstructionId)).ToArray(),
-            });
+            constructionSystem.Buildings.RetireOrderLinks(retired);
             RetireClosedOrderProjectReferences(retired);
             RetireClosedOrderExplorationGoals(retired);
             boatTransport = boatTransport with

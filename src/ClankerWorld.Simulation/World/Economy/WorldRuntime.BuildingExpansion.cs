@@ -67,7 +67,6 @@ public sealed partial class WorldRuntime
 {
     private const string ExpandBuildingPrefix = ExpansionChoice.Prefix;
     // Provisional duration; paid model calls do not advance construction.
-    private const int BuildingExpansionTicks = 20;
 
     private int StoredQuantity(string buildingId, InventoryCheckpoint? inventory = null) =>
         InventoryIndex.For(inventory ?? society.Checkpoint.Inventory).StoredAt(buildingId).Sum(lot => lot.Quantity);
@@ -84,7 +83,7 @@ public sealed partial class WorldRuntime
                 .Sum(reservation => reservation.Quantity));
         });
 
-    private static string ExpansionOwner(PlacedBuilding building) => building.HouseholdId ?? building.TownId!;
+    private static string ExpansionOwner(PlacedBuilding building) => ConstructionSystem.ExpansionOwner(building);
 
     private static InventoryGroundPosition ExpansionGroundPosition(PlacedBuilding building) =>
         new(building.Position.X, building.Position.Y);
@@ -191,47 +190,8 @@ public sealed partial class WorldRuntime
         return inventory;
     }
 
-    private bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure)
-    {
-        failure = "Only an adult household member or a current Town resident can expand this building.";
-        if (!IsAdult(actor)) return false;
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        var nearlyFull = StoredQuantity(building.InstanceId) * 100 >=
-            BuildingStorageRules.Capacity(definition, building) * BuildingStorageRules.NearlyFullPercent;
-        if (definition.Tags.Contains("house", StringComparer.Ordinal))
-        {
-            if (building.HouseholdId != society.Checkpoint.GetAgent(actor).HouseholdId) return false;
-            var residentNeed = building.HouseholdId is { } householdId &&
-                HouseResidentCapacity(householdId) is { } capacity && capacity.ResidentCount >= capacity.Limit;
-            if (!nearlyFull && !residentNeed)
-            {
-                failure = "The House needs more resident places or must be nearly full before storage can be expanded.";
-                return false;
-            }
-        }
-        else if (definition.Tags.Contains("warehouse", StringComparer.Ordinal))
-        {
-            if (building.TownId is null || TownForResident(actor) != building.TownId) return false;
-            if (!nearlyFull)
-            {
-                failure = "The building needs to be nearly full before its storage can be expanded.";
-                return false;
-            }
-        }
-        else if (definition.Tags.Contains(AnimalContent.YardTag, StringComparer.Ordinal))
-        {
-            if (building.HouseholdId != HouseholdFor(actor) || AnimalYardCapacity(building) >= AnimalRules.PopulationCap) return false;
-        }
-        else return false;
-        if ((worldSimulation.BuildingExpansions ?? []).Any(job => job.BuildingInstanceId == building.InstanceId &&
-                (job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)))
-        {
-            failure = "An expansion is already in progress for this building.";
-            return false;
-        }
-        failure = string.Empty;
-        return true;
-    }
+    private bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure) =>
+        constructionSystem.MayExpandBuilding(ExpansionPlanningWorld, actor, building, out failure);
 
     private IEnumerable<(GridPoint Position, BuildingFootprintRevision Footprint)> ExpansionShapes(PlacedBuilding building)
     {
@@ -409,91 +369,8 @@ public sealed partial class WorldRuntime
     }
 
     private ProductionStartResult StartBuildingExpansionCore(string actor, string buildingId,
-        OwnerQueuedInstruction? orderInstruction = null, ExpansionActionPlan? originalPlan = null)
-    {
-        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == buildingId);
-        if (building is null) return ProductionStartResult.Rejected(buildingId, "The building is not placed.");
-        if (orderInstruction is not null &&
-            (PendingInstructionFor(actor)?.InstructionId != orderInstruction.InstructionId ||
-             ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId))
-            return ProductionStartResult.Rejected(buildingId, "The expansion order no longer matches this building.");
-        if (!MayExpandBuilding(actor, building, out var failure)) return ProductionStartResult.Rejected(buildingId, failure);
-        if (agents[actor].Position != building.Position)
-            return ProductionStartResult.Rejected(buildingId, "The worker must be at the building before expansion starts.");
-        var plan = originalPlan ?? PlanExpansion(actor, building, orderInstruction);
-        if (plan is null)
-            return ProductionStartResult.Rejected(buildingId, "There is no legal space for this building's next footprint.");
-        if (CheckExpansion(plan).Refusal is { } refusal)
-            return ProductionStartResult.Rejected(buildingId, refusal.Explanation);
-        var shape = (Position: plan.TargetPosition, Footprint: plan.TargetFootprint);
-        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-        var owner = building.HouseholdId ?? building.TownId!;
-        var costs = BuildingStorageRules.ExpansionCosts(definition, building, shape.Footprint);
-        if (!HasExpansionMaterials(actor, building, costs))
-            return ProductionStartResult.Rejected(buildingId, "Bring the expansion materials to the building or carry them to the site.");
-        var jobId = $"expansion-{worldSimulation.NextProductionJobSequence:D8}";
-        var completion = WorldTick + SkilledWorkTicks(actor, SkillKind.Building, BuildingExpansionTicks);
-        IReadOnlyList<string> reservations = [];
-        var selectedInputs = plan.Inputs ?? PlanExpansionInputs(actor, building, costs);
-        if (selectedInputs is null) return ProductionStartResult.Rejected(buildingId, "The expansion materials are no longer available.");
-        ApplyInventoryTransition(inventory => ReserveExpansionInputs(inventory, selectedInputs, actor, jobId, completion, out reservations));
-        var job = new BuildingExpansionJob(jobId, buildingId, actor, owner, building.Footprint?.Revision ?? 0,
-            building.Position, shape.Position, shape.Footprint, WorldTick, completion, WorldProductionJobState.Running, (reservations).Select(Identity.Parse).ToArray(),
-            DefinitionId: building.DefinitionId)
-        { OrderInstructionId = orderInstruction?.InstructionId };
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            BuildingExpansions = (worldSimulation.BuildingExpansions ?? []).Append(job).OrderBy(item => item.JobId, StringComparer.Ordinal).ToArray(),
-        });
-        productionSystem.AdvanceExpansionSequence();
-        if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
-        AppendEvent(new BuildingExpansionStartedEventPayload(null, buildingId, jobId));
-        return new ProductionStartResult(true, jobId, buildingId, null);
-    }
+        OwnerQueuedInstruction? orderInstruction = null, ExpansionActionPlan? originalPlan = null) =>
+        constructionSystem.StartExpansion(ExpansionAdmissionWorld, actor, buildingId, orderInstruction, originalPlan);
 
-    private void ProcessBuildingExpansions(long targetTick)
-    {
-        foreach (var job in (worldSimulation.BuildingExpansions ?? []).Where(item => item.State == WorldProductionJobState.Running).ToArray())
-        {
-            var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == job.BuildingInstanceId);
-            string? failure = null;
-            if (building is null || building.Position != job.ExpectedPosition ||
-                (building.Footprint?.Revision ?? 0) != job.ExpectedRevision) failure = "The building changed before its expansion completed.";
-            else if (!IsAdult(job.WorkerId) ||
-                building.HouseholdId is { } houseOwner && (houseOwner != job.OwnerId || HouseholdFor(job.WorkerId) != houseOwner) ||
-                building.HouseholdId is null && TownForResident(job.WorkerId) != building.TownId)
-                failure = "The worker no longer has permission to expand this building.";
-            else if (!CanFitExpansion(building, job.TargetPosition, job.TargetFootprint, out var fitFailure, job.JobId))
-                failure = fitFailure;
-            else if (job.InputReservationIds.Any(id => society.Checkpoint.Inventory.GetReservation(id) is not
-            { State: InventoryReservationState.Reserved, ExpiryTick: var expiry } || expiry < targetTick ||
-                society.Checkpoint.Inventory.GetLot(society.Checkpoint.Inventory.GetReservation(id).LotId) is not
-                { ConditionBasisPoints: > 0, FreshnessBasisPoints: > 0 }))
-                failure = "The expansion materials are no longer usable.";
-            if (failure is null && job.CompletionTick > targetTick) continue;
-            ApplyInventoryTransition(inventory =>
-            {
-                foreach (var id in job.InputReservationIds)
-                    if (failure is null) inventory = InventoryAuthority.ConsumeReservation(inventory, id);
-                    else if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
-                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, "expansion_cancelled");
-                return inventory;
-            });
-            if (failure is null)
-            {
-                var expanded = building! with { Position = job.TargetPosition, Footprint = job.TargetFootprint };
-                constructionState = WorldConstructionState.From(worldSimulation with { Buildings = worldSimulation.Buildings.Select(item => item.InstanceId == expanded.InstanceId ? expanded : item).ToArray() });
-                if (towns.SingleOrDefault(item => item.Id == expanded.TownId) is { } town)
-                    SetTown(town with { BorderTiles = TownBorderRules.Expand(map, town, ExpansionTiles(job)) });
-                CreditCompletedWork(job.WorkerId, "building");
-            }
-            constructionState = WorldConstructionState.From(worldSimulation with
-            {
-                BuildingExpansions = (worldSimulation.BuildingExpansions ?? []).Select(item => item.JobId == job.JobId
-                    ? item with { State = failure is null ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled, Failure = failure } : item).ToArray(),
-            });
-            if (failure is null) CreditExpansionOrderJob(job);
-            AppendEvent(failure is null ? new BuildingExpandedEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId) : new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, failure));
-        }
-    }
+    private void ProcessBuildingExpansions(long targetTick) => constructionSystem.ProcessExpansions(ExpansionCompletionWorld, targetTick);
 }

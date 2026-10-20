@@ -85,7 +85,9 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     PlacedBuilding? WarehouseForResident(string actor);
     DeclarativeWorldContentState WorldContent { get; }
     string WorldSeed { get; }
-    WorldContentSimulationState WorldSimulation { get; set; }
+    WorldContentSimulationState WorldSimulation { get; }
+    void ReplaceFirstTownBuildings(IReadOnlyList<PlacedBuilding> placements);
+    void AssignFoundingBuildings(IReadOnlySet<string> assigned, string townId);
     IEnumerable<InventoryLot> WornEquipmentItems(string actor);
 
     IEnumerable<GridPoint> RoadAndBridgeTiles();

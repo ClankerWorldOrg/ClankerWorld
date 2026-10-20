@@ -463,7 +463,7 @@ public sealed partial class WorldRuntime
         if (constructionPlan is not null && CheckConstruction(constructionPlan).Refusal is { } constructionRefusal)
         { RefuseChoice(constructionPlan, constructionRefusal); return; }
         if (constructionPlan is not null)
-            constructionProjectPlans[agentId] = (state.Project is { Stage: not ("completed" or "cancelled") } previousBuilding &&
+            constructionSystem.RememberPlan(agentId, state.Project is { Stage: not ("completed" or "cancelled") } previousBuilding &&
                 TownConstructionCandidateIds.TryParse(previousBuilding.CandidateId, out var previousSelection) && previousSelection.IsBuilding &&
                 previousSelection.DefinitionId == selected.DefinitionId ? previousBuilding.StartedTick : WorldTick, constructionPlan);
 
@@ -585,7 +585,7 @@ public sealed partial class WorldRuntime
             if (constructionPlan is null)
             {
                 constructionPlan = PlanConstruction(agentId, building, plannedSite);
-                constructionProjectPlans[agentId] = (project.StartedTick, constructionPlan);
+                constructionSystem.RememberPlan(agentId, project.StartedTick, constructionPlan);
             }
         }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
@@ -701,7 +701,7 @@ public sealed partial class WorldRuntime
         if (constructionPlan is { Inputs: null } && PlanConstructionInputs(building!.BuildCosts, constructionOwner) is { } selectedInputs)
         {
             constructionPlan = constructionPlan with { MaterialOwnerId = constructionOwner, Inputs = selectedInputs };
-            constructionProjectPlans[agentId] = (project.StartedTick, constructionPlan);
+            constructionSystem.RememberPlan(agentId, project.StartedTick, constructionPlan);
         }
         GridPoint position;
         if (building is not null)
@@ -1110,7 +1110,7 @@ public sealed partial class WorldRuntime
         if (state.Project is { RequiresFreshChoice: true } && !project.RequiresFreshChoice)
         {
             productionSystem.ForgetRecipePlan(agentId);
-            constructionProjectPlans.Remove(agentId);
+            constructionSystem.ForgetPlan(agentId);
         }
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)
         {

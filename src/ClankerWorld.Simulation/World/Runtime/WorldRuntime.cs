@@ -65,9 +65,9 @@ public sealed partial class WorldRuntime : IDisposable
     private EnvironmentSystem environmentSystem;
     private WorldSystemsState worldSystems => environmentSystem.State;
     private DeclarativeWorldContentState worldContent;
-    private WorldConstructionState constructionState;
+    private ConstructionSystem constructionSystem;
     private ProductionSystem productionSystem;
-    private WorldContentSimulationState worldSimulation => productionSystem.Snapshot(constructionState);
+    private WorldContentSimulationState worldSimulation => productionSystem.Snapshot(constructionSystem.State);
     private WorldAssetReservationLedger assetReservations;
     private Dictionary<string, AgentState> agents = new(StringComparer.Ordinal);
     private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
@@ -190,7 +190,7 @@ public sealed partial class WorldRuntime : IDisposable
         var simulation = restoringState is null ? WorldContentSimulationState.Empty :
             trustedPreparedState ? restoringState.WorldSimulation! :
             restoringState.WorldSimulation! with { CropBuilds = restoringState.WorldSimulation.CropBuilds ?? [] };
-        constructionState = WorldConstructionState.From(simulation);
+        constructionSystem = new(WorldConstructionState.From(simulation));
         productionSystem = new(simulation, restoringState?.ToolMakingRequests ?? []);
         assetReservations = new WorldAssetReservationLedger();
         map = preparedMap ?? (startPace == WorldStartPace.FounderSetup

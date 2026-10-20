@@ -121,14 +121,14 @@ public static class WorldContentSimulationRules
         definitions.Validate();
         ProductionSystem.ValidateJobs(state.ProductionJobs, state.NextProductionJobSequence, state.CropBuilds, state.ArchivedProductionJobCount);
 
+        BuildingStore.ValidateBuildings(state.Buildings);
         var buildingDefinitions = definitions.BuildingDefinitions;
         var recipeDefinitions = definitions.Recipes.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
         var buildingIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var building in state.Buildings)
         {
-            ArgumentNullException.ThrowIfNull(building);
-            ContentPackageRules.ValidateLocalId(building.InstanceId);
-            if (!buildingIds.Add(building.InstanceId) || !buildingDefinitions.TryGetValue(building.DefinitionId, out var definition))
+            buildingIds.Add(building.InstanceId);
+            if (!buildingDefinitions.TryGetValue(building.DefinitionId, out var definition))
             {
                 throw new InvalidDataException("Placed buildings must have unique IDs and registered definitions.");
             }
@@ -138,11 +138,9 @@ public static class WorldContentSimulationRules
             definition = BuildingStorageRules.EffectiveDefinition(definition, building);
             var isHouse = definition.Tags.Contains("house", StringComparer.Ordinal);
             var acceptsHouseholdOwner = definition.Tags.Any(HouseholdBuildingKinds.IsKindTag);
-            if (isHouse && string.IsNullOrWhiteSpace(building.HouseholdId) &&
-                    !(building.HouseholdId is null && building.TownId is not null && recoveredBuildings?.Contains(building.InstanceId) == true) ||
-                building.HouseholdId is not null && string.IsNullOrWhiteSpace(building.HouseholdId) ||
-                building.HouseholdId is not null && !acceptsHouseholdOwner ||
-                building.HouseholdId is { } householdId && householdId != householdId.Trim())
+            if (isHouse && building.HouseholdId is null &&
+                    !(building.TownId is not null && recoveredBuildings?.Contains(building.InstanceId) == true) ||
+                building.HouseholdId is not null && !acceptsHouseholdOwner)
             {
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has invalid household ownership.");
             }
@@ -150,7 +148,7 @@ public static class WorldContentSimulationRules
             var existing = state.Buildings
                 .Where(item => item.InstanceId != building.InstanceId)
                 .Select(item => (Placement: item, Definition: buildingDefinitions[item.DefinitionId]));
-            if (building.PlacedTick < 0 || building.PlacedTick > worldTick ||
+            if (building.PlacedTick > worldTick ||
                 !Fits(map, existing, definition, building.Position))
             {
                 throw new InvalidDataException($"Placed building '{building.InstanceId}' has an invalid footprint.");
@@ -174,11 +172,7 @@ public static class WorldContentSimulationRules
                 throw new InvalidDataException($"Production job '{job.JobId}' differs from its clock or recipe.");
         }
 
-        if (!state.Buildings.Select(item => item.InstanceId).SequenceEqual(
-                state.Buildings.Select(item => item.InstanceId).Order(StringComparer.Ordinal), StringComparer.Ordinal))
-        {
-            throw new InvalidDataException("World content simulation state is not in canonical order.");
-        }
+
     }
 
     public static bool Fits(

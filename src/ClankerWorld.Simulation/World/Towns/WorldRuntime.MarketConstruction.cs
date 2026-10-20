@@ -18,10 +18,7 @@ public sealed partial class WorldRuntime
                 Entrance: MarketContent.StallEntrance(project.Plan.Site, stall.SlotIndex))).ToArray();
             if (buildings.Any(building => worldSimulation.Buildings.Any(existing => existing.InstanceId == building.InstanceId)))
                 throw new InvalidDataException("A paid Market starter stall already exists.");
-            constructionState = WorldConstructionState.From(worldSimulation with
-            {
-                Buildings = worldSimulation.Buildings.Concat(buildings).OrderBy(building => building.InstanceId, StringComparer.Ordinal).ToArray(),
-            });
+            constructionSystem.Buildings.PlaceBuildings(buildings);
             SetTown(town with
             {
                 Markets = town.Markets.Append(new TownMarketState(MarketContent.MarketId(project.Id), project.Id,

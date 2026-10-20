@@ -158,6 +158,17 @@ job. Local job validation has one implementation in the system, used both
 before test mutations publish and by checkpoint validation. The remaining
 production save checks compare jobs with current recipes, buildings and time.
 
+`Construction/ConstructionSystem.cs` owns construction plans and admission,
+expansion plans and lifecycle. Its `BuildingStore` is the only writer of
+placements, ownership, entrances, expansion records, guest access and paid
+construction receipts. Other systems request named operations for these
+records. Civic setup and founding use named building operations rather than
+replacing the combined simulation snapshot. The existing checkpoint combines
+the building store with production state; trusted preparation retains immutable
+records and copies live construction plans. Local record checks run before
+test mutations publish and at the save boundary, where the remaining checks
+compare records with content, map, society, inventory, orders and time.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the
@@ -971,11 +982,10 @@ current-world queries; no fertility or cache data enters saves or digests.
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and starting resources. Weather advances at its
 existing tick phase, and the runtime commits the system with one assignment.
-Map and declarative content remain owned by the coordinator. Production
-records come from their system; construction records remain on the coordinator.
-Trusted tick preparation shares the immutable map, content, environment and
-combined simulation view by reference until a write replaces one; external
-loads retain full validation and map
+Map and declarative content remain owned by the coordinator. Production and
+building records come from their systems. Trusted tick preparation shares the
+immutable map, content, environment and combined simulation view by reference
+until a write replaces one; external loads retain full validation and map
 regeneration checks. Restore initializes saved services directly instead of
 creating founders, physical state or genesis events first.
 

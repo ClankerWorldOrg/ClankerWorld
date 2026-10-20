@@ -85,11 +85,7 @@ internal sealed partial class TownSystem
             householdLandUseRights = [.. householdLandUseRights, .. rights.Select(right => right with { Id = DerivedId.Create(right.Id, "household-use:") })];
             householdLandUseRights = householdLandUseRights.OrderBy(right => right.Id, StringComparer.Ordinal).ToList();
         }
-        world.WorldSimulation = world.WorldSimulation with
-        {
-            Buildings = world.WorldSimulation.Buildings.Select(building => assigned.Contains(building.InstanceId)
-                ? building with { TownId = town.Id } : building).ToArray()
-        };
+        world.AssignFoundingBuildings(assigned, town.Id);
         AdvanceTownCouncil(world);
         SettleTownAdmissions(world);
         world.AppendEvent(new TownFoundedEventPayload(actor, town.Id, previous ?? "none", group.Count, false), world.Agents[actor].Position);

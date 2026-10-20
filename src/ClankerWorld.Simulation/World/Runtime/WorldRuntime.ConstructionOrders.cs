@@ -206,11 +206,7 @@ public sealed partial class WorldRuntime
             order.ConstructionPosition!.Value, order.ConstructionStartedTick!.Value, WorldTick,
             society.Checkpoint.Inventory.Reservations.Where(item => item.Purpose == purpose)
                 .Select(item => item.Id).Order().ToArray());
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            ConstructionReceipts = (worldSimulation.ConstructionReceipts ?? []).Append(receipt)
-                .OrderBy(item => item.InstructionId.Value, StringComparer.Ordinal).ToArray(),
-        });
+        constructionSystem.Buildings.RecordConstructionReceipt(receipt);
         CreditOrderEffect(instruction, Identity.Parse(ConstructionOrderReceipt(receipt.BuildingInstanceId)), 1);
     }
 
@@ -224,13 +220,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException("Construction orders require unique instruction IDs.");
         var instructionById = savedInstructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
         var receipts = simulation?.ConstructionReceipts ?? [];
-        if (receipts.Any(item => item is null || !IdentityRules.Reference(item.InstructionId, int.MaxValue, requireTrimmed: true) ||
-                !IdentityRules.Reference(item.ActorId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.BuildingInstanceId, int.MaxValue, requireTrimmed: true) ||
-                !IdentityRules.Reference(item.DefinitionId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(item.OwnerId, int.MaxValue, requireTrimmed: true) ||
-                !IdentityRules.Reference(item.MaterialOwnerId, int.MaxValue, requireTrimmed: true)) ||
-            receipts.Select(item => item.InstructionId.Value).Distinct(StringComparer.Ordinal).Count() != receipts.Count ||
-            receipts.Select(item => item.BuildingInstanceId).Distinct(StringComparer.Ordinal).Count() != receipts.Count)
-            throw new InvalidDataException("Construction completion receipts must be unique.");
+        BuildingStore.ValidateReceipts(receipts);
         var householdIds = society.Households.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var receipt in receipts)
         {
@@ -240,14 +230,12 @@ public sealed partial class WorldRuntime
                 receipt.BuildingInstanceId != ConstructionInstanceId(instruction.InstructionId) ||
                 receipt.BuildingInstanceId != order.ConstructionInstanceId || receipt.OwnerId != order.ConstructionOwnerId ||
                 receipt.Position != order.ConstructionPosition || receipt.StartedTick != order.ConstructionStartedTick ||
-                receipt.StartedTick < instruction.SubmittedTick || receipt.CompletedTick < receipt.StartedTick || receipt.CompletedTick > worldTick ||
+                receipt.StartedTick < instruction.SubmittedTick || receipt.CompletedTick > worldTick ||
                 !householdIds.Contains(receipt.OwnerId) ||
                 receipt.MaterialOwnerId != receipt.OwnerId && receipt.MaterialOwnerId != receipt.ActorId ||
                 WorldBuildingOrderCatalog.Find(content, receipt.DefinitionId) is not { } catalog ||
                 !WorldBuildingOrderCatalog.Supports("construct_building", catalog.BuildingKind) ||
-                receipt.MaterialOwnerId == receipt.ActorId && !catalog.Definition.Tags.Contains("house", StringComparer.Ordinal) ||
-                receipt.InputReservationIds is null || receipt.InputReservationIds.Any(id => !IdentityRules.Reference(id, int.MaxValue, requireTrimmed: true)) ||
-                receipt.InputReservationIds.Distinct().Count() != receipt.InputReservationIds.Count)
+                receipt.MaterialOwnerId == receipt.ActorId && !catalog.Definition.Tags.Contains("house", StringComparer.Ordinal))
                 throw new InvalidDataException("A construction receipt does not match its completed owner order.");
             var purpose = "building:" + receipt.BuildingInstanceId;
             var definition = catalog.Definition;
@@ -288,4 +276,6 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("An ordered construction project does not match its saved order.");
         }
     }
+
+    private static bool ValidConstructionIdentity(string? value) => BuildingStore.ValidConstructionIdentity(value);
 }

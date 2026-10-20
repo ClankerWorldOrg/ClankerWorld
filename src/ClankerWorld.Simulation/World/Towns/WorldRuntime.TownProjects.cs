@@ -706,10 +706,7 @@ public sealed partial class WorldRuntime
         }
         var placed = new PlacedBuilding(id, project.Plan.DefinitionId, project.Plan.Site, WorldTick,
             townId, Entrance: project.Plan.Entrance);
-        constructionState = WorldConstructionState.From(worldSimulation with
-        {
-            Buildings = worldSimulation.Buildings.Append(placed).OrderBy(item => item.InstanceId, StringComparer.Ordinal).ToArray(),
-        });
+        constructionSystem.Buildings.PlaceBuildings([placed]);
         SetTownProject(townId, project with
         {
             Stage = "completed",
