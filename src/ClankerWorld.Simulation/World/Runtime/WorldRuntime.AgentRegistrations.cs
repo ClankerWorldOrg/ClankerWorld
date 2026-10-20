@@ -141,20 +141,10 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "RepairToolPrefix", [ToolRepairChoice.Prefix], [], Definition: ToolRepairDefinition),
         new(ActionPhase.Ordinary, "RareMiningPrefix", [RareMiningChoice.Prefix], [], Definition: RareMiningDefinition),
-        new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix, KnowledgeReadPrefix], ["knowledge_continue"], static (runtime, action) =>
-    {
-        runtime.ApplyKnowledgeWritingCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
-        return true;
-    }),
-        new(ActionPhase.Ordinary, "ApplyKnowledgeStorageCandidate", [], [], static (runtime, action) =>
-    {
-        return runtime.ApplyKnowledgeStorageCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
-    }),
-        new(ActionPhase.Ordinary, "KnowledgeSharePrefix", [KnowledgeSharePrefix], [], static (runtime, action) =>
-    {
-        runtime.ApplyKnowledgeShare(action.AgentId, action.State, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "KnowledgeWritePrefix", [KnowledgeWritePrefix, KnowledgeCopyPrefix], ["knowledge_continue"], Definition: KnowledgeWritingDefinition),
+        new(ActionPhase.Ordinary, "KnowledgeReadPrefix", [KnowledgeReadPrefix], [], Definition: KnowledgeReadDefinition),
+        new(ActionPhase.Ordinary, "ApplyKnowledgeStorageCandidate", [], [], Definition: KnowledgeStorageDefinition),
+        new(ActionPhase.Ordinary, "KnowledgeSharePrefix", [KnowledgeSharePrefix], [], Definition: KnowledgeShareDefinition),
         new(ActionPhase.Ordinary, "SupplyWorkstationPrefix", [WorkstationSupplyChoice.Prefix], [], Definition: WorkstationSupplyDefinition),
         new(ActionPhase.Ordinary, "ReturnEmptyVesselPrefix", [VesselChoice.EmptyPrefix], [], Definition: HouseholdVesselDefinition(VesselActionKind.ReturnEmpty)),
         new(ActionPhase.Ordinary, "collect_water_jug", [], [new VesselChoice(VesselActionKind.CollectJug).Encode()], Definition: HouseholdVesselDefinition(VesselActionKind.CollectJug)),

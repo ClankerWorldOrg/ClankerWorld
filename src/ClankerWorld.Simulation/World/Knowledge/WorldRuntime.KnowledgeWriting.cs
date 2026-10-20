@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
 
     private void OfferKnowledgeWriting(List<CognitionCandidate> candidates, KnowledgeWritingActionPlan? plan, string text, int priority)
     {
-        if (plan is not null && CheckKnowledgeWriting(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
+        if (plan is not null && CheckActionPlan(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
     }
 
     private void AddKnowledgeWritingCandidates(List<CognitionCandidate> candidates, string actor, AgentState person)
@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
             if (HasUnknownArtifactContents(actor, artifact))
             {
                 var reading = new KnowledgeReadingActionPlan(actor, artifact, actor, false);
-                if (CheckKnowledgeReading(reading).Allowed) candidates.Add(new(reading.CandidateId,
+                if (CheckActionPlan(reading).Allowed) candidates.Add(new(reading.CandidateId,
                     $"Read {artifact.Title} and learn only the sites and recipes actually written in it.", 53)
                 { ActionPlan = reading });
             }
@@ -168,7 +168,14 @@ public sealed partial class WorldRuntime
         }
         var plan = originalPlan as KnowledgeWritingActionPlan ?? PlanKnowledgeWriting(actor, candidate);
         if (plan is null) return;
-        if (CheckKnowledgeWriting(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedKnowledgeWriting(plan, person);
+    }
+
+    private void ApplyCheckedKnowledgeWriting(KnowledgeWritingActionPlan plan, AgentState person)
+    {
+        var actor = plan.Actor;
+        var candidate = plan.CandidateId;
         if (plan.Project is not null) { ContinueKnowledgeWriting(KnowledgeWritingFor(actor)!); return; }
         if (plan.Pickup is { } pickup)
         {

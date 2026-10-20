@@ -2,10 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckKnowledgeWriting(KnowledgeWritingActionPlan plan)
+    private ActionCheck CheckKnowledgeWriting(KnowledgeWritingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? KnowledgeWritingCapabilities);
         if (!capability.Allowed) return capability;
         if (plan.Project is { } selected)
         {

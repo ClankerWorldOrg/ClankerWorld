@@ -58,27 +58,13 @@ public sealed partial class WorldRuntime
                     continue;
                 var targetName = society.Checkpoint.GetAgent(target.AgentId).Name;
                 var plan = new KnowledgeReadingActionPlan(actor, artifact, target.AgentId, true);
-                if (CheckKnowledgeReading(plan).Allowed) candidates.Add(new CognitionCandidate(
+                if (CheckActionPlan(plan).Allowed) candidates.Add(new CognitionCandidate(
                     plan.CandidateId,
                     $"Share {artifact.Title} with {targetName}; they can learn the written sites and recipes they do not already know, and you keep the physical artifact.",
                     52)
                 { ActionPlan = plan });
             }
         }
-    }
-
-    private void ApplyKnowledgeShare(string actor, AgentState person, string candidateId, ActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan as KnowledgeReadingActionPlan;
-        if (plan is null)
-        {
-            var encoded = candidateId[KnowledgeSharePrefix.Length..];
-            var divider = encoded.LastIndexOf('|');
-            if (divider <= 0 || divider == encoded.Length - 1) return;
-            if (HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == encoded[..divider]) is { } artifact)
-                plan = new(actor, artifact, encoded[(divider + 1)..], true);
-        }
-        if (plan is not null) ApplyKnowledgeReading(plan);
     }
 
     private void ReadTradedKnowledge(string firstPartyId, string secondPartyId, string firstLotId, string secondLotId)

@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
                 var position = HouseholdStockPosition(lot);
                 var range = KnowledgeCollectionRange(actor, lot);
                 var plan = PlanKnowledgeStorage(actor, artifact, true);
-                if (plan is null || !CheckKnowledgeStorage(plan).Allowed) continue;
+                if (plan is null || !CheckActionPlan(plan).Allowed) continue;
                 // Explicit access stays available without an automatic
                 // collect/store cycle when the owner has no current use.
                 candidates.Add(new(plan.CandidateId,
@@ -61,25 +61,17 @@ public sealed partial class WorldRuntime
         foreach (var artifact in HeldKnowledgeArtifacts(actor))
         {
             var plan = PlanKnowledgeStorage(actor, artifact, false);
-            if (plan is not null && CheckKnowledgeStorage(plan).Allowed) candidates.Add(new(plan.CandidateId,
+            if (plan is not null && CheckActionPlan(plan).Allowed) candidates.Add(new(plan.CandidateId,
                 $"Store {artifact.Title} in your House while keeping personal ownership.", 190)
             { ActionPlan = plan });
         }
     }
 
-    private bool ApplyKnowledgeStorageCandidate(string actor, AgentState person, string candidateId, ActionPlan? originalPlan = null)
+    private bool ApplyCheckedKnowledgeStorage(KnowledgeStorageActionPlan plan, AgentState person)
     {
-        var collect = candidateId.StartsWith(KnowledgeCollectPrefix, StringComparison.Ordinal);
-        var store = candidateId.StartsWith(KnowledgeStorePrefix, StringComparison.Ordinal);
-        if (!collect && !store) return false;
-        if (!IsAdult(actor)) return true;
-        var artifactId = candidateId[(collect ? KnowledgeCollectPrefix.Length : KnowledgeStorePrefix.Length)..];
-        var artifact = knowledge.Artifacts.FirstOrDefault(item => item.Id == artifactId);
-        if (artifact is null) return true;
-        var plan = originalPlan as KnowledgeStorageActionPlan ?? PlanKnowledgeStorage(actor, artifact, collect);
-        if (plan is null) return true;
-        if (CheckKnowledgeStorage(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return true; }
-        artifact = plan.Artifact;
+        var actor = plan.Actor;
+        var collect = plan.Collect;
+        var artifact = plan.Artifact;
         if (collect)
         {
             if (FreeCarryCapacity(actor) < 1 || KnowledgeArtifactForCollection(actor, artifact) is not { } lot)
