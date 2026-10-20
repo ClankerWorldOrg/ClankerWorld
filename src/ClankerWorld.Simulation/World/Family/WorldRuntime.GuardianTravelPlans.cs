@@ -17,12 +17,11 @@ public sealed partial class WorldRuntime
         return new(actor, choice, child, placement, Reach(actor, target, ReachPurpose.GuardianTravel, range, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckGuardianTravelPlan(GuardianTravelActionPlan plan)
+    private ActionCheck CheckGuardianTravelPlan(GuardianTravelActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var following = plan.Choice.Kind == GuardianTravelKind.Follow;
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(following ? ActionLifeStages.Dependents : ActionLifeStages.Adults, AllowBoat: true,
-                AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: false));
+            policy ?? GuardianTravelCapabilities(plan.Choice.Kind));
         if (!capability.Allowed) return capability;
         if (!agents.TryGetValue(plan.ChildId, out var child) || child.GuardianPlacement is not { } current ||
             current with { Stage = plan.Placement.Stage, Blocker = plan.Placement.Blocker } != plan.Placement ||
@@ -45,7 +44,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyGuardianTravelPlan(GuardianTravelActionPlan plan)
     {
-        if (CheckGuardianTravelPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedGuardianTravel(plan);
+    }
+
+    private void ApplyCheckedGuardianTravel(GuardianTravelActionPlan plan)
+    {
         // The selected people and home stay bound while collection/escort phases
         // advance. Following reaches the same guardian's current physical position.
         if (plan.Choice.Kind == GuardianTravelKind.Relocate) EscortGuardianChild(plan.Actor, plan.ChildId);

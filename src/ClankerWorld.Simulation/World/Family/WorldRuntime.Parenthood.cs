@@ -150,7 +150,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
             }
-            if (PlanPracticalCare(actor, new(PracticalCareKind.Child, child.AgentId)) is { } care && CheckPracticalCarePlan(care).Allowed)
+            if (PracticalCareDefinition.Offer(this, actor, new(PracticalCareKind.Child, child.AgentId)) is { } care)
                 candidates.Add(new CognitionCandidate(care.CandidateId, "Bring food and warmth to your dependent child.", 2) { ActionPlan = care });
         }
         if (!ReadyForLesson(actor)) return;

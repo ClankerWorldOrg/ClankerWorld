@@ -23,10 +23,10 @@ public sealed partial class WorldRuntime
             Reach(actor, child.Position, ReachPurpose.PracticalCare, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckPracticalCarePlan(PracticalCareActionPlan plan)
+    private ActionCheck CheckPracticalCarePlan(PracticalCareActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? FamilyCareCapabilities);
         if (!capability.Allowed) return capability;
         if (!agents.TryGetValue(plan.Choice.DependentId, out var child) || child.Position != plan.Position ||
             plan.Relationship is { } original && !RelationshipPlan.Matches(society.Checkpoint.Relationships.FirstOrDefault(edge => edge.Id == original.Id), original) ||
@@ -49,7 +49,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyPracticalCarePlan(PracticalCareActionPlan plan)
     {
-        if (CheckPracticalCarePlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedPracticalCare(plan);
+    }
+
+    private void ApplyCheckedPracticalCare(PracticalCareActionPlan plan)
+    {
         if (plan.PreparingFood)
         {
             if (plan.Food is SharedFoodActionPlan shared) CompleteChildFoodPickup(plan.Actor, shared, plan.Position);

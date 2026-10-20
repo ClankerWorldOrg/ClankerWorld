@@ -194,6 +194,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Partnership, parenthood and dependent care and travel own their codecs,
+planners, capability policies, checks and native application in the ordered
+action rows. Policies follow the retained care or consent step. Guardian travel
+keeps its placement refresh before planning a legacy request; ending care runs
+before age validation only while a guardian placement task exists.
+
 Exploration owns its typed codec, planner, capability policy, check and native
 application in the ordered action rows. Its policy follows the retained plan
 for automatic travel, preserving the different limits on model choices.
