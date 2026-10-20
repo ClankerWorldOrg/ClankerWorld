@@ -30,6 +30,8 @@ public sealed partial class WorldRuntime
     private sealed record ChoiceRegistration(ChoiceGroup Group, string Name, Action<WorldRuntime, ChoiceContext> Add, Func<WorldRuntime, ChoiceContext, bool>? Enabled = null);
     private static readonly IReadOnlyList<ActionRegistration> ActionRegistrations = Array.AsReadOnly<ActionRegistration>(
     [
+        new(ActionPhase.FreshAdmission, "TownProjectProposal", [], [], Definition: TownProjectProposalDefinition),
+        new(ActionPhase.FreshAdmission, "TownProjectDonation", [], [], Definition: TownProjectDonationDefinition),
         new(ActionPhase.FreshAdmission, "NonLandFiling", [], [], Definition: NonLandFilingDefinition),
         new(ActionPhase.FreshAdmission, "NonLandEvidence", [], [], Definition: NonLandEvidenceDefinition),
         new(ActionPhase.FreshAdmission, "NonLandJudge", [], [], Definition: NonLandJudgeDefinition),
@@ -107,12 +109,12 @@ public sealed partial class WorldRuntime
     {
         return IsTownProjectDonationCandidate(action.CandidateId);
     }),
+        new(ActionPhase.Ordinary, "TownProjectLoad", [], [], Definition: TownProjectLoadDefinition),
+        new(ActionPhase.Ordinary, "TownProjectWork", [], [], Definition: TownProjectWorkDefinition),
+        new(ActionPhase.Ordinary, "TownProjectRecovery", [], [], Definition: TownProjectRecoveryDefinition),
         new(ActionPhase.Ordinary, "ApplyTownProjectCandidate", [], [], static (runtime, action) =>
     {
-        if (!(IsTownProjectCandidate(action.CandidateId)))
-            return false;
-        runtime.ApplyTownProjectCandidate(action.AgentId, action.State, action.CandidateId, action.Plan);
-        return true;
+        return IsTownProjectCandidate(action.CandidateId);
     }),
         new(ActionPhase.Ordinary, "IsMarketCandidate", [], [], static (runtime, action) =>
     {

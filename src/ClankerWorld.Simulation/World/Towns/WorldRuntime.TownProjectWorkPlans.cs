@@ -2,10 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckTownProjectWork(TownProjectWorkActionPlan plan)
+    private ActionCheck CheckTownProjectWork(TownProjectWorkActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? TownProjectPhysicalCapabilities);
         if (!capability.Allowed) return capability;
         if (!ReadyForTownProject(plan.Actor) || TownForResident(plan.Actor) != plan.TownId ||
             towns.SingleOrDefault(town => town.Id == plan.TownId) is not { Council: not null } town ||
@@ -55,9 +55,8 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected material source is out of reach");
     }
 
-    private void ApplyTownProjectWork(TownProjectWorkActionPlan plan)
+    private void ApplyCheckedTownProjectWork(TownProjectWorkActionPlan plan)
     {
-        if (CheckTownProjectWork(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         if (plan.Choice.ItemKind is { } kind)
         {
             if (plan.ToolPickup is { } pickup) ApplyGatheringToolPickup(plan.Actor, pickup);

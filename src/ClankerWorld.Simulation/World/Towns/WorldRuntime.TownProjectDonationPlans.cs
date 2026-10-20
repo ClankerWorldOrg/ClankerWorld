@@ -9,10 +9,10 @@ public sealed partial class WorldRuntime
             choice.Town.Id, choice.Project.ProposalId, choice.Project.Plan, choice.ItemKind, TownProjectRules.WorkSite(choice.Project.Plan),
             Reach(actor, TownProjectRules.WorkSite(choice.Project.Plan), ReachPurpose.TownProjectDonation, 0, 0, SwimmingPolicy.WhenCapable));
 
-    private ActionCheck CheckTownProjectDonation(TownProjectDonationActionPlan plan)
+    private ActionCheck CheckTownProjectDonation(TownProjectDonationActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? TownProjectPhysicalCapabilities);
         if (!capability.Allowed) return capability;
         if (!ReadyForTownProject(plan.Actor) || TownForResident(plan.Actor) != plan.TownId || towns.SingleOrDefault(town => town.Id == plan.TownId) is not { Council: not null } town ||
             town.Projects.SingleOrDefault(project => project.Id == plan.Choice.ProjectId) is not { Stage: "supplying" or "working" } project ||

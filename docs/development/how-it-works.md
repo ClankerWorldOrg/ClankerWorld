@@ -3459,6 +3459,12 @@ contribution or source; pure planners and shared checks serve offered, admitted
 and continuing steps, followed by the original TownSystem effects. Existing agreement
 consent permits physical continuation; a new agreement needs fresh admission.
 
+Town project proposals and donations have fresh-admission definitions; their
+load, work and recovery definitions retain the existing ordinary phase. Each
+keeps its original site, budget, selected goods and quantities. Named capability
+policies feed the existing checks, including urgent personal returns, before
+the original native effects apply. Project names bind on the retained proposal.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may

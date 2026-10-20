@@ -71,6 +71,8 @@ public sealed partial class WorldRuntime
             originalPlan = TownSystem.BindNonLandEvidence(evidence, nonLandChoice);
         if (originalPlan is NonLandFilingActionPlan nonLandFiling)
             originalPlan = TownSystem.BindNonLandFiling(nonLandFiling, nonLandChoice);
+        if (originalPlan is TownProjectProposalActionPlan projectProposal)
+            originalPlan = TownSystem.BindTownProjectName(projectProposal, proposalText);
         if (originalPlan is not null)
             TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
     }
