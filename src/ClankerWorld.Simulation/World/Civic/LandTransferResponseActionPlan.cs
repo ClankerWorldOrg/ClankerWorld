@@ -14,7 +14,9 @@ public sealed record LandTransferResponseChoice(string TownId, LandTransferRespo
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{TermsToken}|{PartyToken}";
     public static LandTransferResponseChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var terms, var party] || town.Length == 0 || terms.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var terms, var party] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(terms, DerivedId.MaximumLength)) return null;
         LandTransferResponseKind? kind = verb switch
         {
             "land_transfer_read" => LandTransferResponseKind.Read,
@@ -23,7 +25,8 @@ public sealed record LandTransferResponseChoice(string TownId, LandTransferRespo
             "land_transfer_withdraw" => LandTransferResponseKind.Withdraw,
             _ => null
         };
-        return kind is { } selected ? new(town, selected, terms, party) : null;
+        return kind is { } selected && (selected is LandTransferResponseKind.Read or LandTransferResponseKind.Withdraw
+            ? party == "" : IdentityRules.Reference(party, DerivedId.MaximumLength)) ? new(town, selected, terms, party) : null;
     }
 }
 

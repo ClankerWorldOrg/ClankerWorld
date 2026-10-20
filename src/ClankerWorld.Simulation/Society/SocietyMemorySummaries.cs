@@ -4,8 +4,10 @@ using System.Text.Json;
 
 namespace ClankerWorld.Simulation.Society;
 
-public sealed record SocietyMemorySummarySource(string Id, SocietyMemorySourceKind Kind, long SourceTick);
-public sealed record SocietyAgentMemorySummary(string Id, string OwnerId, string Choice, string Text,
+public sealed record SocietyMemorySummarySource(
+    [property: System.Text.Json.Serialization.JsonConverter(typeof(StoredIdentityJsonConverter))] Identity Id,
+    SocietyMemorySourceKind Kind, long SourceTick);
+public sealed record SocietyAgentMemorySummary(Identity Id, string OwnerId, string Choice, string Text,
     long CreatedTick, IReadOnlyList<SocietyMemorySummarySource> Sources);
 public sealed record SocietyMemorySummaryOption(string Choice, string Text, IReadOnlyList<SocietyMemorySummarySource> Sources);
 
@@ -31,9 +33,9 @@ public static class SocietyMemorySummaryRules
                 (importance.SingleOrDefault(score => score.SourceId == item.Source.Id && score.Kind == item.Source.Kind)?.ImportanceBasisPoints ?? 0) <
                     SocietyMemoryArchiveRules.ImportanceCutoffBasisPoints)
             .OrderBy(item => item.Source.SourceTick).ThenBy(item => item.Source.Kind)
-            .ThenBy(item => item.Source.Id, StringComparer.Ordinal).Take(MaximumSources).ToArray();
+            .ThenBy(item => item.Source.Id.Value, StringComparer.Ordinal).Take(MaximumSources).ToArray();
         if (sources.Length < MinimumSources) return [];
-        var links = sources.Select(item => item.Source).OrderBy(item => item.Kind).ThenBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        var links = sources.Select(item => item.Source).OrderBy(item => item.Kind).ThenBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
         return Choices.Select(choice =>
                 new SocietyMemorySummaryOption(choice, Text(sources, choice), links))
             .Where(option => option.Text.Length < sources.Sum(source => source.Text.Length))
@@ -48,7 +50,7 @@ public static class SocietyMemorySummaryRules
     internal static string Text(IReadOnlyList<SourceRecord> sources, string choice)
     {
         var ordered = sources.OrderBy(source => source.Source.SourceTick).ThenBy(source => source.Source.Kind)
-            .ThenBy(source => source.Source.Id, StringComparer.Ordinal).ToArray();
+            .ThenBy(source => source.Source.Id.Value, StringComparer.Ordinal).ToArray();
         var selected = choice switch
         {
             "recent" => ordered.TakeLast(2),
@@ -56,27 +58,18 @@ public static class SocietyMemorySummaryRules
             "varied" => new[] { ordered[0], ordered[^1] },
             _ => throw new InvalidDataException("Unknown private memory summary choice."),
         };
-        return string.Join("; ", selected.Select(source => source.Label + ": " + Excerpt(source.Text)));
-    }
-
-    private static string Excerpt(string text)
-    {
-        var clean = string.Join(' ', new string(text.Select(character => char.IsControl(character) ? ' ' : character).ToArray())
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (clean.Length <= 48) return clean;
-        var length = char.IsHighSurrogate(clean[46]) && char.IsLowSurrogate(clean[47]) ? 46 : 47;
-        return clean[..length] + "…";
+        return string.Join("; ", selected.Select(source => source.Label + ": " + BoundedText.Excerpt(source.Text, 48, "…", TextNormalization.ControlsAndSpaces)));
     }
 
     internal sealed record SourceRecord(SocietyMemorySummarySource Source, string Text, string Label, bool Corrected);
 
     internal static IEnumerable<SourceRecord> Records(SocietyCheckpoint checkpoint, string owner) =>
         checkpoint.AllMemories().Where(memory => memory.OwnerId == owner && !SocietyMemoryArchiveRules.IsPermanent(memory) &&
-                memory.Id.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(memory.Summary))
+                memory.Id.Value.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(memory.Summary))
             .Select(memory => new SourceRecord(new(memory.Id, SocietyMemorySourceKind.Experience, memory.SourceTick), memory.Summary,
                 "Memory", memory.TombstonedTick is not null))
             .Concat(checkpoint.AllBeliefs().Where(belief => belief.OwnerId == owner && belief.Kind == SocietyMemoryKind.Experience &&
-                    belief.SourceEventId is null && belief.Id.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(belief.Statement))
+                    belief.SourceEventId is null && belief.Id.Value.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(belief.Statement))
                 .Select(belief => new SourceRecord(new(belief.Id, SocietyMemorySourceKind.Belief, belief.FormedTick), belief.Statement,
                     belief.Provenance switch { SocietyBeliefProvenance.Hearsay => "Hearsay", SocietyBeliefProvenance.Inference => "Inference", _ => "Firsthand belief" },
                     belief.SupersededByBeliefId is not null)));
@@ -91,12 +84,12 @@ public static partial class SocietyRules
             !SocietyMemorySummaryRules.Options(checkpoint, owner).Any(candidate => candidate.Choice == option.Choice &&
                 candidate.Text == option.Text && candidate.Sources.SequenceEqual(option.Sources)))
             throw new InvalidOperationException("A helper may summarize only its requested current private source batch.");
-        var summary = new SocietyAgentMemorySummary(SocietyMemorySummaryRules.Id(owner, option.Sources), owner,
+        var summary = new SocietyAgentMemorySummary(Identity.Parse(SocietyMemorySummaryRules.Id(owner, option.Sources)), owner,
             option.Choice, option.Text, checkpoint.WorldTick, option.Sources.ToArray());
         var result = checkpoint with
         {
             MemorySummaries = checkpoint.MemorySummaries.Append(summary)
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray()
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray()
         };
         Validate(result);
         return result;
@@ -106,7 +99,7 @@ public static partial class SocietyRules
     {
         if (checkpoint.MemorySummaries is null || checkpoint.MemorySummaries.Any(item => item is null))
             throw new InvalidDataException("Private memory summaries are missing or incomplete.");
-        EnsureCanonicalIds(checkpoint.MemorySummaries.Select(item => item.Id), "private memory summaries");
+        EnsureCanonicalIds(checkpoint.MemorySummaries.Select(item => (string?)item.Id), "private memory summaries");
         var used = new HashSet<string>(StringComparer.Ordinal);
         foreach (var summary in checkpoint.MemorySummaries)
         {
@@ -114,7 +107,7 @@ public static partial class SocietyRules
                 summary.Sources.Count is < SocietyMemorySummaryRules.MinimumSources or > SocietyMemorySummaryRules.MaximumSources ||
                 summary.CreatedTick < 0 || summary.CreatedTick > checkpoint.WorldTick || summary.Sources.Any(source => source is null) ||
                 summary.Id != SocietyMemorySummaryRules.Id(summary.OwnerId, summary.Sources) ||
-                !summary.Sources.SequenceEqual(summary.Sources.OrderBy(source => source.Kind).ThenBy(source => source.Id, StringComparer.Ordinal)))
+                !summary.Sources.SequenceEqual(summary.Sources.OrderBy(source => source.Kind).ThenBy(source => (string?)source.Id, StringComparer.Ordinal)))
                 throw new InvalidDataException("A private summary needs its canonical owner, time and exact sources.");
             var records = SocietyMemorySummaryRules.Records(checkpoint, summary.OwnerId).ToDictionary(source => SocietyMemorySummaryRules.Key(source.Source), StringComparer.Ordinal);
             var sources = new List<SocietyMemorySummaryRules.SourceRecord>();

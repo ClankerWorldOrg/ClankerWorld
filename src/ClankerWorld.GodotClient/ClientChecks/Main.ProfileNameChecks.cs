@@ -29,7 +29,7 @@ public partial class Main
         const string shorter = "Short Vale";
         var tick = 0L;
         OwnerWorldReconnect World(string name) => new(new(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []),
             new(new OwnerWorldSnapshot("long-profile-world", ++tick, "long-profile-map", [new(0, 0, "meadow")],
                 [], [], null, 0)
@@ -85,12 +85,12 @@ public partial class Main
                     renameAgentButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await host.RenameReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
                     var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
-                    while (DateTime.UtcNow < deadline && (renameRow.Visible || selectedActorNameLabel.Text != shorter))
+                    while (DateTime.UtcNow < deadline && (renameRow.Visible || selectedActorNameLabel.FullText != shorter))
                         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                     await SettleAsync();
                     if (!host.RenameRequests.TryDequeue(out var sent) || sent != new OwnerAgentRenameAction(agentId, shorter) ||
-                        renameRow.Visible || selectedActorNameLabel.Text != shorter)
-                        throw new InvalidOperationException($"The visible Rename button must submit the shorter name and display the accepted result: fieldOpen={renameRow.Visible}, shown={selectedActorNameLabel.Text}, status={statusLabel.Text}.");
+                        renameRow.Visible || selectedActorNameLabel.FullText != shorter)
+                        throw new InvalidOperationException($"The visible Rename button must submit the shorter name and display the accepted result: fieldOpen={renameRow.Visible}, shown={selectedActorNameLabel.FullText}, status={statusLabel.Text}.");
                     Fits(shorter, agentProfilePanel, renameToggleButton, profileCloseButton);
                     profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await SettleAsync();

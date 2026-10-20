@@ -82,3 +82,12 @@ public static class UnusableModelReply
         return false;
     }
 }
+
+/// <summary>Shared output bounds for personal-model requests and reported model names.</summary>
+public static class ModelOutputLimits
+{
+    public const int MaximumCompletionTokens = 16_000;
+    public const int MaximumModelNameLength = 256;
+    public static string? ReportedModelName(string? value) =>
+        BoundedText.NormalizeModelText(value, MaximumModelNameLength);
+}

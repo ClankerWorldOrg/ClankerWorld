@@ -1,1 +1,0 @@
-- Caregivers can gather reachable food for infants when their household food store is blocked, instead of repeatedly heading for supplies they cannot reach.

@@ -1,1 +1,0 @@
-- Shelter and fire orders aimed at water or other impassable terrain remain blocked without stopping the world or its saves.

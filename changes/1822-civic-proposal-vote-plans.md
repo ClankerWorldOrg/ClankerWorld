@@ -1,1 +1,0 @@
-- Town proposal responses keep their original proposal and voting window when checked before applying.

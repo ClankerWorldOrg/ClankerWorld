@@ -3,8 +3,10 @@ namespace ClankerWorld.Simulation.World;
 public sealed record HouseholdLandFilingChoice(string TownId, string? BuildingId, string PlotToken)
 {
     public string Encode() => $"civic|{TownId}|{(BuildingId is null ? "request_land_use" : "request_expansion_land")}|{BuildingId ?? ""}|{PlotToken}";
-    public static HouseholdLandFilingChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var building, var plot] && town.Length > 0 &&
-        (verb == "request_land_use" && building.Length == 0 && plot.Length == 0 || verb == "request_expansion_land" && building.Length > 0)
+    public static HouseholdLandFilingChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var building, var plot] &&
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        (verb == "request_land_use" && building is "" && plot is "" || verb == "request_expansion_land" &&
+            IdentityRules.Reference(building, requireTrimmed: true) && IdentityRules.Reference(plot, DerivedId.MaximumLength))
         ? new(town, verb == "request_land_use" ? null : building, plot) : null;
 }
 

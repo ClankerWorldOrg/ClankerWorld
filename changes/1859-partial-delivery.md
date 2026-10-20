@@ -1,1 +1,0 @@
-- Quantity-limited delivery orders now keep track of the goods they pick up when long inventory identifiers are shortened, so the requested delivery can finish after saving and loading.

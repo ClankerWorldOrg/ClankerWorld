@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -159,7 +160,7 @@ public sealed class TownBuildingManagementTests
                 {
                     Position = tailor.Position,
                     FullnessBasisPoints = 9_000,
-                    Equipment = new(Repair: new EquipmentRepairWork("repair-site-coat", tailorId, tick, 0, [reservationId])),
+                    Equipment = new(Repair: new EquipmentRepairWork("repair-site-coat", tailorId, tick, 0, [Identity.Parse(reservationId)])),
                 }
                 : person).ToArray(),
         };
@@ -297,7 +298,7 @@ public sealed class TownBuildingManagementTests
         var worker = state.Society.Society.Agents.First(item => item.HouseholdId == house.HouseholdId).Id;
         var expansion = new BuildingExpansionJob("historic-expansion", house.InstanceId, worker,
             house.HouseholdId!, 0, house.Position, house.Position, new(1, 2, 1),
-            0, 1, WorldProductionJobState.Completed, ["historic-reservation"]);
+            0, 1, WorldProductionJobState.Completed, [Identity.Parse("historic-reservation")]);
         var recipe = state.WorldContent!.Recipes.First(item => !item.IsCrop);
         var production = new WorldProductionJob("historic-production", recipe.CanonicalId,
             house.InstanceId, worker, 0, 1, WorldProductionJobState.Completed, []);
@@ -354,7 +355,7 @@ public sealed class TownBuildingManagementTests
         var worker = state.Towns!.Single(item => item.Id == warehouse.TownId).ResidentIds[0];
         var expansion = new BuildingExpansionJob("historic-expansion", warehouse.InstanceId, worker,
             warehouse.TownId!, 0, warehouse.Position, warehouse.Position, new(2, 3, 1),
-            0, 1, WorldProductionJobState.Completed, ["historic-reservation"]);
+            0, 1, WorldProductionJobState.Completed, [Identity.Parse("historic-reservation")]);
         state = state with { WorldSimulation = state.WorldSimulation! with { BuildingExpansions = [expansion] } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());

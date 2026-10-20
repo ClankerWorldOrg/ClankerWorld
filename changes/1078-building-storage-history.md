@@ -1,1 +1,0 @@
-- Building Details now lists recent recorded storage additions and removals with exact quantities and times, including vessel contents, across saves and reconnects.

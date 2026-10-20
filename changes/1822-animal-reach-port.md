@@ -1,1 +1,0 @@
-- Removed the unused direct route-search method from the animal world interface, its runtime adapter and its test fake, along with the source-rule exception for that adapter.
