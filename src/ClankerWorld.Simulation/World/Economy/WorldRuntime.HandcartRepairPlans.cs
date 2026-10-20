@@ -47,10 +47,10 @@ public sealed partial class WorldRuntime
     }
 
     private ActionCheck CheckHandcartRepairTarget(ActionPlan plan, string cartId, GridPoint position,
-        IReadOnlyList<PlannedStockMember> family, HandcartHitch? hitch)
+        IReadOnlyList<PlannedStockMember> family, HandcartHitch? hitch, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true));
+            policy ?? TransportCapabilities);
         if (!capability.Allowed) return capability;
         var selection = CheckHandcartSelection(plan.Actor, cartId, position, family, hitch);
         if (!selection.Allowed) return selection;
@@ -60,9 +60,9 @@ public sealed partial class WorldRuntime
             ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected cart no longer needs repair or its cargo is promised");
     }
 
-    private ActionCheck CheckHandcartRepairPlan(HandcartRepairActionPlan plan)
+    private ActionCheck CheckHandcartRepairPlan(HandcartRepairActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var target = CheckHandcartRepairTarget(plan, plan.Choice.CartId, plan.Position, plan.Family, plan.Hitch);
+        var target = CheckHandcartRepairTarget(plan, plan.Choice.CartId, plan.Position, plan.Family, plan.Hitch, policy);
         if (!target.Allowed) return target;
         var index = InventoryIndex.For(society.Checkpoint.Inventory);
         foreach (var material in plan.Materials)
@@ -74,9 +74,9 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected handcart is out of reach now");
     }
 
-    private ActionCheck CheckHandcartRepairInputPlan(HandcartRepairInputActionPlan plan)
+    private ActionCheck CheckHandcartRepairInputPlan(HandcartRepairInputActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var target = CheckHandcartRepairTarget(plan, plan.CartId, plan.Position, plan.Family, plan.Hitch);
+        var target = CheckHandcartRepairTarget(plan, plan.CartId, plan.Position, plan.Family, plan.Hitch, policy);
         if (!target.Allowed) return target;
         return HasCarriedMaterial(plan.Actor, plan.Choice.ItemKind, 1) || HasCarriedEquipmentAtLeast(plan.Actor, plan.Choice.ItemKind)
             ? ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they already carry this repair input")
@@ -85,14 +85,24 @@ public sealed partial class WorldRuntime
 
     private void ApplyHandcartRepairPlan(HandcartRepairActionPlan plan)
     {
-        if (CheckHandcartRepairPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHandcartRepair(plan);
+    }
+
+    private void ApplyCheckedHandcartRepair(HandcartRepairActionPlan plan)
+    {
         if (agents[plan.Actor].Position != plan.Position) { MoveToward(plan.Actor, agents[plan.Actor], plan.Position, "repair_handcart"); return; }
         CompleteHandcartRepair(plan, society.Checkpoint.Inventory.GetLot(plan.Choice.CartId));
     }
 
     private void ApplyHandcartRepairInputPlan(HandcartRepairInputActionPlan plan)
     {
-        if (CheckHandcartRepairInputPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedHandcartRepairInput(plan);
+    }
+
+    private void ApplyCheckedHandcartRepairInput(HandcartRepairInputActionPlan plan)
+    {
         ApplyPlannedEquipmentPickup(plan.Actor, plan.Pickup);
     }
 }

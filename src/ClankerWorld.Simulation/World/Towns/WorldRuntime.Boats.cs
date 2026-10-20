@@ -54,7 +54,7 @@ public sealed partial class WorldRuntime
                 foreach (var destination in worldSimulation.Buildings.Where(port => port.InstanceId != origin.InstanceId &&
                              Port(port.InstanceId) is not null && PortIsLegal(port)).OrderBy(port => port.InstanceId, StringComparer.Ordinal))
                 {
-                    if (PlanBoatTrip(actor, townId, origin, destination) is { } plan && CheckBoatTripPlan(plan).Allowed)
+                    if (PlanBoatTrip(actor, townId, origin, destination) is { } plan && CheckActionPlan(plan).Allowed)
                         yield return new(plan.CandidateId, townId, origin, destination, plan);
                 }
             }
@@ -65,9 +65,9 @@ public sealed partial class WorldRuntime
     {
         if (WaitingBoatRequest(actor) is { } waiting)
         {
-            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckBoatWaitingPlan(cancel).Allowed)
+            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckActionPlan(cancel).Allowed)
                 candidates.Add(new(cancel.CandidateId, "Cancel your waiting boat trip and release unused reservations.", 90) { ActionPlan = cancel });
-            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Queue, waiting.Id)) is { } queue && agents[actor].Position != queue.Approach && CheckBoatWaitingPlan(queue).Allowed)
+            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Queue, waiting.Id)) is { } queue && agents[actor].Position != queue.Approach && CheckActionPlan(queue).Allowed)
                 candidates.Add(new(queue.CandidateId, "Return to the Port's land approach to wait for your boat trip.", 80) { ActionPlan = queue });
             return;
         }

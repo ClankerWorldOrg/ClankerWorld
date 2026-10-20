@@ -194,6 +194,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Boat requests and waiting, and handcart control, materials, repair, cargo and
+travel own their typed codecs, planners, capability policies, checks and native
+application in ordered action rows. Their retained plans keep the selected
+ports, boats, carts, stock families and quantities; boarding and hitching keep
+their existing mounted-actor restrictions.
+
 Personal collection, storage, borrowed-item returns and house-guest permissions
 own their typed codecs, planners, capability policies, checks and native
 application in ordered action rows. The retained custody mode or invitation
