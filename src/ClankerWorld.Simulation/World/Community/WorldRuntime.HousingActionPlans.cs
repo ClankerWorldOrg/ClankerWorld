@@ -14,10 +14,10 @@ public sealed partial class WorldRuntime
         return new(actor, choice, applicant, household, house, request, HouseholdAdults(household));
     }
 
-    private ActionCheck CheckHousingActionPlan(HousingActionPlan plan)
+    private ActionCheck CheckHousingActionPlan(HousingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? HouseholdCommunityCapabilities);
         if (!capability.Allowed) return capability;
         if (!agents.TryGetValue(plan.ApplicantId, out var applicant) ||
             HouseForHousehold(plan.HouseholdId) is not { } house ||
@@ -46,14 +46,14 @@ public sealed partial class WorldRuntime
         foreach (var candidate in options)
         {
             if (HousingChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (PlanHousingAction(actor, choice) is { } plan && CheckHousingActionPlan(plan).Allowed)
+            if (HousingDefinition.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
         }
     }
 
     private void ApplyHousingActionPlan(HousingActionPlan plan)
     {
-        if (CheckHousingActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteHousingAction(plan);
     }
 }

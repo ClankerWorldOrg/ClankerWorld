@@ -58,16 +58,17 @@ public sealed partial class WorldRuntime
         new(ActionPhase.Ordinary, "guardian_", ["guardian_"], [], Definition: DependentCareDefinition),
         new(ActionPhase.Ordinary, "parent_", ["parent_"], [], Definition: ParenthoodDefinition),
         new(ActionPhase.Ordinary, "partner_", ["partner_"], [], Definition: PartnershipDefinition),
+        new(ActionPhase.Ordinary, "housing", [], [], Definition: HousingDefinition),
+        new(ActionPhase.Ordinary, "departure", [], [], Definition: DepartureDefinition),
+        new(ActionPhase.Ordinary, "replacement_care", [ReplacementCareChoice.Prefix], [], Definition: ReplacementCareDefinition),
+        new(ActionPhase.Ordinary, "household_resume", [HouseholdResumeChoice.Prefix], [], Definition: HouseholdResumeDefinition),
+        new(ActionPhase.Ordinary, "relocation", [], [RelocationChoice.Id], Definition: RelocationDefinition),
         new(ActionPhase.Ordinary, "household_", ["household_"], [], static (runtime, action) =>
     {
         runtime.ApplyHousingCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
-        new(ActionPhase.Ordinary, "learn:", ["learn:", "lesson_"], [], static (runtime, action) =>
-    {
-        runtime.ApplyLearningCandidate(action.AgentId, action.CandidateId, action.Plan);
-        return true;
-    }),
+        new(ActionPhase.Ordinary, "learn:", ["learn:", "lesson_"], [], Definition: LearningDefinition),
         RegisterCivicPersonalActions(),
         new(ActionPhase.Ordinary, "IsTownProjectDonationCandidate", [], [], static (runtime, action) =>
     {

@@ -18,10 +18,10 @@ public sealed partial class WorldRuntime
             Reach(actor, building.Position, ReachPurpose.HouseholdResume, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckHouseholdResumePlan(HouseholdResumeActionPlan plan)
+    private ActionCheck CheckHouseholdResumePlan(HouseholdResumeActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? HouseholdCommunityCapabilities);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId ||
             worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == plan.Building.InstanceId) != plan.Building)
@@ -49,7 +49,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyHouseholdResumePlan(HouseholdResumeActionPlan plan)
     {
-        if (CheckHouseholdResumePlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteHouseholdResume(plan);
     }
 }

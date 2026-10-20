@@ -33,10 +33,10 @@ public sealed partial class WorldRuntime
         ReadyForLesson(student) && CanMentor(teacher, lesson.Skill) && FreeToMentor(teacher, student) &&
         CanReachLessonSite(teacher) && CanReachLessonSite(student);
 
-    private ActionCheck CheckLearningActionPlan(LearningActionPlan plan)
+    private ActionCheck CheckLearningActionPlan(LearningActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? LearningCapabilities);
         if (!capability.Allowed) return capability;
         if (!agents.TryGetValue(plan.StudentId, out var student) || !agents.ContainsKey(plan.TeacherId) || SharedStoragePosition != plan.Site)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected student, teacher or lesson site has changed");
@@ -68,13 +68,13 @@ public sealed partial class WorldRuntime
         var options = new List<CognitionCandidate>();
         AddLearningCandidateOptions(options, actor);
         foreach (var candidate in options)
-            if (LearningChoice.Decode(candidate.Id) is { } choice && PlanLearningAction(actor, choice) is { } plan && CheckLearningActionPlan(plan).Allowed)
+            if (LearningChoice.Decode(candidate.Id) is { } choice && LearningDefinition.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
     }
 
     private void ApplyLearningActionPlan(LearningActionPlan plan)
     {
-        if (CheckLearningActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteLearningAction(plan);
     }
 }

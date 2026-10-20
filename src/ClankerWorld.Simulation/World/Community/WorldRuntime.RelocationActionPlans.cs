@@ -13,10 +13,10 @@ public sealed partial class WorldRuntime
             replaced.Select(item => (long?)item.Notice.DeadlineTick).Min());
     }
 
-    private ActionCheck CheckRelocationActionPlan(RelocationActionPlan plan)
+    private ActionCheck CheckRelocationActionPlan(RelocationActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? HouseholdCommunityCapabilities);
         if (!capability.Allowed) return capability;
         if (HouseholdFor(plan.Actor) != plan.HouseholdId || HouseForHousehold(plan.HouseholdId) != plan.House ||
             !MayVolunteerToRelocate(plan.Actor) || RelocationSelection(plan.HouseholdId, plan.Actor) is not { } selection ||
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyRelocationActionPlan(RelocationActionPlan plan)
     {
-        if (CheckRelocationActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
         CompleteRelocationAction(plan);
     }
 }

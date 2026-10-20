@@ -175,7 +175,7 @@ public sealed partial class WorldRuntime
 
     private void AddRelocationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (PlanRelocationAction(actor) is { } plan && CheckRelocationActionPlan(plan).Allowed)
+        if (RelocationDefinition.Offer(this, actor, new()) is { } plan)
             candidates.Add(new CognitionCandidate(plan.CandidateId,
                 "Volunteer to move out of your overcrowded House so another resident can stay; you keep the current notice time to find a home.",
                 105)
