@@ -1,1 +1,0 @@
-- Remaining runtime and work-validation age predicates use the shared life-stage rules, including the elder check. The source guard permits no copied age-band predicate outside those rules.

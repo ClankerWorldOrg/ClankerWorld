@@ -1,1 +1,0 @@
-- Newly inherited final words remain available in heirs' later decisions, including heirs born in the world.

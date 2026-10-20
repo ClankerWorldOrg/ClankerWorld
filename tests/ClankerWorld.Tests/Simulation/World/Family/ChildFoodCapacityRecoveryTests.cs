@@ -68,11 +68,25 @@ public sealed class ChildFoodCapacityRecoveryTests
         Assert.Equal(initial, WorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(initial, WorldRuntimeCodec.Encode(world.ExportState()));
+        int? fedPackObservationCount = null;
         for (var tick = 0; tick < 40; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+            if (canEat && world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints > 1_500 &&
+                PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor,
+                    world.Agents.Single(person => person.AgentId == actor).Equipment) == 0)
+            {
+                fedPackObservationCount ??= choices.Offers.Count;
+                if (choices.Offers.Count > fedPackObservationCount.Value)
+                {
+                    Assert.DoesNotContain("make_room_for_food", choices.Offers[^1]);
+                    Assert.DoesNotContain("collect_shared_food", choices.Offers[^1]);
+                    break;
+                }
+            }
+            else fedPackObservationCount = null;
         }
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());

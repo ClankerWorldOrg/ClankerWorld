@@ -1,1 +1,0 @@
-- Heirs can collect their own inherited belongings from another household's House without joining that household.

@@ -15,7 +15,7 @@ public sealed class WorldWillStorageTests
         var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var ground = new InventoryGroundPosition(position.X, position.Y);
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
 
         var estate = Assert.Single(world.Society.Estates);
         Assert.Equal(actor, estate.DeceasedId);
@@ -49,7 +49,7 @@ public sealed class WorldWillStorageTests
             },
         };
         using var settled = WorldRuntime.Restore(shortened, _ => new ActionCoverageRecorder(chooseIdle: true));
-        Assert.True((await settled.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settled.TickModelWorkAsync()).Advanced);
         Assert.True(settled.Society.GetEstate(estate.Id).Settled);
         var wood = Assert.Single(settled.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "stored-wood");
         Assert.Equal((house, 4), (wood.StorageBuildingId, wood.Quantity));
@@ -66,7 +66,7 @@ public sealed class WorldWillStorageTests
     {
         var (state, _, _, house) = DeathState();
         using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal("default", Assert.Single(world.Society.Estates).WillStatus);
         var saved = world.ExportState();
         var otherHouse = saved.WorldSimulation!.Buildings.First(building => building.InstanceId != house &&

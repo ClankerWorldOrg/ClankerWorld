@@ -1,1 +1,0 @@
-- Milk offers now save and reload with payment lots whose IDs grew through earlier stock moves, keeping the world running and preserving the exact exchange.

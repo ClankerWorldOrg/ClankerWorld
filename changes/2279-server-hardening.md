@@ -1,0 +1,1 @@
+- The paired-device list now shows who approved each device. Saved files are private from their first write, model connections refuse redirects and oversized replies, and diagnostics leave out credentials.
