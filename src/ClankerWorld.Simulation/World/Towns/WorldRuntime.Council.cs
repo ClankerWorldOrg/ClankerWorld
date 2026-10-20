@@ -35,8 +35,8 @@ public sealed partial class WorldRuntime
     private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null) => ApplyPlannedTownCivicCandidate(actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice);
     private void ApplyPlannedTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null, ActionPlan? originalPlan = null)
     {
-        var definition = ActionRegistrations.FirstOrDefault(row => row.Phase == ActionPhase.FreshAdmission &&
-            row.Definition?.Matches(candidate) == true)?.Definition;
+        var definition = candidate.StartsWith("civic|", StringComparison.Ordinal) ? ActionRegistrations.FirstOrDefault(row => row.Phase == ActionPhase.FreshAdmission &&
+            row.Definition?.Matches(candidate) == true)?.Definition : null;
         if (definition is null)
         {
             townSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice, originalPlan);
@@ -63,6 +63,14 @@ public sealed partial class WorldRuntime
             originalPlan = TownSystem.BindLandHearingEvidence(hearingEvidence, hearingChoice, proposalText);
         if (originalPlan is LandHearingFilingActionPlan hearingFiling)
             originalPlan = TownSystem.BindLandHearingFiling(hearingFiling, landTiles, hearingChoice, proposalText);
+        if (originalPlan is NonLandAgreementActionPlan agreement)
+            originalPlan = TownSystem.BindNonLandAgreement(agreement, nonLandChoice, TownSystem.CivicDay(civicWorld));
+        if (originalPlan is NonLandAdjudicationActionPlan adjudication)
+            originalPlan = TownSystem.BindNonLandAdjudication(adjudication, nonLandChoice);
+        if (originalPlan is NonLandEvidenceActionPlan evidence)
+            originalPlan = TownSystem.BindNonLandEvidence(evidence, nonLandChoice);
+        if (originalPlan is NonLandFilingActionPlan nonLandFiling)
+            originalPlan = TownSystem.BindNonLandFiling(nonLandFiling, nonLandChoice);
         if (originalPlan is not null)
             TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
     }

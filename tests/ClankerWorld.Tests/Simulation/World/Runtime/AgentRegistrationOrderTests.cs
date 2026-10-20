@@ -69,6 +69,13 @@ public sealed class AgentRegistrationOrderTests
     {
         string[] expected =
         [
+            "FreshAdmission|NonLandFiling||",
+            "FreshAdmission|NonLandEvidence||",
+            "FreshAdmission|NonLandJudge||",
+            "FreshAdmission|NonLandAdjudication||",
+            "FreshAdmission|NonLandAgreement||",
+            "FreshAdmission|NonLandWork||",
+            "FreshAdmission|NonLandReportRelay||",
             "FreshAdmission|LandHearingFiling||",
             "FreshAdmission|LandHearingEvidence||",
             "FreshAdmission|LandHearingJudge||",

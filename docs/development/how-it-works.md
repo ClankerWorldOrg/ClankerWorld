@@ -3451,6 +3451,14 @@ policy and the existing TownSystem checks. Accepted statements, plots and
 property terms bind on the retained plan before its original revision, authority
 and personal consent are checked for native application.
 
+Non-land filing, evidence, judge consent, findings/reopening and restorative
+agreement definitions retain their original case material and authority. Their
+capability policy reads the current actor age, preserving child evidence and
+reopening rules. Voluntary work and known-report relay retain the selected
+contribution or source; pure planners and shared checks serve offered, admitted
+and continuing steps, followed by the original TownSystem effects. Existing agreement
+consent permits physical continuation; a new agreement needs fresh admission.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may

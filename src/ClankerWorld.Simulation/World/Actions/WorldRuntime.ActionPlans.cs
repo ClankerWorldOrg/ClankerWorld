@@ -15,13 +15,6 @@ public sealed partial class WorldRuntime
         TownProjectLoadActionPlan projectLoad => CheckTownProjectLoad(projectLoad),
         TownProjectDonationActionPlan projectDonation => CheckTownProjectDonation(projectDonation),
         TownProjectProposalActionPlan projectProposal => TownSystem.CheckTownProjectProposal(civicWorld, projectProposal),
-        NonLandWorkActionPlan nonLandWork => TownSystem.CheckNonLandWork(civicWorld, nonLandWork),
-        NonLandReportRelayActionPlan reportRelay => TownSystem.CheckNonLandReportRelay(civicWorld, reportRelay),
-        NonLandAgreementActionPlan nonLandAgreement => townSystem.CheckNonLandAgreement(civicWorld, nonLandAgreement),
-        NonLandAdjudicationActionPlan nonLandAdjudication => TownSystem.CheckNonLandAdjudication(civicWorld, nonLandAdjudication),
-        NonLandJudgeActionPlan nonLandJudge => TownSystem.CheckNonLandJudge(civicWorld, nonLandJudge),
-        NonLandEvidenceActionPlan nonLandEvidence => TownSystem.CheckNonLandEvidence(civicWorld, nonLandEvidence),
-        NonLandFilingActionPlan nonLandFiling => TownSystem.CheckNonLandFiling(civicWorld, nonLandFiling),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 
