@@ -2,6 +2,9 @@
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
     "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.RouteSearch.cs": [
+    "FindUnoccupiedRoute(actor, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
+  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)"

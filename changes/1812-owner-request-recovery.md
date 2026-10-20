@@ -1,1 +1,0 @@
-- After a lost server reply, the game automatically checks your last instruction, cancellation or world edit when the same running world reconnects. Normal recovery controls let you review or discard an unresolved request without Developer mode.

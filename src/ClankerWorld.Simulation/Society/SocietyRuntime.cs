@@ -193,10 +193,11 @@ public sealed class SocietyRuntime : IDisposable
         PreviewModelRequests(excludedIds, null);
 
     internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
-        IReadOnlySet<string> excludedIds, Func<AgentObservation, bool>? observationIsCurrent)
+        IReadOnlySet<string> excludedIds, Func<AgentObservation, bool>? observationIsCurrent,
+        Func<AgentObservation, AgentObservation>? refreshObservation = null)
     {
         gate.Wait();
-        try { return cognition.PreviewModelRequests(excludedIds, observationIsCurrent); }
+        try { return cognition.PreviewModelRequests(excludedIds, observationIsCurrent, refreshObservation); }
         finally { gate.Release(); }
     }
 

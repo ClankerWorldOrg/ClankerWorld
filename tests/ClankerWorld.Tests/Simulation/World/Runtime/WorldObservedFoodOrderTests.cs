@@ -29,7 +29,7 @@ public sealed partial class WorldRuntimeTests
         var order = harvested.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal("finished", order.Status);
         Assert.Equal(1, order.CompletedUnits);
-        Assert.Contains(receipt.InstructionId, harvested.CompletedInstructionIds!);
+        Assert.Contains(receipt.InstructionId.Value, harvested.CompletedInstructionIds!);
         Assert.Contains(world.Society.Inventory.Lots, lot => lot.OwnerId == HarvestInstructionActor && lot.ItemKind == kind && lot.Quantity > 0);
         Assert.Equal(AgentKnowledgeRules.MaximumFactsPerAgent, harvested.Knowledge!.Facts.Count(fact => fact.OwnerId == HarvestInstructionActor));
         Assert.DoesNotContain(harvested.Knowledge.Facts, fact => fact.OwnerId == HarvestInstructionActor && fact.Position == target.Position);
@@ -71,7 +71,7 @@ public sealed partial class WorldRuntimeTests
         var final = world.ExportState();
         var order = final.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(0, order.CompletedUnits);
-        Assert.DoesNotContain(receipt.InstructionId, final.CompletedInstructionIds!);
+        Assert.DoesNotContain(receipt.InstructionId.Value, final.CompletedInstructionIds!);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == HarvestInstructionActor && lot.ItemKind is "berries" or "wild_greens");
         Assert.DoesNotContain(final.Knowledge!.Facts, fact => fact.OwnerId == HarvestInstructionActor && fact.Position == target.Position);
         Assert.Equal(nameResource ? target.Id : null, order.TargetResourceId);

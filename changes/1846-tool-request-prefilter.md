@@ -1,0 +1,1 @@
+- Worlds do less repeated work while preparing Blacksmith tool requests.

@@ -1,1 +1,0 @@
-- Agents can follow an order to read a personally held record, map or book, learning only its written sites and keeping the exact selected item through waits and saving.
