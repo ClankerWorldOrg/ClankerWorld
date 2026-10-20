@@ -15,8 +15,8 @@ public sealed class ActionRuleBoundaryTests
         foreach (var (file, expressions) in actual)
             Assert.Equal(recorded[file], expressions);
         Assert.DoesNotContain(actual.Keys, file => file.Contains("/Family/WorldRuntime.Child", StringComparison.Ordinal));
-        Assert.DoesNotContain(actual.Values.SelectMany(expressions => expressions),
-            expression => expression.Contains("AgeBand", StringComparison.Ordinal));
+        Assert.All(actual.Values.SelectMany(expressions => expressions),
+            expression => Assert.Contains("FindUnoccupiedRoute(", expression, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -33,6 +33,8 @@ public sealed class ActionRuleBoundaryTests
                     var second = age != Infant;
                     var third = actor.FullnessBasisPoints < 6_000;
                     var fourth = actor is { WarmthBasisPoints: < 3_500 };
+                    var fifth = warmth < 2_500;
+                    var sixth = fullness > 3_500;
                     FindUnoccupiedRoute(actor, origin, target, 0);
                     world.FindUnoccupiedRoute(actor, origin, target, 0);
                     world?.FindUnoccupiedRoute(actor, origin, target, 0);
@@ -40,6 +42,6 @@ public sealed class ActionRuleBoundaryTests
                 }
             }
             """;
-        Assert.Equal(7, ActionRuleScan.Expressions(source).Length);
+        Assert.Equal(9, ActionRuleScan.Expressions(source).Length);
     }
 }
