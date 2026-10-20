@@ -2,8 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace ClankerWorld.Server.Saves;
 
-public sealed record SaveDiskSpaceStatus(string State, long? AvailableBytes, long WarningBelowBytes,
-    DateTimeOffset? CheckedUtc);
+
 
 /// <summary>Reads space available to this host on the volume containing a save directory.</summary>
 public interface ISaveDiskSpaceProbe

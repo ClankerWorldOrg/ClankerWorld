@@ -1,1 +1,0 @@
-- Land-hearing evidence summaries supplied to judges now keep complete emoji at the length limit, preserving full statements and their inspected sources.

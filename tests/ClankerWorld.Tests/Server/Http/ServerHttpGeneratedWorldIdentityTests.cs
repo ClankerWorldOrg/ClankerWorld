@@ -61,7 +61,8 @@ public sealed partial class ServerHttpTests
             autosave.Configure(true, 5, 3);
             var smallManual = saves.Create("Small named checkpoint", runtime, [], autosave.Capture());
             var smallAuto = saves.CreateAutosave(runtime, [], autosave.Capture());
-            var smallBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            var smallState = runtime.ExportState();
+            var smallBytes = WorldRuntimeCodec.Encode(smallState);
             using (var duplicate = await Create(small.Action))
                 Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
             Assert.Equal(smallBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -97,7 +98,7 @@ public sealed partial class ServerHttpTests
             Assert.Matches("^generated:[0-9a-f]{64}$", mediumEntry.WorldId);
 
             // Return from the fresh-seed control to the second same-seed world.
-            selection.Select(mediumEntry.Id);
+            selection.SelectApprovedModels(mediumEntry.Id);
             runtime.Validate();
             Assert.Equal(medium.Preview.ManifestDigest, runtime.ExportState().Map.ManifestDigest);
             Assert.Equal(medium.Preview.MapLayersDigest, MapLayerManifestCodec.Digest(runtime.ExportState().Map));
@@ -105,6 +106,41 @@ public sealed partial class ServerHttpTests
             var mediumManual = saves.Create("Second named checkpoint", runtime, [], autosave.Capture());
             var mediumAuto = saves.CreateAutosave(runtime, [], autosave.Capture());
             var mediumBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            // Browsing another world's history is a signed read, not a selection or load.
+            var activeCheckpoint = host.Services.GetRequiredService<WorldStateFile>().Path;
+            var activeFileBytes = File.ReadAllBytes(activeCheckpoint);
+            var historyCatalogBytes = File.ReadAllBytes(Path.Combine(activeCheckpoint + ".worlds", "catalog.json"));
+            const string historyPath = "/api/v1/owner/worlds/saves";
+            var historyAction = new OwnerManualSaveAction("world-saves", smallEntry.Id);
+            using (var unsigned = await client.PostAsJsonAsync(historyPath, new { action = historyAction }))
+                Assert.Equal(HttpStatusCode.BadRequest, unsigned.StatusCode);
+            using (var historyResponse = await SendSignedAsync(host, client, key, device.DeviceId,
+                historyPath, historyAction, OwnerHttpBinding.ManualSavePayload(historyAction)))
+            {
+                Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+                var history = (await historyResponse.Content.ReadFromJsonAsync<WorldSaveHistory>())!;
+                Assert.Equal(smallEntry.WorldId, history.WorldId);
+                Assert.Contains(history.Saves, save => save.Id == smallManual.Id);
+                Assert.Contains(history.Saves, save => save.Id == smallAuto.Id);
+                Assert.DoesNotContain(history.Saves, save => save.Id == mediumManual.Id || save.Id == mediumAuto.Id);
+                Assert.Equal(saves.CurrentPosition(smallEntry.WorldId), history.Position);
+                Assert.Equal(smallState.Society.Society.WorldTick, history.WorldTick);
+                Assert.Equal(smallState.WorldSystems!.Config.TicksPerDay, history.CalendarPace!.TicksPerDay);
+                Assert.Equal(smallState.WorldSystems.Config.CalendarOffsetTicks, history.CalendarPace.CalendarOffsetTicks);
+            }
+            var tampered = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
+                historyPath, historyAction, OwnerHttpBinding.ManualSavePayload(historyAction));
+            using (var wrongWorld = await client.PostAsJsonAsync(historyPath,
+                tampered with { Action = historyAction with { Value = mediumEntry.Id } }))
+                Assert.NotEqual(HttpStatusCode.OK, wrongWorld.StatusCode);
+            var missingHistory = historyAction with { Value = "missing-world" };
+            using (var missing = await SendSignedAsync(host, client, key, device.DeviceId,
+                historyPath, missingHistory, OwnerHttpBinding.ManualSavePayload(missingHistory)))
+                Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+            Assert.Equal(mediumEntry.Id, catalog.Active().Id);
+            Assert.Equal(mediumBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
+            Assert.Equal(activeFileBytes, File.ReadAllBytes(activeCheckpoint));
+            Assert.Equal(historyCatalogBytes, File.ReadAllBytes(Path.Combine(activeCheckpoint + ".worlds", "catalog.json")));
             var settingsBytes = File.ReadAllBytes(host.Services.GetRequiredService<WorldStateFile>().Path + ".autosave.json");
             using (var stale = await client.PostAsJsonAsync(autosavePath, held))
                 Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);

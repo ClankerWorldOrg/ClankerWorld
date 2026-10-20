@@ -1,1 +1,0 @@
-- Town law changes keep their selected scope, site, version and admitted wording when checked before proposal submission.

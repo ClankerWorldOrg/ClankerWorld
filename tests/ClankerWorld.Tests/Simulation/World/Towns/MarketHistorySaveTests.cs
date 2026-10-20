@@ -62,7 +62,7 @@ public sealed class MarketHistorySaveTests
         var before = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wooden_axe").Sum(lot => lot.Quantity);
         var policy = new MarketRulesPolicy
         {
-            Choose = (actor, candidates) => actor == "founder:00000000000000000000000000000001"
+            Choose = (actor, candidates) => actor == NormalPathWorld.Founder1
                 ? candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("market_collect:", StringComparison.Ordinal) &&
                     candidate.Description.Contains("wooden_axe", StringComparison.Ordinal)) : null,
         };
@@ -84,7 +84,7 @@ public sealed class MarketHistorySaveTests
     [Fact]
     public async Task ARejectedDepositDoesNotCommitItsReceiptOrRetirementBoundary()
     {
-        const string seller = "founder:00000000000000000000000000000001";
+        const string seller = NormalPathWorld.Founder1;
         var state = await MarketHistoryRuntimeTests.ClosedTradeStateAsync();
         var market = PaidMarketWorld.Market(state);
         var stall = market.Stalls.Single(item => item.SlotIndex == 0);
@@ -120,9 +120,9 @@ public sealed class MarketHistorySaveTests
     [Fact]
     public async Task SameHouseholdSuccessorNeedsAFreshDepositAfterHistoricalAuthorityRetires()
     {
-        const string seller = "founder:00000000000000000000000000000001";
-        const string successor = "founder:00000000000000000000000000000002";
-        const string buyer = "founder:00000000000000000000000000000003";
+        const string seller = NormalPathWorld.Founder1;
+        const string successor = NormalPathWorld.Founder2;
+        const string buyer = NormalPathWorld.Founder3;
         var state = await MarketHistoryRuntimeTests.ClosedTradeStateAsync();
         var market = PaidMarketWorld.Market(state);
         var stall = market.Stalls.Single(item => item.SlotIndex == 0);
@@ -167,7 +167,7 @@ public sealed class MarketHistorySaveTests
     [Fact]
     public async Task DepartedSellerKeepsPersonalStockAndRetiredHistoryThroughReplay()
     {
-        const string seller = "founder:00000000000000000000000000000001";
+        const string seller = NormalPathWorld.Founder1;
         var state = await MarketHistoryRuntimeTests.ClosedTradeStateAsync();
         var policy = new MarketRulesPolicy
         {
@@ -192,7 +192,7 @@ public sealed class MarketHistorySaveTests
     [Fact]
     public async Task DeadSellersEstateOwnsStockWithoutRecreatingHistoricalSaleAuthority()
     {
-        const string seller = "founder:00000000000000000000000000000001";
+        const string seller = NormalPathWorld.Founder1;
         var state = await MarketHistoryRuntimeTests.ClosedTradeStateAsync();
         var physical = state.Agents.Single(person => person.AgentId == seller);
         var checkpoint = SocietyRules.Kill(state.Society.Society, seller, SocietyDeathCause.Accident).Checkpoint;

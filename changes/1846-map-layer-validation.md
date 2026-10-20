@@ -1,0 +1,1 @@
+- Geography validation checks packed layers faster while retaining the same terrain and cactus rules.
