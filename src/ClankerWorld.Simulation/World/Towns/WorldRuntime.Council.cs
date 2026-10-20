@@ -47,6 +47,12 @@ public sealed partial class WorldRuntime
             originalPlan = TownSystem.BindCouncilBallot(civicWorld, selected, ballot);
         if (originalPlan is TownLawActionPlan law)
             originalPlan = TownSystem.BindTownLawText(law, proposalText);
+        if (originalPlan is LandTransferProposalActionPlan transfer)
+            originalPlan = TownSystem.BindLandTransferProposal(transfer, landTiles, hearingChoice);
+        if (originalPlan is HouseholdLandFilingActionPlan filing)
+            originalPlan = TownSystem.BindHouseholdLandFiling(filing, landTiles);
+        if (originalPlan is TownLandClaimActionPlan claim)
+            originalPlan = TownSystem.BindTownLandClaim(claim, landTiles);
         if (originalPlan is not null)
             TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
     }

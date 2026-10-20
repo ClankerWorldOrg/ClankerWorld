@@ -19,10 +19,10 @@ internal sealed partial class TownSystem
             world.ReachLandSaleReturn(actor, pickup, board, quantity));
     }
 
-    internal ActionCheck CheckLandSaleCollection(ITownWorld world, LandSaleCollectionActionPlan plan, TownRuntimeState? currentTown = null)
+    internal ActionCheck CheckLandSaleCollection(ITownWorld world, LandSaleCollectionActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var terms = CheckLandSaleTerms(world, plan, plan.Request, plan.Choice.TownId, plan.Choice.TermsToken, plan.NoticePlace,
-            plan.Request.TargetHouseholdId, currentTown, out _, out var current);
+            plan.Request.TargetHouseholdId, currentTown, out _, out var current, policy);
         if (!terms.Allowed) return terms;
         var price = current!.Price!;
         var pickup = plan.Pickup;

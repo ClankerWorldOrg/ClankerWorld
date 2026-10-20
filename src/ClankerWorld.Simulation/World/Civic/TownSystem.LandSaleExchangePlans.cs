@@ -3,12 +3,12 @@ namespace ClankerWorld.Simulation.World;
 internal sealed partial class TownSystem
 {
     private ActionCheck CheckLandSaleTerms(ITownWorld world, ActionPlan plan, TownLandTransferRequest original,
-        string townId, string token, GridPoint board, string household, TownRuntimeState? currentTown, out TownRuntimeState? town, out TownLandTransferRequest? current)
+        string townId, string token, GridPoint board, string household, TownRuntimeState? currentTown, out TownRuntimeState? town, out TownLandTransferRequest? current, ActorCapabilityPolicy? policy = null)
     {
         town = currentTown ?? world.Towns.SingleOrDefault(item => item.Id == townId);
         current = town?.LandRecords.Transfers.SingleOrDefault(request => request.Id == original.Id);
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? LandRightsCapabilities);
         if (!capability.Allowed) return capability;
         if (original.TownId != townId || town is not { Council: not null } || town.Id != townId || current is not { Status: "pending", Price: not null } ||
             current.FilerId != original.FilerId || current.ProposedTick != original.ProposedTick || current.NoticeId != original.NoticeId ||
@@ -47,11 +47,11 @@ internal sealed partial class TownSystem
             ? LandSaleExchangeStage.Wait : LandSaleExchangeStage.Exchange, seller, goods.ToArray(), world.ReachLandSaleNoticePlace(actor, board));
     }
 
-    internal ActionCheck CheckLandSaleExchange(ITownWorld world, LandSaleExchangeActionPlan plan, TownRuntimeState? currentTown = null)
+    internal ActionCheck CheckLandSaleExchange(ITownWorld world, LandSaleExchangeActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var terms = CheckLandSaleTerms(world, plan, plan.Request, plan.Choice.TownId, plan.Choice.TermsToken, plan.NoticePlace,
             plan.Choice.Kind == LandSaleExchangeKind.Meet ? plan.Request.Price!.SellerHouseholdId : plan.Request.TargetHouseholdId,
-            currentTown, out var town, out var current);
+            currentTown, out var town, out var current, policy);
         if (!terms.Allowed) return terms;
         var atBoard = NearCivicBoard(world, plan.Actor, town!);
         if (world.ReachLandSaleNoticePlace(plan.Actor, plan.NoticePlace).Count == 0)

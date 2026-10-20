@@ -28,13 +28,6 @@ public sealed partial class WorldRuntime
         LandHearingJudgeActionPlan hearingJudge => townSystem.CheckLandHearingJudge(civicWorld, hearingJudge),
         LandHearingEvidenceActionPlan hearingEvidence => townSystem.CheckLandHearingEvidence(civicWorld, hearingEvidence),
         LandHearingFilingActionPlan hearingFiling => townSystem.CheckLandHearingFiling(civicWorld, hearingFiling),
-        LandSaleExchangeActionPlan landSaleExchange => townSystem.CheckLandSaleExchange(civicWorld, landSaleExchange),
-        LandSaleCollectionActionPlan landSaleCollection => townSystem.CheckLandSaleCollection(civicWorld, landSaleCollection),
-        LandTransferResponseActionPlan transferResponse => townSystem.CheckLandTransferResponse(civicWorld, transferResponse),
-        LandTransferProposalActionPlan transferProposal => townSystem.CheckLandTransferProposal(civicWorld, transferProposal),
-        HouseholdLandFilingActionPlan landFiling => townSystem.CheckHouseholdLandFiling(civicWorld, landFiling),
-        HouseholdLandResponseActionPlan landResponse => TownSystem.CheckHouseholdLandResponse(civicWorld, landResponse),
-        TownLandClaimActionPlan claim => TownSystem.CheckTownLandClaim(civicWorld, claim),
         _ => throw new InvalidOperationException("An action plan has no registered check."),
     };
 

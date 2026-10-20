@@ -3439,6 +3439,12 @@ recipient, founding site and dependent group. The visit policy admits non-infant
 existing reason checks restrict child visits to known non-land cases. Child case
 visits retain their offered plan and use the same check before native walking.
 
+Town and household land claims/responses, permission transfer proposals/responses
+and sale collection/exchange have fresh-admission definitions. Their named
+capability policy feeds the same checks used by offers and native entry points.
+Admitted plots and terms are bound on the retained plan before checking; the
+original TownSystem writer keeps the existing rights, consent and payment steps.
+
 The civic engine keeps final proposal votes, continuing candidate agreements,
 opening voter/candidate lists, latest election ballots, cutoff runoffs, settled
 seats, fair draw order, ten-day terms and retry snapshots. A failed election may
