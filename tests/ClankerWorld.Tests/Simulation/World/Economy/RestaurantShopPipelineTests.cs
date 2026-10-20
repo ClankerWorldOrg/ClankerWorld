@@ -12,11 +12,13 @@ public sealed partial class RestaurantShopPipelineTests
     private const string Alpha = "household:first";
     private const string Beta = "household:second";
     private const string JugId = "restaurant-pipeline-jug";
+    private static readonly Lazy<byte[]> PaidRestaurantSite = new(CreatePaidRestaurantSite);
 
     [Fact]
     public async Task RestaurantBuysRealMilledFlourRefillsAndDeliversInputsThenSellsBreadToAnOutsiderAcrossReload()
     {
-        var fixture = CreateFixture();
+        // This scenario includes eating; start hungry instead of waiting for digestion.
+        var fixture = CreateFixture(customerFullness: 3_900);
         using var world = Restore(fixture);
         var beforeUnauthorized = WorldRuntimeCodec.Encode(world.ExportState());
         var unauthorized = world.StartProduction(fixture.Recipe.CanonicalId, fixture.Restaurant.InstanceId, fixture.Customer);
@@ -112,8 +114,10 @@ public sealed partial class RestaurantShopPipelineTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var resumed = Restore(fixture, WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(resumed.ExportState()));
+        var fullnessBeforeEating = resumed.Agents.Single(person => person.AgentId == fixture.Customer).FullnessBasisPoints;
         await AdvanceUntil(resumed, () => resumed.Agents.Single(person => person.AgentId == fixture.Customer)
             .Survival?.LastMealKind == "bread");
+        Assert.True(resumed.Agents.Single(person => person.AgentId == fixture.Customer).FullnessBasisPoints > fullnessBeforeEating);
         Assert.Equal(DirectBarterState.Settled, resumed.Society.Inventory.GetOffer(sale.OfferId).State);
         Assert.Equal(fixture.Cook, resumed.ShopTrades.Single(trade => trade.OfferId == sale.OfferId).SellerActorId);
         var purchased = Assert.Single(resumed.Society.Inventory.Lots, lot => lot.OwnerId == fixture.Customer &&
@@ -220,7 +224,7 @@ public sealed partial class RestaurantShopPipelineTests
     public async Task RestaurantQuotesTwoActualCookedServingsForOneWoodAndCustomerEatsTheirPaidMeal(
         string recipeLocalId, string mealKind)
     {
-        var fixture = CreateFixture(recipeLocalId, kitchenReady: true);
+        var fixture = CreateFixture(recipeLocalId, kitchenReady: true, customerFullness: 3_900);
         using var world = Restore(fixture);
         await AdvanceUntil(world, () => world.WorldSimulation.ProductionJobs.Any(job =>
             job.RecipeId == fixture.Recipe.CanonicalId && job.State == WorldProductionJobState.Running));
@@ -246,8 +250,10 @@ public sealed partial class RestaurantShopPipelineTests
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = Restore(fixture, WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        var fullnessBeforeEating = restored.Agents.Single(person => person.AgentId == fixture.Customer).FullnessBasisPoints;
         await AdvanceUntil(restored, () => restored.Agents.Single(person => person.AgentId == fixture.Customer)
             .Survival?.LastMealKind == mealKind);
+        Assert.True(restored.Agents.Single(person => person.AgentId == fixture.Customer).FullnessBasisPoints > fullnessBeforeEating);
         Assert.Equal(DirectBarterState.Settled, restored.Society.Inventory.GetOffer(offer.Id).State);
         Assert.Equal(new[] { Beta, fixture.Customer }.Order(StringComparer.Ordinal),
             restored.Society.Inventory.GetOffer(offer.Id).AcceptedBy);
@@ -380,12 +386,21 @@ public sealed partial class RestaurantShopPipelineTests
             id == fixture.Cook ? CookProvider(fixture.Farmhouse, fixture.Recipe, true, false) : new PipelineProvider("safe_idle"));
         var start = initial.Agents.Single(person => person.AgentId == fixture.Customer).Position;
         long? arrivedTick = null;
+        long? paidTick = null;
+        AgentObservation? paidObservation = null;
         for (var tick = 0; tick < 100; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             AssertNoRemoteMealQuote(world, fixture);
             var position = world.Agents.Single(person => person.AgentId == fixture.Customer).Position;
             if (initial.Map.FootDistance(position, fixture.Restaurant.Position) <= 1) arrivedTick ??= world.WorldTick;
+            if (control is "ordinary" or "foreign-town" && world.ShopTrades.Any(trade => trade.BuyerId == fixture.Customer &&
+                    world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Settled))
+            {
+                paidTick ??= world.WorldTick;
+                paidObservation = customerProvider.ObservationAfter(paidTick.Value);
+                if (paidObservation is not null) break;
+            }
         }
         var visits = customerProvider.SeenObservations.SelectMany(observation => observation.Candidates)
             .Where(candidate => candidate.Id == "shop_buy:" + fixture.Restaurant.InstanceId &&
@@ -410,6 +425,8 @@ public sealed partial class RestaurantShopPipelineTests
         if (control is "ordinary" or "foreign-town")
         {
             var sale = Assert.Single(sales);
+            Assert.NotNull(paidObservation);
+            Assert.DoesNotContain(paidObservation.Candidates, candidate => candidate.Id == "shop_buy:" + fixture.Restaurant.InstanceId);
             Assert.True(sale.ProposedTick >= arrivedTick!.Value);
             var offer = world.Society.Inventory.GetOffer(sale.OfferId);
             Assert.Equal(DirectBarterState.Settled, offer.State);
@@ -520,6 +537,8 @@ public sealed partial class RestaurantShopPipelineTests
             fixture = fixture with { State = WithForeignTownResident(fixture.State, fixture.Cook) };
         using var world = Restore(fixture);
         var mayVisit = !householdOwnsPayment && paymentQuantity > 2;
+        AgentObservation? reserveObservation = null;
+        long? completedPipelineTick = null;
         for (var tick = 0; tick < 200; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -531,6 +550,23 @@ public sealed partial class RestaurantShopPipelineTests
                 Assert.DoesNotContain(world.Society.Inventory.Reservations, reservation =>
                     reservation.Purpose.StartsWith("barter:", StringComparison.Ordinal));
             }
+            if (expectedPurchases > 0 && world.ShopTrades.Count(trade => trade.BuyerId == fixture.Cook &&
+                    world.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Settled) == expectedPurchases &&
+                !world.Society.Inventory.Lots.Any(lot => lot.Id == "restaurant-mill-grain" && lot.Quantity > 0))
+            {
+                var jobs = world.WorldSimulation.ProductionJobs.Where(job => job.RecipeId == fixture.MillRecipe.CanonicalId).ToArray();
+                if (jobs.Length > 0 && jobs.All(job => job.State == WorldProductionJobState.Completed))
+                {
+                    completedPipelineTick ??= world.WorldTick;
+                    reserveObservation = fixture.CookProvider.ObservationAfter(completedPipelineTick.Value);
+                    if (reserveObservation is not null) break;
+                }
+            }
+        }
+        if (expectedPurchases > 0)
+        {
+            Assert.NotNull(reserveObservation);
+            Assert.DoesNotContain(reserveObservation.Candidates, candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId);
         }
         var visits = fixture.CookProvider.SeenObservations.SelectMany(observation => observation.Candidates)
             .Where(candidate => candidate.Id == "shop_buy:" + fixture.Farmhouse.InstanceId &&
@@ -580,33 +616,13 @@ public sealed partial class RestaurantShopPipelineTests
     private static Fixture CreateFixture(string recipeLocalId = "bread", bool kitchenReady = false,
         bool purchaseOnly = false, bool householdOwnsPayment = false, int customerBallast = 0, bool customerNear = true,
         int restaurantPotatoes = 2, int farmhousePotatoes = 0, string? inaccessibleSource = null,
-        int restaurantGreens = 2, int farmhouseGreens = 0)
+        int restaurantGreens = 2, int farmhouseGreens = 0, int customerFullness = 6_000)
     {
-        using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new PipelineProvider("safe_idle"));
-        var state = generated.ExportState();
+        var state = WorldRuntimeCodec.Decode(PaidRestaurantSite.Value);
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Beta &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var farmhouse = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == Alpha &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
-        var restaurantDefinition = state.WorldContent!.Buildings.Single(definition => definition.LocalId == "restaurant-1x2");
-        var inventory = state.Society.Society.Inventory;
-        foreach (var cost in restaurantDefinition.BuildCosts)
-            inventory = InventoryAuthority.AddLot(inventory, "restaurant-paid-build-" + cost.ResourceId,
-                cost.ResourceId, Beta, cost.Amount, storageBuildingId: house.InstanceId);
-        var materialsBefore = restaurantDefinition.BuildCosts.ToDictionary(cost => cost.ResourceId,
-            cost => inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
-        using (var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new PipelineProvider("safe_idle")))
-        {
-            _ = state.Map.Tiles.Select(tile => tile.Position)
-                .Where(point => state.Map.IsReachableFromStartingSiteOnFoot(point))
-                .OrderBy(point => state.Map.FootDistance(house.Position, point))
-                .First(point => placing.PlaceBuilding("restaurant-pipeline", restaurantDefinition.CanonicalId, point, Beta).Applied);
-            foreach (var cost in restaurantDefinition.BuildCosts)
-                Assert.Equal(materialsBefore[cost.ResourceId] - cost.Amount,
-                    placing.Society.Inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
-            placing.Validate();
-            state = placing.ExportState();
-        }
         if (inaccessibleSource is not null)
         {
             var sourceDefinition = state.WorldContent!.Buildings.Where(definition =>
@@ -627,7 +643,7 @@ public sealed partial class RestaurantShopPipelineTests
 
         // Initial premises only: no cooked Restaurant or Farmhouse output is
         // injected. House flour is existing private stock the Restaurant must preserve.
-        inventory = state.Society.Society.Inventory with
+        var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind is "field_map" or "field_record" ||
                 lot.OwnerId != Alpha && lot.OwnerId != Beta && lot.OwnerId != cook && lot.OwnerId != customer).ToArray(),
@@ -694,11 +710,14 @@ public sealed partial class RestaurantShopPipelineTests
         inventory = InventoryAuthority.AddLot(inventory, "restaurant-customer-payment", "wood", customer, 1);
         if (customerBallast > 0)
             inventory = InventoryAuthority.AddLot(inventory, "restaurant-customer-ballast", "stone", customer, customerBallast);
-        state = WithInventory(state, inventory);
+        state = MovementTestWorld.ClearOtherBuildingAccess(WithInventory(state, inventory));
         var footprints = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
         var occupied = state.Agents.Where(person => person.AgentId != cook && person.AgentId != miller &&
-                person.AgentId != customer).Select(person => person.Position).Concat(footprints).ToHashSet();
+                person.AgentId != customer).Select(person => person.Position).Concat(footprints)
+            .Concat(state.WorldSimulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                BuildingStorageRules.EffectiveDefinition(state.WorldContent!.Buildings.Single(definition =>
+                    definition.CanonicalId == building.DefinitionId), building), building))).ToHashSet();
         occupied.Add(farmhouse.Position);
         var cookPosition = kitchenReady ? restaurant.Position : Neighbor(farmhouse.Position);
         occupied.Add(cookPosition);
@@ -711,7 +730,7 @@ public sealed partial class RestaurantShopPipelineTests
             {
                 Position = person.AgentId == cook ? cookPosition : person.AgentId == miller ? farmhouse.Position :
                     person.AgentId == customer ? customerPosition : person.Position,
-                FullnessBasisPoints = person.AgentId == customer ? 6_000 : 9_000,
+                FullnessBasisPoints = person.AgentId == customer ? customerFullness : 9_000,
                 LastDecisionContext = null,
                 Project = null,
                 Equipment = person.AgentId == cook || person.AgentId == customer ? null : person.Equipment,
@@ -723,6 +742,31 @@ public sealed partial class RestaurantShopPipelineTests
 
         GridPoint Neighbor(GridPoint site) => state.Map.Tiles.Select(tile => tile.Position).First(point =>
             Distance(point, site) == 1 && state.Map.IsPassable(point) && !occupied.Contains(point));
+    }
+
+    private static byte[] CreatePaidRestaurantSite()
+    {
+        using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new PipelineProvider("safe_idle"));
+        var state = generated.ExportState();
+        var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Beta &&
+            state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
+        var definition = state.WorldContent!.Buildings.Single(building => building.LocalId == "restaurant-1x2");
+        var inventory = state.Society.Society.Inventory;
+        foreach (var cost in definition.BuildCosts)
+            inventory = InventoryAuthority.AddLot(inventory, "restaurant-paid-build-" + cost.ResourceId,
+                cost.ResourceId, Beta, cost.Amount, storageBuildingId: house.InstanceId);
+        var materialsBefore = definition.BuildCosts.ToDictionary(cost => cost.ResourceId,
+            cost => inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
+        using var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new PipelineProvider("safe_idle"));
+        _ = state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => state.Map.IsReachableFromStartingSiteOnFoot(point))
+            .OrderBy(point => state.Map.FootDistance(house.Position, point))
+            .First(point => placing.PlaceBuilding("restaurant-pipeline", definition.CanonicalId, point, Beta).Applied);
+        foreach (var cost in definition.BuildCosts)
+            Assert.Equal(materialsBefore[cost.ResourceId] - cost.Amount,
+                placing.Society.Inventory.Lots.Where(lot => lot.OwnerId == Beta && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
+        placing.Validate();
+        return WorldRuntimeCodec.Encode(placing.ExportState());
     }
 
     private static InventoryCheckpoint AddInitialInputs(InventoryCheckpoint inventory, PlacedBuilding site,
@@ -812,6 +856,8 @@ public sealed partial class RestaurantShopPipelineTests
     private sealed class PipelineProvider(params string[] prefixes) : IDecisionProvider
     {
         public ConcurrentQueue<AgentObservation> SeenObservations { get; } = new();
+        public AgentObservation? ObservationAfter(long tick) =>
+            SeenObservations.LastOrDefault(observation => observation.WorldTick > tick);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,

@@ -176,7 +176,7 @@ public sealed class ChildChosenNameTests
         world.Resume();
         var placeholder = world.Society.GetAgent(childId).Name;
         Assert.Equal("Child", placeholder);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
         Assert.Empty(provider.Observations);
         Assert.True(world.Society.GetAgent(childId).NeedsName);
@@ -238,7 +238,7 @@ public sealed class ChildChosenNameTests
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == childId &&
             item.TriggerIds.Contains(SocietyCognitionScheduler.NameRetryTriggerId, StringComparer.Ordinal));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_name_retry_requested" && item.Detail == childId);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Single(provider.Observations);
     }
 
@@ -328,15 +328,12 @@ public sealed class ChildChosenNameTests
     {
         for (var tick = 0; tick < 12 && !completed(); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             if (!completed())
             {
                 // As in the will/conversation fixtures, await the complete runtime handoff between
                 // controlled ticks; a provider-return signal alone can precede task completion.
-                var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic)!;
-                var pending = Assert.IsAssignableFrom<IDictionary>(field.GetValue(world)).Values.Cast<object>();
-                var tasks = pending.Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item)));
-                await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(5));
+                await ModelWorkHarness.For(world).WaitForKindAsync(ModelWorkKind.Decision);
             }
         }
         Assert.True(completed(), "The child's completed naming response was not admitted within twelve ticks.");

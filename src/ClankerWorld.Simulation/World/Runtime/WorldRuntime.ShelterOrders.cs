@@ -135,7 +135,12 @@ public sealed partial class WorldRuntime
         if (binding is null)
             return CanInspectShelterTarget(order, instruction.TargetAgentId, person)
                 ? new CognitionCandidate("inspect_shelter_site", "Travel to observe the shelter site named by this order.", 0) : null;
-        if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order with { ShelterBinding = binding }) ||
+        if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order.UpdateDefinition(definition => definition switch
+{
+    SeekShelterOrderDefinition task => task with { ShelterBinding = binding },
+    TendFireOrderDefinition task => task with { ShelterBinding = binding },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})) ||
             !CanReachLeg(instruction.TargetAgentId, person.Position, binding.Position, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable) ||
             order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetAgentId, person, binding.Position)) return null;
         return new CognitionCandidate(order.Action,
@@ -159,19 +164,24 @@ public sealed partial class WorldRuntime
                 if (IsWithinInteractionRange(reached, order.TargetPosition.Value, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, order.TargetPosition.Value);
             }
-            else SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            else SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (order.ShelterBinding is null)
         {
-            order = order with { ShelterBinding = binding };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    SeekShelterOrderDefinition task => task with { ShelterBinding = binding },
+    TendFireOrderDefinition task => task with { ShelterBinding = binding },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             current = current with { Task = order };
             instructionsByIdempotency[current.IdempotencyKey] = current;
             checkpointSchemaVersion = StateSchemaVersion;
         }
         if (!ShelterBindingIsAvailable(actor, order) || !CanReachLeg(actor, person.Position, binding.Position, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable))
         {
-            SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (order.Action == "tend_fire" && !HasCarriedOwnItem(actor, "wood"))
@@ -185,7 +195,7 @@ public sealed partial class WorldRuntime
                 if (IsWithinInteractionRange(reached, source.Position, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, source.Position);
             }
-            else SetOrderStatus(current, "blocked", ShelterOrderBlockedReason(current, person));
+            else SetOrderStatus(current, OrderStatus.Blocked, ShelterOrderBlockedReason(current, person));
             return;
         }
         if (person.Position != binding.Position)
@@ -198,11 +208,19 @@ public sealed partial class WorldRuntime
             if (effect is null) return;
             payment = effect.FuelReservationId;
         }
-        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, payment);
+        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, Identity.ParseOptional(payment));
         current = instructionsByIdempotency[current.IdempotencyKey];
-        current = current with { Task = current.Task! with { ShelterCompletion = completion } };
+        current = current with
+        {
+            Task = current.Task!.UpdateDefinition(definition => definition switch
+            {
+                SeekShelterOrderDefinition task => task with { ShelterCompletion = completion },
+                TendFireOrderDefinition task => task with { ShelterCompletion = completion },
+                _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+            })
+        };
         instructionsByIdempotency[current.IdempotencyKey] = current;
-        CreditOrderEffect(current, ShelterOrderReceipt(current.InstructionId, current.Task!), 1);
+        CreditOrderEffect(current, Identity.Parse(ShelterOrderReceipt(current.InstructionId, current.Task!)), 1);
     }
 
     private string ShelterOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
@@ -249,7 +267,7 @@ public sealed partial class WorldRuntime
                 else
                 {
                     var definition = content.Buildings.FirstOrDefault(item => item.CanonicalId == binding.DefinitionId);
-                    if (simulation is null || !ValidConstructionIdentity(binding.BuildingInstanceId) || definition is null ||
+                    if (simulation is null || !IdentityRules.Reference(binding.BuildingInstanceId, int.MaxValue, requireTrimmed: true) || definition is null ||
                         binding.BuildingPosition is not { X: >= 0, Y: >= 0 } || binding.BuildingPlacedTick is not { } placed || placed < 0 || placed > worldTick ||
                         binding.OwnerId is { } owner && !householdIds.Contains(owner) ||
                         order.TargetBuildingKind == "house" && (!definition.Tags.Contains("house", StringComparer.Ordinal) || binding.OwnerId is null) ||

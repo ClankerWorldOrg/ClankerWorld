@@ -1,1 +1,0 @@
-- Animal breeding counts delivered feed and water only when their pot or jug is usable. Broken vessels cannot supply a new pregnancy; healthy available stock still can.

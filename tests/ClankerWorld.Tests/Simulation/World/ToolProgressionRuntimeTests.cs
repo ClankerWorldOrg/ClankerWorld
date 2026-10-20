@@ -72,7 +72,11 @@ public sealed class ToolProgressionRuntimeTests
                     LastDecisionContext = null
                 } : person).ToArray(),
         };
-        var chooser = new WorkChoiceRecorder();
+        // Keep the harvested load on its delivery task through the longer doorway trip.
+        var chooser = new WorkChoiceRecorder
+        {
+            PreferredDelivery = itemKind == "wood" ? "haul_smith_input" : "deliver_smith_ore",
+        };
         using var preparing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), id => id == actor ? chooser : new CandidateProvider("safe_idle"));
         for (var tick = 0; tick < 12 && preparing.Society.Inventory.GetLot("spare-pick").OwnerId == actor; tick++)
@@ -122,15 +126,18 @@ public sealed class ToolProgressionRuntimeTests
                 item => item.Kind == "equipment_collected" && item.Detail == actor + ":stone_axe");
         }
         resumed.Validate();
-        for (var tick = 0; tick < 240 && !resumed.ExportState().Events.Any(item => item.Kind == deliveryEvent &&
-                 item.Detail.StartsWith(actor + ":", StringComparison.Ordinal)); tick++)
+        // A load stowed at the House first uses the ordinary pickup/delivery path.
+        bool Delivered() => resumed.ExportState().Events.Any(item =>
+            item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
+            (item.Kind == deliveryEvent || item.Kind == "household_stock_delivered" &&
+                item.Detail.EndsWith(":" + smith.InstanceId, StringComparison.Ordinal)));
+        for (var tick = 0; tick < 240 && !Delivered(); tick++)
             Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(resumed.ExportState().Events, item => item.Kind == "material_gathered" &&
             item.Detail == actor + ":" + itemKind + ":" + gatheredQuantity);
         if (itemKind == "wood")
             Assert.Contains(resumed.ExportState().Events, item => item.Kind == "tree_seed_collected" && item.Detail == actor + ":" + tree.Id + ":1");
-        Assert.True(resumed.ExportState().Events.Any(item => item.Kind == deliveryEvent &&
-            item.Detail.StartsWith(actor + ":", StringComparison.Ordinal)), string.Join(" | ", chooser.Choices.TakeLast(5)) +
+        Assert.True(Delivered(), string.Join(" | ", chooser.Choices.TakeLast(5)) +
             "; events: " + string.Join(" | ", resumed.ExportState().Events
                 .Where(item => item.Detail.Contains(actor, StringComparison.Ordinal)).TakeLast(20)
                 .Select(item => item.Kind + ":" + item.Detail)));
@@ -838,13 +845,18 @@ public sealed class ToolProgressionRuntimeTests
     {
         private readonly DeterministicDecisionProvider chooser = new();
         public List<string> Choices { get; } = [];
+        internal string? PreferredDelivery { get; set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            var response = await chooser.DecideAsync(request, cancellationToken);
+            var delivery = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == PreferredDelivery);
+            var response = delivery is null ? await chooser.DecideAsync(request, cancellationToken) :
+                new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
+                    request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
+                    delivery.Id, 1, request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == delivery.Id ? 1d : 0d));
             Choices.Add(response.SelectedCandidateId + " [" + string.Join(",", request.Observation.Candidates
                 .Select(candidate => candidate.Id + "=" + candidate.DeterministicPriority)) + "]");
             return response;
