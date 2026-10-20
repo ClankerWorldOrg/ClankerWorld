@@ -194,6 +194,12 @@ cancellation and continued field work. Registration tests pin both lists against
 the original coordinator order; native equivalence checks compare the resulting
 saved bytes, events and observation digests.
 
+Shop buying and responses, personal barter, and Market stock, exchange and
+stall occupancy own their codecs, planners, capability policies, checks and
+native application in ordered action rows. Market application retains its
+fresh personal admission guards and call order. Policies follow the retained
+stock kind or response, preserving urgent-food collection and warm-up exits.
+
 Ornament choices and making room for food own their codecs, planners,
 capability policies, checks and native application in ordered action rows.
 Ornaments remain limited to fresh personal admission; their walking

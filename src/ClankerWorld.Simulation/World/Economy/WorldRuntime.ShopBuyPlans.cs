@@ -15,10 +15,10 @@ public sealed partial class WorldRuntime
             Reach(actor, building.Position, ReachPurpose.ShopBuy, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckShopBuy(ShopBuyActionPlan plan)
+    private ActionCheck CheckShopBuy(ShopBuyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? ShopCapabilities);
         if (!capability.Allowed) return capability;
         if (worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == plan.BuildingId) is not { } shop ||
             shop.HouseholdId != plan.SellerHouseholdId || shop.DefinitionId != plan.DefinitionId || shop.Position != plan.Destination)
@@ -42,7 +42,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyShopBuy(ShopBuyActionPlan plan)
     {
-        if (CheckShopBuy(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedShopBuy(plan);
+    }
+
+    private void ApplyCheckedShopBuy(ShopBuyActionPlan plan)
+    {
         if (plan.Kind != ShopBuyKind.Quote) { MoveToward(plan.Actor, agents[plan.Actor], plan.Destination, "shop_buy", ResourceInteractionRange); return; }
         var shop = worldSimulation.Buildings.Single(item => item.InstanceId == plan.BuildingId);
         var quote = CurrentSelectedShopQuote(plan)!;

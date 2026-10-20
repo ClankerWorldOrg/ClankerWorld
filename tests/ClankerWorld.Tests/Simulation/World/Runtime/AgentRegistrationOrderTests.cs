@@ -69,6 +69,9 @@ public sealed class AgentRegistrationOrderTests
     {
         string[] expected =
         [
+            "FreshAdmission|market_occupancy||",
+            "FreshAdmission|market_stock||",
+            "FreshAdmission|market_exchange||",
             "FreshAdmission|ornament||",
             "FreshAdmission|tool_request_consent||",
             "FreshAdmission|animal_agreement|animal:agreement:|",
@@ -106,6 +109,7 @@ public sealed class AgentRegistrationOrderTests
             "Ordinary|food_policy_|food_policy_|",
             "Ordinary|trade_|trade_|",
             "Ordinary|shop_stock_store||shop_stock_store",
+            "Ordinary|shop_buy|shop_buy:|",
             "Ordinary|shop_|shop_|",
             "Ordinary|haul_household_stock||haul_household_stock",
             "Ordinary|recover_household_delivery||recover_household_delivery",

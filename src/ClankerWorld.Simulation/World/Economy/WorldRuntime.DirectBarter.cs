@@ -151,7 +151,7 @@ public sealed partial class WorldRuntime
 
     private void OfferDirectBarter(List<CognitionCandidate> candidates, DirectBarterActionPlan? plan, string text, int priority)
     {
-        if (plan is not null && CheckDirectBarter(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
+        if (plan is not null && CheckActionPlan(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
     }
 
     private void AddTradeCandidates(List<CognitionCandidate> candidates, string actor)

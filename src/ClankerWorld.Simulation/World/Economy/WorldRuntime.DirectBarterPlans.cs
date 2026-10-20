@@ -2,10 +2,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ActionCheck CheckDirectBarter(DirectBarterActionPlan plan)
+    private ActionCheck CheckDirectBarter(DirectBarterActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? PersonalBarterCapabilities);
         if (!capability.Allowed) return capability;
         if (!agents.ContainsKey(plan.OtherId) || !IsAdult(plan.OtherId) || SharedStoragePosition != plan.Destination)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected trader or meeting place has changed");
@@ -25,7 +25,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyDirectBarter(DirectBarterActionPlan plan)
     {
-        if (CheckDirectBarter(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedDirectBarter(plan);
+    }
+
+    private void ApplyCheckedDirectBarter(DirectBarterActionPlan plan)
+    {
         ApplyRetainedTradeCandidate(plan.Actor, agents[plan.Actor], plan);
     }
 }

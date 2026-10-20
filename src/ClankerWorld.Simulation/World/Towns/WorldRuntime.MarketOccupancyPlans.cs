@@ -15,10 +15,10 @@ public sealed partial class WorldRuntime
             Reach(actor, destination, ReachPurpose.MarketStall, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
     }
 
-    private ActionCheck CheckMarketOccupancy(MarketOccupancyActionPlan plan)
+    private ActionCheck CheckMarketOccupancy(MarketOccupancyActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: plan.Choice.Leave, AllowActiveOrder: true));
+            policy ?? MarketOccupancyCapabilities(plan.Choice.Leave));
         if (!capability.Allowed) return capability;
         if (!MarketAdult(plan.Actor) || towns.SingleOrDefault(town => town.Id == plan.TownId) is not { } town ||
             town.Markets.SingleOrDefault(market => market.Id == plan.Choice.MarketId) is not { } market ||
@@ -46,7 +46,12 @@ public sealed partial class WorldRuntime
 
     private void ApplyMarketOccupancy(MarketOccupancyActionPlan plan)
     {
-        if (CheckMarketOccupancy(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        ApplyCheckedMarketOccupancy(plan);
+    }
+
+    private void ApplyCheckedMarketOccupancy(MarketOccupancyActionPlan plan)
+    {
         var town = towns.Single(item => item.Id == plan.TownId);
         var market = town.Markets.Single(item => item.Id == plan.Choice.MarketId);
         var stall = market.Stalls.Single(item => item.BuildingId == plan.Choice.StallId);
