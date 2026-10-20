@@ -18,7 +18,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var scenario = GuardianPlacementTestFixture.Prepared(1, 0);
         var choices = new DeliveryChoices(scenario.Children[0], scenario.Guardians[0], guardian: true)
         {
-            IdentityResponseGate = new(TaskCreationOptions.RunContinuationsAsynchronously),
+            IdentityResponseGate = new(TaskCreationOptions.None),
         };
         using var world = WorldRuntime.Restore(scenario.State, _ => choices);
         using var host = new CheckpointHost(world, choices);
@@ -28,14 +28,14 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var step = ReachIdentityCheckpoint(host);
         try
         {
-            await choices.IdentityEntered.Task.WaitAsync(TimeSpan.FromSeconds(30));
-            await Assert.ThrowsAsync<TimeoutException>(() => step.WaitAsync(TimeSpan.FromSeconds(1)));
+            await ModelWorkHarness.For(world).WaitAsync(choices.IdentityEntered.Task);
+            Assert.False(step.IsCompleted, "The host must wait for the held identity input without advancing another tick.");
             await ReachIdentityCheckpoint(replayHost);
             var requested = world.Agents.SelectMany(person => (person.IdentityMoments ?? [])
                 .Where(moment => moment.Outcome == "requested").Select(moment => (person.AgentId, moment.Kind))).ToArray();
             Assert.NotEmpty(requested);
             choices.IdentityResponseGate.SetResult();
-            await step.WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.For(world).WaitAsync(step);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             await host.Step();
             await replayHost.Step();
@@ -47,7 +47,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         finally
         {
             choices.IdentityResponseGate.TrySetResult();
-            await step.WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.For(world).WaitAsync(step);
         }
 
         static async Task ReachIdentityCheckpoint(CheckpointHost checkpointHost)
@@ -155,7 +155,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         choices.Deliver = false;
         Refresh(world, child);
         Refresh(world, caregiver);
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        var bytes = WorldRuntimeCodec.Encode(ShortEscort(world.ExportState(), child, scenario.House.Position));
         var replayChoices = choices.Copy();
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => replayChoices);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -179,6 +179,22 @@ public sealed class ChildDeliveryHouseholdChangeTests
             Assert.DoesNotContain(continuing.ExportState().Events, item => item.Kind == "child_collected_household" || item.Kind == "child_delivered_household");
         }
         Assert.Single(continuing.ExportState().Events, item => item.Kind == "guardian_placement_completed");
+    }
+
+    private static WorldRuntimeState ShortEscort(WorldRuntimeState state, string child, GridPoint home)
+    {
+        // Collection/delivery above remain native. Start the independent escort
+        // close to home, retaining two legal steps and the refused final arrival.
+        var occupied = state.Agents.Where(person => person.AgentId != child).Select(person => person.Position).ToHashSet();
+        var position = state.Map.FootNeighbors(home).Where(point => state.Map.IsBuildable(point) && !occupied.Contains(point))
+            .SelectMany(state.Map.FootNeighbors).Where(point => state.Map.FootDistance(point, home) == 2 &&
+                state.Map.IsBuildable(point) && !occupied.Contains(point)).First();
+        Assert.Equal(2, state.Map.FootDistance(position, home));
+        return state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == child ? person with
+            { Position = position, TravelCooldownTicks = 0, MoveWaitTicks = 0, LastDecisionContext = null } : person).ToArray(),
+        };
     }
 
     private static WorldRuntimeState AddStock(WorldRuntimeState state, string child, string household, string house, GridPoint point)
@@ -224,7 +240,6 @@ public sealed class ChildDeliveryHouseholdChangeTests
 
     private sealed class CheckpointHost : IDisposable
     {
-        private static readonly string[] PendingInputQueues = ["pendingModelCalls", "pendingIdentityMoments", "familyWills", "pendingConversationTurns"];
         private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("child-house-change-");
         private readonly WorldStateFile file;
         private readonly WorldRuntimeService service;
@@ -256,13 +271,9 @@ public sealed class ChildDeliveryHouseholdChangeTests
                 Assert.Equal(before, WorldRuntimeCodec.Encode(World.ExportState()));
                 RefusedArrival = true;
             }
-            Assert.True(await service.TryAdvanceOnceAsync(), $"Native host halted at tick {World.WorldTick}.");
+            Assert.True(await service.AdvanceWithModelWorkAsync(World), $"Native host halted at tick {World.WorldTick}.");
             // Replies are sampled by the next tick. Match every external input before either continuation advances.
-            var tasks = PendingInputQueues.SelectMany(name => NativeWillFixture.PendingItems(typeof(WorldRuntime)
-                .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(World)!))
-                .Select(item => (Task)item.GetType().GetProperty("Task")!.GetValue(item)!);
-            await Task.WhenAll(tasks)
-                .WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.WaitForExistingAsync(World);
             var bytes = File.ReadAllBytes(file.Path);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(World.ExportState()));
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => choices.Copy());
@@ -282,8 +293,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
 
     private sealed class DeliveryChoices(string child, string caregiver, bool guardian = false) : IDecisionProvider
     {
-        public TaskCompletionSource? IdentityResponseGate { get; init; }
-        public TaskCompletionSource IdentityEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource? IdentityResponseGate { get; init; }
+        public InlineCompletionSource IdentityEntered { get; } = new(TaskCreationOptions.None);
         public bool Pickup { get; init; } = true;
         public bool Deliver { get; set; }
         public bool ChangeHousehold { get; set; }

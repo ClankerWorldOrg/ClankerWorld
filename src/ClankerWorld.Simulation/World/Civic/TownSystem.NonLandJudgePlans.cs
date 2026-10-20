@@ -39,9 +39,11 @@ internal sealed partial class TownSystem
         if (plan.Choice.Kind == NonLandJudgeKind.Vote)
         {
             if (plan.Contest is not { } original || item.Contest is not { Stage: "voting", RoundDeadlineTick: { } deadline } current || deadline <= world.WorldTick ||
-                TownHearingProcedure.Digest(current with { Ballots = original.Ballots }) != TownHearingProcedure.Digest(original) ||
-                !current.Voters.Contains(plan.Actor, StringComparer.Ordinal) || plan.Candidate is not { } candidate ||
-                CivicAgentToken(candidate) != plan.Choice.CandidateToken || !current.Candidates.Contains(candidate, StringComparer.Ordinal) ||
+                TownHearingProcedure.Digest(current with
+                { Voters = original.Voters, Candidates = original.Candidates, Ballots = original.Ballots, TiedCandidates = original.TiedCandidates }) != TownHearingProcedure.Digest(original) ||
+                !original.Voters.Contains(plan.Actor, StringComparer.Ordinal) || !current.Voters.Contains(plan.Actor, StringComparer.Ordinal) ||
+                plan.Candidate is not { } candidate || CivicAgentToken(candidate) != plan.Choice.CandidateToken ||
+                !original.Candidates.Contains(candidate, StringComparer.Ordinal) || !current.Candidates.Contains(candidate, StringComparer.Ordinal) ||
                 !CivicHistory(town).Knows(plan.Actor, TownCaseJudgeRules.RoundToken(current)))
                 return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected case ballot round or candidate is no longer eligible");
             return new();

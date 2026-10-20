@@ -52,7 +52,7 @@ internal sealed class BuildingStore(WorldConstructionState state)
 
     internal void RecordConstructionReceipt(WorldConstructionReceipt receipt) => Commit(State with
     {
-        Receipts = (State.Receipts ?? []).Append(receipt).OrderBy(item => item.InstructionId, StringComparer.Ordinal).ToArray(),
+        Receipts = (State.Receipts ?? []).Append(receipt).OrderBy(item => item.InstructionId.Value, StringComparer.Ordinal).ToArray(),
     });
 
     internal void StartExpansion(BuildingExpansionJob job) => Commit(State with
@@ -95,6 +95,13 @@ internal sealed class BuildingStore(WorldConstructionState state)
             ? job with { State = WorldProductionJobState.Cancelled, Failure = failure } : job).ToArray(),
     });
 
+    internal void RetireOrderLinks(IReadOnlySet<string> retired) => Commit(State with
+    {
+        Expansions = State.Expansions?.Select(job => retired.Contains(job.OrderInstructionId ?? "")
+            ? job with { OrderInstructionId = null } : job).ToArray(),
+        Receipts = State.Receipts?.Where(receipt => !retired.Contains(receipt.InstructionId)).ToArray(),
+    });
+
     private void Commit(WorldConstructionState next)
     {
         if (SystemInvariantChecks.Enabled) ValidateLocalState(next);
@@ -113,7 +120,7 @@ internal sealed class BuildingStore(WorldConstructionState state)
             if (!Enum.IsDefined(job.State) || string.IsNullOrWhiteSpace(job.OwnerId) || job.StartedTick < 0 || job.CompletionTick <= job.StartedTick ||
                 job.TargetFootprint is null || job.TargetFootprint.Width <= 0 || job.TargetFootprint.Height <= 0 || job.TargetFootprint.Revision <= 0 ||
                 job.ExpectedRevision != job.TargetFootprint.Revision - 1 || job.InputReservationIds is null || job.InputReservationIds.Count == 0 ||
-                job.InputReservationIds.Count != job.InputReservationIds.Distinct(StringComparer.Ordinal).Count() ||
+                job.InputReservationIds.Count != job.InputReservationIds.Distinct().Count() ||
                 job.State == WorldProductionJobState.Paused && (job.PausedAtTick is not { } paused || paused < job.StartedTick || paused >= job.CompletionTick) ||
                 job.State is not (WorldProductionJobState.Paused or WorldProductionJobState.Cancelled) && job.PausedAtTick is not null)
                 throw new InvalidDataException("Construction expansion has an invalid local state.");
@@ -142,7 +149,7 @@ internal sealed class BuildingStore(WorldConstructionState state)
     }
 
     internal static bool ValidConstructionIdentity(string? value) =>
-        !string.IsNullOrWhiteSpace(value) && value == value.Trim() && !value.Any(char.IsControl);
+        IdentityRules.Reference(value, int.MaxValue, requireTrimmed: true);
 
     internal static void ValidateReceipts(IReadOnlyList<WorldConstructionReceipt> receipts)
     {
@@ -151,8 +158,8 @@ internal sealed class BuildingStore(WorldConstructionState state)
                 !ValidConstructionIdentity(item.OwnerId) || !ValidConstructionIdentity(item.MaterialOwnerId) ||
                 item.StartedTick < 0 || item.CompletedTick < item.StartedTick || item.InputReservationIds is null ||
                 item.InputReservationIds.Any(id => !ValidConstructionIdentity(id)) ||
-                item.InputReservationIds.Distinct(StringComparer.Ordinal).Count() != item.InputReservationIds.Count) ||
-            !receipts.Select(item => item.InstructionId).SequenceEqual(receipts.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)) ||
+                item.InputReservationIds.Distinct().Count() != item.InputReservationIds.Count) ||
+            !receipts.Select(item => item.InstructionId.Value).SequenceEqual(receipts.Select(item => item.InstructionId.Value).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)) ||
             receipts.Select(item => item.BuildingInstanceId).Distinct(StringComparer.Ordinal).Count() != receipts.Count)
             throw new InvalidDataException("Construction receipts have invalid or duplicated local records.");
     }

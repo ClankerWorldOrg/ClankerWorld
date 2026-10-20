@@ -45,5 +45,5 @@ internal interface IMarketStallWorld
     long SettleMarketOffer(string actor, MarketTradeState trade, DirectBarterOffer offer, string receipt, string goods, string payment);
     void CancelMarketOffer(DirectBarterOffer offer);
     void RetireMarketHistory();
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
 }

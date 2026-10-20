@@ -55,13 +55,13 @@ public sealed partial class WorldRuntime
         var order = instruction.Task!;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
-            SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+            SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             return;
         }
         var entry = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
         if (entry is null || ProductionOrderCandidateFor(instruction, person)?.DestinationId is not { } buildingId)
         {
-            SetOrderStatus(instruction, "blocked", ProductionOrderBlockedReason(instruction));
+            SetOrderStatus(instruction, OrderStatus.Blocked, ProductionOrderBlockedReason(instruction));
             return;
         }
 
@@ -79,13 +79,13 @@ public sealed partial class WorldRuntime
                 if (!CanResumeHeldInputs(actor, job.BuildingInstanceId, job.InputReservationIds) ||
                     !TryResumeKnife(actor, job.JobId, out var knifeId))
                 {
-                    SetOrderStatus(instruction, "blocked", "The reserved ingredients or production tool are no longer available.");
+                    SetOrderStatus(instruction, OrderStatus.Blocked, "The reserved ingredients or production tool are no longer available.");
                     return;
                 }
                 var deadline = checked(WorldTick + job.CompletionTick - job.PausedAtTick!.Value);
                 ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, job.InputReservationIds, deadline));
                 productionSystem.ResumeJob(job.JobId, deadline, knifeId);
-                AppendEvent("production_order_resumed", $"{instruction.InstructionId}:{job.JobId}");
+                AppendEvent(new ProductionOrderResumedEventPayload(null, instruction.InstructionId, job.JobId));
             }
             return;
         }
@@ -95,12 +95,16 @@ public sealed partial class WorldRuntime
         {
             var project = new AgentProject("build:recipe:" + entry.Recipe.CanonicalId,
                 entry.Recipe.DisplayName, WorldTick, "acquiring", LastTransitionTick: WorldTick);
-            order = order with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    ProduceItemOrderDefinition task => task with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             agentStore.RecordProject(actor, person, project);
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
+            AppendEvent(new ProjectChosenEventPayload(actor, project.CandidateId));
         }
         if (agents[actor].Project is { RequiresFreshChoice: true } pausedProject)
             SetProject(actor, pausedProject with { Stage = "acquiring", RequiresFreshChoice = false, Blocker = null });
@@ -114,11 +118,15 @@ public sealed partial class WorldRuntime
             var current = instructionsByIdempotency[instruction.IdempotencyKey];
             instructionsByIdempotency[instruction.IdempotencyKey] = current with
             {
-                Task = current.Task! with { ProductionJobId = startedJobId },
+                Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ProduceItemOrderDefinition task => task with { ProductionJobId = startedJobId },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
             };
         }
         if (currentProject.Stage is "blocked" or "cancelled")
-            SetOrderStatus(instruction, "blocked", currentProject.Blocker ?? "The requested production cannot continue yet.");
+            SetOrderStatus(instruction, OrderStatus.Blocked, currentProject.Blocker ?? "The requested production cannot continue yet.");
     }
 
     private string ProductionOrderBlockedReason(OwnerQueuedInstruction instruction)
@@ -148,13 +156,13 @@ public sealed partial class WorldRuntime
                 !IsProductionOrderProject(instruction, person.Project))
             {
                 CancelProductionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The worker or workstation for this order is no longer available.");
+                SetOrderStatus(instruction, OrderStatus.Blocked, "The worker or workstation for this order is no longer available.");
                 continue;
             }
             if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
             {
                 PauseProductionOrderJob(instruction, job);
-                SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
+                SetOrderStatus(instruction, OrderStatus.Interrupted, "Food or warmth needs come first.");
             }
             else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
                      instruction.Task!.WaitForDecisionAfterFailure)
@@ -167,7 +175,7 @@ public sealed partial class WorldRuntime
         if (job.State != WorldProductionJobState.Running) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, job.InputReservationIds));
         productionSystem.PauseJob(job.JobId, WorldTick);
-        AppendEvent("production_order_paused", $"{instruction.InstructionId}:{job.JobId}");
+        AppendEvent(new ProductionOrderPausedEventPayload(null, instruction.InstructionId, job.JobId));
     }
 
     private bool IsActiveProductionOrderJob(string jobId) => instructionsByIdempotency.Values.Any(instruction =>
@@ -188,7 +196,7 @@ public sealed partial class WorldRuntime
                 return inventory;
             });
             productionSystem.CancelJobs(new HashSet<string>(StringComparer.Ordinal) { job.JobId });
-            AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
+            AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         }
         if (agents.TryGetValue(instruction.TargetAgentId, out var person) &&
             IsProductionOrderProject(instruction, person.Project))
@@ -204,7 +212,7 @@ public sealed partial class WorldRuntime
             recipe.Outputs.Where(output => output.ResourceId == order.TargetOutputKind).Sum(output => output.Amount);
         var receipt = ProductionOrderReceipt(job.JobId);
         SetProject(job.WorkerId, person.Project! with { Stage = "completed", Blocker = null });
-        CreditOrderEffect(instruction, receipt, units);
+        CreditOrderEffect(instruction, Identity.Parse(receipt), units);
     }
 
     private static string ProductionOrderReceipt(string jobId) =>

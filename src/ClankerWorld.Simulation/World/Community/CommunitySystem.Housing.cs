@@ -14,7 +14,7 @@ internal sealed partial class CommunitySystem
             {
                 Request = new(plan.HouseholdId, world.WorldTick, world.WorldTick + HousingRequestTicks, plan.AdultMembers, [], []),
             });
-            world.AppendEvent("housing_request_made", $"{plan.Actor}:{plan.HouseholdId}");
+            world.AppendEvent(new HousingRequestMadeEventPayload(plan.Actor, plan.HouseholdId));
             return;
         }
         var housing = world.PhysicalAgents.Living[plan.ApplicantId].Housing!;
@@ -25,7 +25,7 @@ internal sealed partial class CommunitySystem
                 ? request with { Approvals = request.Approvals.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() }
                 : request with { Rejections = request.Rejections.Append(plan.Actor).Order(StringComparer.Ordinal).ToArray() },
         });
-        world.AppendEvent("housing_answer_recorded", $"{plan.Actor}:{plan.ApplicantId}");
+        world.AppendEvent(new HousingAnswerRecordedEventPayload(plan.Actor, plan.ApplicantId));
         ResolveHousingRequest(world, plan.ApplicantId);
     }
 
@@ -41,7 +41,7 @@ internal sealed partial class CommunitySystem
                 continue;
             SetHousing(world, actor, (housing ?? new()) with { Blocker = blocker, Refusals = refusals });
             if (blocker is not null && blocker != HousingBlockers.AwaitingAnswer && housing?.Blocker != blocker)
-                world.AppendEvent("housing_blocked", $"{actor}:{blocker}");
+                world.AppendEvent(new HousingBlockedEventPayload(actor, blocker));
         }
     }
 
@@ -103,7 +103,7 @@ internal sealed partial class CommunitySystem
             }
             foreach (var id in world.MovingCareGroup(actor))
                 SetHousing(world, id, (world.PhysicalAgents.Living[id].Housing ?? new()) with { Request = null, Refusals = null, Blocker = null });
-            world.AppendEvent("household_joined", $"{actor}:{request.HouseholdId}");
+            world.AppendEvent(new HouseholdJoinedEventPayload(actor, request.HouseholdId));
         }
     }
 
@@ -121,7 +121,7 @@ internal sealed partial class CommunitySystem
         });
         // The blocker is recomputed now, so the owner never sees a stale "waiting" line.
         SetHousing(world, actor, (world.PhysicalAgents.Living[actor].Housing ?? new()) with { Blocker = world.HousingBlocker(actor) });
-        world.AppendEvent(eventKind, $"{actor}:{request.HouseholdId}");
+        world.AppendEvent(WorldEvents.Housing(eventKind, actor, request.HouseholdId));
     }
 
     internal static void SetHousing(ICommunityHousingWorld world, string actor, HousingState housing)

@@ -38,7 +38,7 @@ public sealed partial class ServerHttpTests
         var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
         var before = await api.GetAutosaveSettingsAsync(uri, authority, device.DeviceId, signer, default);
-        var action = new ClientProtocol.OwnerAutosaveConfigurationAction(false, 1, 0, before.WorldId);
+        var action = new ClankerWorld.Contracts.OwnerAutosaveConfigurationAction(false, 1, 0, before.WorldId);
         if (supported)
         {
             var updated = await api.ConfigureAutosaveAsync(uri, authority, device.DeviceId, action, signer, default);
@@ -50,8 +50,8 @@ public sealed partial class ServerHttpTests
         {
             var failure = await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
                 api.ConfigureAutosaveAsync(uri, authority, device.DeviceId, action, signer, default));
-            Assert.Contains("matching updates", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
-            Assert.Contains("pairing can stay", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
+            Assert.Contains("matching updates", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure), StringComparison.Ordinal);
+            Assert.Contains("pairing can stay", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure), StringComparison.Ordinal);
             Assert.Equal(before, await api.GetAutosaveSettingsAsync(uri, authority, device.DeviceId, signer, default));
         }
         Assert.Equal(supported ? 1 : 0, metadata.AutosaveConfigurationRequests);
@@ -88,24 +88,24 @@ public sealed partial class ServerHttpTests
         Assert.Equal(HttpStatusCode.Unauthorized, failedAction.StatusCode);
         Assert.Equal(1, legacy.WorldActionRequests);
 
-        var clientAction = new ClientProtocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 50, false);
+        var clientAction = new ClankerWorld.Contracts.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 50, false);
         var previewFailure = await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
             api.PreviewWorldAsync(uri, authority, device.DeviceId, clientAction, signer, default));
         await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
             api.CreateWorldAsync(uri, authority, device.DeviceId, clientAction, signer, default));
-        var text = Client.GameUiText.FriendlyFailure(previewFailure);
+        var text = ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure);
         Assert.Contains("matching updates", text, StringComparison.Ordinal);
         Assert.Contains("pairing can stay", text, StringComparison.Ordinal);
         Assert.DoesNotContain("not allowed", text, StringComparison.Ordinal);
         Assert.Equal(1, legacy.WorldActionRequests); // Neither client action was posted or downgraded.
 
         var agentId = "agent:" + Guid.NewGuid().ToString("N");
-        var placement = new ClientProtocol.OwnerAgentPlacementAction(agentId, 4, 2,
-            new ClientProtocol.OwnerProviderConfigurationAction("personal", "openai", "gpt-5-mini", null,
+        var placement = new ClankerWorld.Contracts.OwnerAgentPlacementAction(agentId, 4, 2,
+            new ClankerWorld.Contracts.OwnerProviderConfigurationAction("personal", "openai", "gpt-5-mini", null,
                 false, agentId, null), null, null);
         var placementFailure = await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
             api.PlaceAgentAsync(uri, authority, device.DeviceId, placement, signer, default));
-        Assert.Contains("matching updates", Client.GameUiText.FriendlyFailure(placementFailure), StringComparison.Ordinal);
+        Assert.Contains("matching updates", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(placementFailure), StringComparison.Ordinal);
         Assert.Equal(0, legacy.AgentPlacementRequests); // The client must not send affiliation-free v1 placement.
         Assert.Equal(before, WorldRuntimeCodec.Encode(host.Services.GetRequiredService<WorldRuntime>().ExportState()));
         Assert.NotNull(await api.ReconnectAsync(uri, authority, device.DeviceId, 0, null, null, null, signer, default));
@@ -123,7 +123,7 @@ public sealed partial class ServerHttpTests
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
         var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
-        var action = new ClientProtocol.OwnerWorldCreationAction("Disposable", "compatible-advanced", "Small", 50, false,
+        var action = new ClankerWorld.Contracts.OwnerWorldCreationAction("Disposable", "compatible-advanced", "Small", 50, false,
             "Dominant", "Temperate", false, "Abundant", "High", "Low", "High");
         var preview = await api.PreviewWorldAsync(uri, authority, device.DeviceId, action, signer, default);
         var createAction = action with
@@ -159,7 +159,7 @@ public sealed partial class ServerHttpTests
         using var signer = new ActionCompatibilitySigner(key);
         var device = await StartAndActivateAsync(host, client, key);
         var authorityStore = host.Services.GetRequiredService<OwnerAuthorityStore>();
-        Assert.True(authorityStore.RevokeDeviceLocally(device.DeviceId).IsSuccess);
+        Assert.True(authorityStore.RevokeDevice(device.DeviceId).IsSuccess);
         var identity = authorityStore.Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
         var api = new ClientNetworking.OwnerWorldApi(client);
@@ -167,7 +167,7 @@ public sealed partial class ServerHttpTests
         var failure = await Assert.ThrowsAsync<HttpRequestException>(() => api.PreviewWorldAsync(uri,
             authority, device.DeviceId, new("Disposable", "seed", "Small", 50, false), signer, default));
         Assert.Equal(HttpStatusCode.Forbidden, failure.StatusCode);
-        Assert.Contains("not allowed", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
+        Assert.Contains("not allowed", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure), StringComparison.Ordinal);
     }
 
     // Emulate the pre-Advanced host at its signed HTTP boundary. Challenge issuance
@@ -225,7 +225,7 @@ public sealed partial class ServerHttpTests
         };
     }
 
-    private sealed class ActionCompatibilitySigner(ECDsa key) : IOwnerDeviceSigner
+    internal sealed class ActionCompatibilitySigner(ECDsa key) : IOwnerDeviceSigner
     {
         public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
         public string PublicKeyFingerprint => OwnerPairingProtocol.CreatePublicKeyFingerprint(key.ExportSubjectPublicKeyInfo());

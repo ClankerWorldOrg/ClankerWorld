@@ -223,7 +223,8 @@ public sealed class SocietyCognitionScheduler
         PreviewModelRequests(excludedAgentIds, null);
 
     internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
-        IReadOnlySet<string> excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent)
+        IReadOnlySet<string> excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent,
+        Func<AgentObservation, AgentObservation>? refreshObservation = null)
     {
         ArgumentNullException.ThrowIfNull(excludedAgentIds);
         var selected = OrderedQueue()
@@ -238,7 +239,8 @@ public sealed class SocietyCognitionScheduler
             var runtime = runtimes[entry.AgentId];
             try
             {
-                var request = runtime.PreviewRequest(ObservationFor(entry));
+                var observation = refreshObservation?.Invoke(entry.Observation) ?? entry.Observation;
+                var request = runtime.PreviewRequest(ObservationFor(entry with { Observation = observation }));
                 previews.Add(new SocietyDeferredCognitionRequest(
                     entry.AgentId,
                     request,

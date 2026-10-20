@@ -3,7 +3,7 @@
     "animalSystem",
     "assetReservations",
     "checkpointSchemaVersion",
-    "completedInstructionIds",
+    "completedSuggestionIds",
     "contentRegistry",
     "familySystem",
     "conversationSystem",
@@ -15,6 +15,7 @@
     "jevPolicyRevision",
     "communitySystem",
     "map",
+    "mapAuthoring",
     "nextInstructionSequence",
     "orderCancellations",
     "resources",
@@ -47,20 +48,29 @@
     "pendingConversationTurns",
     "pendingModelCalls",
     "pendingIdentityMoments",
+    "familyWills",
     "providerFactory",
     "agentWorld",
     "tickGate",
     "farmingWorld",
-    "familyWills"
+    "modelWorkScheduler",
+    "modelWorkObserver",
+    "modelTimeProvider",
+    "modelWork"
   ],
   "scratch": [
+    "<RouteSearchesCreated>k__BackingField",
+    "buildingMovement",
     "familyTurn",
     "lastTickMilliseconds",
+    "movementBuildings",
     "nonLandRemedySelection",
     "plannedRoutes",
     "previousPlannedRoutes",
+    "reachabilitySearches",
     "routeSearches",
     "attemptedActions",
-    "withheldActions"
+    "withheldActions",
+    "admittedModelReplies"
   ]
 }

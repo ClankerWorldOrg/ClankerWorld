@@ -1,1 +1,0 @@
-- Households founded by native-born adults can receive recovered Town buildings and have expired land permissions ended, renewed or amended through the public hearing.
