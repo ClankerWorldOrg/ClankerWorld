@@ -132,15 +132,17 @@ public sealed partial class WorldRuntime
             GatherPlannedProjectMaterial(plan.Actor, state, plan.ItemKind, plan.Source!, plan.Harvest!);
             return;
         }
+        var operationId = DerivedId.Create($"{(plan.Kind == WorkstationSupplyKind.Carried ? "workstation-supply" : "workstation-pickup")}:{WorldTick}:{plan.Actor}");
         ApplyInventoryTransition(inventory => plan.Kind == WorkstationSupplyKind.Carried
             ? plan.StockOwnerId == plan.HouseholdId
-                ? InventoryAuthority.Relocate(inventory, $"workstation-supply:{WorldTick}:{plan.Actor}", plan.StockId!, plan.HouseholdId,
+                ? InventoryAuthority.Relocate(inventory, operationId, plan.StockId!, plan.HouseholdId,
                     plan.Quantity, storageBuildingId: plan.BuildingId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.BuildingId))
-                : InventoryAuthority.Transfer(inventory, $"workstation-supply:{WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId, plan.StockId!,
+                : InventoryAuthority.Transfer(inventory, operationId, plan.Actor, plan.HouseholdId, plan.StockId!,
                     plan.Quantity, "workstation_supplied", plan.BuildingId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.BuildingId))
-            : InventoryAuthority.Transfer(inventory, $"workstation-pickup:{WorldTick}:{plan.Actor}", plan.StockOwnerId!, plan.Actor, plan.StockId!,
+            : InventoryAuthority.Transfer(inventory, operationId, plan.StockOwnerId!, plan.Actor, plan.StockId!,
                 plan.Quantity, "workstation_input_picked_up", destinationDeliveryBuildingId: plan.BuildingId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
-        AppendEvent(plan.Kind == WorkstationSupplyKind.Carried ? "workstation_supplied" : "workstation_input_picked_up",
-            $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.BuildingId}");
+        AppendEvent(plan.Kind == WorkstationSupplyKind.Carried
+            ? new WorkstationSuppliedEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId)
+            : new WorkstationInputPickedUpEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId));
     }
 }

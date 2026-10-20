@@ -29,7 +29,7 @@ internal sealed partial class TownSystem
         {
             StatementBound = true,
             Statement = raw?.Trim(),
-            InvalidStatement = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
+            InvalidStatement = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
         };
     }
 
@@ -53,7 +53,7 @@ internal sealed partial class TownSystem
                 (!LandHearingReadCurrent(world, item, plan.Actor) || item.Status == "settled" &&
                     (!LandHearingReadRuling(world, item, plan.Actor) || item.ReopenRequests.Any(request => request.Status == "pending" &&
                         !item.Reads.Any(read => read.AgentId == plan.Actor && read.Revision == revision.Number && read.ReopenRequestIds.Contains(request.Id, StringComparer.Ordinal))) ||
-                        LandHearingUnreadRecords(world, town, item).Length > 0)) ? new()
+                        LandHearingUnreadRecords(world, town, item) is [_, ..])) ? new()
                 : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected public case file is unavailable or already read");
         if (!TownLandHearingRules.HasNoticeReceipt(revision, plan.Actor, world.WorldTick, town.Council.Knowledge))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they have not learned that selected case notice");
@@ -67,7 +67,7 @@ internal sealed partial class TownSystem
             case LandHearingEvidenceKind.Answer:
             case LandHearingEvidenceKind.Waive:
                 return item.Status == "pending" && plan.Party is { } selected && CivicAgentToken(selected.Id) == plan.Choice.PartyOrRecipientToken &&
-                    parties.Any(party => TownLandHearingRules.RecordVersion(party) == TownLandHearingRules.RecordVersion(selected) &&
+                    parties.Any(party => party.Id == selected.Id &&
                         (party.Kind == "household" ? party.AdultIds.Contains(plan.Actor, StringComparer.Ordinal) : party.RepresentativeId == plan.Actor)) &&
                     revision.Parties.Any(party => party.Id == selected.Id) ? new()
                     : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected household or Town response party has changed");

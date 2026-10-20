@@ -11,13 +11,12 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
-    private readonly HFlowContainer profilePeople = new();
+    private readonly VBoxContainer profilePeople = new();
     private string? renderedProfilePeople;
 
     private void BuildProfilePeople(VBoxContainer body)
     {
-        profilePeople.AddThemeConstantOverride("h_separation", 12);
-        profilePeople.AddThemeConstantOverride("v_separation", 3);
+        profilePeople.AddThemeConstantOverride("separation", 3);
         body.AddChild(profilePeople);
     }
 
@@ -43,7 +42,7 @@ public partial class Main
             row.AddThemeConstantOverride("separation", 6);
             row.AddChild(new TextureRect { Texture = icon, StretchMode = TextureRect.StretchModeEnum.KeepCentered, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             row.AddChild(new Label { Text = relation, ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
-            row.AddChild(new Label { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+            AddProfileText(row, new FittedLabel { Text = name, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
             if (extra is not null) row.AddChild(extra);
             profilePeople.AddChild(row);
         }
@@ -73,13 +72,13 @@ public partial class Main
             Row(PixelIcons.Texture(PixelGlyph.Person, p.Ink, p.Primary, 1), "Trusts", standing.SubjectName,
                 Sureness(standing.Trust * 1000, $"Trust {standing.Trust} of 10"));
         foreach (var note in agent.SocialNotes)
-            profilePeople.AddChild(new Label { Text = GameUiText.PlainEllipses(note), ThemeTypeVariation = "DimLabel", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(240, 0) });
+            AddProfileText(profilePeople, new Label { Text = GameUiText.PlainEllipses(note), ThemeTypeVariation = "DimLabel" });
         if (profilePeople.GetChildCount() == 0)
-            profilePeople.AddChild(new Label { Text = "No close relationships yet.", ThemeTypeVariation = "DimLabel" });
+            AddProfileText(profilePeople, new Label { Text = "No close relationships yet.", ThemeTypeVariation = "DimLabel" });
     }
 
     /// <summary>Each People row as one line of text, for checks and assistive reading.</summary>
     private string ProfilePeopleText() => string.Join("\n", profilePeople.GetChildren().OfType<Control>().Select(row => row is Label label
-        ? label.Text
-        : string.Join(" ", row.GetChildren().OfType<Label>().Select(part => part.Text))));
+        ? label is FittedLabel fitted ? fitted.FullText : label.Text
+        : string.Join(" ", row.GetChildren().OfType<Label>().Select(part => part is FittedLabel fittedPart ? fittedPart.FullText : part.Text))));
 }

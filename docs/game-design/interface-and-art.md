@@ -2,7 +2,7 @@
 title: The interface, art and audio
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # The interface, art and audio
@@ -115,7 +115,7 @@ everything that is available in the current build. See [what works today](../wha
   known. Opening World Info never gives any agent knowledge. Experimental or
   unvalidated proposals are shown separately from usable discoveries.
 - The top-right menu button opens the **Pause Menu** and pauses the world. It
-  contains **Save World**, **Settings**, **Mod Library**, then **Quit to Menu**
+  contains **Save World**, **Load Save**, **Settings**, **Mod Library**, then **Quit to Menu**
   at the bottom. There is **no Quit Game action in the Pause Menu**; Quit Game
   belongs to the Main Menu. Settings use categories on the left and selected
   controls on the right. Quit to Menu and Main Menu Quit Game ask for
@@ -165,8 +165,10 @@ everything that is available in the current build. See [what works today](../wha
   and no slogan. Chosen from five options, it has wood-grain letters (without
   angled 3D) either side of a friendly robot waving in front of a small
   planet; the robot and planet also serve as the app icon. A status line
-  appears only when something needs attention; pairing is expected to be a
-  development-only step once the game hosts worlds on the player's own PC.
+  appears only when something needs attention. **Agreed on October 15, by the
+  owner in chat:** joining a world on another computer, including pairing,
+  happens in the launcher, so the Main Menu never asks to connect this device
+  ([Where the game runs](world.md#where-the-game-runs)).
 - **Agreed after the September 30 font review:** text uses pixel fonts,
   chosen from six options shown on real game screens. Body text is **Fusion
   Pixel 12px**. Titles, panel headings, section labels, dialog titles and the
@@ -219,6 +221,13 @@ everything that is available in the current build. See [what works today](../wha
   and pass it to the game as a start option; a game started without the
   launcher uses the same start option, with no in-game switch. A game the
   launcher started offers **Quit to Launcher** on its Main Menu.
+- **Agreed on October 16 ([#2346](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2346)):**
+  paused world editing uses named terrain, resource and object choices, followed
+  by clicking or dragging tiles, a preview and **Apply**. The server validates
+  the whole selection, saves accepted edits and records them as **Developer edit**;
+  a refusal explains why and changes nothing. The owner approved restoring
+  these native server operations, including validation, saving and replay,
+  as part of the same change. Editing remains in Developer tools and requires pause.
 - **Agreed after the October 2 panel review:** computment accepted redesigns
   of the panels that had not been touched yet, shown as before-and-after game
   screenshots, with these changes of their own:
@@ -247,6 +256,10 @@ everything that is available in the current build. See [what works today](../wha
   - The Mod Library lists mods as cards with a status tag. Confirmation
     dialogs centre their text and have a framed close button inside the frame.
     Status messages show a tick or a warning sign.
+  - **Agreed on October 16 (the owner in chat, #2359):** selecting a world in
+    Load World shows its save timeline directly. Load opens the chosen save,
+    or the newest save when none is chosen. The Pause Menu's Load Save opens
+    the current world's timeline directly.
   - Load Save draws a world's save branches as a large timeline with the
     chosen save described underneath and the list behind a **Timeline / List**
     switch (option C of three, for #680). After two more rounds of drawings,

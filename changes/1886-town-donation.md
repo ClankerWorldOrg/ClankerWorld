@@ -1,1 +1,0 @@
-- Town donations can now complete agreed public-service work when an agent has a long saved identity, without refusing the donation or failing a strict save.

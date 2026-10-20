@@ -1,1 +1,0 @@
-- Public notice reads retain their board and recipient; relay retains its selected learned notices and recipient when checked before sharing.
