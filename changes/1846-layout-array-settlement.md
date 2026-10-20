@@ -1,0 +1,1 @@
+- Building-site searches skip repeated settled-tile lookups while preserving the same routes and choices.

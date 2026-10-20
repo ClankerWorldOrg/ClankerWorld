@@ -1,1 +1,0 @@
-- Household construction preparation retains its building need, material source, tool, harvest and return destination through shared checks.

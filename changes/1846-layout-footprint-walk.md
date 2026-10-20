@@ -1,0 +1,1 @@
+- Town building planning checks use less processor time.

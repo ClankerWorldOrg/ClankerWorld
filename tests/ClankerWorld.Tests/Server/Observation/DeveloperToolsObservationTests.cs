@@ -38,7 +38,7 @@ public sealed class DeveloperToolsObservationTests
         }
 
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, WireOptions), WireOptions)!;
         Assert.NotNull(client.LastTickMilliseconds);
         foreach (var person in client.Agents)
@@ -48,7 +48,7 @@ public sealed class DeveloperToolsObservationTests
                 Assert.Null(person.PlannedRoute);
                 continue;
             }
-            var projected = Assert.IsType<ClankerWorld.GodotClient.Protocol.OwnerWorldPlannedRoute>(person.PlannedRoute);
+            var projected = Assert.IsType<ClankerWorld.Contracts.OwnerWorldPlannedRoute>(person.PlannedRoute);
             Assert.Equal(route.Reason, projected.Reason);
             Assert.Equal((route.Destination.X, route.Destination.Y), (projected.Destination.X, projected.Destination.Y));
             Assert.Equal(route.Steps.Count, projected.StepCount);

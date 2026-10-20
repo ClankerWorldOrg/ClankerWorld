@@ -1,1 +1,0 @@
-- The game's own world server no longer picks up model API keys or ClankerWorld settings from environment variables on your PC; save keys in **Settings → Game → API keys** instead.
