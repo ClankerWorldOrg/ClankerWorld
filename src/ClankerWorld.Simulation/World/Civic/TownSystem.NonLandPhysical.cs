@@ -308,7 +308,7 @@ internal sealed partial class TownSystem
                 if (!world.IsWithinInteractionRange(position, destination, range))
                 {
                     if (position == person.Position) needed += person.TravelCooldownTicks;
-                    var route = world.FindUnoccupiedRoute(actor, position, destination, range);
+                    var route = world.ReachLeg(actor, position, destination, ReachPurpose.NonLandService, range, 0, SwimmingPolicy.WhenCapable);
                     if (route.Count < 2) return false;
                     for (var step = 1; step < route.Count; step++)
                     {

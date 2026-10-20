@@ -1,10 +1,4 @@
 {
-  "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": [
-    "world.FindUnoccupiedRoute(actor, position, destination, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs": [
-    "runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
-  ],
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
     "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],

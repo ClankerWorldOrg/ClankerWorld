@@ -55,13 +55,14 @@ public sealed partial class WorldRuntime
         public EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) => runtime.EquipmentRepairSite(actor, lot);
-        public List<GridPoint> FindUnoccupiedRoute(
+        public IReadOnlyList<GridPoint> ReachLeg(
                 string agentId,
                 GridPoint origin,
                 GridPoint destination,
+                ReachPurpose purpose,
                 int interactionRange,
-                bool allowSwimming = true,
-                int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
+                int additionalCarriedUnits,
+                SwimmingPolicy swimming) => runtime.ReachLeg(agentId, origin, destination, purpose, interactionRange, additionalCarriedUnits, swimming);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public bool HasCarriedMaterial(string actor, string itemKind, int quantity) => runtime.HasCarriedMaterial(actor, itemKind, quantity);
         public PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => runtime.HouseholdBuildingWithTag(householdId, tag);
