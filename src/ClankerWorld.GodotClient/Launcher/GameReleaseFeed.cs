@@ -11,7 +11,7 @@ public sealed record ReleaseAsset(string Name, long Size, Uri DownloadUrl);
 /// SHA-256. Both come from the project's own GitHub releases.
 /// </summary>
 public sealed record GameRelease(GameVersionName Version, string Tag, bool PreRelease, Uri Page,
-    ReleaseAsset Package, ReleaseAsset PackageHash);
+    ReleaseAsset Package, ReleaseAsset PackageHash, ReleaseAsset? PackageSignature = null, bool Withdrawn = false);
 
 /// <summary>A published launcher release, which the player installs by hand.</summary>
 public sealed record LauncherRelease(GameVersionName Version, Uri Page);
@@ -22,11 +22,13 @@ public sealed record ReleaseFeedResult(IReadOnlyList<GameRelease> Games, Launche
 /// Reads the project's published releases. Game releases are tagged
 /// <c>v&lt;version&gt;</c>; launcher releases are tagged
 /// <c>launcher-v&lt;version&gt;</c>. Downloads only ever come from
-/// <see cref="Host"/>, over HTTPS.
+/// the project's release path, over HTTPS.
 /// </summary>
 public sealed class GameReleaseFeed(HttpClient http, Uri? releasesApi = null)
 {
     public const string Repository = "ClankerWorldOrg/ClankerWorld";
+    public const string WithdrawnMarker = "<!-- clankerworld:withdrawn -->";
+    private const string DownloadPath = "/" + Repository + "/releases/download/";
     public static readonly Uri DefaultReleasesApi = new($"https://api.github.com/repos/{Repository}/releases?per_page=50");
     private static readonly string[] Hosts = ["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"];
 
@@ -50,8 +52,10 @@ public sealed class GameReleaseFeed(HttpClient http, Uri? releasesApi = null)
         foreach (var release in releases)
         {
             if (release.Draft || release.TagName is null || !TryPage(release.HtmlUrl, out var page)) continue;
+            var withdrawn = release.Body?.Contains(WithdrawnMarker, StringComparison.Ordinal) == true;
             if (release.TagName.StartsWith("launcher-v", StringComparison.Ordinal))
             {
+                if (withdrawn) continue;
                 var launcherVersion = GameVersionName.Parse(release.TagName["launcher-v".Length..]);
                 if (launcherVersion is not null && (launcher is null || launcherVersion.CompareTo(launcher.Version) > 0))
                     launcher = new LauncherRelease(launcherVersion, page);
@@ -64,19 +68,30 @@ public sealed class GameReleaseFeed(HttpClient http, Uri? releasesApi = null)
             var package = Asset(release, name);
             var hash = Asset(release, name + ".sha256");
             if (package is null || hash is null) continue;
-            games.Add(new GameRelease(version, release.TagName, release.PreRelease, page, package, hash));
+            games.Add(new GameRelease(version, release.TagName, release.PreRelease, page, package, hash,
+                Asset(release, name + ".sig"), withdrawn));
         }
         games.Sort((a, b) => b.Version.CompareTo(a.Version));
         return new ReleaseFeedResult(games, launcher);
     }
 
-    /// <summary>The releases a player is offered: nightly builds of main only in Developer mode.</summary>
+    /// <summary>Nightly and withdrawn releases are offered only in Developer mode.</summary>
     public static IReadOnlyList<GameRelease> Offered(IEnumerable<GameRelease> games, bool developerMode) =>
-        games.Where(release => developerMode || !release.Version.IsNightly).ToArray();
+        games.Where(release => developerMode || !release.Version.IsNightly && !release.Withdrawn).ToArray();
 
     /// <summary>Only the project's own release downloads are accepted.</summary>
     public static bool IsTrustedDownload(Uri url) =>
-        url.Scheme == Uri.UriSchemeHttps && Hosts.Contains(url.Host, StringComparer.OrdinalIgnoreCase);
+        IsDownloadOrigin(url) && url.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) &&
+        url.AbsolutePath.StartsWith(DownloadPath, StringComparison.Ordinal) && url.AbsolutePath.Length > DownloadPath.Length &&
+        url.Query.Length == 0;
+
+    /// <summary>GitHub may redirect release assets to its signed download hosts.</summary>
+    public static bool IsTrustedDownloadResponse(Uri? url) => url is not null && IsDownloadOrigin(url) &&
+        (url.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) ? IsTrustedDownload(url) :
+            Hosts.Contains(url.Host, StringComparer.OrdinalIgnoreCase));
+
+    private static bool IsDownloadOrigin(Uri url) => url.IsAbsoluteUri && url.Scheme == Uri.UriSchemeHttps &&
+        url.IsDefaultPort && url.UserInfo.Length == 0 && url.Fragment.Length == 0;
 
     private static ReleaseAsset? Asset(GitHubRelease release, string name)
     {
@@ -97,7 +112,8 @@ public sealed record GitHubRelease(
     [property: JsonPropertyName("html_url")] string? HtmlUrl,
     [property: JsonPropertyName("draft")] bool Draft,
     [property: JsonPropertyName("prerelease")] bool PreRelease,
-    [property: JsonPropertyName("assets")] IReadOnlyList<GitHubReleaseAsset>? Assets);
+    [property: JsonPropertyName("assets")] IReadOnlyList<GitHubReleaseAsset>? Assets,
+    [property: JsonPropertyName("body")] string? Body = null);
 
 public sealed record GitHubReleaseAsset(
     [property: JsonPropertyName("name")] string? Name,

@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-13
+updated: 2026-10-18
 ---
 
 # Playing the current game
@@ -18,8 +18,9 @@ the current limits.
 Run `ClankerWorld-Setup-<version>-windows-x64.exe`. It installs the launcher
 and includes that game version without an administrator prompt. Start
 **ClankerWorld** from the Start menu; setup can also add a desktop shortcut.
-Until a release is published, the unsigned setup is a
-[CI build artifact](development/build-and-test.md#windows-installer).
+Download the setup and its `.sha256` from a nightly pre-release on
+[GitHub Releases](https://github.com/ClankerWorldOrg/ClankerWorld/releases),
+beside the portable game zip. Each setup includes that nightly's launcher and game.
 Windows may warn about an unknown publisher because the alpha is not signed.
 
 To remove the launcher, open **Settings → Apps → Installed apps** in Windows,
@@ -28,24 +29,69 @@ game versions, worlds, keys and model-call count. Running setup again, or a
 newer setup, keeps those files too. An existing copy of the bundled game
 version is reused.
 
+## Host a world for other devices
+
+On the Windows computer that will run the world, install Tailscale, join your
+private network and enable its HTTPS certificates. Use Tailscale on the playing
+computer too. Hosting is for your private network; do not enable public Funnel.
+
+In the launcher, choose an installed game version and **Host a world for other
+devices**, then **Start hosting**. Older builds need an update before they can
+host this way. The launcher becomes a host app and shows the address to use on
+the playing computer. It keeps the same worlds, saved keys and model-call count
+as this installation. Developer mode's test-data choice stays isolated and is
+remembered for automatic restart.
+
+When a device asks to join, compare its code with the one on the host screen.
+Choose **Approve** only when they match, or **Decline** to refuse it. A request
+that was pending when the server restarted needs to be declined and started
+again so both computers can show the same code.
+
+When the last game leaves, the world saves and pauses. The host waits without
+advancing time or calling models. **Stop hosting when the game quits** stops it
+instead; choose this option before starting the host. By default the host
+starts again when you sign in to Windows after a restart. Turn off **Start
+hosting again when I sign in to Windows** to disable that.
+
+Closing the host window minimizes it and keeps hosting in the background.
+**Stop hosting** saves the world, stops the server and turns off the private
+forwarding address without removing worlds or approved devices. A failed save
+keeps the host alive and paused so you can free space and retry. If stopping
+cannot be confirmed, the hosting controls stay available for retry.
+
+To play on the hosting computer, choose **Play on this PC** on the host screen.
+The game uses the running host's version and data folder, with no address or
+comparison-code step. Older game builds need an update first. The host window
+stays available in the background. Quitting that game leaves hosting and other
+devices connected; the last game leaving follows the stop option above.
+
 ## Connect your device
 
-Start the game through the launcher, or start `ClankerWorld.exe` from the
-extracted portable bundle. For an approved remote server, use the connection
-and pairing screen to connect to the world server you have been given. Your
-device must be able to reach it through its private network.
+To run the world on an always-on Linux x64 machine, follow the
+[Linux hosting guide](hosting-linux.md). It covers the server download,
+private HTTPS access, service installation and local device approval.
 
-A new device needs approval. Compare the game's code with the person approving
-the device on the server, then complete pairing. Do not post the code, keys or
-private save data in an issue. Once paired, reconnecting uses the saved
-connection; normal play does not need approval every time.
+For a world on another computer, open the launcher and choose **Join a world
+on another computer**. Enter the host's HTTPS address. Both devices must be on
+its private network. Compare the displayed code with the person approving the
+device on the hosting computer; approve only when they match. The launcher
+checks approval automatically, and **Check approval** checks again immediately.
+Do not post the code, keys or private save data in an issue.
 
-After pairing, choose **Continue** from the Main Menu to enter your world.
-If the server's last pairing reply was lost, the next pairing check can still
-finish pairing and return you to the same menu.
+Once approved, choose a game version and **Play**. The launcher checks the saved
+connection with this device's key and starts the game already connected. Choose
+**Continue** from the game's Main Menu to enter the world. Later launches reuse
+the saved connection without pairing again. The game has no address-entry or
+pairing screen.
 
-For an already paired device, **Connect** checks the saved server connection
-and shows the result below the address. It does not start a new pairing.
+If the host cannot be reached, the launcher explains how to start it if it is
+stopped: **Start hosting** on a launcher host, or the service command on a
+terminal host. A connection failure can also mean the private network is
+unavailable. Approval and certificate failures have their own messages.
+
+Choose **Play on this PC** to return to your local worlds. To join another host,
+open the joining screen and choose **Forget this connection** first; the
+private device key stays in your Windows account's key store.
 
 A game folder that carries its own `server` folder runs the world on your PC
 instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
@@ -82,13 +128,20 @@ Developer mode on with the `--developer-mode` start option
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
 which saves, closes the game and reopens the launcher with that version chosen.
 After **Play**, choose **Load World** on the Main Menu: the previous world is
-already selected. It opens only when you choose **Open World**. The launcher checks each download against the
-release's published SHA-256 before unpacking it, never installs anything
-without your click, and never updates itself: it tells you when a newer
+already selected. It opens only when you choose **Load**. The launcher checks each download against the
+release's signed approval before unpacking it and checks installed files before
+Play. It never installs anything without your click, and never updates itself:
+it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
 installed version. Until the first alpha release, it is the
 `clankerworld-launcher-windows-11-x64` build from CI
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
+
+If the publisher withdraws a release, the launcher hides it from normal install
+and Play choices. A world asking for that version gets an explanation; the
+launcher keeps its installed files and your saves. Developer mode shows
+withdrawn games with a warning. Downloading them still needs a valid release
+approval.
 
 ### If a request loses its reply
 
@@ -102,12 +155,14 @@ restarted, check whether your request already took effect before sending it
 again. Check and send again then releases the old saved request; an instruction
 for the same agent and world is ready to review in their Profile before you
 press Send. Discard it restores the other controls but does not undo anything
-the server already accepted.
+the server already accepted. Use **Tab** or **Shift+Tab** to reach the recovery
+buttons and **Enter** to choose one; focus then returns to the screen underneath.
 
 ### Report a problem
 
 **Report a problem**, in **Settings → Game → Build**, saves a zip to send with a bug report
-and shows it in your file manager. It holds the game's latest logs, the world
+and shows it in your file manager. It holds the game's log up to that moment
+and the previous run's log, including after a forced close, the world
 server's logs when the server runs on your PC, and a summary of the game
 version, Windows version, graphics card, screen and open world. It never
 includes keys, pairing codes, saves, prompts or model replies, and anything in
@@ -115,9 +170,9 @@ a log that looks like a key is blanked. Reports go in a `reports` folder (in
 `%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
 five newest are kept. Nothing is uploaded; you choose where to send the file.
 
-If the server changes, choose **Pair again** in **Settings → Game → World
-connection**: it forgets this device's saved connection so you can pair with
-the new server.
+If the server changes, open the launcher's joining screen and choose **Forget
+this connection**, then enter and approve the new host. To return to an
+already approved host after local play, choose **Use this world**, then **Play**.
 [Device pairing](development/device-pairing.md) has the operator instructions.
 
 If New World asks for matching updates, update the game and have the server
@@ -245,19 +300,34 @@ Keys stay on the server installation, separately from world saves. Cloud
 providers charge you for usage. While paused, open **Settings → World → Routine
 helper** to choose **Off**, **Jev** or **OpenAI Decisions**, pick its model and
 press **Apply helper**. Decisions uses your default OpenAI key or a named saved
-OpenAI key you choose; Jev uses the saved TypeSafe key. Switching helpers keeps
+OpenAI key you choose; Jev uses your default TypeSafe key or a named saved
+TypeSafe key you choose. New Jev selections start on **jev-1.14.0**; a world
+already using **jev-1.13.0** keeps that model until you change it. Switching helpers keeps
 memories and their scores. The helper serves every adult and elder, including
 people born in the world; children keep their own model. Conversations, identity
 and wills still use each person's own model. Decisions currently offers `gpt-6-luna`; **Type a
 model name...** also remains available.
 
+The helper answers only when every available action is about food, clothing,
+warmth, care or waiting. An agent doing everyday work can still have bigger
+choices available, so its personal model may answer instead. Applying a helper
+selects it without checking its connection. **Test helper · 1 paid call** checks
+the selected model and saved key immediately, without waiting for routine work.
+The result explains a usable reply or a connection, key or model problem; each
+sent test counts toward the model-call limit. A successful test leaves the
+world's helper choice and its agents unchanged.
+
 To save keys before placing any agents, open **Settings → Game → API keys**.
-Choose OpenAI, Ollama Cloud or Anthropic, name the key, paste it and press
+Choose OpenAI, Ollama Cloud, Anthropic or **TypeSafe (Jev)**, name the key, paste it and press
 **Save API key**. You can save each provider's keys from Main Menu Settings once this device is
 connected and paired. Saving a key does not run a model or place an agent.
-Choose the saved key later in **Add Agent** or an agent's **Model** panel.
+Choose the saved key later in **Add Agent**, an agent's **Model** panel or
+**Routine helper**. TypeSafe keys are for the Jev helper.
 **Open model settings** in that panel opens the agent's model in World
-Settings, where you can also delete a saved key.
+Settings. To delete a saved key, choose it under **API keys** and press
+**Delete saved key**; an agent's model settings also offer deletion.
+A key used by the routine helper cannot be deleted. Choose another helper key
+or turn the helper off first.
 
 To check a selected model, press **Test model · 1 paid call** in Add Agent or
 an agent's Model panel. It uses the chosen **Thinking** setting too. This sends one real request and counts toward the
@@ -287,7 +357,8 @@ beside a small picture of it. Click a tile to open its card: the ground with a
 picture of the tile, its height, climate, weather and soil, its Town, any land
 title, household use right, pending use request or dispute, the household that
 owns it, and anything on it, such as a tree, a field or goods left on the
-ground.
+ground. Crowded cards scroll through their facts and goods, with Close always
+visible above them.
 
 When a building finishes on screen at close or mid zoom, a ring of dust
 settles around it and a few twinkles appear over the roof. The moment plays
@@ -836,9 +907,12 @@ scouting trips all appear. Building and crafting entries name the building or
 recipe, including older recorded work. Town law decisions, government votes
 and handovers, and mayoral elections or office changes also appear; open the
 Towns page for their wording and results. Routine steps such as meals, forage
-trips, cart loading and each Town project work shift are left out, because a
-later line already reports what came of them. An event with a known
-location has a **Find** button that moves the camera there. The log grows to
+trips, storing or collecting personal belongings, stocking a Store, hauling
+supplies, cart loading and each Town project work shift are left out. An agent
+changing an unavailable source quietly also stays out of the log. Blocked or
+failed player orders and broken promises remain visible, with the same problem
+for the same agent and target shown at most once per world day. An event with a
+known location has a **Find** button that moves the camera there. The log grows to
 fit wrapped text and day headings until it reaches the bottom of the screen,
 then scrolls. It adjusts when the window changes size. Opening the log
 marks its new entries read; the ones that were new keep a small dot while it
@@ -1179,8 +1253,21 @@ turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
 whose reply was lost, paused world editing and paired-device management. The
 aging override and world editing need the world paused first.
-World-edit coordinates cover the whole current map, from zero to its last
-tile on each axis. Their bounds update when you change worlds.
+**Edit world** lists the tools and kinds the server offers, using their names.
+Choose a tool and kind, then click tiles or drag across them; **Pick tiles on
+the map** shows when the tool is active. Gold marks show the tiles in your preview; **Apply** sends the
+whole selection for the server to check and save. **Clear preview** starts
+again. Resuming time, changing worlds or closing Developer tools clears it.
+A refused edit shows the server's reason and leaves the world unchanged.
+The typed operations are under **Advanced: typed operations**; their coordinate
+bounds follow the current map.
+
+Terrain choices paint ground, water, mountains or peaks. Resource choices add
+berry bushes, timber, fallen wood, stone, fiber or clay; object choices add a
+camp shelter, storage or cooking fire after the settlement starts. Choose empty
+tiles: agents, resources, objects, roads, fields and building sites are protected.
+The server saves the whole edit and marks it **Developer edit** in the Event Log.
+If the world changed since your preview, refresh and choose the tiles again.
 
 To set up a test, pause and use **Edit selected agent**. Choose a need and its
 percentage, goods and a quantity, a skill, or another agent for a partnership,
@@ -1208,6 +1295,11 @@ server's displayed information and unfinished edit.
 
 ## Save and return
 
+When a save or another world changes model or key assignments, the game shows
+those settings before loading. Check the model names and key labels, then
+confirm to use them, or cancel to keep your current world and settings. A load
+never supplies a new API key from the save.
+
 If the server's save disk is low on space, a warning stays visible while you
 play and appears in Save World before saving or overwriting. Make room soon;
 saves can fail when the disk fills. The warning is advisory: manual saves,
@@ -1229,8 +1321,9 @@ Developer tools show the total number of refusals in this world. A fault that
 cannot be traced to one action still leaves the world paused.
 
 If no usable autosave is available, recovery stays blocked. **Check again**
-checks for a usable autosave without changing your world. You can quit and keep
-the saved files for recovery. A lost recovery reply also offers **Check again**
+checks for a usable autosave without changing your world. **Quit Game** closes
+the game and its local world server, keeping the refused save unchanged for
+recovery. A lost recovery reply also offers **Check again**
 so you can find out whether recovery finished before trying it again.
 
 **Save World** creates a named save for the current world. Its name starts as
@@ -1247,8 +1340,10 @@ Damaged autosaves are kept separately from the chosen number of usable copies,
 including when rotation is off.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
-current world and any it cannot open. Double-click a card, or choose it and
-**Open World**. Long card names are shortened to fit; hover a world or save
+current world and any it cannot open. Selecting a card shows that world's save
+timeline below it. Choose a save and **Load**, or double-click the save. With no
+save chosen, **Load** opens the newest save; if there are no saves yet, it opens
+the world as it is now. Double-clicking a world card does the same. Long card names are shortened to fit; hover a world or save
 card to read its full name and details. Open
 and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
@@ -1256,20 +1351,20 @@ another game version last saved, and this one can't open, is marked
 <version>** button asks first, saves and closes the game, and opens the
 launcher with that version chosen, ready to install if needed. After **Play**,
 open **Load World** on the Main Menu: the same world is selected, ready for
-**Open World**. If it is no longer in the saves folder, the game explains that
+**Load**. If it is no longer in the saves folder, the game explains that
 and lets you choose another world. Started without
 the launcher, the game names the version to start instead. If that version is
 neither installed nor available to download, the launcher keeps it selected and
 explains why it cannot start. Failed saving or opening the launcher keeps the
 game open, and **Try Again** keeps the chosen version and world.
 
-To go back to an earlier save, choose the current world in Load World and
-**Load a save...**, then pick a save and **Load**, or double-click it. Your world
-as it was is saved first. Playing on from an older save starts a new **branch**,
-so the saves from the first version of events stay as they were. To load a save
-of another world, open that world first.
+To go back to an earlier save, choose its world in **Load World** and pick it
+on the timeline, then **Load**, or double-click the save. During play, the Pause
+Menu's **Load Save** opens the current world's timeline directly. Your world as
+it was is saved first. Playing on from an older save starts a new **branch**,
+so the saves from the first version of events stay as they were.
 
-Load Save and Save World open on a **timeline** of the world's saves: a line for
+Load World, Load Save and Save World share a **timeline** of the world's saves: a line for
 each branch across the world's days, with the seasons along the top. A new
 branch bends down from the save it grew from. Each branch's newest save has a
 small banner, older saves are open circles and autosaves are small diamonds;
@@ -1291,8 +1386,8 @@ last client stops time and model work after about five seconds. Returning makes
 no offline progress or change to a manual pause. An unfinished model call can
 be cancelled and retried later; the provider may charge for both attempts.
 
-To remove one save, choose it in **Load a save...** or Save World and choose
-**Delete**.
+To remove one save, choose it in **Load World**, **Load Save** or **Save World** and choose
+**Delete**. Load a world before deleting one of its saves.
 The confirmation also opens when you manage the current world's saves straight
 after starting the game. It names the save; deletion is permanent and
 leaves its world

@@ -1,1 +1,0 @@
-- Estate-default and communal-boat access proposals retain their selected policy and visitor through shared checks.

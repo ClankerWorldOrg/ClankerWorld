@@ -1,1 +1,0 @@
-- Town layout searches avoid allocating a neighbor iterator for every visited tile while preserving their route and construction rules.

@@ -1,1 +1,0 @@
-- Map name tags keep whole accented letters, flags and joined emoji in bounded given names. Longer given names still use an initial, and names still appear only on hover or selection.

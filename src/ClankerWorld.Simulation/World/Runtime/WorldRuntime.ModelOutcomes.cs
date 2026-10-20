@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
         if (next == previous) return;
         agents[id] = physical with { LastModelAttempt = next };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("model_attempt_status", $"{id}:{status}");
+        AppendEvent(new ModelAttemptStatusEventPayload(id, status));
     }
 
     private void RecordModelCompletion(string id, CognitionAdmissionResult admission, string? failure)

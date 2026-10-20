@@ -1,1 +1,0 @@
-- Load World marks a world that another game version saved and offers a red Open in <version> button, which reopens the launcher with that version chosen.
