@@ -16,7 +16,7 @@ internal interface IEnvironmentAgentWorld : IEnvironmentWorld
     void CancelConstructionForOrder(OwnerQueuedInstruction instruction);
     void CancelExpansionForOrder(OwnerQueuedInstruction instruction);
     void CancelProductionForOrder(OwnerQueuedInstruction instruction);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason);
+    void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome);
     string? TownForResident(string id);

@@ -11,6 +11,7 @@ public sealed class OwnerClientPresenceLease
     private readonly object gate = new();
     private readonly Dictionary<string, long> lastSeenByDevice = new(StringComparer.Ordinal);
     private readonly TimeProvider timeProvider;
+    private TaskCompletionSource arrived = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public OwnerClientPresenceLease(TimeSpan timeout, TimeProvider? timeProvider = null)
     {
@@ -21,6 +22,19 @@ public sealed class OwnerClientPresenceLease
     }
 
     public TimeSpan Timeout { get; }
+
+    /// <summary>Idle hosts have no polling timer; authenticated reconnect wakes them.</summary>
+    public Task WaitForClientAsync(CancellationToken cancellationToken)
+    {
+        lock (gate)
+        {
+            RemoveExpiredUnsafe(timeProvider.GetTimestamp());
+            if (lastSeenByDevice.Count > 0) return Task.CompletedTask;
+            if (arrived.Task.IsCompleted)
+                arrived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            return arrived.Task.WaitAsync(cancellationToken);
+        }
+    }
 
     public bool HasActiveClient
     {
@@ -54,6 +68,7 @@ public sealed class OwnerClientPresenceLease
             var now = timeProvider.GetTimestamp();
             RemoveExpiredUnsafe(now);
             lastSeenByDevice[deviceId.Trim()] = now;
+            arrived.TrySetResult();
         }
     }
 

@@ -310,7 +310,7 @@ public partial class Main
         pauseButton.TooltipText = paused ? "Time is stopped. Resume the world (Space)" : "Pause the world (Space)";
 
         var living = snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
-        var hungry = living.Where(person => GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry")
+        var hungry = living.Where(person => GameUiText.NeedLabel(person, "fullness-state") is "hungry" or "very hungry")
             .Select(person => person.DisplayName).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
         agentsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
         agentsButton.TooltipText = $"Agents (R) · {living.Length} living" +
@@ -342,7 +342,7 @@ public partial class Main
     /// </summary>
     private void UpdateUnreadEvents(string? worldId)
     {
-        var ids = GameUiText.PlayerEvents(knownEvents.Values)
+        var ids = GameUiText.PlayerEvents(knownEvents.Values, observedCalendarPace, eventLogRefusals)
             .Select(worldEvent => worldEvent.EventId).ToArray();
         var newest = ids.Length == 0 ? long.MinValue : ids.Max();
         if (!string.Equals(eventLogWorldId, worldId, StringComparison.Ordinal))
@@ -457,7 +457,7 @@ public partial class Main
                 StretchMode = TextureRect.StretchModeEnum.KeepCentered,
             });
             var text = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-            var name = new Label { Text = town.Name, ThemeTypeVariation = "HeadingLabel" };
+            var name = new FittedLabel { Text = town.Name, ThemeTypeVariation = "HeadingLabel" };
             text.AddChild(name);
             var founded = string.Equals(town.FoundingState, "founded", StringComparison.OrdinalIgnoreCase)
                 ? "founded " + SplitClock(DisplayWorldClock(town.FoundedTick)).Date

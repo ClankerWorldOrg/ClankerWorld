@@ -1,1 +1,0 @@
-- Food, fire and warmth actions now own typed codecs, planning, capability policies, shared checks and native effects through their ordered action rows.

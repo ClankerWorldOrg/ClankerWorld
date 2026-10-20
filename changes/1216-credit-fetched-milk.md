@@ -1,1 +1,0 @@
-- Orders to collect a cow's milk now finish when the adult fetches a jug at the yard and collects the milk in the same step.
