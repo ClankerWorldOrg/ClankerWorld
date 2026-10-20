@@ -44,11 +44,14 @@ public sealed partial class WorldRuntime
         if (!agents.TryGetValue(plan.StudentId, out var student) || !agents.ContainsKey(plan.TeacherId) || SharedStoragePosition != plan.Site)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected student, teacher or lesson site has changed");
         var current = student.Lesson;
-        var continuing = plan.Choice.Kind is LearningChoiceKind.Attend or LearningChoiceKind.Teach;
-        var sameLesson = continuing
-            ? current is { Stage: "accepted" or "training" } && plan.Original is { } original &&
-                current.TeacherId == original.TeacherId && current.Skill == original.Skill && current.RequestedTick == original.RequestedTick
-            : current == plan.Original;
+        var sameRequest = current is not null && plan.Original is { } original &&
+            current.TeacherId == original.TeacherId && current.Skill == original.Skill && current.RequestedTick == original.RequestedTick;
+        var sameLesson = plan.Choice.Kind switch
+        {
+            LearningChoiceKind.Attend or LearningChoiceKind.Teach => sameRequest && current is { Stage: "accepted" or "training" },
+            LearningChoiceKind.Cancel or LearningChoiceKind.Decline => sameRequest && ActiveLesson(current),
+            _ => current == plan.Original,
+        };
         if (!sameLesson)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected lesson request or agreement has changed");
         var allowed = plan.Choice.Kind switch

@@ -1,1 +1,0 @@
-- Animal care can fetch water split across several jugs or water lots, counting water already carried and preserving the jugs and carrying limits.

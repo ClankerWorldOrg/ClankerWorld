@@ -40,6 +40,6 @@ internal sealed partial class EnvironmentSystem
         SyncEcologyResourceStates(world);
         var anchorWeather = WeatherAt(world.Map, anchorPosition);
         if (previousClimate.Season != State.Climate.Season || previousAnchorWeather != anchorWeather)
-            world.AppendEvent("weather_changed", $"{State.Climate.Season.ToString().ToLowerInvariant()}:{anchorWeather.ToString().ToLowerInvariant()}");
+            world.AppendEvent(new WeatherChangedEventPayload(null, State.Climate.Season.ToString().ToLowerInvariant(), anchorWeather.ToString().ToLowerInvariant()));
     }
 }

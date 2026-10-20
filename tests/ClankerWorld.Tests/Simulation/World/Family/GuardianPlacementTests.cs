@@ -253,9 +253,11 @@ public sealed class GuardianPlacementTests
         var guardian = scenario.Guardians[0];
         using var world = Restore(scenario.State, Accepting(scenario));
         await Accepted(world, scenario);
+        var walls = new BuildingMovementRules(scenario.State.WorldSimulation!.Buildings, scenario.State.WorldContent!.Buildings);
         await Until(world, () => Person(world, child).GuardianPlacement?.Stage == "escorting" &&
             Person(world, guardian).Position == scenario.House.Position && Person(world, child).TravelCooldownTicks == 0 &&
-            scenario.State.Map.FootDistance(Person(world, child).Position, scenario.House.Position) == 1);
+            scenario.State.Map.CanFootStep(Person(world, child).Position, scenario.House.Position) &&
+            walls.CanStep(scenario.State.Map, Person(world, child).Position, scenario.House.Position));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));

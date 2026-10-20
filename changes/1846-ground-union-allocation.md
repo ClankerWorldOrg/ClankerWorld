@@ -1,0 +1,1 @@
+- Planning and placing buildings uses less temporary memory.

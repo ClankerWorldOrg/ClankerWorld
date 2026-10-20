@@ -1,1 +1,0 @@
-- Inspecting a Town law with emoji no longer creates an unreadable checkpoint. The active checkpoint writer checks that its bytes load before replacing the previous file.

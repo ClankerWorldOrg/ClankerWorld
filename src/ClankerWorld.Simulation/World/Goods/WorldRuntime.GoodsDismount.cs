@@ -15,9 +15,9 @@ public sealed partial class WorldRuntime
 
     private GoodsReason? DismountCargoExclusion(string actor, InventoryIndex index, InventoryLot lot)
     {
-        if (lot.ContainerLotId is not null || !PersonalEquipmentRules.IsCarried(lot, actor)) return GoodsReason.Custody;
+        if (!agents.TryGetValue(actor, out var person) || lot.ContainerLotId is not null || !PersonalEquipmentRules.IsCarried(lot, actor)) return GoodsReason.Custody;
         if (lot.DeliveryBuildingId is not null) return GoodsReason.Delivery;
-        if (PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id)) return GoodsReason.Custody;
+        if (PersonalEquipmentRules.IsSelected(person.Equipment, lot.Id)) return GoodsReason.Custody;
         return InventoryContainerRules.IsContainer(lot.ItemKind)
             ? InventoryRules.CanMoveFamily(index, lot, InventoryHoldRules.SupplyTripFor(actor)) ? null : GoodsReason.Reservation
             : InventoryHoldRules.Allows(index, lot, InventoryHoldRules.SupplyTripFor(actor)) ? null : GoodsReason.Custody;

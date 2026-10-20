@@ -1,1 +1,0 @@
-- Adult patients can choose between nearby caregivers for their last medical permission, while the 16-caregiver limit stays enforced.

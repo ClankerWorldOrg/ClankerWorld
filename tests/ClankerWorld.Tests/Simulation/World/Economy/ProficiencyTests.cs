@@ -22,11 +22,8 @@ public sealed class ProficiencyTests
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
         var actor = state.Agents[0];
-        var site = state.Map.Tiles.Last(tile => state.Map.IsPassable(tile.Position) &&
-            !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-            !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
+        var site = MovementTestWorld.BuildingSite(state, definition, actor.AgentId);
         state = state with
         {
             Society = state.Society with
@@ -43,7 +40,7 @@ public sealed class ProficiencyTests
                 FullnessBasisPoints = 9_000,
                 Proficiency = new(experience),
                 Skills = knownSkill ? [new(SkillKind.Building, 0)] : null,
-                Project = new("build:building:" + definition.CanonicalId, definition.DisplayName, seed.WorldTick, "working",
+                Project = new(TownConstructionCandidateIds.Building(definition.CanonicalId, site), definition.DisplayName, seed.WorldTick, "working",
                     finish ? 10 : 0, LastTransitionTick: seed.WorldTick),
             } : person).ToArray(),
         };

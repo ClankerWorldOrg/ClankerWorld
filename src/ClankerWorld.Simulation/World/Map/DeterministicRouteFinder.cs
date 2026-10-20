@@ -48,12 +48,7 @@ public static class DeterministicRouteFinder
 
             foreach (var next in map.FootNeighbors(node.Position))
             {
-                if (!map.IsPassable(next))
-                {
-                    continue;
-                }
-
-                var candidate = new RouteRecord(checked(node.G + map.FootStepCost(node.Position, next)), node.Position);
+                var candidate = new RouteRecord(checked(node.G + map.LegalFootStepCost(node.Position, next)), node.Position);
                 if (best.TryGetValue(next, out var old) && Compare(candidate, old) >= 0)
                 {
                     continue;

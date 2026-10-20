@@ -1,1 +1,0 @@
-- Founding and resettlement keep their chosen site or Town and dependent group when checked before they apply.
