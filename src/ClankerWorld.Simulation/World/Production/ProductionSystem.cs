@@ -97,7 +97,11 @@ internal sealed partial class ProductionSystem
 
     internal bool TransitionRequest(ToolMakingRequestState request, long tick)
     {
-        if (request.Blocker is { Length: > 160 } blocker) request = request with { Blocker = blocker[..160].TrimEnd() };
+        if (request.Blocker is { } blocker)
+        {
+            var bounded = BoundedText.Excerpt(blocker, 160).Value;
+            if (bounded != blocker) request = request with { Blocker = bounded.TrimEnd() };
+        }
         var index = State.Requests.ToList().FindIndex(item => item.Id == request.Id);
         if (index < 0 || State.Requests[index] == request) return false;
         var requests = State.Requests.ToArray();
