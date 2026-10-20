@@ -31,4 +31,11 @@ public sealed partial class PairingRequestBudget(ILogger<PairingRequestBudget> l
     public static partial void LogLocalRecovery(ILogger logger, string outcome);
 
     public void Dispose() => limiter.Dispose();
+
+    /// <summary>Marks the public pairing-creation route, whose requests spend this budget.</summary>
+    public sealed class Route
+    {
+        public static readonly Route Instance = new();
+        private Route() { }
+    }
 }

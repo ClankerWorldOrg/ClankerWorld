@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         guardianPlacementActions.Add(agentId);
         if (IsWithinInteractionRange(state.Position, destination, interactionRange))
         {
-            AppendEvent("destination_reached", $"{agentId}:{reason}");
+            AppendEvent(new DestinationReachedEventPayload(agentId, reason));
             return;
         }
 
@@ -75,7 +75,7 @@ public sealed partial class WorldRuntime
         WearCarryAid(agentId);
         RecordNonLandConduct(agentId, "travel", next, null, null, 1,
             $"move:{WorldTick}:{agentId}:{nextEventId}");
-        AppendEvent("agent_moved", $"{agentId}:{state.Position.X},{state.Position.Y}->{next.X},{next.Y}:{reason}");
+        AppendEvent(new AgentMovedEventPayload(agentId, state.Position.X, state.Position.Y, next.X, next.Y, reason));
         if (mounted && horseMovementBudget == 100 && travelCost <= 50 && agents[agentId].TravelCooldownTicks == 0)
             MoveToward(agentId, agents[agentId], destination, reason, interactionRange, 100 - travelCost);
     }
@@ -88,44 +88,24 @@ public sealed partial class WorldRuntime
         bool allowSwimming = true,
         int additionalCarriedUnits = 0)
     {
-        var occupied = agents.Values
-            .Where(item => item.AgentId != agentId)
-            .Select(item => item.Position)
-            .ToHashSet();
-        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != agentId &&
-            animal.LeaderId != agentId && animal.Position != destination).Select(animal => animal.Position));
-        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
-            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
-            return [];
-        if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
-                building.Position == destination &&
-                building.HouseholdId is not null &&
-                (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
-                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))))
-            occupied.Remove(destination);
-        if (interactionRange == 0 && occupied.Contains(destination) &&
-            CanShareTownDestination(agentId, destination))
-            occupied.Remove(destination);
-        // Other occupied exact destinations cannot be reached. Avoid searching
-        // an entire map when neither household nor public Town sharing applies.
-        if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
-            return [];
+        var occupied = RouteOccupiedTiles(agentId, origin, destination, interactionRange);
+        if (occupied is null) return [];
         if (AttachedHandcart(agentId) is null)
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
-        var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
+        var buildings = MovementBuildings;
+        var open = new PriorityQueue<GridPoint, (int Cost, int TileIndex)>();
         var best = new Dictionary<GridPoint, int> { [origin] = 0 };
         var predecessor = new Dictionary<GridPoint, GridPoint>();
-        var order = 0;
-        open.Enqueue(origin, (0, origin.Y, origin.X, order++));
+        open.Enqueue(origin, (0, origin.Y * map.Width + origin.X));
 
         while (open.TryDequeue(out var current, out var priority))
         {
             if (priority.Cost != best[current])
                 continue;
-            if (IsWithinInteractionRange(current, destination, interactionRange))
+            if (IsWithinInteractionRange(current, destination, interactionRange) &&
+                (current == origin || buildings.CanStop(current, destination)))
             {
                 var route = new List<GridPoint> { current };
                 while (current != origin)
@@ -138,9 +118,9 @@ public sealed partial class WorldRuntime
                 return route;
             }
 
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
+                if (!buildings.CanStep(map, current, next) || !LegalHandcartStep(current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -154,11 +134,39 @@ public sealed partial class WorldRuntime
                     continue;
                 best[next] = cost;
                 predecessor[next] = current;
-                open.Enqueue(next, (cost, next.Y, next.X, order++));
+                open.Enqueue(next, (cost, next.Y * map.Width + next.X));
             }
         }
 
         return [];
+    }
+
+    private HashSet<GridPoint>? RouteOccupiedTiles(string agentId, GridPoint origin,
+        GridPoint destination, int interactionRange)
+    {
+        var occupied = agents.Values
+            .Where(item => item.AgentId != agentId)
+            .Select(item => item.Position)
+            .ToHashSet();
+        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != agentId &&
+            animal.LeaderId != agentId && animal.Position != destination).Select(animal => animal.Position));
+        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
+            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
+            return null;
+        if (interactionRange != 0 || !occupied.Contains(destination)) return occupied;
+        if (worldSimulation.Buildings.Any(building =>
+                building.Position == destination &&
+                building.HouseholdId is not null &&
+                (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
+                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
+                 CanEnterGuardianPlacementHouse(agentId, building))) ||
+            CanShareTownDestination(agentId, destination))
+            occupied.Remove(destination);
+        // Other occupied exact destinations cannot be reached. Avoid searching
+        // an entire map when neither household nor public Town sharing applies.
+        else if (origin != destination)
+            return null;
+        return occupied;
     }
 
     private bool CanShareTownDestination(string actor, GridPoint destination) =>
@@ -177,8 +185,8 @@ public sealed partial class WorldRuntime
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
             if (AttachedHandcart(agentId) is not null || reason == "cart_unusable")
-                AppendEvent("handcart_blocked", $"{agentId}:{reason}");
-            AppendEvent("movement_blocked", $"{agentId}:{reason}:wait={waitTicks}");
+                AppendEvent(new HandcartBlockedEventPayload(agentId, reason));
+            AppendEvent(new MovementBlockedEventPayload(agentId, reason, waitTicks));
         }
     }
 
@@ -222,14 +230,14 @@ public sealed partial class WorldRuntime
         var source = requestedSource ?? AvailableFoodSource(agentId, state.Position);
         if (source is null || !IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange))
         {
-            AppendEvent("harvest_failed", $"{agentId}:not_at_available_food");
+            AppendEvent(new HarvestFailedEventPayload(agentId, "not_at_available_food"));
             return null;
         }
 
         var harvestYield = FoodHarvestQuantity(source);
         if (FreeCarryCapacity(agentId) < FoodHarvestCarryUnits(source))
         {
-            AppendEvent("carrying_full", agentId);
+            AppendEvent(new CarryingFullEventPayload(agentId));
             return null;
         }
         return CompleteFoodHarvest(agentId, source, FoodHarvestKind(source), harvestYield,
@@ -244,7 +252,7 @@ public sealed partial class WorldRuntime
         if (!harvest.IsValid || harvest.Resource is null)
         {
             SyncEcologyResourceStates();
-            AppendEvent("harvest_failed", $"{agentId}:{harvest.Failure ?? "food_depleted"}");
+            AppendEvent(new HarvestFailedEventPayload(agentId, harvest.Failure ?? "food_depleted"));
             return null;
         }
 
@@ -268,7 +276,7 @@ public sealed partial class WorldRuntime
         RecordNonLandConduct(agentId, "gather_food", source.Position, source.Id,
             itemKind,
             harvestYield, $"gather-food:{WorldTick}:{agentId}:{nextEventId}");
-        AppendEvent("food_harvested", $"{agentId}:{harvestYield}");
+        AppendEvent(new FoodHarvestedEventPayload(agentId, harvestYield));
         if (seedQuantity > 0)
         {
             var lotId = OrchardSeedLotId(WorldTick, agentId);
@@ -276,7 +284,7 @@ public sealed partial class WorldRuntime
                 InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
                     seedQuantity, WorldTick), OrchardReplantingReservationId(lotId),
                 agentId, lotId, 1, "orchard_replanting", long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
-            AppendEvent("fruit_harvested", $"{agentId}:{source.Id}:{harvestYield}:picked");
+            AppendEvent(new FruitHarvestedEventPayload(agentId, source.Id, harvestYield));
         }
         return new FoodHarvestEffect(harvestedLotId,
             itemKind,
@@ -353,7 +361,7 @@ public sealed partial class WorldRuntime
                 return false;
             ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
                 operationId, householdId, actor, potId, food.Id, 1, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-            AppendEvent("food_taken_from_pot", $"{actor}:{potId}:{food.Id}:1");
+            AppendEvent(new FoodTakenFromPotEventPayload(actor, potId, food.Id, 1));
         }
         else
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
@@ -376,7 +384,7 @@ public sealed partial class WorldRuntime
     {
         if (TryCollectHouseholdServing(agentId, state, lot, $"household-food:{WorldTick}:{agentId}",
                 "household_food_share", "household_food"))
-            AppendEvent("household_food_collected", $"{agentId}:{lot.Id}:1");
+            AppendEvent(new HouseholdFoodCollectedEventPayload(agentId, lot.Id));
     }
 
     private string? ConsumeFood(string agentId, AgentState state, string? requiredItemKind = null)
@@ -385,7 +393,7 @@ public sealed partial class WorldRuntime
             .FirstOrDefault(item => requiredItemKind is null || item.ItemKind == requiredItemKind);
         if (lot is null)
         {
-            AppendEvent("consumption_failed", $"{agentId}:no_food");
+            AppendEvent(new ConsumptionFailedEventPayload(agentId));
             return null;
         }
 
@@ -400,7 +408,7 @@ public sealed partial class WorldRuntime
             FullnessBasisPoints = Math.Min(10_000, state.FullnessBasisPoints + FoodNourishment(lot.ItemKind)),
             Survival = AfterMeal(state, lot)
         };
-        AppendEvent("food_consumed", agentId);
+        AppendEvent(new FoodConsumedEventPayload(agentId));
         return lot.Id;
     }
 

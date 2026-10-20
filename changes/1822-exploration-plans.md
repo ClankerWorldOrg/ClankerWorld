@@ -1,1 +1,0 @@
-- Scouting and return choices retain their selected visible step or recorded waypoint through shared checks.

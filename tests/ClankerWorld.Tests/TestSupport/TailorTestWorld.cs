@@ -5,7 +5,8 @@ namespace ClankerWorld.Tests;
 
 internal static class TailorTestWorld
 {
-    public static (WorldRuntimeState State, string ShopId) Create(string seed, int fiberInHouse)
+    public static (WorldRuntimeState State, string ShopId) Create(string seed, int fiberInHouse,
+        Func<GridPoint, GridPoint, bool>? allowedSite = null)
     {
         const string household = "household:first";
         using var generated = NormalPathWorld.CreateGenerated(seed, _ => new ActionCoverageRecorder(chooseIdle: true));
@@ -22,8 +23,11 @@ internal static class TailorTestWorld
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         var shop = setup.WorldContent.Buildings.Single(item => item.LocalId == "tailor-shop-1x1");
         var house = setup.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-house-a");
+        var houseDefinition = setup.WorldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
+        var houseDoor = BuildingMovementRules.EntranceFor(houseDefinition, house);
         var placed = Enumerable.Range(-4, 9).SelectMany(dy => Enumerable.Range(-4, 9)
                 .Select(dx => new GridPoint(house.Position.X + dx, house.Position.Y + dy)))
+            .Where(point => allowedSite?.Invoke(houseDoor, point) ?? true)
             .OrderBy(point => Math.Abs(point.X - house.Position.X) + Math.Abs(point.Y - house.Position.Y))
             .Any(point => setup.PlaceBuilding("alpha-tailor", shop.CanonicalId, point, household).Applied);
         Assert.True(placed);
