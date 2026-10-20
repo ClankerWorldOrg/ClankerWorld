@@ -6,7 +6,7 @@ public sealed partial class WorldRuntime
 {
     // Pending instructions include suggestions. Mandatory orders are gated by
     // the fresh personal admission in ApplyOrnamentDecision.
-    private static readonly ActorCapabilityPolicy OrnamentPolicy = new(ActionLifeStages.Adults,
+    private static ActorCapabilityPolicy OrnamentPolicy => new(ActionLifeStages.Adults,
         AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
     private bool IsOrnamentSource(string actor, InventoryLot lot) => lot.ContainerLotId is null &&
@@ -30,9 +30,9 @@ public sealed partial class WorldRuntime
     private GiftOrnamentActionPlan PlanOrnamentGift(string actor, InventoryLot stock, string recipient) =>
         new(actor, new(stock.Id, recipient), stock.ItemKind, agents[actor].Equipment?.OrnamentLotId);
 
-    private ActionCheck CheckOrnamentPlan(OrnamentActionPlan plan)
+    private ActionCheck CheckOrnamentPlan(OrnamentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, OrnamentPolicy);
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? OrnamentPolicy);
         if (!capability.Allowed) return capability;
         if (BusyWithOrnamentIncompatibleWork(plan.Actor))
             return ActionCheck.Refuse(ActionRefusalReason.ActiveOrder, "their current work comes first");
@@ -66,7 +66,11 @@ public sealed partial class WorldRuntime
 
     private void ApplyOrnamentPlan(OrnamentActionPlan plan)
     {
-        if (CheckOrnamentPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(plan.Actor, agents[plan.Actor], plan.CandidateId, false, plan));
+    }
+
+    private void ApplyCheckedOrnament(OrnamentActionPlan plan)
+    {
         switch (plan)
         {
             case WearOrnamentActionPlan wear:
