@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -170,7 +171,7 @@ public sealed class WorldCartOrderTests
             var malformed = queued with
             {
                 Instructions = queued.Instructions!.Select(item => item with
-                { Task = item.Task! with { TargetCartLotId = target } }).ToArray()
+                { Task = item.Task!.UpdateDefinition(definition => definition switch { AttachHandcartOrderDefinition task => task with { TargetCartLotId = target }, ParkHandcartOrderDefinition task => task with { TargetCartLotId = target }, RepairHandcartOrderDefinition task => task with { TargetCartLotId = target }, _ => throw new InvalidOperationException() }) }).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(malformed));
         }
@@ -181,7 +182,7 @@ public sealed class WorldCartOrderTests
         var forged = finished with
         {
             Instructions = finished.Instructions.Select(item => item with
-            { Task = item.Task! with { LastEffectId = "cart-order:" + new string('0', 64) } }).ToArray()
+            { Task = item.Task! with { LastEffectId = Identity.Parse("cart-order:" + new string('0', 64)) } }).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forged));
     }

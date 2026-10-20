@@ -1,1 +1,0 @@
-- Renaming an agent now gives them a dated, private permanent memory of their new name. It stays available to their model and is marked Permanent in Memories, including after save/load. A married surname change records it for both people whose names change; other agents are not told.

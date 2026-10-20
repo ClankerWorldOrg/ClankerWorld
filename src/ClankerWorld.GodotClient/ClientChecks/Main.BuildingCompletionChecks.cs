@@ -21,7 +21,7 @@ public partial class Main
             Authoring = new(false, 0, 0, 0, "completion-map", "completion-map", "clear", "spring", []),
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         OwnerWorldConstructionSite Site(int x, int y) => new("site", "house", "House", ["house"], new(x, y), 2, 1,
             null, 29, 30, "building", null, null);

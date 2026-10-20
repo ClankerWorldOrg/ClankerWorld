@@ -24,6 +24,7 @@ public sealed class ContainerReturnTests
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         var workplace = state.WorldSimulation.Buildings.Single(building => building.InstanceId == Clinic);
         var original = state.Society.Society.Inventory.GetLot(Vessel);
+        var consumed = state.Society.Society.Inventory.GetReservation(UsedReservation);
         var provider = new VesselChoices("return_empty_vessel:", "haul_household_stock");
         using var world = Restore(state, actor, provider);
         Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == actor).Position);
@@ -68,6 +69,7 @@ public sealed class ContainerReturnTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "household_stock_delivered" &&
             item.Detail == $"{actor}:{Vessel}:1:{House}");
         Assert.Equal(InventoryReservationState.Completed, world.Society.Inventory.GetReservation(UsedReservation).State);
+        Assert.Equal(consumed, world.Society.Inventory.GetReservation(UsedReservation));
     }
 
     [Theory]
@@ -149,7 +151,8 @@ public sealed class ContainerReturnTests
         using var funded = WorldRuntime.Restore(WithInventory(state, inventory), _ => new VesselChoices());
         var house = funded.WorldSimulation.Buildings.Single(building => building.InstanceId == House);
         Assert.Contains(Enumerable.Range(-8, 17).SelectMany(y => Enumerable.Range(-8, 17).Select(x =>
-            new GridPoint(house.Position.X + x, house.Position.Y + y))), point =>
+            new GridPoint(house.Position.X + x, house.Position.Y + y)))
+            .OrderBy(point => state.Map.FootDistance(house.Position, point)).ThenBy(point => point.Y).ThenBy(point => point.X), point =>
             point != house.Position && funded.PlaceBuilding(Clinic, CareContent.Clinic1x2().CanonicalId, point, Alpha).Applied);
         state = funded.ExportState();
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Vessel, kind, Alpha, 1, storageBuildingId: Clinic);

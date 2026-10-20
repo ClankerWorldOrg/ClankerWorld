@@ -10,6 +10,38 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ParenthoodTests
 {
+    private static readonly Lazy<Task<byte[]>> InfantOrphan = new(() => CreateOrphanState(false));
+    private static readonly Lazy<Task<byte[]>> OlderOrphan = new(() => CreateOrphanState(true));
+
+    [Fact]
+    public async Task ExpiredCareProposalKeepsTheAffectedChildAndPositionAcrossReload()
+    {
+        var state = await OrphanState(olderChild: true);
+        var checkpoint = state.Society.Society;
+        var child = Assert.Single(checkpoint.Births).ChildId;
+        var household = checkpoint.GetAgent(child).HouseholdId!;
+        var adult = checkpoint.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
+            person.AgeBand == SocietyAgeBand.Adult && person.HouseholdId == household).Id;
+        Assert.True(checkpoint.WorldTick > 121);
+        var proposed = SocietyRules.ProposeRelationship(checkpoint, new("care-relationship:expiry-check", 1,
+            SocietyRelationshipType.Caregiver, adult, child, checkpoint.WorldTick - 121,
+            household, "household")).Checkpoint;
+        state = state with { Society = state.Society with { Society = proposed } };
+        using var world = WorldRuntime.Restore(state, _ => new ParentProvider("safe_idle"));
+        var position = state.Agents.Single(person => person.AgentId == child).Position;
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(SocietyRelationshipState.Revoked,
+            world.Society.Relationships.Single(edge => edge.Id == "care-relationship:expiry-check").State);
+        var entry = Assert.Single(world.ExportState().Events, item => item.Kind == "caregiver_proposal_expired");
+        Assert.Equal(child, entry.Payload.ActorId);
+        Assert.Equal(child, entry.Detail);
+        Assert.Equal(position, entry.Position);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.Equal(entry, restored.ExportState().Events.Single(item => item.EventId == entry.EventId));
+    }
+
     [Fact]
     public void EndingOneCareObligationPreservesOtherDependentsHouseholdProjection()
     {
@@ -128,8 +160,8 @@ public sealed partial class ParenthoodTests
     [Fact]
     public async Task OutsideHouseholdRelativeGetsFirstOfferDuringAContinuingProject()
     {
-        const string relativeId = "founder:00000000000000000000000000000003";
-        const string householdAdultId = "founder:00000000000000000000000000000004";
+        const string relativeId = NormalPathWorld.Founder3;
+        const string householdAdultId = NormalPathWorld.Founder4;
         const int testDay = 120;
         var buildProvider = new ParentProvider("build:building:");
         using var generated = NormalPathWorld.CreateGenerated("guardian-relative-priority-project", _ => new ParentProvider("safe_idle"),
@@ -513,6 +545,9 @@ public sealed partial class ParenthoodTests
             $"Expected the existing project to continue, but it is {progressed.Stage}.");
         Assert.Contains($"care:{childId}", careProvider.SelectedCandidateIds);
         Assert.DoesNotContain($"guardian_tend:{childId}", careProvider.SelectedCandidateIds);
+        // The unrelated project may have moved the guardian beyond care range.
+        for (var tick = 0; tick < 8 && !working.ExportState().Events.Any(item => item.Kind == "child_cared_for" && item.Detail == childId); tick++)
+            Assert.True((await working.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(working.ExportState().Events, item => item.Kind == "child_cared_for" && item.Detail == childId);
 
         stateToTend = stateToTend with
@@ -609,7 +644,10 @@ public sealed partial class ParenthoodTests
         }
     }
 
-    private static async Task<WorldRuntimeState> OrphanState(bool olderChild = false)
+    private static async Task<WorldRuntimeState> OrphanState(bool olderChild = false) =>
+        WorldRuntimeCodec.Decode(await (olderChild ? OlderOrphan : InfantOrphan).Value);
+
+    private static async Task<byte[]> CreateOrphanState(bool olderChild)
     {
         var state = await PreparedState();
         var first = state.Agents[0].AgentId;
@@ -646,11 +684,11 @@ public sealed partial class ParenthoodTests
                 }
             };
         }
-        return state with
+        return WorldRuntimeCodec.Encode(state with
         {
             Society = societyState,
             Agents = state.Agents.Where(person => person.AgentId != first && person.AgentId != second)
                 .Select(person => person with { LastDecisionContext = null, FullnessBasisPoints = person.AgentId == child && !olderChild ? 2_000 : 9_000 }).ToArray(),
-        };
+        });
     }
 }

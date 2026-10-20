@@ -29,7 +29,7 @@ public sealed partial class ServerHttpTests
             for (var index = 0; index < 3; index++)
             {
                 runtime.SetJevEnabled(!originalEnabled);
-                var load = new OwnerManualSaveAction("load", named.Id);
+                var load = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", named.Id);
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);

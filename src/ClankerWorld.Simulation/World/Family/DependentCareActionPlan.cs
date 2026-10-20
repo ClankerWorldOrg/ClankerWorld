@@ -29,7 +29,8 @@ public sealed record DependentCareChoice(DependentCareChoiceKind Kind, string Ta
 
 public sealed record DependentCareActionPlan(string ActorId, DependentCareChoice Choice, SocietyRelationship? Relationship,
     string? ActorHousehold, string? ChildHousehold, long? GuardianSearchStartedTick, string? DestinationHousehold,
-    string? ActorTown, string? ChildTown, string? HouseId, string? ActorFamilyUnit, string? ChildFamilyUnit) : ActionPlan(ActorId, Choice.Encode())
+    string? ActorTown, string? ChildTown, string? HouseId, string? HouseDefinitionId, long? HousePlacedTick,
+    string? ActorFamilyUnit, string? ChildFamilyUnit) : ActionPlan(ActorId, Choice.Encode())
 {
     public bool AcceptsGuardianSearch => GuardianSearchStartedTick is not null;
     public override string Activity => Choice.Kind switch

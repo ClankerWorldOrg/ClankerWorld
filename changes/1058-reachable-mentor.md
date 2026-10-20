@@ -1,1 +1,0 @@
-- Practical lessons skip teachers who cannot reach the teaching site, so an isolated skilled adult no longer hides another available teacher. Both participants must be able to reach the site before requesting or accepting a lesson.

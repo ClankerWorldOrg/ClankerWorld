@@ -1,0 +1,1 @@
+- The launcher checks official release downloads more strictly and hides withdrawn versions outside Developer mode, keeping installed files and worlds intact.
