@@ -1,9 +1,11 @@
+using ClankerWorld.Simulation.Kernel;
+
 namespace ClankerWorld.Simulation.World;
 
 public sealed record ExplorationChoice(bool Return, ExplorationGoal? Goal = null)
 {
     public const string GoalPrefix = "explore_for:";
-    public string Encode() => Return ? "explore_return" : Goal is null ? "explore" : $"{GoalPrefix}{Goal.Kind}:{Goal.Target}";
+    public string Encode() => Return ? "explore_return" : Goal is null ? "explore" : IdentityRules.PrefixedReference(GoalPrefix, $"{Goal.Kind}:{Goal.Target}");
     public static ExplorationChoice? Decode(string candidate)
     {
         if (candidate == "explore") return new(false);

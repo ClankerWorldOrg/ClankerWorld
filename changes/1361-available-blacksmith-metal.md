@@ -1,1 +1,0 @@
-- Blacksmith household members can buy needed iron or gold while a housemate sells the household's existing metal at a borrowed Market stall. The housemate's sale stock stays protected.

@@ -31,7 +31,7 @@ public partial class Main
         RenderModLibrary(sample);
 
         var factor = uiLayer.Factor;
-        foreach (var dialog in new[] { quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation })
+        foreach (var dialog in new[] { quitGameConfirmation, quitToMenuConfirmation, manualSaveLoadConfirmation, worldModelLoadConfirmation, manualSaveOverwriteConfirmation, deletionConfirmation })
         {
             var row = dialog.GetOkButton().GetParent() as HBoxContainer;
             if (dialog.GetLabel().HorizontalAlignment != HorizontalAlignment.Center || row?.Alignment != BoxContainer.AlignmentMode.Center ||

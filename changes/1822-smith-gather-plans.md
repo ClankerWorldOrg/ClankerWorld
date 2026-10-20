@@ -1,1 +1,0 @@
-- Keep Blacksmith gathering choices tied to their original source, tool and cargo preparation, and explain when that work is no longer possible.

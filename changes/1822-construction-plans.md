@@ -1,1 +1,0 @@
-- Construction choices retain their design, site, building identity and available material lots through shared checks and native payment.

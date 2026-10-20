@@ -7,6 +7,82 @@ namespace ClankerWorld.Tests;
 public sealed class EquipmentRepairActionPlanTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExtraCargoRefusesTheOriginalCompleteRepairInputTripAcrossWater(bool localFiber)
+    {
+        using var initial = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new ActionCoverageRecorder(chooseIdle: true),
+            size: WorldSizePreset.Small);
+        Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
+        var state = initial.ExportState();
+        var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId).Id;
+        var remote = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
+                !state.Map.IsReachableOnFoot(point, house.Position) && SwimmingRules.IsReachable(state.Map, point, house.Position) &&
+                state.Agents.All(person => person.AgentId == actor || person.Position != point))
+            .OrderBy(point => state.Map.FootDistance(point, house.Position)).First();
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory with { Lots = [], Reservations = [] },
+            "repair-trip-basket", "basket", actor, 1, conditionBasisPoints: 3_000);
+        inventory = InventoryAuthority.AddLot(inventory, "repair-trip-ballast", "stone", actor, 2);
+        foreach (var kind in new[] { "fiber", "rope" })
+        {
+            var source = localFiber && kind == "fiber" ? house.Position : remote;
+            inventory = InventoryAuthority.AddLot(inventory, "repair-trip-" + kind, kind, house.HouseholdId!, 1,
+                groundPosition: new(source.X, source.Y));
+        }
+        state = FoodCapacityTestFixture.WithInventory(WeatherTestFixture.WithWeather(state, WeatherKind.Clear), inventory) with
+        {
+            JevEnabled = false,
+            RoutineHelper = RoutineHelperSettings.Off,
+            Agents = state.Agents.Select(person => person with
+            {
+                Position = person.AgentId == actor ? house.Position : person.Position,
+                Equipment = person.AgentId == actor ? new(CarryAidLotId: "repair-trip-basket") : null,
+                Project = null,
+                LastDecisionContext = null,
+                FullnessBasisPoints = 10_000,
+                Survival = new(10_000),
+                TravelCooldownTicks = 0,
+            }).ToArray(),
+        };
+        var choices = new Choices(actor, choose: false);
+        using var world = WorldRuntime.Restore(state, _ => choices);
+        for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<EquipmentRepairActionPlan>(choices.Plan);
+        Assert.Equal(("repair-trip-basket", house.InstanceId), (plan.TargetId, plan.BuildingId));
+        Assert.Collection(plan.Inputs,
+            input => Assert.Equal("repair-trip-fiber", input.Pickup.StockId),
+            input => Assert.Equal("repair-trip-rope", input.Pickup.StockId));
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+        var checkpoint = world.ExportState();
+        var equipment = checkpoint.Agents.Single(person => person.AgentId == actor).Equipment;
+        Assert.Equal(2, PersonalEquipmentRules.CarriedQuantity(checkpoint.Society.Society.Inventory, actor, equipment));
+        inventory = InventoryAuthority.AddLot(checkpoint.Society.Society.Inventory, "repair-trip-extra-cargo", "stone", actor, 1);
+        using var changed = WorldRuntime.Restore(FoodCapacityTestFixture.WithInventory(checkpoint, inventory));
+        Assert.Equal(3, PersonalEquipmentRules.CarriedQuantity(changed.Society.Inventory, actor, equipment));
+        var bytes = WorldRuntimeCodec.Encode(changed.ExportState());
+        var check = changed.CheckActionPlan(plan);
+        Assert.False(check.Allowed);
+        Assert.Equal(ActionRefusalReason.OutOfReach, check.Refusal!.Reason);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(changed.ExportState()));
+        changed.Validate();
+        using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(ActionRefusalReason.OutOfReach, reopened.CheckActionPlan(plan).Refusal!.Reason);
+        var freshChoices = new Choices(actor, choose: false);
+        using var fresh = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => freshChoices);
+        Assert.True((await fresh.AdvanceOneTickAsync()).Advanced);
+        if (localFiber)
+        {
+            var reordered = Assert.IsType<EquipmentRepairActionPlan>(freshChoices.Plan);
+            Assert.Collection(reordered.Inputs,
+                input => Assert.Equal("repair-trip-rope", input.Pickup.StockId),
+                input => Assert.Equal("repair-trip-fiber", input.Pickup.StockId));
+            Assert.True(fresh.CheckActionPlan(reordered).Allowed);
+        }
+        else Assert.Null(freshChoices.Plan);
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]

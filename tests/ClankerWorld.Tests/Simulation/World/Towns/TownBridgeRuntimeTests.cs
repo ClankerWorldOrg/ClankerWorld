@@ -5,8 +5,8 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
-using GodotOwnerWorldEvent = ClankerWorld.GodotClient.Protocol.OwnerWorldEvent;
-using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
+using GodotOwnerWorldEvent = ClankerWorld.Contracts.OwnerWorldEvent;
+using GodotOwnerWorldSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
@@ -114,7 +114,7 @@ public sealed class TownBridgeRuntimeTests
         Assert.Equal(bridge.Span.Select(point => (point.X, point.Y)), godotBridge.Span.Select(point => (point.X, point.Y)));
         var built = new OwnerWorldObservationStore(reloaded).GetEventsAfter(0).Events.Single(item => item.Kind == "bridge_built");
         var godotEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(JsonSerializer.Serialize(built, GodotJsonOptions), GodotJsonOptions)!;
-        Assert.Equal("A bridge was built where a new Road crosses the river.", ClankerWorld.GodotClient.UI.WorldEventText.Describe(godotEvent, godot));
+        Assert.Equal("A bridge was built where a new Road crosses the river.", EventTextFixture.Describe(godotEvent, godot));
 
         // Replay identity: the saved world and the live one keep advancing identically.
         for (var tick = 0; tick < 3; tick++)

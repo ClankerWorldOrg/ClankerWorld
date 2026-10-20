@@ -23,9 +23,12 @@ forms, `.github/scripts/` and the searches in CONTRIBUTING, AGENTS.md and the
 skills that name it. The workflow-script tests check that every label the
 forms, scripts and documented searches use is active.
 
-A release label, such as `release:alpha-1`, marks the issues the release being
-prepared needs ([Release scope](../../CONTRIBUTING.md#release-scope)). It is
-added by hand and retired after the release is published
+Release labels split the open issues when more is open than one release can
+take: `release:alpha-1` marks what the release being prepared needs and
+`release:alpha-2` what waits for the release after it
+([Release scope](../../CONTRIBUTING.md#release-scope)). They are added by hand.
+When a release is published its label is retired and the next one becomes the
+current release's label
 ([Releasing](releasing.md#release-scope-and-merge-day)).
 
 ## What the workflows do on issues
@@ -70,6 +73,11 @@ added by hand and retired after the release is published
   [how we work](../../CONTRIBUTING.md#priorities). A pull request shows one
   priority: one added by hand takes its place when it is higher, and a lower
   one added by hand comes off.
+- **Release:** the earliest release of the open issues it closes, and any
+  other release label comes off. Otherwise a release label set by hand stays.
+  Issues it only refers to don't count, because part of an issue can belong to
+  an earlier release than the rest
+  ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - **Type:** one, from the first ticked **Type of change** box, or `type:docs`
   when none is ticked and only documentation changes.
 - **Areas:** at most two, from the files it changes, set when it opens,

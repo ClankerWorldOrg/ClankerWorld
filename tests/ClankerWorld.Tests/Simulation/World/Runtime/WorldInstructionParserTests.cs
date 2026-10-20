@@ -37,7 +37,7 @@ public sealed class WorldInstructionParserTests
         Assert.Equal("strict-unknown", instruction.IdempotencyKey);
         Assert.Equal("unknown", instruction.Task!.Action);
         Assert.Equal("not_understood", instruction.Task.Status);
-        Assert.Contains(receipt.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(receipt.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.Contains(state.Events, item => item.Kind == "instruction_not_understood" &&
             item.Detail == $"{TargetAgent}:{receipt.InstructionId}");
         world.Validate();
@@ -65,12 +65,12 @@ public sealed class WorldInstructionParserTests
         var savedUnknown = Assert.Single(state.Instructions!, item => item.InstructionId == unknown.InstructionId);
         Assert.Equal("waiting", savedCurrent.Task!.Status);
         Assert.Equal("queued", savedQueued.Task!.Status);
-        Assert.DoesNotContain(current.InstructionId, state.CompletedInstructionIds ?? []);
-        Assert.DoesNotContain(queued.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(current.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(queued.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.Equal("gather fruit not berries", savedUnknown.Text);
         Assert.Equal($"unknown-{queueUnknown}", savedUnknown.IdempotencyKey);
         Assert.Equal("not_understood", savedUnknown.Task!.Status);
-        Assert.Contains(unknown.InstructionId, state.CompletedInstructionIds ?? []);
+        Assert.Contains(unknown.InstructionId.Value, state.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(state.Events, item => item.Kind == "instruction_order_cancelled" &&
             (item.Detail.Contains(current.InstructionId, StringComparison.Ordinal) ||
              item.Detail.Contains(queued.InstructionId, StringComparison.Ordinal)));
