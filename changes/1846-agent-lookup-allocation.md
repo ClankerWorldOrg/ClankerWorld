@@ -1,0 +1,1 @@
+- Agent lookups allocate less temporary memory while keeping the same identity and save checks.

@@ -90,9 +90,10 @@ public sealed class SplitTownServiceDonationTests
             _ = file.Save(world);
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(1));
             presence.RecordAuthenticatedReconnect("owner:test");
-            using var service = new WorldRuntimeService(world, file, presence);
+            var logger = new RecordingLogger<WorldRuntimeService>();
+            using var service = new WorldRuntimeService(world, file, presence, logger);
             for (var tick = 0; tick < 4 && world.Towns[0].NonLandHearings.Effects.Count == 0; tick++)
-                Assert.True(await service.TryAdvanceOnceAsync());
+                Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
             _ = WorldRuntimeCodec.Decode(File.ReadAllBytes(path));
             world.Pause();
             var pausedTick = world.WorldTick;

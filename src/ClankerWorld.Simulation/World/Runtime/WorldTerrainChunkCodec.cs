@@ -104,18 +104,8 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
             value.Tiles.Count != checked(value.Width * value.Height))
             throw new InvalidDataException("The world terrain dimensions are invalid.");
         var terrain = new byte[value.Tiles.Count];
-        var occupied = new bool[terrain.Length];
-        foreach (var tile in value.Tiles)
-        {
-            if (!value.Contains(tile.Position) || !Enum.IsDefined(tile.Terrain))
-                throw new InvalidDataException("The world terrain tile is invalid.");
-            var index = tile.Position.Y * value.Width + tile.Position.X;
-            if (occupied[index]) throw new InvalidDataException("The world terrain has duplicate tiles.");
-            occupied[index] = true;
-            terrain[index] = checked((byte)tile.Terrain);
-        }
-        if (occupied.Any(present => !present))
-            throw new InvalidDataException("The world terrain has missing tiles.");
+        if (MapAcceptance.ValidateGrid(value, terrain) is { } gridFailure)
+            throw new InvalidDataException(gridFailure);
         ValidateLayers(value.Width, value.Height, value.ClimateZones, value.ElevationLevels,
             value.HydrologyKinds, value.SurfaceKinds, value.VegetationKinds);
 
@@ -161,15 +151,11 @@ internal sealed class WorldTerrainChunkCodec : JsonConverter<WorldMap>
         byte[]? hydrology, byte[]? surface, byte[]? vegetation)
     {
         var length = checked(width * height);
-        if (climate?.Length is { } climateLength && climateLength != length ||
-            elevation?.Length is { } elevationLength && elevationLength != length ||
-            hydrology?.Length is { } hydrologyLength && hydrologyLength != length ||
-            surface?.Length is { } surfaceLength && surfaceLength != length ||
-            vegetation?.Length is { } vegetationLength && vegetationLength != length ||
-            climate?.Any(value => !Enum.IsDefined((ClimateZone)value)) == true ||
-            hydrology?.Any(value => !Enum.IsDefined((WaterKind)value)) == true ||
-            surface?.Any(value => !Enum.IsDefined((SurfaceKind)value)) == true ||
-            vegetation?.Any(value => !Enum.IsDefined((VegetationCover)value)) == true)
+        if (!MapAcceptance.IsValidLayer(climate, length, MapAcceptance.ClimateValues) ||
+            !MapAcceptance.IsValidLayer(elevation, length) ||
+            !MapAcceptance.IsValidLayer(hydrology, length, MapAcceptance.WaterValues) ||
+            !MapAcceptance.IsValidLayer(surface, length, MapAcceptance.SurfaceValues) ||
+            !MapAcceptance.IsValidLayer(vegetation, length, MapAcceptance.VegetationValues))
             throw new InvalidDataException("The world map layers are invalid.");
     }
 }

@@ -204,7 +204,28 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-fiber").Quantity);
         Assert.Equal(1, replay.Society.Inventory.GetLot("remedy-rope").Quantity);
         Assert.All(resumedRepair.MaterialReservationIds, id => Assert.Equal(InventoryReservationState.Completed, replay.Society.Inventory.GetReservation(id).State));
-        NonLandRuntimeFixture.Strict(replay.ExportState());
+        var compacted = RepairHistoryTests.SaveAfterLaterRepairs(replay.ExportState());
+        Assert.All(receipt.RepairInputs, input => Assert.Contains(input.Reservation, compacted.Society.Society.Inventory.Reservations));
+        NonLandRuntimeFixture.Strict(compacted);
+        var damagedReceipt = receipt with
+        {
+            RepairInputs = receipt.RepairInputs.Select(input => input with
+            { Reservation = input.Reservation with { Id = null! } }).ToArray(),
+        };
+        damagedReceipt = damagedReceipt with { Version = TownSystem.NonLandDigest(damagedReceipt with { Version = "" }) };
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(compacted with
+        {
+            Towns = compacted.Towns!.Select(town => town with
+            {
+                NonLandHearings = town.NonLandHearings with
+                {
+                    NativeReceipts = town.NonLandHearings.NativeReceipts.Select(item => item.Id == damagedReceipt.Id
+                        ? damagedReceipt : item).ToArray(),
+                    Effects = town.NonLandHearings.Effects.Select(effect => effect.NativeReceiptId == damagedReceipt.Id
+                        ? effect with { NativeReceiptVersion = damagedReceipt.Version } : effect).ToArray(),
+                },
+            }).ToArray(),
+        }));
     }
 
     [Fact]
@@ -487,6 +508,83 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Empty(world.Towns[0].NonLandHearings.Effects);
         Assert.Equal(room - 1, world.Society.Inventory.GetLot("destination-filler").Quantity);
         NonLandRuntimeFixture.Strict(world.ExportState());
+    }
+
+    [Fact]
+    public async Task ASelectedReturnRefusesGoodsNewlyPromisedByANativeAnimalSupplyPickup()
+    {
+        var state = await NonLandRuntimeFixture.FindingAsync();
+        var actor = NonLandRuntimeFixture.Subject;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "return-yard-wood", "wood", home, 8,
+            groundPosition: new(position.X, position.Y));
+        inventory = InventoryAuthority.AddLot(inventory, "return-yard-rope", "rope", home, 2,
+            groundPosition: new(position.X, position.Y));
+        inventory = InventoryAuthority.AddLot(inventory, "return-greens", "cultivated_greens", actor, 2);
+        inventory = InventoryAuthority.AddLot(inventory, "return-food-reserve", "cultivated_greens", actor, 6);
+        using (var building = NonLandRuntimeFixture.Create(WithInventory(state, inventory), new NonLandTestProvider()))
+        {
+            var definition = building.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
+            Assert.Contains(state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, position)),
+                tile => building.PlaceBuilding("return-stock-yard", definition.CanonicalId, tile.Position, home).Applied);
+            state = NonLandRuntimeFixture.Strict(building.ExportState());
+        }
+        var yard = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "return-stock-yard");
+        var sheep = new AnimalState("return-stock-sheep", "Return stock sheep", "sheep", "female",
+            -(long)AnimalRules.Definition("sheep").AdultDays * state.WorldSystems!.Config.TicksPerDay,
+            yard.Position, "household:" + home, home, yard.InstanceId);
+        state = state with { AnimalWorld = state.AnimalWorld! with { Animals = state.AnimalWorld.Animals.Append(sheep).ToArray() } };
+        state = await NonLandRuntimeFixture.AcceptRemedyAsync(state,
+            [new("return_goods", actor, NonLandRuntimeFixture.Witness, "cultivated_greens", 1, "return-greens")]);
+        var provider = CompletionProvider();
+        NonLandWorkActionPlan plan;
+        using (var selecting = NonLandRuntimeFixture.Create(state, provider))
+        {
+            NonLandRuntimeFixture.Wake(selecting, actor, "select-return-before-animal-promise");
+            var before = WorldRuntimeCodec.Encode(selecting.ExportState());
+            Assert.False((await selecting.AdvanceOneTickAsync(() => false)).Advanced);
+            Assert.Equal(before, WorldRuntimeCodec.Encode(selecting.ExportState()));
+            plan = Assert.IsType<NonLandWorkActionPlan>(Assert.Single(provider.Observations.Where(item => item.AgentId == actor)
+                .SelectMany(item => item.Candidates), item => item.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal)).ActionPlan);
+            Assert.Equal("return-greens", plan.StockId);
+            Assert.True(selecting.CheckActionPlan(plan).Allowed);
+            state = NonLandRuntimeFixture.Strict(selecting.ExportState());
+        }
+        var supplier = new NonLandTestProvider(DecisionProviderKind.Deterministic)
+        {
+            Choose = observation => observation.AgentId == actor ? observation.Candidates.FirstOrDefault(item =>
+                item.ActionPlan is AnimalSupplyActionPlan { Carried: true, Quantity: 2 } pickup && pickup.Choice.StockId == plan.StockId) : null,
+        };
+        using var supplied = NonLandRuntimeFixture.Create(state, supplier);
+        NonLandRuntimeFixture.Wake(supplied, actor, "promise-return-stock-to-animal-yard");
+        var result = await supplied.AdvanceOneTickAsync();
+        Assert.True(result.Advanced);
+        var decision = Assert.Single(result.Decisions, item => item.AgentId == actor);
+        Assert.IsType<AnimalSupplyActionPlan>(decision.ActionPlan);
+        Assert.True(decision.Admission.Accepted);
+        Assert.False(decision.Admission.FellBack);
+        Assert.Null(decision.PlanRefusal);
+        var held = supplied.Society.Inventory.GetLot(plan.StockId!);
+        Assert.Equal((actor, "cultivated_greens", 2), (held.OwnerId, held.ItemKind, held.Quantity));
+        Assert.Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor), held.Holds!);
+        Assert.Contains(supplied.ExportState().AnimalWorld!.SupplyTrips, trip => trip.ActorId == actor && trip.LotId == held.Id);
+        state = NonLandRuntimeFixture.Strict(supplied.ExportState());
+        var bytes = WorldRuntimeCodec.Encode(state);
+        var freshProvider = CompletionProvider();
+        using var observing = NonLandRuntimeFixture.Create(state, freshProvider);
+        NonLandRuntimeFixture.Wake(observing, actor, "reconsider-promised-return-stock");
+        Assert.True((await observing.AdvanceOneTickAsync()).Advanced);
+        Assert.DoesNotContain(freshProvider.Observations.Where(item => item.AgentId == actor).SelectMany(item => item.Candidates),
+            item => item.Id == plan.CandidateId);
+        Assert.Empty(observing.Towns[0].NonLandHearings.Effects);
+        NonLandRuntimeFixture.Strict(observing.ExportState());
+        var check = supplied.CheckActionPlan(plan);
+        Assert.False(check.Allowed);
+        Assert.Equal(ActionRefusalReason.StockUnavailable, check.Refusal!.Reason);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(supplied.ExportState()));
+        Assert.Empty(supplied.Towns[0].NonLandHearings.Effects);
+        Assert.Empty(supplied.Towns[0].NonLandHearings.NativeReceipts);
     }
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>

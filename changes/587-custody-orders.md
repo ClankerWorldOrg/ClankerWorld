@@ -1,1 +1,0 @@
-- Agents can collect and store named personal goods, including filled pots and jugs, and return borrowed household goods. Orders count actual moves, keep their chosen House destination and preserve ownership through cancellation and reload.

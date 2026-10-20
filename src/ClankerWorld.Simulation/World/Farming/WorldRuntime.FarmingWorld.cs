@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> transition) => runtime.society.Apply(transition);
         public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
         public IEnumerable<GridPoint> TownProjectProtectedSites() => runtime.TownProjectProtectedSites();
         public IEnumerable<GridPoint> MarketSiteTiles() => runtime.MarketSiteTiles();
         public IEnumerable<GridPoint> RoadAndBridgeTiles() => runtime.RoadAndBridgeTiles();

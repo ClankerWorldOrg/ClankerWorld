@@ -8,9 +8,9 @@ internal sealed partial class TownSystem
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => CivicAgentToken(TownLandHearingRules.RevisionToken(item)) == choice.RevisionToken) is not { Rulings.Count: > 0 } item) return null;
-        var request = choice.Assessment ? item.ReopenRequests.SingleOrDefault(request => CivicAgentToken(request.Id + ":accept") == choice.GroundsOrRequestToken ||
-            CivicAgentToken(request.Id + ":reject") == choice.GroundsOrRequestToken) : null;
-        var accept = request is not null && CivicAgentToken(request.Id + ":accept") == choice.GroundsOrRequestToken;
+        var request = choice.Assessment ? item.ReopenRequests.SingleOrDefault(request => DerivedId.Create(request.Id + ":accept", "agent-sha256:") == choice.GroundsOrRequestToken ||
+            DerivedId.Create(request.Id + ":reject", "agent-sha256:") == choice.GroundsOrRequestToken) : null;
+        var accept = request is not null && DerivedId.Create(request.Id + ":accept", "agent-sha256:") == choice.GroundsOrRequestToken;
         return new(actor, choice, item.Id, TownLandHearingRules.CurrentRevision(item), item.Rulings[^1], request, accept, item.Judge,
             accept && item.Property is { Transfer: null } property && world.PropertyMayReopen(town, item)
                 ? world.CaptureProperty(town, property.Request, TownLandHearingRules.CurrentRevision(item).Number + 1) : null);
@@ -25,7 +25,7 @@ internal sealed partial class TownSystem
             Bound = true,
             EvidenceIds = terms?.EvidenceIds?.ToArray() ?? [],
             Reasons = raw?.Trim(),
-            InvalidTerms = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
+            InvalidTerms = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength)
         };
     }
 
@@ -56,7 +56,7 @@ internal sealed partial class TownSystem
         if (plan.Judge is not { } judge || judge.AgentId != plan.Actor || item.Judge != judge || !LandHearingJudgeValid(world, town, item, judge) ||
             plan.Request is not { } original || item.ReopenRequests.SingleOrDefault(request => request.Id == original.Id) is not { Status: "pending" } current ||
             TownLandHearingRules.RecordVersion(current) != TownLandHearingRules.RecordVersion(original) ||
-            CivicAgentToken(current.Id + (plan.Accept ? ":accept" : ":reject")) != plan.Choice.GroundsOrRequestToken ||
+            DerivedId.Create(current.Id + (plan.Accept ? ":accept" : ":reject"), "agent-sha256:") != plan.Choice.GroundsOrRequestToken ||
             !item.Reads.Any(read => read.AgentId == plan.Actor && read.Revision == plan.Revision.Number && read.ReadTick >= current.Tick && read.ReadTick <= world.WorldTick &&
                 read.ReopenRequestIds.Contains(current.Id, StringComparer.Ordinal)))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected pending request or informed assessor has changed");

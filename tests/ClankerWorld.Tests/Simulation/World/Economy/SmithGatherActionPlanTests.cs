@@ -127,7 +127,7 @@ public sealed class SmithGatherActionPlanTests
         unavailable.Validate();
     }
 
-    private static async Task<(WorldRuntimeState State, string Actor, MapResource Tree)> Fixture(bool basket = false)
+    internal static async Task<(WorldRuntimeState State, string Actor, MapResource Tree)> Fixture(bool basket = false)
     {
         using var setup = NormalPathWorld.CreateGenerated("smith-whole-load", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);

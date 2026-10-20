@@ -1,1 +1,0 @@
-- Households founded by native-born adults can receive offers to transfer or buy existing land use rights, with each affected adult still required to read and accept the terms separately.

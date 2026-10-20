@@ -1,1 +1,0 @@
-- Adults can plan ingredient-shopping and Restaurant meal trips to other Towns. Visitors buy through the same physical barter and seller consent as residents, without gaining access to Warehouse stock or private household goods.

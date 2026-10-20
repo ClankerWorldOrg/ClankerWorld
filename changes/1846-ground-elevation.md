@@ -1,0 +1,1 @@
+- Walking and route checks do less repeated terrain work while keeping the same routes and building rules.

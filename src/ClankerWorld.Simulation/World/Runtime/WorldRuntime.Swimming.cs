@@ -7,17 +7,14 @@ public sealed partial class WorldRuntime
     private bool IsSwimming(string actor, GridPoint position) =>
         PassengerBoat(actor) is null && SwimmingRules.IsSwimmingWater(map, position);
 
-    private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0)
-    {
-        var person = agents[actor];
-        if (PassengerBoat(actor) is not null || AttachedHandcart(actor) is not null ||
-            animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
-            return false;
+    private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0) =>
+        PassengerBoat(actor) is null && AttachedHandcart(actor) is null &&
+        !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor) &&
         // A swimmer can always make their way out if their condition changes mid-crossing.
-        if (SwimmingRules.IsSwimmingWater(map, origin ?? person.Position)) return true;
-        return MovingCareGroup(actor).All(id => SwimmingStartingCondition(id, id == actor ? additionalCarriedUnits : 0)) &&
-            !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor);
-    }
+        (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position) ||
+         SwimmingStartingCondition(actor, additionalCarriedUnits) &&
+         MovingCareGroup(actor).All(id => id == actor || SwimmingStartingCondition(id)) &&
+         !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor));
 
     private bool SwimmingStartingCondition(string actor, int additionalCarriedUnits = 0)
     {
@@ -40,6 +37,10 @@ public sealed partial class WorldRuntime
         SwimmingRules.IsSwimmingWater(map, from) || SwimmingRules.IsSwimmingWater(map, to)
             ? SwimmingRules.StepCost : RoadStepCost(from, to);
 
+    private int LegalAgentStepCost(GridPoint from, GridPoint to) =>
+        SwimmingRules.IsSwimmingWater(map, from) || SwimmingRules.IsSwimmingWater(map, to)
+            ? SwimmingRules.StepCost : LegalRoadStepCost(from, to);
+
     // Plan from the tile where the real pickup will happen, including an
     // interaction beside a resource or storage building. No inventory is changed.
     private GridPoint? PickupPosition(string actor, GridPoint source, int sourceRange)
@@ -56,11 +57,12 @@ public sealed partial class WorldRuntime
         if (PickupPosition(actor, source, sourceRange) is not { } origin) return 0;
         var capacity = FreeCarryCapacity(actor);
         if ((destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            ReachLeg(actor, origin, destination, ReachPurpose.PickupReturn, destinationRange, 0, SwimmingPolicy.Never).Count > 0)
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false))
             return capacity;
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment));
-        return swimmingRoom > 0 && ReachLeg(actor, origin, destination, ReachPurpose.PickupReturn, destinationRange, 1, SwimmingPolicy.WhenCapable).Count > 0 ? Math.Min(capacity, swimmingRoom) : 0;
+        return swimmingRoom > 0 && HasUnoccupiedRoute(actor, origin, destination, destinationRange,
+            additionalCarriedUnits: 1) ? Math.Min(capacity, swimmingRoom) : 0;
     }
 
     private int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock,
@@ -76,17 +78,17 @@ public sealed partial class WorldRuntime
         // Foot preparation may store spare cargo before taking an ingredient.
         // Its existing caller still makes and checks the actual carrying room.
         return (destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            ReachLeg(actor, origin, destination, ReachPurpose.PickupReturn, destinationRange, 0, SwimmingPolicy.Never).Count > 0 ||
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false) ||
             PickupCarryCapacity(actor, stock, destination, destinationRange) >= 1;
     }
 
-    private bool CanReturnWithHarvest(string actor, string itemKind, ClankerWorld.Simulation.World.MapResource source,
+    internal bool CanReturnWithHarvest(string actor, string itemKind, ClankerWorld.Simulation.World.MapResource source,
         GridPoint destination, int destinationRange = 0, bool useHarvestBonus = true)
     {
         if (PickupPosition(actor, source.Position, ResourceInteractionRange) is not { } origin) return false;
         // Existing foot gathering may first make room. Keep that behavior.
         if ((destinationRange > 0 || map.IsReachableOnFoot(origin, destination)) &&
-            ReachLeg(actor, origin, destination, ReachPurpose.PickupReturn, destinationRange, 0, SwimmingPolicy.Never).Count > 0)
+            HasUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false))
             return true;
         var required = ProjectMaterialCarryUnits(actor, itemKind, source, useHarvestBonus);
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -

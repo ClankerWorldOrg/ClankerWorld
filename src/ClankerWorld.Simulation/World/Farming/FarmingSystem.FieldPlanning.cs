@@ -76,7 +76,7 @@ internal sealed partial class FarmingSystem
             }
     }
 
-    internal static bool HasOtherAgentClaimedPlanting(IFarmingWorld world, FarmFieldState field, string actor)
+    internal bool HasOtherAgentClaimedPlanting(IFarmingWorld world, FarmFieldState field, string actor)
     {
         var runtimes = world.Cognition.Runtimes;
         foreach (var runtime in runtimes.Where(item => item.AgentId != actor))
@@ -104,9 +104,9 @@ internal sealed partial class FarmingSystem
         from == destination || world.Reach(actor, destination, ReachPurpose.FieldWork, 0, 0,
             SwimmingPolicy.WhenCapable, ReachObstacles.Terrain).Count > 0;
 
-    internal static bool FarmNeedsFood(IFarmingWorld world, string householdId) => FarmFoodDemand(world, householdId).MissingMeals > 0;
+    internal bool FarmNeedsFood(IFarmingWorld world, string householdId) => FarmFoodDemand(world, householdId).MissingMeals > 0;
 
-    internal static (int MissingMeals, int FarmingHouseholds) FarmFoodDemand(IFarmingWorld world, string householdId)
+    internal (int MissingMeals, int FarmingHouseholds) FarmFoodDemand(IFarmingWorld world, string householdId)
     {
         var checkpoint = world.Society;
         var townId = world.FarmhouseForHousehold(householdId)?.TownId;
@@ -122,7 +122,10 @@ internal sealed partial class FarmingSystem
         // its own fields and must physically carry its own planting supplies.
         var farmingHouseholds = town is null ? 1 : residents.Select(person => person.HouseholdId).OfType<string>()
             .Distinct(StringComparer.Ordinal).Count(owner => world.FarmhouseForHousehold(owner)?.TownId == town.Id);
-        return ((int)Math.Max(0, residents.Length * FarmFieldRules.MealsPerPersonPerDay * 2 - stock),
+        // Starter rations can cover today's meals without establishing crop production.
+        // Keep one field's first planting eligible; reserves still govern expansion and replanting.
+        var minimum = fields.Any(field => field.HouseholdId == householdId && field.Crop is not null) ? 0 : 1;
+        return ((int)Math.Max(minimum, residents.Length * FarmFieldRules.MealsPerPersonPerDay * 2 - stock),
             Math.Max(1, farmingHouseholds));
     }
 
