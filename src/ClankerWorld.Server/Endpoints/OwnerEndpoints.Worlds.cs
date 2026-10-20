@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Worlds;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Server.Endpoints;
 
@@ -29,6 +30,23 @@ internal static partial class OwnerEndpoints
                 // The client left Load World; listing changed nothing and nobody reads this reply.
                 return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
             }
+        });
+
+        app.MapPost("/api/v1/owner/worlds/saves", (
+            OwnerSignedHttpRequest<OwnerManualSaveAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { Operation: "world-saves" } action)
+                return Results.BadRequest(new { error = "A world save-history request is required." });
+            string payload;
+            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/saves", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().ReadSaveHistory(action.Value)); }
+            catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world no longer exists." }); }
+            catch (InvalidDataException) { return Results.Conflict(new { error = "This world's history cannot be read. Your saves are safe." }); }
         });
 
         app.MapPost("/api/v1/owner/worlds/create", (
@@ -95,7 +113,7 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (request?.Action is not { Operation: "select-world" } action)
+            if (request?.Action is not { Operation: "select-world" or "inspect-world-models" } action)
                 return Results.BadRequest(new { error = "A world selection is required." });
             string payload;
             try { payload = OwnerHttpBinding.ManualSavePayload(action); }
@@ -103,7 +121,14 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/select",
                 payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().Select(action.Value)); }
+            try
+            {
+                var worlds = services.GetRequiredService<WorldSelectionCoordinator>();
+                return action.Operation == "inspect-world-models" ? Results.Ok(worlds.PreviewModels(action.Value)) :
+                    Results.Ok(worlds.Select(action.Value, action.ModelSettingsApproval));
+            }
+            catch (ModelSettingsConfirmationRequiredException exception)
+            { return Results.Conflict(new OwnerControlFailure("model_settings_confirmation_required", exception.Message)); }
             catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world does not exist." }); }
             catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
             catch (InvalidDataException) { return Results.Conflict(new { error = "The selected world is invalid." }); }

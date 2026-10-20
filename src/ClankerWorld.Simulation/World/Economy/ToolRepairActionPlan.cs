@@ -7,7 +7,7 @@ public sealed record ToolRepairChoice(string ToolId)
     public const string Prefix = "repair_tool:";
     public static ToolRepairChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
         ? new(candidate[Prefix.Length..]) : null;
-    public string Encode() => Prefix + ToolId;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ToolId);
 }
 
 public sealed record PlannedRepairMaterial(string StockId, string ItemKind, int Quantity);

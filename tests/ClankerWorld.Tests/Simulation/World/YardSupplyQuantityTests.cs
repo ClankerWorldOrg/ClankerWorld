@@ -10,6 +10,7 @@ public sealed partial class AnimalPipelineTests
     [InlineData("ground", false, false)]
     [InlineData("personal", false, false)]
     [InlineData("borrowed", false, false)]
+    [InlineData("borrowed", true, false)]
     [InlineData("personal", true, false)]
     [InlineData("personal", false, true)]
     public async Task YardSupplyPreservesTheChosenLoadAndLeftoverProperty(string sourceMode, bool jug, bool distant)
@@ -31,7 +32,7 @@ public sealed partial class AnimalPipelineTests
         if (jug)
             inventory = InventoryAuthority.AddLot(inventory, "quantity-source-water", "fresh_water", sourceOwner, 4, containerLotId: "quantity-source-feed");
         if (sourceMode == "borrowed")
-            inventory = InventoryAuthority.Relocate(inventory, "controlled-borrowed-feed", "quantity-source-feed", sourceOwner, 4, carrierId: actor);
+            inventory = InventoryAuthority.Relocate(inventory, "controlled-borrowed-feed", "quantity-source-feed", sourceOwner, jug ? 1 : 4, carrierId: actor);
         var start = distant ? state.Map.Tiles.Where(tile => state.Map.FootDistance(tile.Position, yard.Position) == 3 &&
             state.Map.IsReachableOnFoot(tile.Position, yard.Position) &&
             !state.Agents.Any(person => person.AgentId != actor && person.Position == tile.Position)).First().Position : yard.Position;
@@ -43,6 +44,15 @@ public sealed partial class AnimalPipelineTests
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), id =>
             id == actor ? new AnimalChooser("animal:supply", DecisionProviderKind.LargeLanguageModel) : new AnimalChooser());
+        if (sourceMode == "borrowed" && jug)
+        {
+            foreach (var use in new[] { GoodsUse.Collect, GoodsUse.Deliver })
+            {
+                var request = new GoodsRequest(use, actor, GoodsOwners.One(home), GoodsKinds.One("water_jug"),
+                    Destination: use == GoodsUse.Deliver ? yard.InstanceId : null);
+                Assert.Contains(world.FindGoods(request).Matches, match => match.Lot.Id == "quantity-source-feed");
+            }
+        }
         await Until(world, () => world.ExportState().AnimalWorld.SupplyTrips.Count == 1);
         var tripState = world.ExportState();
         var trip = Assert.Single(tripState.AnimalWorld.SupplyTrips);

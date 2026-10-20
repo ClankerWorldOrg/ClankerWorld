@@ -43,7 +43,7 @@ internal sealed partial class TownSystem
         return plan with
         {
             Bound = true,
-            InvalidTerms = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength),
+            InvalidTerms = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength),
             Filing = new(TownLandRightsRules.OrderTiles(tiles?.Select(tile => new GridPoint(tile.X, tile.Y)) ?? []),
                 new(terms?.RequestedOutcome ?? "", terms?.HouseholdId, terms?.AgreedEndTick), raw?.Trim() ?? "")
         };
@@ -62,13 +62,8 @@ internal sealed partial class TownSystem
             case LandHearingFilingKind.Household:
                 if (plan.Household is null || world.HouseholdFor(plan.Actor) != plan.Household || plan.Choice.AuthorityToken != CivicAgentToken(plan.Household))
                     return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their selected household no longer has an affected filing plot");
-                if (!plan.Bound && !plan.NearbyAffectedTiles.Any(tile =>
-                    (householdLandUseRights.Any(right => right.TownId == town.Id && right.HouseholdId == plan.Household && right.Tiles.Contains(tile)) ||
-                        householdLandUseRequests.Any(request => request.TownId == town.Id && request.HouseholdId == plan.Household && request.Status == "pending" &&
-                            TownLandRightsRules.UnresolvedRequestTiles(request).Contains(tile))) &&
-                    (town.LandRecords.Cases.Any(item => item.Status == "pending" && TownLandHearingRules.CurrentRevision(item).Tiles.Contains(tile)) ||
-                        TownLandHearingRules.FilingRefusal(town.LandRecords, town.Id, [tile], householdLandUseRights) is null)))
-                    return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "none of the selected affected filing tiles remains available");
+                if (!plan.Bound && PlanLandHearingFiling(world, plan.Actor, plan.Choice) is not { NearbyAffectedTiles.Count: > 0 })
+                    return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "no affected filing plot remains available");
                 break;
             case LandHearingFilingKind.TownOffice:
                 if (!TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) || town.Government?.Arrangement.Ordinary != TownArrangementRules.Mayor ||
@@ -80,7 +75,7 @@ internal sealed partial class TownSystem
                 if (!TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
                     town.Government?.Arrangement.Ordinary is not (TownArrangementRules.Council or TownArrangementRules.ElectedCouncil or TownArrangementRules.AllAdultCouncil) ||
                     town.Council.Revision != plan.CouncilRevision || !town.Council.Members.Contains(plan.Actor, StringComparer.Ordinal) ||
-                    plan.Choice.AuthorityToken != CivicAgentToken("council:" + plan.CouncilRevision.ToString(CultureInfo.InvariantCulture)))
+                    plan.Choice.AuthorityToken != CivicAgentToken(DerivedId.Create("council:" + plan.CouncilRevision.ToString(CultureInfo.InvariantCulture))))
                     return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their selected Council filing authority has changed");
                 break;
         }

@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-18
 ---
 
 # Device pairing
@@ -20,6 +20,13 @@ rollback backup. This is the approved pre-release exception described in
 
 ## Pairing flow
 
+Package-installed Linux hosts offer `sudo clankerworld-server approve`, which
+reads a comparison code privately and posts it to
+`/api/v1/approval/pairings/approve` with the account's approval header. It
+resolves only a unique pending match and uses the existing approval operation;
+expired, absent or ambiguous codes approve no device. Activation still requires
+the joining device's signature. See the [Linux hosting guide](../hosting-linux.md).
+
 1. A Windows client creates a non-exportable current-user CNG P-256 signing
    key locally. Its non-secret pairing registration metadata lives under the
    app user's storage, while the private key remains in the Windows key store.
@@ -32,23 +39,28 @@ rollback backup. This is the approved pre-release exception described in
 3. A server-local bootstrap administrator approves the matching pairing ID and
    code through a separate loopback-only listener. There is no bootstrap
    password or reusable approval secret in the client, a URL, or deployment
-   configuration. The local server, which the game starts on the player's own PC, also needs a
+   configuration. A remote Unix server generates an owner-only approval header file;
+   its account reads that file for local approval and recovery. The local server,
+   which the game starts on the player's own PC, instead needs a
    launch secret ([local server](#local-server-started-by-the-game)). Once an owner device exists, it may approve or revoke further
    devices through signed owner-device-management requests. It may also request
    the signed registry of paired-device lifecycle records. The registry exposes
-   only public device IDs, public-key fingerprints, and lifecycle state; it
+   only public device IDs, public-key fingerprints, lifecycle state and approval
+   origin; it
    never exposes private keys, comparison codes, or reusable challenges. The
    same separate server-local listener supports recovery revocation when every
    paired Windows device has been lost or revoked.
 4. The device proves possession of its private key before activation. The
    server records its public-key fingerprint, fixed owner scope, and durable
    activation/revocation state. Private keys and raw approval codes never enter
-   world saves, snapshots, event projections, or logs.
+   world saves, world snapshots, event projections, or logs.
 5. Each read or control request carries a short-lived server challenge and a
    signature over canonical request data. The server consumes the challenge
    once before asking the runtime to commit. Challenges are process-local:
    restarting the server invalidates both pending and consumed challenges, so an
-   old nonce cannot be replayed after a crash. Pairing and revocation remain
+   old nonce cannot be replayed after a crash. Pending challenges are capped per
+   device and overall; a new challenge expires the oldest unanswered ones to make
+   room instead of being refused. Pairing and revocation remain
    durable; idle reads do not rewrite the authority file. It
    derives the durable issuer from the active device; the runtime mints durable
    IDs, event ordering, and submission sequence. A client request ID and
@@ -58,6 +70,27 @@ The initial server-local approval route is deliberately separate from normal
 network requests. For this private deployment, the owner can relay the short
 comparison code through the already trusted direct-control channel; that
 channel approves a pending pairing only, never supplies the device key.
+
+The launcher owns remote address entry, comparison-code display and approval
+polling. `DeviceJoinSession` shares the protocol client's activation and signed
+reconnect boundaries with automatic local-game setup. Pending replies stay
+pinned to their original origin, authority, device and key. A lost activation
+reply is recovered from a matching Active status before saving registration;
+no comparison code or activation proof enters that file. The launcher passes
+the saved origin as `--server-url` to the selected game. The game refuses a
+saved registration for a different explicit origin and offers no pairing screen.
+
+Pairing-start responses include optional `Host` installation metadata with a
+`Kind` of `launcher`, `terminal` or `unspecified`, configured through
+`ClankerWorld:Hosting:Kind`. It changes neither authority proofs nor world
+formats. Registration remembers the kind for conditional stopped-host hints;
+the terminal hint names `sudo systemctl start clankerworld-server.service`.
+An older or unknown host kind gets a private-network/host check instead.
+The launcher checks signed startup status before starting remote play. This
+confirms device access without granting a game presence lease, and lets the game
+open its recovery screen when the latest checkpoint is refused. A responsive
+port alone is insufficient. HTTP approval failures and TLS failures retain their
+own explanations.
 
 ## Client and server updates
 
@@ -70,9 +103,13 @@ fresh challenge before signing or posting these actions.
 An absent or different format produces an update message while keeping the
 existing pairing. Older servers without this advertisement need an update too.
 Routine helper changes require `clankerworld.owner-routine-helper.v1`, signing
-the observed world ID, helper, model and optional saved OpenAI key-slot ID. The
+the observed world ID, helper, model and optional saved OpenAI or TypeSafe key-slot ID. The
 server holds the world-selection gate through validation and persistence, and
 refuses a changed world or an unpaused world.
+Named-key deletion checks the active world's routine helper together with agent
+assignments. It holds the same world-selection gate as helper changes, so an
+active helper's key cannot disappear during a switch. Refusal preserves the key
+file and the world's helper settings.
 A request that names Anthropic or a thinking level requires
 `clankerworld.owner-model-thinking.v1`: model settings, model lists, saved keys,
 Test model and founder or agent placement. Their payloads gain a final
@@ -90,8 +127,12 @@ are the sole plaintext exception, for an explicit local-development server.
 
 The headless server persists paired-device authority separately from the world
 runtime. The authority file contains public keys, fingerprints, state, and
-anti-replay hashes—not device private keys or raw comparison codes. The runtime
-file contains world state and never becomes credential storage. Both files are
+anti-replay hashes—not device private keys or raw comparison codes. It also
+holds the server authority ID that pairing replies and signed proofs name. Unless
+`ClankerWorld:Pairing:ServerAuthorityId` sets one, a new server picks a random
+ID and keeps the file's ID after that. Existing servers retain their stored ID,
+including IDs made from a computer name by older builds, so paired devices stay
+paired. The runtime file contains world state and never becomes credential storage. Both files are
 written atomically and use owner-only filesystem permissions on Unix servers.
 
 ## Server-origin binding
@@ -121,14 +162,21 @@ new observation timeline.
 Aging-override and Jev actions additionally bind the selected world ID into their
 version-2 signed payloads. The server advertises both formats on challenge
 issuance; the client refuses to submit them to a server without that support.
-Both endpoints check the target world under the same mutation gate used by
-world selection, before changing or saving settings. A stale target returns
-409 without changing the newly selected world, and a request without a target
-returns 400. The pairing authority and world-save schema are unchanged.
+World-bound actions use one `OwnerWorldRequestFilter<TAction>`: it validates
+and authenticates the action, then holds the world-selection mutation gate
+through the target-world check, synchronous handler and durable save. This
+covers instructions, order cancellation, building management, life pace, Jev,
+routine helpers, developer edits, autosaves and recovery cleanup. Each route
+keeps its existing refusal response; runtime operations retain their own checks
+for callers outside HTTP. Deletion may deliberately target an inactive world's
+saved files, so its catalog and save-identity checks remain separate. For life pace
+and Jev, a stale target returns 409 without changing the newly selected world,
+and a request without a target returns 400. Building management retains its
+rejected result. The pairing authority and world-save schema are unchanged.
 
-Successful activation and recovery of an already-active pairing both return
-to the Main Menu. Recovery saves the matching registration without opening
-the world; Continue performs the usual signed reconnect.
+Successful activation and recovery of an already-active pairing both finish
+in the launcher. Play checks the signed connection before starting the game;
+the game opens at its Main Menu, and Continue enters the world.
 
 ## Recovering after another device loads a world
 
@@ -148,6 +196,13 @@ timeline cannot replace the new view. The usual tick, cursor and event-order
 checks still apply within one timeline. Hosts without the capability retain
 the earlier reconnect contract; signed reconnect payloads are unchanged.
 
+The game requires `owner-event-presentation.v2` on the signed owner handshake
+because Event Log descriptions and typed event fields come from the host.
+The host advertises this version without the preceding text-only version.
+A host without it is refused
+with an update explanation, preserving the last accepted view and paired device
+registration. Update a remote host alongside the game.
+
 ## Building ownership changes
 
 Building removal and reassignment payloads require the observed simulation world
@@ -160,15 +215,36 @@ observation refreshes cannot silently authorize a different ownership change.
 
 ## Response-loss recovery
 
+The game's `OwnerRequest<T>` runner owns each action's deadline and control
+cleanup. Its context binds ordinary actions to the observation generation and
+the sending panel's visibility and selection. A late answer or refusal from a
+closed panel or an earlier world cannot update the new panel. Pause waits for
+the existing action; duplicate ordinary actions still do not queue. Load,
+create, select and startup recovery deliberately replace the timeline and keep
+their registration binding. Every outcome restores the controls, while the
+pending-submission store below decides whether an uncertain action can be retried.
+
+A same-world observation refresh captures a `PanelDraft` for visible controls.
+It restores editable text and its caret/selection, choice identities and scroll
+positions after updating facts. A timeline change instead resets the old world.
+Name captions use `FittedLabel`, including wrapped headings, with the complete
+caption on hover; the client source guard rejects new plain name labels.
+
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
-protocol also retains authoring batches, which the native server currently refuses
-with `game_world_authoring_pending` without applying them. Before sending
+protocol also retains native map-authoring batches. Before sending
 any of these requests, the client may atomically retain one non-secret pending
 record. It is bound to the authority identity, device ID, public-key fingerprint,
 and canonical server
 origin, and preserves the exact instruction or cancellation idempotency key, or
 authoring batch ID.
+
+New map batches use `clankerworld.owner-authoring.v2`: the canonical signature
+covers the world ID, expected latest event ID, run epoch, observer timeline,
+batch ID and every operation field. The server holds the active-world selection lock through
+validation and saving. Legacy v1 batches have no world precondition and are
+refused with a plain reason. The client keeps all v2 fields through a lost
+reply and never rebuilds the batch against a newer observation.
 
 Instructions additionally retain the observed simulation world ID (not the
 installation's pairing identity). Unqueued instructions use the signed
@@ -183,7 +259,7 @@ when the saved world ID is the same. The exact request and its idempotency key
 remain on disk; the client never retargets them. After a load, switch or server
 restart, check the world before explicitly forgetting a retained request and
 issuing a new one. An older local record without a timeline is not silently
-bound to a server that advertises this capability. Authoring payloads are unchanged.
+bound to a server that advertises this capability.
 
 Client and server must both use this instruction payload. Older requests without
 a simulation world ID are refused rather than guessed into the current world.
@@ -231,9 +307,9 @@ not exposed or automatically submitted.
 Each exact retry obtains a new one-use challenge and signature. For an
 instruction or order cancellation, it submits the same logical request so the
 server returns the original receipt rather than creating a duplicate. The
-native server continues to refuse authoring batches without applying them.
-World
-instruction keys ignore surrounding whitespace consistently. An exact instruction
+native server returns success for an identical map batch recorded in retained
+Developer edit history; an older unrecorded batch is refused by its expected
+event and run epoch rather than applied twice. World instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the server still returns its accepted receipt after the recipient dies,
 including after saving and restarting the server. The client's stricter timeline
 guard above decides whether its retained record can be sent. A new instruction to a deceased agent or
@@ -251,11 +327,26 @@ world context cannot clear a retained request in the current world.
 
 ## Current scope
 
+The device registry records which paired device approved a new pairing, or that
+approval happened on the server's own computer. The origin survives approval,
+activation, revocation and restart; **Paired-device management** in F12 shows the server's
+description. Older authority records without that information display
+**Approval not recorded**. This is installation authority metadata, outside
+world saves and replay.
+
 Every paired device has the sole `owner` scope: world observation,
 pause/resume, instruction submission, order cancellation and device management.
-The retained authoring-batch protocol is disabled on the native server, as described
-above. There are no viewer, operator, or multiplayer roles yet. A revoked
-device immediately loses access. Authority state retains non-secret public-key
+Paused map editing uses the same owner scope. There are no viewer, operator, or multiplayer roles yet. A revoked
+device immediately loses access. The revocation is written to the authority
+file before it takes effect, so a failed write leaves the device active and
+reports an error instead of losing the revocation at the next restart.
+Revoking also cancels any pending or approved pairing for the same key.
+
+One key belongs to at most one active device: approving or activating a second
+pairing for a key that is already active is refused. A revoked key cannot start
+a pairing or have one approved on the public routes. The approval listener on
+the server's own computer can still deliberately start and approve its pairing,
+which gives it a new device ID beside the revoked record. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.
 
@@ -282,7 +373,8 @@ Linux CI export.
 ## Pairing volume and local recovery
 
 Public pairing creation has a shared eight-attempt, one-minute budget, including
-invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
+invalid keys. It is attached to the route itself, so every path spelling routing
+accepts for it counts. A shared budget avoids trusting proxy-supplied source addresses; a
 429 response includes Retry-After: 60. Signed challenges, reconnect and pause do
 not consume it. This is bounded ingress, not a claim that the Tailnet endpoint
 is DoS-proof.
@@ -310,8 +402,24 @@ Every `/api/v1/approval/*` route also needs the request's host name to be
 `127.0.0.1`, `[::1]` or `localhost`, with or without a port. Address the
 approval listener that way, as the game does; any other name gets the same 404
 and one `approval_listener outcome=refused reason=host_name` line at most once a
-minute. The public listener has no such check, because Tailscale Serve reaches
-it under its own name.
+minute. A hosted server's ordinary listener accepts its private HTTPS name.
+A game-started one-PC server accepts only literal loopback host names there
+too, so a leftover proxy cannot turn local play into hosting.
+
+On a remote Unix server, approval and recovery also require the server account's
+`X-ClankerWorld-Approval-Secret` header (the owner's choice, October 18). Startup
+generates a private header file at `ClankerWorld:Pairing:ApprovalSecretPath`, or
+beside the authority file with `.approval-header` appended. It uses owner-only
+permissions from creation, keeps the same value across restarts and refuses
+shared permissions, symbolic links and damaged files without replacing them.
+The containing directory must not be writable by other accounts. Keep this
+installation file out of saves, logs and reports. Missing or incorrect proof
+receives the same 404; it never authorizes shutdown or the local-game launch check.
+Proof refusals log only `approval_listener outcome=refused reason=proof`, at most
+once a minute with a skipped count, never the supplied or expected value.
+The [deployment guide](remote-server-deployment.md#local-approval-and-recovery)
+shows commands that read the header from disk without putting its value in process
+arguments. The game-started local server keeps its launch-secret flow below.
 
 This is an operator recovery path, not automatic queue eviction on behalf of an
 untrusted remote client. The game's own server also uses it for the game's first
@@ -319,6 +427,29 @@ pairing ([Local server started by the game](#local-server-started-by-the-game)).
 returned code and proof local/private. Tests cover capacity recovery and signed
 owner availability. Bodies without a declared length and the host-name check are
 tested on a real Kestrel server, not only through TestServer.
+
+## Launcher host approval
+
+The launcher host reuses the local-server startup proof and approval listener
+below. Host-local `GET /api/v1/approval/pairings` lists pending comparison
+codes, and the existing approve route plus
+`POST /api/v1/approval/pairings/{pairingId}/decline` answer a request. These
+routes require the same local listener, literal host name and launch proof;
+the forwarded listener returns 404. Decline expires the request durably and
+cannot approve or activate a device.
+
+Comparison codes are retained only in bounded process-local pending records.
+Authority export stores their hashes, and world state and logs contain neither
+raw codes nor launch proof. After a server restart the host shows no recovered
+code: decline that pending request and start joining again. Existing approved
+devices still reconnect without pairing again.
+
+`GET /api/v1/approval/hosting` reports local presence/save readiness and the
+installation's host mode and stop option. Reuse verifies those settings after
+the launch proof, alongside the exact build. A launcher host cannot take over a game-started process. A game may join a
+proven launcher host of the exact build; it leaves shutdown to the host app.
+An interrupted or refused mode check retains no client shutdown authority. Host reads and answers have a
+five-second complete-response deadline.
 
 ## Local server started by the game
 
@@ -340,10 +471,14 @@ a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_A
 `OLLAMA_API_KEY`, `TYPESAFE_API_KEY`) or any `ClankerWorld__` setting override,
 so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
+The child process uses `Production` for both `ASPNETCORE_ENVIRONMENT` and
+`DOTNET_ENVIRONMENT`, and does not inherit `ANTHROPIC_BASE_URL` or
+`ANTHROPIC_AUTH_TOKEN`.
 
-On such a local server, every `/api/v1/approval/*` request must also carry the
-value in the `X-ClankerWorld-Launch-Secret` header, compared in constant
-time. Without it the routes return 404, exactly as on the forwarded listener.
+On such a local server, every `/api/v1/approval/*` request except the launch
+check below must also carry the value in the `X-ClankerWorld-Launch-Secret`
+header, compared in constant time. Without it the routes return 404, exactly as
+on the forwarded listener.
 The game uses it to start its own pairing with `POST /api/v1/approval/pairings` and
 approve it with the comparison code, so the player sees no code to copy and the
 public route's shared budget and pending slots do not hold it up. Status and
@@ -354,13 +489,36 @@ The game does this itself when the `package.json` in its folder names a world
 server that is there, and no `--server-url` argument is given (`LocalServer`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
-apart from a server pairing. Before starting the server it checks the port: a
-running server of the exact same version and source revision, started by an
-earlier launch, is reused only after a side-effect-free `GET /api/v1/approval/launch-check`
-confirms the secret already in its file on the approval listener. Anything else on
+apart from a server pairing. The game holds an exclusive per-installation
+`server/startup.lock` handle from the port check through launch and readiness.
+An overlapping game refuses startup
+before changing the secret or logs. The empty lock file stays in place; process
+exit releases its handle, so a crash leaves no stale lock. A failed launch
+restores the prior secret, and cancellation finishes its own starting child's
+stop attempt before releasing the handle. An explicitly refused shutdown keeps
+the server and its paused world available for retry. A running server of the exact same version and
+source revision, started by an earlier launch, is reused only after it answers
+the side-effect-free launch check and confirms the same hosting mode and stop
+option on the approval listener. A game joining a launcher host accepts the
+host's existing stop option without changing it, and detaches on quit without
+removing the host's launch proof. Explicit hosted-game startup refuses an
+absent host instead of starting a replacement. The game sends
+`GET /api/v1/approval/launch-check` with a fresh random challenge in the
+`X-ClankerWorld-Launch-Check` header, and the server returns an HMAC-SHA256 of
+it keyed by the secret (`LocalServerLaunchCheck`). The game compares that with
+the answer for the secret already in its file, in constant time. The secret
+itself never goes over the connection for this check, and the game sends it on
+other approval requests only to a server that has answered; a child of its own
+that has not answered is stopped directly instead of over HTTP. A clean stop, one
+the server acknowledged or of the game's own child, deletes the secret file, so
+only a server still running keeps one for the next launch. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
-two-second request deadlines; an explicit build mismatch, invalid response or
+two-second request deadlines. After a discovery timeout, an exclusive bind to
+the loopback port checks whether it is free: Windows may still be retrying a
+connection to an empty port when the request deadline expires. A free port lets
+the game launch its server; a failed bind keeps the existing listener protected.
+An explicit build mismatch, invalid response or
 secret refusal ends the attempt immediately. An unresponsive existing server is
 reported as timed out, without starting a second process or replacing its secret.
 Caller cancellation also leaves that server and secret intact. The server's output goes to
@@ -370,11 +528,13 @@ Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
 `POST /api/v1/approval/shutdown` exists only on a local server. It
-pauses the world, cancels model work and writes its checkpoint before
-returning 202. The response completion callback requests process exit, so server
-teardown follows the acknowledgement. If writing fails, it returns 503 and
+pauses the world, cancels model work, saves pending newborn model bindings in
+provider storage and writes its checkpoint before returning 202. The response
+completion callback requests process exit, so server teardown follows the
+acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
-returns 409 without rewriting the refused checkpoint. Whenever a world
+also returns 202 and exits, preserving the refused checkpoint and its build record;
+there is no loaded world to save. Whenever a loaded world
 server stops, it waits for the tick loop to finish and writes a final checkpoint
 (`server_shutdown` in the log). Ctrl+C or a service stop also pauses a local
 server's world; a failed final write is logged and sets a nonzero process exit status.

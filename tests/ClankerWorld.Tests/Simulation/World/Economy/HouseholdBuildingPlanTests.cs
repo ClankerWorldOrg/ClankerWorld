@@ -10,7 +10,7 @@ public sealed class HouseholdBuildingPlanTests
     private const string Beta = "household:second";
 
     [Theory]
-    [InlineData(Alpha, "blacksmith-1x2", "farmhouse-1x1", "first-town-house-a")]
+    [InlineData(Alpha, "tailor-shop-1x1", "farmhouse-1x1", "first-town-house-a")]
     public async Task MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand(
         string household, string missingBuilding, string heldBuilding, string house)
     {

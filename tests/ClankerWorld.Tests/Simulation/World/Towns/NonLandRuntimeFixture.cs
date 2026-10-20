@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -9,10 +10,10 @@ namespace ClankerWorld.Tests;
 
 internal static class NonLandRuntimeFixture
 {
-    internal const string Judge = "founder:00000000000000000000000000000001";
-    internal const string Stranger = "founder:00000000000000000000000000000002";
-    internal const string Subject = "founder:00000000000000000000000000000003";
-    internal const string Witness = "founder:00000000000000000000000000000004";
+    internal const string Judge = NormalPathWorld.Founder1;
+    internal const string Stranger = NormalPathWorld.Founder2;
+    internal const string Subject = NormalPathWorld.Founder3;
+    internal const string Witness = NormalPathWorld.Founder4;
     internal const string ReturnLot = "voluntary-personal-wood";
     internal const int Day = 20;
     private static readonly Lazy<byte[]> Baseline = new(CreateBaseline);
@@ -172,7 +173,7 @@ internal static class NonLandRuntimeFixture
     }
 
     internal static void Wake(WorldRuntime world, string actor, string key) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Suggestion,
+        world.SubmitInstruction(new(DerivedId.Create(key), "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider the current public case and make your own choice."));
 
     private static async Task<byte[]> CreateReadyHearingAsync() => await PrepareReadyHearingAsync(await FiledAsync());

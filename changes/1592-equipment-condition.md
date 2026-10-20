@@ -1,1 +1,0 @@
-- The agent Profile shows at least 1% condition for clothing and carrying aids with any condition left, distinguishing nearly worn-out items from broken ones.
