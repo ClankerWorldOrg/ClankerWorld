@@ -85,7 +85,7 @@ public sealed partial class WorldRuntime
         return society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
                 lot.OwnerId == actor && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) && CanPullHandcart(lot) && !handcartHitches.Any(hitch => hitch.CartLotId == lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
-            .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
+            .FirstOrDefault(lot => person.Position == CartPosition(lot) || Reach(actor, CartPosition(lot), ReachPurpose.HandcartControl, 0, 0, SwimmingPolicy.WhenCapable).Count > 0);
     }
 
     private static GridPoint CartPosition(InventoryLot cart) => new(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
             return "Dismount or stop leading the animal before attaching a cart.";
         if (AttachedHandcart(actor) is not null) return "Park your attached cart before attaching another cart.";
         if (handcartHitches.Any(hitch => hitch.CartLotId == cart.Id)) return "The selected cart is already attached.";
-        return person.Position == CartPosition(cart) || FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count > 0
+        return person.Position == CartPosition(cart) || Reach(actor, CartPosition(cart), ReachPurpose.HandcartControl, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? null : "Waiting for a clear route to the selected cart.";
     }
 

@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
                 (order.Action == "load_handcart" ? CanPullHandcart(lot) && CargoQuantity(lot.Id) < InventoryContainerRules.HandcartCapacity :
                     CartCargoLots(actor, lot.Id).Any(cargo => cargo.ItemKind == order.TargetItemKind)))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
-            .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
+            .FirstOrDefault(lot => person.Position == CartPosition(lot) || Reach(actor, CartPosition(lot), ReachPurpose.HandcartPull, 0, 0, SwimmingPolicy.WhenCapable).Count > 0);
     }
 
     private InventoryLot? CargoLotForOrder(OwnerQueuedInstruction instruction, AgentState person, InventoryLot cart)
@@ -84,7 +84,7 @@ public sealed partial class WorldRuntime
         if (HasActiveContainerReservation(society.Checkpoint.Inventory, cart.Id)) return "The selected cart or its cargo is reserved for another task.";
         if (order.Action == "load_handcart" && cart.ConditionBasisPoints == 0) return "The selected cart is broken; it needs repair before loading.";
         if (person.Position != CartPosition(cart))
-            return FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count > 0 ? null : "Waiting for a clear route to the selected cart.";
+            return Reach(actor, CartPosition(cart), ReachPurpose.HandcartPull, 0, 0, SwimmingPolicy.WhenCapable).Count > 0 ? null : "Waiting for a clear route to the selected cart.";
         if (order.Action == "load_handcart" && CargoQuantity(cart.Id) >= InventoryContainerRules.HandcartCapacity)
             return "Waiting for space in the selected cart.";
         if (order.Action == "unload_handcart" && FreeCarryCapacity(actor) <= 0) return "Waiting for personal carrying space to unload the selected cart.";

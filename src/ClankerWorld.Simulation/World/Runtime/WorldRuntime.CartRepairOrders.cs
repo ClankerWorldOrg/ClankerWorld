@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
                 lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
-            .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
+            .FirstOrDefault(lot => person.Position == CartPosition(lot) || Reach(actor, CartPosition(lot), ReachPurpose.HandcartRepair, 0, 0, SwimmingPolicy.WhenCapable).Count > 0);
 
     private CognitionCandidate CartRepairOrderCandidateFor(OwnerQueuedInstruction instruction, InventoryLot cart)
     {
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         if (cart.ConditionBasisPoints >= 10_000) return "The selected cart is healthy; no repair is needed.";
         if (HasActiveContainerReservation(society.Checkpoint.Inventory, cart.Id))
             return "The selected cart or its cargo is reserved for another task.";
-        if (person.Position != CartPosition(cart) && FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count == 0)
+        if (person.Position != CartPosition(cart) && Reach(actor, CartPosition(cart), ReachPurpose.HandcartRepair, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return "Waiting for a clear route to the selected cart.";
         var missing = CartRepairKinds.Where(kind => !HasCarriedMaterial(actor, kind, 1)).ToArray();
         if (missing.Length > 0 && missing.Length > FreeCarryCapacity(actor))

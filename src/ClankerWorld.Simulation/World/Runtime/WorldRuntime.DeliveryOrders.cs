@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
         order.QuantityIsExplicit && !order.RepeatUntilCancelled ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
 
     private bool DeliveryCanReach(string actor, GridPoint from, GridPoint destination, int range = 0) =>
-        IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
+        IsWithinInteractionRange(from, destination, range) || ReachLeg(actor, from, destination, ReachPurpose.GoodsDelivery, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)

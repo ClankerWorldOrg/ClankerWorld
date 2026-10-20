@@ -12,7 +12,7 @@ public sealed partial class WorldRuntime
         if (!ReadyForBriefInteraction(actor) || CustodyOrderHouse(instruction, HouseholdFor(actor)) is not { } house ||
             DestinationRoom(house.InstanceId) <= 0 ||
             !IsWithinInteractionRange(person.Position, house.Position, 1) &&
-            FindUnoccupiedRoute(actor, person.Position, house.Position, 1).Count == 0)
+            Reach(actor, house.Position, ReachPurpose.HouseholdReturn, 1, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return null;
         var order = instruction.Task!;
         var lot = PersonalStorageLots(actor, house.InstanceId)

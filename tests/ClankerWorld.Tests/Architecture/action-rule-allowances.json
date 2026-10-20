@@ -2,57 +2,12 @@
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.ExplorationGoals.cs": [
     "FindUnoccupiedRoute(actor, person.Position, source.Position, ResourceInteractionRange)"
   ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartCargoOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CartRepairOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0)",
-    "FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.CustodyOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, house.Position, 1)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeliveryOrders.cs": [
-    "FindUnoccupiedRoute(actor, from, destination, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
-    "FindUnoccupiedRoute(person.AgentId, person.Position, building.Position, 0)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.FieldOrders.cs": [
-    "FindUnoccupiedRoute(actor, from, destination, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.MaterialOrders.cs": [
-    "FindUnoccupiedRoute(actor, position, target, ResourceInteractionRange)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Orders.cs": [
-    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0)",
-    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange)"
-  ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.RouteSearch.cs": [
     "FindUnoccupiedRoute(actor, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ShelterOrders.cs": [
-    "FindUnoccupiedRoute(actor, origin, destination, 0)",
-    "FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.StorageOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, house.Position, 1)"
   ],
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, agents[actor].Position, position, range)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TalkOrders.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, other.Position, ResourceInteractionRange)"
-  ],
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs": [
-    "FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, site, ResourceInteractionRange)"
   ],
   "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs": [
     "FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0)"

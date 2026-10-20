@@ -67,7 +67,7 @@ public sealed partial class WorldRuntime
             if (CustodyOrderHouse(instruction, lot.OwnerId) is not { } house || DestinationRoom(house.InstanceId) <= 0 ||
                 !VesselFits(lot, DestinationRoom(house.InstanceId)) ||
                 !IsWithinInteractionRange(person.Position, house.Position, 1) &&
-                FindUnoccupiedRoute(actor, person.Position, house.Position, 1).Count == 0) continue;
+                Reach(actor, house.Position, ReachPurpose.HouseholdPickup, 1, 0, SwimmingPolicy.WhenCapable).Count == 0) continue;
             return new("return_borrowed", "Carry borrowed goods back to their owning household's House without changing ownership.", 0, lot.Id);
         }
         return null;

@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
 
     private bool MaterialOrderRouteIsOpen(string actor, GridPoint position, GridPoint target) =>
         IsWithinInteractionRange(position, target, ResourceInteractionRange) ||
-        FindUnoccupiedRoute(actor, position, target, ResourceInteractionRange).Count > 0;
+        ReachLeg(actor, position, target, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private void ExecuteMaterialOrderStep(OwnerQueuedInstruction instruction, AgentState person, string candidate)
     {

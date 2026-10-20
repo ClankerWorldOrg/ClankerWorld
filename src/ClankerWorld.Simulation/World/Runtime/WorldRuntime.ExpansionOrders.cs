@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
             if (WorldBuildingOrderCatalog.Find(worldContent, building.DefinitionId)?.BuildingKind != order.TargetBuildingKind ||
                 order.TargetPosition is { } position && position != building.Position ||
                 !MayExpandBuilding(actor, building, out _) ||
-                person.Position != building.Position && FindUnoccupiedRoute(actor, person.Position, building.Position, 0).Count == 0)
+                person.Position != building.Position && Reach(actor, building.Position, ReachPurpose.BuildingExpansion, 0, 0, SwimmingPolicy.WhenCapable).Count == 0)
                 continue;
             var shape = ExpansionShapeForOrder(building, instruction);
             if (shape.Footprint is null) continue;
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
             return ExpansionOrderBuilding(instruction) is { } building &&
                 CanFitExpansion(building, job.TargetPosition, job.TargetFootprint, out _, job.JobId) &&
                 ExpansionOrderInputsAvailable(job, building) &&
-                (person.Position == building.Position || FindUnoccupiedRoute(person.AgentId, person.Position, building.Position, 0).Count > 0)
+                (person.Position == building.Position || Reach(person.AgentId, building.Position, ReachPurpose.BuildingExpansion, 0, 0, SwimmingPolicy.WhenCapable).Count > 0)
                 ? new("expand_building", "Continue the ordered expansion using its committed materials.", 0, job.BuildingInstanceId) : null;
         return ExpansionPlanFor(instruction, person) is { } plan
             ? new("expand_building", "Bring the materials and complete the building's next permitted expansion.", 0, plan.Building.InstanceId) : null;

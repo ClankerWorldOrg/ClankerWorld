@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
     };
 
     private bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) =>
-        IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
+        IsWithinInteractionRange(from, destination, range) || ReachLeg(actor, from, destination, ReachPurpose.FieldWork, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person)
     {

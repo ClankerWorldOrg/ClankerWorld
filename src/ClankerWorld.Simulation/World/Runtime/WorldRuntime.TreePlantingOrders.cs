@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
         if (!map.Contains(site) || towns.Any(town => town.BorderTiles.Contains(site)) ||
             PlantingSiteRefusal(site, PlantingObstacles()) is not null || TreeAreaFull(site)) return null;
         return IsWithinInteractionRange(person.Position, site, ResourceInteractionRange) ||
-            FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, site, ResourceInteractionRange).Count > 0
+            Reach(instruction.TargetAgentId, site, ReachPurpose.TreePlanting, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? site : null;
     }
 
