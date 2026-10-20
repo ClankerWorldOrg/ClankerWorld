@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Reflection;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Observation;
@@ -45,11 +44,11 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var world = WorldRuntime.Restore(initial, _ => new IdleProvider());
         try
         {
-            var deliveryPlan = Assert.IsType<ProjectInputActionPlan>(typeof(WorldRuntime)
-                .GetMethod("PlanProjectInput", BindingFlags.Instance | BindingFlags.NonPublic)!
-                .Invoke(world, [actor, house.BuildCosts.First(input => input.ResourceId == "wood"), "household:first", site]));
-            var delivery = Assert.IsType<ProjectInputDelivery>(deliveryPlan.Step);
-            Assert.True(world.CheckActionPlan(deliveryPlan).Allowed);
+            var contribution = new GoodsRequest(GoodsUse.ProjectMaterialContribution, actor,
+                GoodsOwners.One(actor), GoodsKinds.One("wood"));
+            var delivery = Assert.Single(world.FindGoods(contribution).Matches);
+            Assert.Equal("first-house-load", delivery.Lot.Id);
+            var deliveryDestination = initial.Map.GetObject("storage").Position;
             var restartedAfterDelivery = false;
             for (var tick = 0; tick < 200 && !world.WorldSimulation.Buildings.Any(item => item.HouseholdId == "household:first"); tick++)
             {
@@ -64,9 +63,9 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                     Assert.Equal("household:first", staged.OwnerId);
                     Assert.Equal(new InventoryGroundPosition(startingSite.X, startingSite.Y), staged.GroundPosition);
                     Assert.Equal(4, staged.Quantity);
-                    Assert.Equal((delivery.LotId, delivery.Quantity), (staged.Id, staged.Quantity));
-                    Assert.Equal(deliveryPlan.Destination, new GridPoint(staged.GroundPosition!.Value.X, staged.GroundPosition.Value.Y));
-                    Assert.False(world.CheckActionPlan(deliveryPlan).Allowed);
+                    Assert.Equal((delivery.Lot.Id, delivery.Quantity), (staged.Id, staged.Quantity));
+                    Assert.Equal(new InventoryGroundPosition(deliveryDestination.X, deliveryDestination.Y), staged.GroundPosition);
+                    Assert.Null(world.RecheckGoods(contribution, delivery.Lot.Id));
                     world.Dispose();
                     world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
                         _ => new IdleProvider());
@@ -356,11 +355,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
         var actor = state.Agents[0];
-        var position = state.Map.Tiles.Last(tile => state.Map.IsBuildable(tile.Position) &&
-            !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-            !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
+        var position = MovementTestWorld.BuildingSite(state, definition, actor.AgentId);
         state = state with
         {
             Society = state.Society with
@@ -473,15 +469,25 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         }, _ => provider);
         var storedBelongings = new Dictionary<string, (string Owner, string House, string Kind)>();
         var constructionPlans = new List<ConstructionActionPlan>();
-        for (var tick = 0; tick < 1000; tick++)
+        // Doorway travel changes when the independent milestones occur.
+        for (var tick = 0; tick < 1600; tick++)
         {
             var result = await world.AdvanceOneTickAsync();
             constructionPlans.AddRange(result.Decisions.Where(decision => decision.ActionPlan is ConstructionActionPlan && decision.Admission.Accepted && decision.PlanRefusal is null)
                 .Select(decision => Assert.IsType<ConstructionActionPlan>(decision.ActionPlan)));
+            provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
             AssertBelongingsStayStored(world, storedBelongings);
             foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId is not null &&
                          world.Society.Agents.Any(person => person.Id == lot.OwnerId)))
                 storedBelongings.TryAdd(lot.Id, (lot.OwnerId, lot.StorageBuildingId!, lot.ItemKind));
+            if (tick >= 999)
+            {
+                var observed = world.ExportState();
+                if (observed.Events.Any(item => item.Kind == "household_food_collected") &&
+                    observed.Events.Any(item => item.Kind == "project_request_fulfilled") &&
+                    observed.Events.Where(item => item.Kind == "material_gathered").Select(item => item.Detail.Split(':')[^2]).Distinct().Count() >= 3)
+                    break;
+            }
         }
         Assert.Contains(storedBelongings.Values, stored => stored.Kind is "field_map" or "field_record");
         var state = world.ExportState();
@@ -536,12 +542,16 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         Assert.Contains(snapshot.Agents, person => person.SocialNotes.Count > 0);
         Assert.Contains(snapshot.Agents, person => person.SocialStanding.Count > 0);
         Assert.NotNull(snapshot.FoodStewardship?.StewardName);
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
+        var replayProvider = new ObservingProvider();
+        replayProvider.ArtifactLotIds.UnionWith(state.Knowledge!.Artifacts.Select(artifact => artifact.LotId));
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => replayProvider);
         Assert.Equal(WorldRuntimeCodec.Encode(state), WorldRuntimeCodec.Encode(restored.ExportState()));
         for (var tick = 0; tick < 3; tick++)
         {
             await world.AdvanceOneTickAsync();
             await restored.AdvanceOneTickAsync();
+            provider.ArtifactLotIds.UnionWith(world.Knowledge.Artifacts.Select(artifact => artifact.LotId));
+            replayProvider.ArtifactLotIds.UnionWith(restored.Knowledge.Artifacts.Select(artifact => artifact.LotId));
             AssertBelongingsStayStored(restored, storedBelongings);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -566,11 +576,22 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
     private sealed class ObservingProvider : IDecisionProvider
     {
         public bool MeaningfulProjectChoiceSeen { get; private set; }
+        public HashSet<string> ArtifactLotIds { get; } = new(StringComparer.Ordinal);
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             MeaningfulProjectChoiceSeen |= request.Observation.Candidates.Count(candidate => candidate.Id.StartsWith("build:", StringComparison.Ordinal)) > 1;
+            // Keep the storage invariant independent of which work the greedy
+            // chooser prioritizes as the planning rules change. Use the actual
+            // offered action, including its native route and room checks.
+            if (request.Observation.Candidates.FirstOrDefault(candidate =>
+                    candidate.Id.StartsWith("household_store_personal:", StringComparison.Ordinal) &&
+                    ArtifactLotIds.Contains(candidate.Id["household_store_personal:".Length..])) is { } storage)
+                return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
+                    ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
+                    request.Observation.ObservationDigest, storage.Id, 1,
+                    request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == storage.Id ? 1d : 0d)));
             return new DeterministicDecisionProvider().DecideAsync(request, cancellationToken);
         }
     }

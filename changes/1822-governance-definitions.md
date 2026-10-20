@@ -1,1 +1,0 @@
-- Town law, policy, government, office and mayoral actions now own their codecs, planners, capability policy and native application in action definitions while retaining personal consent and original terms.

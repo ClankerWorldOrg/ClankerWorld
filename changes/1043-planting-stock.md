@@ -1,1 +1,0 @@
-- Planting orders can use accessible household seeds when someone blocks the pickup route to another seed lot.

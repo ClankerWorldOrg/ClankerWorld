@@ -1,1 +1,0 @@
-- Agents can collect book, cart-repair and tool-repair supplies in a different order when taking nearby materials first would leave them too heavily loaded to reach the next ingredient.
