@@ -104,7 +104,7 @@ public sealed partial class HandcartRuntimeTests
         Assert.Null(state.Society.Society.GetAgent(actor).HouseholdId);
         var point = house.Position;
         var inventory = InventoryAuthority.MoveHandcart(state.Society.Society.Inventory, actor,
-            "cargo-plan-cart", new(point.X, point.Y), 0);
+            "cargo-plan-cart", new(point.X, point.Y), 1);
         inventory = InventoryAuthority.Relocate(inventory, "unhoused-cargo-stock", "cargo-plan-stock", actor, 6,
             storageBuildingId: stored ? house.InstanceId : null,
             groundPosition: stored ? null : new(point.X, point.Y));
