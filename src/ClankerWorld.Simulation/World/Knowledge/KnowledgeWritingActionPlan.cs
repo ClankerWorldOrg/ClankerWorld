@@ -17,8 +17,8 @@ public sealed record KnowledgeWritingChoice(KnowledgeWritingKind Kind, string Su
 {
     public string Encode() => Kind switch
     {
-        KnowledgeWritingKind.Write => "knowledge_write:" + Subject,
-        KnowledgeWritingKind.Copy => "knowledge_copy:" + Subject,
+        KnowledgeWritingKind.Write => IdentityRules.PrefixedReference("knowledge_write:", Subject),
+        KnowledgeWritingKind.Copy => IdentityRules.PrefixedReference("knowledge_copy:", Subject),
         _ => "knowledge_continue",
     };
 

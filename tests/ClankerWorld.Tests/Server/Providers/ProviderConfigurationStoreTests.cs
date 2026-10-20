@@ -1,4 +1,5 @@
 using System.Net;
+using ClankerWorld.Server;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
@@ -8,6 +9,31 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ProviderConfigurationStoreTests
 {
+    [Fact]
+    public void CredentialTemporaryHandleProtectsPublicationFromStartupCleanup()
+    {
+        var directory = Directory.CreateTempSubdirectory("credential-publication-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "providers.json");
+            var store = new ProviderConfigurationStore(path, EmptySeed());
+            var saved = File.ReadAllBytes(path);
+            var temporary = Path.Combine(directory.FullName, $".providers.json.{Guid.NewGuid():N}.tmp");
+            using (var writer = PrivateStorage.CreateNew(temporary, FileShare.Delete))
+            {
+                writer.Write(saved);
+                writer.Flush(flushToDisk: true);
+                Assert.Equal((0, 1), ProviderConfigurationStore.RemoveTemporaryFiles(path));
+                File.Move(temporary, path, overwrite: true);
+                Assert.Equal((0, 0), ProviderConfigurationStore.RemoveTemporaryFiles(path));
+            }
+            Assert.Equal(saved, File.ReadAllBytes(path));
+            var restored = new ProviderConfigurationStore(path, EmptySeed());
+            Assert.Equal(store.CaptureRuntimeConfiguration().Revision, restored.CaptureRuntimeConfiguration().Revision);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task UntouchedWorldUsesTheConfiguredJevModel()
     {
@@ -723,7 +749,7 @@ public sealed partial class ProviderConfigurationStoreTests
     public void CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides()
     {
         var action = new OwnerCredentialSlotDeletionAction(Guid.NewGuid().ToString("N"));
-        var clientAction = new ClankerWorld.GodotClient.Protocol.OwnerCredentialSlotDeletionAction(action.CredentialSlotId);
+        var clientAction = new ClankerWorld.Contracts.OwnerCredentialSlotDeletionAction(action.CredentialSlotId);
         Assert.Equal(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.CredentialSlotDeletion(clientAction));
         Assert.NotEqual(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
@@ -792,7 +818,7 @@ public sealed partial class ProviderConfigurationStoreTests
     public void AssignmentTargetIsBoundByBothClientAndServerSignatures()
     {
         var action = new OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
-        var clientAction = new ClankerWorld.GodotClient.Protocol.OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
+        var clientAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.ProviderConfiguration(clientAction));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
@@ -800,7 +826,7 @@ public sealed partial class ProviderConfigurationStoreTests
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
             OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = null }));
         var slotAction = action with { Provider = "openai", CredentialSlotId = Guid.NewGuid().ToString("N"), NewCredentialLabel = "Personal" };
-        var clientSlotAction = new ClankerWorld.GodotClient.Protocol.OwnerProviderConfigurationAction(
+        var clientSlotAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction(
             slotAction.Role, slotAction.Provider, slotAction.Model, slotAction.ApiKey,
             slotAction.ForgetCredential, slotAction.AgentId, slotAction.CredentialSlotId, slotAction.NewCredentialLabel);
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
@@ -809,6 +835,45 @@ public sealed partial class ProviderConfigurationStoreTests
             OwnerHttpBinding.ProviderConfigurationPayload(slotAction with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
             OwnerHttpBinding.ProviderConfigurationPayload(slotAction with { NewCredentialLabel = "Imposter" }));
+    }
+
+    [Fact]
+    public async Task ModelCallLogNamesOnlyAnOfferedChoice()
+    {
+        var directory = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"clankerworld-provider-log-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var store = new ProviderConfigurationStore(System.IO.Path.Combine(directory, "providers.json"), EmptySeed());
+            var handler = new ProviderResponseHandler();
+            var logger = new RecordingLogger<ConfigurableDecisionProvider>();
+            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);
+            store.Configure(new OwnerProviderConfigurationAction("planning", "openai", "openai-test", "openai-secret-123", false));
+
+            await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision, strategic: true));
+            Assert.Contains(logger.Messages, message =>
+                message.Contains("model_call status=completed", StringComparison.Ordinal) &&
+                message.Contains("candidate=safe_idle ", StringComparison.Ordinal));
+
+            // A reply naming something else is logged with a fixed placeholder,
+            // whatever its length or line breaks; the runtime refuses it later.
+            var unoffered = "safe_idle\r\nmodel_call status=completed candidate=" + new string('x', 4096);
+            handler.HostedChoice = unoffered;
+            var earlier = logger.Messages.Count;
+            var response = await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision, strategic: true));
+            Assert.Equal(unoffered, response.SelectedCandidateId);
+            var line = Assert.Single(logger.Messages.Skip(earlier), message => message.Contains("model_call", StringComparison.Ordinal));
+            Assert.Contains("candidate=<not-offered> ", line, StringComparison.Ordinal);
+            Assert.DoesNotContain("xxxx", line, StringComparison.Ordinal);
+            Assert.DoesNotContain('\n', line);
+            Assert.DoesNotContain('\r', line);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
     }
 
     [Fact]
@@ -1050,6 +1115,8 @@ public sealed partial class ProviderConfigurationStoreTests
         public string? LastAuthorization { get; private set; }
         public string? LastModel { get; private set; }
         public string? LastBody { get; private set; }
+        /// <summary>The choice an OpenAI-compatible reply names.</summary>
+        public string HostedChoice { get; set; } = "safe_idle";
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -1070,9 +1137,26 @@ public sealed partial class ProviderConfigurationStoreTests
                 ? """
                   {"model":"jev-test","answers":{"selected_candidate":{"type":"choice","choice":"safe_idle","probabilities":{"safe_idle":1.0},"confidence":1.0},"memory_salience_00":{"type":"score","score":1.8,"confidence":0.75}}}
                   """
-                : """
-                  {"model":"hosted-test","choices":[{"message":{"role":"assistant","content":"{\"selected_candidate_id\":\"safe_idle\",\"confidence\":1.0,\"probabilities\":{\"safe_idle\":1.0}}"}}]}
-                  """;
+                : System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    model = "hosted-test",
+                    choices = new[]
+                    {
+                        new
+                        {
+                            message = new
+                            {
+                                role = "assistant",
+                                content = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+                                {
+                                    ["selected_candidate_id"] = HostedChoice,
+                                    ["confidence"] = 1.0,
+                                    ["probabilities"] = new Dictionary<string, double> { [HostedChoice] = 1.0 },
+                                }),
+                            },
+                        },
+                    },
+                });
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(body),

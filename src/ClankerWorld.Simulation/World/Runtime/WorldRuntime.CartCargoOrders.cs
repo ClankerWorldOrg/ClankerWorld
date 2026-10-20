@@ -34,9 +34,19 @@ public sealed partial class WorldRuntime
         if (ontoGround) target = target[..^" onto the ground".Length].TrimEnd();
         var cart = ParseCartOrder("attach " + target, actor);
         if (cart is null) return null;
-        return new(loading ? "load_handcart" : ontoGround ? "unload_handcart_ground" : "unload_handcart",
-            "queued", goods.RequestedUnits, 0, "goods_items", false, QuantityIsExplicit: true, TargetItemKind: kind)
-        { TargetCartLotId = cart.TargetCartLotId };
+        return new OrderTask((loading ? "load_handcart" : ontoGround ? "unload_handcart_ground" : "unload_handcart") switch
+        {
+            "load_handcart" => new LoadHandcartOrderDefinition(TargetItemKind: kind, TargetCartLotId: cart.TargetCartLotId),
+            "unload_handcart" => new UnloadHandcartOrderDefinition(TargetItemKind: kind, TargetCartLotId: cart.TargetCartLotId),
+            "unload_handcart_ground" => new UnloadHandcartGroundOrderDefinition(TargetItemKind: kind, TargetCartLotId: cart.TargetCartLotId),
+            _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+        },
+    "queued",
+    goods.RequestedUnits,
+    0,
+    "goods_items",
+    false,
+    true);
     }
 
     private InventoryLot? CartForCargoOrder(OwnerQueuedInstruction instruction, AgentState person)
@@ -44,7 +54,7 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         var order = instruction.Task!;
         return society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && IsValidInstructionIdentifier(lot.Id) &&
+                lot.OwnerId == actor && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id) &&
                 (order.Action == "load_handcart" ? CanPullHandcart(lot) && CargoQuantity(lot.Id) < InventoryContainerRules.HandcartCapacity :
                     CartCargoLots(actor, lot.Id).Any(cargo => cargo.ItemKind == order.TargetItemKind)))
@@ -95,15 +105,27 @@ public sealed partial class WorldRuntime
     private void ExecuteCartCargoOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (CartCargoOrderBlocker(instruction, person) is { } blocker)
-        { SetOrderStatus(instruction, "blocked", blocker); return; }
+        { SetOrderStatus(instruction, OrderStatus.Blocked, blocker); return; }
         var cart = CartForOrder(instruction, person)!;
-        var order = instructionsByIdempotency[instruction.IdempotencyKey].Task! with { TargetCartLotId = cart.Id };
+        var order = instructionsByIdempotency[instruction.IdempotencyKey].Task!.UpdateDefinition(definition => definition switch
+{
+    LoadHandcartOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    UnloadHandcartOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    UnloadHandcartGroundOrderDefinition task => task with { TargetCartLotId = cart.Id },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
         instruction = instructionsByIdempotency[instruction.IdempotencyKey] with { Task = order };
         instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
         if (person.Position != CartPosition(cart))
         { MoveToward(instruction.TargetAgentId, person, CartPosition(cart), "cart_cargo_order"); return; }
         var cargo = CargoLotForOrder(instruction, person, cart)!;
-        order = order with { TargetLotId = cargo.Id };
+        order = order.UpdateDefinition(definition => definition switch
+{
+    LoadHandcartOrderDefinition task => task with { TargetLotId = cargo.Id },
+    UnloadHandcartOrderDefinition task => task with { TargetLotId = cargo.Id },
+    UnloadHandcartGroundOrderDefinition task => task with { TargetLotId = cargo.Id },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
         instruction = instruction with { Task = order };
         instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
         var before = CargoQuantity(cart.Id);
@@ -112,25 +134,34 @@ public sealed partial class WorldRuntime
         ApplyHandcartCandidate(instruction.TargetAgentId, person, prefix + cargo.Id, cart.Id, order.RequestedUnits - order.CompletedUnits);
         var moved = loading ? CargoQuantity(cart.Id) - before : before - CargoQuantity(cart.Id);
         if (moved <= 0) return;
-        CreditOrderEffect(instruction, CartCargoOrderEffectId(instruction, order.CompletedUnits + moved), moved);
+        CreditOrderEffect(instruction, Identity.Parse(CartCargoOrderEffectId(instruction, order.CompletedUnits + moved)), moved);
         // A fully moved stack is no longer a source. The next step can bind another eligible
         // stack of this same good; a partially moved or newly blocked source stays bound.
         var updated = instructionsByIdempotency[instruction.IdempotencyKey];
         var remainder = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == cargo.Id);
         if (updated.Task!.CompletedUnits < order.RequestedUnits &&
             (remainder is null || (loading ? remainder.ContainerLotId == cart.Id : remainder.ContainerLotId != cart.Id)))
-            instructionsByIdempotency[instruction.IdempotencyKey] = updated with { Task = updated.Task with { TargetLotId = null } };
+            instructionsByIdempotency[instruction.IdempotencyKey] = updated with
+            {
+                Task = updated.Task.UpdateDefinition(definition => definition switch
+{
+    LoadHandcartOrderDefinition task => task with { TargetLotId = null },
+    UnloadHandcartOrderDefinition task => task with { TargetLotId = null },
+    UnloadHandcartGroundOrderDefinition task => task with { TargetLotId = null },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+            };
     }
 
     private static string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed) =>
         DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.Action}|{instruction.Task.TargetCartLotId}|{instruction.Task.TargetItemKind}|{completed}", "cart-cargo-order:");
 
-    private static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
+    internal static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
     {
         var order = instruction.Task!;
         return IsCartCargoKind(order.TargetItemKind) &&
-            (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
             (order.TargetLotId is null || order.TargetCartLotId is not null) &&
             order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits >= 0 && order.CompletedUnits <= order.RequestedUnits &&
             !order.RepeatUntilCancelled && order.QuantityIsExplicit && order.ProgressUnit == "goods_items" &&

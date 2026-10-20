@@ -1,0 +1,1 @@
+- Preparing walking routes does less repeated work.

@@ -96,13 +96,13 @@ public sealed partial class GrownAgentHelperMemoryTests
             using var host = new WorldRuntimeService(world, file, presence);
             async Task Step()
             {
-                Assert.True(await host.TryAdvanceOnceAsync());
+                Assert.True(await host.AdvanceWithModelWorkAsync(world));
                 await WaitForRequests(world);
                 Assert.False(world.Society.IsPaused);
                 Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
             }
             bool Gratitude(SocietySocialMemory memory) => memory.OwnerId == requester && memory.SubjectId == helper &&
-                memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal);
+                memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal);
             if (fullHouse)
             {
                 Assert.Equal(0, world.DestinationRoom(house.InstanceId));
@@ -156,16 +156,16 @@ public sealed partial class GrownAgentHelperMemoryTests
             for (var tick = 0; tick < 12 && !capture.Observations.Any(observation => observation.AgentId == requester &&
                      observation.WorldTick > memory.SourceTick); tick++)
             {
-                Assert.True(await resumedHost.TryAdvanceOnceAsync());
+                Assert.True(await resumedHost.AdvanceWithModelWorkAsync(restored));
                 await WaitForRequests(restored);
             }
             var observation = capture.Observations.First(item => item.AgentId == requester && item.WorldTick > memory.SourceTick);
             observation.Validate();
             var recalled = Assert.Single(observation.RetrievedMemories!, item => item.Id == memory.Id);
             Assert.Equal((memory.Summary, memory.SourceTick, "public"), (recalled.Summary, recalled.SourceTick, recalled.Visibility));
-            Assert.InRange(memory.Id.Length, 1, 128);
-            if (nativeBorn) Assert.StartsWith("project-gratitude:sha256:", memory.Id, StringComparison.Ordinal);
-            else Assert.Equal($"project-gratitude:{requester}:{helper}", memory.Id);
+            Assert.InRange(memory.Id.Value.Length, 1, 128);
+            if (nativeBorn) Assert.StartsWith("project-gratitude:sha256:", memory.Id.Value, StringComparison.Ordinal);
+            else Assert.Equal(DerivedId.Create($"project-gratitude:{requester}:{helper}", "project-gratitude:sha256:"), memory.Id.Value);
 
             // Cancel actual external work before the checkpoint fork. Both
             // continuations use the same native blocking admission boundary.

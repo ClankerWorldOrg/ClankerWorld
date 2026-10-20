@@ -1,1 +1,0 @@
-- Hungry boat passengers can drink available fresh milk from their carried jugs during travel and while waiting to land, keeping the reusable jug.

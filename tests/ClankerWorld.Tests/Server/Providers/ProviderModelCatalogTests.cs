@@ -43,7 +43,7 @@ public sealed class ProviderModelCatalogTests
         Assert.Equal(ProviderModelCatalog.OpenAiModels, Assert.Single(handler.Requests).Uri);
         Assert.Equal("Bearer named-openai-test-key", handler.Requests[0].Authorization);
         var jev = await catalog.ListAsync(new("jev"), CancellationToken.None);
-        Assert.Equal([new OwnerProviderModelChoice("jev-1.13.0", true)], jev.Models);
+        Assert.Equal([new OwnerProviderModelChoice("jev-1.14.0", true)], jev.Models);
         Assert.Single(handler.Requests);
         Assert.DoesNotContain("named-openai-test-key", System.Text.Json.JsonSerializer.Serialize(decisions));
     }
@@ -149,7 +149,7 @@ public sealed class ProviderModelCatalogTests
 
         var refused = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.Unauthorized, "{}"))))
             .ListAsync(new("openai", ApiKey: "wrong-secret"), CancellationToken.None);
-        Assert.Equal("OpenAI refused this key.", refused.Error);
+        Assert.Contains("Authentication failed.", refused.Error, StringComparison.Ordinal);
         Assert.All(refused.Models, item => Assert.True(item.Available));
 
         var broken = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.OK, "not json"))))

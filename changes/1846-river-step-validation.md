@@ -1,0 +1,1 @@
+- Walking route checks use less processor time around rivers and bridges.
