@@ -4,7 +4,8 @@ public sealed record LandHearingReopeningChoice(string TownId, string RevisionTo
 {
     public string Encode() => $"civic|{TownId}|{(Assessment ? "hearing_assess_reopen" : "hearing_reopen")}|{RevisionToken}|{GroundsOrRequestToken}";
     public static LandHearingReopeningChoice? Decode(string value) =>
-        value.Split('|') is ["civic", var town, var verb, var revision, var terms] && town.Length > 0 && revision.Length > 0 && terms.Length > 0 &&
+        value.Split('|') is ["civic", var town, var verb, var revision, var terms] && IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) &&
+        IdentityRules.Reference(revision, DerivedId.MaximumLength) && IdentityRules.Reference(terms, DerivedId.MaximumLength) &&
         verb is "hearing_reopen" or "hearing_assess_reopen" ? new(town, revision, verb == "hearing_assess_reopen", terms) : null;
 }
 

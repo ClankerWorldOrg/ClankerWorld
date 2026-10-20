@@ -11,7 +11,9 @@ public sealed class TownFarmPlanningTests
     [InlineData(1, 8)]
     [InlineData(2, 0)]
     [InlineData(2, 8)]
-    public async Task NativeFarmerPreparesItsShareOfTheTownShortageAndStopsAtTheFieldLimit(int farms, int food)
+    [InlineData(1, 48)]
+    [InlineData(2, 48)]
+    public async Task NativeFarmerEstablishesAFieldThenLimitsExpansionToItsTownShortage(int farms, int food)
     {
         var (state, actor, household, point) = Fixture();
         var otherHousehold = state.Society.Society.Households.Single(item => item.Id != household).Id;
@@ -21,8 +23,7 @@ public sealed class TownFarmPlanningTests
         Assert.Equal(4, Assert.Single(state.Towns!).ResidentIds.Count);
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var yield = FarmFieldRules.HarvestQuantity(FarmFieldRules.Grain, new LandFertility(state.Map, state.WorldSeed).At(farmhouse.Position));
-        var wanted = (int)Math.Ceiling((16d - food) / farms / yield);
-        Assert.True(wanted > 0);
+        var wanted = Math.Max(1, (int)Math.Ceiling((16d - food) / farms / yield));
         var fieldPoints = FreeFieldPoints(state, point).Take(wanted - 1).ToArray();
         state = state with { Fields = fieldPoints.Select(position => new FarmFieldState(position, household, FarmFieldStage.Prepared)).ToArray() };
         var choice = new FarmChoice(actor, "farm:Till:");
@@ -58,9 +59,15 @@ public sealed class TownFarmPlanningTests
     [InlineData("neighbor", 16, false)]
     [InlineData("resident", 16, false)]
     [InlineData("foreign-town", 16, true)]
-    public async Task NativePlantingUsesOnlyItsTownReserveIncludingOtherHouseholdsAndCarriedFood(string owner, int food, bool shouldPlant)
+    public async Task NativeReplantingUsesOnlyItsTownReserveIncludingOtherHouseholdsAndCarriedFood(string owner, int food, bool shouldPlant)
     {
         var (state, actor, household, point) = Fixture();
+        // A harvested crop needs a past ready tick, even in this short fixture.
+        using (var elapsed = FarmFieldTests.Restore(state))
+        {
+            Assert.True((await elapsed.AdvanceOneTickAsync()).Advanced);
+            state = elapsed.ExportState();
+        }
         var neighbor = state.Society.Society.Households.Single(item => item.Id != household).Id;
         var neighborIds = state.Society.Society.Agents.Where(person => person.HouseholdId == neighbor).Select(person => person.Id).ToArray();
         if (owner == "foreign-town")
@@ -78,13 +85,17 @@ public sealed class TownFarmPlanningTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "town-planting-seed", "grain_seed", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "town-planting-food", "food",
             owner == "farmer" ? household : owner == "resident" ? neighborIds[0] : neighbor, food);
-        state = FarmFieldTests.WithInventory(state, inventory) with { Fields = [new(point, household, FarmFieldStage.Prepared)] };
+        state = FarmFieldTests.WithInventory(state, inventory) with
+        {
+            Fields = [new(point, household, FarmFieldStage.Harvested, FarmFieldRules.Grain,
+                ReadyTick: 1, Tended: true, Cycle: 1)],
+        };
         var choice = new FarmChoice(actor, $"farm:Plant:{point.X}:{point.Y}:grain");
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => choice);
         await Advance(world, 8);
         Assert.Equal(shouldPlant, choice.Offered);
         if (!shouldPlant) Assert.False(choice.OfferedTill);
-        Assert.Equal(shouldPlant ? FarmFieldStage.Growing : FarmFieldStage.Prepared, Assert.Single(world.Fields).Stage);
+        Assert.Equal(shouldPlant ? FarmFieldStage.Growing : FarmFieldStage.Harvested, Assert.Single(world.Fields).Stage);
         Assert.Equal(shouldPlant ? 0 : 1, world.Society.Inventory.Lots.Where(lot => lot.Id == "town-planting-seed").Sum(lot => lot.Quantity));
         Assert.Equal(food, world.Society.Inventory.GetLot("town-planting-food").Quantity);
         Assert.Equal(shouldPlant ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "field_planted"));

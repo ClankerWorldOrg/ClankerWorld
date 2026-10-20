@@ -114,7 +114,9 @@ tool_cache_unpack() {
     mkdir -p "${folder%/*}" || return 1
     partial="$(mktemp -d "${folder}.partial.XXXXXX")" || return 1
     printf 'Unpacking %s\n' "${archive##*/}"
-    if ! unzip -q "${archive}" -d "${partial}"; then
+    if [[ "${archive}" == *.tar.gz ]]; then
+        tar -xzf "${archive}" -C "${partial}" || { rm -rf -- "${partial}"; return 1; }
+    elif ! unzip -q "${archive}" -d "${partial}"; then
         rm -rf -- "${partial}"
         return 1
     fi

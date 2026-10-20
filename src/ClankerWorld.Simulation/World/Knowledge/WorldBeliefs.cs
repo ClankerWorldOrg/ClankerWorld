@@ -25,7 +25,7 @@ public sealed partial class WorldRuntime
     public SocietyAgentBelief RecordAgentBelief(SocietyAgentBelief belief) =>
         ApplyAgentBeliefChange(
             checkpoint => SocietyRules.RecordAgentBelief(checkpoint, belief),
-            belief?.Id.Trim() ?? throw new ArgumentNullException(nameof(belief)),
+            belief?.Id.Value.Trim() ?? throw new ArgumentNullException(nameof(belief)),
             "recorded");
 
     /// <summary>Supersedes only the named belief owned by the requesting agent.</summary>
@@ -35,7 +35,7 @@ public sealed partial class WorldRuntime
         SocietyAgentBelief correction) =>
         ApplyAgentBeliefChange(
             checkpoint => SocietyRules.CorrectAgentBelief(checkpoint, ownerId, beliefId, correction),
-            correction?.Id.Trim() ?? throw new ArgumentNullException(nameof(correction)),
+            correction?.Id.Value.Trim() ?? throw new ArgumentNullException(nameof(correction)),
             "corrected");
 
     private SocietyAgentBelief ApplyAgentBeliefChange(

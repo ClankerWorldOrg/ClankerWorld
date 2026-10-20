@@ -1,1 +1,0 @@
-- Internal project material steps now own their native planner, capability policy, checks and application in a continuation definition, retaining the original input, destination and project goal.

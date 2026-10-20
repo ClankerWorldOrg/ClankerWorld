@@ -1,1 +1,0 @@
-- Council candidacy and election ballots now own their codecs, planners, capability policy and native application in action definitions, retaining personal consent, selected ballots and election rounds.
