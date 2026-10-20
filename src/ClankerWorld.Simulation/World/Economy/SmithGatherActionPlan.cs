@@ -7,7 +7,7 @@ public sealed record SmithGatherChoice(string ItemKind)
     public const string InputPrefix = "gather_smith_input:";
     public static SmithGatherChoice? Decode(string candidate) => candidate == "gather_smith_ore" ? new("iron_ore")
         : candidate.StartsWith(InputPrefix, StringComparison.Ordinal) ? new(candidate[InputPrefix.Length..]) : null;
-    public string Encode() => ItemKind == "iron_ore" ? "gather_smith_ore" : InputPrefix + ItemKind;
+    public string Encode() => ItemKind == "iron_ore" ? "gather_smith_ore" : IdentityRules.PrefixedReference(InputPrefix, ItemKind);
 }
 
 public sealed record SmithGatherActionPlan(string ActorId, SmithGatherChoice Choice, string HouseholdId,

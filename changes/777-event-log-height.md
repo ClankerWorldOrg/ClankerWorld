@@ -1,1 +1,0 @@
-- The Event Log fits wrapped rows and day headings before it needs to scroll, and adjusts its height when the window is resized.

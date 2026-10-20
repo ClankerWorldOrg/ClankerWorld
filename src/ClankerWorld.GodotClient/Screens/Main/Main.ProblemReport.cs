@@ -56,9 +56,10 @@ public partial class Main
                 OS.GetCmdlineUserArgs()), "logs", "game.log")
             : ProjectSettings.GlobalizePath(ProjectSettings.GetSetting("debug/file_logging/log_path", "user://logs/godot.log").AsString());
         logs.Add(new("game.log", gameLog));
-        // Godot renames the last run's log when the game starts again, so a
-        // crash is in the newest older log.
-        var previousGameLog = PreviousGameLog(gameLog);
+        // The launcher retains --log-file itself; Godot rotates only its default log.
+        var previousGameLog = LauncherPath is not null
+            ? Path.ChangeExtension(gameLog, "previous.log")
+            : PreviousGameLog(gameLog);
         if (previousGameLog is not null) logs.Add(new("game.previous.log", previousGameLog));
         if (localServer is not null)
         {

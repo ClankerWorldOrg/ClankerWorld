@@ -62,7 +62,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(0, delayedActor.TravelCooldownTicks);
         Assert.Equal("doing", CancellationOrder(delayed, travel.InstructionId).Status);
         Assert.Equal(0, CancellationOrder(delayed, travel.InstructionId).CompletedUnits);
-        Assert.DoesNotContain(travel.InstructionId, delayed.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(travel.InstructionId.Value, delayed.CompletedInstructionIds ?? []);
         Assert.Equal("queued", CancellationOrder(delayed, eat.InstructionId).Status);
         Assert.Single(provider.Requests);
         Assert.DoesNotContain(delayed.Events, item => item.Kind == "instruction_applied");
@@ -78,15 +78,15 @@ public sealed partial class WorldRuntimeTests
         }
 
         var arrived = continuing.ExportState();
-        Assert.Contains(travel.InstructionId, arrived.CompletedInstructionIds ?? []);
+        Assert.Contains(travel.InstructionId.Value, arrived.CompletedInstructionIds ?? []);
         Assert.Equal("finished", CancellationOrder(arrived, travel.InstructionId).Status);
         Assert.Equal(1, CancellationOrder(arrived, travel.InstructionId).CompletedUnits);
-        Assert.StartsWith("arrival:berry-patch:", CancellationOrder(arrived, travel.InstructionId).LastEffectId);
+        Assert.StartsWith("arrival:berry-patch:", CancellationOrder(arrived, travel.InstructionId).LastEffectId?.Value);
         var arrivalPosition = arrived.Agents.Single(person => person.AgentId == HarvestInstructionActor).Position;
         Assert.NotEqual(start, arrivalPosition);
         Assert.InRange(arrived.Map.FootDistance(arrivalPosition, source.Position), 0, 1);
         Assert.Equal(requestsAtArrivalStart, provider.Requests.Count);
-        Assert.DoesNotContain(eat.InstructionId, arrived.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(eat.InstructionId.Value, arrived.CompletedInstructionIds ?? []);
         Assert.Single(arrived.Events, item => item.Kind == "instruction_applied" &&
             item.Detail == travel.InstructionId + ":seek_food");
 
@@ -94,7 +94,7 @@ public sealed partial class WorldRuntimeTests
             Assert.True((await continuing.AdvanceOneTickAsync()).Advanced);
 
         var finished = continuing.ExportState();
-        Assert.Contains(eat.InstructionId, finished.CompletedInstructionIds ?? []);
+        Assert.Contains(eat.InstructionId.Value, finished.CompletedInstructionIds ?? []);
         Assert.Single(finished.Events, item => item.Kind == "instruction_applied" &&
             item.Detail == travel.InstructionId + ":seek_food");
         Assert.Single(finished.Events, item => item.Kind == "instruction_applied" &&

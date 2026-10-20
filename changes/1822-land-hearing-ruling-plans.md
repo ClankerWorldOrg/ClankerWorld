@@ -1,1 +1,0 @@
-- Land case rulings retain their authority, outcome, cited material and property snapshot through shared native refusal checks.

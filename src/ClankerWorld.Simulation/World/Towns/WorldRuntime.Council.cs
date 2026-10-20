@@ -22,7 +22,6 @@ public sealed partial class WorldRuntime
     private string? CivicNote(string actor) => TownSystem.CivicNote(civicWorld, actor);
     private static Regex CivicTickText() => TownSystem.CivicTickText();
     private string ReadableCivicNotice(string text) => TownSystem.ReadableCivicNotice(civicWorld, text);
-    private static string CivicExcerpt(string text, int limit) => TownSystem.CivicExcerpt(text, limit);
     private void AdvanceTownCouncil() => townSystem.AdvanceTownCouncil(civicWorld);
     private void SaveTownCouncil(TownRuntimeState town, TownCouncilState updated, TownGovernmentState? government = null) => townSystem.SaveTownCouncil(civicWorld, town, updated, government);
     private GridPoint? CivicBoard(TownRuntimeState town) => TownSystem.CivicBoard(civicWorld, town);

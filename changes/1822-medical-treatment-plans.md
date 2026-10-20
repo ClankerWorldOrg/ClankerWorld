@@ -1,1 +1,0 @@
-- Medicine treatment retains its patient and dose, sharing target and stock checks at offer, admission and apply while preserving public treatment results.
