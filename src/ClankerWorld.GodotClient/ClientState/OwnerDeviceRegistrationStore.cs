@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Godot;
 
 namespace ClankerWorld.GodotClient.ClientState;
 
@@ -11,19 +10,12 @@ namespace ClankerWorld.GodotClient.ClientState;
 /// </summary>
 public sealed class OwnerDeviceRegistrationStore
 {
-    private const string RegistrationPath = "user://owner-device-registration.json";
-
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
     };
 
     private readonly string path;
-
-    public OwnerDeviceRegistrationStore()
-        : this(ProjectSettings.GlobalizePath(RegistrationPath))
-    {
-    }
 
     public OwnerDeviceRegistrationStore(string path)
     {

@@ -28,16 +28,13 @@ public sealed class WorldEventLog
         NextEventId = events.Count == 0 ? checked(historyFloor + 1) : checked(events[^1].EventId + 1);
     }
 
-    public void AppendEvent(IWorldEventWorld world, string kind, string detail, GridPoint? eventPosition = null)
+    public void AppendEvent(IWorldEventWorld world, WorldEventPayload payload, GridPoint? eventPosition = null)
     {
-        GridPoint? position = eventPosition;
-        for (var length = detail.Length; position is null && length > 0; length = detail.LastIndexOf(':', length - 1))
-        {
-            var prefix = detail[..length];
-            position = world.LivingPosition(prefix) ?? world.DeceasedPosition(prefix);
-            if (position is not null) break;
-        }
-        events.Add(new WorldEventEntry(NextEventId++, world.WorldTick, kind, detail, position));
+        ArgumentNullException.ThrowIfNull(payload);
+        var position = eventPosition ?? (payload.Position is { } recorded ? new GridPoint(recorded.X, recorded.Y) :
+            payload.ActorId is { } actor ? world.LivingPosition(actor) ?? world.DeceasedPosition(actor) : null);
+        var accepted = payload with { Position = position is { } point ? new(point.X, point.Y) : null };
+        events.Add(new WorldEventEntry(NextEventId++, world.WorldTick, accepted));
         Version = new();
     }
 }

@@ -7,7 +7,8 @@ public sealed record LandSaleExchangeChoice(string TownId, string TermsToken, La
 {
     public string Encode() => $"civic|{TownId}|{(Kind == LandSaleExchangeKind.Meet ? "land_transfer_meet" : "land_transfer_pay")}|{TermsToken}|";
     public static LandSaleExchangeChoice? Decode(string value) => value.Split('|') is ["civic", var town, var verb, var terms, ""] &&
-        town.Length > 0 && terms.Length > 0 && verb is "land_transfer_meet" or "land_transfer_pay"
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(terms, DerivedId.MaximumLength) &&
+        verb is "land_transfer_meet" or "land_transfer_pay"
             ? new(town, terms, verb == "land_transfer_meet" ? LandSaleExchangeKind.Meet : LandSaleExchangeKind.Pay) : null;
 }
 

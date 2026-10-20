@@ -1,0 +1,1 @@
+- On Windows, Play works again after Quit to Launcher without closing and reopening the launcher. The previous game log is still kept for problem reports.

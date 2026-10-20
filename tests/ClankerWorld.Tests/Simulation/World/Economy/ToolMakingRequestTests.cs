@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -13,6 +14,10 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ToolMakingRequestTests
 {
+    private static readonly Lazy<PreparedRequest> RequestSetup = new(CreatePrepared);
+
+    private sealed record PreparedRequest(byte[] Bytes, string Buyer, string Seller, string ShopId);
+
     private static readonly JsonSerializerOptions PayloadOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     [Fact]
@@ -399,7 +404,7 @@ public sealed partial class ToolMakingRequestTests
             WorldSimulation = state.WorldSimulation with
             {
                 ProductionJobs = state.WorldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
-                    ? candidate with { InputReservationIds = ids } : candidate).ToArray(),
+                    ? candidate with { InputReservationIds = (ids).Select(Identity.Parse).ToArray() } : candidate).ToArray(),
             },
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithReceiptIds([])));
@@ -575,7 +580,21 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(ToolMakingRequestStatus.Interrupted, request.Status);
         Assert.Null(request.JobId);
         Assert.Equal(3, placing.Society.Inventory.GetLot("request-payment").Quantity);
-        _ = Roundtrip(placing);
+        state = Roundtrip(placing);
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == buyer
+                ? person with { LastDecisionContext = null } : person).ToArray(),
+        };
+        var choices = new RequestChoices("tool_request_place:");
+        using var continued = Restore(state, buyer, seller, choices, new RequestChoices());
+        Assert.True((await continued.AdvanceOneTickAsync()).Advanced);
+        Assert.Contains(choices.Offered, candidate => candidate.Id == "safe_idle");
+        Assert.DoesNotContain(choices.Offered, candidate => candidate.ActionPlan is ToolRequestConsentActionPlan
+        { Choice.Kind: ToolRequestConsentKind.Place } plan && plan.Shop.InstanceId == shop.InstanceId);
+        Assert.Equal(ToolMakingRequestStatus.Interrupted, Assert.Single(continued.ToolMakingRequests).Status);
+        Assert.Equal(3, continued.Society.Inventory.GetLot("request-payment").Quantity);
+        _ = Roundtrip(continued);
     }
 
     [Theory]
@@ -607,7 +626,7 @@ public sealed partial class ToolMakingRequestTests
         // The host schedules personal choices without blocking. Wait for the
         // actual offered choice before asking a later tick to admit its reply.
         await host.Advance();
-        await choices.Chosen.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ModelWorkHarness.For(world).WaitAsync(choices.Chosen.Task);
         for (var step = 0; step < 8 && world.ToolMakingRequests.Count == 0; step++) await host.Advance();
         var request = Assert.Single(world.ToolMakingRequests);
         Assert.Equal((recipe.CanonicalId, buyer, shop.HouseholdId, shop.InstanceId),
@@ -668,7 +687,7 @@ public sealed partial class ToolMakingRequestTests
 
         public async Task Advance()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
@@ -722,6 +741,14 @@ public sealed partial class ToolMakingRequestTests
 
     internal static (WorldRuntimeState State, string Buyer, string Seller, PlacedBuilding Shop) Prepared()
     {
+        var prepared = RequestSetup.Value;
+        var state = WorldRuntimeCodec.Decode(prepared.Bytes);
+        return (state, prepared.Buyer, prepared.Seller,
+            state.WorldSimulation!.Buildings.Single(building => building.InstanceId == prepared.ShopId));
+    }
+
+    private static PreparedRequest CreatePrepared()
+    {
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new RequestChoices());
         var state = setup.ExportState();
         var shop = state.WorldSimulation!.Buildings.Single(building => state.WorldContent!.Buildings.Single(definition =>
@@ -757,7 +784,7 @@ public sealed partial class ToolMakingRequestTests
                 Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
-        return (state, buyer, seller, shop);
+        return new(WorldRuntimeCodec.Encode(state), buyer, seller, shop.InstanceId);
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, string buyer, string seller,
@@ -788,7 +815,7 @@ public sealed partial class ToolMakingRequestTests
         public DecisionProviderKind Kind { get; }
         public long ProviderEpoch => 0;
         public List<CognitionCandidate> Offered { get; } = [];
-        public TaskCompletionSource Chosen { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Chosen { get; } = new(TaskCreationOptions.None);
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Offered.AddRange(request.Observation.Candidates);

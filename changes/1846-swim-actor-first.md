@@ -1,0 +1,1 @@
+- Swimming route checks do less repeated work while keeping the same cargo and care rules.

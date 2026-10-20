@@ -1,0 +1,1 @@
+- Planning Roads does less repeated work when finding routes to buildings.

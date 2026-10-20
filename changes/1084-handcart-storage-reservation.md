@@ -1,1 +1,0 @@
-- A handcart being built no longer holds storage space inside the Blacksmith.
