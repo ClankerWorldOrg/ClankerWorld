@@ -62,7 +62,7 @@ public sealed partial class WorldRuntime
             return GoodsReason.Vessel;
         if (DeliveryGoodsRoom(request, root) <= 0) return GoodsReason.DestinationRoom;
         if (PersonalEquipmentRules.IsCarried(root, actor))
-            return FindUnoccupiedRoute(actor, person.Position, destination, 0).Count > 0
+            return Reach(actor, destination, ReachPurpose.GoodsDelivery, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
                 ? DeliveryGoodsQuantity(request, index, lot, deliveries) > 0 ? null : GoodsReason.DestinationRoom : GoodsReason.Route;
         if (GoodsRouteExclusion(actor, root, routes) is { } reason) return reason;
         if (FreeCarryCapacity(actor) <= 0) return GoodsReason.CarryRoom;

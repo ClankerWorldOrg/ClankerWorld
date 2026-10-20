@@ -38,11 +38,11 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsRouteExclusion(string actor, InventoryLot root,
         Dictionary<(GridPoint Position, int Range), bool>? routes)
     {
-        if (!agents.TryGetValue(actor, out var person)) return GoodsReason.Custody;
+        if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         if (PersonalEquipmentRules.IsCarried(root, actor)) return null;
         var key = (HouseholdStockPosition(root), HouseholdStockInteractionRange(root));
         if (routes is not null && routes.TryGetValue(key, out var reachable)) return reachable ? null : GoodsReason.Route;
-        reachable = FindUnoccupiedRoute(actor, person.Position, key.Item1, key.Item2).Count > 0;
+        reachable = Reach(actor, key.Item1, ReachPurpose.GoodsCollection, key.Item2, 0, SwimmingPolicy.WhenCapable).Count > 0;
         routes?.Add(key, reachable);
         return reachable ? null : GoodsReason.Route;
     }
