@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
+    internal static ActorCapabilityPolicy CouncilElectionCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     private static void OfferCouncilConsent(ITownWorld world, List<CognitionCandidate> candidates, string actor,
         TownRuntimeState town, CouncilConsentKind kind, string subject, string text, int priority)
     {
@@ -22,10 +24,10 @@ internal sealed partial class TownSystem
             council.TermEndTick, nominee);
     }
 
-    internal static ActionCheck CheckCouncilConsent(ITownWorld world, CouncilConsentActionPlan plan)
+    internal static ActionCheck CheckCouncilConsent(ITownWorld world, CouncilConsentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true));
+            policy ?? CouncilElectionCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))

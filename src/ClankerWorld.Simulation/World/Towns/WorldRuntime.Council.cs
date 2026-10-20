@@ -32,6 +32,20 @@ public sealed partial class WorldRuntime
     private static string CivicRoundToken(TownElection election) => TownSystem.CivicRoundToken(election);
     private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor, IReadOnlyList<string>? buildingsWithoutSites = null) => townSystem.AddTownCivicCandidates(civicWorld, candidates, actor, buildingsWithoutSites);
     private void ContinueTownCivicVisit(string actor, string candidate) => townSystem.ContinueTownCivicVisit(civicWorld, actor, candidate);
-    private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null) => townSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice);
-    private void ApplyPlannedTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null, ActionPlan? originalPlan = null) => townSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice, originalPlan);
+    private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null) => ApplyPlannedTownCivicCandidate(actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice);
+    private void ApplyPlannedTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null, ActionPlan? originalPlan = null)
+    {
+        var definition = ActionRegistrations.FirstOrDefault(row => row.Phase == ActionPhase.FreshAdmission &&
+            row.Definition?.Matches(candidate) == true)?.Definition;
+        if (definition is null)
+        {
+            townSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice, originalPlan);
+            return;
+        }
+        originalPlan ??= definition.PlanCandidate(this, actor, candidate);
+        if (originalPlan is CouncilBallotActionPlan selected)
+            originalPlan = TownSystem.BindCouncilBallot(civicWorld, selected, ballot);
+        if (originalPlan is not null)
+            TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, agents[actor], candidate, false, originalPlan));
+    }
 }
