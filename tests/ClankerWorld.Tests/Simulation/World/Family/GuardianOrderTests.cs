@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
@@ -60,13 +61,13 @@ public sealed partial class ParenthoodTests
             file.Save(world);
             using var restored = file.LoadOrCreate(initial.WorldSeed);
             Assert.Equal(File.ReadAllBytes(file.Path), WorldRuntimeCodec.Encode(restored.ExportState()));
-            Assert.False((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await restored.TickModelWorkAsync()).Advanced);
             world.Resume();
             restored.Resume();
             for (var tick = 0; tick < 3; tick++)
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-                Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
+                Assert.True((await restored.TickModelWorkAsync()).Advanced);
                 Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
             }
             Assert.Equal(adult, restored.Society.GetAgent(child).PrimaryCaregiverId);
@@ -90,7 +91,7 @@ public sealed partial class ParenthoodTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task QueuedGuardianOrderCannotAppointAnyoneAfterCancellationOrReplacement(bool replace)
+    public async Task QueuedGuardianOrderWaitsBehindReplacementAndCannotAppointAfterCancellation(bool replace)
     {
         var initial = await GuardianOrderState();
         var (child, adult) = GuardianOrderPeople(initial);
@@ -106,10 +107,10 @@ public sealed partial class ParenthoodTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
             _ => new ParentProvider("safe_idle"));
         if (!replace) Assert.True(restored.CancelOrder(cancel).Changed);
-        for (var tick = 0; tick < 3; tick++) Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await restored.TickModelWorkAsync()).Advanced);
         Assert.Null(restored.Society.GetAgent(child).PrimaryCaregiverId);
         var order = restored.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
-        Assert.Equal("cancelled", order.Status);
+        Assert.Equal(replace ? "queued" : "cancelled", order.Status);
         Assert.Equal(0, order.CompletedUnits);
         restored.Validate();
     }
@@ -125,10 +126,10 @@ public sealed partial class ParenthoodTests
         var food = world.SubmitInstruction(new("food-first", "owner:test", adult, OwnerInstructionKind.Order, "keep eating berries"));
         var waiting = world.SubmitInstruction(GuardianRequest("waiting-guardian", adult, child, queue: true));
         world.SubmitInstruction(GuardianRequest("other-guardian", other, child));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(other, world.Society.GetAgent(child).PrimaryCaregiverId);
         world.CancelOrder(new("cancel-food", "owner:test", world.Society.WorldId, adult, food.InstructionId));
-        for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(other, world.Society.GetAgent(child).PrimaryCaregiverId);
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == waiting.InstructionId).Task!;
         Assert.Equal("blocked", order.Status);
@@ -177,22 +178,19 @@ public sealed partial class ParenthoodTests
         var state = world.ExportState();
         var instruction = Assert.Single(state.Instructions!);
         var order = instruction.Task!;
-        foreach (var damaged in new[]
-        {
-            order with { TargetAgentId = null },
-            order with { TargetAgentId = "missing-child" },
-            order with { TargetAgentId = adult },
-            order with { TargetFoodKind = "berries" },
-            order with { TargetMaterialKind = "wood" },
-            order with { RequestedUnits = 2 },
-            order with { RepeatUntilCancelled = true },
-            order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-            {
-                Instructions = [instruction with { Task = damaged }],
-            }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = "missing-child" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = adult }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RequestedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "invented" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, damaged));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with { SchemaVersion = 52 }));
     }
 }

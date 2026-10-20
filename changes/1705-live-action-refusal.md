@@ -1,1 +1,0 @@
-- When one agent's action causes a game error, the agent waits and their current order is cancelled while the world keeps running. The Event Log explains the refusal, and Developer tools count refused actions. The same choice is blocked for that agent for one world day.

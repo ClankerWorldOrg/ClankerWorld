@@ -1,1 +1,0 @@
-- Direct barter retains its chosen goods, counterpart and original offer through shared checks and shared food thresholds.

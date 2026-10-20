@@ -1,1 +1,0 @@
-- Food-space recovery keeps its selected supplies, storage destination and orchard seed release through the choice. The Event Log explains when that load is no longer available.

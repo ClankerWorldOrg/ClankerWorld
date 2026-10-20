@@ -1,1 +1,0 @@
-- Built-in choices no longer keep asking for tools when the request requires a personal model.

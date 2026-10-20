@@ -1,1 +1,0 @@
-- Expansion choices retain the selected building, target footprint and available reservation inputs through shared checks.

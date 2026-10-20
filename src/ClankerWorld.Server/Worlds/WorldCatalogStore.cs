@@ -11,21 +11,9 @@ namespace ClankerWorld.Server.Worlds;
 /// that last wrote or opened the world, so any version can show who saved it
 /// without restoring it. Entries from before they were recorded have neither.
 /// </remarks>
-public sealed record CatalogWorld(
-    string Id, string Name, string WorldId, string Seed, DateTimeOffset UpdatedUtc,
-    IReadOnlyList<AgentProviderAssignment> Assignments,
-    WorldAutosaveSettings? AutosaveSettings,
-    string Compatibility = "unknown", string? CompatibilityReason = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorldThumbnail? Thumbnail = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? GameVersion = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull), JsonConverter(typeof(SavedBuildTextConverter))] string? SourceRevision = null)
-{
-    internal CatalogWorld StampedByThisBuild() =>
-        this with { GameVersion = BuildInformation.Version, SourceRevision = BuildInformation.SourceRevision };
-}
 
-public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CatalogWorld>? PendingDeletions = null);
+
+
 
 /// <summary>Private installation-level index of independently selectable worlds.</summary>
 public sealed class WorldCatalogStore
@@ -41,7 +29,7 @@ public sealed class WorldCatalogStore
     {
         var path = Path.Combine(Path.GetFullPath(activeSavePath) + ".worlds", "catalog.json");
         if (!File.Exists(path)) return null;
-        var saved = JsonSerializer.Deserialize<WorldCatalogSnapshot>(File.ReadAllBytes(path))
+        var saved = JsonSerializer.Deserialize<WorldCatalogSnapshot>(SavedFile.Read(path, SavedFile.CatalogLimit))
             ?? throw new InvalidDataException("The world catalog is empty.");
         Validate(saved);
         return saved.Worlds.Single(world => world.Id == saved.ActiveId);
@@ -56,7 +44,7 @@ public sealed class WorldCatalogStore
         indexPath = Path.Combine(directory, "catalog.json");
         if (File.Exists(indexPath))
         {
-            index = JsonSerializer.Deserialize<WorldCatalogSnapshot>(File.ReadAllBytes(indexPath))
+            index = JsonSerializer.Deserialize<WorldCatalogSnapshot>(SavedFile.Read(indexPath, SavedFile.CatalogLimit))
                 ?? throw new InvalidDataException("The world catalog is empty.");
             Validate(index);
             var matching = index.Worlds.SingleOrDefault(world => world.WorldId == activeState.Society.Society.WorldId);
@@ -160,7 +148,7 @@ public sealed class WorldCatalogStore
         WorldRuntimeState existing;
         try
         {
-            existing = WorldRuntimeCodec.Decode(File.ReadAllBytes(SnapshotPath(entry.Id)));
+            existing = WorldRuntimeCodec.Decode(SavedFile.Read(SnapshotPath(entry.Id), SavedFile.CheckpointLimit));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or
             JsonException or ArgumentException or FormatException)
@@ -221,7 +209,7 @@ public sealed class WorldCatalogStore
         {
             var entry = index.Worlds.SingleOrDefault(world => world.Id == id)
                 ?? throw new FileNotFoundException("The selected world does not exist.");
-            var state = WorldRuntimeCodec.Decode(File.ReadAllBytes(SnapshotPath(id)));
+            var state = WorldRuntimeCodec.Decode(SavedFile.Read(SnapshotPath(id), SavedFile.CheckpointLimit));
             if (state.Society.Society.WorldId != entry.WorldId || state.WorldSeed != entry.Seed)
                 throw new InvalidDataException("The selected world checkpoint does not match its catalog entry.");
             return state;
@@ -234,7 +222,7 @@ public sealed class WorldCatalogStore
         {
             if (!index.Worlds.Any(world => world.Id == id))
                 throw new FileNotFoundException("The selected world does not exist.");
-            return File.ReadAllBytes(SnapshotPath(id));
+            return SavedFile.Read(SnapshotPath(id), SavedFile.CheckpointLimit);
         }
     }
 
@@ -297,6 +285,7 @@ public sealed class WorldCatalogStore
 
     private void WriteAtomic(string destination, byte[] bytes)
     {
+        SavedFile.CheckLength(bytes.LongLength, destination == indexPath ? SavedFile.CatalogLimit : SavedFile.CheckpointLimit);
         Directory.CreateDirectory(directory);
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);

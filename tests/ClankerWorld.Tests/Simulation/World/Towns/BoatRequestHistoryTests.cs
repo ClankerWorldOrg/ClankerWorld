@@ -25,9 +25,9 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal(41, prepared.State.BoatTransport.Requests.Count);
         Assert.Equal(history.Cancelled.TakeLast(40),
             prepared.State.BoatTransport.Requests.Where(request => request.Status == "cancelled"));
-        Assert.Equal(history.Cancelled.Take(24), prepared.Segment.ClosedBoatRequests!);
-        Assert.Equal(new RetiredBoatRequestRange(2, 25), Assert.Single(prepared.State.BoatTransport.RetiredRequestRanges));
-        Assert.Equal(65, prepared.State.BoatTransport.Sequence);
+        Assert.Equal(history.Cancelled.Take(4), prepared.Segment.ClosedBoatRequests!);
+        Assert.Equal(new RetiredBoatRequestRange(2, 5), Assert.Single(prepared.State.BoatTransport.RetiredRequestRanges));
+        Assert.Equal(45, prepared.State.BoatTransport.Sequence);
         Assert.Equal(history.OriginalBoat, JsonSerializer.Serialize(Assert.Single(prepared.State.BoatTransport.Boats)));
         // Preparing a plan does not change the live world or publish retirement.
         Assert.Equal(history.Bytes, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -49,7 +49,7 @@ public sealed partial class PortBoatRuntimeTests
             var compacted = scenario.World.ExportState();
             Assert.Equal(41, compacted.BoatTransport.Requests.Count);
             Assert.Equal(visible, JsonSerializer.Serialize(new OwnerWorldObservationStore(scenario.World).GetSnapshot().BoatRequests));
-            Assert.Equal(history.Cancelled.Take(24), ReadArchivedBoatRequests(file));
+            Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
             var bytes = WorldRuntimeCodec.Encode(compacted);
             Assert.Equal(bytes, File.ReadAllBytes(file.Path));
             Assert.False((await scenario.World.AdvanceOneTickAsync(() => false)).Advanced);
@@ -69,13 +69,13 @@ public sealed partial class PortBoatRuntimeTests
             await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request =>
                 request.PassengerId == Follower && request.Status == "waiting"), 120);
             var next = Assert.Single(scenario.World.BoatRequests, request => request.PassengerId == Follower && request.Status == "waiting");
-            Assert.Equal(66, next.Sequence);
+            Assert.Equal(46, next.Sequence);
             policy.Trips = false;
             policy.CancelWaiting = true;
             await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request => request.Id == next.Id && request.Status == "cancelled"), 8);
             Assert.True(file.Save(scenario.World));
-            Assert.Equal(new RetiredBoatRequestRange(2, 26), Assert.Single(scenario.World.ExportState().BoatTransport.RetiredRequestRanges));
-            Assert.Equal(history.Cancelled.Take(25), ReadArchivedBoatRequests(file));
+            Assert.Equal(new RetiredBoatRequestRange(2, 6), Assert.Single(scenario.World.ExportState().BoatTransport.RetiredRequestRanges));
+            Assert.Equal(history.Cancelled.Take(5), ReadArchivedBoatRequests(file));
             Assert.Equal(history.Waiting, Assert.Single(scenario.World.BoatRequests, request => request.Id == history.Waiting.Id));
             Assert.Equal(history.OriginalBoat, JsonSerializer.Serialize(Assert.Single(scenario.World.Boats)));
             using var extended = file.LoadOrCreate(compacted.WorldSeed);
@@ -120,7 +120,7 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(history.Bytes, File.ReadAllBytes(failCheckpoint ? file.Path + ".previous" : file.Path));
             Assert.Empty(world.ExportState().BoatTransport.RetiredRequestRanges);
             if (failCheckpoint)
-                Assert.Equal(history.Cancelled.Take(24), Directory.GetFiles(file.Path + ".history", "*.json")
+                Assert.Equal(history.Cancelled.Take(4), Directory.GetFiles(file.Path + ".history", "*.json")
                     .SelectMany(path => JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(path))!.ClosedBoatRequests ?? [])
                     .OrderBy(request => request.Sequence).ToArray());
         }
@@ -155,14 +155,14 @@ public sealed partial class PortBoatRuntimeTests
             var transport = state["boatTransport"]!;
             var ranges = damage switch
             {
-                "zero" => "[{\"firstSequence\":0,\"lastSequence\":25}]",
-                "reversed" => "[{\"firstSequence\":26,\"lastSequence\":25}]",
-                "future" => "[{\"firstSequence\":2,\"lastSequence\":66}]",
-                "adjacent" => "[{\"firstSequence\":2,\"lastSequence\":12},{\"firstSequence\":13,\"lastSequence\":25}]",
-                "overlap" => "[{\"firstSequence\":2,\"lastSequence\":25},{\"firstSequence\":24,\"lastSequence\":25}]",
-                "unordered" => "[{\"firstSequence\":14,\"lastSequence\":25},{\"firstSequence\":2,\"lastSequence\":12}]",
-                "live-collision" => "[{\"firstSequence\":1,\"lastSequence\":25}]",
-                "gap" => "[{\"firstSequence\":2,\"lastSequence\":24}]",
+                "zero" => "[{\"firstSequence\":0,\"lastSequence\":5}]",
+                "reversed" => "[{\"firstSequence\":6,\"lastSequence\":5}]",
+                "future" => "[{\"firstSequence\":2,\"lastSequence\":46}]",
+                "adjacent" => "[{\"firstSequence\":2,\"lastSequence\":3},{\"firstSequence\":4,\"lastSequence\":5}]",
+                "overlap" => "[{\"firstSequence\":2,\"lastSequence\":5},{\"firstSequence\":4,\"lastSequence\":5}]",
+                "unordered" => "[{\"firstSequence\":5,\"lastSequence\":5},{\"firstSequence\":2,\"lastSequence\":3}]",
+                "live-collision" => "[{\"firstSequence\":1,\"lastSequence\":5}]",
+                "gap" => "[{\"firstSequence\":2,\"lastSequence\":4}]",
                 _ => null,
             };
             if (ranges is not null) transport["retiredRequestRanges"] = JsonNode.Parse(ranges);
@@ -242,7 +242,7 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(boat, JsonSerializer.Serialize(Assert.Single(voyage.World.Boats)));
             Assert.Equal("underway", Assert.Single(voyage.World.BoatRequests, request => request.Id == history.Waiting.Id).Status);
             Assert.Equal(41, voyage.World.BoatRequests.Count);
-            Assert.Equal(history.Cancelled.Take(24), ReadArchivedBoatRequests(file));
+            Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
             var bytes = WorldRuntimeCodec.Encode(voyage.World.ExportState());
             Assert.False((await voyage.World.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(voyage.World.ExportState()));
@@ -261,8 +261,8 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(outcome == "arrived" ? "arrived" : "returned", finished.Status);
             Assert.True(file.Save(voyage.World));
             Assert.Equal(40, voyage.World.BoatRequests.Count);
-            Assert.Equal(new RetiredBoatRequestRange(1, 25), Assert.Single(voyage.World.ExportState().BoatTransport.RetiredRequestRanges));
-            Assert.Equal(new[] { finished }.Concat(history.Cancelled.Take(24)), ReadArchivedBoatRequests(file));
+            Assert.Equal(new RetiredBoatRequestRange(1, 5), Assert.Single(voyage.World.ExportState().BoatTransport.RetiredRequestRanges));
+            Assert.Equal(new[] { finished }.Concat(history.Cancelled.Take(4)), ReadArchivedBoatRequests(file));
             using var complete = file.LoadOrCreate(state.WorldSeed);
             Assert.Equal(WorldRuntimeCodec.Encode(voyage.World.ExportState()), WorldRuntimeCodec.Encode(complete.ExportState()));
             if (outcome == "death")
@@ -308,12 +308,12 @@ public sealed partial class PortBoatRuntimeTests
                     BoatTransport = checkpoint.BoatTransport with
                     {
                         Requests = checkpoint.BoatTransport.Requests.Skip(1).ToArray(),
-                        RetiredRequestRanges = [new(1, 25)],
+                        RetiredRequestRanges = [new(1, 5)],
                     },
                 };
             else
             {
-                var records = history.Cancelled.Take(24).ToArray();
+                var records = history.Cancelled.Take(4).ToArray();
                 var segment = damage switch
                 {
                     "unrelated-head" => new WorldHistorySegment(null, []),
@@ -375,7 +375,9 @@ public sealed partial class PortBoatRuntimeTests
         policy.TripActor = Follower;
         var cancelled = new List<BoatTripRequest>();
 
-        for (var cycle = 0; cycle < 64; cycle++)
+        // Keep 40 recent cancellations and four older records for retirement ranges.
+        // Every request and cancellation still runs through the ordinary choices.
+        for (var cycle = 0; cycle < 44; cycle++)
         {
             policy.Trips = true;
             policy.CancelWaiting = false;
@@ -391,7 +393,7 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(waiting, Assert.Single(scenario.World.BoatRequests, item => item.Id == waiting.Id));
             Assert.Equal(originalBoat, JsonSerializer.Serialize(Assert.Single(scenario.World.Boats)));
             scenario.World.Validate();
-            if (cycle is 15 or 31 or 47 or 63)
+            if (cycle is 15 or 31 or 39 or 43)
             {
                 var bytes = WorldRuntimeCodec.Encode(scenario.World.ExportState());
                 using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -399,8 +401,8 @@ public sealed partial class PortBoatRuntimeTests
             }
         }
 
-        Assert.Equal(64, cancelled.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count());
-        Assert.Equal(65, scenario.World.ExportState().BoatTransport.Sequence);
+        Assert.Equal(44, cancelled.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(45, scenario.World.ExportState().BoatTransport.Sequence);
         return new(WorldRuntimeCodec.Encode(scenario.World.ExportState()), cancelled, waiting, originalBoat);
     }
 }

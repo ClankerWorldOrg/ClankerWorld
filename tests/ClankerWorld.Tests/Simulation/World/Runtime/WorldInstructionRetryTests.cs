@@ -28,7 +28,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
 
         var next = world.SubmitInstruction(request with { IdempotencyKey = "next-key" });
-        Assert.Equal("private-instruction-0000000002", next.InstructionId);
+        Assert.Equal("private-instruction-0000000002", next.InstructionId.Value);
         world.Validate();
     }
 }
