@@ -971,9 +971,11 @@ current-world queries; no fertility or cache data enters saves or digests.
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and starting resources. Weather advances at its
 existing tick phase, and the runtime commits the system with one assignment.
-Map, declarative content and world-content simulation snapshots remain owned by
-the coordinator. Trusted tick preparation shares all four snapshots by reference
-until a write replaces one; external loads retain full validation and map
+Map and declarative content remain owned by the coordinator. Production
+records come from their system; construction records remain on the coordinator.
+Trusted tick preparation shares the immutable map, content, environment and
+combined simulation view by reference until a write replaces one; external
+loads retain full validation and map
 regeneration checks. Restore initializes saved services directly instead of
 creating founders, physical state or genesis events first.
 
