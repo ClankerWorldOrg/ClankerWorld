@@ -1,4 +1,4 @@
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -9,6 +9,10 @@ namespace ClankerWorld.Tests;
 
 public sealed class ActionRefusalTests
 {
+    // Typed access is limited to the existing controlled checkpoint fault.
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "agentStore")]
+    private static extern ref AgentStore PhysicalAgents(WorldRuntime world);
+
     [Theory]
     [InlineData(false, false, false, false, false)]
     [InlineData(true, false, false, false, false)]
@@ -39,8 +43,7 @@ public sealed class ActionRefusalTests
                 prepares++;
                 // Controlled defect: actual movement creates an invalid work plan.
                 // The ordinary checkpoint codec, rather than a fake failure, rejects it.
-                var physical = (AgentStore)typeof(WorldRuntime)
-                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                var physical = PhysicalAgents(proposed);
                 foreach (var culprit in baseline.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal)
                     .Take(multipleFaults ? 2 : 1))
                     if (globalFault || physical.Living[culprit.AgentId].Position != culprit.Position)
@@ -215,8 +218,7 @@ public sealed class ActionRefusalTests
             var writes = 0;
             var result = await world.AdvanceOneTickWithCheckpointAsync(proposed =>
             {
-                var people = (AgentStore)typeof(WorldRuntime)
-                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                var people = PhysicalAgents(proposed);
                 if (people.Living[actor.AgentId].Position != actor.Position)
                     people.RecordProject(actor.AgentId, people.Living[actor.AgentId],
                         new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid"));
