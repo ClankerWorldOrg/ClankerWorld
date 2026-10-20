@@ -1,1 +1,0 @@
-- In an abandoned Town, the lanterns fixed to buildings, such as a Warehouse's door lantern and a Port's pier lantern, now fade with the weathered building instead of looking new.

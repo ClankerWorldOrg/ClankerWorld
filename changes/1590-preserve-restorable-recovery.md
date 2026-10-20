@@ -1,1 +1,0 @@
-- Recovery cleanup keeps the latest usable recovery copies even when a newer copy cannot be loaded. Unloadable copies remain preserved for investigation.

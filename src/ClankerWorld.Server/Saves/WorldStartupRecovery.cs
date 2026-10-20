@@ -8,9 +8,8 @@ using ClankerWorld.Server.Worlds;
 namespace ClankerWorld.Server.Saves;
 
 /// <param name="SavedByVersion">The game version that last saved a refused checkpoint, when it was recorded.</param>
-public sealed record StartupRecoveryStatus(bool Pending, string? WorldId, ManualWorldSave? Autosave, string? Reason = null,
-    string? SavedByVersion = null);
-public sealed record StartupRecoveryReceipt(string LoadedId, long WorldTick);
+
+
 
 /// <summary>Keep a refused active checkpoint untouched until an authenticated owner accepts a verified autosave.</summary>
 public sealed partial class WorldStartupRecovery
@@ -36,6 +35,9 @@ public sealed partial class WorldStartupRecovery
         this.providers = providers;
         this.providerFactory = providerFactory;
         this.logger = logger;
+        // A pending manual load owns the checkpoint, routing, schedule and
+        // timeline until it is complete. Failure must not expose a mixed world.
+        saves.RecoverInterruptedLoad(stateFile, providers, providerFactory);
         try
         {
             runtime = stateFile.LoadOrCreate(seed);
@@ -45,14 +47,14 @@ public sealed partial class WorldStartupRecovery
         catch (Exception exception) when (File.Exists(stateFile.Path) &&
             exception is InvalidDataException or IOException or JsonException)
         {
-            damagedBytes = File.ReadAllBytes(stateFile.Path);
+            damagedBytes = SavedFile.Read(stateFile.Path, SavedFile.CheckpointLimit);
             reason = RefusalReason(damagedBytes);
             savedByVersion = SavedBuild.TryRead(stateFile.Path)?.GameVersion;
             identity = ReadCheckpointIdentity(damagedBytes)
                 ?? WorldCatalogStore.ReadActiveIdentity(stateFile.Path)?.WorldId
                 ?? ReadAutosaveIdentity(stateFile.Path)
                 ?? (File.Exists(authorityPath)
-                    ? JsonSerializer.Deserialize<OwnerAuthorityState>(File.ReadAllBytes(authorityPath))?.Authority.WorldId : null)
+                    ? JsonSerializer.Deserialize<OwnerAuthorityState>(SavedFile.Read(authorityPath))?.Authority.WorldId : null)
                 ?? "checkpoint-recovery";
             LogRecovery(logger, "waiting_for_owner", "checkpoint_refused", -1);
         }
@@ -84,7 +86,7 @@ public sealed partial class WorldStartupRecovery
                 if (saved.Checkpoint.Society.Society.WorldId != identity ||
                     candidate.WorldTick != saved.Checkpoint.Society.Society.WorldTick ||
                     saved.AutosaveSettings is not { WorldId: var savedWorld } || savedWorld != identity ||
-                    !providers.CanRestoreWorldAssignments(saved.Assignments)) continue;
+                    !providers.CanRestoreWorldAssignments(saved.Assignments, saved.Checkpoint.RoutineHelper)) continue;
                 WorldAutosaveStore.Validate(saved.AutosaveSettings.IntervalMinutes, saved.AutosaveSettings.RotationCount);
                 stateFile.VerifyRequiredHistory(saved.Checkpoint);
                 using var verified = WorldRuntime.Restore(saved.Checkpoint);
@@ -162,7 +164,7 @@ public sealed partial class WorldStartupRecovery
     {
         var settingsPath = path + ".autosave.json";
         if (!File.Exists(settingsPath)) return null;
-        var settings = JsonSerializer.Deserialize<WorldAutosaveSettings>(File.ReadAllBytes(settingsPath))
+        var settings = JsonSerializer.Deserialize<WorldAutosaveSettings>(SavedFile.Read(settingsPath))
             ?? throw new InvalidDataException("Autosave settings are empty.");
         WorldAutosaveStore.Validate(settings.IntervalMinutes, settings.RotationCount);
         return string.IsNullOrWhiteSpace(settings.WorldId) ? null : settings.WorldId;

@@ -4,7 +4,8 @@ public sealed record LandSaleCollectionChoice(string TownId, string TermsToken)
 {
     public string Encode() => $"civic|{TownId}|land_transfer_collect_payment|{TermsToken}|";
     public static LandSaleCollectionChoice? Decode(string value) =>
-        value.Split('|') is ["civic", var town, "land_transfer_collect_payment", var terms, ""] && town.Length > 0 && terms.Length > 0
+        value.Split('|') is ["civic", var town, "land_transfer_collect_payment", var terms, ""] &&
+        IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(terms, DerivedId.MaximumLength)
             ? new(town, terms) : null;
 }
 

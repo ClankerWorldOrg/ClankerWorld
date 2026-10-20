@@ -37,8 +37,10 @@ public sealed class HouseholdStockActionPlanTests
         changed.Validate();
     }
 
-    [Fact]
-    public async Task RecoveryUsesTheSameSelectedShipmentAcrossRollbackReplayAndStrictReload()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RecoveryUsesTheSameSelectedShipmentAcrossRollbackReplayAndStrictReload(bool longStockIdentity)
     {
         var state = ShelterOrderTestFixture.WithClearWeather(ShelterOrderTestFixture.Prepared());
         var actor = ShelterOrderTestFixture.Actor(state);
@@ -47,9 +49,10 @@ public sealed class HouseholdStockActionPlanTests
         var pile = state.Map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
             state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse").Position;
         state = ShelterOrderTestFixture.At(state, actor, pile);
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "house-plan-unusable", "wood", actor, 4,
+        var stockId = longStockIdentity ? "house-plan-" + new string('x', 117) : "house-plan-unusable";
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, stockId, "wood", actor, 4,
             freshnessBasisPoints: 0);
-        state = ShelterOrderTestFixture.WithInventory(state, InventoryAuthority.AssignDelivery(inventory, "house-plan-unusable", house));
+        state = ShelterOrderTestFixture.WithInventory(state, InventoryAuthority.AssignDelivery(inventory, stockId, house));
         var provider = new HouseholdChoices(actor, "recover_household_delivery", choose: true);
         using var world = WorldRuntime.Restore(state, _ => provider);
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());

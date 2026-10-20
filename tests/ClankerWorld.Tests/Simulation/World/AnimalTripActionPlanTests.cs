@@ -15,6 +15,10 @@ public sealed partial class AnimalPipelineTests
         var (state, actor) = TripPlanFixture(step);
         var chooser = new TripPlanChooser(actor, true);
         using var world = WorldRuntime.Restore(state, _ => chooser);
+        var original = world.Society.Inventory.GetLot(state.AnimalWorld!.SupplyTrips.Single().LotId);
+        var request = new GoodsRequest(GoodsUse.AnimalSupplyTrip, actor,
+            GoodsOwners.One(original.OwnerId), GoodsKinds.One(original.ItemKind), Explain: true);
+        Assert.Equal(original.Id, Assert.Single(world.FindGoods(request).Matches).Lot.Id);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -33,7 +37,9 @@ public sealed partial class AnimalPipelineTests
         {
             Assert.Equal(plan.Trip.YardId, load.StorageBuildingId);
             Assert.Equal(plan.HouseholdId, load.OwnerId);
-            Assert.Single(result.Events, item => item.Kind == "animal_yard_supplied");
+            var supplied = Assert.Single(result.Events, item => item.Kind == "animal_yard_supplied");
+            var payload = Assert.IsType<AnimalYardSuppliedEventPayload>(supplied.Payload);
+            Assert.Equal((actor, plan.Trip.YardId), (payload.ActorId, payload.YardInstanceId));
         }
         else if (step == AnimalTripStep.Work)
         {
@@ -41,7 +47,19 @@ public sealed partial class AnimalPipelineTests
             Assert.True(world.Animals.Single().CareUntilTick > world.WorldTick);
             Assert.Single(result.Events, item => item.Kind == "animal_cared");
         }
-        else Assert.Equal(3, load.Quantity);
+        else
+        {
+            Assert.Equal(3, load.Quantity);
+            Assert.Equal((original.OwnerId, original.CarrierId, original.StorageBuildingId,
+                    original.GroundPosition, original.ContainerLotId, original.Quantity),
+                (load.OwnerId, load.CarrierId, load.StorageBuildingId,
+                    load.GroundPosition, load.ContainerLotId, load.Quantity));
+            var released = WorldRuntimeCodec.Encode(world.ExportState());
+            var answer = world.FindGoods(request);
+            Assert.Empty(answer.Matches);
+            Assert.Contains((load.Id, GoodsReason.Reservation), answer.Excluded);
+            Assert.Equal(released, WorldRuntimeCodec.Encode(world.ExportState()));
+        }
         using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         reopened.Validate();
     }

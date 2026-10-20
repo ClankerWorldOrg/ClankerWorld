@@ -1,1 +1,0 @@
-- Closing a reopened Pause Menu resumes a previously running world even when an earlier Resume is still pending, while worlds you deliberately paused stay paused.

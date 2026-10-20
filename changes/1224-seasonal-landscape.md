@@ -1,1 +1,0 @@
-- Grass and tree canopies now follow the seasons, with brighter spring colours, warmer autumn colours and muted winter colours. Summer keeps the existing art, and snow still follows the world state.
