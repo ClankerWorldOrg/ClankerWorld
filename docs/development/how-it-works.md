@@ -515,6 +515,8 @@ Project and blacksmith supply and the shared goods query's collection, delivery
 and recovery checks use actor-position reach with their original route caches.
 Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
+The animal world port exposes no unused direct route search; animal action
+plans use their existing purpose-specific reach calls.
 The source guard in `ActionRuleBoundaryTests` records
 remaining direct route calls; copied age-band and unnamed need
 predicates have no allowance outside the shared life-stage rules, and child
