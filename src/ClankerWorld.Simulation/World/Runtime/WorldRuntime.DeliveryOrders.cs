@@ -31,9 +31,6 @@ public sealed partial class WorldRuntime
     private static int DeliveryOrderRemaining(OrderTask order) =>
         order.QuantityIsExplicit && !order.RepeatUntilCancelled ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
 
-    private bool DeliveryCanReach(string actor, GridPoint from, GridPoint destination, int range = 0) =>
-        IsWithinInteractionRange(from, destination, range) || ReachLeg(actor, from, destination, ReachPurpose.GoodsDelivery, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)
     {
@@ -126,10 +123,10 @@ public sealed partial class WorldRuntime
             !PersonalEquipmentRules.IsCarried(boundLot, actor))) return null;
         if (boundLot?.DeliveryBuildingId is not null)
             return CarriedDeliveryOrderPlan(actor, order) is { } boundShipment &&
-                DeliveryCanReach(actor, person.Position, boundShipment.Destination.Position) ? boundShipment : null;
+                CanReachLeg(actor, person.Position, boundShipment.Destination.Position, ReachPurpose.GoodsDelivery, 0, 0, SwimmingPolicy.WhenCapable) ? boundShipment : null;
         var otherPromise = order.DeliveryLotId is null && CarriedHouseDelivery(actor) is not null;
         if (otherPromise && CarriedDeliveryOrderPlan(actor, order) is { } carried)
-            return DeliveryCanReach(actor, person.Position, carried.Destination.Position) ? carried : null;
+            return CanReachLeg(actor, person.Position, carried.Destination.Position, ReachPurpose.GoodsDelivery, 0, 0, SwimmingPolicy.WhenCapable) ? carried : null;
         var maximum = Math.Min(DeliveryOrderRemaining(order), order.DeliveryQuantity ?? int.MaxValue);
         var plan = order.DeliveryPurpose switch
         {
@@ -146,7 +143,7 @@ public sealed partial class WorldRuntime
                 plan.ResourceQuantity != order.DeliveryQuantity)) return null;
         var source = plan.DirectDelivery ? person.Position : HouseholdStockPosition(plan.Carrier);
         var range = plan.DirectDelivery ? 0 : HouseholdStockInteractionRange(plan.Carrier);
-        return DeliveryCanReach(actor, person.Position, source, range) && DeliveryCanReach(actor, source, plan.Destination.Position)
+        return CanReachLeg(actor, person.Position, source, ReachPurpose.GoodsDelivery, range, 0, SwimmingPolicy.WhenCapable) && CanReachLeg(actor, source, plan.Destination.Position, ReachPurpose.GoodsDelivery, 0, 0, SwimmingPolicy.WhenCapable)
             ? plan : null;
     }
 
@@ -161,7 +158,7 @@ public sealed partial class WorldRuntime
             BlacksmithForHousehold(householdId) is { } smith && DeliveryDestinationMatches(order, smith) &&
             BlacksmithInputToGather(householdId, smith.InstanceId, actor, order.TargetItemKind) is { } missing &&
             FreeCarryCapacity(actor) >= ProjectMaterialCarryUnits(actor, missing.ItemKind, missing.Source) &&
-            DeliveryCanReach(actor, person.Position, missing.Source.Position, ResourceInteractionRange))
+            CanReachLeg(actor, person.Position, missing.Source.Position, ReachPurpose.GoodsDelivery, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
             return (smith, "blacksmith_input", missing.Source);
         if (order.DeliveryRoute is null or "blacksmith_input" && order.TargetItemKind == "iron_ore" &&
             HouseholdFor(actor) is { } oreHousehold && BlacksmithForHousehold(oreHousehold) is { } oreSmith &&
@@ -171,12 +168,12 @@ public sealed partial class WorldRuntime
             PersonalSmithOre(actor) is null && !BlacksmithHasDeliverableInput(oreHousehold, oreSmith, actor, "iron_ore") &&
             MaterialSource("iron_ore", actor, oreSmith.Position) is { } oreSource &&
             FreeCarryCapacity(actor) >= ProjectMaterialCarryUnits(actor, "iron_ore", oreSource) &&
-            DeliveryCanReach(actor, person.Position, oreSource.Position, ResourceInteractionRange))
+            CanReachLeg(actor, person.Position, oreSource.Position, ReachPurpose.GoodsDelivery, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
             return (oreSmith, "blacksmith_input", oreSource);
         if (order.DeliveryRoute is not (null or "workstation_input")) return null;
         var need = WorkstationSupplyNeeds(actor).FirstOrDefault(need => need.ItemKind == order.TargetItemKind &&
             DeliveryDestinationMatches(order, need.Building) && need.Source is not null &&
-            DeliveryCanReach(actor, person.Position, need.Source.Position, ResourceInteractionRange));
+            CanReachLeg(actor, person.Position, need.Source.Position, ReachPurpose.GoodsDelivery, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
         return need?.Source is { } source ? (need.Building, "workstation_input", source) : null;
     }
 

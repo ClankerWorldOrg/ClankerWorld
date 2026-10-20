@@ -24,6 +24,11 @@ public sealed partial class WorldRuntime
         IsWithinInteractionRange(agents[actor].Position, target, range) ||
         Reach(actor, target, purpose, range, load, swimming, obstacles).Count > 0;
 
+    private bool CanReachLeg(string actor, GridPoint origin, GridPoint target, ReachPurpose purpose,
+        int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) =>
+        IsWithinInteractionRange(origin, target, range) ||
+        ReachLeg(actor, origin, target, purpose, range, load, swimming, obstacles).Count > 0;
+
     private ReadOnlyCollection<GridPoint> HarvestReturnRoute(string actor, MapResource source, GridPoint destination,
         ReachPurpose purpose, int load, int destinationRange = 0)
     {

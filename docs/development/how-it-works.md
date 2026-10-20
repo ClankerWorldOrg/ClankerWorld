@@ -518,6 +518,8 @@ through the same reach service, with explicit purpose, load and swimming policy.
 Order routing uses the same service for cart, custody, delivery, expansion,
 field, material, movement, shelter, storage, conversation and tree-planting work.
 Its delivery, field, material and shelter helpers retain explicit future origins.
+Those orders share one prospective-leg boolean reach query, including the
+original in-range shortcut, rather than maintaining separate route predicates.
 Route-call scanning covers bare calls, member calls
 and conditional member calls, so adapters cannot bypass the source inventory.
 The animal world port exposes no unused direct route search; animal action

@@ -176,7 +176,7 @@ public sealed partial class WorldRuntime
 
     private GridPoint? ReachableHallShelterPoint(string actor, GridPoint origin, PlacedBuilding hall) =>
         WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == hall.DefinitionId), hall)
-            .Where(point => map.IsPassable(point) && ShelterRouteIsOpen(actor, origin, point))
+            .Where(point => map.IsPassable(point) && CanReachLeg(actor, origin, point, ReachPurpose.WarmthProtection, 0, 0, SwimmingPolicy.WhenCapable))
             .OrderBy(point => map.FootDistance(origin, point)).ThenBy(point => point.Y).ThenBy(point => point.X)
             .Select(point => (GridPoint?)point).FirstOrDefault();
 

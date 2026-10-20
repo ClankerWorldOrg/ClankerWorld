@@ -18,9 +18,6 @@ public sealed partial class WorldRuntime
         _ => throw new ArgumentOutOfRangeException(nameof(action)),
     };
 
-    private bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) =>
-        IsWithinInteractionRange(from, destination, range) || ReachLeg(actor, from, destination, ReachPurpose.FieldWork, range, 0, SwimmingPolicy.WhenCapable).Count > 0;
-
     private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
@@ -40,7 +37,7 @@ public sealed partial class WorldRuntime
                 .OrderBy(point => map.FootDistance(person.Position, point))
                 .ThenByDescending(point => queryFertility.At(point))
                 .ThenBy(point => point.Y).ThenBy(point => point.X)
-                .Cast<GridPoint?>().FirstOrDefault(point => CanWalkToFieldOrderSite(actor, person.Position, point!.Value));
+                .Cast<GridPoint?>().FirstOrDefault(point => CanReachLeg(actor, person.Position, point!.Value, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable));
         }
         return fields.Where(field => field.HouseholdId == household && field.Work is null &&
                 (order.TargetPosition is null || field.Position == order.TargetPosition) &&
@@ -49,7 +46,7 @@ public sealed partial class WorldRuntime
                     (kind == FarmWorkKind.Tend ? field.Stage == FarmFieldStage.Growing && !field.Tended : field.Stage == FarmFieldStage.Ready)))
             .OrderBy(field => map.FootDistance(person.Position, field.Position))
             .ThenBy(field => field.Position.Y).ThenBy(field => field.Position.X)
-            .Where(field => CanWalkToFieldOrderSite(actor, person.Position, field.Position) &&
+            .Where(field => CanReachLeg(actor, person.Position, field.Position, ReachPurpose.FieldWork, 0, 0, SwimmingPolicy.WhenCapable) &&
                 (kind != FarmWorkKind.Plant || !HasOtherAgentClaimedPlanting(field, actor) &&
                     PlantingStock(actor, field, order.TargetCropKind!, requirePickupRoute: true) is not null))
             .Select(field => (GridPoint?)field.Position).FirstOrDefault();

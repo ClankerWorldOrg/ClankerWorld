@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         var hasReachableSource = false;
         foreach (var source in known)
         {
-            if (!MaterialOrderRouteIsOpen(actor, person.Position, source.Position)) continue;
+            if (!CanReachLeg(actor, person.Position, source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable)) continue;
             hasReachableSource = true;
             if (!CanGatherFromSource(actor, order.TargetMaterialKind!, source, toolCache) ||
                 ProjectMaterialHarvest(actor, order.TargetMaterialKind!, source) is { } plan &&
@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         if (MaterialOrderTarget(instruction) is { } target)
         {
             if (!map.Contains(target) || IsWithinInteractionRange(person.Position, target, ResourceInteractionRange) ||
-                !MaterialOrderRouteIsOpen(actor, person.Position, target))
+                !CanReachLeg(actor, person.Position, target, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
                 return null;
             return new CognitionCandidate("inspect_material_site", "Travel to observe the material site named by this order.", 0);
         }
@@ -62,10 +62,6 @@ public sealed partial class WorldRuntime
     private GridPoint? MaterialOrderTarget(OwnerQueuedInstruction instruction) =>
         instruction.Task!.TargetPosition ?? (instruction.Task.TargetResourceId is { } id
             ? map.Resources.SingleOrDefault(source => source.Id == id)?.Position : null);
-
-    private bool MaterialOrderRouteIsOpen(string actor, GridPoint position, GridPoint target) =>
-        IsWithinInteractionRange(position, target, ResourceInteractionRange) ||
-        ReachLeg(actor, position, target, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0;
 
     private void ExecuteMaterialOrderStep(OwnerQueuedInstruction instruction, AgentState person, string candidate)
     {
