@@ -12,13 +12,12 @@ public sealed partial class ParenthoodTests
         var directory = Directory.CreateTempSubdirectory("descendant-logs-");
         try
         {
-            var state = await PreparedState();
-            var first = state.Agents[0].AgentId;
-            using var preparing = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
-            for (var tick = 0; tick < 605 && preparing.Society.Births.Count == 0; tick++) await preparing.AdvanceOneTickAsync();
+            using var preparing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await BirthBeforeDueTick.Value), _ => new ParentProvider("safe_idle"));
+            preparing.Resume();
+            Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
             var child = Assert.Single(preparing.Society.Births).ChildId;
             Assert.Contains(':', child);
-            state = preparing.ExportState();
+            var state = preparing.ExportState();
             state = state with
             {
                 Agents = state.Agents.Select(person => person.AgentId == child ? person with
