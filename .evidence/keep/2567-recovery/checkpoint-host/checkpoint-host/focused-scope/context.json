@@ -42,7 +42,53 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running"
+      "status": "passed",
+      "finished": "2026-10-21T22:55:34.459635+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/focused-scope/baseline/49e47369-fd83-45f1-b3d1-3a3cdd5d08d4/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-checkpoint-host",
+      "started": "2026-10-21T22:55:34.686029+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/focused-scope/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T22:57:18.844590+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/focused-scope/final/7a7df183-2d4a-4e1c-9375-e5d674d8dec3/coverage.cobertura.xml"
     }
-  ]
+  ],
+  "comparator": "Base/head version includes merged87d657e2/#2643 comparator. No main merge/source/settings/report edits.",
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "loss_review": {
+    "all_lost_line_lists": [],
+    "all_reduced_branch_lists": [],
+    "comparison_passed": true,
+    "total_lines": "20132/77870",
+    "total_collector_branches": "15245/88372",
+    "absolute_deltas_pp": 0,
+    "relative_deltas": "0 where baseline rate>0; undefined for zero-baseline linked-source assembly."
+  }
 }

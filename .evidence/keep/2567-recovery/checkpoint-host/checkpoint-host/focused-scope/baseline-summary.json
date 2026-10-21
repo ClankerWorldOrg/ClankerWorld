@@ -1,0 +1,29 @@
+{
+  "files": [
+    "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 10,
+  "executed_cases": 10,
+  "declarations": 3,
+  "outcomes": {
+    "Passed": 10
+  },
+  "total_seconds": 82.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+      "seconds": 49.3,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+      "seconds": 27.7,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick",
+      "seconds": 5.4,
+      "cases": 1
+    }
+  ]
+}

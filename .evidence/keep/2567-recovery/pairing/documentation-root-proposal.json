@@ -1,0 +1,25 @@
+{
+  "state": "Read-only candidate approved; no edits before2664ready.",
+  "base": "f3c488ba",
+  "scope": [
+    "Documentation/DocumentationTests.cs",
+    "Architecture/RuntimeWriterScan.RepositoryRoot unchanged shared proof"
+  ],
+  "reader": "185bf8a4/conversation_verifier",
+  "equivalence": "Same new DirectoryInfo(AppContext.BaseDirectory), nearest ClankerWorld.sln marker, FullName, Parent traversal, noncached lookup, identical exhausted-search DirectoryNotFoundException/message. Root access does not evaluate Lazy compilation fromready2626.",
+  "plan": "Replace4privatehelpercalls with RuntimeWriterScan.RepositoryRoot; delete17lineFindRepositoryRoot plusblank; keep every assertion/method/row/generatedregex/CIroute.",
+  "proofs": [
+    "DocumentationFilesDeclareTheirAuthorityMetadata (LF,CRLF)",
+    "LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+    "ChangelogEntriesStartWithABullet",
+    "GameDesignPagesDescribeTheDesignNotWhatIsBuilt"
+  ],
+  "cases": 5,
+  "methods": 4,
+  "history": [
+    "be8d2c13",
+    "f7cd20f3",
+    "d3062821"
+  ],
+  "coverage_scope": "WholeDocumentationTests class; supportgetter implementation unchanged so no otherusersaffected; all proof cases included."
+}

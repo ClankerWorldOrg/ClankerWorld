@@ -46,7 +46,8 @@
       "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
       "head": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
       "line_delta": "tests+13/-45;source/docs0;335to303",
-      "status": "Draft; build/unused169same/discovery/ledger/staledocs/openPR49+48comparisons and exactdiffreader pass. Scoped2class/10case/3method coverage pair running session7195. Normalformat/CI/counttimes pending."
+      "status": "All localchecks PASS; normalformat52902exit0; scoped10cases3methods before/afterpass identical0loss. Only exactheadCI39689844637/counttiming pending; no sourcechanges/retest/merge.",
+      "ci": 39689844637
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -56,8 +57,8 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2664only remaining scopedcoverage/normalformat/CI+timings once; do notremeasurecompletedchecks ormergemainwithoutconflict.",
-    "Thencontinue2567; readytotal163, draft32."
+    "Finish2664 exact-head CI and CI counts/timings only. All local checks have passed; do not repeat them.",
+    "Then independent DocumentationTests repository-root helper reuse, unless higher-priority work is available."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -67,7 +68,7 @@
     "root": "/workspace/cw-2567-checkpoint-host",
     "branch": "codex/2567-checkpoint-host-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
-    "status": "PR2664 draft; sourcecommitted4017bc10 andpushed; build/unused/discovery/ledger/staledocs/overlap/reader pass; coverage session7195.",
+    "status": "All localchecks PASS; normalformat52902exit0; scoped10cases3methods before/afterpass identical0loss. Only exactheadCI39689844637/counttiming pending; no sourcechanges/retest/merge.",
     "evidence": ".evidence/keep/2567/checkpoint-host",
     "claim_comment": "latest signedbranch continuation on2567"
   }
