@@ -1,0 +1,83 @@
+{
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+  "owner_instruction": "Affected scope only, in one filter, before/after; no full suite. User request naming2656 applies now.",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStoreTests.",
+  "scope_rationale": "Only OwnerAuthorityStoreTests changes. Every method in its class, including both deleted facts and every ledger retained proof, is selected. No shared support changes.",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-current-main",
+      "started": "2026-10-21T21:42:50.050466+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStoreTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/focused-scope-2590/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T21:43:57.531598+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/focused-scope-2590/baseline/a585e0db-c811-4f5d-9bcf-1523d88ff13e/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-pairing",
+      "started": "2026-10-21T21:44:58.415550+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStoreTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/focused-scope-2590/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T21:45:44.148349+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/focused-scope-2590/final/d7c9b3b4-3dfa-441d-8583-6e7d85b063b4/coverage.cobertura.xml"
+    }
+  ],
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "comparator": "Merged87d657e2 (#2643), read directly from git without merging main or changing source/settings/reports; fixes provably non-executable alias-only file validation.",
+  "loss_review": "Read every assembly lost_lines and reduced_branch_lines array: all empty. No isolated lost-line run required.",
+  "readiness": "READY2590 afterallgates"
+}

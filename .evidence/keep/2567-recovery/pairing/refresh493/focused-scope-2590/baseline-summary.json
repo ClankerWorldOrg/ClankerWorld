@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/focused-scope-2590/baseline/tests.trx"
+  ],
+  "reported_cases": 14,
+  "executed_cases": 14,
+  "declarations": 14,
+  "outcomes": {
+    "Passed": 14
+  },
+  "total_seconds": 0.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

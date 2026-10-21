@@ -3,10 +3,10 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "cdcefc0e (no rule change since493); owner direct instruction applies ahead of pending2652",
+  "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2590,
-  "ready_total": 0,
+  "current_focus": 2599,
+  "ready_total": 34,
   "proposed_test_lines": {
     "added": 54,
     "removed": 207,
@@ -17,7 +17,8 @@
       "root": "/workspace/cw-2567-pairing",
       "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
       "ci": 39653483913,
-      "line_delta": "tests+8/-42;source/docs0"
+      "line_delta": "tests+8/-42;source/docs0",
+      "status": "READY; exactheadCIallgreen; scoped14to12pass; 0lostlines/branches; no furtherpush/watch; independentreview/merge."
     },
     "2599": {
       "root": "/workspace/cw-2567-http",
@@ -32,17 +33,17 @@
       "line_delta": "tests+44/-88;source/docs0"
     }
   },
-  "pairing": "Allscopedchecks+normalfullformatpass. Firstbaseline interrupted byenvironmentrestart after4518passes/7skips/0failures,noTRXorCobertura. Original6DLL/PDBrestoredbyteverifiedagainstcollectorbackup. Recoveredfullbaseline/finalrunningdetachedsame49384790/f3f1cfdd,settings/SDK/prodbytes/DOTNET4/xUnit4; no source/configchanges ormainmerge.",
+  "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
   "later_drafts": "HTTPbuild/focus2/discovery/ledger/unused169to168nonew/hash4pass. HTTPformatter39058pausedSIGINTtofocusoldest. Guardsbuild/focus14/discovery/ledger/unused169same/hash4pass; negativecontrols76094interrupted130tofocusoldest,isolatedsourceclean,nomutationproofclaimed. No furtherlaterchecks launcheduntil2590ready.",
   "CI": "All32TRXartifactsdownloadedrefresh493/{main,pr2590,pr2599,pr2626}-ci;counts/timesjson;test-timesall10growthrowspersonallyreadforall3. 2590+7%,2599+2%,2626-7%againstmainmedian; no aggregatewarning/speedupclaim. Guardgrowth12to41s ischanged;14group251to214s.",
   "recovery_branch": "codex/2567-audit-evidence-185bf8a4; noPR/nevermerge;JSON/TSV/textonly",
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2590normalformat",
-    "Fullbaseline493and2590final sequentialwithsameproductionbytes/settings/SDK/DOTNET4/xUnit4, noheavycompetingjobs",
-    "Readalllostlines/branches,comparecoverage;finalize2590body+markreadyaftergates;one-lineareatotal",
-    "Then2599,then2626; no newPRuntilallready"
+    "Finish2599pendingnormalformat+affectedclass/supportcaller/ledgerunionfilteredcoveragepairon49384790/6c0d4b8d; no remergeunlessGitHubconflict.",
+    "Then2626scopeallchangedclasses/helpercallers/ledgerproofs; negativecontrols/format stillpending.",
+    "No newPRuntilbothready; no further2590watch/push."
   ],
-  "coverage_runner": "/workspace/run-2590-coverage-recovered.py; PID37677,file refresh493/coverage-recovery.pid; logfile refresh493/coverage-recovery-runner.log; progress /workspace/read-coverage-progress.py. Oldexec71920 doesnotexist afterenvironmentrestart."
+  "coverage_runner": "/workspace/run-2590-coverage-recovered.py; PID37677,file refresh493/coverage-recovery.pid; logfile refresh493/coverage-recovery-runner.log; progress /workspace/read-coverage-progress.py. Oldexec71920 doesnotexist afterenvironmentrestart.",
+  "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests."
 }

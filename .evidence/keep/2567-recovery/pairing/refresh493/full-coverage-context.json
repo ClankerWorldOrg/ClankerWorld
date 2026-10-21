@@ -65,8 +65,10 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running",
-      "log": "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/baseline-full-coverage-recovered.log"
+      "status": "superseded by owner affected-scope coverage request",
+      "log": "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/baseline-full-coverage-recovered.log",
+      "finished": "2026-10-21T21:42:48.601144+00:00",
+      "reported_passes": 4206
     }
   ],
   "environment_recovery": "First baseline was killed by environment restart after4518passes. Original bytes verified/restored; no source/config/base change."
