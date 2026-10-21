@@ -202,11 +202,11 @@ public sealed partial class WorldFireOrderTests
     }
 
     [Fact]
-    public async Task RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder()
+    public async Task StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof()
     {
         var state = Prepared();
         using var world = Restore(state);
-        var receipt = Submit(world, Actor(state), "refused-fire", "light a fire");
+        var receipt = Submit(world, Actor(state), "strict-fire", "light a fire");
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -215,15 +215,6 @@ public sealed partial class WorldFireOrderTests
         using var replay = Reload(world);
         await TickTogether(world, replay);
         AssertPaidFire(world, receipt, Actor(state), House(state), "fire-wood");
-    }
-
-    [Fact]
-    public async Task StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof()
-    {
-        var state = Prepared();
-        using var world = Restore(state);
-        var receipt = Submit(world, Actor(state), "strict-fire", "light a fire");
-        await Tick(world);
         var order = Order(world, receipt);
         Assert.NotNull(order.ShelterCompletion);
         var saved = world.ExportState();
@@ -241,7 +232,7 @@ public sealed partial class WorldFireOrderTests
             {
                 Reservations = world.Society.Inventory.Reservations.Select(item => item.Id == paid.Id ? invalid : item).ToArray(),
             })));
-        using var replay = Reload(world);
-        Assert.Equal(order, Order(replay, receipt));
+        using var completedReload = Reload(world);
+        Assert.Equal(order, Order(completedReload, receipt));
     }
 }
