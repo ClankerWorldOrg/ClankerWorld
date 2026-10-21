@@ -366,30 +366,7 @@ public sealed partial class WorldStorageOrderTests
     {
         var state = Prepared();
         var actor = Actor(state);
-        var checkpoint = state.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
-                    {
-                        BirthTick = birth,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Child,
-                        LastLifecycleYearChecked = 4,
-                        CurrentRole = SocietyWorkRole.Unassigned,
-                    } : person).ToArray(),
-                }
-            },
-            Towns = state.Towns!.Select(town => town with
-            {
-                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != actor &&
-                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
-            }).ToArray(),
-        };
+        state = OrderChildFixture.AsChild(state, actor);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-child", kind, actor, 1));
         using var world = Restore(state);
         var receipt = Submit(world, actor, "child", $"store {kind}");
