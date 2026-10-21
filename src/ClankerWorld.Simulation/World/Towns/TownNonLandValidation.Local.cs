@@ -13,6 +13,9 @@ public static partial class TownNonLandValidation
         // Establish the shape of every file before any cross-case reference lookup.
         foreach (var item in state.Cases) Shape(item);
         foreach (var item in state.Cases) ValidateLocalCase(townId, item);
+        foreach (var item in state.Cases)
+            foreach (var finding in item.Findings) ValidateLocalFinding(item, finding);
+        foreach (var item in state.Cases) ValidateLocalReopening(item);
         foreach (var offer in state.Offers)
             Check(IdentityRules.Reference(offer.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(offer.CaseId, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(offer.FindingId, DerivedId.MaximumLength, requireTrimmed: true) && TownRemedyRules.ValidTerms(offer.Terms) &&
                 offer.Responses is not null && offer.Responses.All(r => r is not null), "A remedy offer must retain its typed terms and responses.");
@@ -50,6 +53,13 @@ public static partial class TownNonLandValidation
 
     private static void ValidateLocalCase(string townId, TownNonLandCase item)
     {
+        if (item.Judge is { } judge) ValidateLocalJudge(judge, item);
+        foreach (var term in item.JudgeHistory) ValidateLocalJudge(term.Judge, item);
+        foreach (var finding in item.Findings) ValidateLocalJudge(finding.Judge, item);
+        foreach (var request in item.ReopenRequests)
+            if (request.AssessedBy is { } assessor) ValidateLocalJudge(assessor, item);
+        foreach (var contest in item.ContestHistory.Concat(item.Contest is { } live ? [live] : []))
+            ValidateLocalContest(contest, item, ReferenceEquals(contest, item.Contest));
         Check(item.TownId == townId && item.Key == TownNonLandRules.CaseKey(townId, item.Allegation) &&
             item.Status is "pending" or "settled" && item.FiledTick >= item.Allegation.ConductTick,
             "A saved allegation must identify its actual Town, person, place and time.");
@@ -97,5 +107,80 @@ public static partial class TownNonLandValidation
         Unique(item.Responses.Select(TownNonLandRules.ResponseToken));
         Unique(item.Evidence.Select(e => e.Id));
         Unique(item.JudgeConsents.Where(c => c.WithdrawnTick is null).Select(c => c.AgentId));
+    }
+    private static void ValidateLocalContest(TownCaseJudgeContest contest, TownNonLandCase item, bool live)
+    {
+        Check(IdentityRules.Reference(contest.Id, DerivedId.MaximumLength, requireTrimmed: true) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
+            live == (contest.Stage is "waiting" or "voting") && contest.OpenedTick >= item.FiledTick &&
+            contest.Voters is not null && contest.Candidates is not null && contest.Ballots is not null && contest.TiedCandidates is not null &&
+            contest.Rounds is not null && contest.Rounds.All(r => r is not null), "A case election must retain its real rounds and status.");
+        Check(Canonical(contest.Voters) && Canonical(contest.Candidates) && Canonical(contest.TiedCandidates) &&
+            Ballots(contest.Voters, contest.Candidates, contest.Ballots) &&
+            contest.Round == contest.Rounds.Count + (contest.Stage == "voting" ? 1 : 0) &&
+            contest.Interruptions == contest.Rounds.Count(r => r.Result == "interrupted") &&
+            (live ? contest.SettledTick is null : contest.SettledTick >= contest.OpenedTick) &&
+            (contest.Stage != "voting" || contest.RoundOpenedTick >= contest.OpenedTick) &&
+            (contest.Stage != "waiting" || contest.RoundOpenedTick is null && contest.RoundDeadlineTick is null && contest.Voters.Count == 0 && contest.Candidates.Count == 0 && contest.Ballots.Count == 0),
+            "Case-election timing, ballots or status are inconsistent.");
+        string[]? tied = null;
+        for (var index = 0; index < contest.Rounds.Count; index++)
+        {
+            var r = contest.Rounds[index];
+            Check(r.Number == index + 1 && r.OpenedTick >= contest.OpenedTick && r.ClosedTick >= r.OpenedTick &&
+                r.Result is "tie" or "winner" or "failed" or "interrupted" or "cancelled" && Canonical(r.Voters) && Canonical(r.Candidates) &&
+                Canonical(r.TiedCandidates) && Ballots(r.Voters, r.Candidates, r.Ballots) &&
+                (tied is null || r.Candidates.All(tied.Contains)),
+                "Case-election rounds must preserve real ballots, time and the prior tie.");
+            var max = r.Candidates.Select(id => r.Ballots.Count(b => b.CandidateId == id)).DefaultIfEmpty().Max();
+            var top = max == 0 ? [] : r.Candidates.Where(id => r.Ballots.Count(b => b.CandidateId == id) == max).ToArray();
+            if (r.Result == "tie") { Check(top is [_, _, ..] && r.TiedCandidates.SequenceEqual(top), "A saved tie requires actual tied votes."); tied = top; }
+            if (r.Result == "winner") Check(top is [_] && top[0] == contest.WinnerId, "A case winner needs a unique positive vote count.");
+        }
+        Check(contest.Stage != "completed" || contest.Rounds.Count > 0 && contest.Rounds[^1].Result == "winner" && contest.WinnerId is { } winner && IdentityRules.Reference(winner, int.MaxValue, requireTrimmed: true), "A completed case election needs its actual winner.");
+    }
+
+    private static void ValidateLocalJudge(TownCaseJudge judge, TownNonLandCase item) =>
+        Check(judge is not null && IdentityRules.Reference(judge.AuthorityId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(judge.AgentId, int.MaxValue, requireTrimmed: true) && judge.AssignedTick >= item.FiledTick &&
+            (judge.Kind == "non_land_mayor" || judge.Kind == "case_elected" &&
+                item.ContestHistory.Any(c => c.Id == judge.AuthorityId && c.Stage == "completed" && c.WinnerId == judge.AgentId && c.SettledTick <= judge.AssignedTick)),
+            "A saved judge cannot invent a general or case-only mandate.");
+    private static void ValidateLocalReopening(TownNonLandCase item)
+    {
+        foreach (var request in item.ReopenRequests)
+        {
+            Check(IdentityRules.Reference(request.AgentId, int.MaxValue, requireTrimmed: true) && request.Tick >= item.FiledTick &&
+                request.Kind is "material_evidence" or "procedural_error" && request.Status is "pending" or "accepted" or "rejected" &&
+                BoundedText.IsValid(request.Reasons, 1024, requireTrimmed: true) && Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 &&
+                request.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= request.Tick)), "A reopening request must identify real submitted grounds.");
+            Check(request.Status == "pending" ? request.AssessedBy is null && request.AssessedTick is null && request.Assessment is null :
+                request.AssessedBy is not null && request.AssessedTick >= request.Tick && BoundedText.IsValid(request.Assessment, 1024, requireTrimmed: true),
+                "A reopening assessment needs its actual judge, time and reasons.");
+            if (request.AssessedBy is { } assessor)
+            {
+                Check(item.Reads.Any(r => r.AgentId == assessor.AgentId && r.ReadTick <= request.AssessedTick && r.ReopenRequestIds.Contains(request.Id)), "The assessing judge must actually read the reopening request.");
+                if (request.Status == "accepted") Check(request.Kind == "material_evidence" ?
+                    TownNonLandRules.MaterialNewEvidence(item, request) : TownNonLandRules.DemonstratedProceduralError(item, request), "Accepted reopening needs established grounds, not repeated disagreement.");
+            }
+        }
+    }
+    private static void ValidateLocalFinding(TownNonLandCase item, TownViolationFinding finding)
+    {
+        var revision = item.Revisions.SingleOrDefault(r => r.Number == finding.Revision);
+        Check(revision is not null && finding.Tick >= revision.PublishedTick &&
+            finding.Result is "supported" or "unsupported" && finding.Standard == TownNonLandRules.CivilStandard &&
+            finding.Consequence is "none" or "explanation" or "warning" or "censure" && BoundedText.IsValid(finding.Reasons, 1024, requireTrimmed: true) && BoundedText.IsValid(finding.Uncertainty, 1024, requireTrimmed: true) &&
+            Canonical(finding.EvidenceIds) && finding.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= finding.Tick)),
+            "A finding requires its noticed case, civil standard, sources, reasons and uncertainty.");
+        Check(!TownNonLandRules.RequiresNewNotice(revision, finding.Parties) &&
+            !TownNonLandRules.JudgeConflict(finding.Judge.AgentId, null, finding.Parties) &&
+            TownHearingProcedure.ResponsesClosed(revision.DeadlineTick, finding.Tick, finding.Parties.Select(p => (p.Id, p.RespondingAdultId)),
+                item.Responses.Where(r => r.Revision == finding.Revision).Select(r => (r.PartyId, r.AgentId, r.Tick))) &&
+            item.Reads.Any(r => r.AgentId == finding.Judge.AgentId && r.Revision == finding.Revision && r.ReadTick <= finding.Tick &&
+                item.Evidence.Where(e => e.SubmittedTick <= finding.Tick).All(e => e.SubmittedTick <= r.ReadTick && r.EvidenceIds.Contains(e.Id)) &&
+                item.Responses.Where(response => response.Revision == finding.Revision && response.Tick <= finding.Tick).All(response => response.Tick <= r.ReadTick && r.ResponseIds.Contains(TownNonLandRules.ResponseToken(response)))),
+            "A finding cannot bypass a current party's hearing or the judge's actual file read.");
+        Check(finding.Result == "unsupported" ? finding.Consequence == "none" : finding.Parties.All(p => p.RespondingAdultId is not null) &&
+            finding.EvidenceIds.Any(id => item.Evidence.Any(e => e.Id == id && TownNonLandRules.SupportsConduct(item, e))),
+            "Unsupported allegations or an unrepresented child cannot support an adverse finding.");
     }
 }

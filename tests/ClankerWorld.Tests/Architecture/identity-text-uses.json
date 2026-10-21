@@ -316,7 +316,6 @@
   "src/ClankerWorld.Simulation/World/Towns/TownLaws.cs|length|\u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownLaws.cs|length|rule.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownNonLandGovernmentFilingRules.cs|id|\u0022law_case:\u0022 \u002B TownHearingProcedure.Digest(new { request.Allegation.IncidentId, request.Allegation.LawId, request.Allegation.LawVersion })": 1,
-  "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs|length|top.Length \u003E 1": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs|id|ruling.Id \u002B \u0022:\u0022 \u002B lot.Id": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs|length|plot.Length \u003E 64": 1,
   "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectSites.cs|length|standing.Length \u003E 0": 1,
