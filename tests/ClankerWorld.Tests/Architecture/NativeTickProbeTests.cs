@@ -12,7 +12,7 @@ public sealed class NativeTickProbeTests
     [Theory]
     [InlineData(31, true)]
     [InlineData(61, false)]
-    public void CompleteNativeFramesUseOneBoundedScenarioBudget(int delayedSeconds, bool completes)
+    public async Task CompleteNativeFramesUseOneBoundedScenarioBudget(int delayedSeconds, bool completes)
     {
         var source = File.ReadAllText(Path.Combine(RuntimeWriterScan.RepositoryRoot, "scripts/compare-tick-equivalence.cs"));
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
@@ -35,11 +35,14 @@ public sealed class NativeTickProbeTests
         try
         {
             var assembly = context.LoadFromStream(compiled);
+            var entry = compilation.GetEntryPoint(CancellationToken.None)!;
+            var method = assembly.GetType(entry.ContainingType.ToDisplayString())!
+                .GetMethod(entry.MetadataName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!;
             string[] arguments = [directory.FullName, "town-project-real-donation", "2", "legacy", "test", ""];
-            void Run() => assembly.EntryPoint!.Invoke(null, [arguments]);
+            Task Run() => Assert.IsAssignableFrom<Task>(method.Invoke(null, [arguments]));
             if (completes)
             {
-                Run();
+                await Run();
                 var frames = Path.Combine(directory.FullName, "legacy-00");
                 Assert.Equal(3, Directory.GetFiles(frames, "*.checkpoint.gz").Length);
                 Assert.Equal(3, Directory.GetFiles(frames, "*.events.json").Length);
@@ -55,8 +58,7 @@ public sealed class NativeTickProbeTests
             }
             else
             {
-                var failure = Assert.Throws<TargetInvocationException>(Run);
-                Assert.IsAssignableFrom<OperationCanceledException>(failure.InnerException);
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(Run);
                 Assert.Single(Directory.GetFiles(directory.FullName, "*.checkpoint.gz", SearchOption.AllDirectories));
             }
         }
