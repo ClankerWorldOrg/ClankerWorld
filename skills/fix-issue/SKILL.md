@@ -142,8 +142,9 @@ comment keeps the issue ([Claims](../../CONTRIBUTING.md#claims)).
   its commits are older. Pushes to ready pull requests belong to their
   reviewers and don't count. A released issue goes back to `status:needs-pr`,
   unless it is blocked, a decision or an owner task, with a comment naming the
-  draft or branch to continue from. A release comes up to 30 minutes after the
-  1.5 hours, or later when GitHub starts a scheduled run late. To preview it,
+  draft or branch to continue from. Checks run on issue and pull request
+  closure and a half-hour schedule. GitHub can delay or drop scheduled runs,
+  so a release has no guaranteed deadline after the 1.5 hours. To preview it,
   run **Release stale claims** from Actions on `main` with its dry-run option;
   it runs only main's copy of the script.
 - **A claim lasts while its label is on**, however long ago you last pushed.
