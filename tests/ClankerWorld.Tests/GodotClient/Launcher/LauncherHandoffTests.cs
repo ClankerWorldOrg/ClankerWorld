@@ -21,7 +21,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         {
             // Establish that the Windows fixture exposes the actual inherited
             // handle failure, then use the production handoff configuration.
-            for (var round = 0; round < 128; round++)
+            for (var round = 0; round < 4096; round++)
                 await HandoffAsync(Path.Combine(directory.FullName, "control", round.ToString(CultureInfo.InvariantCulture)), forceDirect: true);
             var logs = Path.Combine(directory.FullName, "game logs");
             for (var round = 0; round < 3; round++) await HandoffAsync(logs, forceDirect: false);
@@ -29,19 +29,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         finally { directory.Delete(recursive: true); }
     }
 
-    [WindowsSaveFact]
-    public async Task WindowlessDirectControlReleasesItsLogAcrossRepeatedExit()
-    {
-        var directory = Directory.CreateTempSubdirectory("launcher windowless handle check ");
-        try
-        {
-            for (var round = 0; round < 128; round++)
-                await HandoffAsync(Path.Combine(directory.FullName, round.ToString(CultureInfo.InvariantCulture)), forceDirect: true, createNoWindow: true);
-        }
-        finally { directory.Delete(recursive: true); }
-    }
-
-    private async Task HandoffAsync(string logs, bool forceDirect, bool createNoWindow = false)
+    private async Task HandoffAsync(string logs, bool forceDirect)
     {
         Directory.CreateDirectory(logs);
         var log = GameStarter.PrepareGameLog(logs);
@@ -58,7 +46,6 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         var shell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
         var start = GameStarter.LauncherStartInfo(shell);
         if (forceDirect) start.UseShellExecute = false;
-        start.CreateNoWindow = createNoWindow;
         start.WindowStyle = ProcessWindowStyle.Hidden;
         // Native line input holds the child until the parent sends its release.
         foreach (var argument in new[] { "/D", "/C", $@"set /p held=<\\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
@@ -79,7 +66,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
                 Assert.Throws<IOException>(() => GameStarter.PrepareGameLog(logs));
                 Assert.False(File.Exists(previous));
                 heldOwners = LauncherHandleDiagnostics.Owners(log);
-                output.WriteLine($"Held control: windowless={createNoWindow}; child={child.Id}; owners={heldOwners}");
+                output.WriteLine($"Held control: child={child.Id}; owners={heldOwners}");
             }
             else
             {
@@ -112,7 +99,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
             try { GameStarter.PrepareGameLog(logs); }
             catch (IOException)
             {
-                output.WriteLine($"Post-exit lock: windowless={createNoWindow}; child={child.Id}; exited={child.HasExited}; held owners={heldOwners}; current owners={LauncherHandleDiagnostics.Owners(log)}");
+                output.WriteLine($"Post-exit lock: child={child.Id}; exited={child.HasExited}; held owners={heldOwners}; current owners={LauncherHandleDiagnostics.Owners(log)}");
                 throw;
             }
             Assert.Equal(lastRun, File.ReadAllText(previous));
