@@ -2,11 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<TownAdmissionChoice, TownAdmissionActionPlan> TownAdmissionDefinition => CivicAccessActions.TownAdmission;
-    private static ActionDefinition<TownFoundingChoice, TownFoundingActionPlan> TownFoundingDefinition => CivicAccessActions.TownFounding;
-    private static ActionDefinition<CivicNoticeChoice, CivicNoticeActionPlan> CivicNoticeDefinition => CivicAccessActions.CivicNotice;
-    private static ActionDefinition<CivicVisitChoice, CivicVisitActionPlan> CivicVisitDefinition => CivicAccessActions.CivicVisit;
-
     private static class CivicAccessActions
     {
         internal static readonly ActionDefinition<TownAdmissionChoice, TownAdmissionActionPlan> TownAdmission = new(

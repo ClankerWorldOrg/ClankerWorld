@@ -148,6 +148,7 @@ yours before you start: it holds that job's rules and says where the job ends.
 | Fix issues | [fix-issue](skills/fix-issue/SKILL.md) | Its pull request is ready for review and linked to its issues |
 | Review and merge | [review-merge](skills/review-merge/SKILL.md) | The change is on main, main's CI passes on it, its issues are closed or updated, and what waited on it is unblocked |
 | Owner requests | [design-decisions](skills/design-decisions/SKILL.md) for design questions and answers, and the pull request steps in [fix-issue](skills/fix-issue/SKILL.md#prepare-a-pull-request) for any pull request | The requested pull request is ready, or a draft if the owner asked for one, or decisions are recorded |
+| Repo steward | [repo-steward](skills/repo-steward/SKILL.md) | The owner has their answer, what they decided is recorded, and the work they asked for is with a session or in a pull request |
 
 - **Owner requests:** the owner asks you directly for something, such as a
   change to how the repository works or a set of decisions. It needs no issue

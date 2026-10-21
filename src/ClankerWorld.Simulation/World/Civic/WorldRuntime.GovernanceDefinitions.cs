@@ -12,12 +12,6 @@ public sealed partial class WorldRuntime
             (world, original, policy) => check(world.civicWorld, original, policy),
             ApplyCivicPlan);
 
-    private static ActionDefinition<MayoralBallotChoice, MayoralBallotActionPlan> MayoralBallotDefinition => GovernanceActions.MayoralBallot;
-    private static ActionDefinition<GovernmentOfficeChoice, GovernmentOfficeActionPlan> GovernmentOfficeDefinition => GovernanceActions.GovernmentOffice;
-    private static ActionDefinition<GovernmentProposalChoice, GovernmentProposalActionPlan> GovernmentProposalDefinition => GovernanceActions.GovernmentProposal;
-    private static ActionDefinition<TownPolicyChoice, TownPolicyActionPlan> TownPolicyDefinition => GovernanceActions.TownPolicy;
-    private static ActionDefinition<TownLawChoice, TownLawActionPlan> TownLawDefinition => GovernanceActions.TownLaw;
-    private static ActionDefinition<CivicProposalVoteChoice, CivicProposalVoteActionPlan> CivicProposalVoteDefinition => GovernanceActions.CivicProposalVote;
 
     private static class GovernanceActions
     {
