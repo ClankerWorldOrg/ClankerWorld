@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.IO.Pipes;
 using ClankerWorld.GodotClient.Launcher;
@@ -21,7 +22,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
             // Establish that the Windows fixture exposes the actual inherited
             // handle failure, then use the production handoff configuration.
             for (var round = 0; round < 128; round++)
-                await HandoffAsync(Path.Combine(directory.FullName, "control"), forceDirect: true);
+                await HandoffAsync(Path.Combine(directory.FullName, "control", round.ToString(CultureInfo.InvariantCulture)), forceDirect: true);
             var logs = Path.Combine(directory.FullName, "game logs");
             for (var round = 0; round < 3; round++) await HandoffAsync(logs, forceDirect: false);
         }
@@ -35,7 +36,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         try
         {
             for (var round = 0; round < 128; round++)
-                await HandoffAsync(directory.FullName, forceDirect: true, createNoWindow: true);
+                await HandoffAsync(Path.Combine(directory.FullName, round.ToString(CultureInfo.InvariantCulture)), forceDirect: true, createNoWindow: true);
         }
         finally { directory.Delete(recursive: true); }
     }
