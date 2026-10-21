@@ -1,0 +1,60 @@
+## Summary
+
+Reuse the existing content fixture, remove an obsolete crop-test chooser and an unreachable reload arm, and inline two forwarding waits. Keep every test and assertion while five files shrink from **2,354 to 2,254 lines**. No helper is added.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent frozen base **7fbe6800**, head **6713dcef**. No other cleanup draft is included; GitHub reports no conflict with main.
+- Lines added / removed: source **0 / 0**; tests **25 / 125** (net **−100**); docs **0 / 0**.
+- All **54 cases / 39 methods** in the changed files remain. The single-row theory becomes a Fact with its only executed path preserved.
+- One identical coverage filter includes all of `WorldRuntimeTests`, `WorldConversationTests`, `WorldDeferredCognitionTests` and `WorldMarriageOrderTests`, including every partial file, changed-support user and ledger proof: **263 cases / 148 methods** on the baseline.
+- Follow owner [#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652) and [#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656): finish existing drafts oldest first, keep the base absent a conflict, and measure affected-test coverage once per side.
+
+## Retained proof
+
+`MaterialPackage(durationTicks: 10)` preserves the kitchen dimensions/capacity, wood construction costs/input, meal output, food tag and duration. Arbitrary fixture identity/display labels change; activation, next-tick behavior, definitions, strict reload and quarantine assertions remain.
+
+The crop test explicitly calls `StartProduction` and requires the tilled-field refusal, unchanged state and strict reload. `ProductionSystem.Start` rejects crop recipes before workstation/worker/material validation. The old build-selecting provider was left behind by 333fa635 when this scenario became a direct refusal check.
+
+All nine naming-fixture callers chose quiet peers, so its false option is dead. The removed marriage/talk helpers only forwarded to `ModelWorkHarness.WaitForExistingAsync`; all four call sites now await it directly. The cancellation `reload=true` row was already removed by e88c5658 (#864); the false row becomes a Fact, with both provider releases preserved in `finally`.
+
+Fresh whole-file review confirms every assertion-bearing line is preserved after normalizing the dead `resumeWorld` alias, including every changed multiline assertion. The 39-entry ledger retains every test. Full records are on `codex/2560-audit-evidence-cc8e0ec0`; never merge that branch.
+
+## Checks
+
+Completed on the frozen base/head:
+
+- SDK **10.0.401**, locked restore; production source unchanged.
+- Assertion/fixture/history review, stale-text search and `git diff --check` pass.
+- Validated before/after merge-tree checks against all **47 other PR heads in the fetched open-PR snapshot** introduce no new conflicting files; every required object is present.
+- [Verify 39655120642](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119421424994](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642/job/119421424994), including all ten growth rows: **14,975 s** versus main's recent **14,807 s** median (**+1%**). No general speedup is claimed.
+- CI artifacts: changed-file scope **54/39 → 54/39 cases/methods**, **48.364 → 33.860 s**. Frozen-base CI totals **7,413/3,307 / 15,810.993 s**; head merge-tree totals **7,423/3,311 / 14,975.403 s**, with 7,414 passed and nine platform skips. Unrelated route/native-probe additions explain the extra ten cases and four declarations.
+
+Remaining checks, run once:
+
+- Release build with unused-code diagnostics is running; compare new warnings and remove the temporary editorconfig.
+- Built discovery and retained-proof ledger, production DLL/PDB pinning and immutable output snapshot.
+- Local `dotnet format --verify-no-changes --no-restore`.
+- Baseline scoped coverage is running; run the head with the identical filter/settings/scheduling after its build. This includes all 54 focused cases without a redundant second execution.
+- Compare using aliases-aware checker `87d657e2` with `--threshold-scope each`, inspect every loss, and isolate its retained test if needed.
+
+No executed case is removed, so no new per-method deletion-planning run is needed. No support used by most tests changes, so full-suite coverage is unnecessary. Mark ready promptly after the remaining checks pass; CI is already green.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior are unchanged.
+
+Native naming, cancellation, content lifecycle and conversation replay assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- [x] Stale-text review passes; no changelog needed for test-only cleanup.
+- In-game playtest: not run; test-only change. Independent review remains after readiness.

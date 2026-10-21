@@ -19,8 +19,8 @@
   "no_new_pr_until_all_ready": true,
   "no_main_merge_without_GitHub_conflict": true,
   "pending_running_full_suite_sessions": {},
-  "ci_green": 39654294505,
-  "note": "Active #2624 next; source/build checks not yet started. Stop watching all five ready PRs. No main refresh; no new PR until all nine ready.",
+  "ci_green": 39655120642,
+  "note": "Active #2624 only. Frozen7fbe6800/head6713dcef. Unused build77442 running; baseline scoped46481 running263cases148methods. All54cases39methods retained; after build finish IDE diff/remove config/pin4production binaries/snapshot/discovery+ledger then start head scoped and format. Do not repeat completedCI/source/history/assertion review/conflict47 checks. CI39655120642green; timing119421424994 all10rows read. Old full-suite coverage plan superseded by owner#2656.",
   "interruption": {
     "recorded_at": "2026-10-21T20:25:56.680801+00:00",
     "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
@@ -49,7 +49,10 @@
   "owner_scoped_coverage_rule": "#2656",
   "full_suite_required": false,
   "full_recovery_stopped_per_owner": true,
-  "scoped_sessions": {},
+  "scoped_sessions": {
+    "baseline": 46481,
+    "unused_build": 77442
+  },
   "ready_prs": [
     2595,
     2604,

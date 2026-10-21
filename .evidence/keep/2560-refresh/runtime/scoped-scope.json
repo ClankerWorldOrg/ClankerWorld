@@ -1,0 +1,18 @@
+{
+  "base": "7fbe6800",
+  "head": "6713dcef",
+  "classes": [
+    "ClankerWorld.Tests.WorldConversationTests",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests",
+    "ClankerWorld.Tests.WorldMarriageOrderTests",
+    "ClankerWorld.Tests.WorldRuntimeTests"
+  ],
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldConversationTests.|FullyQualifiedName~ClankerWorld.Tests.WorldDeferredCognitionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldMarriageOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.",
+  "before": {
+    "cases": 263,
+    "methods": 148
+  },
+  "ledger_methods": 39,
+  "SDK": "10.0.401",
+  "threads": 4
+}
