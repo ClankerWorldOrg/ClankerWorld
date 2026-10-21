@@ -82,13 +82,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected hearth is out of reach now");
     }
 
-    private void ApplyFirePlan(FireActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedFirePlan(plan);
-    }
-
     private void ApplyCheckedFirePlan(FireActionPlan plan)
     {
         switch (plan.Fuel)
@@ -157,13 +150,6 @@ public sealed partial class WorldRuntime
         }
         return Reach(plan.Actor, plan.Destination, ReachPurpose.WarmthProtection, plan.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected warmth destination is out of reach now");
-    }
-
-    private void ApplyWarmthPlan(WarmthActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedWarmthPlan(plan);
     }
 
     private void ApplyCheckedWarmthPlan(WarmthActionPlan plan)

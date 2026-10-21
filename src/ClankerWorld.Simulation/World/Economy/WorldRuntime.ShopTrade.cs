@@ -158,9 +158,6 @@ public sealed partial class WorldRuntime
     private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer) =>
         marketSystem.ShopTradeFailure(MarketShopWorld, trade, offer);
 
-    private void ReplaceShopTrade(ShopTradeState trade) =>
-        marketSystem.RecordShopTrade(trade);
-
     private void CancelShopTrade(ShopTradeState trade, DirectBarterOffer offer, string reason) =>
         marketSystem.CancelShopTrade(MarketShopWorld, trade, offer, reason);
 

@@ -47,7 +47,6 @@ public sealed partial class WorldRuntime
             }
         }
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
-        public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
@@ -90,9 +89,6 @@ public sealed partial class WorldRuntime
                 string? sourceLotId = null) => runtime.PersonalWarehouseSurplus(actor, itemKind, sourceLotId);
         public PlacedBuilding? Port(string id) => runtime.Port(id);
         public IEnumerable<InventoryLot> PreferredFood(string owner, string? actor = null) => runtime.PreferredFood(owner, actor);
-        public void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null) => runtime.RepairEquipment(actor, person, requestedLotId, orderInstructionId);
-        public string? RepairTool(string actor, AgentState state, string lotId,
-                IReadOnlyList<string>? protectedToolIds = null) => runtime.RepairTool(actor, state, lotId, protectedToolIds);
         public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
         public IReadOnlyList<TownLandTitleRecord> TownLandTitles { get => runtime.townLandTitles; }
         public bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan) => WorldRuntime.TownProjectDemandIsCurrent(town, plan);
@@ -155,7 +151,6 @@ public sealed partial class WorldRuntime
         }
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
-        public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);
         public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);
         public void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding) => runtime.GenerateRoadBetweenTowns(town, firstBuilding);
         public bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming) => runtime.CanReachTerrain(actor, target, purpose, load, swimming);

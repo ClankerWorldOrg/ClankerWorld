@@ -19,17 +19,11 @@ public sealed partial class WorldRuntime
     private bool ReadyToBoard(string actor) =>
         TransportSystem.ReadyToBoard(BoatWorld, actor);
 
-    private bool IsActiveTownProjectDeliveryForActor(string actor) =>
-        TransportSystem.IsActiveTownProjectDeliveryForActor(BoatWorld, actor);
-
     private bool CanUseTownBoat(string townId, string actor) =>
         TransportSystem.CanUseTownBoat(BoatWorld, townId, actor);
 
     private GridPoint? AvailablePortLanding(PlacedBuilding port, string passenger) =>
         TransportSystem.AvailablePortLanding(BoatWorld, port, passenger);
-
-    private IReadOnlyList<GridPoint> BoatWaterRoute(GridPoint origin, GridPoint dock, string? boatId = null) =>
-        TransportSystem.BoatWaterRoute(BoatWorld, origin, dock, boatId);
 
     private IEnumerable<BoatTripChoice> BoatTripChoices(string actor) =>
         TransportSystem.BoatTripChoices(BoatWorld, actor);
@@ -68,16 +62,11 @@ public sealed partial class WorldRuntime
     private BoatTripRequest QueueBoatTrip(string actor, BoatTripChoice choice, string? orderInstructionId = null) =>
         TransportSystem.QueueBoatTrip(BoatWorld, actor, choice, orderInstructionId);
 
-    private void SetBoatRequest(BoatTripRequest request) => transportSystem.RecordBoatRequest(request);
-
     private void ProcessBoatQueue() =>
         TransportSystem.ProcessBoatQueue(BoatWorld);
 
     private void ProcessBoatTransport(long tick) =>
         TransportSystem.ProcessBoatTransport(BoatWorld, tick);
-
-    private void WaitOrRecoverBoat(BoatState boat, long tick) =>
-        TransportSystem.WaitOrRecoverBoat(BoatWorld, boat, tick);
 
     private string? RecordBoatDeath(string actor) =>
         TransportSystem.RecordBoatDeath(BoatWorld, actor);
