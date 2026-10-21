@@ -37,7 +37,7 @@ Completed on the fixed base/head:
 - Pinned SDK **10.0.401**, locked restore and Release build.
 - Before/after unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**, zero build errors; temporary editorconfig removed.
 - Built discovery and retained-proof ledger pass.
-- **236 focused cases pass**, zero skips. All four retained-proof methods also pass individually with coverage: **11 cases**, zero failures.
+- **236 focused cases pass**, zero skips. The original **41 methods / 244 cases** and all four retained-proof methods (**11 cases**) pass individually with coverage, zero failures. Replacing the consolidated declarations and their old sibling measurements with the retained methods preserves **22,639 covered lines** and **18,219 mapped-branch lower bounds**, with no lost line or reduced branch lower bound. Full-suite collector totals remain authoritative.
 - Full `dotnet format --verify-no-changes --no-restore`, stale-text search and `git diff --check` pass.
 - Before/after merge-tree comparisons against all 45 open PR heads at the push introduce no new conflicting files.
 - [Verify 39648546125](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125) is fully green: all eight shards, native Windows/documentation/storage, Godot/format/export/package, actual installer/removal and final verify.
@@ -45,8 +45,6 @@ Completed on the fixed base/head:
 - CI artifacts were read separately: main's exact-commit queue run **39642906296** reports **7,413 cases / 3,307 methods / 15,811 s**; this PR's CI reports **7,413 / 3,306 / 15,942 s**. The PR CI merge tree includes three unrelated route-test methods/eight cases added after the frozen base. Those additions explain why its total case count does not show this draft's eight-case consolidation.
 
 Still pending, already running once:
-
-- Finish the original **41-method** per-test coverage measurements.
 - Finish the full Release covered baseline and final runs with identical settings, SDK, Linux scheduling (`xUnit.MaxParallelThreads=1`) and pinned production DLL/PDB bytes.
 - Run the coverage comparator and inspect every lost line/branch, attributing any variation to retained per-test proof before readiness.
 

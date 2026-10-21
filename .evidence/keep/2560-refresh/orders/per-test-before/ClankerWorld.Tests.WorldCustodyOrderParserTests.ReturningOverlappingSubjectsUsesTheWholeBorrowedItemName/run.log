@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName/test.trx
+
+Passed!  - Failed:     0, Passed:     9, Skipped:     0, Total:     9, Duration: 531 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName/3cf695dd-ae85-4508-a618-0bcc649020cc/coverage.cobertura.xml

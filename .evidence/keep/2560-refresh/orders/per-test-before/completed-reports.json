@@ -153,5 +153,55 @@
     "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CancelledRepeatingStorageKeepsCompletedLoadsAndLeavesQueuedCollectionToRun",
     "raw_sha256": "0191d666b07c96df8647ecf5011798ac5cd02e81759b6b6c58bdc5c08a400143",
     "compressed_bytes": 1880124
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding",
+    "raw_sha256": "4c44cce4306179ca6f723b5ac5c24cf205627dad892c99d07641a68bcbac7dbf",
+    "compressed_bytes": 1771804
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning",
+    "raw_sha256": "cb14ff91c2a56403fad62083fbd2864efff5422c39cc0947b7620f143cf70ac0",
+    "compressed_bytes": 1770643
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.ExactGoodsNamesSelectPersonalCustodyWithoutRequiringProductionContent",
+    "raw_sha256": "eafa7ec3adb0bf17156ab8d3e369a88f41de1ad23115d244d1db2c56456ddeb3",
+    "compressed_bytes": 1782629
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.ExistingSubjectsKeepTheirSpecializedActions",
+    "raw_sha256": "f0e83b80cd45b9a806582c58e5a86961163b1d96f41c0b855956e5543c776349",
+    "compressed_bytes": 1771522
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.NewGoodsCannotBroadenOtherActionsOrPartiallyReplaceTheCurrentOrder",
+    "raw_sha256": "e8af47da10e492127f9bcab4585efbd55e2d7c0484a0afb6169345768f9a5a69",
+    "compressed_bytes": 1772247
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName",
+    "raw_sha256": "f6213af9c8f54c8d95e36d8a5e01fd21ed6ff604e6df4f5568cd80c5ecc53387",
+    "compressed_bytes": 1770687
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.UnresolvedCustodyTargetsRoundTripAndMalformedBindingsAreRefused",
+    "raw_sha256": "ddd0a4d38b3e77710b56c5642a15e73a483cd8f83eace7cbe01235597a7242ec",
+    "compressed_bytes": 1789189
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CustodySavesRejectAnAgentTarget",
+    "raw_sha256": "6e103653bdfc8f46c0be30906ecdc31bebfceba28033da4b27bf88436f94f00a",
+    "compressed_bytes": 1810223
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.StrictSavesRejectIncompleteDestinationBindingsAndWrongGoodsContracts",
+    "raw_sha256": "58cf67476e20c75ee59fcdef376162555a9e76f7ee1d93552bdb6a5a32b40739",
+    "compressed_bytes": 1878806
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.UnsupportedLooseWaterNeverQueriesTheModelOrReplacesAnExistingOrder",
+    "raw_sha256": "35f4f5a07ca3066898dfefed82f82a1031e350086cb66a9217b81e74e0d3b561",
+    "compressed_bytes": 1876478
   }
 ]

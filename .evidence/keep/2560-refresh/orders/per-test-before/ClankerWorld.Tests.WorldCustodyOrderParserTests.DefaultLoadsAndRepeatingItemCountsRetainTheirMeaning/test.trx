@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="1594b7c3-55d0-4981-8514-8c2b9a2aabb6" name="@5705c3725d02 2026-10-21 19:29:04" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T19:29:04.8893910+00:00" queuing="2026-10-21T19:29:04.8893911+00:00" start="2026-10-21T19:27:42.8179858+00:00" finish="2026-10-21T19:29:04.9154631+00:00" />
+  <TestSettings name="default" id="eb551404-a34f-45bd-8d26-aa94d0553469">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_19_29_04" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="c4ba276d-f669-41a1-9063-db3494379267" testId="bdc431d3-893f-2ced-b4ee-f3d55bf6ac60" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;return borrowed cloth&quot;, action: &quot;return_borrowed&quot;, quantity: 1, progress: &quot;return_loads&quot;, explicitQuantity: False, repeat: False)" computerName="5705c3725d02" duration="00:00:00.0087354" startTime="2026-10-21T19:28:37.5499735+00:00" endTime="2026-10-21T19:28:37.5503468+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c4ba276d-f669-41a1-9063-db3494379267" />
+    <UnitTestResult executionId="95fdc4de-f6b7-4a7e-90f9-bb289f16026b" testId="06bef283-f992-9b77-86cc-27257e11b656" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;repeat return two borrowed cloth&quot;, action: &quot;return_borrowed&quot;, quantity: 2, progress: &quot;goods_items&quot;, explicitQuantity: True, repeat: True)" computerName="5705c3725d02" duration="00:00:00.0042950" startTime="2026-10-21T19:28:37.5545432+00:00" endTime="2026-10-21T19:28:37.5545980+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95fdc4de-f6b7-4a7e-90f9-bb289f16026b" />
+    <UnitTestResult executionId="99172d6b-3af4-430e-8d0d-51576ed0185f" testId="f912d652-e4a3-6f9a-01bf-241e146be3dd" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;keep storing cloth&quot;, action: &quot;store_goods&quot;, quantity: 1, progress: &quot;storage_loads&quot;, explicitQuantity: False, repeat: True)" computerName="5705c3725d02" duration="00:00:00.0049607" startTime="2026-10-21T19:28:37.5539329+00:00" endTime="2026-10-21T19:28:37.5539934+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="99172d6b-3af4-430e-8d0d-51576ed0185f" />
+    <UnitTestResult executionId="9784edfa-e0fb-4a5e-9bff-8fddc61b7fa6" testId="703677fb-21dc-3457-5cd0-46a7d41a788f" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;keep collecting cloth until cancelled&quot;, action: &quot;collect_goods&quot;, quantity: 1, progress: &quot;collection_loads&quot;, explicitQuantity: False, repeat: True)" computerName="5705c3725d02" duration="00:00:00.3743014" startTime="2026-10-21T19:28:37.2156579+00:00" endTime="2026-10-21T19:28:37.5216991+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9784edfa-e0fb-4a5e-9bff-8fddc61b7fa6" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;keep collecting cloth until cancelled&quot;, action: &quot;collect_goods&quot;, quantity: 1, progress: &quot;collection_loads&quot;, explicitQuantity: False, repeat: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="703677fb-21dc-3457-5cd0-46a7d41a788f">
+      <Execution id="9784edfa-e0fb-4a5e-9bff-8fddc61b7fa6" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;return borrowed cloth&quot;, action: &quot;return_borrowed&quot;, quantity: 1, progress: &quot;return_loads&quot;, explicitQuantity: False, repeat: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="bdc431d3-893f-2ced-b4ee-f3d55bf6ac60">
+      <Execution id="c4ba276d-f669-41a1-9063-db3494379267" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;repeat return two borrowed cloth&quot;, action: &quot;return_borrowed&quot;, quantity: 2, progress: &quot;goods_items&quot;, explicitQuantity: True, repeat: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="06bef283-f992-9b77-86cc-27257e11b656">
+      <Execution id="95fdc4de-f6b7-4a7e-90f9-bb289f16026b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning(text: &quot;keep storing cloth&quot;, action: &quot;store_goods&quot;, quantity: 1, progress: &quot;storage_loads&quot;, explicitQuantity: False, repeat: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="f912d652-e4a3-6f9a-01bf-241e146be3dd">
+      <Execution id="99172d6b-3af4-430e-8d0d-51576ed0185f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="bdc431d3-893f-2ced-b4ee-f3d55bf6ac60" executionId="c4ba276d-f669-41a1-9063-db3494379267" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="06bef283-f992-9b77-86cc-27257e11b656" executionId="95fdc4de-f6b7-4a7e-90f9-bb289f16026b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f912d652-e4a3-6f9a-01bf-241e146be3dd" executionId="99172d6b-3af4-430e-8d0d-51576ed0185f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="703677fb-21dc-3457-5cd0-46a7d41a788f" executionId="9784edfa-e0fb-4a5e-9bff-8fddc61b7fa6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.22]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.03]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.11]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:04.58]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

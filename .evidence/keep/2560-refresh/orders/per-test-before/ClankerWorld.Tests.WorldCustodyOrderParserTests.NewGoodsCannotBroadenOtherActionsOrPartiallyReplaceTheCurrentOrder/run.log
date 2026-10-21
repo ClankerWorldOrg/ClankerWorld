@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderParserTests.NewGoodsCannotBroadenOtherActionsOrPartiallyReplaceTheCurrentOrder/test.trx
+
+Passed!  - Failed:     0, Passed:    20, Skipped:     0, Total:    20, Duration: 833 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderParserTests.NewGoodsCannotBroadenOtherActionsOrPartiallyReplaceTheCurrentOrder/6e83fcb4-f5a4-42c6-9ded-c3cca74b9cb2/coverage.cobertura.xml

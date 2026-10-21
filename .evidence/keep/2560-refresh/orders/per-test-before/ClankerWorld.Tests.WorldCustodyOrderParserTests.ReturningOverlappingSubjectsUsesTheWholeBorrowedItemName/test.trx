@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="07e5b772-130f-4160-b6ac-b5603d50e6c8" name="@5705c3725d02 2026-10-21 19:30:59" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T19:30:59.4758534+00:00" queuing="2026-10-21T19:30:59.4758534+00:00" start="2026-10-21T19:29:54.9339539+00:00" finish="2026-10-21T19:30:59.5029945+00:00" />
+  <TestSettings name="default" id="5d639163-3bf3-437f-8c13-7f4606613cda">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_19_30_59" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="0d8b449b-dded-4380-bafc-3f431d2c9c9f" testId="57c23752-adcc-4602-a15b-9b8fe4ba1579" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed diamond ornaments&quot;, kind: &quot;diamond_ornament&quot;)" computerName="5705c3725d02" duration="00:00:00.4959214" startTime="2026-10-21T19:30:36.5040826+00:00" endTime="2026-10-21T19:30:36.9677056+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0d8b449b-dded-4380-bafc-3f431d2c9c9f" />
+    <UnitTestResult executionId="cbccc032-1bfe-4435-a0e8-c19b71d9ff2b" testId="bbdc4db5-1e03-3ca8-4246-e45150c2af69" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed restaurant meals&quot;, kind: &quot;restaurant_meal&quot;)" computerName="5705c3725d02" duration="00:00:00.0040379" startTime="2026-10-21T19:30:36.9916985+00:00" endTime="2026-10-21T19:30:36.9919881+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cbccc032-1bfe-4435-a0e8-c19b71d9ff2b" />
+    <UnitTestResult executionId="f3b3003d-a3c9-4218-9d7c-55e53d2be06e" testId="d66c4b3a-0940-0773-3963-a754ff0dd74c" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed bread&quot;, kind: &quot;bread&quot;)" computerName="5705c3725d02" duration="00:00:00.0040177" startTime="2026-10-21T19:30:36.9905448+00:00" endTime="2026-10-21T19:30:36.9905931+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f3b3003d-a3c9-4218-9d7c-55e53d2be06e" />
+    <UnitTestResult executionId="918e3fd8-32c4-4ee4-a73d-5be5a578e1bf" testId="9acff107-be4f-8aef-8f21-f569a2231e8c" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed wood&quot;, kind: &quot;wood&quot;)" computerName="5705c3725d02" duration="00:00:00.0032253" startTime="2026-10-21T19:30:37.0007259+00:00" endTime="2026-10-21T19:30:37.0035390+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="918e3fd8-32c4-4ee4-a73d-5be5a578e1bf" />
+    <UnitTestResult executionId="ab84b596-f2db-44db-9aaa-686fe949e080" testId="829762ee-4ec6-b4f9-12ec-29485850fd36" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron pickaxes&quot;, kind: &quot;iron_pickaxe&quot;)" computerName="5705c3725d02" duration="00:00:00.0043740" startTime="2026-10-21T19:30:36.9910199+00:00" endTime="2026-10-21T19:30:36.9910620+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ab84b596-f2db-44db-9aaa-686fe949e080" />
+    <UnitTestResult executionId="e76aa7d7-914b-4460-a780-398e86658dd7" testId="9c37cb8b-f3c4-877d-484f-6a172d9242e1" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed crude wooden pickaxes&quot;, kind: &quot;crude_wooden_pickaxe&quot;)" computerName="5705c3725d02" duration="00:00:00.0042725" startTime="2026-10-21T19:30:36.9927075+00:00" endTime="2026-10-21T19:30:36.9964184+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e76aa7d7-914b-4460-a780-398e86658dd7" />
+    <UnitTestResult executionId="dfad63eb-fc1b-4bd6-b1cc-947bc1d279f4" testId="629b40b0-c232-fc26-736e-f55d6c83283d" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed crude wooden axes&quot;, kind: &quot;crude_wooden_axe&quot;)" computerName="5705c3725d02" duration="00:00:00.0042671" startTime="2026-10-21T19:30:36.9899374+00:00" endTime="2026-10-21T19:30:36.9899924+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dfad63eb-fc1b-4bd6-b1cc-947bc1d279f4" />
+    <UnitTestResult executionId="79037e3c-d2dd-492f-968a-26ffd7080a56" testId="f3077590-c643-d172-8ce7-6c1c69755845" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron ore&quot;, kind: &quot;iron_ore&quot;)" computerName="5705c3725d02" duration="00:00:00.0037207" startTime="2026-10-21T19:30:36.9970517+00:00" endTime="2026-10-21T19:30:37.0002158+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79037e3c-d2dd-492f-968a-26ffd7080a56" />
+    <UnitTestResult executionId="1a1a42c2-6408-4d96-8481-9680e20e3caa" testId="2465d1b3-54e6-203e-0e72-aeacf728ed3b" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron knives&quot;, kind: &quot;iron_knife&quot;)" computerName="5705c3725d02" duration="00:00:00.0071659" startTime="2026-10-21T19:30:36.9879835+00:00" endTime="2026-10-21T19:30:36.9881392+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a1a42c2-6408-4d96-8481-9680e20e3caa" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed wood&quot;, kind: &quot;wood&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="9acff107-be4f-8aef-8f21-f569a2231e8c">
+      <Execution id="918e3fd8-32c4-4ee4-a73d-5be5a578e1bf" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron knives&quot;, kind: &quot;iron_knife&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="2465d1b3-54e6-203e-0e72-aeacf728ed3b">
+      <Execution id="1a1a42c2-6408-4d96-8481-9680e20e3caa" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed crude wooden axes&quot;, kind: &quot;crude_wooden_axe&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="629b40b0-c232-fc26-736e-f55d6c83283d">
+      <Execution id="dfad63eb-fc1b-4bd6-b1cc-947bc1d279f4" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed diamond ornaments&quot;, kind: &quot;diamond_ornament&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="57c23752-adcc-4602-a15b-9b8fe4ba1579">
+      <Execution id="0d8b449b-dded-4380-bafc-3f431d2c9c9f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed crude wooden pickaxes&quot;, kind: &quot;crude_wooden_pickaxe&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="9c37cb8b-f3c4-877d-484f-6a172d9242e1">
+      <Execution id="e76aa7d7-914b-4460-a780-398e86658dd7" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron pickaxes&quot;, kind: &quot;iron_pickaxe&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="829762ee-4ec6-b4f9-12ec-29485850fd36">
+      <Execution id="ab84b596-f2db-44db-9aaa-686fe949e080" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed iron ore&quot;, kind: &quot;iron_ore&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="f3077590-c643-d172-8ce7-6c1c69755845">
+      <Execution id="79037e3c-d2dd-492f-968a-26ffd7080a56" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed bread&quot;, kind: &quot;bread&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="d66c4b3a-0940-0773-3963-a754ff0dd74c">
+      <Execution id="f3b3003d-a3c9-4218-9d7c-55e53d2be06e" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName(text: &quot;return two borrowed restaurant meals&quot;, kind: &quot;restaurant_meal&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="bbdc4db5-1e03-3ca8-4246-e45150c2af69">
+      <Execution id="cbccc032-1bfe-4435-a0e8-c19b71d9ff2b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="57c23752-adcc-4602-a15b-9b8fe4ba1579" executionId="0d8b449b-dded-4380-bafc-3f431d2c9c9f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bbdc4db5-1e03-3ca8-4246-e45150c2af69" executionId="cbccc032-1bfe-4435-a0e8-c19b71d9ff2b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d66c4b3a-0940-0773-3963-a754ff0dd74c" executionId="f3b3003d-a3c9-4218-9d7c-55e53d2be06e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9acff107-be4f-8aef-8f21-f569a2231e8c" executionId="918e3fd8-32c4-4ee4-a73d-5be5a578e1bf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="829762ee-4ec6-b4f9-12ec-29485850fd36" executionId="ab84b596-f2db-44db-9aaa-686fe949e080" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9c37cb8b-f3c4-877d-484f-6a172d9242e1" executionId="e76aa7d7-914b-4460-a780-398e86658dd7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="629b40b0-c232-fc26-736e-f55d6c83283d" executionId="dfad63eb-fc1b-4bd6-b1cc-947bc1d279f4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f3077590-c643-d172-8ce7-6c1c69755845" executionId="79037e3c-d2dd-492f-968a-26ffd7080a56" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2465d1b3-54e6-203e-0e72-aeacf728ed3b" executionId="1a1a42c2-6408-4d96-8481-9680e20e3caa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="9" executed="9" passed="9" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.82]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.25]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.33]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.94]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

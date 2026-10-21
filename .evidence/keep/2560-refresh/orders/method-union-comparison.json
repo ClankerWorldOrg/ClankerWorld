@@ -1,0 +1,23 @@
+{
+  "before": {
+    "tests": 41,
+    "lines_covered": 22639,
+    "lines_valid": 78040,
+    "line_percent": 29.009,
+    "branches_covered_at_least": 18219,
+    "branches_valid": 88246,
+    "branch_percent_at_least": 20.646
+  },
+  "after": {
+    "tests": 37,
+    "lines_covered": 22639,
+    "lines_valid": 78040,
+    "line_percent": 29.009,
+    "branches_covered_at_least": 18219,
+    "branches_valid": 88246,
+    "branch_percent_at_least": 20.646
+  },
+  "lost_lines": [],
+  "reduced_branch_lower_bounds": [],
+  "note": "Mapped branch unions are lower bounds; full-suite collector totals remain authoritative."
+}
