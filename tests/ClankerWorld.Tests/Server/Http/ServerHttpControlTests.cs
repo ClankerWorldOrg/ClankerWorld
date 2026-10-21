@@ -13,7 +13,9 @@ using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Worlds;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace ClankerWorld.Tests;
@@ -289,12 +291,16 @@ public sealed partial class ServerHttpTests
     [Fact]
     public async Task PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests()
     {
-        using var client = factory.CreateClient();
+        // Response decoding must not spend the client-presence lease.
+        var clock = new ManualTimeProvider();
+        using var host = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.Replace(ServiceDescriptor.Singleton(new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), clock)))));
+        using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-        var pairing = await StartAndActivateAsync(factory, client, key);
+        var pairing = await StartAndActivateAsync(host, client, key);
 
         using var observation = await SendSignedAsync(
-            factory,
+            host,
             client,
             key,
             pairing.DeviceId,
@@ -309,12 +315,12 @@ public sealed partial class ServerHttpTests
         Assert.Contains("owner-control.request.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-agent-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
-        Assert.True(factory.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
+        Assert.True(host.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
         Assert.Equal(WorldRuntime.RequiredFounders, reconnect.Baseline.Snapshot.Agents.Count);
         Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
 
         using var pause = await SendSignedAsync(
-            factory,
+            host,
             client,
             key,
             pairing.DeviceId,
@@ -326,11 +332,11 @@ public sealed partial class ServerHttpTests
         Assert.True(pauseReceipt!.Changed);
         Assert.True(pauseReceipt.IsPaused);
 
-        var runtime = factory.Services.GetRequiredService<WorldRuntime>();
+        var runtime = host.Services.GetRequiredService<WorldRuntime>();
         var beforeInvalidInstruction = WorldRuntimeCodec.Encode(runtime.ExportState());
         var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
             "order", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
-        using var invalidInstruction = await SendSignedAsync(factory, client, key, pairing.DeviceId,
+        using var invalidInstruction = await SendSignedAsync(host, client, key, pairing.DeviceId,
             "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
         Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
         Assert.Contains("No active agent", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
@@ -343,7 +349,7 @@ public sealed partial class ServerHttpTests
             "Gather food.",
             reconnect.Baseline.Snapshot.WorldId);
         using var instruction = await SendSignedAsync(
-            factory,
+            host,
             client,
             key,
             pairing.DeviceId,
@@ -360,7 +366,7 @@ public sealed partial class ServerHttpTests
             "authoring-http-1",
             [new OwnerAuthoringOperationAction("set_terrain", null, "mountain", null, 0, 0, null)]);
         using var authoring = await SendSignedAsync(
-            factory,
+            host,
             client,
             key,
             pairing.DeviceId,
