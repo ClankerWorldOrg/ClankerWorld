@@ -1,0 +1,34 @@
+{
+  "base": "f3c488ba",
+  "reader": "185bf8a4/root",
+  "file": "Server/Providers/AnthropicProviderTests.cs",
+  "complete_read_lines": 582,
+  "methods": 19,
+  "cases": 37,
+  "owning_source_read": [
+    "AnthropicModelClient.cs full",
+    "ConfigurableDecisionProvider DecideAsync/SpeakAsync routing and metering",
+    "OpenAiCompatibleDecisionProvider constructors/ParseAnswer/ParseResponse exception boundaries"
+  ],
+  "default_decision": "Retain all methods/rows pending one conditional consolidation proof.",
+  "retain_contracts": [
+    "Exact Anthropic messages headers/cache/no-defaulteffort/returntext/codefence/tokenaggregation",
+    "Three effort enum values, only-thinking response, malformed SDK shape, exact HTTP statuses and no retries",
+    "Host environment auth-token/profile isolation, known/unknown-length success/error bounds",
+    "Own-key decision/conversation routing and token/persisted failed usage for every shape",
+    "Invalid input/output usage with malformed/nonmalformed game reply distinct exception paths",
+    "Per-provider thinking wire omission/presence, saved agent thinking constraints and field absence",
+    "Pre-Anthropic installation-key migration (not old world-save compatibility), Anthropic model-list ownheader/refusal, setup readiness/thinking guidance, signed canonical thinking payload"
+  ],
+  "candidate": {
+    "removed": "ARefusedOrCutOffReplyIsUnusable (refusal,max_tokens)",
+    "retained": "DecisionsAndSetupKeepReportedUsageForUnusableReplies exact same MessageReply(Answer,stopReason) rows",
+    "condition": "Move exact Assert.ThrowsAsync<InvalidDataException> into retained theory only for refusal/max_tokens via else-if. Keep Record.Exception for other invalidanswer rows; array answer may throw InvalidOperationException. Remove lower-level test only after individual original+retained coverage/reader/negativecontrol ifunclear, then affectedwholeclass before/after pair.",
+    "risk": "Typed unusable classification currently unique; deletion without moving it is unsafe. Different ModelCall prompt/timeout inputs do not drive these stopReason branches, but reader must confirm.",
+    "state": "Read-only proposal; no edits/measurements; second reader pending"
+  },
+  "timings_baseCI": {
+    "cases": 37,
+    "seconds": 0.40282399999999996
+  }
+}

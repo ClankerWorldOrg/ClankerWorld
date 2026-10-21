@@ -1,0 +1,10 @@
+{
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests.",
+  "classes": [
+    "MultiHeirWillAdmissionTests",
+    "TownFoodInheritanceTests"
+  ],
+  "cases": 18,
+  "methods": 6,
+  "rationale": "Both complete changed caller classes include all deletedhelper users and every ledger proof. Narrow private support has only two callers, no most-suite support change."
+}

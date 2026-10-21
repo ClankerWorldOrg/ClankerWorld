@@ -1,0 +1,37 @@
+{
+  "base": "f3c488ba",
+  "reader": "185bf8a4/root",
+  "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+  "complete_read": true,
+  "lines": 300,
+  "methods": 11,
+  "cases": 23,
+  "owning_source_read": "src/ClankerWorld.Server/Providers/ProviderModelCatalog.cs complete",
+  "support_read": "TestSupport/ModelWork/ManualTimeProvider.cs complete",
+  "history": [
+    "bbac55f3",
+    "7e7eb354 #660",
+    "e88c5658 #864",
+    "4645418d #501",
+    "8444f828 #2340",
+    "bdaf50ee #2419"
+  ],
+  "decision": "Retain all11methods/23cases; possible clock support reuse only.",
+  "retain_reasons": [
+    "Helper launch restriction and selected saved key versus direct routine TypeSafe are distinct.",
+    "Cloud suffix and capitalized latest matching are exact distinct inputs.",
+    "Saved key availability/caching/expiry, pasted key nonpersistence and CheckKey=false zeroHTTP each protect different effects.",
+    "Named missing/crossprovider slots reject; errors keep curatedmodels usable and redact keys.",
+    "All malformed root/element/property/type/whitespace/partial valid inputs differ or prove no partial success; both OpenAI and native Ollama shapes remain.",
+    "Empty list successful-cache differs from malformed retry, unknown-length stream bounds are actual streaming, fallback404 route sequence distinct."
+  ],
+  "candidate": {
+    "type": "repair private clock",
+    "plan": "Use existing ManualTimeProvider plus positive initial Advance(new DateTimeOffset(2026,1,1,0,0,0,TimeSpan.Zero)-DateTimeOffset.UnixEpoch), preserving exact prior UTC2026; delete9-line private ManualClock. Existing shared support unchanged.",
+    "estimated_net": 8,
+    "proof": "Only clock callsite is SavedKeyMarksListedModelsItCantUseAndTheCheckIsReusedUntilItExpires. Owning catalog only reads GetUtcNow for Expires>now and now+CacheLifetime. Its HTTP timeouts use CancellationTokenSource.System time, not suppliedclock. No timers/GetTimestamp/negativeadvance/calendar assertions; keep exact initialUTC.",
+    "coverage_scope": "Whole ProviderModelCatalogTests class,23cases/11methods; no other sharedclock callers affected.",
+    "state": "Proposal only; second reader and focusedcoverage/checks required; no edits."
+  },
+  "temporary_directory": "Existing12-line fixture supplies Store/ProvidersPath to12+ sites; replacing with repeated try/finally grows code, keep."
+}

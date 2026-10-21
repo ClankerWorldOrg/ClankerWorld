@@ -1,0 +1,831 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-main-f3",
+  "mode": "Read-only full-body/data/support/history audit; evidence-only write, no builds/tests/source edits/GitHub writes/ready-PR activity.",
+  "fully_read_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 238,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(null, false)]",
+            "[InlineData(\"clankerworld.owner-autosave-configuration.v1\", false)]",
+            "[InlineData(\"clankerworld.owner-autosave-configuration.v2\", true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(null)]",
+            "[InlineData(\"clankerworld.owner-world-creation.v1\")]",
+            "[InlineData(\"clankerworld.owner-world-creation.v2\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep absent/v1/v2 protocol advertisement and current v3 refusal before action post without losing pairing; signed old-host proof stays real, no downgrade, matching advanced client creates exact map, revoked-device access failure takes precedence. Legacy filter records requests and uses real authority/authorizer, not forwarding-only.",
+      "latest_history": "cd20e745 Control the clock in the older-host compatibility test (#2573)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 122,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep balanced three-candidate unmet-target explicit acceptance/stale digest refusal, separate Dominant advanced options, six invalid options, tampered ForestCover signature and real client payload parity/exact map option persistence.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 130,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep remove/reassign with same building/town/household IDs in two actual worlds, tampered/missing/authentic old-world action refusals with exact live/disk bytes, fresh successful durable effect/reload. BuildingWorldReviewState has two callers and native content staging.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 193,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep controlled generator-boundary failures, High/Normal different attempt counts, HTTP/real-client friendly failures, playable survivors versus unavailable attempt metadata/old DTO, wrong-attempt identity and exact accepted map roundtrip. Assertion helper records and resets real attempt sequence.",
+      "latest_history": "835f145d Use server labels and shared terrain and calendar rules (#1932)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 343,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"truncated\", true)]",
+            "[InlineData(\"history\", false)]",
+            "[InlineData(\"schema\", false)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(3, 3)]",
+            "[InlineData(1, 2)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep three damaged startup inputs and running clock/build metadata, consumed pre-recovery challenge invalidation, exact saved evidence and timeline; broken newer autosave versus no autosave/named save, cross-world refusal, failed storage/retry/conservative history retention, invalid interval/rotation and checkpoint/catalog-lag identity all differ.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 173,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"world\")]",
+            "[InlineData(\"save\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep foreign unreadable named checkpoint versus corrupt identity-less orphan, live signed world/save different statuses/receipts and unrelated exact bytes, pending tombstone restart plus repaired orphan natural recovery. WriteCorruptOrphan has two callers/native effects.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 126,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"geography.size\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"society\", false)]",
+            "[InlineData(\"society\", true)]",
+            "[InlineData(\"society.society.inventory\", false)]",
+            "[InlineData(\"society.society.inventory\", true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep generated geography.size invalid int and four missing/null society/inventory shapes; structural test also proves direct codec refusal, exact source preservation and repaired ID works. Only unreachable old list-corruption scaffolding is proposed.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 172,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep manual/autosave target rows, stale overwrite timestamp, tampered ID/wrong world, actual receipt/files/repeated NotFound, active-world refusal, interrupted cleanup anti-revival/restart and shared-history until last reference. Native compaction setup remains.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 231,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep full four-founder signed setup/place/move/undo/replacement/start; tampered fields, undo inheritance without deleting key, post-start refusals, actual observation-derived affiliation, stale placement no routing mutation, accepted adult projection/duplicate refusal/rename and secret privacy. Cannot start closer while preserving native setup gates.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 192,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep native failed checkpoint restoring runtime/persisted routing plus retry; real blocked selection/placement interleave, both wait cancellation inputs, native commit-thread lock observation and mandatory drain-before-teardown. Startup filter records exclusion.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 245,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"Medium\", 50, 512)]",
+            "[InlineData(\"Small\", 65, 256)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep same seed different size versus same size different water, map identity/manifests, duplicate/fresh-seed controls, exact per-world saves/history browsing/settings, held old-world requests refusal before file/config/backup effects and independent selections/reload/restart. Frozen authority clock prevents generation work from expiring proof.",
+      "latest_history": "07172b48 Keep map identity tests independent of generation time (#2638)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 238,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(null)]",
+            "[InlineData(\"short\")]",
+            "[InlineData(\"valid\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(null)]",
+            "[InlineData(\"wrong\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"schema\", null)]",
+            "[InlineData(\"schema\", \"wrong\")]",
+            "[InlineData(\"schema\", \"valid\")]",
+            "[InlineData(\"truncated\", \"valid\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep absent/short/valid launch challenge, no-secret response privacy, normal/failed native checkpoint before accepted response/exit including forced scope teardown, missing/wrong shutdown secret, and schema/truncated startup-recovery quit without evidence replacement during teardown.",
+      "latest_history": "14da552f Allow Quit Game to close a server waiting for save recovery (#2420)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 155,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"backup\")]",
+            "[InlineData(\"intent\")]",
+            "[InlineData(\"timeline\")]",
+            "[InlineData(\"checkpoint\")]",
+            "[InlineData(\"assignments\")]",
+            "[InlineData(\"autosave\")]",
+            "[InlineData(\"loaded\")]",
+            "[InlineData(\"complete\")]",
+            "[InlineData(\"rollback-intent\")]",
+            "[InlineData(\"rollback-checkpoint\")]",
+            "[InlineData(\"rollback-assignments\")]",
+            "[InlineData(\"rollback-autosave\")]",
+            "[InlineData(\"rollback-loaded\")]",
+            "[InlineData(\"rollback-complete\")]",
+            "[InlineData(\"failure-checkpoint\")]",
+            "[InlineData(\"failure-assignments\")]",
+            "[InlineData(\"failure-autosave\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep all seventeen backup/intent/forward/rollback/failure checkpoint/assignment/autosave crash-stage rows; file obstruction requires host stop, restart must recover matching complete config/checkpoint/timeline, consume intent and preserve later owner config across another restart. Same final state does not imply same stage proof.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 989,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false, \"\\\"32\\\"\")]",
+            "[InlineData(false, \"2147483648\")]",
+            "[InlineData(true, \"[]\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(0)]",
+            "[InlineData(3)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(0)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"truncated\")]",
+            "[InlineData(\"missing-save\")]",
+            "[InlineData(\"aliased-id\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep all twelve manual-save methods: three malformed envelope/schema shapes and repair, off/three usable-predecessor rotation, foreign damaged snapshot immutability, running Medium preview versus create refusal, native legacy/generated signed lifecycle with content/land/cache/routing/restart, signed save branch/timeline backup, ID-specific overwrite, founder rewind gate, corrupt metadata list/rotate/repair telemetry, real tick/interval schedule, no-play browsing receipt reuse and missing/truncated source backup. Narrow DTO/dead-arm/setup proposals below retain assertions.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 325,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"jev\", \"jev\", \"https://api.typesafe.ai/v1/systemone\")]",
+            "[InlineData(\"decisions\", \"openai\", \"https://api.openai.com/v1/decisions\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"unsupported\", \"unsupported_format\")]",
+            "[InlineData(\"timeout\", \"timed_out\")]",
+            "[InlineData(\"unavailable\", \"unavailable\")]",
+            "[InlineData(\"unusable\", \"unusable\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep four methods/eight cases: real personal adapter one request and exact body/metering, digest tamper and malformed thinking before paid call, saved Jev/Decisions distinct adapters, missing key/no call/cap, private unusable response redaction, and unsupported/timeout/unavailable/unusable bounded failures/no retries. Recorder has count/URI/auth/body and injected async response semantics.",
+      "latest_history": "c2887e21 Explain routine-helper use and let players test its saved key (#2439)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 612,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"openai\")]",
+            "[InlineData(\"ollama-cloud\")]",
+            "[InlineData(\"anthropic\")]",
+            "[InlineData(\"jev\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep eight methods/eleven cases: provider-specific creation signed fields/protected persistence/no routing-world-usage mutation/later key use, damaged accounting reachability/redaction/private default path, durable cap pause/owner grant, installation warning across old load/restart/new cap, per-agent inheritance/forgetting/Unix permissions, assigned-key deletion and digest/check-key/model/default behavior. Only private signer reuse proposed.",
+      "latest_history": "8444f828 Let Jev use saved TypeSafe keys (#2340)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 253,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(\"/api/v1/owner/reconnect\", RequestBodyLimits.SignedOwnerAction)]",
+            "[InlineData(\"/API/V1/Owner/worlds/create\", RequestBodyLimits.SignedOwnerAction)]",
+            "[InlineData(\"/api/v1/owner/challenges\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/api/v1/handshake\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/api/v1/approval/devices/device_1/revoke\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/api/v1/approval/shutdown\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/api/v1/ownerx\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/\", RequestBodyLimits.Unauthenticated)]",
+            "[InlineData(\"/api/v1/pairings/activate\", RequestBodyLimits.Pairing)]",
+            "[InlineData(\"/api/v1/approval/pairings/pairing_1/approve\", RequestBodyLimits.Pairing)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep ten route-cap classification inputs, malformed small versus oversized unparsed bodies/redacted burst log, exact signed limit and unconsumed challenge retry, real Kestrel unknown-length stream and by-ID/by-code approval with wrong Host/missing/wrong secret, local recovery/revocation and stream limits. StreamedJson deliberately refuses length computation.",
+      "latest_history": "e21c8197 Package a Linux world server with service setup and device approval (#2433)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 268,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.SaveSpaceAdvisoryUsesServerDiskAndNeverRefusesSaving",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(0, \"low\")]",
+            "[InlineData(SaveDiskSpaceMonitor.WarningBelowBytes - 1, \"low\")]",
+            "[InlineData(SaveDiskSpaceMonitor.WarningBelowBytes, \"ok\")]",
+            "[InlineData(-1, \"unknown\")]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.StalledDiskQueryCannotDelayHostStartupOrEmergencyCheckpoint",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.LowSnapshotVolumeStillWarnsWhenTheActiveVolumeHasSpaceOrCannotBeRead",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.SaveSpaceAdvisoryRemainsReadableWhileStartupRecoveryKeepsTheWorldClosed",
+          "decision": "retain all cases and assertions",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.ADelayedLaterVolumeQueryCannotMakeAnEarlierSampleFreshAgain",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep advisory zero/threshold-minus-one/exact threshold/unavailable values, real client plus create/overwrite/autosave/checkpoint, stalled query cannot block startup/emergency save, distinct snapshot volume, low/stalled startup-recovery advisory/restore and delayed second query must not rejuvenate old first sample. Task.Run removes runner sync context; signal/timing helpers substantive.",
+      "latest_history": "cdcefc0e Wait for one complete disk sample in the stale-age test (#2641)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 153,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksHistoryAfterAHealthyCheckpointWasCached",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep checkpoint digest changes despite same timestamp/length and canceled-list telemetry/repair; separate mutable history file invalidation and mutable credentials with unchanged bystander cached across selections. Different cache dimensions.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+      "read_scope": "whole file/all methods/data/private helpers",
+      "lines": 274,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WarmUpChecksInactiveWorldsSoTheFirstListReusesThem",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WarmUpAndALoadWorldListCanRunTogether",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WarmUpCarriesOnWhenASavedWorldCannotBeRead",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.StoppingTheHostStopsTheWarmUpBetweenWorlds",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.RunningPrivateHostWarmsUpItsSavedWorldsAtStartup",
+          "decision": "retain all cases and assertions",
+          "rows": [],
+          "retained_proof": "same named method; no deletion; distinct contract and input reasons in owning file entry"
+        }
+      ],
+      "reason": "Keep healthy/unrestorable warmup/cache reuse, actual Medium decode with free mutation gate on dedicated thread, concurrent list/warmup, unreadable continue/unknown status, held gate and hosted-service stop before scan, actual run-clock host startup. Do not remove threads/delays/signals or native Medium inputs; logger/path helpers have repeated callers.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    }
+  ],
+  "totals": {
+    "full_files": 20,
+    "full_file_lines": 5432,
+    "full_file_methods": 73,
+    "full_file_cases": 139
+  },
+  "candidates": [
+    {
+      "name": "Dead generated-damage scaffolding",
+      "file": "ServerHttpDamagedCheckpointTests.cs",
+      "method": "DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "edit": "Theory+sole InlineData to Fact; remove damage parameter; keep direct state[\"geography\"]![\"size\"]=int.MaxValue; remove conditional and entire unreachable list traversal/null-entry else.",
+      "proof": "One identical native generated geography-invalid case and every signed list/select/live/disk/damaged/catalog assertion retained. No alternate direct callers or CI filter references.",
+      "history": "e88c5658 #864 removed towns/society.society.inhabitants/worldContent.buildings rows; left unreachable else. Rename-only9c920264 follows.",
+      "production": "WorldRuntime.Validation rejects Size outsideSmall/Medium; WorldSelectionCoordinator.CheckCheckpoint Decode+Restore catches invalid save; Assess marks incompatible and Select refuses before mutation.",
+      "saving": "Approximately8 lines, measure actual diff.",
+      "validation": "Second reader, exact same one case and coverage/formatter; bypassing invalid saved size should still fail."
+    },
+    {
+      "name": "Reuse existing action signer",
+      "files": [
+        "ServerHttpProviderTests.cs",
+        "ServerHttpProviderSetupCheckTests.cs"
+      ],
+      "edit": "Replace all3 new SettingsKeySigner(key) with existing ActionCompatibilitySigner(key); delete7line private class and adjacent blank; no edits to kept signer/call order/using scope.",
+      "retained_proof": [
+        "SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents openai/ollama-cloud/anthropic/jev",
+        "SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall fact",
+        "SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld jev/decisions"
+      ],
+      "cases": 7,
+      "equivalence": "Both implement only IOwnerDeviceSigner, same ECDsa export and Sign(key,proof), no-op Dispose, no counters/state/cancellation. All three sites create real nistP256 keys. Settings fingerprint string overload parses exported canonical validP256SPKI and reexports then hashes; kept byte overload hashes same canonical exported bytes. Values equal for these valid keys; no malformed/nonP256 inputs. Existing signer already cross-file reused.",
+      "history": "Settings helper52eb457d credential settings; existing action signer96f6cb19 old-host compatibility; c2887e21 adds settings-signer helper setup callers without extra helper behavior.",
+      "risk": "Overloads not generally equivalent on malformed/nonP256 input. String-overload validation traversal decreases for these valid test helper calls; fresh coverage required, retain actual OwnerDeviceKey/string-key tests.",
+      "saving": "7class lines plus blank;3 substitutions.",
+      "validation": "New independent reader and focused3methods/7cases with matched coverage; signature/body tamper negative controls remain."
+    },
+    {
+      "name": "Dead null metadata arm",
+      "file": "ServerHttpManualSaveTests.cs",
+      "method": "DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "edit": "Delete only switch arm \"null\"=>\"null\"; keep three current rows truncated/missing-save/aliased-id and every assertion.",
+      "history": "e88c5658 #864 removed null row, left unused switch arm.",
+      "proof": "All repo callers are three current xUnit rows; same exact malformed bytes, healthy listing/rotation, manual protection, telemetry/redaction/repair/recurrence.",
+      "saving": "One line; optional neighboring cleanup batch only.",
+      "validation": "Current case map and formatter/scoped coverage."
+    },
+    {
+      "name": "Minimal active snapshot cardinality",
+      "file": "ServerHttpManualSaveTests.cs",
+      "method": "AutosaveConfigurationNeverTrimsAnotherWorld",
+      "edit": "Optional separately measured speed proposal: active setup loop12\u21922; sole rotation0 Theory may become Fact with literal0. Keep all3 foreign snapshots including damaged newest, every exact byte assertion and native active count1 trimming.",
+      "history": "e88c5658 #864 removed rotation10, leaving only0;12 had exceeded old10 setting.",
+      "production": "Read whole WorldAutosaveStore and KeepNewestAutosaves plus signed configure endpoint. Endpoint passes Max(1,rotation) and worldId; store validates1..10, groups List(worldId) by branch, verifies bodies, deletes verifiedCount>count; no special existing12/>10 branch.",
+      "proof": "Two active usable snapshots still require one real deletion; no trimming or hardcoded10 leaves2 and fails expected1, wrong/no world filter still mutates earlier foreign bodies/metadata. No assertion/input shape outside setup count removed.",
+      "risk": "Changes stress cardinality, unlike exact dead-code removal. A bug special-casing only >10existing copies would no longer be caught. No current rule/branch does so, but second reader must judge preservation and matched timing/coverage needed; not automatically approved.",
+      "saving": "Ten fewer real saved checkpoint/fsync/metadata/timeline operations; net~1line if stale theory normalized.",
+      "validation": "Second reader and fresh timing/coverage, negative controls skip trimming/wrong world filter/hardcode10. Parent must explicitly select."
+    }
+  ],
+  "existing_candidate": "ManualSaveLoadReceiptForTest reuse in previous http-remainder-reader.json remains valid after entire989line file read. Three caller type substitutions to canonical existing ClankerWorld.Contracts.ManualSaveLoadReceipt; delete one declaration+blank, retain4cases/every assertion. No extra callers/type-reflection found.",
+  "ci": "General test/test-times applies. None of four proposed candidate method names explicitly selected in CI; Windows-storage explicitly selects PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld and OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot plus Deletion substring; retain exact methods/cases. Test project compiles real Godot OwnerPairingProtocol/OwnerDeviceKey and references shared contracts.",
+  "production_scope": "Actual candidate owners/callers/history traced as recorded; retaining a file does not claim a new line-by-line reread of every owning production file. No fabricated full-coverage claim.",
+  "cumulative_scope": {
+    "fully_read_file_count": 54,
+    "all_http_file_count": 54,
+    "previous_reports": [
+      "http-remainder-reader.json",
+      "http-remainder-reader-2.json",
+      "existing http493/2599 helper ledger:ServerHttpTests,ServerHttpPairingTests,ServerHttpControlTests"
+    ],
+    "remaining_files_not_claimed_fully_read": [],
+    "limit": "Whole-file reading complete on frozenf3. Proposals still lack fresh second-reader/coverage/timing, so do not claim measured exhaustion or area target reached."
+  },
+  "rejected_shortcuts": [
+    "Same expected recovered state does not make crash-stage input redundant.",
+    "Keep repeated before/after restart package/land/credential proof at independent reconstruction boundaries.",
+    "Keep synchronization-context wrappers, inline signals and LongRunning native gate probes.",
+    "Keep signature fields, key permissions, distinct helper adapters, actual paid HTTP body/cancellation/metering and world/source provenance.",
+    "Do not move native world/header/signature/transport work into fabricated generic results or introduce helpers larger than savings."
+  ]
+}

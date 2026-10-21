@@ -1,0 +1,37 @@
+{
+  "files": {
+    "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs": {
+      "before": 13,
+      "after": 0
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs": {
+      "before": 479,
+      "after": 479
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs": {
+      "before": 137,
+      "after": 137
+    }
+  },
+  "tests": {
+    "added": 2,
+    "removed": 15,
+    "net_removed": 13
+  },
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "cases": [
+    18,
+    18
+  ],
+  "methods": [
+    6,
+    6
+  ]
+}

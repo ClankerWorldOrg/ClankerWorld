@@ -1,0 +1,616 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "mode": "Read-only remainder proposal audit. No source edits, test/build runs, GitHub writes, claim or ready-PR activity. Evidence JSON only. Candidate chooser; requires different reader for actual implementation.",
+  "summary": {
+    "selected_complete_files": 18,
+    "selected_lines": 3182,
+    "test_methods": 67,
+    "current_cases": 148,
+    "uncovered_selected_files": [],
+    "all_persistence_files": 24
+  },
+  "excluded_prior_complete_files": [
+    {
+      "file": "AutosaveRotationRecoveryTests.cs",
+      "reason": "Full prior manual-save reader ledger"
+    },
+    {
+      "file": "ManualSaveGenerationTests.cs",
+      "reason": "Full prior manual-save reader ledger"
+    },
+    {
+      "file": "WorldCatalogSavedBuildTests.cs",
+      "reason": "Full prior manual-save reader ledger"
+    },
+    {
+      "file": "WorldSelectionFailureTests.cs",
+      "reason": "Full prior manual-save reader ledger"
+    },
+    {
+      "file": "ShelterSiteInspectionCheckpointTests.cs",
+      "reason": "checkpoint-host2664 proposal/actual diff already reviewed"
+    },
+    {
+      "file": "ChildFoodDeliveryCheckpointTests.cs",
+      "reason": "checkpoint-host2664 proposal/actual diff already reviewed"
+    }
+  ],
+  "prior_partial_completed_now": "SavedFileTests.cs now read in full; earlier manual-save ledger included only OversizedFilesAreRefusedBeforeParsingAndKept.",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/DeletionRecoveryTests.cs",
+      "whole_lines_read": 138,
+      "methods": [
+        {
+          "method": "DeletionRecoveryTests.WholeWorldDeletionPreservesUnreadableSnapshotsOfAnotherWorld",
+          "decision": "retain",
+          "retained_proof": "DeletionRecoveryTests.WholeWorldDeletionPreservesUnreadableSnapshotsOfAnotherWorld"
+        },
+        {
+          "method": "DeletionRecoveryTests.LockedCheckpointRemainsHiddenUntilDeletionRecoveryCompletes",
+          "decision": "retain",
+          "retained_proof": "DeletionRecoveryTests.LockedCheckpointRemainsHiddenUntilDeletionRecoveryCompletes"
+        },
+        {
+          "method": "DeletionRecoveryTests.WholeWorldDeletionRemovesSnapshotsAndGenerationsButPreservesOtherWorld",
+          "decision": "retain",
+          "retained_proof": "DeletionRecoveryTests.WholeWorldDeletionRemovesSnapshotsAndGenerationsButPreservesOtherWorld"
+        }
+      ],
+      "attributed_methods": 3,
+      "cases": 6,
+      "decision": "retain",
+      "rationale": "Retain legacy/generation checkpoint \u00d7 malformed/oldschema foreign saves; decoded orphan removal; exact foreign checkpoint/meta/active/catalog preservation. Native Windows locked-delete intent hiding and retry is independent. Ordinary whole-world deletion additionally covers autosave removal, wrong ownership refusal and exact remaining3 files."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/LongInventoryActionCheckpointTests.cs",
+      "whole_lines_read": 254,
+      "methods": [
+        {
+          "method": "LongInventoryActionCheckpointTests.FoodOrderConsumesOnceAndHostSavesAcrossInventoryLineageLengths",
+          "decision": "retain",
+          "retained_proof": "LongInventoryActionCheckpointTests.FoodOrderConsumesOnceAndHostSavesAcrossInventoryLineageLengths"
+        },
+        {
+          "method": "LongInventoryActionCheckpointTests.OfferedCartActionKeepsExactAcceptedIdentityAndHostSavesAfterLaterModelFailure",
+          "decision": "retain",
+          "retained_proof": "LongInventoryActionCheckpointTests.OfferedCartActionKeepsExactAcceptedIdentityAndHostSavesAfterLaterModelFailure"
+        }
+      ],
+      "attributed_methods": 2,
+      "cases": 6,
+      "decision": "retain",
+      "rationale": "Retain food split2/3/4 consumption and malformed LastEffectId plus native host strict saves/replay; retain wood cargo long candidate exact accepted identity through later model failure and last-accepted corruption rows. Its CheckpointHost uses AdvanceWithModelWorkAsync and Reload(provider) rather than2664 TryAdvanceOnce/Saved, so helpers cannot be substituted verbatim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/LongKnifeProductionCheckpointTests.cs",
+      "whole_lines_read": 138,
+      "methods": [
+        {
+          "method": "LongInventoryActionCheckpointTests.CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion",
+          "decision": "retain",
+          "retained_proof": "LongInventoryActionCheckpointTests.CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion"
+        }
+      ],
+      "attributed_methods": 1,
+      "cases": 3,
+      "decision": "retain",
+      "rationale": "Partial of LongInventoryActionCheckpointTests. Keep split1/3/4 knife identities, equal-carried-count control, native job/tool reservation, missing knife completion cancellation without charges/wear, malformed tool refs, refused tick, paid recipe exact inputs/output/worn lineage and repeated strict reload. Shares existing fixture/host through partial class already."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualLoadOwnershipTests.cs",
+      "whole_lines_read": 101,
+      "methods": [
+        {
+          "method": "ManualLoadOwnershipTests.InterruptedRollbackKeepsItsSnapshotsAndWorldUntilRestartRecovery",
+          "decision": "retain",
+          "retained_proof": "ManualLoadOwnershipTests.InterruptedRollbackKeepsItsSnapshotsAndWorldUntilRestartRecovery"
+        }
+      ],
+      "attributed_methods": 1,
+      "cases": 9,
+      "decision": "retain",
+      "rationale": "All9 operations enter different mutation APIs and selected/backup IDs while rollback intent owns world: delete, overwrite, rotate, world delete, new save, select, create. Keep full directory/runtime bytes, restart recovery and post-recovery mutation proof; generated fixture caching would add helper/state complexity rather than remove lines."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/MarketLotHistoryCheckpointTests.cs",
+      "whole_lines_read": 168,
+      "methods": [
+        {
+          "method": "MarketLotHistoryCheckpointTests.NativeLongLotDepositsRemainSaveableAcrossHostResumeAndReplay",
+          "decision": "retain",
+          "retained_proof": "MarketLotHistoryCheckpointTests.NativeLongLotDepositsRemainSaveableAcrossHostResumeAndReplay"
+        },
+        {
+          "method": "MarketLotHistoryCheckpointTests.LongReceiptsStillRequireTheirExactDepositAuthority",
+          "decision": "retain",
+          "retained_proof": "MarketLotHistoryCheckpointTests.LongReceiptsStillRequireTheirExactDepositAuthority"
+        },
+        {
+          "method": "MarketLotHistoryCheckpointTests.RejectedLongDepositPreservesItsLotAndReceiptSequenceUntilRetry",
+          "decision": "retain",
+          "retained_proof": "MarketLotHistoryCheckpointTests.RejectedLongDepositPreservesItsLotAndReceiptSequenceUntilRetry"
+        }
+      ],
+      "attributed_methods": 3,
+      "cases": 8,
+      "decision": "retain",
+      "rationale": "Keep split4/5 \u00d7 partial/full native market deposit IDs and conservation, source/owner/destination forged authority receipts and exact error reasons, refused deposit receipt sequence rollback/retry. Existing LongDeposit byte cache safely serves corruption fixtures; no additional cache selected."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/NewbornModelBindingCheckpointTests.cs",
+      "whole_lines_read": 434,
+      "methods": [
+        {
+          "method": "NewbornModelBindingCheckpointTests.ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds",
+          "decision": "retain",
+          "retained_proof": "NewbornModelBindingCheckpointTests.ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds"
+        },
+        {
+          "method": "NewbornModelBindingCheckpointTests.ShutdownPreservesThePendingNewbornCredentialThroughRestart",
+          "decision": "retain",
+          "retained_proof": "NewbornModelBindingCheckpointTests.ShutdownPreservesThePendingNewbornCredentialThroughRestart"
+        },
+        {
+          "method": "NewbornModelBindingCheckpointTests.ShutdownAtTheCommittedBirthBoundaryKeepsTheFrozenOriginalKey",
+          "decision": "retain",
+          "retained_proof": "NewbornModelBindingCheckpointTests.ShutdownAtTheCommittedBirthBoundaryKeepsTheFrozenOriginalKey"
+        },
+        {
+          "method": "NewbornModelBindingCheckpointTests.FailedLiveBirthCheckpointRetainsTheFrozenDefaultCredentialUntilRecovery",
+          "decision": "retain",
+          "retained_proof": "NewbornModelBindingCheckpointTests.FailedLiveBirthCheckpointRetainsTheFrozenDefaultCredentialUntilRecovery"
+        }
+      ],
+      "attributed_methods": 4,
+      "cases": 15,
+      "decision": "retain",
+      "rationale": "Keep eight birth-binding rows spanning seed9/78 ID lengths, seed-identified/opaque identity, immediate/delayed provider failure and Strict/RefuseSingleAction. Preserve shutdown original-key freeze vs default rotation/refused write, exact committed-birth callback, live birth checkpoint failure recovery, owner override, both routing roles, idempotent revisions and credential redaction. Existing byte cache already keyed by genuine seed/identity inputs; internal BeforeBirth wrapper has external child-identity caller."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/OwnedToolCollectionCheckpointTests.cs",
+      "whole_lines_read": 224,
+      "methods": [
+        {
+          "method": "OwnedToolCollectionCheckpointTests.DepartedOwnerCollectsTheirToolThroughTheHostWithoutTransferringOwnership",
+          "decision": "retain",
+          "retained_proof": "OwnedToolCollectionCheckpointTests.DepartedOwnerCollectsTheirToolThroughTheHostWithoutTransferringOwnership"
+        },
+        {
+          "method": "OwnedToolCollectionCheckpointTests.RejectedOwnedToolCollectionRollsBackAndRetriesExactly",
+          "decision": "retain",
+          "retained_proof": "OwnedToolCollectionCheckpointTests.RejectedOwnedToolCollectionRollsBackAndRetriesExactly"
+        },
+        {
+          "method": "OwnedToolCollectionCheckpointTests.PersonalOwnershipDoesNotBypassCollectionBoundaries",
+          "decision": "retain",
+          "retained_proof": "OwnedToolCollectionCheckpointTests.PersonalOwnershipDoesNotBypassCollectionBoundaries"
+        },
+        {
+          "method": "OwnedToolCollectionCheckpointTests.SharedHouseholdToolsStillBelongToTheirLenderAfterCollection",
+          "decision": "retain",
+          "retained_proof": "OwnedToolCollectionCheckpointTests.SharedHouseholdToolsStillBelongToTheirLenderAfterCollection"
+        }
+      ],
+      "attributed_methods": 4,
+      "cases": 10,
+      "decision": "retain",
+      "rationale": "Keep axe/pickaxe \u00d7 stored/ground native departed-owner collection and ownership/provenance; refused transition retry; reservation/full capacity/foreign house/other carrier exclusions; shared-household lending distinct. Existing Generated cache returns bytes, each scenario restores fresh runtime/provider. DepartedOwnerAsync native collect/store/leave history cannot be replaced with edited progress."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/RecoveryCleanupDeletionTests.cs",
+      "whole_lines_read": 187,
+      "methods": [
+        {
+          "method": "RecoveryCleanupDeletionTests.MalformedRecoveryProvenanceKeepsAnIntactCheckpointPlayableAndUnclassified",
+          "decision": "retain",
+          "retained_proof": "RecoveryCleanupDeletionTests.MalformedRecoveryProvenanceKeepsAnIntactCheckpointPlayableAndUnclassified"
+        },
+        {
+          "method": "RecoveryCleanupDeletionTests.CleanupDeletionPreservesUnverifiableRecoveryAndItsLatestVerifiedPredecessor",
+          "decision": "retain",
+          "retained_proof": "RecoveryCleanupDeletionTests.CleanupDeletionPreservesUnverifiableRecoveryAndItsLatestVerifiedPredecessor"
+        },
+        {
+          "method": "RecoveryCleanupDeletionTests.CleanupDeletionKeepsVerifiedLatestPerSourceAndUnclassifiedOrDamagedCopies",
+          "decision": "retain",
+          "retained_proof": "RecoveryCleanupDeletionTests.CleanupDeletionKeepsVerifiedLatestPerSourceAndUnclassifiedOrDamagedCopies"
+        },
+        {
+          "method": "RecoveryCleanupDeletionTests.BeforeLoadCopiesHaveNamedProvenanceWhileAnExplicitOverwritePinsARecovery",
+          "decision": "retain",
+          "retained_proof": "RecoveryCleanupDeletionTests.BeforeLoadCopiesHaveNamedProvenanceWhileAnExplicitOverwritePinsARecovery"
+        }
+      ],
+      "attributed_methods": 4,
+      "cases": 9,
+      "decision": "retain",
+      "rationale": "Keep malformed sequence/source/shape provenance without losing playable save; history/schema/identity/regeneration verification distinctions; exact kept latest per source and legacy/unclassified/damaged protection; stale digest and corrupt timeline refusal; named BeforeLoad provenance and explicit overwritten recovery pin."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "whole_lines_read": 199,
+      "methods": [
+        {
+          "method": "SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+          "decision": "retain",
+          "retained_proof": "SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories"
+        },
+        {
+          "method": "SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+          "decision": "retain",
+          "retained_proof": "SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable"
+        },
+        {
+          "method": "SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved",
+          "decision": "retain",
+          "retained_proof": "SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved"
+        },
+        {
+          "method": "SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+          "decision": "retain",
+          "retained_proof": "SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories"
+        },
+        {
+          "method": "SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches",
+          "decision": "retain",
+          "retained_proof": "SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches"
+        }
+      ],
+      "attributed_methods": 5,
+      "cases": 8,
+      "decision": "support_candidate",
+      "rationale": "Keep deleting intermediate same-tick save, optional branch/continuedID/date corruptions, required WorldTick refusal, unknown branch Number/Id separate from genuine prebranch rotation. Only dead nested metadata navigation can go: all3 remaining optional field names lack dot; e88c5658 removed Branch.* rows."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "whole_lines_read": 313,
+      "methods": [
+        {
+          "method": "SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal"
+        },
+        {
+          "method": "SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+          "decision": "consolidate",
+          "retained_proof": "SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch"
+        },
+        {
+          "method": "SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes"
+        },
+        {
+          "method": "SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch"
+        },
+        {
+          "method": "SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles"
+        },
+        {
+          "method": "SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch"
+        },
+        {
+          "method": "SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch"
+        },
+        {
+          "method": "SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy"
+        },
+        {
+          "method": "SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves"
+        },
+        {
+          "method": "SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves"
+        },
+        {
+          "method": "SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed"
+        },
+        {
+          "method": "SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch"
+        },
+        {
+          "method": "SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad",
+          "decision": "retain",
+          "retained_proof": "SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad"
+        }
+      ],
+      "attributed_methods": 13,
+      "cases": 13,
+      "decision": "consolidate",
+      "rationale": "Retain branch creation/source labels, current-position predictions, monotonic branch numbers after highest deletion, deleted continuation timestamp/position, unchanged-save routing/settings checks, overwrite chosen vs continued slot, perbranch verified autosave rotation, damaged timeline vs malformed saved branch, legacy records and timeline rollback. One redundant latest-save continuation method can consolidate into richer browsing scenario after moving missing ContinuedFromId assertion."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SavedBuildTests.cs",
+      "whole_lines_read": 127,
+      "methods": [
+        {
+          "method": "SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance",
+          "decision": "retain",
+          "retained_proof": "SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance"
+        },
+        {
+          "method": "SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable",
+          "decision": "retain",
+          "retained_proof": "SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable"
+        },
+        {
+          "method": "SavedBuildTests.RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild",
+          "decision": "retain",
+          "retained_proof": "SavedBuildTests.RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild"
+        },
+        {
+          "method": "SavedBuildTests.AMissingOrUnusableBuildRecordReadsAsUnknown",
+          "decision": "retain",
+          "retained_proof": "SavedBuildTests.AMissingOrUnusableBuildRecordReadsAsUnknown"
+        }
+      ],
+      "attributed_methods": 4,
+      "cases": 19,
+      "decision": "retain",
+      "rationale": "Keep original optional text acceptance7 rows;6 field/value malformed diagnostic rows with both named and autosave files; missing/corrupt/old build exact rollback bytes and retry stamping; unknown missing/nonJSON/empty-version records can be replaced by actual current build record. Distinct optional diagnostics do not alter world saves."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SavedFileTests.cs",
+      "whole_lines_read": 140,
+      "methods": [
+        {
+          "method": "SavedFileTests.OversizedTimelineRefusesSavePublicationWithoutChangingAnyOriginal",
+          "decision": "retain",
+          "retained_proof": "SavedFileTests.OversizedTimelineRefusesSavePublicationWithoutChangingAnyOriginal"
+        },
+        {
+          "method": "SavedFileTests.OversizedDiagnosticBuildMetadataSurvivesCheckpointPublicationAndRollback",
+          "decision": "retain",
+          "retained_proof": "SavedFileTests.OversizedDiagnosticBuildMetadataSurvivesCheckpointPublicationAndRollback"
+        },
+        {
+          "method": "SavedFileTests.BoundedReadPreservesExactBytesAtTheLimit",
+          "decision": "retain",
+          "retained_proof": "SavedFileTests.BoundedReadPreservesExactBytesAtTheLimit"
+        },
+        {
+          "method": "SavedFileTests.OversizedFilesAreRefusedBeforeParsingAndKept",
+          "decision": "retain",
+          "retained_proof": "SavedFileTests.OversizedFilesAreRefusedBeforeParsingAndKept"
+        }
+      ],
+      "attributed_methods": 4,
+      "cases": 10,
+      "decision": "retain",
+      "rationale": "Whole140lines now read; only OversizedFilesAreRefusedBeforeParsingAndKept was in prior ledger. Keep create/overwrite oversized timeline no publication, oversized diagnostic build ordinary/recovery behavior, exact empty/atlimit reads, checkpoint/catalog/metadata/history independent limits and invalid leading byte preservation."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCreationObservationTests.cs",
+      "whole_lines_read": 153,
+      "methods": [
+        {
+          "method": "WorldCreationObservationTests.FreshProductionCheckpointRequestsWorldCreationWithoutReplacingTheSavedWorld",
+          "decision": "retain",
+          "retained_proof": "WorldCreationObservationTests.FreshProductionCheckpointRequestsWorldCreationWithoutReplacingTheSavedWorld"
+        },
+        {
+          "method": "WorldCreationObservationTests.CreatedGeographyRemainsARealWorldWhenCachedTerrainIsOmitted",
+          "decision": "retain",
+          "retained_proof": "WorldCreationObservationTests.CreatedGeographyRemainsARealWorldWhenCachedTerrainIsOmitted"
+        },
+        {
+          "method": "WorldCreationObservationTests.FounderWorkStaysAccessibleBeforeTimeStartsEvenAfterUndo",
+          "decision": "retain",
+          "retained_proof": "WorldCreationObservationTests.FounderWorkStaysAccessibleBeforeTimeStartsEvenAfterUndo"
+        },
+        {
+          "method": "WorldCreationObservationTests.AuthoredDesignStaysAccessibleBeforeAnyFounderOrBuildingExists",
+          "decision": "retain",
+          "retained_proof": "WorldCreationObservationTests.AuthoredDesignStaysAccessibleBeforeAnyFounderOrBuildingExists"
+        },
+        {
+          "method": "WorldCreationObservationTests.GenericStateFileKeepsItsExistingLegacyWorldAndProgress",
+          "decision": "retain",
+          "retained_proof": "WorldCreationObservationTests.GenericStateFileKeepsItsExistingLegacyWorldAndProgress"
+        }
+      ],
+      "attributed_methods": 5,
+      "cases": 6,
+      "decision": "retain",
+      "rationale": "Keep production fresh6\u00d75 founder gate vs real selected generated256\u00d7128 world/cache, founder present vs undone authored history, design-before-founder, general default legacy world progression, exact Save/Load/checkpoint bytes. Existing TemporaryCheckpoint/ProductionFile helpers are short and specific."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldHelperPreflightTests.cs",
+      "whole_lines_read": 130,
+      "methods": [
+        {
+          "method": "WorldHelperPreflightTests.HelperPreflightUsesTheSelectedKeyWithoutChangingRouting",
+          "decision": "retain",
+          "retained_proof": "WorldHelperPreflightTests.HelperPreflightUsesTheSelectedKeyWithoutChangingRouting"
+        },
+        {
+          "method": "WorldHelperPreflightTests.ArchivedHelperAvailabilityIsRecheckedAfterItsKeyIsDeleted",
+          "decision": "retain",
+          "retained_proof": "WorldHelperPreflightTests.ArchivedHelperAvailabilityIsRecheckedAfterItsKeyIsDeleted"
+        },
+        {
+          "method": "WorldHelperPreflightTests.StartupRecoverySkipsAnAutosaveWhoseHelperKeyWasDeleted",
+          "decision": "retain",
+          "retained_proof": "WorldHelperPreflightTests.StartupRecoverySkipsAnAutosaveWhoseHelperKeyWasDeleted"
+        }
+      ],
+      "attributed_methods": 3,
+      "cases": 13,
+      "decision": "retain",
+      "rationale": "Keep8 provider/default/named key combinations including keylessJev; decisions/Jev \u00d7 warm/cold archived preflight rechecking after named-key deletion and cache invalidation on changed helper; startup recovery skip deleted-helper-key autosave with original snapshots intact."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldModelSettingsTests.cs",
+      "whole_lines_read": 50,
+      "methods": [
+        {
+          "method": "WorldModelSettingsTests.ApprovalBindsTargetModelKeyAndThinkingWithoutIncludingCredentialBytes",
+          "decision": "retain",
+          "retained_proof": "WorldModelSettingsTests.ApprovalBindsTargetModelKeyAndThinkingWithoutIncludingCredentialBytes"
+        }
+      ],
+      "attributed_methods": 1,
+      "cases": 1,
+      "decision": "retain",
+      "rationale": "Keep targetID/model/key/thinking/helper digest changes, missing confirmation on altered target, key-label detail without bytes, inherit description and unchanged no-approval success. This direct full digest matrix complements signed HTTP model settings transaction proof."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+      "whole_lines_read": 151,
+      "methods": [
+        {
+          "method": "WorldPreviewConcurrencyTests.NativePreviewSelectionDoesNotOwnTheWorldMutationGate",
+          "decision": "retain",
+          "retained_proof": "WorldPreviewConcurrencyTests.NativePreviewSelectionDoesNotOwnTheWorldMutationGate"
+        },
+        {
+          "method": "WorldPreviewConcurrencyTests.ConfiguredHostCommitsWhilePreviewSelectionWaitsAndConcurrentPreviewsStayBounded",
+          "decision": "retain",
+          "retained_proof": "WorldPreviewConcurrencyTests.ConfiguredHostCommitsWhilePreviewSelectionWaitsAndConcurrentPreviewsStayBounded"
+        }
+      ],
+      "attributed_methods": 2,
+      "cases": 3,
+      "decision": "retain",
+      "rationale": "KeepSmall/Medium native selector outside world mutation gate with deterministic preview/no writes, and actual held concurrent selectors while configured host commits; bounded selector concurrency, exact state/file/catalog/routing/settings equality, strict reload and worker cleanup. No timing repairs proposed."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldStateFileTests.cs",
+      "whole_lines_read": 246,
+      "methods": [
+        {
+          "method": "WorldStateFileTests.DiskProbeReadsTheExistingSaveVolumeForAnUncreatedDirectory",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.DiskProbeReadsTheExistingSaveVolumeForAnUncreatedDirectory"
+        },
+        {
+          "method": "WorldStateFileTests.EquivalentTicksKeepEveryHotHistoryBoundedAcrossRepeatedCompaction",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.EquivalentTicksKeepEveryHotHistoryBoundedAcrossRepeatedCompaction"
+        },
+        {
+          "method": "WorldStateFileTests.WindowsReaderWithoutDeleteSharingPreservesCheckpointUntilReleased",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.WindowsReaderWithoutDeleteSharingPreservesCheckpointUntilReleased"
+        },
+        {
+          "method": "WorldStateFileTests.WindowsReaderAllowingDeleteSharingPreservesCheckpointUntilReleased",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.WindowsReaderAllowingDeleteSharingPreservesCheckpointUntilReleased"
+        },
+        {
+          "method": "WorldStateFileTests.WindowsReadOnlyCheckpointPreservesBytesUntilAttributeIsRemoved",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.WindowsReadOnlyCheckpointPreservesBytesUntilAttributeIsRemoved"
+        },
+        {
+          "method": "WorldStateFileTests.CheckpointFailureCapturePreservesTheOriginalExceptionEvenWhenArtifactsCannotBeWritten",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.CheckpointFailureCapturePreservesTheOriginalExceptionEvenWhenArtifactsCannotBeWritten"
+        },
+        {
+          "method": "WorldStateFileTests.CheckpointArchivesOldHistoryAndRestartsWithMonotonicEventIds",
+          "decision": "retain",
+          "retained_proof": "WorldStateFileTests.CheckpointArchivesOldHistoryAndRestartsWithMonotonicEventIds"
+        }
+      ],
+      "attributed_methods": 7,
+      "cases": 8,
+      "decision": "retain",
+      "rationale": "Keep native save-volume probe;2500 actual ticks/multiple compactions versus manually expanded single compaction archive/permissions/monotonic event IDs/corrupt-history rejection. Retain three native Windows read-only/open-reader sharing modes, exact exception/HResult/original bytes/retry, diagnostic-artifact writable/unwritable and foreign/handled exception isolation. CI native Windows evidence path remains untouched."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+      "whole_lines_read": 29,
+      "methods": [
+        {
+          "method": "WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+          "decision": "retain",
+          "retained_proof": "WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain"
+        }
+      ],
+      "attributed_methods": 1,
+      "cases": 1,
+      "decision": "support_candidate",
+      "rationale": "Retain sole Medium input,96\u00d748 bytes/encoding, palette membership and water coverage. Safe setup reduction may obtain same map directly with GeographyCandidateSelector.GenerateCandidate(geography), the exact WorldRuntime constructor call, avoiding unrelated runtime genesis with no helper. Keep theory/input initially; optional Fact conversion must preserve seed thumbnail-Medium and Medium enum."
+    }
+  ],
+  "candidates": [
+    {
+      "decision": "consolidate",
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "remove": "SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+      "retain": "SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "minimal_change": "At the richer test final Later creation, capture later local, preserve Assert.Equal(harvest.Branch,later.Branch) and add Assert.Equal(harvest.Id,later.ContinuedFromId). Preserve Assert.All(List, branch number1). Then remove duplicate method/Fact.",
+      "exact_native_sequence": "Both per-test fixtures construct WorldRuntime(save-branches), pause and same ManualWorldSaveStore. Both create Before the flood; PlayAsync() advances1 then pauses; create Big harvest; Load(flood); Load(harvest); PlayAsync() advances1 then pauses; create Later. Same names, tick counts, default provider setup, seed and branch relationship input.",
+      "extra_richer_inputs": "Only extra operations in retained scenario are FindUnchangedSave reads with original[], altered routing and altered autosave settings. Owner locks and reads/encodes/checks fingerprints; no runtime/timeline changes. List invalid-metadata diagnostic set remains empty on healthy fixture. No Configure/assignment write occurs.",
+      "assertions_preserved": [
+        "harvest.Branch == later.Branch",
+        "harvest.Id == later.ContinuedFromId"
+      ],
+      "estimated_gain": "~14-16 lines and1 case; measure actual diff and method run before choosing.",
+      "history": "Both methods introduced together703b9f68 (#682). The richer scenario now repeats exact latest-continuation rule."
+    },
+    {
+      "decision": "support",
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "method": "MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+      "minimal_change": "Replace local target + field.Split + fields.Length==2 branch + fields[^1] assignment with direct metadata[\"Save\"]![field] = JsonNode.Parse(malformedJson).",
+      "proof": "Current rows are Branch, ContinuedFromId, ContinuedFromCreatedUtc; none contains dot. Every JSON value and assertion stays unchanged. e88c5658 deleted all Branch.* rows, leaving dead support only.",
+      "estimated_gain": "3 lines;0 methods/cases removed."
+    },
+    {
+      "decision": "support",
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+      "method": "AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+      "minimal_change": "Replace using WorldRuntime(...FounderSetup,geographyOptions:geography) and ExportState().Map with var map = GeographyCandidateSelector.GenerateCandidate(geography).",
+      "proof": "WorldRuntime.cs185-189 calls exactly GenerateCandidate(geographyOptions,includeLegacyBedroll:false) for this input; map assigned nowhere else in constructor. Post-generator setup creates environment/society/resources/genesis events, not map tile changes. SyncEcologyResourceStates updates only resource availability. Same seed/options/candidate/bedroll preserved; thumbnail code reads same map dimensions/tiles.",
+      "retained_input": "WorldSizePreset.Medium; seed thumbnail-Medium; existing sole theory row and every assertion initially retained.",
+      "estimated_gain": "1 line, no helper added; runtime setup removed. Needs measured actual before/after native map/thumbnail equivalence if chosen."
+    }
+  ],
+  "rejected_expansions": [
+    "No broad base fixture class for SaveBranch and regression: would add inheritance/support for little saving and must preserve different seeds/prefixes.",
+    "No broad checkpoint-host parameter tree: LongInventory uses AdvanceWithModelWorkAsync and provider-aware Reload;2664 helper uses direct TryAdvanceOnce and Saved. Market/OwnedTool constructors/provider/logger/assertions also differ.",
+    "No shared mutable WorldRuntime cache. Existing caches are encoded byte[] with fresh Restore/Decode and independent providers; retain that isolation.",
+    "Additional departed-owner/newborn/manual-ownership caches add more helper lines than saved. Existing Market LongDeposit may share duplicate native5false setup, but doing so adds a conditional/extra codec work with no line reduction, so not selected.",
+    "Keep all corruption, ownership, credential, native Windows and checkpoint IO rows. Sole-row theory cleanup is too small to justify changing its parameter inputs in this batch."
+  ],
+  "owners_read_or_carried_forward": [
+    "ManualWorldSaveStore.cs269-402: FindUnchangedSave complete read-only healthy path, SameAutosaveChoices, CurrentPosition, ResolveBranch/ContinuingBranch, branch positions, ReadTimeline. Earlier create/overwrite/metadata bodies fully read and unchanged from49384790.",
+    "ManualWorldSaveStore.cs421-511 full durable delete/world ownership/orphan generation/recovery bodies; ManualWorldSaveStore.Recovery.cs full123lines; ManualWorldSaveStore.Load.cs full130 lines from prior manual-save lane (no changes).",
+    "SavedBuild.cs full; SavedFile.cs full; WorldModelSettings.cs full; OwnerContractFactories.cs WorldThumbnail complete From method63-101.",
+    "ProviderConfigurationStore.cs340-436 selected-helper-key validation/frozen birth credential/child commit entry; WorldRuntimeService.cs567-668 pending newborn binding and prepared frozen birth sequence. Keep all existing delay/rotation/write-failure inputs.",
+    "WorldSelectionCoordinator Preview/Create/Select/Assess/rollback bodies read in manual-save lane; WorldStartupRecovery candidate source/preflight/history paths enumerated. No production changes selected.",
+    "WorldRuntime constructor128-242 direct generator/pure map setup; GeographyCandidateSelection.cs GenerateCandidate137-147 full; EnvironmentSystem.Weather.cs SyncEcologyResourceStates25-29 full, no map mutation.",
+    "Newborn BeforeBirth external caller ChildInitialIdentityTests.CreateLongParentBeforeChildhoodAsync265 and provider usage checked. LongInventory partial class two full files share only their own fixture/helper/provider state; all native inputs read.",
+    "CheckpointIoTestEvidence Observe/exception/evidence source entries traced; all3 native Windows controls remain untouched."
+  ],
+  "history": [
+    "703b9f68 branch tests/regression introduction; exact latest-save method diff read.",
+    "e88c5658 optional nested Branch.* data removed; full relevant diff read, required metadata remaining WorldTick row preserved.",
+    "46cdf72c native thumbnail introduction; current Medium input and runtime map owner checked.",
+    "36d3df58 durable manual-load settings/ownership;cef3e9bc newborn shutdown credential freeze;0f7b0506 controlled native hosted model inputs;97c9e648 hard identities fixture input;40811eda shared diagnostic metadata;43233f05 bounds/model approvals. Per-file recent histories inspected for all18 files."
+  ],
+  "ci": "Linux shard planner routes all retained names and any new names. Windows provider/storage job filters all Deletion and .WorldStateFileTests. plus ManualSaveGeneration; preserve WindowsSaveFact attributes and three standalone WorldStateFile method names. Documentation/native Windows routing unchanged. No CI log timing measured in read-only audit.",
+  "measurements_needed": "Parent must measure chosen exact diff, timings/counts/lines/coverage and have a different reader approve selected deletion before implementation is marked ready."
+}

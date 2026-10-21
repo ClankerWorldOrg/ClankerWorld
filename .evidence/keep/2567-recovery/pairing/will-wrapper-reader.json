@@ -1,0 +1,59 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Read-only actual-diff verifier. I proposed preliminary wrapper removal earlier, so this is not the separate non-chooser decision review or independent PR review.",
+  "base": "f3c488ba",
+  "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+  "checkout": "/workspace/cw-2567-will-wrapper",
+  "result": "ACCEPT actual diff as exact inline of existing helper; no gap found. Validation remains parent responsibility.",
+  "diff": {
+    "files": 3,
+    "tests_added": 2,
+    "tests_removed": 15,
+    "source": 0,
+    "docs": 0,
+    "helper_file_removed_lines": 13
+  },
+  "proof_checks": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+      "exact_old_after_one_expression_substitution_equals_new": true,
+      "existing_cognition_using": true,
+      "methods": 5,
+      "cases": 8,
+      "rows_unchanged": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs",
+      "exact_old_after_one_expression_substitution_equals_new": true,
+      "existing_cognition_using": true,
+      "methods": 1,
+      "cases": 10,
+      "rows_unchanged": true
+    }
+  ],
+  "total_methods": 6,
+  "total_cases": 18,
+  "read_scope": "Read full current two caller files, original helper and complete diff; equality checks confirm original caller files differ only by those one-expression substitutions. Read full production WorldRuntime.ModelWork.cs and parent pre-edit ledger/ledger-check. All repo symbol/caller and CI/source include searches performed.",
+  "equivalence": "Both call sites evaluate identical Assert.Single predicate on the same PendingModelWork snapshot once, at same statement position, then return identical Completion Task. Existing Cognition using resolves the same sole ModelWorkKind enum as former fully qualified name. No changed ticking, scheduler startup, Task.Run, await, cancellation registration, locks or exception assertions.",
+  "native_boundaries": [
+    {
+      "test": "AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill",
+      "rows": [
+        "epoch",
+        "kind"
+      ],
+      "proof": "Still captures runtime Will completion after first native tick/provider-start and before Task.Run(provider.Complete); awaits both legal inline completion and runtime handoff; estate stays pending before final-preparation provider change; default/null wills/no acceptance event/one call asserted."
+    },
+    {
+      "test": "NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels",
+      "rows": 10,
+      "proof": "Still captures exact Will at death checkpoint before frozen state and optional held-provider release, avoiding extra ticks/expiry. Awaits same task then frozen bytes/pending, native admission, strict reload/replay/cancelled commit rollback, household/town stock/vessel provenance/conservation and invalid saved town food refusal all unchanged."
+    }
+  ],
+  "other_methods": "All4 other admission methods remain byte-identical: descendant/long heir/collision identities and saved wills, prompt belief provenance/correction, presence expiry cancellation/default reconnect, configured HTTP cancellation accounting/pause save.",
+  "production": "PendingModelWork takes same runtime gate, snapshots each tracked completion under Sync and returns ordered array including finished replies awaiting committed tick. Inlining obtains same saved actual Task reference; no enumeration/provider admission change.",
+  "history": "a225765a #1837 introduced death-checkpoint wait; ff8b1b2e #1902 replaced reflection-based helper with current one-expression public snapshot and left obsolete Collections/Reflection usings. Current removal deletes only stale helper shell.",
+  "callers": "Exactly2 original helper calls; none remain after diff. No explicit WillFixture source include or candidate method CI filter depends on file/type name. Shared project glob removal does not remove production source.",
+  "checks": "git diff --check passed. No builds/tests/mutations/source edits/GitHub writes executed by reader.",
+  "caveat": "Not a fresh coverage/timing report. Parent scoped 6method/18case checks and prescribed baseline/final/CI still required. No extra tests recommended for pure expression inline."
+}

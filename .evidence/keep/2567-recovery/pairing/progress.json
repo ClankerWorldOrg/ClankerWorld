@@ -8,9 +8,9 @@
   "current_focus": 2669,
   "ready_total": 195,
   "proposed_test_lines": {
-    "added": 71,
-    "removed": 282,
-    "net_removed": 211
+    "added": 73,
+    "removed": 297,
+    "net_removed": 224
   },
   "drafts": {
     "2590": {
@@ -54,7 +54,7 @@
       "branch": "codex/2567-documentation-root-185bf8a4",
       "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
       "line_delta": "tests+4/-20 net16;source/docs0;224to208",
-      "status": "PR2669 pushed dcdf8a89; build/unused/discovery/ledger/reader/staledocs/overlap pass. Scoped5cases4methods before/afterpass, all counters unchanged0loss. Normalformat85964 active; CI39692734015/counttiming pending.",
+      "status": "OnlynativeWindowsinstaller/finalverifyCI pending. All localchecks/8shards/headcounts/timing reviewpass;7423/3311 unchanged, full10growthrowsreadoutsidefile(+11%aggregate,no warning).",
       "head": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
       "ci": 39692734015
     }
@@ -66,8 +66,9 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2669 only format and CI/counts/timing; do not repeat passed coverage or merge main without conflict.",
-    "Next candidate narrow NativeWillFixture.PendingTask wrapper removal; keep all18cases6methods in full two caller classes."
+    "Mark2669ready immediately once CI+counts/timing reviewed; neverrepeatpassedchecks orrefreshmainwithoutGitHubconflict.",
+    "Finishwillwrappercoverage/format once; opennewdraftonly2669ready.",
+    "ThenSaveBranch actual latest-save consolidation/deadflatmetadata navigation, snapshotJSONsupportreuse, providerconsolidations/clock, HTTPdeadscaffolding/signer/DTO, optional tinyAssets; evaluate broaddeadtestsupport with exactuserscope."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -86,6 +87,14 @@
     "branch": "codex/2567-documentation-root-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
     "line_delta": "tests+4/-20 net16;source/docs0;224to208",
-    "status": "PR2669 pushed dcdf8a89; build/unused/discovery/ledger/reader/staledocs/overlap pass. Scoped5cases4methods before/afterpass, all counters unchanged0loss. Normalformat85964 active; CI39692734015/counttiming pending."
+    "status": "OnlynativeWindowsinstaller/finalverifyCI pending. All localchecks/8shards/headcounts/timing reviewpass;7423/3311 unchanged, full10growthrowsreadoutsidefile(+11%aggregate,no warning)."
+  },
+  "will_wrapper": {
+    "root": "/workspace/cw-2567-will-wrapper",
+    "branch": "codex/2567-will-wrapper-185bf8a4",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+    "status": "Committed/pushedc4787f1d; noPRuntil2669ready. Allbuild/unused/discovery/ledger/staledocs/overlaps/readerspass. Scoped18cases6methods before/afterPASS,20010/77870lines14125/88372branchesunchanged0loss. Normalformat45948 active; no CIuntilPRopened.",
+    "line_delta": "tests+2/-15 net13;source/docs0;18cases6methods retained"
   }
 }

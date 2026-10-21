@@ -1,0 +1,31 @@
+{
+  "base": "f3c488ba",
+  "reader": "185bf8a4/root",
+  "complete_files": [
+    "Server/ServerHardeningTests.cs (183lines,5methods8cases)",
+    "Server/Assets/ApprovedAssetCatalogTests.cs (78lines,3methods4cases)"
+  ],
+  "owners_read": [
+    "PrivateStorage.cs",
+    "SafeServerErrors.cs",
+    "Providers/ProviderHttpClients.cs",
+    "Content/ApprovedAssetCatalog.cs"
+  ],
+  "decisions": [
+    {
+      "file": "ServerHardeningTests.cs",
+      "decision": "retain all",
+      "reason": "Record ToString redaction, live/stale/unrelated/symlink cleanup, first-write Unix permissions and no-widen rule, redirect and max-buffer refusal, HTTP status/log privacy including route templates are distinct security contracts. Both named clients retained; 400/404/413 protocol statuses and500 logging differ."
+    },
+    {
+      "file": "Assets/ApprovedAssetCatalogTests.cs",
+      "decision": "retain all tests; possible boilerplate repair",
+      "reason": "Missing catalog fail-closed, exact id+digest positive/negative and malformed digest versus unsupported schema are distinct. Private23line TemporaryDirectory only two sites could be replaced by existing BCL DirectoryInfo temp creation with try/finally (~15net) while retaining assertions. One-call CatalogJson generic6line generator could inline exact canonical JSON (~4net). No edits or coverage yet; second-reader needed before exact change."
+    }
+  ],
+  "history": [
+    "fea4c1f2 #2427 hardening",
+    "Asset path renamed9c920264; earlier history must be followed before an edit"
+  ],
+  "next": "Narrow Will wrapper and shared snapshot JSON candidate precede any additional Assets batch. No credit for proposals."
+}

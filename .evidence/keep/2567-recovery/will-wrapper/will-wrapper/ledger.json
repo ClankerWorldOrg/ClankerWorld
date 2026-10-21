@@ -1,0 +1,128 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false, false)]",
+      "[InlineData(true, false)]",
+      "[InlineData(true, true)]"
+    ],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.TheWillPromptKeepsTheActorsBeliefProvenanceAndCorrectionLabels",
+    "decision": "retain",
+    "rows": [],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillAdmissionTests.TheWillPromptKeepsTheActorsBeliefProvenanceAndCorrectionLabels"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"epoch\")]",
+      "[InlineData(\"kind\")]"
+    ],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall",
+    "decision": "retain",
+    "rows": [],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause",
+    "decision": "retain",
+    "rows": [],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs",
+    "test": "ClankerWorld.Tests.TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"eggs\", null, true, false)]",
+      "[InlineData(\"milk\", null, true, false)]",
+      "[InlineData(\"milk\", \"storage_pot\", true, false)]",
+      "[InlineData(\"cooked_eggs\", null, true, false)]",
+      "[InlineData(\"milk_porridge\", \"storage_pot\", true, false)]",
+      "[InlineData(\"rich_meal\", \"storage_pot\", true, false)]",
+      "[InlineData(\"berry_porridge\", \"storage_pot\", true, false)]",
+      "[InlineData(\"fresh_water\", \"water_jug\", false, false)]",
+      "[InlineData(\"wood\", null, false, false)]",
+      "[InlineData(\"cooked_eggs\", null, true, true)]"
+    ],
+    "regression": "Preserve exact existing will provenance, admission, cancellation, usage, inheritance and strict checkpoint assertions; no row or scenario removed.",
+    "production_boundary": "WorldRuntime.PendingModelWork snapshot returns the actual runtime completion task; native wills/service/save/HTTP routes remain.",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels"
+    ],
+    "history": [
+      "a225765a #1837 wait at native death checkpoint",
+      "ff8b1b2e #1902 replace old reflection with public runtime snapshots"
+    ],
+    "support": "Delete13-line NativeWillFixture forwarding file; inline the same Assert.Single Will snapshot/Completion expression at its only two callers, preserving evaluation location and no scheduling/ticks.",
+    "risk": "Low: exact one-expression inline, all6methods18cases retained. Caller edits outsidearea only required by removal.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests."
+  }
+]

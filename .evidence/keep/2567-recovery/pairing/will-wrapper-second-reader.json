@@ -1,0 +1,42 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Non-chooser read-only exact-diff second reader; not independent PR review. Audit_reader chose removal; this reader did not.",
+  "base": "f3c488ba",
+  "head": "c4787f1d",
+  "decision": "accept",
+  "findings": [],
+  "diff": "+2/-15 across3 files;13-line pure support fixture deleted",
+  "checks": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+      "exact_one_expression_replacement": true,
+      "attributes_identical": true,
+      "methods": 5,
+      "cases": 8
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs",
+      "exact_one_expression_replacement": true,
+      "attributes_identical": true,
+      "methods": 1,
+      "cases": 10
+    }
+  ],
+  "methods": 6,
+  "cases": 18,
+  "helper_before": "using System.Collections;\nusing System.Reflection;\nusing ClankerWorld.Simulation.World;\n\nnamespace ClankerWorld.Tests;\n\ninternal static class NativeWillFixture\n{\n    internal static Task PendingTask(WorldRuntime world)\n    {\n        return Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Will).Completion;\n    }\n}\n",
+  "causal_equivalence": [
+    "Deleted helper is synchronous return of Assert.Single(PendingModelWork, Transition.Kind==fully-qualified ModelWorkKind.Will).Completion, with no extra assertion/await/tick/cancellation/exception handling. Both caller replacements use the exact same expression and existing ClankerWorld.Simulation.Cognition using resolves same enum.",
+    "PendingModelWork getter still acquires/releases runtime gate and snapshots each tracked entry once; per-entry Snapshot lock and Completion wrapper-task identity unchanged. Selection remains exactly one Will entry, and original zero/multiple-match assertion behavior remains.",
+    "MultiHeir provider-start signal await remains before capture, then Task.Run(provider.Complete), await same runtime wrapper task, verify estate pending and native final-preparation epoch/kind changes remain.",
+    "TownFood captures same completion immediately after native death tick, before optional held-response gate. Held-call signal, IsCompleted assertion, finally release, wrapper await, frozen bytes and pending estate, subsequent native admission tick and replay/settlement remain unchanged.",
+    "Every other character of both caller files, including all rows/assertions/providers/cleanup, is mechanically unchanged. No provider-side task substituted."
+  ],
+  "owner_reads": "WorldRuntime.ModelWork.cs tracked Snapshot, PendingModelWork35-47 and ScheduleModelWork65-80; ModelWorkSnapshot Completion contract. Both changed methods and their relevant provider gates/continuations read. Whole caller files byte-compared against exact substitution.",
+  "retained_changed_methods": [
+    "MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill(epoch/kind)",
+    "TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels(10 original rows)"
+  ],
+  "ci": "All class/method names and attributes unchanged, existing Linux dynamic filters retain6methods/18cases; native Windows/docs paths unchanged.",
+  "validation": "No source edits/builds/tests/GitHub writes. Evidence JSON only."
+}

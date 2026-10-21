@@ -1,0 +1,44 @@
+{
+  "files": [
+    "/workspace/cw-2567-will-wrapper/.evidence/keep/2567/will-wrapper/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 18,
+  "executed_cases": 18,
+  "declarations": 6,
+  "outcomes": {
+    "Passed": 18
+  },
+  "total_seconds": 63.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels",
+      "seconds": 54.5,
+      "cases": 10
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload",
+      "seconds": 8.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause",
+      "seconds": 0.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall",
+      "seconds": 0.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill",
+      "seconds": 0.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.TheWillPromptKeepsTheActorsBeliefProvenanceAndCorrectionLabels",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

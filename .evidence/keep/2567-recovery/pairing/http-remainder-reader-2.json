@@ -1,0 +1,389 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-main-f3",
+  "mode": "Read-only source/history audit; evidence write only. No builds, tests, source edits, GitHub writes or ready-PR activity.",
+  "scope": "Second HTTP remainder batch. No whole-lane exhaustion claim.",
+  "fully_read_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 53,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Native blocked accepted tool request projects exact shop/requester/recipe/status/blocker; reconnect shows only buyer/seller notes, not unrelated parties. This native privacy/projection boundary is not duplicated by general request or observation tests.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 60,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(SocietyAgeBand.Adolescent)]",
+            "[InlineData(SocietyAgeBand.Adult)]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Adolescent rejection with exact live/disk immutability and adult accepted paid job surviving reload exercise distinct production-admission paths. Keep both ages and direct reloaded rejection.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 62,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Interrupted selection checkpoint/catalog split must recover before resume; later configuration must survive list calls. Startup rollback order is distinct from ordinary transactional load.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 74,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Tampered reassignment household must fail unchanged; signed reassign and remove each persist real building effects. Reassignment/removal are different canonical action and native state paths.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 68,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "All seven tampered fields, authenticated wrong-world refusal, canonical native-client payload parity, real accepted save and idempotent retry/event singleton remain. Each signed field and semantic refusal is distinct.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 74,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\" durable-retry \")]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Whitespace-normalized receipt retry survives recipient native death and two actual host restarts; reused-key conflict and new dead-recipient failure preserve exact state/event singleton. Second restart can detect first retry corrupting persisted receipt.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 96,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Native pending submission is authority/device/world scoped; missing scope, signed original-world body in another world, tampered world signature, return-to-original receipt and unchanged other world cover distinct security and persistence inputs.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 77,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"load\", \"null-save\")]",
+            "[InlineData(\"overwrite\", \"null-save\")]",
+            "[InlineData(\"load\", \"missing-save\")]",
+            "[InlineData(\"overwrite\", \"missing-save\")]",
+            "[InlineData(\"load\", \"invalid-json\")]",
+            "[InlineData(\"overwrite\", \"invalid-json\")]",
+            "[InlineData(\"load\", \"null-assignments\")]",
+            "[InlineData(\"overwrite\", \"null-assignments\")]",
+            "[InlineData(\"load\", \"null-assignment\")]",
+            "[InlineData(\"overwrite\", \"null-assignment\")]",
+            "[InlineData(\"load\", \"null-name\")]",
+            "[InlineData(\"overwrite\", \"null-name\")]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep six metadata corruption inputs crossed with load/overwrite: missing/null identity, invalid JSON, null assignments/entry/name reach different validation branches and separate backup/write routes. Exact runtime/file-set invariance and repaired retry remain.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 101,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"save\")]",
+            "[InlineData(\"world\")]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep save/world tombstone inputs and real interrupted deletion. Restart must preserve evidence with missing identity; repairing identity alone while leaving playability fields invalid must complete deletion and preserve other active/save state.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 99,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Signed tampering, real construction preview without mutation, canonical review DTO, private-name log redaction, explicit validation/approval/stage, pause versus resume activation, paid placement and restore are distinct workbench contracts beyond generic private-content lifecycle.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 108,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"decisions\", \"off\")]",
+            "[InlineData(\"decisions\", \"jev\")]",
+            "[InlineData(\"decisions\", \"another-key\")]",
+            "[InlineData(\"jev\", \"off\")]",
+            "[InlineData(\"jev\", \"decisions\")]",
+            "[InlineData(\"jev\", \"another-key\")]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep all six decisions/jev to off/other-provider/other-key transitions. Current helper protects its provider-specific saved key across restart; releasing helper permits deletion and preserves replacement configuration/key across another restart.",
+      "latest_history": "8444f828 Let Jev use saved TypeSafe keys (#2340)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 108,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep actual held private file gate and optional waiter cancellation; load and concurrent selection must archive one whole checkpoint/settings transaction, await all workers and restart consistently. Cancellation branch is a distinct native ordering input.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 108,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Delayed signed world-A autosave settings held through world-B selection must preserve both live/copy bytes and settings; legacy/tampered bodies refuse; fresh B update rotates only B and survives reopen. Copy rotation is distinct from ordinary delayed settings.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 113,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"\u00c9lodie Lake\")]",
+            "[InlineData(\"  e\\u0301LODIE\\u00a0  Lake  \")]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep canonical accented versus combining/case/Unicode-whitespace name collision, native client guidance, alternate accepted durable identity/memory and retry; concurrent two-name race separately proves one winner and immutable loser.",
+      "latest_history": "835f145d Use server labels and shared terrain and calendar rules (#1932)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 117,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep fourteen signature-field tamper inputs and six authenticated invalid-world/epoch/timeline/event/batch/legacy inputs, complete native batch acceptance/client payload parity/retry persistence, and post-load observer-generation invalidation even when other identity fields match.",
+      "latest_history": "92d9524e Pick world edits on the map and show why they are refused (#2365)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 119,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep three signed-load recovery backups to prove source provenance and keep/remove boundary; separately retain named manual-save protection, preview-only exact bytes, tampered proof, stale digest after fourth backup, running refusal, paused exact deletion and active checkpoint invariance.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpNativeClientCancellationTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 126,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(true)]",
+            "[InlineData(false)]"
+          ],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Both native-born adult/parent full-ID inputs retain real client pending-store authority/device/world/timeline scope, deliberately lost successful response, recorded exact canonical actions, receipt retry singleton/event conservation and reload. Transport handler has substantive lost-response semantics.",
+      "latest_history": "ea469b45 Control signed-flow time in native cancellation retry tests (#2266)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+      "read_scope": "whole file, all method bodies and data rows",
+      "lines": 135,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method and every existing assertion/input; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Keep tampered order/signature, overlong idempotency key/control-character actor, authenticated wrong world, successful native cancellation task/observation/receipt, retry immutability, conflicting reuse and post-restart receipt. Signed refusal boundary differs from lost native-client response.",
+      "latest_history": "40811eda Compile server and game contracts from one source (#1923)"
+    }
+  ],
+  "totals": {
+    "full_files": 18,
+    "full_file_lines": 1698,
+    "full_file_methods": 20,
+    "full_file_cases": 41
+  },
+  "candidates": [],
+  "production_review": "Read complete OwnerEndpoints.Instructions including signed world-scoped instruction/cancellation guards, native submission and durable Save ordering, and error translation. Traced metadata playability/deletion-identity distinction in ManualWorldSaveStore, provider helper and saved-key deletion guards, rename refusal boundary, recovery/content/setup endpoints and relevant prior WorldStateFile/runtime transaction boundaries. No candidate deletion selected; do not imply a complete line-by-line reread of every endpoint.",
+  "ci": "Windows native storage filter selects FullyQualifiedName~Deletion; retained exact class/method names and all deletion rows. No case rename, filter change or test removal proposed.",
+  "rejected_shortcuts": [
+    "Do not collapse repeated instruction restarts: a retry may corrupt the durable receipt and only the next host observes it.",
+    "Do not collapse load/overwrite or save/world deletion inputs: different durable transaction/tombstone paths.",
+    "Do not replace native lost-response cancellation handler with forwarding support: it deliberately drops a committed receipt and records exact client actions.",
+    "Do not remove map-edit signed fields or semantic-invalidity rows merely because status codes coincide.",
+    "Do not replace held-file gate/cancellation with an uncontrolled scheduling assertion.",
+    "No new generic lifecycle helper proposed; current setup has native provenance and state transitions."
+  ],
+  "cumulative_scope": {
+    "fully_read_file_count_with_previous_and_existing_helper_ledger": 34,
+    "remaining_files_not_claimed_fully_audited": [
+      "ServerHttpActionCompatibilityTests.cs",
+      "ServerHttpAdvancedGenerationTests.cs",
+      "ServerHttpBuildingWorldTests.cs",
+      "ServerHttpCandidateFailureTests.cs",
+      "ServerHttpCheckpointRecoveryTests.cs",
+      "ServerHttpCorruptDeletionTests.cs",
+      "ServerHttpDamagedCheckpointTests.cs",
+      "ServerHttpDeletionTests.cs",
+      "ServerHttpFounderSetupTests.cs",
+      "ServerHttpFounderTransactionTests.cs",
+      "ServerHttpGeneratedWorldIdentityTests.cs",
+      "ServerHttpLocalServerShutdownTests.cs",
+      "ServerHttpManualLoadRestartTests.cs",
+      "ServerHttpManualSaveTests.cs",
+      "ServerHttpProviderSetupCheckTests.cs",
+      "ServerHttpProviderTests.cs",
+      "ServerHttpRequestLimitTests.cs",
+      "ServerHttpSaveDiskSpaceTests.cs",
+      "ServerHttpWorldListCacheTests.cs",
+      "ServerHttpWorldListWarmUpTests.cs"
+    ],
+    "partial_file_note": "ServerHttpManualSaveTests.cs has only three complete methods/four cases plus private receipt read in previous ledger; remaining bodies still need reading. Other remaining files may have earlier focused overlap but are not claimed whole-file audited here."
+  }
+}

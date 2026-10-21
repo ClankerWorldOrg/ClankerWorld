@@ -1,0 +1,40 @@
+{
+  "run": 39692734015,
+  "commit": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 16756.2448982,
+  "selected": {
+    "cases": 5,
+    "methods": 4,
+    "seconds": 0.3698878,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.DocumentationTests.GameDesignPagesDescribeTheDesignNotWhatIsBuilt",
+        "cases": 1,
+        "seconds": 0.0384448
+      },
+      {
+        "method": "ClankerWorld.Tests.DocumentationTests.ChangelogEntriesStartWithABullet",
+        "cases": 1,
+        "seconds": 0.0018093
+      },
+      {
+        "method": "ClankerWorld.Tests.DocumentationTests.DocumentationFilesDeclareTheirAuthorityMetadata",
+        "cases": 2,
+        "seconds": 0.0216131
+      },
+      {
+        "method": "ClankerWorld.Tests.DocumentationTests.LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+        "cases": 1,
+        "seconds": 0.3080206
+      }
+    ]
+  },
+  "test_times_job": 119547626711,
+  "test_times_review": "Personally read all ten growth rows: all outside DocumentationTests.3311shared16756vs15140main3runmedian(+11%),noaggregatewarning. Only static documentation lookup changed; no simulation/runtime code or tests changed. No speedup claim."
+}

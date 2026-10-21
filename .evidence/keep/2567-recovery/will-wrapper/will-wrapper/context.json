@@ -1,0 +1,13 @@
+{
+  "session": "185bf8a4",
+  "branch": "codex/2567-will-wrapper-185bf8a4",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "plan": [
+    "Inline only two proven callers and delete forwarder.",
+    "Build/unused/discovery/ledger/staledocs/overlap and second-reader exactdiff checks.",
+    "Once-only scoped before/after coverage, comparator and loss review. Normalformat once.",
+    "Open no PR until2669ready; then independentdraft, exact-headCI/counttiming andready."
+  ],
+  "reader": "185bf8a4/audit_reader proposal; parent fully read both callers and PendingModelWork implementation/history. Exactdiff review pending.",
+  "baseline_build": "Reuse completed puref3 baseline build/169 diagnostics."
+}

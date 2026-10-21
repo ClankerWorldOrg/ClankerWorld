@@ -1,0 +1,14 @@
+2026-10-21T23:34:21.1294338Z ### Test time against main
+2026-10-21T23:34:21.1295589Z The 3311 tests this run shares with main took 16756 s here and 15140 s on main (+11%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-21T23:34:21.1297787Z | Test | Main (s) | Here (s) | Change |
+2026-10-21T23:34:21.1298372Z | --- | --- | --- | --- |
+2026-10-21T23:34:21.1299534Z | ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload | 229 | 309 | +35% |
+2026-10-21T23:34:21.1300610Z | ClankerWorld.Tests.PortBoatRuntimeTests.CancellingOrReplacingAnUnderwayBoatOrderPreservesItsActualJourney | 23 | 93 | +308% |
+2026-10-21T23:34:21.1301600Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel | 56 | 121 | +114% |
+2026-10-21T23:34:21.1302654Z | ClankerWorld.Tests.PortBoatRuntimeTests.CouncilProjectsBuildPortsAndOnePhysicalBoatUsingUnreservedTownStock | 0 | 56 | +15027% |
+2026-10-21T23:34:21.1303576Z | ClankerWorld.Tests.PortBoatRuntimeTests.ACompletedPaidBoatCannotDisappearOrAcquireAnInventedRemoval | 74 | 126 | +70% |
+2026-10-21T23:34:21.1304445Z | ClankerWorld.Tests.PortBoatRuntimeTests.PassengerSurvivalUsesOnlyAvailableCarriedFoodAcrossReload | 18 | 68 | +280% |
+2026-10-21T23:34:21.1305615Z | ClankerWorld.Tests.WorldShelterOrderTests.AChangedHouseDoesNotRetargetOrCreditTheOriginalShelterOrder | 5 | 48 | +885% |
+2026-10-21T23:34:21.1306577Z | ClankerWorld.Tests.MarketWritingPaperTests.AvailableCollectedAndReservedSheetsStillPreventReplacementProduction | 7 | 49 | +598% |
+2026-10-21T23:34:21.1307522Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse | 122 | 163 | +34% |
+2026-10-21T23:34:21.1308407Z | ClankerWorld.Tests.WarmthActionPlanTests.NativeWarmthKeepsItsBuildingOrTreeCoverAcrossReplayAndReload | 21 | 58 | +178% |
