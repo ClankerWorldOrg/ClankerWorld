@@ -96,24 +96,6 @@
     "Count": 2
   },
   {
-    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
-    "Rule": "async-fake",
-    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
-    "Rule": "timeout-wait",
-    "Expression": "Task.WhenAny(first,handler.Started.Task).WaitAsync(TimeSpan.FromSeconds(10))",
-    "Count": 1
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
-    "Rule": "timeout-wait",
-    "Expression": "first.WaitAsync(TimeSpan.FromSeconds(10))",
-    "Count": 1
-  },
-  {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
     "Rule": "async-fake",
     "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
