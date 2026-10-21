@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-base/.evidence/2560-refresh/support-scoped-before/tests.trx"
+  ],
+  "reported_cases": 561,
+  "executed_cases": 561,
+  "declarations": 189,
+  "outcomes": {
+    "Passed": 561
+  },
+  "total_seconds": 2678.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 257.3,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods",
+      "seconds": 113.5,
+      "cases": 16
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCancelledWhileAModelReplyIsHeldCannotCollectAnotherLoad",
+      "seconds": 102.1,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.EquipmentCollectionMovesTheExactKindWithoutEquippingOrRepairing",
+      "seconds": 96.1,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderCannotUseUnavailableGoods",
+      "seconds": 79.2,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFieldOrderTests.UnsupportedOrAmbiguousFieldTextDoesNotReplaceTheCurrentOrder",
+      "seconds": 79.0,
+      "cases": 14
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts",
+      "seconds": 71.1,
+      "cases": 15
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRepairOrderTests.CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts",
+      "seconds": 68.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFieldOrderTests.PlantingOrdersSkipOccupiedSeedStockAndConsumeOneAccessibleSeed",
+      "seconds": 66.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.SpendingExcludesPaidStallStockWhileSellingKeepsItsUnreservedQuantity",
+      "seconds": 65.8,
+      "cases": 1
+    }
+  ]
+}

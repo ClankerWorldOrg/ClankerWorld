@@ -31,19 +31,18 @@ Completed on the frozen base/head:
 - SDK **10.0.401**, locked restore and Release unused-code build pass.
 - IDE diagnostics **168 → 168**, zero new warnings; temporary editorconfig removed.
 - Built discovery and retained-proof ledger pass. Production source is identical, and paired coverage uses the same pinned Simulation/Server DLL/PDB bytes.
-- `git diff --check` and stale-text review pass.
+- Local `dotnet format --verify-no-changes --no-restore`, `git diff --check` and stale-text review pass.
 - Validated before/after merge-tree checks against all **47 other current open PR heads** introduce no new conflicting files. Missing objects in the historical record were fetched before this check.
 - [Verify 39654294505](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39654294505) is fully green on this head, including all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
 - Personally read [test-times 119416952557](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39654294505/job/119416952557), including all ten growth rows: **14,045 s** versus main's recent **15,223 s** median (**−8%**). No general speedup is claimed.
 - CI artifacts: changed-file scope **316/105 → 316/105 cases/methods**, **356.632 → 227.706 s**. Frozen-base CI totals are **7,413/3,307 / 15,810.993 s**; head CI merge-tree totals are **7,423/3,311 / 14,044.970 s** (7,414 passed, nine platform skips). Unrelated route/native-probe additions explain the ten extra cases and four declarations.
 
-Remaining checks, run once:
+Final scoped results:
 
-- Local `dotnet format --verify-no-changes --no-restore` is running.
-- Paired affected-test coverage is running with the same filter/settings/scheduling: **561 cases / 189 methods** per side. This includes all 316 focused cases without a redundant second execution.
-- Compare using aliases-aware checker `87d657e2` with `--threshold-scope each`, inspect every lost line/branch, and isolate the retained test for any loss.
-
-No test is removed, so no new per-method deletion-planning run is needed. Mark ready promptly when the listed checks pass; CI is already green.
+- All **561 cases / 189 methods pass on both base and head**, zero skips. This includes all **316 focused cases / 105 changed-file methods**, verified from the final TRX.
+- The aliases-aware comparator `87d657e2`, with `--threshold-scope each`, reports **zero lost lines and zero reduced branch lines**. Exact total coverage is unchanged: **30,823 / 78,040 lines (39.496412%)** and **27,211 / 88,598 branches (30.712883%)**.
+- Simulation line/branch coverage is **47.632800% / 34.85%**; Server **11.260569% / 9.63%**; linked executable test sources **0% / 0%**. All line/branch changes are **0 percentage points / 0% relative**. Assembly/source/denominator guards stay enabled.
+- No test is removed; no per-method deletion-planning run or full-suite coverage is needed. All listed checks are complete on the frozen base/head, and exact-head CI is green.
 
 ## Saves and replay
 
