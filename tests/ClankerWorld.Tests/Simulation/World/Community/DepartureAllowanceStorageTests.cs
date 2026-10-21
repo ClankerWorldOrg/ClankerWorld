@@ -155,23 +155,8 @@ public sealed class DepartureAllowanceStorageTests
         using var leaving = WorldRuntime.Restore(WithInventory(state, inventory), _ => new Choices());
         Assert.True(leaving.DisplaceAdult(actor));
         var allowanceId = Assert.Single(Assert.Single(leaving.Agents.Single(person => person.AgentId == actor).Departures!).AllowanceLotIds);
-        state = leaving.ExportState();
-        var checkpoint = state.Society.Society;
-        // Explicit lifecycle fixture: the departed adult reaches the normal
-        // maximum age on the next tick; death and escrow use production paths.
-        var lastDay = Assert.IsType<SocietyDayLifecycle>(checkpoint.Config.DayLifecycle).MaximumDay;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge;
-        checkpoint = checkpoint with
-        {
-            Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
-            {
-                BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
-                BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                AgeBand = SocietyAgeBand.Elder,
-                LastLifecycleYearChecked = lastDay - 1,
-            } : person).ToArray(),
-        };
-        state = state with { Society = state.Society with { Society = checkpoint } };
+        // Explicit lifecycle fixture: death and escrow still use production paths.
+        state = DieOnNextTick(leaving.ExportState(), actor);
         using var dying = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Choices());
         dying.Resume();
         Assert.True((await dying.TickModelWorkAsync()).Advanced);
@@ -360,7 +345,7 @@ public sealed class DepartureAllowanceStorageTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forged));
     }
 
-    private static WorldRuntimeState DieOnNextTick(WorldRuntimeState state, string actor)
+    internal static WorldRuntimeState DieOnNextTick(WorldRuntimeState state, string actor)
     {
         var checkpoint = state.Society.Society;
         var lastDay = Assert.IsType<SocietyDayLifecycle>(checkpoint.Config.DayLifecycle).MaximumDay;

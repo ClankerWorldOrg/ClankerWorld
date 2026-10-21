@@ -826,25 +826,7 @@ public sealed partial class HouseholdDepartureTests
         var collectionState = growing.ExportState();
         if (boundary == "caregiver-death")
         {
-            var checkpoint = collectionState.Society.Society;
-            collectionState = collectionState with
-            {
-                Society = collectionState.Society with
-                {
-                    Society = checkpoint with
-                    {
-                        Agents = checkpoint.Agents.Select(person => person.Id == caregiver ? person with
-                        {
-                            BirthTick = checkpoint.LifeClock is null
-                                ? checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge : person.BirthTick,
-                            BirthLifeTick = checkpoint.LifeClock is null ? null
-                                : checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge,
-                            AgeBand = SocietyAgeBand.Elder,
-                            LastLifecycleYearChecked = lastDay - 1,
-                        } : person).ToArray(),
-                    }
-                },
-            };
+            collectionState = DepartureAllowanceStorageTests.DieOnNextTick(collectionState, caregiver);
             using var orphaned = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collectionState)), _ => provider);
             Assert.True((await orphaned.AdvanceOneTickAsync()).Advanced);
             collectionState = orphaned.ExportState();
