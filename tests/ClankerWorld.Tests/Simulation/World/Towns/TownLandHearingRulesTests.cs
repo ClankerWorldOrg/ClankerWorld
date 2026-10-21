@@ -112,18 +112,6 @@ public sealed class TownLandHearingRulesTests
     }
 
     [Fact]
-    public void TwoPartyHouseholdsWithoutAnIndependentCandidateStayPending()
-    {
-        var state = File();
-        var council = TownCouncilState.Create(["a", "b"]);
-        (state, _) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, 0, 10);
-        Assert.Equal("pending", state.Cases[0].Status);
-        Assert.Null(state.Cases[0].Judge);
-        Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
-        Assert.Empty(state.Adjustments);
-    }
-
-    [Fact]
     public void DuplicateSettledCaseIsRejectedBeforeAdjustmentLookup()
     {
         var fixture = Ready();
@@ -817,7 +805,12 @@ public sealed class TownLandHearingRulesTests
         // With no willing independent adult, the failed vote is recorded once and waits for a candidate.
         var state = File();
         var council = TownCouncilState.Create(["a", "b"]);
-        foreach (var tick in new long[] { 0, 10, 25, 40 })
+        (state, council) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, 0, 10);
+        Assert.Equal("pending", state.Cases[0].Status);
+        Assert.Null(state.Cases[0].Judge);
+        Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
+        Assert.Empty(state.Adjustments);
+        foreach (var tick in new long[] { 10, 25, 40 })
             (state, council) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, tick, 10);
         Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
         Assert.Null(state.Cases[0].Contest);
