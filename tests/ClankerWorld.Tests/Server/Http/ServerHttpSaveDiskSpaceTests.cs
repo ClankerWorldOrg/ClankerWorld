@@ -204,36 +204,42 @@ public sealed class ServerHttpSaveDiskSpaceTests
     [Fact]
     public async Task ADelayedLaterVolumeQueryCannotMakeAnEarlierSampleFreshAgain()
     {
-        var clock = new SaveSpaceTestClock();
+        var clock = new ManualTimeProvider();
+        var startedUtc = clock.GetUtcNow();
+        using var release = new ManualResetEventSlim();
+        var probe = new LaterDelayedSaveSpaceProbe(clock, release);
         using var monitor = new SaveDiskSpaceMonitor(Path.Combine(Path.GetTempPath(), "space-age-test.json"),
-            new LaterDelayedSaveSpaceProbe(clock), timeProvider: clock);
+            probe, timeProvider: clock);
         await monitor.StartAsync(default);
         try
         {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            while (monitor.Capture().CheckedUtc is null) await Task.Delay(10, timeout.Token);
-            var status = monitor.Capture();
-            Assert.Equal("unknown", status.State);
-            Assert.Null(status.AvailableBytes);
-            Assert.Equal(clock.StartedUtc, status.CheckedUtc);
+            await ModelWorkHarness.WaitForSignalAsync(probe.Entered.Task);
         }
-        finally { await monitor.StopAsync(default); }
+        finally
+        {
+            // Cancel the next poll before letting the first sample finish.
+            var stopped = monitor.StopAsync(default);
+            release.Set();
+            await stopped;
+        }
+        var status = monitor.Capture();
+        Assert.Equal("unknown", status.State);
+        Assert.Null(status.AvailableBytes);
+        Assert.Equal(startedUtc, status.CheckedUtc);
     }
 
-    private sealed class SaveSpaceTestClock : TimeProvider
-    {
-        public DateTimeOffset StartedUtc { get; } = DateTimeOffset.UtcNow;
-        private long elapsedTicks;
-        public override DateTimeOffset GetUtcNow() => StartedUtc.AddTicks(Interlocked.Read(ref elapsedTicks));
-        public void Advance(TimeSpan elapsed) => Interlocked.Add(ref elapsedTicks, elapsed.Ticks);
-    }
-
-    private sealed class LaterDelayedSaveSpaceProbe(SaveSpaceTestClock clock) : ISaveDiskSpaceProbe
+    private sealed class LaterDelayedSaveSpaceProbe(ManualTimeProvider clock, ManualResetEventSlim release) : ISaveDiskSpaceProbe
     {
         private int reads;
+        public InlineCompletionSource Entered { get; } = new();
         public long? AvailableBytes(string directory)
         {
-            if (++reads == 2) clock.Advance(TimeSpan.FromSeconds(31));
+            if (++reads == 2)
+            {
+                clock.Advance(TimeSpan.FromSeconds(31));
+                Entered.TrySetResult();
+                release.Wait();
+            }
             return 4 * SaveDiskSpaceMonitor.WarningBelowBytes;
         }
     }
