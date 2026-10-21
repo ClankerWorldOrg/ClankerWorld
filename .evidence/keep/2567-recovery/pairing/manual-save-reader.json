@@ -1,0 +1,338 @@
+{
+  "signature": "Codex session 185bf8a4/verifier",
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "scope": "Read-only ownership proposal audit; no source edits, builds, tests, coverage or timing runs. Evidence JSON only. Not a second reader who did not choose these proposals.",
+  "primary_file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+  "primary_read": "all 989 lines, 12 test declarations / 18 current cases, both helpers and local receipt record",
+  "entries": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 26,
+      "method": "ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "rationale": "Three native failures: schema string, schema Int32 overflow, array envelope. Preserve conflict text, codec rejection, active/runtime/catalog/source bytes, save count and repair/retry. Different operation from inactive-world structural rejection.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 83,
+      "method": "ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "rationale": "Signed configuration must invoke verified retention for both rotation off (0 -> 1) and 3. Direct-store rotation tests do not prove endpoint wiring or active-checkpoint preservation.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 122,
+      "method": "ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+      "decision": "support",
+      "retained_proof": "ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+      "rationale": "Only current InlineData(0) executes. Convert Theory to Fact, remove int parameter, use literal 0 in action and literal 1 expected retention; preserve all foreign damaged checkpoint/metadata bytes and native signed HTTP boundary. Do not remove scenario: malformed foreign copy differs from delayed signed-world request test.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 156,
+      "method": "ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "rationale": "Medium/running preview is distinct from Small/paused create-and-restart. Preserve terrain dimensions, world/tick/running/catalog invariance and signed create refusal.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 199,
+      "method": "ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "decision": "support",
+      "retained_proof": "ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "rationale": "Retain complete scenario: signed seed/climate/abundance binding, preview acceptance, all content/building/geography/map/first-town/observation/cache/redaction checks, older-schema and unsupported-body refusal, two-way selection, routing/autosave/land restoration, restart. Only share the 12 identical non-variant package-presence assertions between the existing two helper calls; explicit package IDs, both invocations and all variant assertions must remain.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 515,
+      "method": "ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "rationale": "Native signed creation/name tamper/list/load/autosave tamper, secret exclusion from both files/logs, personal inherit fallback, exact branch/timeline position, recovery Jev state, key assignment restoration and restart persistence are distinct from low-level branch/generation/interruption tests.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 683,
+      "method": "ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "rationale": "Two same-name saves plus tampered ID tests signature target binding and sibling preservation. Direct repeated-overwrite generation tests lack HTTP target authorization. Preserve 3 save count and 2 matching-name count.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 735,
+      "method": "ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "rationale": "Same-world rewind from placed founder to empty FounderSetup checkpoint then Resume refusal. Founder creation rollback and ordinary save loads exercise different starting/input states.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 753,
+      "method": "ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "decision": "support",
+      "retained_proof": "ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "rationale": "Keep all three current rows: invalid JSON, missing required Save member, and metadata ID alias. They enter different deserializer/identity predicates. Remove only unreachable switch arm null => null; its row was removed in e88c5658. Retain warning dedup/redaction, sound saves, rotation, file preservation, repair discovery and renewed warning.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 807,
+      "method": "ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "rationale": "Distinct default 5/5, same-tick no-save, new-tick saves, rotation-off retention and manual protection, disabled choice persisted. Clock-correction test configures 5/3 and never exercises 0 or initial defaults.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 851,
+      "method": "ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "rationale": "Running source checkpoints require pause normalization; subsequent load must reuse original save as backup without new files/branches and preserve both encoded source bytes. Manual Jev/source-loss scenarios use paused sources.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "line": 906,
+      "method": "ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "rationale": "Keep missing and corrupted-body rows. FindUnchangedSave must not trust remembered loaded fingerprint when the original durable source disappears/changes; preserve complete recovery bytes, selected target bytes, loaded ID, new backup ID/name and source damage/nonexistence.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "line": 31,
+      "method": "ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+      "rationale": "Keep both load and select rows, exact approval digest, wrong approval, no mutation and persisted state. ApprovedModelLoadAsync performs native signed inspect; do not replace with direct preview.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "line": 16,
+      "method": "ManualSaveGenerationTests.RepeatedOverwriteSelectsWholeGenerationsAndPreservesRecoveryPairs",
+      "decision": "retain",
+      "retained_proof": "ManualSaveGenerationTests.RepeatedOverwriteSelectsWholeGenerationsAndPreservesRecoveryPairs",
+      "rationale": "Keep every UTF-16/grapheme input plus ordinary case, two repeated generations, exact old/new checkpoint/settings/assignment pairing and recovery names.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "line": 61,
+      "method": "ManualSaveGenerationTests.LockedSupersededCheckpointKeepsPublishedOverwriteAndRecoveryReadable",
+      "decision": "retain",
+      "retained_proof": "ManualSaveGenerationTests.LockedSupersededCheckpointKeepsPublishedOverwriteAndRecoveryReadable",
+      "rationale": "Native Windows sharing semantics after successful publication; retain WindowsSaveFact gate and diagnostic redaction.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "line": 99,
+      "method": "ManualSaveGenerationTests.LockedMetadataCannotPublishHalfAnOverwrite",
+      "decision": "retain",
+      "retained_proof": "ManualSaveGenerationTests.LockedMetadataCannotPublishHalfAnOverwrite",
+      "rationale": "Native Windows failed metadata replacement, exact previous generation pairing, orphan preservation and retry differ from cleanup failure.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldSelectionFailureTests.cs",
+      "line": 17,
+      "method": "WorldSelectionFailureTests.FailedWorldSelectionPreservesExistingWorldsAndAllowsRetry",
+      "decision": "retain",
+      "retained_proof": "WorldSelectionFailureTests.FailedWorldSelectionPreservesExistingWorldsAndAllowsRetry",
+      "rationale": "Create vs select and archive/checkpoint/autosave write failures are different rollback cutoffs. Preserve every current row, routing/policy/settings/catalog/source bytes and retry.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "line": 17,
+      "method": "ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "rationale": "Out-of-range generated geography restoration failure, native list and signed select; different from schema or missing structure.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "line": 72,
+      "method": "ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "rationale": "Missing vs null Society vs nested inventory are distinct structural inputs; retain source/active/runtime/catalog bytes and repair/retry.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+      "line": 34,
+      "method": "ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "rationale": "Every native intent/commit/rollback/live failure cutoff differs. Keep matching checkpoint/routing/autosave/timeline across restart, shutdown signal and second-restart idempotence.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+      "line": 15,
+      "method": "ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+      "rationale": "Prepared A signature delivered after B selection, target tampering and legacy unscoped action prove native security boundary; cannot replace foreign-damaged-copy scenario.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "line": 19,
+      "method": "WorldCatalogSavedBuildTests.MalformedOptionalBuildValuesDoNotPreventReadingTheWorldCatalog",
+      "decision": "retain",
+      "retained_proof": "WorldCatalogSavedBuildTests.MalformedOptionalBuildValuesDoNotPreventReadingTheWorldCatalog",
+      "rationale": "Six field/value pairs retain distinct optional diagnostic decoding inputs and catalog reopening.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "line": 46,
+      "method": "WorldCatalogSavedBuildTests.CatalogEntriesNameTheBuildThatLastWroteOrOpenedEachWorld",
+      "decision": "retain",
+      "retained_proof": "WorldCatalogSavedBuildTests.CatalogEntriesNameTheBuildThatLastWroteOrOpenedEachWorld",
+      "rationale": "Retain active-only stamping and later selected-world stamping; not present in manual-save creation flow.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "line": 81,
+      "method": "WorldCatalogSavedBuildTests.UnrestorableWorldListAndSelectionPreserveFiles",
+      "decision": "retain",
+      "retained_proof": "WorldCatalogSavedBuildTests.UnrestorableWorldListAndSelectionPreserveFiles",
+      "rationale": "Retain older/current/no build distinction and catalog index-byte preservation; direct coordinator boundary does not replace signed select checks.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "line": 13,
+      "method": "WorldAutosaveClockTests.RotatingAutosavesRecoverTheirCadenceAfterABackwardsClockCorrectionAndRestart",
+      "decision": "retain",
+      "retained_proof": "WorldAutosaveClockTests.RotatingAutosavesRecoverTheirCadenceAfterABackwardsClockCorrectionAndRestart",
+      "rationale": "Normal/equivalent-time vs backward clock inputs; keep persisted interval anchor, restart, unchanged-tick refusal and strict reload.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "line": 70,
+      "method": "WorldAutosaveClockTests.RecoveredAutosavesKeepTheLatestBranchCopiesWhenEarlierCopiesHaveFutureDates",
+      "decision": "retain",
+      "retained_proof": "WorldAutosaveClockTests.RecoveredAutosavesKeepTheLatestBranchCopiesWhenEarlierCopiesHaveFutureDates",
+      "rationale": "Keep actual branch-position vs future UTC conflict, restart and readable retained copies.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "line": 128,
+      "method": "WorldAutosaveClockTests.BackwardsClockCorrectionCannotOverwriteAnotherWorldsSchedule",
+      "decision": "retain",
+      "retained_proof": "WorldAutosaveClockTests.BackwardsClockCorrectionCannotOverwriteAnotherWorldsSchedule",
+      "rationale": "Wrong-world guard on backward clock path; preserve schedule file and no save files.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+      "line": 16,
+      "method": "ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+      "decision": "retain",
+      "retained_proof": "ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+      "rationale": "Create, overwrite, read-timeline endpoint rows reach separate native operation paths; preserve bytes, file names, runtime and redacted response.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SavedFileTests.cs",
+      "line": 94,
+      "method": "SavedFileTests.OversizedFilesAreRefusedBeforeParsingAndKept",
+      "decision": "retain",
+      "retained_proof": "SavedFileTests.OversizedFilesAreRefusedBeforeParsingAndKept",
+      "rationale": "Checkpoint/catalog/metadata/history limits use distinct owners; sparse size refusal before invalid JSON must remain.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+      "line": 17,
+      "method": "AutosaveRotationRecoveryTests.RotationKeepsDamagedCopiesAndCountsOnlyUsablePredecessors",
+      "decision": "retain",
+      "retained_proof": "AutosaveRotationRecoveryTests.RotationKeepsDamagedCopiesAndCountsOnlyUsablePredecessors",
+      "rationale": "Keep native generated advancing world, history missing/corrupt, wrong identity, regeneration mismatch, retention count and pinned-ID distinctions; not a duplicate of signed configuration wiring.",
+      "read": "complete method body, attributes and data"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+      "line": 94,
+      "method": "AutosaveRotationRecoveryTests.RotationPreservesEveryFileWhenNoCopyCanBeVerified",
+      "decision": "retain",
+      "retained_proof": "AutosaveRotationRecoveryTests.RotationPreservesEveryFileWhenNoCopyCanBeVerified",
+      "rationale": "All copies damaged exercises zero verified predecessors; exact whole-directory preservation remains distinct.",
+      "read": "complete method body, attributes and data"
+    }
+  ],
+  "candidate_details": {
+    "package_presence": {
+      "helper": "AssertBuildingVariantPackagesActive (2 calls within same retained method)",
+      "exact_common_ids": [
+        "AnimalContent.PackageId",
+        "PotteryContent.PackageId",
+        "RestaurantContent.PackageId",
+        "StoreContent.PackageId",
+        "CareContent.PackageId",
+        "OrnamentContent.PackageId",
+        "TownHallContent.PackageId",
+        "PortContent.PackageId",
+        "StreetLanternContent.PackageId",
+        "KnowledgeContent.PackageId",
+        "HouseToolsContent.PackageId",
+        "MarketContent.PackageId"
+      ],
+      "implementation_constraint": "Append small foreach with exact existing Assert.Contains predicate to the existing helper; may rename helper and both calls. Keep count 26 and all per-variant Assert.Single, Active, ActivationTick=0 and world-content package-digest assertions. Keep Assert.All Active at original creation phase; do not infer package set dynamically from production InitialTownManifests. Both before/restart inputs must continue running same explicit list. Content getter/ExportState are read-only snapshots; ordering these pure assertions changes no later state. Estimate ~10 net lines, measure actual diff."
+    },
+    "single_row": "No input removed: sole row rotation=0 already since e88c5658; replace exact constant uses without changing data.",
+    "dead_null_arm": "No row removed: original row added5514b159, removed e88c5658; only unreachable fixture switch arm remains."
+  },
+  "owners_read": [
+    "ManualWorldSaveStore.cs lines60-328,511-784 (create/overwrite/serialization/loaded-fingerprint/list/verified rotation/committed read/metadata validation/atomic writes)",
+    "ManualWorldSaveStore.Load.cs full130 lines",
+    "WorldAutosaveStore.cs full157 lines",
+    "WorldCatalogStore.cs lines1-245 (initialization/Add/ArchiveActive/Read/Select)",
+    "WorldSelectionCoordinator.cs lines196-271,294-439 (assessment/restore/preview/create/model approval/select/rollback)",
+    "OwnerEndpoints.Saves.cs lines68-307 (configure/create/overwrite/load)",
+    "OwnerEndpoints.Worlds.cs lines1-145 (signed list/preview/create/select)",
+    "WorldRuntime.Tick.cs LoadPausedCheckpoint and SwitchPausedWorld entry lines451-505",
+    "WorldRuntime.Content.cs InitializeFirstTownContent lines88-120; StarterContent.cs InitialManifests lines1-32",
+    "ContentContracts.cs ExportState lines488-501; WorldRuntime.Content getter line276",
+    "ServerWebApplicationFactory.cs full; ServerHttpTests.cs shared activation and signed send helpers lines1-108; ApprovedModelLoadAsync full"
+  ],
+  "docs_read": [
+    "docs/game-design/saves.md full149 lines",
+    "docs/playing.md save-and-return lines1297-1412",
+    "docs/development/saves-and-replay.md stored-data/model approvals lines14-56, browsing lines71-80, manual verified rotation and overwrite lines2202-2248, save branches/load intent lines2302-2367"
+  ],
+  "history_read": [
+    "5514b159 original damaged metadata test with null row",
+    "e88c5658 removed null row and redundant autosave rotation row",
+    "f4d90d76 introduced foreign-world trim test with 0/5/10 rows",
+    "71c588cc signed verified autosave recovery addition",
+    "1c099e57 built-in variant creation/restart proof",
+    "703b9f68 source-loss and running-autosave branch history",
+    "43233f05 saved-model approval context"
+  ],
+  "overall": "No wholesale test deletion recommended. Three small support-only changes preserve all 12 declarations /18 cases and every native HTTP/security/storage boundary. Other superficial overlap differs in input, mutation cutoff or asserted effect. Measurements and an independent reader are needed before implementing support proposals."
+}

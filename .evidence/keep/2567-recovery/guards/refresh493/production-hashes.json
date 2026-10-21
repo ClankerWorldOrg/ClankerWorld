@@ -1,0 +1,14 @@
+{
+  "/workspace/cw-2567-current-main": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c"
+  },
+  "/workspace/cw-2567-guards": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c"
+  }
+}

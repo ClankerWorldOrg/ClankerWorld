@@ -1,0 +1,283 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Skill-required same-session reading; not independent PR review",
+  "base": "49384790",
+  "mode": "Read-only, evidence-only write; no source edits/builds/tests/mutations",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart"
+          ],
+          "reason": "Retain independent entropy, canonical ID shape, no-file nonreuse and disk-backed authority stability. Other restart tests use a manually chosen authority and cannot replace this."
+        },
+        {
+          "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode"
+          ],
+          "reason": "Retain every assertion and phase: hidden visible code, pending/approved/active reloads, no writes for transient challenge activity, consumed replay refusal, pending and consumed challenge refusal after process restart, original pending usable in original process, active registration survives. Optional bounded-loop speed candidate below."
+        },
+        {
+          "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing"
+          ],
+          "reason": "Retain hostile disk input linking injected active device to no active pairing. This exercises the disk-to-validated-store boundary, not only a live authorization outcome."
+        },
+        {
+          "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect"
+          ],
+          "reason": "Retain failed-write atomicity, still-active device, repaired filesystem success and durable revoked reload. In-memory revocation tests do not protect save-before-effect ordering."
+        },
+        {
+          "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+          ],
+          "reason": "Retain replacement server authority input; mismatched identity is separate from internally inconsistent registrations."
+        }
+      ],
+      "lines": 240
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt"
+          ],
+          "reason": "Retain local-game positive approval/shutdown and absent/wrong/short secrets, wrong port and remote IP; remote account secret mode has different header and shutdown rules."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp"
+          ],
+          "reason": "Retain remote approval-secret success, missing/misnamed/wrong proof, port/IP refusal, absent configuration, disabled listener, shutdown and launch-check denial."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck"
+          ],
+          "reason": "Retain correct challenge signature, wrong secret proof, absent/malformed/padded challenge, wrong port/IP/host. Actual HTTP case does not cover every format and network-origin input."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"127.0.0.1\")]",
+            "[InlineData(\"127.0.0.1:5189\")]",
+            "[InlineData(\"[::1]\")]",
+            "[InlineData(\"[::1]:5189\")]",
+            "[InlineData(\"localhost\")]",
+            "[InlineData(\"LocalHost:5189\")]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName"
+          ],
+          "reason": "Retain all six spelling rows, remote-account and local-launch approval plus shutdown positive cases. IPv4, bracketed IPv6 and case-insensitive localhost with/without port are distinct parser inputs."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"\")]",
+            "[InlineData(\"example.test\")]",
+            "[InlineData(\"example.test:5189\")]",
+            "[InlineData(\"localhost.example.test:5189\")]",
+            "[InlineData(\"127.0.0.1.example.test\")]",
+            "[InlineData(\"localhost.\")]",
+            "[InlineData(\"127.1:5189\")]",
+            "[InlineData(\"[::ffff:127.0.0.1]:5189\")]",
+            "[InlineData(\"0.0.0.0:5189\")]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret"
+          ],
+          "reason": "Retain all nine input rows and both valid-launch-secret approval/shutdown assertions. Optional remove only first unconfigured/no-secret assertion, described below."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue"
+          ],
+          "reason": "Retain CRLF trimming, too-short and multi-value file rejection. Launch secret parser is not the Unix approval-header file parser."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret"
+          ],
+          "reason": "Retain both local-launch and remote-account option object redaction; HTTP log tests do not call object ToString."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork"
+          ],
+          "reason": "Retain actual held model cancellation, latest committed tick, native shutdown save, paused disk reload/no extra tick and shutdown log. HTTP stop case uses ordinary provider and cannot replace live held-call cancellation."
+        }
+      ],
+      "lines": 193
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ApprovalSecretFileTests.SecretIsPrivateStableAndUsableAsACurlHeader",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalSecretFileTests.SecretIsPrivateStableAndUsableAsACurlHeader"
+          ],
+          "reason": "Retain Unix-only permissions on initial directory/file, 64-hex header form, stable exact bytes, independent second secret, invalid hex/malformed evidence preservation and secret-free exception."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovalSecretFileTests.SharedPermissionsAndSymbolicLinksAreRefusedWithoutChangingTheFile",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovalSecretFileTests.SharedPermissionsAndSymbolicLinksAreRefusedWithoutChangingTheFile"
+          ],
+          "reason": "Retain three distinct trust-boundary inputs: readable-by-group file, symlink, writable-by-group directory, with unchanged original bytes. Generic private storage checks concern other credential formats."
+        }
+      ],
+      "lines": 70
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences"
+          ],
+          "reason": "Retain absent file returns empty references and rejects exact known reference; existing invalid file must throw rather than use empty catalog."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences"
+          ],
+          "reason": "Retain exact approved pair and separate wrong digest/wrong ID refusals; optional inline single-use CatalogJson support below."
+        },
+        {
+          "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"{\\\"schemaVersion\\\":1,\\\"references\\\":[{\\\"assetId\\\":\\\"portrait-alice\\\",\\\"assetDigest\\\":\\\"sha256:bad\\\"}]}\")]",
+            "[InlineData(\"{\\\"schemaVersion\\\":2,\\\"references\\\":[]}\")]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart"
+          ],
+          "reason": "Retain malformed digest and unsupported schema rows as distinct failure boundaries."
+        }
+      ],
+      "lines": 78
+    }
+  ],
+  "totals": {
+    "new_files_read": 4,
+    "new_test_lines": 581,
+    "methods": 18,
+    "cases": 32
+  },
+  "proposals": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "member": "PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "decision": "candidate speed-only consolidation; no method/case/assertion deletion",
+      "edit": "Change 600 identical poll iterations to OwnerAuthorityStore.MaximumRetainedTerminalChallenges + 1 (currently 65). After the loop, set clock.UtcNow = pairing.ExpiresAtUtc before creating pending-at-restart. Leave all assertions, initial/pending/approved/active restarts, each per-iteration issue/consume/replay/two-Save and subsequent source/restarted-store checks intact.",
+      "retained_proof": [
+        "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode"
+      ],
+      "history": "112e694f added 600-poll loop together with SerializeDurable stripping Challenges and lastSavedJson/WriteCount suppression. No loop-specific behavior at 600 in owning code.",
+      "preserved_boundaries": "65 iterations pass terminal history cap64; setting clock to original pairing.ExpiresAtUtc preserves exact 600-second active-pairing boundary. New pending-at-restart challenge is still created at original600s. No thread scheduling/HTTP boundary is involved.",
+      "risk": "Proposal only; requires fresh measurement, separate reader and relevant negative control. Last consumed challenge timestamp becomes earlier than old 599s, but it remains consumed in the original store; the test only requires its refusal after restart. Reject if reviewer identifies an asserted distinct last-consumed expiry input. Do not reduce loop without restoring exact pairing expiry time.",
+      "negative_controls": [
+        "Persist challenges in SerializeDurable: first changed transient Save must violate WriteCount.",
+        "Remove lastSavedJson equality suppression: first Save must violate WriteCount.",
+        "Load existing challenges instead of stripping them: pending-at-restart consumption must wrongly succeed and fail assertion.",
+        "Incorrectly expire active pairings at ExpiresAtUtc: new pending issuance/active-store restore should fail at same600s boundary."
+      ],
+      "expected_saving": "535 repeated issue/sign/consume/sign/replay/two-Save cycles; no promised line saving (one explicit clock assignment is needed)."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "member": "CatalogJson",
+      "decision": "candidate remove single-use parameterized support",
+      "edit": "Inline an interpolated raw JSON literal at the sole File.WriteAllText call in CompleteCanonicalCatalogAllowsOnlyItsExactReferences, using existing PortraitAliceDigest constant and same portrait-alice ID; delete private params/Select/string.Join CatalogJson helper.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences"
+      ],
+      "history": "1636679c introduced helper. 655d584f (#1738) removed SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval, leaving only one caller. Current helper accepts generic multiple references no retained test supplies.",
+      "risk": "Keep exact schema1, references array and canonical ID/digest. This is test-input construction only; retain every missing/invalid/approved/refused assertion and both theory rows.",
+      "expected_saving": "Approximately6 test-support lines; no new helper."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "member": "ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "decision": "candidate remove redundant two-line assertion only",
+      "edit": "Remove only Assert.False(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null, host: host))). Keep all9 rows and localServer valid-secret approval/shutdown assertions.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+        "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp"
+      ],
+      "history": "cf0e9d5d (#1789) added remote/no-secret and local/secret hostname checks when unconfigured remote approval was permitted. 33b820b8 (#2424) now requires account secret and already proves no configured secret always refuses.",
+      "reason": "IsApprovalListener uses only port/IP/Host, independent of launch/approval secret. Remaining valid-secret calls for each host detect relaxed hostname validation; removed call with no configured secret would still refuse from HasSecret after relaxed host validation, so it has no additional hostname proof. Remote fact retains explicit no-config refusal with otherwise valid loopback request.",
+      "risk": "Keep actual remote-secret success/false cases and all nine bad spelling inputs; do not delete the entire method or collapse hostname rows. No production change.",
+      "expected_saving": "2 test lines; all cases remain."
+    }
+  ],
+  "already_reviewed": {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+    "reason": "Previously fully reviewed in pairing lane; git diff949f40ae..49384790 for this file is empty, so all prior retained contracts and two consolidation proposals are unchanged. Do not count as newly read here."
+  },
+  "nonexistent_scope": "No tests/ClankerWorld.Tests/Server/Networking directory exists in frozen base.",
+  "production_read": [
+    "OwnerAuthorityStateFile.cs complete; state import/revoke/expiry/terminal trim overlap in OwnerAuthorityStore.cs",
+    "ApprovalSecretFile.cs complete",
+    "ApprovalListenerOptions and OwnerFailures complete in OwnerEndpointContracts.cs",
+    "ApprovedAssetCatalog.cs and IOwnerApprovedAssetReferencePolicy complete; Program startup registrations and relevant owner endpoint callers",
+    "WorldRuntimeService.SaveBeforeShutdown/SaveWorld and previous native cancellation/pause/checkpoint review"
+  ],
+  "overlap_read": "Relevant ServerHttpRequestLimit Kestrel approval contract and ServerHttpLocalServerShutdown methods plus previous ServerHttpPairing/OwnerAuthorityStore reading. These retain distinct actual HTTP/shutdown/registration contracts.",
+  "docs": "Device pairing host literal names, launch challenge, account header, permissions, symlinks, fail-closed preservation and durable revocation; source contracts distinguish host-owned asset allow-list from trusted input.",
+  "ci": "None of the target classes/methods is separately selected by current workflow or ci-plan filters; ordinary suite discovery remains. Unix secret tests return early on Windows; never treat that as redundant native permission proof.",
+  "retained_support": "Keep private MutableClock (IOwnerAuthorityClock differs from TimeProvider), held WaitingModelProvider (tracks actual cancellation/entry), Request/Challenged context builders (preserve port/IP/Host/header inputs), and TemporaryDirectory (20lines across2 callers; no existing shared equivalent found; replacing with repeated cleanup is optional style rather than selected simplification)."
+}

@@ -1,0 +1,141 @@
+{
+  "2590": {
+    "lines": {
+      "source": {
+        "added": 0,
+        "removed": 0
+      },
+      "tests": {
+        "added": 8,
+        "removed": 42
+      },
+      "docs": {
+        "added": 0,
+        "removed": 0
+      }
+    },
+    "files": [
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+        "before_lines": 528,
+        "after_lines": 494
+      }
+    ]
+  },
+  "2599": {
+    "lines": {
+      "source": {
+        "added": 0,
+        "removed": 0
+      },
+      "tests": {
+        "added": 2,
+        "removed": 77
+      },
+      "docs": {
+        "added": 0,
+        "removed": 0
+      }
+    },
+    "files": [
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+        "before_lines": 328,
+        "after_lines": 329
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+        "before_lines": 187,
+        "after_lines": 111
+      }
+    ]
+  },
+  "2626": {
+    "lines": {
+      "source": {
+        "added": 0,
+        "removed": 0
+      },
+      "tests": {
+        "added": 44,
+        "removed": 88
+      },
+      "docs": {
+        "added": 0,
+        "removed": 0
+      }
+    },
+    "files": [
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+        "before_lines": 29,
+        "after_lines": 29
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+        "before_lines": 37,
+        "after_lines": 14
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+        "before_lines": 27,
+        "after_lines": 27
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+        "before_lines": 26,
+        "after_lines": 26
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+        "before_lines": 110,
+        "after_lines": 110
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+        "before_lines": 257,
+        "after_lines": 257
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+        "before_lines": 34,
+        "after_lines": 34
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+        "before_lines": 37,
+        "after_lines": 14
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+        "before_lines": 36,
+        "after_lines": 36
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+        "before_lines": 31,
+        "after_lines": 31
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+        "before_lines": 45,
+        "after_lines": 45
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+        "before_lines": 44,
+        "after_lines": 43
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+        "before_lines": 104,
+        "after_lines": 130
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+        "before_lines": 36,
+        "after_lines": 13
+      }
+    ]
+  }
+}

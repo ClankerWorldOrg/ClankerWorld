@@ -1,0 +1,279 @@
+{
+  "signature": "Codex session 185bf8a4/conversation_verifier",
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "excluded_draft": "f9341502 (14 changed Architecture files excluded from remainder lane)",
+  "mode": "Read-only proposal audit, not independent PR review. No source edits, builds, tests, mutations, timing or coverage runs. This JSON is evidence only.",
+  "summary": {
+    "csharp_files": 10,
+    "csharp_lines_fully_read": 644,
+    "test_declarations": 16,
+    "current_cases": 28,
+    "json_files": 3,
+    "decision": "Retain all files and constraints. No deletion or consolidation recommended."
+  },
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/ActionRuleBoundaryTests.cs",
+      "lines_read": 36,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "ActionRuleBoundaryTests.RuntimeUsesSharedLifeStageNeedAndReachRules",
+          "line": 6,
+          "decision": "retain",
+          "retained_proof": "ActionRuleBoundaryTests.RuntimeUsesSharedLifeStageNeedAndReachRules",
+          "rationale": "Repository guard: forbid copied age, unnamed need thresholds and direct routing outside two explicit shared-rule owner files. Scanner control is not a substitute for scanning actual source."
+        },
+        {
+          "name": "ActionRuleBoundaryTests.ScanSeesRawAgeThresholdsAndRoutesButIgnoresCommentsAndSharedRules",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "ActionRuleBoundaryTests.ScanSeesRawAgeThresholdsAndRoutesButIgnoresCommentsAndSharedRules",
+          "rationale": "One compact fixture has nine matches spanning pattern/equality age checks, member/local need comparisons, subpatterns and bare/member/conditional-member route calls; comments, strings and shared named rules are intentional safe controls. Distinct syntax shapes retained."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/ActionRuleScan.cs",
+      "lines_read": 56,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [],
+      "support_rationale": "Small standalone parser and scan owns nine rule shapes and exact two-file exclusion; a generic source scanner would add indirection and risk changing paths or exclusions."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/ArchitectureTests.cs",
+      "lines_read": 21,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "ArchitectureTests.SimulationAssemblyDoesNotReferenceGodotOrTheServer",
+          "line": 8,
+          "decision": "retain",
+          "retained_proof": "ArchitectureTests.SimulationAssemblyDoesNotReferenceGodotOrTheServer",
+          "rationale": "Compiled assembly reference boundary has two independent forbidden assembly-name prefixes. No runtime/source writer guard proves absence of either project dependency."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/AsyncWaitBoundaryTests.cs",
+      "lines_read": 169,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "AsyncWaitBoundaryTests.AsyncWaitAllowancesMatchExistingSourceAndCannotGrow",
+          "line": 17,
+          "decision": "retain",
+          "retained_proof": "AsyncWaitBoundaryTests.AsyncWaitAllowancesMatchExistingSourceAndCannotGrow",
+          "rationale": "Exact current path/rule/token-expression/count ledger plus previous-commit non-growth. Both predicates required: current equality catches stale allowances, parent comparison catches newly recorded waits. Keep Git first-baseline exception and parent existence failure."
+        },
+        {
+          "name": "AsyncWaitBoundaryTests.ScanRecognizesEveryBannedWaitAndIgnoresInfiniteDelaysAndTokenWaits",
+          "line": 35,
+          "decision": "retain",
+          "retained_proof": "AsyncWaitBoundaryTests.ScanRecognizesEveryBannedWaitAndIgnoresInfiniteDelaysAndTokenWaits",
+          "rationale": "All seven rule classes, 11 detections, while/for/do Stopwatch polling and accepted infinite/token-only alternatives have distinct syntax/semantic intent. Keep both sum and rule-set assertions."
+        },
+        {
+          "name": "AsyncWaitBoundaryTests.AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger",
+          "line": 78,
+          "decision": "retain",
+          "retained_proof": "AsyncWaitBoundaryTests.AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger",
+          "rationale": "Six rows are variable/property/expression-method/block-return target-typed CancellationTokenSource and static/instance member TimeSpan wait forms. Separate ancestor/name-resolution patterns; retain exact one-entry rule/count assertions for every row."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/ClientNameLabelTests.cs",
+      "lines_read": 64,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "ClientNameLabelTests.NameCaptionsUseTheSharedFittedLabel",
+          "line": 9,
+          "decision": "retain",
+          "retained_proof": "ClientNameLabelTests.NameCaptionsUseTheSharedFittedLabel",
+          "rationale": "Actual GodotClient source scan excludes only ClientChecks and generated .godot paths; ensures name-bearing Label fields/properties/assignments/initializers use shared FittedLabel."
+        },
+        {
+          "name": "ClientNameLabelTests.GuardDistinguishesNamesFromStaticCopy",
+          "line": 28,
+          "decision": "retain",
+          "retained_proof": "ClientNameLabelTests.GuardDistinguishesNamesFromStaticCopy",
+          "rationale": "Seven rows preserve field, property, initializer name reference, interpolation, later assignment, valid FittedLabel and valid static copy. Initializer ordinary member vs interpolated reference are different inputs. Keep all."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/NativeTickProbeTests.cs",
+      "lines_read": 101,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+          "line": 15,
+          "decision": "retain",
+          "retained_proof": "NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+          "rationale": "31 seconds succeeds under one native 60-second two-tick budget;61 seconds cancels after first checkpoint. Actual console probe compiled with CancellationTokenSource alias and virtual clock retains native world, frame IO, decoded ticks, three output families, cancellation and cleanup. Opposite outcomes; neither row redundant."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+      "lines_read": 101,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "RuntimeStateBoundaryTests.EveryInstanceFieldHasExactlyOneStateLifetime",
+          "line": 18,
+          "decision": "retain",
+          "retained_proof": "RuntimeStateBoundaryTests.EveryInstanceFieldHasExactlyOneStateLifetime",
+          "rationale": "Reflection classification inventory enforces exact live/saved/scratch keys, no duplicate field and complete current instance-field set, including event/backing fields. Commit syntax check alone cannot prove unclassified/new fields."
+        },
+        {
+          "name": "RuntimeStateBoundaryTests.CommitTransfersEverySavedFieldAndNoLiveOrScratchField",
+          "line": 30,
+          "decision": "retain",
+          "retained_proof": "RuntimeStateBoundaryTests.CommitTransfersEverySavedFieldAndNoLiveOrScratchField",
+          "rationale": "Native commit source must consist of recognized same-name snapshot transfers or exact society swap; compares full saved list, fails unknown assignments. Exact bytes test can miss transferring a live/scratch field or unexercised field."
+        },
+        {
+          "name": "RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+          "line": 53,
+          "decision": "retain",
+          "retained_proof": "RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+          "rationale": "Actual private commit between two independently generated world seeds after two native ticks. Preserve encoded checkpoint equality plus every saved field value plus validation; syntax guard alone cannot prove helper effects. Replacing setup with a direct restored snapshot would change native prepared inputs."
+        },
+        {
+          "name": "RuntimeStateBoundaryTests.TrustedPreparationSharesCivicRecordsUntilAProposedWrite",
+          "line": 71,
+          "decision": "retain",
+          "retained_proof": "RuntimeStateBoundaryTests.TrustedPreparationSharesCivicRecordsUntilAProposedWrite",
+          "rationale": "Native trusted RestoreCore path shares original immutable CivicState; AddAgent forks only proposed civic record, retains TownLandTitles reference and committed bytes. This is structural-sharing/isolation proof distinct from encoded commit transfer."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs",
+      "lines_read": 23,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+          "line": 8,
+          "decision": "retain",
+          "retained_proof": "RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+          "rationale": "AgentState property and collection writer manifest is distinct from named-owner record guards. Keep exact keys, explicit added and removed set checks and their diagnostic messages. Replacing with sequence equality adds an ordering constraint and loses actionable ratchet diagnostics."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/TypedInventoryStorageTests.cs",
+      "lines_read": 38,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "TypedInventoryStorageTests.RawInterpolatedStringsCannotEnterReservationOfferReceiptOrInputStorage",
+          "line": 10,
+          "decision": "retain",
+          "retained_proof": "TypedInventoryStorageTests.RawInterpolatedStringsCannotEnterReservationOfferReceiptOrInputStorage",
+          "rationale": "Four real constructor/input-list positions reject raw interpolated strings with exactly4 CS1503-or-CS0029 errors, then the same snippets accept Identity.Create. Runtime JSON compatibility and general identity-construction source guards do not prove compile-time input types."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/TypedMemoryStorageTests.cs",
+      "lines_read": 35,
+      "read": "whole file, every method/helper/body/attribute/data input",
+      "decision": "retain",
+      "methods": [
+        {
+          "name": "TypedMemoryStorageTests.RawInterpolatedStringsCannotEnterMemoryOrOrderEffectStorage",
+          "line": 10,
+          "decision": "retain",
+          "retained_proof": "TypedMemoryStorageTests.RawInterpolatedStringsCannotEnterMemoryOrOrderEffectStorage",
+          "rationale": "Two different memory and named optional order-effect slots reject raw strings with exactly2 CS1503 errors, then accept Identity.Create. Keep stricter error-ID assertion rather than applying inventory control broader error set."
+        }
+      ],
+      "support_rationale": "Retain all independent native guard predicates and current inputs; no profitable redundant wrapper identified."
+    }
+  ],
+  "json_data": [
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/agent-writers.json",
+      "lines_read": 121,
+      "decision": "retain",
+      "entries": 30,
+      "rationale": "Every AgentState public component and $collection writer set, only AgentStore.cs / AgentStore.Operations.cs where recorded; different per-property scope retained."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/runtime-fields.json",
+      "lines_read": 70,
+      "decision": "retain",
+      "entries": 3,
+      "rationale": "All named saved/live/scratch fields, including live event and scratch backing-field spellings; no classification can disappear without inventory guard failure."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/async-waits.json",
+      "lines_read": 590,
+      "decision": "retain",
+      "entries": 98,
+      "rationale": "Each exact relative path, rule, tokenized expression and count is independently matched. Do not drop rows without matching source removals or change non-growth guard."
+    }
+  ],
+  "rejected_support_candidate": {
+    "files": [
+      "TypedInventoryStorageTests.cs",
+      "TypedMemoryStorageTests.cs"
+    ],
+    "idea": "Share dynamic compilation setup or entire negative/positive-control helper.",
+    "reason": "Only a few common compilation lines. Preserving both source fixtures, input counts, inventory CS1503/CS0029 vs memory CS1503-only diagnostic contracts and individual positive controls requires nearly as much helper as removed support. Sharing source-writer compilation would change binding inputs from real built Simulation DLL to all source and generated-regex exception. No worthwhile simple net reduction; retain."
+  },
+  "owners_and_callers_read": [
+    "RuntimeWriterScan.cs full104 lines at baseline: RepositoryRoot, FindWriters semantic property/construction/collection mutations, source binding fail-closed, linked files and GeneratedRegex-only exception. Sole FindWriters caller RuntimeWriterBoundaryTests.",
+    "IdentityTextBoundaryTests.cs full257 lines as adjacent owner/scope reference; already excluded by current draft and not proposed for further edits.",
+    "ActionRuleScan callers fully read: only two methods in ActionRuleBoundaryTests. Shared LifeStageRules.cs full, NeedThresholds.cs full, WorldRuntime.Reach.cs first75 lines including ReachLeg and direct routing owner context.",
+    "Simulation ClankerWorld.Simulation.csproj full; SimulationAssemblyMarker reference guard target. No Godot/server project dependencies.",
+    "FittedLabel.cs full; source guard detection PlainNames/Name full; scanner callers only repository scan and seven-row syntax control.",
+    "scripts/compare-tick-equivalence.cs full93 lines, actual scenario-budget placement / native generated and legacy world setup / gzip and JSON frames / provider observation digests.",
+    "WorldRuntime.cs RestoreCore lines338-414 (trustedPreparedState and preparedCivic); WorldRuntime.Tick.cs CommitPreparedTick lines414-449; relevant call site inventory by rg.",
+    "TownSystem.cs full86lines, CheckpointState canonical immutable civic sharing and record writes; AgentStore.cs full72lines, constructor and actual property/collection writer ownership.",
+    "InventoryReservation and DirectBarterProposal records, WorldProductionJob.InputReservationIds, OwnerInstructionReceipt.InstructionId, SocietySocialMemory.Id and OrderTask.LastEffectId full record signatures; Identity.cs full preserving one-way Identity-to-string conversion only."
+  ],
+  "docs_read": [
+    "docs/development/how-it-works.md shared action rules lines736-752 and runtime transfer/writer guard contracts lines1225-1277",
+    "docs/development/build-and-test.md native equivalence complete-frame and bounded-scenario budget lines624-657"
+  ],
+  "history_read": [
+    "f7cd20f3 original RuntimeStateBoundaryTests and RuntimeWriterBoundaryTests full diffs; exact transfer vs live/scratch and native equivalence contracts",
+    "061ee491 ActionRuleScan/Boundary full diff: separate member and conditional-member route nodes are intentional fixed-rule coverage",
+    "2f11c68e and cc5f5014 history titles for named thresholds and final route guard, with current full scanner/fixture read",
+    "d5bf92fc AsyncWaitBoundary original body first75lines plus full current body: exact allowance ratchet and alternate syntax",
+    "288e8502 ClientNameLabel full test/helper introduction diff",
+    "bd14f414 TypedInventoryStorage full introduction diff",
+    "ce1bb7a5 TypedMemoryStorage full introduction diff;77cb95e6 typed-order update history",
+    "49384790 NativeTickProbe test and scenario-budget history, full current production probe and test"
+  ],
+  "ci_read": {
+    "linux": ".github/workflows/ci.yml lines224-258 runs every test through dynamically planned filters; ci-plan.js lines1-79 makes final shard run all unlisted classes. All16 guard declarations/28 cases remain routed.",
+    "windows_documentation": ".github/workflows/ci.yml lines310-331 always DocumentationTests plus IdentityTextBoundaryTests when source code changed. Do not move or weaken that excluded draft class.",
+    "windows_native": ".github/workflows/ci.yml lines333-350 provider/storage/ManualSaveGeneration/checkpoint/deletion filters unchanged. None of the10 remainder files is a Windows-only storage substitute.",
+    "measurements": ".github/workflows/ci.yml test-times lines265 onward consumes Linux TRX artifacts. No actual timings gathered in this read-only lane."
+  }
+}

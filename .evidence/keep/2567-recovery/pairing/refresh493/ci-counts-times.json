@@ -1,0 +1,248 @@
+{
+  "main": {
+    "reported_cases": 7423,
+    "declarations": 3311,
+    "outcomes": {
+      "Passed": 7414,
+      "NotExecuted": 9
+    },
+    "total_seconds": 13632.0511297,
+    "groups": {
+      "pairing": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 0.2288829,
+        "timings": {
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory": 0.0095885,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore": 0.0311234,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges": 0.0397605,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature": 0.00275,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed": 0.0725386,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingExpiresAfterTenMinutesOfOperationalTime": 0.0005375,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction": 0.0077284,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice": 0.0144873,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice": 0.0033259,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed": 0.0054055,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings": 0.0140422,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ActivationRejectsAProofFromADifferentPrivateKey": 0.0010678,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ChallengeCannotBeReplayedAndRevocationBlocksOutstandingChallenges": 0.0047517,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer": 0.0217756
+        }
+      },
+      "http": {
+        "cases": 2,
+        "methods": 2,
+        "seconds": 1.9281114,
+        "timings": {
+          "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests": 1.6977269,
+          "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime": 0.2303845
+        }
+      },
+      "guards": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 250.9669391,
+        "timings": {
+          "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter": 19.2026708,
+          "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear": 15.2446914,
+          "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter": 29.207327,
+          "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter": 15.5234438,
+          "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState": 32.8403821,
+          "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore": 26.7176991,
+          "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort": 6.2150173,
+          "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus": 9.4424361,
+          "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter": 21.4573727,
+          "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter": 21.0471254,
+          "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter": 21.9043072,
+          "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets": 8.9696608,
+          "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter": 13.948605,
+          "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles": 9.2462004
+        }
+      }
+    }
+  },
+  "pr2590": {
+    "reported_cases": 7421,
+    "declarations": 3309,
+    "outcomes": {
+      "Passed": 7412,
+      "NotExecuted": 9
+    },
+    "total_seconds": 16237.7317512,
+    "groups": {
+      "pairing": {
+        "cases": 12,
+        "methods": 12,
+        "seconds": 0.2131997,
+        "timings": {
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature": 0.0031372,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed": 0.0674426,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice": 0.0118476,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings": 0.012536,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory": 0.0129231,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice": 0.003184,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction": 0.0049547,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges": 0.0340503,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore": 0.0413435,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer": 0.0145589,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ChallengeCannotBeReplayedAndRevocationBlocksOutstandingChallenges": 0.0022328,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed": 0.004989
+        }
+      },
+      "http": {
+        "cases": 2,
+        "methods": 2,
+        "seconds": 1.7107298000000002,
+        "timings": {
+          "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime": 0.1566206,
+          "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests": 1.5541092
+        }
+      },
+      "guards": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 323.34047150000004,
+        "timings": {
+          "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter": 22.5734795,
+          "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter": 19.8420757,
+          "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter": 36.4603881,
+          "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort": 22.2033007,
+          "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter": 12.8715783,
+          "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter": 26.3637209,
+          "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets": 24.1052753,
+          "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState": 11.7530137,
+          "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore": 30.6239972,
+          "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear": 21.6735241,
+          "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter": 23.0229091,
+          "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles": 33.9559781,
+          "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus": 13.5034672,
+          "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter": 24.3877636
+        }
+      }
+    }
+  },
+  "pr2599": {
+    "reported_cases": 7423,
+    "declarations": 3311,
+    "outcomes": {
+      "Passed": 7414,
+      "NotExecuted": 9
+    },
+    "total_seconds": 15584.7693185,
+    "groups": {
+      "pairing": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 0.18387799999999999,
+        "timings": {
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings": 0.0109105,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ChallengeCannotBeReplayedAndRevocationBlocksOutstandingChallenges": 0.0021081,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory": 0.0056118,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed": 0.0627697,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore": 0.0323436,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice": 0.0026825,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingExpiresAfterTenMinutesOfOperationalTime": 0.0004857,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed": 0.0042555,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer": 0.0125078,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ActivationRejectsAProofFromADifferentPrivateKey": 0.0010422,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature": 0.0042846,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice": 0.010805,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges": 0.0294822,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction": 0.0045888
+        }
+      },
+      "http": {
+        "cases": 2,
+        "methods": 2,
+        "seconds": 1.4361523,
+        "timings": {
+          "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime": 0.3143588,
+          "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests": 1.1217935
+        }
+      },
+      "guards": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 325.7007137,
+        "timings": {
+          "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter": 26.4717044,
+          "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter": 17.1085249,
+          "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter": 35.3903804,
+          "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter": 41.8440442,
+          "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort": 21.7361457,
+          "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter": 19.4701932,
+          "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets": 20.1530568,
+          "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState": 10.3516348,
+          "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore": 34.4595569,
+          "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear": 19.9554746,
+          "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter": 19.3827071,
+          "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus": 11.5520112,
+          "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles": 36.2125978,
+          "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter": 11.6126817
+        }
+      }
+    }
+  },
+  "pr2626": {
+    "reported_cases": 7423,
+    "declarations": 3311,
+    "outcomes": {
+      "Passed": 7414,
+      "NotExecuted": 9
+    },
+    "total_seconds": 14225.8295944,
+    "groups": {
+      "pairing": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 0.1195903,
+        "timings": {
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice": 0.0089802,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory": 0.013227,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings": 0.0097668,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed": 0.0221343,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed": 0.0050143,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingExpiresAfterTenMinutesOfOperationalTime": 0.0003994,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ActivationRejectsAProofFromADifferentPrivateKey": 0.000825,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ChallengeCannotBeReplayedAndRevocationBlocksOutstandingChallenges": 0.0030287,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore": 0.002813,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature": 0.001933,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer": 0.0071385,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges": 0.0373975,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice": 0.0028951,
+          "ClankerWorld.Tests.OwnerAuthorityStoreTests.LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction": 0.0040375
+        }
+      },
+      "http": {
+        "cases": 2,
+        "methods": 2,
+        "seconds": 1.2593938,
+        "timings": {
+          "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime": 0.11558,
+          "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests": 1.1438138
+        }
+      },
+      "guards": {
+        "cases": 14,
+        "methods": 14,
+        "seconds": 213.525903,
+        "timings": {
+          "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter": 24.4613568,
+          "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter": 5.9064389,
+          "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter": 29.8805341,
+          "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter": 5.3050365,
+          "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort": 17.3965777,
+          "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter": 2.3438412,
+          "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets": 23.5003976,
+          "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState": 1.7085913,
+          "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore": 17.2117076,
+          "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter": 6.1466566,
+          "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear": 33.8493661,
+          "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter": 1.9260483,
+          "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles": 41.3042389,
+          "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus": 2.5851114
+        }
+      }
+    }
+  }
+}

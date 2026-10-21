@@ -1,0 +1,72 @@
+{
+  "files": [
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-1/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-2/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-3/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-4/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-5/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-6/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-7/timings.trx",
+    ".evidence/keep/2567/refresh493/main-ci/test-timings-8/timings.trx"
+  ],
+  "reported_cases": 7423,
+  "executed_cases": 7414,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "total_seconds": 13632.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome",
+      "seconds": 184.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 184.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse",
+      "seconds": 139.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 110.0,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ABlockedWarehouseCannotHideReachableConstructionWood",
+      "seconds": 107.7,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload",
+      "seconds": 105.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel",
+      "seconds": 100.2,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.FarmhouseSiloReplenishmentTests.SiloReplenishmentRespectsActualRoomExistingSupplyOutputDemandAndReservations",
+      "seconds": 95.3,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.PersonalEquipmentTests.HouseholdSuppliesWeavesSewsAndEquipsTailorGoodsAcrossReload",
+      "seconds": 92.6,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput",
+      "seconds": 91.4,
+      "cases": 18
+    }
+  ]
+}
