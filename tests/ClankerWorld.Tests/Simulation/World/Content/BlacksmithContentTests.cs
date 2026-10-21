@@ -48,23 +48,14 @@ public sealed class BlacksmithContentTests
     {
         using var seed = new WorldRuntime("blacksmith-stock", _ => new CandidateProvider("safe_idle"),
             startPace: WorldStartPace.FounderSetup);
-        var founders = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
-        for (var index = 0; index < founders.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founders[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 10; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed);
 
         var state = seed.ExportState();
         var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
         var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:second").Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "smith-stone", "stone", "household:first", 4);
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using var placing = WorldRuntime.Restore(state, _ => new CandidateProvider("safe_idle"));
         var blacksmith = placing.WorldContent.Buildings.Single(item => item.LocalId == "blacksmith-1x2");
         var town = Assert.Single(state.Towns!);
@@ -147,12 +138,8 @@ public sealed class BlacksmithContentTests
                 directDeliveryState.Map.FootDistance(point, smithPosition) >= 4)
             .OrderByDescending(point => directDeliveryState.Map.FootDistance(point, smithPosition))
             .ThenBy(point => point.Y).ThenBy(point => point.X).First();
-        directDeliveryState = directDeliveryState with
+        directDeliveryState = FarmFieldTests.WithInventory(directDeliveryState, personalWood) with
         {
-            Society = directDeliveryState.Society with
-            {
-                Society = directDeliveryState.Society.Society with { Inventory = StockHoldTestState.Custody(personalWood) },
-            },
             Agents = directDeliveryState.Agents.Select(person => person.AgentId == alpha
                 ? person with
                 {
@@ -203,12 +190,8 @@ public sealed class BlacksmithContentTests
         var collectingState = delivering.ExportState();
         var brokenAxe = InventoryAuthority.AddLot(collectingState.Society.Society.Inventory,
             "owner-broken-axe", "wooden_axe", alpha, 1, conditionBasisPoints: 0);
-        collectingState = collectingState with
+        collectingState = FarmFieldTests.WithInventory(collectingState, brokenAxe) with
         {
-            Society = collectingState.Society with
-            {
-                Society = collectingState.Society.Society with { Inventory = StockHoldTestState.Custody(brokenAxe) },
-            },
             Agents = collectingState.Agents.Select(person => person.AgentId == alpha
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         };
@@ -278,13 +261,7 @@ public sealed class BlacksmithContentTests
     {
         using var seed = new WorldRuntime("hand-gather-fallen-wood",
             _ => new CandidateProvider("safe_idle"), startPace: WorldStartPace.FounderSetup);
-        var founders = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
-        for (var index = 0; index < founders.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founders[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 10; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed);
 
         var state = seed.ExportState();
         var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
@@ -298,9 +275,8 @@ public sealed class BlacksmithContentTests
                 lot.OwnerId != householdId && lot.OwnerId != actor || lot.ItemKind != "wood" &&
                 ToolProgressionRules.Find(lot.ItemKind)?.Family != ToolFamily.Axe).ToArray(),
         };
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
@@ -336,13 +312,7 @@ public sealed class BlacksmithContentTests
     {
         using var seed = new WorldRuntime("repair-worn-tool", _ => new CandidateProvider("safe_idle"),
             startPace: WorldStartPace.FounderSetup);
-        var founders = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
-        for (var index = 0; index < founders.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founders[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 10; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed);
 
         var state = seed.ExportState();
         var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
@@ -350,10 +320,7 @@ public sealed class BlacksmithContentTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "smith-wood", "wood", householdId, 12);
         inventory = InventoryAuthority.AddLot(inventory, "smith-stone", "stone", householdId, 4);
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using var placing = WorldRuntime.Restore(state, _ => new CandidateProvider("safe_idle"));
         var definition = placing.WorldContent.Buildings.Single(item => item.LocalId == "blacksmith-1x2");
         var town = Assert.Single(state.Towns!);
@@ -377,9 +344,8 @@ public sealed class BlacksmithContentTests
         if (borrowed)
             inventory = InventoryAuthority.Relocate(inventory, "borrow-axes", "worn-axes", householdId, 2, actor);
         inventory = InventoryAuthority.AddLot(inventory, "repair-wood", "wood", actor, 1);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
@@ -408,6 +374,17 @@ public sealed class BlacksmithContentTests
         Assert.Equal(repairing.Society.Inventory.Lots, restored.Society.Society.Inventory.Lots);
         using var reloaded = WorldRuntime.Restore(restored, _ => new CandidateProvider("safe_idle"));
         Assert.Equal(repaired.ConditionBasisPoints, reloaded.Society.Inventory.GetLot(repaired.Id).ConditionBasisPoints);
+    }
+
+    private static async Task PrepareWorldAsync(WorldRuntime seed)
+    {
+        var founders = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
+        for (var index = 0; index < founders.Length; index++)
+            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founders[index]);
+        seed.StartWorld();
+        Assert.True(seed.StageStarterContent());
+        for (var tick = 0; tick < 10; tick++)
+            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
     }
 
     private sealed class CandidateProvider(string candidateId, bool requireCandidate = false) : IDecisionProvider
