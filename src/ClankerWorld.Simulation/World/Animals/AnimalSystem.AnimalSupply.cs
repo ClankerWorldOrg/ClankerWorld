@@ -113,11 +113,11 @@ internal sealed partial class AnimalSystem
             if (plan.Quantity < source.Quantity) source = world.Society.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
         world.RunInventoryCommand(InventorySystem.HoldAnimalSupplyLoad(source, plan));
-        State = State with
+        Commit(State with
         {
             SupplyTrips = State.SupplyTrips.Append(new(plan.Actor, source.Id,
             plan.Choice.YardId, plan.Choice.AnimalId, plan.Choice.Action)).OrderBy(trip => trip.ActorId, StringComparer.Ordinal).ToArray()
-        };
+        });
     }
 
     private void CompleteAnimalTripDelivery(IAnimalWorld world, AnimalTripActionPlan plan, InventoryLot lot)
@@ -132,6 +132,6 @@ internal sealed partial class AnimalSystem
         var hold = InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
         foreach (var lot in InventoryIndex.For(world.Society.Inventory).Lots.Where(lot => (lot.Holds ?? []).Contains(hold)))
             world.RunInventoryCommand(InventorySystem.FinishAnimalSupplyTrip(lot, hold));
-        State = State with { SupplyTrips = State.SupplyTrips.Where(trip => trip.ActorId != actor).ToArray() };
+        Commit(State with { SupplyTrips = State.SupplyTrips.Where(trip => trip.ActorId != actor).ToArray() });
     }
 }
