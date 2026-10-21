@@ -38,8 +38,7 @@ public sealed partial class WorldRuntime
             : DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
-        DerivedId.Hash(JsonSerializer.Serialize(
-            new[] { actor, building, recipe, tick.ToString(System.Globalization.CultureInfo.InvariantCulture) }), "tool-making-request:");
+        ProductionSystem.ToolMakingRequestId(actor, building, recipe, tick);
 
     private bool IsToolRequestSeller(string actor, ToolMakingRequestState request) =>
         agents.ContainsKey(actor) && IsAdult(actor) && HouseholdFor(actor) == request.SellerHouseholdId &&
@@ -364,5 +363,6 @@ public sealed partial class WorldRuntime
         {
             productionSystem.RetireRequests(retired);
         }
+        productionSystem.CheckMaintainedRequests();
     }
 }

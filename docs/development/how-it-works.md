@@ -156,7 +156,11 @@ Recipe planning and checking read `IRecipeWorld`; production admission uses
 `IProductionStartWorld` to reserve the selected inputs and bind the resulting
 job. Local job validation has one implementation in the system, used both
 before test mutations publish and by checkpoint validation. The remaining
-production save checks compare jobs with current recipes, buildings and time.
+production save checks compare jobs with current recipes, buildings and time. Tool-request identity,
+status, bounded text and internal links are checked by ProductionSystem before
+test publication. Retained history bounds run after request maintenance prunes
+its terminal records, preserving the original retirement point; checkpoint
+validation reuses these checks and retains external authority and time links.
 
 `Construction/ConstructionSystem.cs` owns construction plans and admission,
 expansion plans and lifecycle. Its `BuildingStore` is the only writer of

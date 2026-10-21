@@ -47,8 +47,8 @@ public sealed class ProductionSystemTests
     [Fact]
     public void RetiringRequestsClearsOnlyTheirJobLinksAndKeepsOldSnapshots()
     {
-        var retired = new ToolMakingRequestState("request:first", "customer:first", "household:first", "shop-first", "recipe:test", "knife", 0, 0);
-        var kept = retired with { Id = "request:second", RequesterId = "customer:second" };
+        var retired = new ToolMakingRequestState(ProductionSystem.ToolMakingRequestId("customer:first", "shop-first", "recipe:test", 0), "customer:first", "household:first", "shop-first", "recipe:test", "iron_knife", 0, 0);
+        var kept = retired with { Id = ProductionSystem.ToolMakingRequestId("customer:second", "shop-first", "recipe:test", 0), RequesterId = "customer:second" };
         var system = new ProductionSystem(WorldContentSimulationState.Empty, [retired, kept]);
         system.StartJob(Job() with { ToolMakingRequestId = retired.Id });
         system.StartJob(Job("job-second") with { ToolMakingRequestId = kept.Id });
