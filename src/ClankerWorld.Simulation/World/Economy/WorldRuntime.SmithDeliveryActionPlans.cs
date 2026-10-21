@@ -67,13 +67,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected Blacksmith trip is out of reach now");
     }
 
-    private void ApplySmithDeliveryPlan(SmithDeliveryActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedSmithDeliveryPlan(plan);
-    }
-
     private void ApplyCheckedSmithDeliveryPlan(SmithDeliveryActionPlan plan)
     {
         var state = agents[plan.Actor];

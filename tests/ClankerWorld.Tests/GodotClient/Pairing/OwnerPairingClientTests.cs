@@ -11,17 +11,27 @@ public sealed class OwnerPairingClientTests
     [InlineData(true)]
     public async Task ReconnectBoundsStalledTransportAndHonorsOwnerCancellation(bool ownerCancels)
     {
+        var clock = new ManualTimeProvider();
         using var handler = new StalledHandler();
         using var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
-        var api = new OwnerWorldApi(client);
+        var api = new OwnerWorldApi(client, clock);
         using var signer = new StubSigner();
         using var cancellation = new CancellationTokenSource();
         var first = api.ReconnectAsync(new Uri("http://127.0.0.1:5188"), new("server", "world"),
             "device", 0, null, null, null, signer, cancellation.Token);
-        var started = await Task.WhenAny(first, handler.Started.Task).WaitAsync(TimeSpan.FromSeconds(10));
-        if (started == first) await first;
-        if (ownerCancels) cancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(10)));
+        try
+        {
+            await ModelWorkHarness.WaitForSignalAsync(handler.Started.Task);
+            clock.Advance(TimeSpan.FromMilliseconds(3999));
+            Assert.False(first.IsCompleted);
+            Assert.False(handler.RequestToken.IsCancellationRequested);
+            if (ownerCancels) cancellation.Cancel();
+            else clock.Advance(TimeSpan.FromMilliseconds(1));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(first));
+            Assert.True(handler.RequestToken.IsCancellationRequested);
+            Assert.Equal(ownerCancels, cancellation.IsCancellationRequested);
+        }
+        finally { cancellation.Cancel(); }
         Assert.True(handler.WasCancelled);
         // A cancelled poll does not poison the shared client used by pause and later polls.
         using var response = await client.GetAsync("http://127.0.0.1:5188/next");
@@ -30,16 +40,30 @@ public sealed class OwnerPairingClientTests
 
     private sealed class StalledHandler : HttpMessageHandler
     {
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource Started { get; } = new();
         public bool WasCancelled { get; private set; }
+        public CancellationToken RequestToken { get; private set; }
+        private readonly InlineCompletionSource<HttpResponseMessage> stalled = new();
+        private CancellationTokenRegistration cancellation;
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (request.RequestUri!.AbsolutePath == "/next") return new(HttpStatusCode.OK);
-            Started.TrySetResult(true);
-            try { await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken); }
-            catch (OperationCanceledException) { WasCancelled = true; throw; }
-            throw new InvalidOperationException("A stalled request must be cancelled.");
+            if (request.RequestUri!.AbsolutePath == "/next") return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            RequestToken = cancellationToken;
+            // Cancellation completes transport inline, even when the runner's context is busy.
+            cancellation = cancellationToken.Register(() =>
+            {
+                WasCancelled = true;
+                stalled.TrySetCanceled(cancellationToken);
+            });
+            Started.TrySetResult();
+            return stalled.Task;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) cancellation.Dispose();
+            base.Dispose(disposing);
         }
     }
 

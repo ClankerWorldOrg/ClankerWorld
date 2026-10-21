@@ -76,7 +76,7 @@ function world(issues = []) {
   return { records, writes, logs, run };
 }
 
-test('over the budget, one issue opens with the slowest tests and the labels the queue needs', async t => {
+test('over the budget, one scoreboard issue opens with the slowest tests and no pull-request label', async t => {
   const { writes, run } = world([{ number: 5, body: 'Unrelated issue' }]);
   const result = await run(timings(t, runsTotalling(BudgetSeconds + 600)));
   assert.deepEqual(result, { action: 'opened', number: 901 });
@@ -84,7 +84,9 @@ test('over the budget, one issue opens with the slowest tests and the labels the
   const [kind, params] = writes[0];
   assert.equal(kind, 'create');
   assert.equal(params.title, Title);
-  assert.deepEqual(params.labels, ['type:tooling', 'area:tooling', 'priority:p2', 'status:needs-pr']);
+  assert.deepEqual(params.labels, ['type:tooling', 'area:tooling', 'priority:p2']);
+  assert.match(params.body, /never gets `status:needs-pr`/);
+  assert.match(params.body, /take an open issue titled "Slim the tests"/);
   assert.ok(params.body.startsWith(Marker));
   assert.match(params.body, /Main's 3 tests now take \*\*9,600 s\*\* in total, over the budget of \*\*9,000 s\*\*/);
   assert.match(params.body, /median over main's last 3 green CI runs, the newest of them \[run 3003\]\(https:\/\/github\.com\/compoodment\/ClankerWorld\/actions\/runs\/3003\)/);
