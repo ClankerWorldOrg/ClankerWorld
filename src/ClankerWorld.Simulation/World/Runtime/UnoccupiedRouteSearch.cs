@@ -18,6 +18,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, GridPoint, int> stepCost;
     private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
+    private readonly bool swimming;
     private readonly Func<GridPoint, GridPoint, bool>? canStep;
     private readonly Func<GridPoint, GridPoint, bool>? canStop;
     private readonly int[] best;
@@ -56,6 +57,11 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         best[Index(origin)] = 0;
         open.Enqueue(origin, (0, Index(origin)));
     }
+
+    internal UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
+        Func<GridPoint, GridPoint, int> stepCost, bool swimming,
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
+        : this(map, origin, occupied, stepCost, null, canStep, canStop) => this.swimming = swimming;
 
     public GridPoint Origin { get; }
 
@@ -109,8 +115,9 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     {
         if (neighbors is null)
         {
-            foreach (var next in map.FootNeighborsForSearch(current))
-                VisitNeighbor(current, index, cost, next);
+            foreach (var next in swimming ? map.NeighborPositionsForSearch(current) : map.FootNeighborsForSearch(current))
+                if (!swimming || SwimmingRules.CanStep(map, current, next))
+                    VisitNeighbor(current, index, cost, next);
             return;
         }
 

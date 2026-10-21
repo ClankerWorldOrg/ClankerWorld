@@ -10,18 +10,8 @@ public sealed partial class WorldRuntime
             DecodeReferenceChoice(decode), encode, TownSystem.GovernanceCapabilities,
             (world, actor, choice, _) => plan(world.civicWorld, actor, choice),
             (world, original, policy) => check(world.civicWorld, original, policy),
-            static (world, original, _, _) =>
-            {
-                world.townSystem.ApplyTownCivicCandidate(world.civicWorld, original.Actor, original.CandidateId, originalPlan: original);
-                return true;
-            });
+            ApplyCivicPlan);
 
-    private static ActionDefinition<MayoralBallotChoice, MayoralBallotActionPlan> MayoralBallotDefinition => GovernanceActions.MayoralBallot;
-    private static ActionDefinition<GovernmentOfficeChoice, GovernmentOfficeActionPlan> GovernmentOfficeDefinition => GovernanceActions.GovernmentOffice;
-    private static ActionDefinition<GovernmentProposalChoice, GovernmentProposalActionPlan> GovernmentProposalDefinition => GovernanceActions.GovernmentProposal;
-    private static ActionDefinition<TownPolicyChoice, TownPolicyActionPlan> TownPolicyDefinition => GovernanceActions.TownPolicy;
-    private static ActionDefinition<TownLawChoice, TownLawActionPlan> TownLawDefinition => GovernanceActions.TownLaw;
-    private static ActionDefinition<CivicProposalVoteChoice, CivicProposalVoteActionPlan> CivicProposalVoteDefinition => GovernanceActions.CivicProposalVote;
 
     private static class GovernanceActions
     {

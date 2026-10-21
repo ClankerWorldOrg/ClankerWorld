@@ -24,10 +24,6 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartRepairTarget(ActionPlan plan, string cartId, GridPoint position,
-        IReadOnlyList<PlannedStockMember> family, HandcartHitch? hitch, ActorCapabilityPolicy? policy = null) =>
-        TransportSystem.CheckHandcartRepairTarget(HandcartWorld, plan, cartId, position, family, hitch, policy);
-
     private ActionCheck CheckHandcartRepairPlan(HandcartRepairActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         TransportSystem.CheckHandcartRepairPlan(HandcartWorld, plan, policy);
 
