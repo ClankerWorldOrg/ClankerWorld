@@ -10,9 +10,4 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckHouseholdResumePlan(HouseholdResumeActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         CommunitySystem.CheckHouseholdResumePlan(CommunityWorkWorld, plan, policy);
 
-    private void ApplyHouseholdResumePlan(HouseholdResumeActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteHouseholdResume(plan);
-    }
 }

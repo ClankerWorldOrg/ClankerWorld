@@ -95,12 +95,6 @@ public sealed partial class WorldRuntime
     private bool TryResumeKnife(string actor, string jobId, out string? knifeId) =>
         CommunitySystem.TryResumeKnife(CommunityWorkWorld, actor, jobId, out knifeId);
 
-    private void ResumePausedHouseholdWork(string actor, string jobId, HouseholdResumeActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan ?? PlanHouseholdResume(actor, new(jobId));
-        if (plan is not null) ApplyHouseholdResumePlan(plan);
-    }
-
     private void CompleteHouseholdResume(HouseholdResumeActionPlan plan) =>
         CommunitySystem.CompleteHouseholdResume(CommunityWorkWorld, plan);
 
@@ -240,29 +234,6 @@ public sealed partial class WorldRuntime
 
     private void CompleteReplacementCare(ReplacementCareActionPlan plan) =>
         CommunitySystem.CompleteReplacementCare(CommunityDepartureWorld, plan);
-
-    private void ApplyDepartureCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
-    {
-        if (candidate.StartsWith("household_resume_work:", StringComparison.Ordinal))
-        {
-            ResumePausedHouseholdWork(actor, candidate["household_resume_work:".Length..], originalPlan as HouseholdResumeActionPlan);
-            return;
-        }
-        if (DepartureChoice.Decode(candidate) is { } choice)
-        {
-            var plan = originalPlan as DepartureActionPlan ?? PlanDepartureAction(actor, choice);
-            if (plan is not null) ApplyDepartureActionPlan(plan);
-            return;
-        }
-        if (ReplacementCareChoice.Decode(candidate) is { } careChoice)
-        {
-            var plan = originalPlan as ReplacementCareActionPlan ?? PlanReplacementCare(actor, careChoice);
-            if (plan is not null) ApplyReplacementCarePlan(plan);
-            return;
-        }
-        if (PersonalGoodsChoice.Decode(candidate) is { } goodsChoice)
-            _ = ApplyPersonalGoods(originalPlan as PersonalGoodsActionPlan ?? PlanPersonalGoods(actor, goodsChoice));
-    }
 
     private static void ValidateDepartures(IEnumerable<AgentState> physical, SocietyCheckpoint society, int schemaVersion)
     {

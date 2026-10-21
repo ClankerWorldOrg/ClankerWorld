@@ -19,9 +19,4 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyHousingActionPlan(HousingActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteHousingAction(plan);
-    }
 }
