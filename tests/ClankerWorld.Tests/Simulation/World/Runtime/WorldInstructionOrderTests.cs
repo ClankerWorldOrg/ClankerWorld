@@ -9,62 +9,6 @@ public sealed partial class WorldRuntimeTests
 {
     private const string OrderedAgent = "founder-ilya";
 
-    [Theory]
-    [InlineData("heat the house", false)]
-    [InlineData("be good", false)]
-    [InlineData("that was long ago", false)]
-    [InlineData("build a house", false)]
-    [InlineData("gather wood", true)]
-    [InlineData("gather wood at berry-patch", false)]
-    [InlineData("go to the Blacksmith", false)]
-    [InlineData("gather berries and build a House", false)]
-    [InlineData("eat wood", false)]
-    [InlineData("eat 3 wood", false)]
-    [InlineData("eat 3 stones", false)]
-    [InlineData("eat -3 wood", false)]
-    [InlineData("eat 1.5 berries", false)]
-    [InlineData("do not eat berries", false)]
-    [InlineData("do not gather berries from berry-patch", false)]
-    [InlineData("never harvest berries from berry-patch", false)]
-    [InlineData("don’t gather berries from berry-patch", false)]
-    [InlineData("don't harvest berries from berry-patch", false)]
-    [InlineData("eat 3 berries", true)]
-    [InlineData("eat porridge", true)]
-    [InlineData("eat berry porridge", true)]
-    [InlineData("eat fruit porridge", true)]
-    [InlineData("eat bread", true)]
-    [InlineData("eat vegetable stew", true)]
-    [InlineData("eat simple meal", true)]
-    [InlineData("eat Restaurant meal", true)]
-    [InlineData("eat cultivated greens", true)]
-    [InlineData("gather bread", false)]
-    [InlineData("go to porridge", false)]
-    [InlineData("eat flour", false)]
-    [InlineData("gather -3 berries", false)]
-    [InlineData("Eat!", true)]
-    [InlineData("gathering berries", true)]
-    [InlineData("go to the berry patch", true)]
-    [InlineData("are you hungry?", false)]
-    public void DirectOrdersAreReadAsWholeWords(string text, bool understood)
-    {
-        using var world = new WorldRuntime("whole-word-orders");
-        var order = world.SubmitInstruction(new OwnerInstructionRequest("order", "owner:test",
-            OrderedAgent, OwnerInstructionKind.Order, text));
-
-        var state = world.ExportState();
-        var closed = state.Events.Where(item => item.Kind == "instruction_not_understood").ToArray();
-        if (understood)
-        {
-            Assert.DoesNotContain(order.InstructionId.Value, state.CompletedInstructionIds ?? []);
-            Assert.Empty(closed);
-        }
-        else
-        {
-            Assert.Contains(order.InstructionId.Value, state.CompletedInstructionIds ?? []);
-            Assert.Single(closed);
-        }
-    }
-
     [Fact]
     public async Task GuidanceBeyondTheBoundWaitsWithoutPollingAndCannotHideTheOperativeOrder()
     {
@@ -271,24 +215,11 @@ public sealed partial class WorldRuntimeTests
     {
         using var genesis = new WorldRuntime(seed);
         var state = genesis.ExportState();
-        var foodKinds = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "food", "fruit", "berries", "wild_greens", "cultivated_greens", "bread", "porridge", "stew",
-        };
-        var inventory = state.Society.Society.Inventory;
-        var retainedLots = inventory.Lots.Where(item => !foodKinds.Contains(item.ItemKind)).ToArray();
-        var retainedIds = retainedLots.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        inventory = inventory with
-        {
-            Lots = retainedLots,
-            Reservations = inventory.Reservations.Where(item => retainedIds.Contains(item.LotId)).ToArray(),
-            Offers = inventory.Offers.Where(item => retainedIds.Contains(item.FirstLotId) && retainedIds.Contains(item.SecondLotId)).ToArray(),
-        };
         state = state with
         {
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = WithoutFoodLots(state.Society.Society.Inventory) },
             },
         };
         return WorldRuntime.Restore(state, providerFactory);

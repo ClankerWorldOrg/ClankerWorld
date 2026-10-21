@@ -24,6 +24,27 @@ public sealed class WorldInstructionParserTests
     [InlineData("stop harvesting berries")]
     [InlineData("avoid eating berries")]
     [InlineData("are you hungry?")]
+    [InlineData("heat the house")]
+    [InlineData("be good")]
+    [InlineData("that was long ago")]
+    [InlineData("build a house")]
+    [InlineData("gather wood at berry-patch")]
+    [InlineData("go to the Blacksmith")]
+    [InlineData("gather berries and build a House")]
+    [InlineData("eat wood")]
+    [InlineData("eat 3 wood")]
+    [InlineData("eat 3 stones")]
+    [InlineData("eat -3 wood")]
+    [InlineData("eat 1.5 berries")]
+    [InlineData("do not eat berries")]
+    [InlineData("do not gather berries from berry-patch")]
+    [InlineData("never harvest berries from berry-patch")]
+    [InlineData("don’t gather berries from berry-patch")]
+    [InlineData("don't harvest berries from berry-patch")]
+    [InlineData("gather bread")]
+    [InlineData("go to porridge")]
+    [InlineData("eat flour")]
+    [InlineData("gather -3 berries")]
     public void UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords(string text)
     {
         using var world = new WorldRuntime("strict-order-parse");
@@ -38,8 +59,8 @@ public sealed class WorldInstructionParserTests
         Assert.Equal("unknown", instruction.Task!.Action);
         Assert.Equal("not_understood", instruction.Task.Status);
         Assert.Contains(receipt.InstructionId.Value, state.CompletedInstructionIds ?? []);
-        Assert.Contains(state.Events, item => item.Kind == "instruction_not_understood" &&
-            item.Detail == $"{TargetAgent}:{receipt.InstructionId}");
+        var closed = Assert.Single(state.Events, item => item.Kind == "instruction_not_understood");
+        Assert.Equal($"{TargetAgent}:{receipt.InstructionId}", closed.Detail);
         world.Validate();
     }
 
@@ -119,6 +140,16 @@ public sealed class WorldInstructionParserTests
     [InlineData("go to the berry patch", "seek_food")]
     [InlineData("keep eating", "consume_food")]
     [InlineData("keep eating food", "consume_food")]
+    [InlineData("gather wood", "gather_material")]
+    [InlineData("eat 3 berries", "consume_food")]
+    [InlineData("eat porridge", "consume_food")]
+    [InlineData("eat berry porridge", "consume_food")]
+    [InlineData("eat fruit porridge", "consume_food")]
+    [InlineData("eat bread", "consume_food")]
+    [InlineData("eat vegetable stew", "consume_food")]
+    [InlineData("eat simple meal", "consume_food")]
+    [InlineData("eat Restaurant meal", "consume_food")]
+    [InlineData("eat cultivated greens", "consume_food")]
     public void ExplicitlySupportedDirectFormsRemainRecognized(string text, string action)
     {
         using var world = new WorldRuntime("strict-supported-order-forms");
@@ -126,7 +157,10 @@ public sealed class WorldInstructionParserTests
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest(
             "supported-form", "owner:test", TargetAgent, OwnerInstructionKind.Order, text));
 
-        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
+        var state = world.ExportState();
+        var order = Assert.Single(state.Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
+        Assert.DoesNotContain(receipt.InstructionId.Value, state.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(state.Events, item => item.Kind == "instruction_not_understood");
         Assert.Equal(action, order.Action);
         Assert.Equal("waiting", order.Status);
         Assert.Equal(text.StartsWith("keep ", StringComparison.Ordinal),
