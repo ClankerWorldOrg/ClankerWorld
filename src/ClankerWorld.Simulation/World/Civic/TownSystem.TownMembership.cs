@@ -262,11 +262,11 @@ internal sealed partial class TownSystem
         var townIds = savedTowns.Select(town => town.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var town in savedTowns)
         {
+            ValidateLocalAdmissions(town);
             var records = town.Admissions ?? [];
             var proposals = (town.Council?.Proposals ?? []).ToDictionary(proposal => proposal.Id, StringComparer.Ordinal);
             // Each passed admission is settled as soon as it passes, so it has exactly one outcome record.
             if ((town.Admissions is not null && schemaVersion < WorldRuntime.TownAdmissionSchemaVersion) ||
-                records.Select(record => record?.ProposalId).Distinct(StringComparer.Ordinal).Count() != records.Count ||
                 proposals.Values.Any(proposal => proposal is { Kind: "admission", Status: "passed" } &&
                     !records.Any(record => record?.ProposalId == proposal.Id)))
                 throw new InvalidDataException("A Town's saved admission records are invalid.");
@@ -279,14 +279,11 @@ internal sealed partial class TownSystem
                     (record.PreviousTownId is null || townIds.Contains(record.PreviousTownId) && record.PreviousTownId != town.Id) &&
                     record.Status switch
                     {
-                        WorldRuntime.CivicSharedRules.AdmissionApproved => proposal.AuthorId != record.SubjectId && record.MemberIds is null && record.Reason is null &&
+                        WorldRuntime.CivicSharedRules.AdmissionApproved => proposal.AuthorId != record.SubjectId &&
                             TownAdmissionDeadlineRules.IsOpen(proposal, society.WorldTick, society.Config.TicksPerWorldDay),
-                        WorldRuntime.CivicSharedRules.AdmissionAdmitted => record.Reason is null && record.MemberIds is { Count: > 0 } members &&
-                            members.Contains(record.SubjectId, StringComparer.Ordinal) &&
-                            members.All(people.Contains) && members.SequenceEqual(members.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)) &&
+                        WorldRuntime.CivicSharedRules.AdmissionAdmitted => record.MemberIds!.All(people.Contains) &&
                             (proposal.AuthorId == record.SubjectId || TownAdmissionDeadlineRules.IsOpen(proposal, record.DecidedTick, society.Config.TicksPerWorldDay)),
-                        WorldRuntime.CivicSharedRules.AdmissionLapsed => record.PreviousTownId is null && record.MemberIds is null &&
-                            WorldRuntime.CivicSharedRules.AdmissionLapseReasons.Contains(record.Reason ?? "", StringComparer.Ordinal) &&
+                        WorldRuntime.CivicSharedRules.AdmissionLapsed =>
                             (record.Reason != "acceptance_expired" || TownAdmissionDeadlineRules.IsExpired(proposal, record.DecidedTick, society.Config.TicksPerWorldDay)),
                         _ => false,
                     };

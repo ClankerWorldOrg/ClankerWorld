@@ -22,28 +22,21 @@ public static class TownProjectValidation
         var completedBuildings = new HashSet<string>(StringComparer.Ordinal);
         foreach (var town in towns)
         {
-            if (town.Projects is null) throw Invalid("A Town is missing its construction ledger.");
+            TownSystem.ValidateLocalProjects(town.Projects);
             foreach (var project in town.Projects)
             {
                 if (project is null || !projects.Add(project.Id)) throw Invalid("Town project identities must be unique.");
-                TownProjectRules.ValidatePayload(project.Plan);
                 var lantern = StreetLanternContent.IsLantern(project.Plan.DefinitionId);
                 var definition = TownProjectRules.DefinitionFor(project.Plan.DefinitionId)!;
                 var port = PortNavigationRules.IsPort(definition);
                 var boat = project.Plan.BoatPortId is not null;
                 var geometry = port ? PortNavigationRules.Geometry(map, definition, project.Plan.Site) : null;
-                var requiredWork = TownProjectRules.RequiredWork(project.Plan);
                 var proposal = town.Council?.Proposals.SingleOrDefault(item => item.Id == project.ProposalId);
                 if (proposal is not { Kind: "project", Status: "passed", Project: not null } ||
                     project.Id != TownProjectRules.ProjectId(proposal) ||
                     !TownProjectRules.SameScope(project.Plan, proposal.Project) ||
                     project.ApprovedTick != proposal.SettledTick || project.ApprovedTick > society.WorldTick ||
-                    project.LastTransitionTick < project.ApprovedTick || project.LastTransitionTick > society.WorldTick ||
-                    project.Stage is not ("supplying" or "working" or "blocked" or "completed" or "cancelled") ||
-                    project.WorkDone < 0 || project.WorkDone > requiredWork || project.Deliveries is null ||
-                    project.Blocker is { Length: > 512 } ||
-                    project.Stage == "blocked" && string.IsNullOrWhiteSpace(project.Blocker) ||
-                    project.Stage is "supplying" or "working" or "completed" && project.Blocker is not null)
+                    project.LastTransitionTick > society.WorldTick)
                     throw Invalid("A Town project disagrees with its Council approval or construction stage.");
                 if (content.Buildings.All(item => item.CanonicalId != project.Plan.DefinitionId) ||
                     TownProjectRules.Footprint(project.Plan).Any(point => !map.Contains(point) || !port && !map.IsBuildable(point)) ||
@@ -56,30 +49,17 @@ public static class TownProjectValidation
                     throw Invalid("A live street lantern must retain its approved adjacent Road.");
                 if (project.Stage is "supplying" or "working")
                     ValidateLiveSite(towns, town, project, map, simulation, content, titles, rights, requests, fields, roads, bridges);
-                var liveQuantities = new Dictionary<string, long>(StringComparer.Ordinal);
-                var ordinal = 0;
                 foreach (var delivery in project.Deliveries)
                 {
-                    var cost = delivery is null ? default : project.Plan.Budget.SingleOrDefault(item => item.ResourceId == delivery.ItemKind);
-                    if (delivery is null || delivery.Id != TownProjectRules.DeliveryId(project.Id, delivery.ContributorId,
-                            delivery.SourceLotId, delivery.PickedUpTick, ordinal) || !deliveries.Add(delivery.Id) ||
-                        !known.Contains(delivery.ContributorId) || string.IsNullOrWhiteSpace(delivery.SourceLotId) ||
-                        string.IsNullOrWhiteSpace(delivery.LotId) || cost.Amount <= 0 || delivery.Quantity <= 0 ||
-                        delivery.Quantity > cost.Amount || delivery.PickedUpTick < project.ApprovedTick ||
-                        delivery.PickedUpTick > society.WorldTick ||
-                        (delivery.DeliveredTick is null) != (delivery.ReservationId is null) ||
-                        delivery.DeliveredTick is { } deliveredAt && (deliveredAt < delivery.PickedUpTick || deliveredAt > society.WorldTick) ||
-                        delivery.ReleasedTick is { } releasedAt && (releasedAt < (delivery.DeliveredTick ?? delivery.PickedUpTick) || releasedAt > society.WorldTick) ||
-                        (delivery.ReleasedTick is null) != (delivery.ReleaseReason is null) ||
-                        delivery.ReleaseReason is { Length: > 512 } || delivery.ReleaseReason is { } reason && string.IsNullOrWhiteSpace(reason))
+                    if (!deliveries.Add(delivery.Id) || !known.Contains(delivery.ContributorId) ||
+                        delivery.PickedUpTick > society.WorldTick || delivery.DeliveredTick > society.WorldTick || delivery.ReleasedTick > society.WorldTick)
                         throw Invalid("A Town project's retained material delivery is invalid.");
-                    ordinal++;
                     if (delivery.ReservationId is { } receiptId)
                     {
                         var receipt = inventory.Reservations.SingleOrDefault(item => item.Id == receiptId);
                         var expected = delivery.ReleasedTick is not null ? InventoryReservationState.Released :
                             project.Stage == "completed" ? InventoryReservationState.Completed : InventoryReservationState.Reserved;
-                        if (receiptId != TownRecordIds.DeliveryInput(delivery.Id) || !reservations.Add(receiptId) ||
+                        if (!reservations.Add(receiptId) ||
                             receipt is null || receipt.OwnerId != town.Id ||
                             receipt.LotId != delivery.LotId || receipt.Quantity != delivery.Quantity ||
                             receipt.Purpose != TownProjectRules.ReservationPurpose(project.Id) ||
@@ -87,16 +67,7 @@ public static class TownProjectValidation
                             throw Invalid("A Town project's exact material receipt is missing or changed.");
                     }
                     if (delivery.ReleasedTick is not null) continue;
-                    if (project.Stage is "blocked" or "cancelled")
-                        throw Invalid("A blocked or cancelled Town project must release unspent claims and incoming bindings.");
-                    liveQuantities[delivery.ItemKind] = liveQuantities.GetValueOrDefault(delivery.ItemKind) + delivery.Quantity;
-                    if (liveQuantities[delivery.ItemKind] > cost.Amount)
-                        throw Invalid("Town project inputs exceed the approved material budget.");
-                    if (project.Stage == "completed")
-                    {
-                        if (delivery.DeliveredTick is null) throw Invalid("A completed Town project cannot retain undelivered cargo.");
-                        continue;
-                    }
+                    if (project.Stage == "completed") continue;
                     var lot = inventory.Lots.SingleOrDefault(item => item.Id == delivery.LotId);
                     if (!liveLots.Add(delivery.LotId) || lot is null || lot.OwnerId != town.Id ||
                         lot.ItemKind != delivery.ItemKind || lot.Quantity != delivery.Quantity ||
@@ -118,18 +89,12 @@ public static class TownProjectValidation
                         throw Invalid("Incoming Town materials need actual adult resident custody.");
                 }
                 var allDelivered = project.Plan.Budget.All(cost => TownProjectRules.DeliveredQuantity(project, town.Id, inventory, cost.ResourceId) == cost.Amount);
-                if (project.Stage == "working" && !allDelivered || project.Stage == "completed" &&
-                    (project.WorkDone != requiredWork || !allDelivered ||
-                     (boat ? project.CompletedBoatId != TownProjectRules.BuildingId(project.Id) || project.CompletedBuildingId is not null
-                         : project.CompletedBuildingId != TownProjectRules.BuildingId(project.Id) || project.CompletedBoatId is not null ||
-                           !completedBuildings.Add(project.CompletedBuildingId))))
+                if (project.Stage is "working" or "completed" && !allDelivered || project.Stage == "completed" && !boat && !completedBuildings.Add(project.CompletedBuildingId!))
                     throw Invalid("A working or completed Town project lacks its exact delivered material budget.");
-                if (project.Stage != "completed" && (project.CompletedBuildingId is not null || project.CompletedBoatId is not null || project.RemovedTick is not null))
-                    throw Invalid("An unfinished Town project cannot own a completed building.");
                 if (project.Stage == "completed" && !boat)
                 {
                     var building = simulation.Buildings.SingleOrDefault(item => item.InstanceId == project.CompletedBuildingId);
-                    if (project.RemovedTick is { } removed && (removed < project.LastTransitionTick || removed > society.WorldTick || building is not null) ||
+                    if (project.RemovedTick is { } removed && (removed > society.WorldTick || building is not null) ||
                         project.RemovedTick is null && (building is null || building.DefinitionId != project.Plan.DefinitionId ||
                             building.Position != project.Plan.Site || building.Entrance != project.Plan.Entrance ||
                             building.TownId != town.Id || building.HouseholdId is not null || building.PlacedTick != project.LastTransitionTick ||

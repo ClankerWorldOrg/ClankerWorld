@@ -43,29 +43,22 @@ public static class HouseholdLandGrantRules
         }
         foreach (var request in requests)
         {
+            TownSystem.ValidateLocalLandRequest(request);
             var council = towns.Single(t => t.Id == request.TownId).Council;
             var proposal = council?.Proposals.SingleOrDefault(p => p.Id == request.CouncilProposalId);
-            if (request.Status is not ("pending" or "granted" or "rejected" or "withdrawn" or "hearing_resolved") ||
-                request.Status == "pending" && request.SettledTick is not null ||
-                request.Status != "pending" && (request.SettledTick is null || request.SettledTick < request.RequestedTick || request.SettledTick > tick) ||
-                request.Consents is null || request.GrantAdults is null || request.HearingResolutions is null ||
-                request.Consents.Any(c => c is null || !knownAgents.Contains(c.AgentId) || c.Tick < request.RequestedTick ||
-                    c.Tick > (request.SettledTick ?? tick) || council is null ||
+            if (request.SettledTick > tick ||
+                request.Consents.Any(c => !knownAgents.Contains(c.AgentId) || c.Tick > tick || council is null ||
                     !council.Knowledge.Any(k => k.AgentId == c.AgentId && k.LearnedTick <= c.Tick &&
                         council.Notices.Any(n => n.Id == k.NoticeId && n.Kind == "land_use" && n.SubjectId == request.Id))) ||
-                request.Consents.Select(c => c.AgentId).Distinct(StringComparer.Ordinal).Count() != request.Consents.Count ||
                 request.CouncilProposalId is not null && (proposal is null || proposal.Kind != "land_use" ||
                     proposal.SubjectId != request.Id || proposal.RequestKey != RequestKey(request) ||
-                    proposal.AuthorId != request.RequestedByAgentId || proposal.OpenedTick < request.RequestedTick) ||
-                request.Status != "granted" && request.GrantAdults.Count != 0)
+                    proposal.AuthorId != request.RequestedByAgentId || proposal.OpenedTick < request.RequestedTick))
                 throw new InvalidDataException("A saved household land request has invalid approval or consent history.");
             var grants = receiptRights.Where(right => right.GrantSource == GrantSource(request.Id)).ToArray();
             if (request.Status == "granted")
             {
                 if (proposal is not { Status: "passed" } || proposal.SettledTick > request.SettledTick ||
-                    request.GrantAdults.Count == 0 || !request.GrantAdults.SequenceEqual(TownCouncilRules.Ordered(request.GrantAdults)) ||
-                    request.GrantAdults.Any(id => !knownAgents.Contains(id) || !request.Consents.Any(c => c.AgentId == id && c.Accepted)) ||
-                    request.AgreedEndTick is { } end && end <= request.SettledTick ||
+                    request.GrantAdults.Any(id => !knownAgents.Contains(id)) ||
                     !TownLandRightsRules.OrderTiles(grants.SelectMany(right => right.Tiles)).SequenceEqual(request.Tiles) ||
                     grants.Any(right => right.TownId != request.TownId || right.GrantedTick != request.SettledTick ||
                         right.AgreedEndTick != request.AgreedEndTick))
