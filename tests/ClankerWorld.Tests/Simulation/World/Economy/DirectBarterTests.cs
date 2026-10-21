@@ -243,13 +243,7 @@ public sealed class DirectBarterTests
     private static WorldRuntimeState WithAge(WorldRuntimeState state, string actor, SocietyAgeBand age)
     {
         var society = state.Society.Society;
-        var years = age switch
-        {
-            SocietyAgeBand.Infant => 0,
-            SocietyAgeBand.Child => society.Config.InfantYears,
-            SocietyAgeBand.Adolescent => society.Config.ChildYears,
-            _ => society.Config.ElderYears,
-        };
+        var years = age == SocietyAgeBand.Adolescent ? society.Config.ChildYears : society.Config.ElderYears;
         var birth = society.LifeTickAt(society.WorldTick) - years * society.Config.TicksPerLifecycleAge;
         return state with
         {
@@ -279,15 +273,15 @@ public sealed class DirectBarterTests
     };
 
     [Theory]
-    [InlineData(false, "food")]
-    [InlineData(true, "food")]
-    public async Task RecipientIndependentlyAcceptsOrDeclinesAcrossPauseAndRestart(bool decline, string foodKind)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RecipientIndependentlyAcceptsOrDeclinesAcrossPauseAndRestart(bool decline)
     {
         using var seed = new WorldRuntime("settlement-trade-test");
         var state = seed.ExportState();
         var first = state.Agents[0].AgentId;
         var second = state.Agents[1].AgentId;
-        state = WithTradeGoods(state, first, second, foodKind);
+        state = WithTradeGoods(state, first, second);
         IDecisionProvider Provider(string id) => new TradeProvider(id == first ? "trade_propose:" : id == second
             ? decline ? "trade_decline:" : "trade_accept:" : "safe_idle");
         using var world = WorldRuntime.Restore(state, Provider);
@@ -313,14 +307,14 @@ public sealed class DirectBarterTests
         Assert.All(inventory.Reservations, reservation => Assert.Equal(decline ? InventoryReservationState.Released : InventoryReservationState.Completed, reservation.State));
         if (decline)
         {
-            Assert.DoesNotContain(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == foodKind);
+            Assert.DoesNotContain(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == "food");
             Assert.Empty(final.Society.Society.Memories);
             Assert.All(final.Agents, person => Assert.True(person.SocialStanding is null or []));
             Assert.Contains(final.Events, item => item.Kind == "barter_declined");
         }
         else
         {
-            Assert.Contains(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == foodKind && lot.Quantity == 1);
+            Assert.Contains(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == "food" && lot.Quantity == 1);
             Assert.Contains(inventory.Lots, lot => lot.OwnerId == first && lot.ItemKind == "clothing" && lot.Quantity == 1);
             Assert.Equal(2, final.Society.Society.Memories.Count);
             Assert.Equal(1, final.Agents.Single(person => person.AgentId == first).SocialStanding!
@@ -391,12 +385,8 @@ public sealed class DirectBarterTests
                 {
                     Inventory = state.Society.Society.Inventory with
                     {
-                        Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id != "trade-food" ? lot : fault switch
-                        {
-                            "spoiled" => lot with { FreshnessBasisPoints = 0 },
-                            "ownership_changed" => lot with { OwnerId = "household:first" },
-                            _ => lot,
-                        }).ToArray(),
+                        Lots = state.Society.Society.Inventory.Lots.Select(lot => fault == "spoiled" && lot.Id == "trade-food"
+                            ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray(),
                         Reservations = state.Society.Society.Inventory.Reservations.Select(reservation =>
                             fault == "reservation_released" && reservation.LotId == "trade-food"
                                 ? reservation with { State = InventoryReservationState.Released } : reservation).ToArray(),
@@ -412,22 +402,15 @@ public sealed class DirectBarterTests
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
     }
 
-    private static WorldRuntimeState WithTradeGoods(WorldRuntimeState state, string first, string second, string foodKind = "food")
+    private static WorldRuntimeState WithTradeGoods(WorldRuntimeState state, string first, string second)
     {
         state = AtTradeMeeting(state, first, second);
-        return state with
+        return WithInventory(state with
         {
             Agents = state.Agents.Select(person => person with { FullnessBasisPoints = 7_500 }).ToArray(),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(
-                        InventoryAuthority.AddLot(state.Society.Society.Inventory, "trade-food", foodKind, first, 4),
-                        "trade-clothes", "clothing", second, 2),
-                },
-            },
-        };
+        }, InventoryAuthority.AddLot(
+            InventoryAuthority.AddLot(state.Society.Society.Inventory, "trade-food", "food", first, 4),
+            "trade-clothes", "clothing", second, 2));
     }
 
     internal static WorldRuntimeState AtTradeMeeting(WorldRuntimeState state, string first, string second)
