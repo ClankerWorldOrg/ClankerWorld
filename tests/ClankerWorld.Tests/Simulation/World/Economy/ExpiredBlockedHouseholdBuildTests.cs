@@ -13,7 +13,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
     [InlineData(true)]
     public async Task ExpiredUnfillableHouseholdRecipePausesForFreshChoiceAndResumesAfterInputsReturn(bool fullCarriers)
     {
-        using var setup = NormalPathWorld.CreateGenerated("expired-household-recipe-inputs", _ => new IdleProvider());
+        using var setup = NormalPathWorld.CreateGenerated("expired-household-recipe-inputs", _ => new EconomyIdleProvider());
         var state = setup.ExportState();
         var projectStartedTick = state.Society.Society.WorldTick;
         var blacksmith = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
@@ -61,7 +61,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
 
         // Let the ordinary tick-one settlement-resource bootstrap run first so
         // its fallen-wood cache is included in the exhausted-source fixture.
-        using (var bootstrap = WorldRuntime.Restore(state, _ => new IdleProvider()))
+        using (var bootstrap = WorldRuntime.Restore(state, _ => new EconomyIdleProvider()))
         {
             Assert.True((await bootstrap.AdvanceOneTickAsync()).Advanced);
             state = bootstrap.ExportState();
@@ -138,14 +138,14 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                 ? person with { Project = paused with { Stage = "blocked" } }
                 : person).ToArray(),
         };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalidFlagState, _ => new IdleProvider()));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalidFlagState, _ => new EconomyIdleProvider()));
         var urgentPauseState = savedPaused with
         {
             Agents = savedPaused.Agents.Select(person => person.AgentId == actor
                 ? person with { FullnessBasisPoints = 1_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
-        using (var urgentPause = WorldRuntime.Restore(urgentPauseState, _ => new IdleProvider()))
+        using (var urgentPause = WorldRuntime.Restore(urgentPauseState, _ => new EconomyIdleProvider()))
         {
             Assert.True((await urgentPause.AdvanceOneTickAsync()).Advanced);
             var urgentProject = urgentPause.Agents.Single(item => item.AgentId == actor).Project!;
@@ -165,7 +165,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                 : person).ToArray(),
         };
         var resumeProvider = new SelectCandidateProvider(candidateId);
-        using var resumed = WorldRuntime.Restore(savedPaused, id => id == actor ? resumeProvider : new IdleProvider());
+        using var resumed = WorldRuntime.Restore(savedPaused, id => id == actor ? resumeProvider : new EconomyIdleProvider());
         for (var tick = 0; tick < 75 && !resumed.WorldSimulation.ProductionJobs.Any(job =>
                  job.WorkerId == actor && job.RecipeId == recipe.CanonicalId &&
                  job.State is WorldProductionJobState.Running or WorldProductionJobState.Completed); tick++)
@@ -185,7 +185,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
     [Fact]
     public async Task ExpiredBlockedPlanOffersANewSiteToItsOwnerAndKeepsTheHouseholdClaim()
     {
-        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new IdleProvider());
+        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new EconomyIdleProvider());
         var state = setup.ExportState();
         var farmhouse = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
@@ -370,20 +370,6 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         }
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = [request.Observation.Candidates.Single(item => item.Id == "safe_idle")],
-                },
-            }, cancellationToken);
-    }
 
     private sealed class SelectCandidateProvider(string candidateId) : IDecisionProvider
     {
