@@ -165,8 +165,6 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private void HaulFarmGrain(string actor, AgentState state) => ApplyFarmStockAction(PlanFarmStockAction(actor, FarmStockActionKind.Grain));
-
     private void AddFarmFlourCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         if (FarmStockDefinition.Offer(this, actor, FarmStockActionKind.Flour) is { } plan)
@@ -174,8 +172,6 @@ public sealed partial class WorldRuntime
                 "Carry household flour from its Farmhouse to its House.", 25, plan.DestinationId)
             { ActionPlan = plan });
     }
-
-    private void HaulFarmFlour(string actor, AgentState state) => ApplyFarmStockAction(PlanFarmStockAction(actor, FarmStockActionKind.Flour));
 
     private void ApplyFarmStockHaul(string actor, string householdId, string destinationId,
         FarmStockHaulPlan plan, string operationId, string purpose)

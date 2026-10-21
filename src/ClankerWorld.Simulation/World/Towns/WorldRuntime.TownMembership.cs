@@ -19,35 +19,8 @@ public sealed partial class WorldRuntime
     internal static readonly IReadOnlyList<string> AdmissionLapseReasons =
         ["unavailable", "already_resident", "affiliation_changed", "joined_elsewhere", "acceptance_expired"];
 
-    private static TownProposal? PendingAdmission(TownRuntimeState town, string subject) => TownSystem.PendingAdmission(town, subject);
-    private static TownProposal? AdmissionProposal(TownRuntimeState town, TownAdmissionRecord record) => TownSystem.AdmissionProposal(town, record);
-    private TownAdmissionRecord? ApprovedAdmission(TownRuntimeState town, string subject) => TownSystem.ApprovedAdmission(civicWorld, town, subject);
-    private bool HasPendingAdmission(string subject) => townSystem.HasPendingAdmission(civicWorld, subject);
     /// <summary>A Town where this adult has an undecided request or an approval to accept; it grants nothing yet.</summary>
     private bool HasOpenAdmission(string subject, string? townId) => townSystem.HasOpenAdmission(civicWorld, subject, townId);
-    /// <summary>One open request of one's own at a time, in any Town; a resident of another Town may ask to move.</summary>
-    private bool MayRequestOwnAdmission(string actor, TownRuntimeState town) => townSystem.MayRequestOwnAdmission(civicWorld, actor, town);
-    /// <summary>A resident may ask the council to admit an unaffiliated adult; the adult must still accept.</summary>
-    private bool MayBeSponsoredForAdmission(string nominee, TownRuntimeState town) => townSystem.MayBeSponsoredForAdmission(civicWorld, nominee, town);
-    /// <summary>
-    /// A refused or withdrawn request for the same newcomer waits one unpaused
-    /// world day unless the council changed, matching the proposal rules, so
-    /// the choice is not offered while it would only be refused.
-    /// </summary>
-    private bool AdmissionRetryWaits(TownRuntimeState town, string subject) => TownSystem.AdmissionRetryWaits(civicWorld, town, subject);
-    /// <summary>
-    /// An adult standing in a Town they do not belong to may walk to its notice
-    /// place, and so may an adult with no Town from anywhere: Add Agent inside a
-    /// border makes a resident, so they usually start outside. Either way the
-    /// notice place must be reachable on foot. Walking registers nothing.
-    /// </summary>
-    private bool MayVisitAsNewcomer(string actor, TownRuntimeState town) => townSystem.MayVisitAsNewcomer(civicWorld, actor, town);
-    /// <summary>Whether a tile close enough to read the Town's notices is reachable on foot.</summary>
-    private bool CanWalkToCivicBoard(string actor, TownRuntimeState town) => TownSystem.CanWalkToCivicBoard(civicWorld, actor, town);
-    private bool MayAcceptAdmission(string actor, TownRuntimeState town, TownAdmissionRecord record) => townSystem.MayAcceptAdmission(civicWorld, actor, town, record);
-    private string AdmissionRequestText(string actor, TownRuntimeState town) => townSystem.AdmissionRequestText(civicWorld, actor, town);
-    private void AddTownAdmissionCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => townSystem.AddTownAdmissionCandidates(civicWorld, candidates, actor, town);
-    private void AcceptTownAdmission(string actor, string townId, string proposalId) => townSystem.AcceptTownAdmission(civicWorld, actor, townId, proposalId);
     /// <summary>
     /// Records each newly passed admission once and lapses approvals that no
     /// longer fit. Runs after every saved council decision and roster change,
@@ -56,19 +29,12 @@ public sealed partial class WorldRuntime
     /// two Towns, and every saved passed admission has its one outcome record.
     /// </summary>
     private void SettleTownAdmissions() => townSystem.SettleTownAdmissions(civicWorld);
-    private bool SettleNextTownAdmission() => townSystem.SettleNextTownAdmission(civicWorld);
-    private void ApplyTownAdmission(string townId, string proposalId, string subject, TownAdmissionRecord? approved) => townSystem.ApplyTownAdmission(civicWorld, townId, proposalId, subject, approved);
     /// <summary>
     /// A dependent joining their accepted guardian follows the guardian's recorded
     /// Town membership. The caller has already checked arrival and House capacity.
     /// This changes only rosters; it is not a separate adult admission proposal.
     /// </summary>
     private bool MoveDependentToGuardianTown(string child, string guardian) => townSystem.MoveDependentToGuardianTown(civicWorld, child, guardian);
-    private void LapseTownAdmission(string townId, TownAdmissionRecord record, string reason) => townSystem.LapseTownAdmission(civicWorld, townId, record, reason);
-    private void SetTownAdmission(string townId, TownAdmissionRecord record) => townSystem.SetTownAdmission(civicWorld, townId, record);
-    /// <summary>The adult and the living dependents they are primary caregiver for who share their current Town (or none).</summary>
-    private string[] TownCareGroup(string adult, string? fromTownId) => townSystem.TownCareGroup(civicWorld, adult, fromTownId);
-    private string TownName(string townId) => townSystem.TownName(civicWorld, townId);
     /// <summary>What this agent's own model is told about their Town: actual membership, rights and the admission they know of.</summary>
     private string? TownMembershipNote(string actor) => townSystem.TownMembershipNote(civicWorld, actor);
     private static void ValidateTownAdmissions(IReadOnlyList<TownRuntimeState> savedTowns, SocietyCheckpoint society, int schemaVersion) => TownSystem.ValidateTownAdmissions(savedTowns, society, schemaVersion);
