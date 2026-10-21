@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
         public void IncreaseTrust(string actor, string other, int amount, string reason) => runtime.IncreaseTrust(actor, other, amount, reason);
         public string TrustMemoryId(string actor, string other) => WorldRuntime.TrustMemoryId(actor, other);
         public void RecordBarterMemory(string id, string actor, string other) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new(id, actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
+            new(Identity.Parse(id), actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
@@ -78,15 +78,15 @@ public sealed partial class WorldRuntime
             return eventId;
         }
         public void OpenMarketOffer(string id, string buyer, MarketSystem.MarketChoice choice) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.AcceptDirectBarterOffer(
-            InventoryAuthority.CreateDirectBarterOffer(inventory, new(id, 1, choice.Lot!.OwnerId, buyer, choice.Lot.Id, 1, choice.Payment!.Id, 1, runtime.WorldTick + MarketTradeRules.OfferLifetimeTicks), holdAccess: [new(InventoryHoldPurpose.MarketStall, choice.Occupancy!.Id)]), id, 1, buyer));
+            InventoryAuthority.CreateDirectBarterOffer(inventory, new(Identity.Parse(id), 1, choice.Lot!.OwnerId, buyer, choice.Lot.Id, 1, choice.Payment!.Id, 1, runtime.WorldTick + MarketTradeRules.OfferLifetimeTicks), holdAccess: [new(InventoryHoldPurpose.MarketStall, choice.Occupancy!.Id)]), id, 1, buyer));
         public long SettleMarketOffer(string actor, MarketTradeState trade, DirectBarterOffer offer, string receipt, string goods, string payment)
         {
             long eventId = 0;
             runtime.ApplyInventoryTransition(inventory =>
             {
                 var settled = InventoryAuthority.AcceptDirectBarterOffer(inventory, offer.Id, offer.Revision, trade.GoodsOwnerId);
-                settled = InventoryAuthority.Relocate(settled, offer.Id + ":collect", goods, trade.BuyerId, offer.FirstQuantity, carrierId: trade.BuyerId, holdAccess: [new(InventoryHoldPurpose.MarketStall, trade.OccupancyId)]);
-                if (trade.GoodsOwnerId != trade.PaymentOwnerId) settled = InventoryAuthority.Transfer(settled, offer.Id + ":household-payment", trade.GoodsOwnerId, trade.PaymentOwnerId, payment, offer.SecondQuantity, "market_household_payment", holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                settled = InventoryAuthority.Relocate(settled, IdentityRules.PrefixedReference(offer.Id.Value, ":collect"), goods, trade.BuyerId, offer.FirstQuantity, carrierId: trade.BuyerId, holdAccess: [new(InventoryHoldPurpose.MarketStall, trade.OccupancyId)]);
+                if (trade.GoodsOwnerId != trade.PaymentOwnerId) settled = InventoryAuthority.Transfer(settled, IdentityRules.PrefixedReference(offer.Id.Value, ":household-payment"), trade.GoodsOwnerId, trade.PaymentOwnerId, payment, offer.SecondQuantity, "market_household_payment", holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 settled = InventoryAuthority.Relocate(settled, TownRecordIds.DepositOperation(receipt), payment, trade.PaymentOwnerId, offer.SecondQuantity, groundPosition: new(trade.Position.X, trade.Position.Y), holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 eventId = settled.Events[^1].EventId;
                 return settled;
@@ -95,7 +95,7 @@ public sealed partial class WorldRuntime
         }
         public void CancelMarketOffer(DirectBarterOffer offer) => CancelShopOffer(offer);
         public void RetireMarketHistory() => runtime.RetireMarketHistory();
-        void IMarketStallWorld.AppendEvent(string kind, string detail, GridPoint? position) => runtime.AppendEvent(kind, detail, position);
+        void IMarketStallWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public IMarketStallWorld Stalls => this;
         public void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings) => runtime.constructionSystem.Buildings.PlaceBuildings(buildings);
         public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordConstructedMarkets(runtime.civicWorld, town, markets);
@@ -107,7 +107,7 @@ public sealed partial class WorldRuntime
             Offers = inventory.Offers.Where(offer => !offers.Contains(offer.Id)).ToArray(),
             Reservations = inventory.Reservations.Where(claim => !claims.Contains(claim.Id)).ToArray(),
         });
-        void IMarketAdministrationWorld.AppendEvent(string kind, string detail, GridPoint? position) => runtime.AppendEvent(kind, detail, position);
+        void IMarketAdministrationWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public int WorkstationInputTarget(PlacedBuilding building, string kind) => runtime.WorkstationInputTarget(building, kind);
         public int WorkstationOnsiteQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => WorldRuntime.WorkstationOnsiteQuantity(inventory, building, kind);
         public int WorkstationIncomingQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => runtime.WorkstationIncomingQuantity(inventory, building, kind);
@@ -146,13 +146,13 @@ public sealed partial class WorldRuntime
         });
         public void OpenShopOffer(string id, string actor, PlacedBuilding building, MarketSystem.ShopQuote quote) => runtime.ApplyInventoryTransition(inventory =>
             InventoryAuthority.AcceptDirectBarterOffer(InventoryAuthority.CreateDirectBarterOffer(inventory,
-                new(id, 1, building.HouseholdId!, actor, quote.Goods.Id, quote.GoodsQuantity, quote.Payment.Id, quote.PaymentQuantity, runtime.WorldTick + 120)), id, 1, actor));
+                new(Identity.Parse(id), 1, building.HouseholdId!, actor, quote.Goods.Id, quote.GoodsQuantity, quote.Payment.Id, quote.PaymentQuantity, runtime.WorldTick + 120)), id, 1, actor));
         public void CancelShopOffer(DirectBarterOffer offer) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.CancelDirectBarterOffer(inventory, offer.Id, offer.Revision, offer.FirstPartyId));
         public void RetireShopOffers(IReadOnlySet<string> retired) => runtime.ApplyInventoryTransition(inventory => inventory with
         {
             Offers = inventory.Offers.Where(offer => !retired.Contains(offer.Id)).ToArray(),
             Reservations = inventory.Reservations.Where(reservation => !retired.Any(id => reservation.Id == DerivedId.Create(id + ":first") || reservation.Id == DerivedId.Create(id + ":second"))).ToArray(),
         });
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

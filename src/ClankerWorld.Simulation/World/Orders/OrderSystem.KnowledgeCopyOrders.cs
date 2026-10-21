@@ -1,15 +1,14 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class OrderSystem
 {
-    internal static AgentKnowledgeArtifact? KnowledgeCopySourceFor(IKnowledgeCopyOrdersWorld world, OwnerQueuedInstruction instruction) =>
-        world.HeldKnowledgeArtifacts(instruction.TargetAgentId).FirstOrDefault(source =>
+    internal static AgentKnowledgeArtifact? KnowledgeCopySourceFor(IKnowledgeCopyOrdersWorld world, OwnerQueuedInstruction instruction) => world.HeldKnowledgeArtifacts(instruction.TargetAgentId).FirstOrDefault(source =>
         {
             var order = instruction.Task!;
             if (source.Kind != order.TargetKnowledgeKind || order.KnowledgeCopySourceArtifactId is { } bound && source.Id != bound) return false;
@@ -29,10 +28,11 @@ internal sealed partial class OrderSystem
         var facts = world.FactsToWrite(actor, source.Kind, source);
         var recipes = world.RecipesToWrite(actor, source.Kind, source);
         if (!world.HasCompleteCopyContents(actor, source, facts, recipes)) return "Waiting to learn all sites and recipes in the held source before copying it.";
-        if (KnowledgeCopySourceFor(world, instruction) is null)
+        if (world.KnowledgeCopySourceFor(instruction) is null)
             return "Everything in the held item has already been copied. Waiting for another item to copy.";
         return source.Kind == "book"
             ? "Waiting for permitted paper and cloth, a reachable supply and carrying space."
             : "Waiting for permitted paper, a reachable supply and carrying space.";
     }
+
 }

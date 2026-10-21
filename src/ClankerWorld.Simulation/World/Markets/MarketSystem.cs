@@ -42,13 +42,13 @@ internal sealed partial class MarketSystem
     {
         if (market.Stalls is null || market.Occupancies is null || market.Trades is null || market.StockReceipts is null ||
             market.Stalls.Any(item => item is null) || market.Occupancies.Any(item => item is null) ||
-            market.Trades.Any(item => item is null) || market.StockReceipts.Any(item => item is null))
+            market.Trades.Any(item => item is null || item.OfferId is null) || market.StockReceipts.Any(item => item is null || item.Id is null))
             throw new InvalidDataException("Market record collections are missing or incomplete.");
         if (string.IsNullOrWhiteSpace(market.Id) || string.IsNullOrWhiteSpace(market.ProjectId) ||
             string.IsNullOrWhiteSpace(market.HallBuildingId) || market.Stalls.Select(item => item.BuildingId).Distinct(StringComparer.Ordinal).Count() != market.Stalls.Count ||
             market.Occupancies.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != market.Occupancies.Count ||
-            market.Trades.Select(item => item.OfferId).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count ||
-            market.StockReceipts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != market.StockReceipts.Count || market.NextStockReceiptSequence < 0)
+            market.Trades.Select(item => item.OfferId.Value).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count ||
+            market.StockReceipts.Select(item => item.Id.Value).Distinct(StringComparer.Ordinal).Count() != market.StockReceipts.Count || market.NextStockReceiptSequence < 0)
             throw new InvalidDataException("Market records have invalid local identities or sequence.");
     }
 }

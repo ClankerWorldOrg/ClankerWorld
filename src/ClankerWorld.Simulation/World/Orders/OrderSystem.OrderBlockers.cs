@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -13,15 +15,15 @@ internal sealed partial class OrderSystem
         if (instruction.Task?.Action == "travel_by_boat") return world.BoatOrderBlockedReason(instruction);
         if (instruction.Task?.Action == "read_knowledge")
             return world.KnowledgeReadOrderBlocker(instruction) ?? "Waiting to read the written item.";
-        if (instruction.Task is { } conversationOrder && world.IsConversationOrder(conversationOrder.Action)) return world.TalkOrderBlocker(instruction, person) ?? "Waiting for the conversation outcome.";
-        if (instruction.Task is { } treeOrder && world.IsTreePlantingOrder(treeOrder.Action))
+        if (instruction.Task is { } conversationOrder && IsConversationOrder(conversationOrder.Action)) return world.TalkOrderBlocker(instruction, person) ?? "Waiting for the conversation outcome.";
+        if (instruction.Task is { } treeOrder && IsTreePlantingOrder(treeOrder.Action))
             return world.TreePlantingOrderBlockedReason(instruction, person);
-        if (instruction.Task is { } knowledgeOrder && world.IsKnowledgeOrder(knowledgeOrder.Action)) return world.KnowledgeOrderBlockedReason(instruction);
+        if (instruction.Task is { } knowledgeOrder && IsKnowledgeOrder(knowledgeOrder.Action)) return world.KnowledgeOrderBlockedReason(instruction);
         if (instruction.Task is { } cartOrder && world.IsCartOrder(cartOrder.Action))
             return world.CartOrderBlocker(instruction, person) ?? "Waiting for the selected cart action.";
         if (instruction.Task is { } animalOrder && world.IsAnimalOrder(animalOrder.Action))
             return world.AnimalOrderBlockedReason(instruction);
-        if (instruction.Task is { } protective && world.IsShelterOrder(protective.Action))
+        if (instruction.Task is { } protective && IsShelterOrder(protective.Action))
             return world.ShelterOrderBlockedReason(instruction, person);
         if (instruction.Task?.Action == "construct_building")
             return world.ConstructionOrderBlockedReason(instruction, person);
@@ -31,7 +33,7 @@ internal sealed partial class OrderSystem
             return world.DeliveryOrderBlockedReason(instruction, person);
         if (instruction.Task?.Action == "produce_item")
             return world.ProductionOrderBlockedReason(instruction);
-        if (instruction.Task is { } fieldOrder && world.IsFieldOrder(fieldOrder.Action))
+        if (instruction.Task is { } fieldOrder && IsFieldOrder(fieldOrder.Action))
             return world.FieldOrderBlockedReason(instruction);
         if (instruction.Task?.Action == "repair_tool")
             return world.ToolRepairOrderBlockedReason(instruction);
@@ -49,7 +51,7 @@ internal sealed partial class OrderSystem
         if (instruction.Task?.Action == "move_to")
             return instruction.Task.TargetPosition is not { } destination || !world.Map.Contains(destination)
                 ? "The requested tile is outside this world."
-                : MovementOrderNeedsHouseInvitation(world, instruction.TargetAgentId, destination)
+                : world.MovementOrderNeedsHouseInvitation(instruction.TargetAgentId, destination)
                     ? "Waiting for an invitation to enter another household's House."
                 : "No open walking or safe swimming route reaches the requested tile right now.";
         if (instruction.Task is { Action: "accept_guardianship", TargetAgentId: { } child })
@@ -74,8 +76,8 @@ internal sealed partial class OrderSystem
             : "No suitable food source is known yet.";
     }
 
-    internal static bool MovementOrderNeedsHouseInvitation(IOrderBlockersWorld world, string actor, GridPoint destination) =>
-        world.BuildingsWithTag("house").Any(house => house.HouseholdId is not null &&
+
+    internal static bool MovementOrderNeedsHouseInvitation(IOrderBlockersWorld world, string actor, GridPoint destination) => world.BuildingsWithTag("house").Any(house => house.HouseholdId is not null &&
             house.HouseholdId != world.Society.GetAgent(actor).HouseholdId &&
             !world.HasHouseGuestInvitation(actor, house.InstanceId) &&
             WorldContentSimulationRules.Footprint(

@@ -1,1 +1,0 @@
-- Avoid an unnecessary extra model call when choices only disappear while an earlier reply is pending.

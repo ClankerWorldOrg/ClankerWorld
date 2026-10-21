@@ -11,7 +11,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-
     private PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction) =>
         OrderSystem.ExpansionOrderBuilding(ExpansionOrdersWorld, instruction);
 

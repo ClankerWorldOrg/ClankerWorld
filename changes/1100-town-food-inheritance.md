@@ -1,1 +1,0 @@
-- Eggs, milk, cooked eggs, milk porridge and rich meals left to a Town now follow the household inheritance path, keeping pots and jugs together with their contents.

@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -13,7 +15,7 @@ internal sealed partial class OrderSystem
         var actor = instruction.TargetAgentId;
         var order = instruction.Task!;
         if (world.FreeCarryCapacity(actor) == 0) return null;
-        var known = KnownMaterialOrderSources(world, instruction, person).ToArray();
+        var known = world.KnownMaterialOrderSources(instruction, person).ToArray();
         var toolCache = new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
         var hasReachableSource = false;
         foreach (var source in known)
@@ -29,7 +31,7 @@ internal sealed partial class OrderSystem
 
         if (hasReachableSource || !world.CanExploreForOrder(person))
             return null;
-        if (MaterialOrderTarget(world, instruction) is { } target)
+        if (world.MaterialOrderTarget(instruction) is { } target)
         {
             if (!world.Map.Contains(target) || world.IsWithinInteractionRange(person.Position, target, world.ResourceInteractionRange) ||
                 !world.CanReachLeg(actor, person.Position, target, ReachPurpose.MaterialGathering, world.ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
@@ -39,6 +41,7 @@ internal sealed partial class OrderSystem
         if (order.TargetResourceId is not null) return null;
         return new CognitionCandidate("explore", "Explore nearby terrain to discover the requested material.", 0);
     }
+
 
     internal static IEnumerable<MapResource> KnownMaterialOrderSources(IMaterialOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -58,8 +61,8 @@ internal sealed partial class OrderSystem
             .ThenBy(source => source.Id, StringComparer.Ordinal);
     }
 
-    internal static GridPoint? MaterialOrderTarget(IMaterialOrdersWorld world, OwnerQueuedInstruction instruction) =>
-        instruction.Task!.TargetPosition ?? (instruction.Task.TargetResourceId is { } id
+
+    internal static GridPoint? MaterialOrderTarget(IMaterialOrdersWorld world, OwnerQueuedInstruction instruction) => instruction.Task!.TargetPosition ?? (instruction.Task.TargetResourceId is { } id
             ? world.Map.Resources.SingleOrDefault(source => source.Id == id)?.Position : null);
 
     internal static void ExecuteMaterialOrderStep(IMaterialOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person, string candidate)
@@ -67,7 +70,7 @@ internal sealed partial class OrderSystem
         var actor = instruction.TargetAgentId;
         if (candidate == "inspect_material_site")
         {
-            if (MaterialOrderTarget(world, instruction) is { } target && world.Map.Contains(target))
+            if (world.MaterialOrderTarget(instruction) is { } target && world.Map.Contains(target))
             {
                 world.MoveToward(actor, person, target, "owner_order_material_site", world.ResourceInteractionRange);
                 // Retain the observed site rather than every walking step. The bounded
@@ -80,12 +83,12 @@ internal sealed partial class OrderSystem
         }
 
         // Recheck the selected site's tools, room and route at execution time.
-        var candidateNow = MaterialOrderCandidateFor(world, instruction, person);
+        var candidateNow = world.MaterialOrderCandidateFor(instruction, person);
         var source = candidateNow?.Id == "gather_material"
             ? world.Map.Resources.Single(item => item.Id == candidateNow.DestinationId) : null;
         if (source is null)
         {
-            world.SetOrderStatus(instruction, "blocked", MaterialOrderBlockedReason(world, instruction, person));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.MaterialOrderBlockedReason(instruction, person));
             return;
         }
         if (world.Map.IsPassable(source.Position) && world.IsWithinInteractionRange(person.Position, source.Position, world.ResourceInteractionRange))
@@ -94,10 +97,11 @@ internal sealed partial class OrderSystem
         if (effect is not null)
         {
             var receipt = world.MaterialGatherReceipt(effect.LotId);
-            world.CreditOrderEffect(instruction, receipt,
+            world.CreditOrderEffect(instruction, Identity.Parse(receipt),
                 instruction.Task.ProgressUnit == "harvests" ? 1 : effect.Quantity);
         }
     }
+
 
     internal static string MaterialOrderBlockedReason(IMaterialOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -108,8 +112,8 @@ internal sealed partial class OrderSystem
             return "The requested tile is outside this world.";
         if (world.FreeCarryCapacity(actor) == 0)
             return "Carrying space is full; make room before gathering materials.";
-        var sources = KnownMaterialOrderSources(world, instruction, person).ToArray();
-        if (sources.Length > 0)
+        var sources = world.KnownMaterialOrderSources(instruction, person).ToArray();
+        if (sources.Length != 0)
         {
             var toolCache = new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
             var usable = sources.Where(source => world.CanGatherFromSource(actor, instruction.Task.TargetMaterialKind!, source, toolCache)).ToArray();
@@ -120,10 +124,11 @@ internal sealed partial class OrderSystem
                 return "Carrying space is too small for a whole gathering load; make room first.";
             return "No open walking route reaches a suitable material source right now.";
         }
-        if (MaterialOrderTarget(world, instruction) is { } site && world.IsWithinInteractionRange(person.Position, site, world.ResourceInteractionRange))
+        if (world.MaterialOrderTarget(instruction) is { } site && world.IsWithinInteractionRange(person.Position, site, world.ResourceInteractionRange))
             return "The requested site has no available matching material right now.";
         return !world.CanExploreForOrder(person)
             ? "The agent needs to be fed and warm before searching for materials."
             : "The requested material site is not reachable right now.";
     }
+
 }

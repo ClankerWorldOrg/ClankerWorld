@@ -1,0 +1,1 @@
+- Nightly builds now verify the downloaded game and setup against their checksums before publishing them.

@@ -31,7 +31,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
             edge.ProposerId == relative && edge.TargetId == actor);
         var priorEdges = society.Relationships.Select(edge => edge.Id).ToHashSet(StringComparer.Ordinal);
-        var priorHolds = society.Inventory.Reservations.Select(hold => hold.Id).ToHashSet(StringComparer.Ordinal);
+        var priorHolds = society.Inventory.Reservations.Select(hold => hold.Id.Value).ToHashSet(StringComparer.Ordinal);
         var newHome = "household:" + new string('h', 118);
         var name = "Household " + new string('n', 118);
         if (generator.StartsWith("household-", StringComparison.Ordinal))
@@ -70,12 +70,12 @@ public sealed partial class GrownAgentHelperMemoryTests
                 edge.Type is SocietyRelationshipType.BiologicalParentage or SocietyRelationshipType.Caregiver or
                 SocietyRelationshipType.HouseholdMembership).Select(edge => edge.Id).ToArray(),
             "birth-food" => society.Inventory.Reservations.Where(hold => births.Any(birth => hold.Purpose == "birth:" + birth.RequestId))
-                .Select(hold => hold.Id).ToArray(),
+                .Select(hold => hold.Id.Value).ToArray(),
             "domestic-person" => births.Select(birth => society.GetAgent(birth.ChildId).DomesticFamilyUnitId!).ToArray(),
             "birth-domestic" => births.Select(birth => birth.DomesticFamilyUnitId).ToArray(),
             "household-creation" or "household-join" or "household-rejoin" => society.Relationships
                 .Where(edge => !priorEdges.Contains(edge.Id)).Select(edge => edge.Id).ToArray(),
-            "consumption" => society.Inventory.Reservations.Where(hold => !priorHolds.Contains(hold.Id)).Select(hold => hold.Id).ToArray(),
+            "consumption" => society.Inventory.Reservations.Where(hold => !priorHolds.Contains(hold.Id)).Select(hold => hold.Id.Value).ToArray(),
             "memory-summary" => new[] { SocietyMemorySummaryRules.Id(actor, society.Memories.Where(memory => memory.OwnerId == actor)
                 .TakeLast(SocietyMemorySummaryRules.MaximumSources)
                 .Select(memory => new SocietyMemorySummarySource(memory.Id, SocietyMemorySourceKind.Experience, memory.SourceTick)).ToArray()) },
@@ -86,7 +86,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
             var summary = "I remember society" + generator.Replace("-", "", StringComparison.Ordinal) + " work.";
-            var checkpoint = SocietyRules.RecordSocialMemory(society, new(id, actor, relative, summary,
+            var checkpoint = SocietyRules.RecordSocialMemory(society, new(Identity.Parse(id), actor, relative, summary,
                 "private", society.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

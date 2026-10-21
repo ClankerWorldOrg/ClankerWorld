@@ -1,0 +1,1 @@
+- Remote Unix servers now keep local device approval and recovery behind a private file owned by the server account. The deployment guide explains the updated operator commands.

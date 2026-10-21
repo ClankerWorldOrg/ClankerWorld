@@ -12,7 +12,7 @@ public sealed partial class WorldRuntime
     private IReadOnlyList<ShopTradeState> shopTrades => marketSystem.Trades;
 
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
-        .OrderBy(trade => trade.OfferId, StringComparer.Ordinal).ToArray();
+        .OrderBy(trade => (string?)trade.OfferId, StringComparer.Ordinal).ToArray();
 
     private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
         marketSystem.OpenShopTrades(MarketShopWorld, inventory);
@@ -72,7 +72,7 @@ public sealed partial class WorldRuntime
     private ShopQuote? ShopOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false) =>
         marketSystem.ShopOpportunity(MarketShopPlanningWorld, buyer, building, exactGoodsLotId, requestedGoods);
 
-    private bool IsShopFoodCandidate(string actor, string candidateId)
+    private bool IsShopFoodCandidate(string actor, string candidateId, ShopBuyActionPlan? selectedPlan = null)
     {
         // Only the buyer's ready food can interrupt an order. Raw ingredients,
         // equipment and a seller's response still follow ordinary work rules.
@@ -82,8 +82,10 @@ public sealed partial class WorldRuntime
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
         if (building is null) return false;
-        if (ShopOpportunity(actor, building) is { } quote)
-            return IsEdibleFood(quote.Goods.ItemKind) && WantsTradeFoodKind(actor, quote.Goods.ItemKind);
+        var kind = selectedPlan?.Quote?.Goods.ItemKind ??
+            (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
+        if (kind is not null)
+            return IsEdibleFood(kind) && WantsTradeFoodKind(actor, kind);
         return RestaurantMealShopTrip(actor, building);
     }
 
@@ -97,7 +99,7 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || NeedsUrgentWarmth(agents[actor])) return;
         if (!NeedsUrgentFood(agents[actor])) AddStoreStockCandidate(candidates, actor);
-        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId, StringComparer.Ordinal))
+        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
             if (!buyer && !MayRespondAtShop(actor, trade)) continue;
@@ -169,20 +171,20 @@ public sealed partial class WorldRuntime
         SocietyCheckpoint societyState, WorldMap map, long worldTick)
     {
         var inventory = societyState.Inventory;
-        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => trade.OfferId).SequenceEqual(
-                trades.Select(trade => trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
+        if (trades is null || trades.Any(trade => trade is null) || !trades.Select(trade => (string?)trade.OfferId).SequenceEqual(
+                trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("The checkpoint is missing canonical shop trade records.");
         MarketSystem.ValidateLocalShopTrades(trades);
         foreach (var trade in trades)
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
-            if (offer is null || !offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
+            if (offer is null || !offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
                 offer.Id != ShopTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
-                !BoundedShopText(trade.BuildingInstanceId, 256) ||
+                !BoundedText.IsValid(trade.BuildingInstanceId, 256, requireTrimmed: true) ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||
                 !societyState.Agents.Any(person => person.Id == trade.BuyerId) ||
-                !ShopItemKind(trade.GoodsKind) || !ShopItemKind(trade.PaymentKind) ||
+                !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) ||
                 trade.Position.X < 0 || trade.Position.X >= map.Width || trade.Position.Y < 0 || trade.Position.Y >= map.Height ||
                 inventory.Lots.Any(lot => lot.Id == offer.FirstLotId && lot.ItemKind != trade.GoodsKind) ||
                 inventory.Lots.Any(lot => lot.Id == offer.SecondLotId && lot.ItemKind != trade.PaymentKind) ||
@@ -196,19 +198,12 @@ public sealed partial class WorldRuntime
                 offer.State == DirectBarterState.Settled && (trade.SellerActorId is null ||
                     !societyState.Agents.Any(person => person.Id == trade.SellerActorId)) ||
                 trade.SellerActorId is not null && offer.State != DirectBarterState.Settled ||
-                offer.State == DirectBarterState.Cancelled && !BoundedShopText(trade.CancellationReason, 160) ||
+                offer.State == DirectBarterState.Cancelled && !BoundedText.IsValid(trade.CancellationReason, 160, requireTrimmed: true) ||
                 trade.CancellationReason is not null && offer.State != DirectBarterState.Cancelled)
                 throw new InvalidDataException("A shop trade does not match its authoritative inventory offer.");
         }
-        if (inventory.Offers.Any(offer => offer.Id.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
+        if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
                 !trades.Any(trade => trade.OfferId == offer.Id)))
             throw new InvalidDataException("An inventory shop offer has no physical shop binding.");
     }
-
-    // Content quantities and inventory resource kinds have no separate trade-record length limit.
-    private static bool ShopItemKind(string? text) => text is { Length: > 0 } &&
-        text == text.Trim() && !text.Any(char.IsControl);
-
-    private static bool BoundedShopText(string? text, int limit) => text is { Length: > 0 } &&
-        text.Length <= limit && text == text.Trim() && !text.Any(char.IsControl);
 }

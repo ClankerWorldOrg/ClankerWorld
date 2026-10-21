@@ -1,5 +1,5 @@
-using ConversationTurnOutcome = ClankerWorld.Simulation.World.CognitionSystem.ConversationTurnOutcome;
 using PendingConversationTurn = ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn;
+using ConversationTurnOutcome = ClankerWorld.Simulation.World.CognitionSystem.ConversationTurnOutcome;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -11,7 +11,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const int MaximumConversationProviderCallsPerTick = 2;
-    private static TimeSpan ConversationProviderTimeout => CognitionSystem.ConversationProviderTimeout;
 
     public IReadOnlyList<AgentConversation> Conversations => conversations
         .OrderByDescending(item => item.LastUpdatedTick)
@@ -25,7 +24,8 @@ public sealed partial class WorldRuntime
     private void SuspendRestoredConversations() =>
         conversationSystem.SuspendRestoredConversations(conversationWorld);
 
-    private bool HasExplicitConversationProvider(string agentId) => CognitionSystem.HasExplicitConversationProvider(CognitionConversationTasksWorld, agentId);
+    private bool HasExplicitConversationProvider(string agentId) =>
+        CognitionSystem.HasExplicitConversationProvider(CognitionConversationTasksWorld, agentId);
 
     private AgentConversation? ConversationFor(string agentId) =>
         conversationSystem.ConversationFor(agentId);
@@ -93,18 +93,26 @@ public sealed partial class WorldRuntime
     private string[] ConversationListeners(AgentConversation conversation, string speakerId) =>
         ConversationSystem.ConversationListeners(conversationWorld, conversation, speakerId);
 
-    private void ApplyConversationTurnOutcome(PendingConversationTurn pending, ConversationTurnOutcome outcome, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent) => CognitionSystem.ApplyConversationTurnOutcome(CognitionConversationTasksWorld, pending, outcome, worldTick, providerRouteIsCurrent);
+    private void ApplyConversationTurnOutcome(PendingConversationTurn pending,
+        ConversationTurnOutcome outcome, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent) =>
+        CognitionSystem.ApplyConversationTurnOutcome(CognitionConversationTasksWorld, pending, outcome, worldTick, providerRouteIsCurrent);
 
     private void ExtractConversationMemoryClaims(AgentConversationTurn turn) =>
         ConversationSystem.ExtractConversationMemoryClaims(conversationWorld, turn);
 
-    private void CompleteConversationTurns(IReadOnlyList<PendingConversationTurn> completed, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent) => CognitionSystem.CompleteConversationTurns(CognitionConversationTasksWorld, completed, worldTick, providerRouteIsCurrent);
+    private void CompleteConversationTurns(
+        IReadOnlyList<PendingConversationTurn> completed,
+        long worldTick,
+        Func<PendingConversationTurn, bool> providerRouteIsCurrent) =>
+        CognitionSystem.CompleteConversationTurns(CognitionConversationTasksWorld, completed, worldTick, providerRouteIsCurrent);
 
-    private void StartConversationTurns() => CognitionSystem.StartConversationTurns(CognitionConversationTasksWorld);
+    private void StartConversationTurns() =>
+        CognitionSystem.StartConversationTurns(CognitionConversationTasksWorld);
 
-    private AgentConversationTurnRequest CreateConversationRequest(AgentConversation conversation, string speakerId) => CognitionSystem.CreateConversationRequest(CognitionConversationTasksWorld, conversation, speakerId);
+    private AgentConversationTurnRequest CreateConversationRequest(AgentConversation conversation, string speakerId) =>
+        CognitionSystem.CreateConversationRequest(CognitionConversationTasksWorld, conversation, speakerId);
 
-    private static Task<ConversationTurnOutcome> RunConversationProviderAsync(IAgentConversationProvider provider, AgentConversationTurnRequest request, CancellationToken cancellationToken) => CognitionSystem.RunConversationProviderAsync(provider, request, cancellationToken);
+    private Task<ConversationTurnOutcome> RunConversationProviderAsync(IAgentConversationProvider provider, AgentConversationTurnRequest request, CancellationToken cancellationToken) => CognitionSystem.RunConversationProviderAsync(provider, request, modelTimeProvider, cancellationToken);
 
     private void SuspendConversation(string conversationId, AgentConversationInterruption interruption) =>
         conversationSystem.SuspendConversation(conversationWorld, conversationId, interruption);
@@ -112,13 +120,21 @@ public sealed partial class WorldRuntime
     private void SuspendAllConversations(AgentConversationInterruption interruption) =>
         conversationSystem.SuspendAllConversations(conversationWorld, interruption);
 
-    private void CancelPendingConversationTurn(string conversationId, AgentConversationInterruption interruption, bool suspendCurrent = true, bool underRuntimeGate = true) => CognitionSystem.CancelPendingConversationTurn(CognitionConversationTasksWorld, conversationId, interruption, suspendCurrent, underRuntimeGate);
+    private void CancelPendingConversationTurn(
+        string conversationId,
+        AgentConversationInterruption interruption,
+        bool suspendCurrent = true,
+        bool underRuntimeGate = true) =>
+        CognitionSystem.CancelPendingConversationTurn(CognitionConversationTasksWorld, conversationId, interruption, suspendCurrent, underRuntimeGate);
 
-    private void ReconcilePendingConversationTurns() => CognitionSystem.ReconcilePendingConversationTurns(CognitionConversationTasksWorld);
+    private void ReconcilePendingConversationTurns() =>
+        CognitionSystem.ReconcilePendingConversationTurns(CognitionConversationTasksWorld);
 
-    private bool IsConversationTurnProviderCurrent(PendingConversationTurn pending) => CognitionSystem.IsConversationTurnProviderCurrent(CognitionConversationTasksWorld, pending);
+    private bool IsConversationTurnProviderCurrent(PendingConversationTurn pending) =>
+        CognitionSystem.IsConversationTurnProviderCurrent(CognitionConversationTasksWorld, pending);
 
-    private void CancelNoLongerAwaitingConversationTurns() => CognitionSystem.CancelNoLongerAwaitingConversationTurns(CognitionConversationTasksWorld);
+    private void CancelNoLongerAwaitingConversationTurns() =>
+        CognitionSystem.CancelNoLongerAwaitingConversationTurns(CognitionConversationTasksWorld);
 
     private static string ToWire(AgentConversationInterruption interruption) => ConversationSystem.ToWire(interruption);
 

@@ -158,7 +158,7 @@ public sealed partial class WorldRuntime
                 treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
                 treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick) ||
                 string.IsNullOrWhiteSpace(treatment.SupplyLotId) || string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) ||
-                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Length > DerivedId.MaximumLength ||
+                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Value.Length > DerivedId.MaximumLength ||
                 !doses.Add(treatment.DoseReservationId) ||
                 checkpoint.Inventory.Lots.Any(lot => lot.Id == treatment.SupplyLotId && lot.ItemKind != "medicine") ||
                 !checkpoint.Inventory.Reservations.Any(reservation => reservation.Id == treatment.DoseReservationId &&

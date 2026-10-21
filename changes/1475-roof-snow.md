@@ -1,1 +1,0 @@
-- Roofs now hold observed snow along their own slopes, with shaded faces covered and sunny slopes dusted; it melts with ground snow while flues, outlines, shadows and open yards stay clear.

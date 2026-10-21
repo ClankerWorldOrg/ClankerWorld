@@ -1,4 +1,4 @@
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
@@ -9,6 +9,10 @@ namespace ClankerWorld.Tests;
 
 public sealed class ActionRefusalTests
 {
+    // Typed access is limited to the existing controlled checkpoint fault.
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "agentStore")]
+    private static extern ref AgentStore PhysicalAgents(WorldRuntime world);
+
     [Theory]
     [InlineData(false, false, false, false, false)]
     [InlineData(true, false, false, false, false)]
@@ -23,6 +27,7 @@ public sealed class ActionRefusalTests
         {
             var provider = new ExploringProvider(idleForOrder: idleForOrder);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider, ticksPerDay: 8);
+            var harness = ModelWorkHarness.For(world);
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             var actorId = world.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal).First().AgentId;
             if (ordered) world.SubmitInstruction(new("refused-native-order", "owner:test", actorId,
@@ -38,8 +43,7 @@ public sealed class ActionRefusalTests
                 prepares++;
                 // Controlled defect: actual movement creates an invalid work plan.
                 // The ordinary checkpoint codec, rather than a fake failure, rejects it.
-                var physical = (AgentStore)typeof(WorldRuntime)
-                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                var physical = PhysicalAgents(proposed);
                 foreach (var culprit in baseline.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal)
                     .Take(multipleFaults ? 2 : 1))
                     if (globalFault || physical.Living[culprit.AgentId].Position != culprit.Position)
@@ -98,9 +102,9 @@ public sealed class ActionRefusalTests
                 observation => Assert.Contains(observation.Candidates, candidate => candidate.Id == "explore"));
             var projection = new OwnerWorldObservationStore(world).GetSnapshot();
             Assert.Equal(1, projection.RefusedActionCount);
-            var snapshot = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(projection))!;
+            var snapshot = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(projection))!;
             var name = snapshot.Agents.Single(person => person.Id == actorId).DisplayName;
-            Assert.StartsWith(name + " couldn't ", ClankerWorld.GodotClient.UI.WorldEventText.Describe(
+            Assert.StartsWith(name + " couldn't ", EventTextFixture.Describe(
                 new(refusalEvent.EventId, refusalEvent.WorldTick, refusalEvent.Kind, refusalEvent.Detail), snapshot));
             using var replay = WorldRuntime.Restore(baseline, _ => new ExploringProvider(idleForOrder: idleForOrder));
             Assert.True((await replay.AdvanceOneTickReplayingActionRefusalAsync(refusalEvent, _ => () => { })).Advanced);
@@ -202,20 +206,19 @@ public sealed class ActionRefusalTests
         {
             var provider = new ExploringProvider(usesModel: true);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider);
+            var harness = ModelWorkHarness.For(world);
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             Assert.True((await world.AdvanceOneTickWithCheckpointAsync(file.PrepareSave,
                 failurePolicy: WorldTickFailurePolicy.RefuseSingleAction)).Advanced);
             var ids = world.Agents.Select(person => person.AgentId).ToArray();
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            while (!world.ModelDecisionsFinished(ids)) await Task.Delay(10, deadline.Token);
+            await harness.WaitForAllAsync();
             Assert.Equal(4, provider.Calls);
             file.Save(world);
             var actor = world.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal).First();
             var writes = 0;
             var result = await world.AdvanceOneTickWithCheckpointAsync(proposed =>
             {
-                var people = (AgentStore)typeof(WorldRuntime)
-                    .GetField("agentStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(proposed)!;
+                var people = PhysicalAgents(proposed);
                 if (people.Living[actor.AgentId].Position != actor.Position)
                     people.RecordProject(actor.AgentId, people.Living[actor.AgentId],
                         new("explore", "Injected invalid work plan", proposed.WorldTick, "invalid"));

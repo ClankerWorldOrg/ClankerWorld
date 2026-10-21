@@ -15,12 +15,12 @@ public sealed partial class WorldRuntime
         public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
         public void SetResourceAvailability(string id, bool available) =>
             runtime.resources[id] = available ? ResourceState.Available : ResourceState.Depleted;
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
         public OwnerQueuedInstruction? PendingInstructionFor(string id) => runtime.PendingInstructionFor(id);
         public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
         public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
         public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
-        public void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason) => runtime.SetOrderStatus(instruction, status, reason);
+        public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason) => runtime.SetOrderStatus(instruction, status, reason);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome) => runtime.FinishIdentityMoment(id, kind, outcome);
         public string? TownForResident(string id) => runtime.TownForResident(id);

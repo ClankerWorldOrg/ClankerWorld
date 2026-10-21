@@ -19,6 +19,6 @@ public sealed partial class WorldRuntime
     private string GuardianOrderBlockedReason(string adult, string child) =>
         OrderSystem.GuardianOrderBlockedReason(GuardianOrdersWorld, adult, child);
 
-    private static string GuardianOrderEffectId(string adult, string child) =>
+    internal static string GuardianOrderEffectId(string adult, string child) =>
         DerivedId.Hash($"{adult}|{child}", "guardianship:");
 }

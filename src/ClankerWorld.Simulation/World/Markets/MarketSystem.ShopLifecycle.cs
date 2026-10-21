@@ -58,7 +58,7 @@ internal sealed partial class MarketSystem
                 trade.Position, world.ResourceInteractionRange)) return;
         world.AcceptShopTrade(trade, offer);
         RecordShopTrade(trade with { SellerActorId = actor });
-        world.AppendEvent("shop_trade_completed", actor + ":" + offer.Id);
+        world.AppendEvent(new ShopTradeCompletedEventPayload(actor, offer.Id));
     }
 
     internal string OpenShopQuote(IMarketShopWorld world, string actor, PlacedBuilding building, ShopQuote choice)
@@ -66,9 +66,9 @@ internal sealed partial class MarketSystem
         var id = world.ShopTradeOfferId(world.WorldTick, actor, building.InstanceId);
         // Quotes name exact actual quantities; future goods are never reserved.
         world.OpenShopOffer(id, actor, building, choice);
-        ProposeShopTrade(new(id, building.InstanceId, building.HouseholdId!, actor, building.Position, world.WorldTick,
+        ProposeShopTrade(new(Identity.Parse(id), building.InstanceId, building.HouseholdId!, actor, building.Position, world.WorldTick,
             choice.Goods.ItemKind, choice.Payment.ItemKind));
-        world.AppendEvent("shop_trade_offered", actor + ":" + id);
+        world.AppendEvent(new ShopTradeOfferedEventPayload(actor, id));
         return id;
     }
 
@@ -115,7 +115,7 @@ internal sealed partial class MarketSystem
         if (offer.State == DirectBarterState.Open)
             world.CancelShopOffer(offer);
         RecordShopTrade(trade with { CancellationReason = reason });
-        world.AppendEvent("shop_trade_cancelled", trade.BuyerId + ":" + trade.OfferId);
+        world.AppendEvent(new ShopTradeCancelledEventPayload(null, trade.BuyerId, trade.OfferId));
     }
 
     internal void MaintainShopTrades(IMarketShopWorld world)
@@ -130,8 +130,8 @@ internal sealed partial class MarketSystem
                     ? "The offer ran out of time." : "The exchange was interrupted.");
         }
         var retired = shopTrades.Where(trade => world.Society.Inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open)
-            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
-            .Skip(32).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .OrderByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId.Value, StringComparer.Ordinal)
+            .Skip(32).Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         if (retired.Count == 0) return;
         RetireShopTrades(retired);
         world.RetireShopOffers(retired);

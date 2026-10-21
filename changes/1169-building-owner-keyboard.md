@@ -1,1 +1,0 @@
-- Keep the highlighted building owner in an open dropdown during world updates, so Enter still selects the intended owner.

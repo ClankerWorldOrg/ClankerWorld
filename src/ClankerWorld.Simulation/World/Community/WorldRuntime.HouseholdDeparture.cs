@@ -85,10 +85,10 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor) =>
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor) =>
         CommunitySystem.PausedHouseholdWork(CommunityWorkWorld, actor);
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds) =>
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds) =>
         CommunitySystem.CanResumeHeldInputs(CommunityWorkWorld, actor, buildingId, reservationIds);
 
     /// <summary>

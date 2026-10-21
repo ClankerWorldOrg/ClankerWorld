@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
             RecipeKnowledgeId(job.WorkerId, recipe.CanonicalId), job.WorkerId, recipe.CanonicalId, job.WorkerId,
             tick, "practice", job.JobId));
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_recipe_learned", $"{job.WorkerId}|{recipe.CanonicalId}|practice");
+        AppendEvent(new AgentRecipeLearnedEventPayload(job.WorkerId, recipe.CanonicalId));
     }
 
     private int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition) =>

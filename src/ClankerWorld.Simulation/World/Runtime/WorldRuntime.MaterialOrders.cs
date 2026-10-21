@@ -8,7 +8,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-
     private CognitionCandidate? MaterialOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.MaterialOrderCandidateFor(MaterialOrdersWorld, instruction, person);
 
