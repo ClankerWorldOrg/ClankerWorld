@@ -92,10 +92,7 @@ public sealed partial class WorldRuntimeTests
         await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
         var worker = state.Agents[0];
-        var site = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
-                !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
-                !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
+        var site = MovementTestWorld.BuildingSite(state, building, worker.AgentId);
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with { Position = site }

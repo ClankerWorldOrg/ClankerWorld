@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -23,12 +25,13 @@ internal sealed partial class OrderSystem
         return lot is null ? null : new(order.Action, $"Carry your own {subject} to your House and store it as personal property.", 0, lot.Id);
     }
 
+
     internal static void ExecuteStorageOrderStep(IStorageOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
-        var candidate = StorageOrderCandidateFor(world, instruction, person);
+        var candidate = world.StorageOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
         {
-            world.SetOrderStatus(instruction, "blocked", StorageOrderBlockedReason(world, instruction, person));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.StorageOrderBlockedReason(instruction, person));
             return;
         }
         var house = world.CustodyOrderHouse(instruction, world.HouseholdFor(instruction.TargetAgentId))!;
@@ -41,10 +44,11 @@ internal sealed partial class OrderSystem
         {
             // Split inventory identities can grow; keep the saved receipt bounded.
             var receipt = world.PersonalStorageReceipt(effect.MoveId);
-            world.CreditOrderEffect(instruction, receipt,
+            world.CreditOrderEffect(instruction, Identity.Parse(receipt),
                 order.ProgressUnit == "storage_loads" ? 1 : effect.Quantity);
         }
     }
+
 
     internal static string StorageOrderBlockedReason(IStorageOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -71,4 +75,5 @@ internal sealed partial class OrderSystem
             return $"The agent needs warmth before storing {subject}.";
         return "No open walking route reaches the agent's House right now.";
     }
+
 }

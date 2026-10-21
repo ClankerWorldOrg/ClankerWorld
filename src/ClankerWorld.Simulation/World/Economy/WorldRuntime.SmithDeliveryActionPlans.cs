@@ -54,6 +54,7 @@ public sealed partial class WorldRuntime
         var inventory = society.Checkpoint.Inventory;
         if (RecheckGoods(request, plan.StockId) is not { } match || match.Lot.ContainerLotId is not null ||
             !GoodsPlanFamily.Matches(inventory, match.Lot, plan.Family) || plan.DirectDelivery != (match.Lot.OwnerId == plan.Actor) ||
+            plan.DirectDelivery && !PersonalEquipmentRules.IsCarried(match.Lot, plan.Actor) ||
             !plan.DirectDelivery && (match.Lot.CarrierId is not null || HouseholdStockPosition(match.Lot) != plan.Target ||
                 HouseholdStockInteractionRange(match.Lot) != plan.InteractionRange))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected Blacksmith supplies are no longer available");
@@ -82,7 +83,13 @@ public sealed partial class WorldRuntime
             return;
         }
         var purpose = plan.Kind == SmithDeliveryKind.Ore ? "smith_ore_delivered" : plan.DirectDelivery ? "smith_input_delivered" : "smith_input_picked_up";
-        RunInventoryCommand(InventorySystem.ApplyCheckedSmithDeliveryPlan(InventoryEconomyWorld, plan, purpose));
-        AppendEvent(purpose, $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.SmithId}");
+        var operationId = DerivedId.Create(plan.Kind == SmithDeliveryKind.Ore ? $"smith-ore-delivery:{WorldTick}:{plan.Actor}" :
+            plan.DirectDelivery ? $"smith-input-delivery:{WorldTick}:{plan.Actor}" : $"smith-input-pickup:{WorldTick}:{plan.Actor}");
+        RunInventoryCommand(InventorySystem.ApplyCheckedSmithDeliveryPlan(plan, operationId, purpose));
+        AppendEvent(plan.Kind == SmithDeliveryKind.Ore
+            ? new SmithOreDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId)
+            : plan.DirectDelivery
+                ? new SmithInputDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId)
+                : new SmithInputPickedUpEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId));
     }
 }

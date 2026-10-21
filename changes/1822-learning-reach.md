@@ -1,1 +1,0 @@
-- Learning eligibility uses the shared reach service's boolean query with its existing interaction-range shortcut and explicit purpose, load and swimming policy; the lesson-site-specific wrapper is removed.

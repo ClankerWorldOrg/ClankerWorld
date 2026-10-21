@@ -1,1 +1,0 @@
-- New World keeps playable maps when another generation attempt has no room for a first Town, lists the failed attempts, and gives a useful message when none can be used.

@@ -1,1 +1,0 @@
-- Workstation-supply planning and rechecking use the shared reach service's boolean query with the existing interaction shortcut and explicit purpose, load and swimming policy; the workstation-specific wrapper is removed.

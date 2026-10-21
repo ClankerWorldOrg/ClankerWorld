@@ -253,12 +253,6 @@ public static class TownLandRightsRules
 
     private static string StableId(string prefix, string scope, int index) =>
         DerivedId.Create($"{prefix}:{scope}:{index.ToString(CultureInfo.InvariantCulture)}", prefix == "household-use" ? "household-use:" : null);
-
-    internal static bool ValidId(string? value) => ValidText(value, DerivedId.MaximumLength);
-
-    internal static bool ValidText(string? value, int maximumLength) =>
-        !string.IsNullOrWhiteSpace(value) && value == value.Trim() && value.Length <= maximumLength &&
-        !value.Any(char.IsControl);
 }
 
 public sealed partial class WorldRuntime
@@ -282,6 +276,5 @@ public sealed partial class WorldRuntime
     private HouseholdLandUseRequestResult ExistingLandRequestResult(HouseholdLandUseRequest request,
         bool isDuplicate) => townSystem.ExistingLandRequestResult(civicWorld, request, isDuplicate);
     private static HouseholdLandUseRequestResult RejectedLandRequest(string failure) => TownSystem.RejectedLandRequest(failure);
-    private static bool ValidLandRequestText(string? value, int maximumLength) => TownSystem.ValidLandRequestText(value, maximumLength);
     private static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) => TownSystem.SameLandRequest(left, right);
 }

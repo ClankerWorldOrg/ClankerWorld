@@ -1,1 +1,0 @@
-- Worlds with long valid seeds keep running after a birth, including when reloading a newborn whose model setup was interrupted. The owner can change that child's model normally.

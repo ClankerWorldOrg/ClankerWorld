@@ -7,7 +7,7 @@ internal static partial class TownGovernmentStateValidation
         if (state.Laws is null || state.LawDrafts is null || state.Changes is null || state.OfficeHistory is null ||
             state.Consents is null || state.ContestHistory is null || state.Offices is null || state.NonLandGrants is null || state.MayoralRetryCircumstances is null ||
             state.Laws.Any(law => law is null) || state.Changes.Any(change => change is null) || state.ContestHistory.Any(contest => contest is null) || state.NonLandGrants.Any(grant => grant is null) ||
-            !TownArrangementRules.IsSupported(state.Arrangement) || state.Sequence < 0 || state.MayoralRetryTick < 0 || state.MayoralRetryCircumstances.Length > 64)
+            !TownArrangementRules.IsSupported(state.Arrangement) || state.Sequence < 0 || state.MayoralRetryTick < 0 || !BoundedText.IsWithinLimit(state.MayoralRetryCircumstances, 64))
             Fail("A Town's saved government record is incomplete or declares an unsupported arrangement.");
         var ids = state.Laws.Select(law => law.Id).Concat(state.Changes.Select(change => change.Id))
             .Concat(state.ContestHistory.Select(contest => contest.Id)).Concat(state.Contest is { } currentContest ? [currentContest.Id] : [])
@@ -49,7 +49,7 @@ internal static partial class TownGovernmentStateValidation
                 change.Status == "completed" && (change.SettledTick < change.ApprovedTick || change.SettledTick > change.HandoverDeadlineTick) ||
                 change.Status is "completed" or "rejected" or "withdrawn" or "cancelled" &&
                     (change.SettledTick is null || change.SettledTick < change.SubmittedTick) ||
-                change.Reason is { Length: > 512 })
+                change.Reason is { } changeReason && !BoundedText.IsWithinLimit(changeReason, 512))
                 Fail("A saved protected resident vote or handover is invalid.");
             if (change.ForcedCouncilElectionId is { } forced && (!TownGovernmentValidation.ValidId(forced, townId + ":election:", long.MaxValue) ||
                 !forcedElections.Add(forced) || change.Kind != "arrangement" || change.Status is not ("handover" or "completed" or "cancelled") ||
@@ -80,7 +80,7 @@ internal static partial class TownGovernmentStateValidation
         foreach (var term in state.OfficeHistory)
             if (term.Mandates is not ("land" or "ordinary" or "non_land") || term.StartTick < 0 ||
                 term.EndTick < term.StartTick ||
-                string.IsNullOrWhiteSpace(term.EndReason) || term.EndReason.Length > 512 ||
+                string.IsNullOrWhiteSpace(term.EndReason) || !BoundedText.IsWithinLimit(term.EndReason, 512) ||
                 !ValidTerm(state, completed, term.ElectionId, term.HolderId, term.Mandates, term.StartTick))
                 Fail("An archived elected mandate has no valid term or election.");
         var terms = state.OfficeHistory.Select(o => (o.Mandates, Start: EffectiveStart(state, o.ElectionId, o.StartTick), End: o.EndTick, o.ElectionId))
@@ -116,7 +116,7 @@ internal static partial class TownGovernmentStateValidation
             contest.Stage == "waiting" && (contest.RoundOpenedTick is not null || contest.RoundDeadlineTick is not null ||
                 contest.Voters.Count > 0 || contest.Candidates.Count > 0 || contest.Ballots.Count > 0) ||
             !live && (contest.SettledTick is null || contest.SettledTick < contest.OpenedTick) ||
-            live && contest.SettledTick is not null || contest.Reason is { Length: > 512 })
+            live && contest.SettledTick is not null || contest.Reason is { } contestReason && !BoundedText.IsWithinLimit(contestReason, 512))
             Fail("A saved mayoral contest, mandate, electorate or ballot is invalid.");
         string[]? priorTie = null;
         foreach (var (round, index) in contest.Rounds.Select((r, i) => (r, i)))
@@ -132,7 +132,7 @@ internal static partial class TownGovernmentStateValidation
             var top = Top(round.Candidates, round.Ballots);
             if (round.Result == "tie")
             {
-                if (top.Length < 2) Fail("A recorded mayoral tie needs tied candidates with actual votes.");
+                if (top is not [_, _, ..]) Fail("A recorded mayoral tie needs tied candidates with actual votes.");
                 priorTie = top;
             }
             if (round.Result == "winner" && (top.Length != 1 || top[0] != contest.WinnerId))

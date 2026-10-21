@@ -19,7 +19,7 @@ public sealed record TownProjectPayload(string Name, string DefinitionId, GridPo
 /// <summary>An actual load and its retained input receipt, including released history.</summary>
 public sealed record TownProjectDelivery(string Id, string ContributorId, string SourceLotId,
     string LotId, string ItemKind, int Quantity, long PickedUpTick, long? DeliveredTick = null,
-    string? ReservationId = null, long? ReleasedTick = null, string? ReleaseReason = null);
+    Identity? ReservationId = null, long? ReleasedTick = null, string? ReleaseReason = null);
 
 /// <summary>One shared job per passed proposal; workers never own a separate copy of its budget.</summary>
 public sealed record TownProject(string Id, string ProposalId, TownProjectPayload Plan,

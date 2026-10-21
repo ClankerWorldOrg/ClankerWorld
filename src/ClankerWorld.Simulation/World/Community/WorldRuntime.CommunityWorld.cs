@@ -45,10 +45,10 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<BuildingExpansionJob>? Expansions => runtime.worldSimulation.BuildingExpansions;
         public bool IsActiveProductionOrderJob(string job) => runtime.IsActiveProductionOrderJob(job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job) => runtime.CanFitExpansion(building, position, footprint, out _, job);
-        public void SetReservationDeadline(IReadOnlyList<string> ids, long deadline) => runtime.RunInventoryCommand(InventorySystem.SetReservationDeadline(ids, deadline));
+        public void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline) => runtime.RunInventoryCommand(InventorySystem.SetReservationDeadline(ids, deadline));
         public void ResumeProduction(string job, long deadline, string? knife, string actor) => runtime.productionSystem.ResumeJob(job, deadline, knife, actor);
         public void ResumeExpansion(string job, long deadline, string actor) => runtime.constructionSystem.Buildings.ResumeExpansion(job, deadline, actor);
-        public void ReleaseUnavailablePausedInputs(IReadOnlyList<string> ids) => runtime.RunInventoryCommand(InventorySystem.ReleaseUnavailablePausedInputs(ids));
+        public void ReleaseUnavailablePausedInputs(IReadOnlyList<Identity> ids) => runtime.RunInventoryCommand(InventorySystem.ReleaseUnavailablePausedInputs(ids));
         public void CancelProduction(IReadOnlySet<string> ids) => runtime.productionSystem.CancelJobs(ids);
         public void CancelPausedExpansions(IReadOnlySet<string> ids, string reason) => runtime.constructionSystem.Buildings.CancelPausedExpansions(ids, reason);
         public AgentStore PhysicalAgents => runtime.agentStore;
@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
         {
             var memoryId = LessonGratitudeMemoryId(student, teacher, skill);
             if (!runtime.society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
-                runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(memoryId, student, teacher,
+                runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(memoryId), student, teacher,
                     $"Learned {skill.ToString().ToLowerInvariant()} with {checkpoint.GetAgent(teacher).Name}.", "public", runtime.WorldTick)
                 { Kind = SocietyMemoryKind.Skill }));
         }
@@ -112,17 +112,17 @@ public sealed partial class WorldRuntime
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "produce_item" } productionOrder)
             {
                 runtime.CancelProductionForOrder(productionOrder);
-                runtime.SetOrderStatus(productionOrder, "blocked", "The agent left the household holding the ordered workstation.");
+                runtime.SetOrderStatus(productionOrder, OrderStatus.Blocked, "The agent left the household holding the ordered workstation.");
             }
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
             {
                 runtime.CancelConstructionForOrder(constructionOrder);
-                runtime.SetOrderStatus(constructionOrder, "blocked", "The agent left the household arranging the requested construction.");
+                runtime.SetOrderStatus(constructionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested construction.");
             }
             if (runtime.PendingInstructionFor(actor) is { Task: { Action: "expand_building", TargetBuildingKind: "house" } } expansionOrder)
             {
                 runtime.CancelExpansionForOrder(expansionOrder);
-                runtime.SetOrderStatus(expansionOrder, "blocked", "The agent left the household arranging the requested expansion.");
+                runtime.SetOrderStatus(expansionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested expansion.");
             }
         }
         public IReadOnlyList<WorldProductionJob> PauseDepartingHouseholdWork(string actor, string household)
@@ -143,12 +143,12 @@ public sealed partial class WorldRuntime
                 .SelectMany(job => job.InputReservationIds)
                 .Concat((runtime.worldSimulation.BuildingExpansions ?? []).Where(job => job.WorkerId == actor &&
                     job.OwnerId == household && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
-                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-            if (heldReservations.Length > 0)
+                .Distinct().Order().ToArray();
+            if (heldReservations.Length != 0)
                 runtime.RunInventoryCommand(InventorySystem.HoldDepartingProjectInputs(heldReservations));
             return personalJobs;
         }
         public void MarkCurrentSchema() => runtime.checkpointSchemaVersion = StateSchemaVersion;
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

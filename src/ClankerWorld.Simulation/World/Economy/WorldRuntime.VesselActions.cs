@@ -30,23 +30,23 @@ public sealed partial class WorldRuntime
         {
             case VesselActionKind.CollectJug:
                 RunInventoryCommand(InventorySystem.CollectWaterJug(InventoryEconomyWorld, plan));
-                AppendEvent("water_jug_collected", $"{plan.Actor}:{plan.VesselId}");
+                AppendEvent(new WaterJugCollectedEventPayload(plan.Actor, plan.VesselId));
                 break;
             case VesselActionKind.FillJug:
                 RunInventoryCommand(InventorySystem.FillCarriedWaterJug(InventoryEconomyWorld, plan));
-                AppendEvent("water_jug_filled", $"{plan.Actor}:{plan.VesselId}:{plan.Quantity}:{plan.Target.X},{plan.Target.Y}");
+                AppendEvent(new WaterJugFilledEventPayload(plan.Actor, plan.VesselId, plan.Quantity, plan.Target.X, plan.Target.Y));
                 break;
             case VesselActionKind.ReturnJug:
                 RunInventoryCommand(InventorySystem.ReturnFilledWaterJug(InventoryEconomyWorld, plan));
-                AppendEvent("water_jug_returned", $"{plan.Actor}:{plan.VesselId}:{plan.HouseId}");
+                AppendEvent(new WaterJugReturnedEventPayload(plan.Actor, plan.VesselId, plan.HouseId));
                 break;
             case VesselActionKind.ReturnEmpty:
                 RunInventoryCommand(InventorySystem.CollectEmptyVessel(InventoryEconomyWorld, plan));
-                AppendEvent("empty_vessel_picked_up", $"{plan.Actor}:{plan.VesselId}:{plan.SourceBuildingId}:{plan.HouseId}");
+                AppendEvent(new EmptyVesselPickedUpEventPayload(plan.Actor, plan.VesselId, plan.SourceBuildingId!, plan.HouseId));
                 break;
             case VesselActionKind.TakeFood:
                 RunInventoryCommand(InventorySystem.TakeFoodFromPot(InventoryEconomyWorld, plan));
-                AppendEvent("food_taken_from_pot", $"{plan.Actor}:{plan.VesselId}:{plan.Food!.StockId}:{plan.Quantity}");
+                AppendEvent(new FoodTakenFromPotEventPayload(plan.Actor, plan.VesselId, plan.Food!.StockId, plan.Quantity));
                 break;
             case VesselActionKind.StoreFood:
                 StorePlannedPotFood(plan);
@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
     {
         var food = plan.Food!;
         var operationId = FoodPotTransferId(WorldTick, plan.Actor);
-        RunInventoryCommand(InventorySystem.StorePlannedPotFood(plan, food, operationId));
-        AppendEvent("food_stored_in_pot", $"{plan.Actor}:{plan.VesselId}:{food.StockId}:{plan.Quantity}");
+        RunInventoryCommand(InventorySystem.StorePlannedPotFood(food, plan, operationId));
+        AppendEvent(new FoodStoredInPotEventPayload(plan.Actor, plan.VesselId, food.StockId, plan.Quantity));
     }
 }

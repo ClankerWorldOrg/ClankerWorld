@@ -117,7 +117,6 @@ public sealed partial class WorldRuntime
         var equippedId = item.Id;
         var previous = agents[actor].Equipment;
         var equipment = previous ?? new PersonalEquipment();
-
         try
         {
             RunInventoryCommand(InventorySystem.EquipPrivateEquipment(InventoryEconomyWorld, actor, item, carryAid, equippedId, inventoryResultValue => equippedId = inventoryResultValue, equipment));
@@ -128,7 +127,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_equipped", $"{actor}|{equippedId}|{item.ItemKind}");
+        AppendEvent(new EquipmentEquippedEventPayload(actor, equippedId, item.ItemKind));
     }
 
     private bool CanContinueEquipmentRepair(string actor) => agents[actor].Equipment?.Repair is { } repair &&
@@ -140,38 +139,19 @@ public sealed partial class WorldRuntime
     private void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null)
     {
         var target = requestedLotId is null ? RepairableEquipment(actor, person) : WornEquipmentItems(actor).FirstOrDefault(lot => lot.Id == requestedLotId);
-        if (!IsAdult(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person) ||
-            target is null || EquipmentRepairSite(actor, target) is not { } site) return;
-        if (!CanPrepareEquipmentRepair(actor, person, target)) return;
-        foreach (var input in PersonalEquipmentRules.RepairMaterials(target.ItemKind))
-        {
-            if (!HasCarriedOwnItem(actor, input.ResourceId))
-            {
-                CollectEquipment(actor, person, input.ResourceId, site.Position);
-                return;
-            }
-        }
-        if (person.Position != site.Position)
-        {
-            MoveToward(actor, person, site.Position, "repair_equipment", 0);
-            return;
-        }
-        var materials = PersonalEquipmentRules.RepairMaterials(target.ItemKind).Select(input =>
-            new PlannedRepairMaterial(SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId)
-                .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot.Id,
-                input.ResourceId, input.Amount)).ToArray();
-        StartEquipmentRepair(actor, person, target.Id, site.InstanceId, materials, orderInstructionId);
+        if (target is null) return;
+        ApplyEquipmentRepairPlan(PlanEquipmentRepair(actor, target), orderInstructionId);
     }
 
     private void StartEquipmentRepair(string actor, AgentState person, string targetId, string buildingId,
         IReadOnlyList<PlannedRepairMaterial> materials, string? orderInstructionId = null)
     {
         var ids = new List<string>();
-        RunInventoryCommand(InventorySystem.StartEquipmentRepair(InventoryEconomyWorld, actor, materials, ids));
+        RunInventoryCommand(InventorySystem.StartEquipmentRepair(InventoryEconomyWorld, materials, actor, ids));
         agentStore.RecordEquipment(actor, agents[actor], (person.Equipment ?? new PersonalEquipment()) with
-        { Repair = new(targetId, buildingId, WorldTick, 0, ids.ToArray(), orderInstructionId) });
+        { Repair = new(targetId, buildingId, WorldTick, 0, ids.Select(Identity.Parse).ToArray(), orderInstructionId) });
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_repair_started", $"{actor}|{targetId}|{buildingId}");
+        AppendEvent(new EquipmentRepairStartedEventPayload(actor, targetId, buildingId));
     }
 
     private EquipmentRepairWork? ContinueEquipmentRepair(string actor)
@@ -197,12 +177,12 @@ public sealed partial class WorldRuntime
             agentStore.RecordEquipment(actor, person, person.Equipment with { Repair = repair with { WorkDone = progress } });
             return null;
         }
-        RunInventoryCommand(InventorySystem.ContinueEquipmentRepair(actor, repair));
+        RunInventoryCommand(InventorySystem.ContinueEquipmentRepair(repair, actor));
         agentStore.RecordEquipment(actor, agents[actor], person.Equipment with { Repair = null });
         GainSkill(actor, SkillKind.Crafting);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
-        AppendEvent("equipment_repaired", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairedEventPayload(actor, repair.LotId));
         return repair;
     }
 
@@ -212,7 +192,7 @@ public sealed partial class WorldRuntime
         RunInventoryCommand(InventorySystem.CancelEquipmentRepair(repair));
         var person = agents[actor];
         agentStore.RecordEquipment(actor, person, person.Equipment! with { Repair = null });
-        AppendEvent("equipment_repair_interrupted", $"{actor}|{repair.LotId}");
+        AppendEvent(new EquipmentRepairInterruptedEventPayload(actor, repair.LotId));
     }
 
     private void WearEquippedClothing()
@@ -225,7 +205,7 @@ public sealed partial class WorldRuntime
             // felt as lost warmth, but adds no wear the agreed design did not ask for.
             if (person.Equipment?.Repair?.LotId == person.Equipment?.ClothingLotId ||
                 WeatherExposure(person.Position) == 0 || EquippedGarment(person.AgentId) is not { } garment) continue;
-            RunInventoryCommand(InventorySystem.WearEquippedClothing(person, garment));
+            RunInventoryCommand(InventorySystem.WearEquippedClothing(garment, person));
         }
     }
 
@@ -235,6 +215,6 @@ public sealed partial class WorldRuntime
             PersonalEquipmentRules.EquippedUnit(society.Checkpoint.Inventory, actor, agents[actor].Equipment?.CarryAidLotId) is not { } aid ||
             AvailableLotQuantity(aid) == 0 || PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor,
                 agents[actor].Equipment) == 0) return;
-        RunInventoryCommand(InventorySystem.WearCarryAid(actor, aid));
+        RunInventoryCommand(InventorySystem.WearCarryAid(aid, actor));
     }
 }

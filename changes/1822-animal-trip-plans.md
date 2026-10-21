@@ -1,1 +1,0 @@
-- Retained animal supply trips keep their selected delivery or work plan, with exact carried loads and clean refusals when stock, targets or space change.

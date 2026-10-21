@@ -23,5 +23,5 @@ internal interface ICommunityHousingWorld
     IReadOnlyList<string> MovingCareGroup(string actor);
     void JoinHouseholdCareGroup(string actor, string household);
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

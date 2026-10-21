@@ -20,6 +20,8 @@ public sealed partial class ServerHttpTests
     [Theory]
     [InlineData("openai")]
     [InlineData("ollama-cloud")]
+    [InlineData("anthropic")]
+    [InlineData("jev")]
     public async Task SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(string provider)
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-settings-key-");
@@ -86,14 +88,32 @@ public sealed partial class ServerHttpTests
             var reloaded = new ProviderConfigurationStore(store.Path,
                 new("deterministic", null, null, null, null, null, null));
             Assert.Equal(secret, Assert.Single(reloaded.CaptureRuntimeConfiguration().CredentialSlots!).ApiKey);
-            // The saved key can be selected by a later agent without resubmitting it.
-            var assigned = reloaded.Configure(new("personal", provider, "test-model", null, false,
-                "later-agent", action.CredentialSlotId));
-            Assert.All(assigned.Assignments!, assignment => Assert.Equal(action.CredentialSlotId, assignment.CredentialSlotId));
+            if (provider == "jev")
+            {
+                // Apply helper selects the saved TypeSafe key without resubmitting it.
+                var runtime = host.Services.GetRequiredService<WorldRuntime>();
+                runtime.Pause();
+                const string helperPath = "/api/v1/owner/control/routine-helper";
+                var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, "jev",
+                    PlayerDecisionProviders.DefaultJevModel, action.CredentialSlotId);
+                using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
+                    helperPath, select, OwnerHttpBinding.RoutineHelperPayload(select));
+                Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
+                Assert.Equal(action.CredentialSlotId, runtime.RoutineHelper.CredentialSlotId);
+                Assert.Equal(PlayerDecisionProviders.DefaultJevModel, runtime.RoutineHelper.Model);
+                Assert.DoesNotContain(secret, Encoding.UTF8.GetString(WorldRuntimeCodec.Encode(runtime.ExportState())), StringComparison.Ordinal);
+            }
+            else
+            {
+                // The saved key can be selected by a later agent without resubmitting it.
+                var assigned = reloaded.Configure(new("personal", provider, "test-model", null, false,
+                    "later-agent", action.CredentialSlotId));
+                Assert.All(assigned.Assignments!, assignment => Assert.Equal(action.CredentialSlotId, assignment.CredentialSlotId));
+            }
             using var duplicate = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, action, payload);
             Assert.Equal(HttpStatusCode.BadRequest, duplicate.StatusCode);
             Assert.Single(store.CaptureStatus().CredentialSlots!);
-            var unsupported = action with { CredentialSlotId = Guid.NewGuid().ToString("N"), Provider = "jev" };
+            var unsupported = action with { CredentialSlotId = Guid.NewGuid().ToString("N"), Provider = "decisions" };
             using var rejected = await SendSignedAsync(host, client, key, device.DeviceId,
                 endpoint, unsupported, OwnerHttpBinding.CredentialSlotCreationPayload(unsupported));
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);

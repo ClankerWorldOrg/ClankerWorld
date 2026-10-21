@@ -8,7 +8,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-
     // Unpaid ordinary work may yield. Keep bound work and live paid jobs intact;
     // completed/cancelled jobs already retain their own payment and output history.
     private bool OrdinaryProjectCanYieldToOrder(AgentProject project) =>
@@ -59,12 +58,12 @@ public sealed partial class WorldRuntime
         CognitionCandidate candidate) =>
         OrderSystem.ExecuteOrderStep(OrderExecutionWorld, instruction, person, candidate);
 
-    private void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) =>
+    private void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) =>
         OrderSystem.CreditOrderEffect(OrderLifecycleWorld, instruction, effectId, units);
 
     private void SetOrderStatus(
         OwnerQueuedInstruction instruction,
-        string status,
+        OrderStatus status,
         string? reason,
         bool waitForDecision = false) =>
         OrderSystem.SetOrderStatus(OrderLifecycleWorld, instruction, status, reason, waitForDecision);
@@ -72,7 +71,7 @@ public sealed partial class WorldRuntime
     private string OrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.OrderBlockedReason(OrderBlockersWorld, instruction, person);
 
-    private static string MovementOrderEffectId(GridPoint destination) =>
+    internal static string MovementOrderEffectId(GridPoint destination) =>
         FormattableString.Invariant($"arrival:tile:{destination.X}:{destination.Y}");
 
     private bool MovementOrderNeedsHouseInvitation(string actor, GridPoint destination) =>

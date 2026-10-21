@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -8,20 +6,23 @@ public sealed partial class WorldRuntime
 
     private sealed class OrderIngressAdapter(WorldRuntime runtime) : IOrderIngressWorld
     {
-        public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public OrderStore Orders => runtime.orderStore;
+        public string InstructionRequestDigest(global::ClankerWorld.Simulation.World.OwnerInstructionRequest request) => WorldRuntime.InstructionRequestDigest(request);
+        public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
+        public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseOrderTask(string text, string actor) => runtime.ParseOrderTask(text, actor);
+        public void ReplacePendingOrder(string agentId) => runtime.ReplacePendingOrder(agentId);
+        public string InstructionIdFor(long sequence) => WorldRuntime.InstructionIdFor(sequence);
         public long WorldTick => runtime.WorldTick;
-        public long NextEventId => runtime.nextEventId;
-        public bool Matches(OwnerQueuedInstruction existing, OwnerInstructionRequest request) => WorldRuntime.Matches(existing, request);
-        public bool Matches(OwnerOrderCancellation existing, OwnerOrderCancelRequest request) => WorldRuntime.Matches(existing, request);
-        public OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
-        public OrderTask? ParseOrderTask(string text, string actor) => runtime.ParseOrderTask(text, actor);
-        public void ReplacePendingOrders(string actor) => runtime.ReplacePendingOrders(actor);
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
-        public string ToWireValue(OwnerInstructionKind kind) => WorldRuntime.ToWireValue(kind);
-        public void CloseOrdersNotUnderstood(string actor) => runtime.CloseOrdersNotUnderstood(actor);
+        public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
+        public string ToWireValue(global::ClankerWorld.Simulation.World.OwnerInstructionKind kind) => WorldRuntime.ToWireValue(kind);
+        public void CloseOrdersNotUnderstood(string agentId) => runtime.CloseOrdersNotUnderstood(agentId);
+        public void PruneClosedOrderHistory() => runtime.PruneClosedOrderHistory();
+        public bool Matches(global::ClankerWorld.Simulation.World.OwnerOrderCancellation existing, global::ClankerWorld.Simulation.World.OwnerOrderCancelRequest request) => WorldRuntime.Matches(existing, request);
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
-        public void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason) => runtime.CancelActiveOrder(instruction, cause, reason);
+        public bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.IsInstructionComplete(instruction);
+        public void CancelActiveOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string cause, string? reason) => runtime.CancelActiveOrder(instruction, cause, reason);
+        public long NextEventId => runtime.nextEventId;
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
     }
 }
