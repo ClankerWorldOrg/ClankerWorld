@@ -1,0 +1,45 @@
+{
+  "inactive": true,
+  "reason": "Previously launched measurements completed; archived after pause without running another check.",
+  "head": "3428f198d58342faab7dcdea32f276d98a2a4a90",
+  "outcomes": {
+    "Passed": 12
+  },
+  "reports": [
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.ArchivedConversationBeliefsKeepTheirCorrectionLineageAndRejectDuplicateTurns",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.ArchivedConversationBeliefsKeepTheirCorrectionLineageAndRejectDuplicateTurns",
+      "raw_sha256": "60379e423286940540eda7a79d59ff27672bbb141d5bac8e425b67034f6492da"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets",
+      "raw_sha256": "1923732d164b0e144aa657855b702167f29e53881e79032a72fba86c95493c68"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources",
+      "raw_sha256": "f5309b04489497b11a84eee4cc0cef4002090c12a157cd089926bc2543edfd2b"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.InvalidCompactedStateCannotReplaceTheLiveWorld",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.InvalidCompactedStateCannotReplaceTheLiveWorld",
+      "raw_sha256": "497733c0a7e1467a7a5e007f6715704f707bd36499ff905fd78dbab682fc7e61"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation",
+      "raw_sha256": "5cea32fa4cde5e678ef7eb9506fdfccb22d4a4b3a642eef874ac3dfc0cb0cc10"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.ResumeWithCompactionPreservesThePausedConversationAndReplaysAfterReload",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.ResumeWithCompactionPreservesThePausedConversationAndReplaysAfterReload",
+      "raw_sha256": "a03af1f43fc38c6e455870e1ec75b78a8443206b38615cc1067ddebce8d27402"
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.SavingDuringAHeldTurnPreservesItsAdmissionIdentity",
+      "directory": "ClankerWorld.Tests.WorldConversationTests.SavingDuringAHeldTurnPreservesItsAdmissionIdentity",
+      "raw_sha256": "a407368218a770190cbfe3b5cb0c83791b7dfdd232489ffff7edf4026c3f1ec3"
+    }
+  ]
+}

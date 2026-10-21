@@ -1,0 +1,46 @@
+Session cc8e0ec0: fixed-base continuation, 2026-10-21
+
+Owner order: finish own drafts oldest first. No new PR until all nine are ready.
+Do not merge newer main unless GitHub reports an actual conflict. Unknown mergeability is not a conflict.
+Do not repeat completed checks merely because main advanced. Never merge this evidence branch.
+
+ACTIVE: #2595, codex/2560-order-save-tests-185bf8a4, head691309dc.
+Worktree /workspace/ClankerWorld-2560-orders; frozen baseline /workspace/ClankerWorld-2560-base at7fbe6800.
+Full original sessions20852/48884 were killed by an environment reset without TRX/coverage reports. They are incomplete, not passes.
+Recovery baseline session90886, testhost PID33266, began20:26UTC. Functions monitor cell12.
+Recovery uses SDK10.0.401, DOTNET_PROCESSOR_COUNT=4, xUnit.MaxParallelThreads=4, unchanged coverage.runsettings, Release --no-build.
+Run baseline then final in sequence with identical scheduling. Final recovery has not started.
+Output directories: base/.evidence/2560-refresh/baseline-recovery and orders/.evidence/2560-refresh/final-recovery.
+Use their matching .log files. Do not confuse them with the interrupted baseline/final folders.
+Both uninstrumented output snapshots were restored before recovery. Four production DLL/PDB hashes were reverified against base/.evidence/2560-refresh/production-binary-pins.json. StrictTickFailures environment key is absent, matching both original local runs.
+
+COMPLETED #2595 (reuse, do not rerun):
+41 original methods /244 cases passed individually with coverage; four retained methods /11 cases passed individually with coverage.
+Replacing the old retained measurements plus four removed declarations with the new four retained measurements leaves37 methods,22639 covered lines,18219 mapped-branch lower bounds: no lost line or reduced branch lower bound.
+All41 original and four retained raw reports, successful receipts, TRX, logs and SHA manifests are archived here as gzip files. Exact baseline and candidate test build bytes are archived too.
+Focused236 cases, unused168->168 with zero new IDE diagnostics, full formatter, built discovery, canonical ledger, stale-text search, git diff check and open-PR conflict checks pass.
+CI39648546125 is green. Timing job119398087323 personally read, including all ten growth rows. PR15942s vs main median14914s (+7%); touched CI50.266->47.762s; no general speedup claimed.
+Canonical ledger, method-union-comparison.json, per-method-comparison.json, unique.tsv and CI summaries are available in orders/.evidence/2560-refresh and this evidence tree.
+PR body2595-description.txt records these completed checks and the interruption. Source0/0, tests12/61 (net-49), docs0/0; touched lines1524->1475; branch discovery7413->7405 cases,3307->3303 declarations; touched244->236 cases,41->37 declarations.
+
+NEXT:
+When baseline recovery finishes, read its log and run trx_summary.py once. Preserve its report/summary/log in this evidence branch and push after reading newest area comments.
+Start #2595 final recovery using the same dotnet test command/settings/SDK/threads and the already restored candidate output, with final-recovery results and log paths.
+When final finishes, summarize TRX and run compare_coverage.py with --repo /workspace/ClankerWorld-2560-orders --threshold-scope each. Never narrow or bypass scope checks. Inspect every lost line/branch; mapped per-method lower bounds are not authoritative collector totals.
+Update description with full metrics, confirm current head still691309dc and CI green, then mark ready immediately. Post one-line area running total:49 net test lines ready,0 source/docs,0.23% of21671; this PR does not close the area.
+Stop watching #2595 once ready. Continue #2604 only next, reusing this same completed four-thread baseline.
+
+PAUSED DRAFTS (no new checks until each turn):
+#2604 conversations, /workspace/ClankerWorld-2560-conversations, branch codex/2560-conversation-tests-185bf8a4, head3428f198. Tests14/31, net-17. Unused/discovery/ledger/focused61/CI all passed; CI timing log/artifacts already read. Seven previously launched retained per-method measurements completed:12 passed cases, archived here under conversations/per-test-retained with exact test DLL/PDB. Original eight-method measurement, full formatter, final coverage remain pending.
+#2608 carts, /workspace/ClankerWorld-2560-carts, codex/2560-cart-test-providers-185bf8a4, head554e3a3b. Tests58/78, net-20. Unused/discovery/ledger/focused50/CI passed; timing/artifacts read. Per-method/full formatter/final coverage pending.
+#2609 instructions, /workspace/ClankerWorld-2560-instructions, codex/2560-instruction-test-matrices-185bf8a4, head619c82c9. Tests38/73, net-35. Unused/discovery/ledger/focused70/CI passed; timing/artifacts read. Original74 cases/13 methods ->70/12. Per-method/full formatter/final coverage pending.
+#2616 support, /workspace/ClankerWorld-2560-support, codex/2560-work-order-test-support-185bf8a4, headcf502122. Tests75/263, net-188. Previously launched unused build completed successfully; post-build unused comparison/pins/snapshot/discovery and other checks pending. All105 test methods remain unchanged apart from equivalent setup/provider substitutions.
+#2624 runtime, /workspace/ClankerWorld-2560-runtime, codex/2560-runtime-test-fixtures-185bf8a4, head6713dcef. Tests25/125, net-100. Build/checks pending. Fresh whole-file assertion/fixture equivalence review already recorded.
+#2628 building, /workspace/ClankerWorld-2560-building, codex/2560-building-test-proofs-185bf8a4, head64dc90dd. Tests20/57, net-37. Build/checks pending. Fresh transfer-of-assertions review recorded.
+#2631 collection, /workspace/ClankerWorld-2560-collection, codex/2560-collection-test-proofs-185bf8a4, head0bab3d6c. Tests66/171, net-105. Build/checks pending. For original per-method names use actual baseline discovery: the new shared travel theory does not exist before the patch.
+#2633 closeout, /workspace/ClankerWorld-2560-closeout, codex/2560-order-test-closeout-185bf8a4, head5330a4cd. Tests52/120, net-68. Build/checks pending. Final Closes#2560 remains draft until all predecessors validated. Canonical33-entry ledger spans all six files. Sequential gate timing proof retained; do not restore off-diagonal rows speculatively.
+
+All nine are independent at frozen7fbe6800 and have source/docs0/0. Proposed total tests360/979, net-619 (2.86% of21671); ready credit still0. Area target30%=6502 fewer. Original full-read roster covers82 files; stop reason is preserving distinct contracts, not forcing quota. Final closeout carries detailed proof/stop notes.
+Each worktree has canonical .evidence/2560-refresh/ledger.json and fresh actual-diff proof review; original recovery records are preserved in .evidence/keep/2560-recovery.
+Area2560 claim remains cc8e0ec0 (latest comment6325810132). Read newest comments before every push. Push meaningful evidence checkpoints at least hourly without changing frozen PR heads.
+Area2567 and drafts2590/2599/2626 are held by185bf8a4; do not touch them. Old own P1 work2619/2634 is ready/merged and no longer watched.

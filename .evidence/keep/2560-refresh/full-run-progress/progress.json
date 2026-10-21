@@ -1,0 +1,16 @@
+{
+  "recorded_at": "2026-10-21T21:00:30.432394+00:00",
+  "active_pr": 2595,
+  "baseline_session": 90886,
+  "baseline_process": 33266,
+  "baseline_process_observation": "    PID     ELAPSED     TIME %CPU   RSS\n  33266       34:00 01:56:43  343 1575932\n",
+  "baseline_complete": false,
+  "final_recovery_started": false,
+  "frozen_base": "7fbe6800",
+  "frozen_head": "691309dc",
+  "completed_conversation_measurements_archived": {
+    "methods": 7,
+    "passed_cases": 12,
+    "no_new_check_started": true
+  }
+}
