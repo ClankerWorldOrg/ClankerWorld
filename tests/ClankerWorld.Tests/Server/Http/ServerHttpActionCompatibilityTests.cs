@@ -73,12 +73,14 @@ public sealed partial class ServerHttpTests
         var device = await StartAndActivateAsync(host, client, key);
         var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new ClientNetworking.OwnerWorldApi(client);
+        // Compatibility depends on protocol replies, not elapsed runner time.
+        var api = new ClientNetworking.OwnerWorldApi(client, new ManualTimeProvider());
         var uri = client.BaseAddress!;
         // Literal loopback is the production client's explicit test/development exception.
         uri = new UriBuilder(uri) { Host = "127.0.0.1" }.Uri;
         var before = WorldRuntimeCodec.Encode(host.Services.GetRequiredService<WorldRuntime>().ExportState());
-        var reconnect = await api.ReconnectAsync(uri, authority, device.DeviceId, 0, null, null, null, signer, default);
+        var reconnect = await ModelWorkHarness.WaitForSignalAsync(
+            api.ReconnectAsync(uri, authority, device.DeviceId, 0, null, null, null, signer, default));
         Assert.NotNull(reconnect.Baseline.Snapshot);
 
         var action = new OwnerWorldCreationAction("Disposable", "compatibility", "Small", 50, false);
@@ -108,7 +110,8 @@ public sealed partial class ServerHttpTests
         Assert.Contains("matching updates", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(placementFailure), StringComparison.Ordinal);
         Assert.Equal(0, legacy.AgentPlacementRequests); // The client must not send affiliation-free v1 placement.
         Assert.Equal(before, WorldRuntimeCodec.Encode(host.Services.GetRequiredService<WorldRuntime>().ExportState()));
-        Assert.NotNull(await api.ReconnectAsync(uri, authority, device.DeviceId, 0, null, null, null, signer, default));
+        Assert.NotNull(await ModelWorkHarness.WaitForSignalAsync(
+            api.ReconnectAsync(uri, authority, device.DeviceId, 0, null, null, null, signer, default)));
     }
 
     [Fact]
