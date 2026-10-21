@@ -185,6 +185,11 @@ Findings are checked before reopening grounds follow their revision references.
 Remedy offers, exact personal consent, agreement history and credited physical
 quantities also have local contracts. Current-time expiry and overdue status,
 actual notice knowledge and physical-source links stay at their existing boundary.
+Property snapshots and consent, voluntary-transfer terms and payment receipts,
+and land-adjustment identities and internal provenance also check locally. Case
+identities are unique before adjustment lookups. Map
+geometry, live rights replay, population, actual notices and inventory events
+remain external links.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
