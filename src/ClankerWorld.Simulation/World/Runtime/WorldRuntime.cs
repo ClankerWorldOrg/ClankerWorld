@@ -39,8 +39,6 @@ public sealed partial class WorldRuntime : IDisposable
     public const int ContinuitySchemaVersion = 46;
     public const int TownAdmissionSchemaVersion = 54;
     internal const int MinimumSupportedStateSchemaVersion = StateSchemaVersion;
-    // Trees planted on new tiles are saved as map resources from this schema.
-    private const int PlantedTreeSchemaVersion = 27;
     private const string HouseholdId = "household:first";
     private const string SecondHouseholdId = "household:second";
     public const int RequiredFounders = 4;
@@ -48,7 +46,6 @@ public sealed partial class WorldRuntime : IDisposable
     private const long CognitionReevaluationIntervalTicks = 30;
     private const int ResourceInteractionRange = 1;
     private const int HarvestFoodYield = 4;
-    private static readonly string House1x1DefinitionId = HouseContent.House1x1().CanonicalId;
 
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly SemaphoreSlim tickGate = new(1, 1);
@@ -124,7 +121,6 @@ public sealed partial class WorldRuntime : IDisposable
         map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
-    private long nextInstructionSequence => orderStore.NextSequence;
     private readonly IReadOnlyDictionary<string, PendingModelDecision> pendingModelCalls;
     private readonly IReadOnlyDictionary<string, PendingConversationTurn> pendingConversationTurns;
     private IReadOnlyList<WorldMemoryCompactionTransition> memoryCompactionTransitions => cognitionSystem.MemoryCompactions;

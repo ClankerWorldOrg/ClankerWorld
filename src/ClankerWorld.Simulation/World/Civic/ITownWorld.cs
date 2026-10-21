@@ -31,7 +31,6 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     IReadOnlyList<GridPoint> ReachLandSaleReturn(string actor, PlannedEquipmentPickup pickup, GridPoint noticePlace, int quantity);
     IReadOnlyList<GridPoint> ReachLandSaleNoticePlace(string actor, GridPoint noticePlace);
     void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
-    bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void RunInventoryCommand(InventorySystem.Command command);
     bool CanContinueEquipmentRepair(string actor);
     bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot);
@@ -74,9 +73,6 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
             string? sourceLotId = null);
     PlacedBuilding? Port(string id);
     IEnumerable<InventoryLot> PreferredFood(string owner, string? actor = null);
-    void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null);
-    string? RepairTool(string actor, AgentState state, string lotId,
-            IReadOnlyList<string>? protectedToolIds = null);
     int SkilledWorkTicks(string actor, SkillKind skill, int ticks);
     IReadOnlyList<TownLandTitleRecord> TownLandTitles { get; }
     bool TownProjectDemandIsCurrent(TownRuntimeState town, TownProjectPayload plan);
@@ -112,7 +108,6 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     GridPoint HouseholdStockPosition(InventoryLot lot);
     bool ReadyForBriefInteraction(string actor);
     int PhysicalUnreservedQuantity(InventoryLot lot);
-    IEnumerable<PlacedBuilding> WarehousesForTown(string townId);
     bool VesselFits(InventoryLot lot, int room);
     void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding);
     bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming);

@@ -42,9 +42,6 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private void RecoverHouseholdDelivery(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(HouseholdRecoveryDefinition.Plan(this, actor, new(HouseholdStockRequestKind.RecoverDelivery)));
-
     private static int HouseDeliveryPhysicalQuantity(InventoryCheckpoint inventory, InventoryLot carried) =>
         InventoryContainerRules.IsContainer(carried.ItemKind)
             ? ContainerFamilyQuantity(inventory, carried.Id)
@@ -130,9 +127,6 @@ public sealed partial class WorldRuntime
         .FirstOrDefault(lot => (itemKind is null || lot.ItemKind == itemKind) &&
             (sourceLotId is null || lot.Id == sourceLotId) && lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 1);
-
-    private void StoreHouseholdFood(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(HouseholdFoodStorageDefinition.Plan(this, actor, new(HouseholdStockRequestKind.StoreFood)));
 
     private void HaulHouseholdStock(string actor, AgentState state) =>
         ApplyHouseholdStockPlan(HouseholdHaulingDefinition.Plan(this, actor, new(HouseholdStockRequestKind.Haul)));

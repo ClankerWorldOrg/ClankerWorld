@@ -85,13 +85,6 @@ public sealed partial class WorldRuntime
         .Select(input => input.Amount).DefaultIfEmpty(0).Max() * SupplyBatches -
         FarmSuppliedQuantity(household, farmhouse.InstanceId) - FarmIncomingQuantity(farmhouse.InstanceId);
 
-    private void ApplyFarmStockAction(FarmStockActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedFarmStockAction(plan);
-    }
-
     private void ApplyCheckedFarmStockAction(FarmStockActionPlan plan)
     {
         var state = agents[plan.Actor];

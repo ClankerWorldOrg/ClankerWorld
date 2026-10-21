@@ -16,15 +16,10 @@ public sealed partial class WorldRuntime
     private RecipeProjectActionPlan PlanRecipeProject(string actor, RecipeDefinition recipe, PlacedBuilding workstation) =>
         ProductionSystem.PlanRecipeProject(RecipeWorld, actor, recipe, workstation);
 
-    private RecipeProjectInput[]? PlanRecipeInputs(RecipeDefinition recipe, string owner, string? storage, bool carried) =>
-        ProductionSystem.PlanRecipeInputs(RecipeWorld, recipe, owner, storage, carried);
-
     private static ActorCapabilityPolicy RecipeCapabilities(RecipeDefinition recipe) => ProductionSystem.RecipeCapabilities(recipe);
 
     private ActionCheck CheckRecipeProject(RecipeProjectActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         productionSystem.CheckRecipeProject(RecipeWorld, plan, policy);
-
-    private ActionCheck CheckRecipeInputs(RecipeProjectActionPlan plan) => ProductionSystem.CheckRecipeInputs(RecipeWorld, plan);
 
     private RecipeProjectActionPlan? RetainedRecipeProject(string actor, AgentProject project) =>
         productionSystem.RecipePlan(actor, project, TownConstructionCandidateIds.TryParse(project.CandidateId, out var choice)
