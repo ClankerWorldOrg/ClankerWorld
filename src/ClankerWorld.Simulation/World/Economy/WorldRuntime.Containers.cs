@@ -198,18 +198,4 @@ public sealed partial class WorldRuntime
                 .Select(food => new PotFoodChoice(pot.Lot, food.Lot)).FirstOrDefault())
             .FirstOrDefault(choice => choice is not null);
     }
-
-    private static bool TryParsePoint(string value, out GridPoint point)
-    {
-        var parts = value.Split(',', StringSplitOptions.TrimEntries);
-        if (parts.Length == 2 &&
-            int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var x) &&
-            int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var y))
-        {
-            point = new GridPoint(x, y);
-            return true;
-        }
-        point = default;
-        return false;
-    }
 }

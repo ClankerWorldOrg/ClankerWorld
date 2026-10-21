@@ -45,12 +45,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected building material source is out of reach");
     }
 
-    private void ApplyBuildingMaterial(BuildingMaterialActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedBuildingMaterial(plan);
-    }
-
     private void ApplyCheckedBuildingMaterial(BuildingMaterialActionPlan plan)
     {
         GatherPlannedProjectMaterial(plan.Actor, agents[plan.Actor], plan.Choice.ItemKind, plan.Source, plan.Harvest, plan.HouseId);

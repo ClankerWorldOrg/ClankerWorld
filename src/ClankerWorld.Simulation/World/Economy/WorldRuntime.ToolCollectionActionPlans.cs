@@ -71,13 +71,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, $"the selected {description} is out of reach now");
     }
 
-    private void ApplyToolCollectionPlan(ToolCollectionActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedToolCollectionPlan(plan);
-    }
-
     private void ApplyCheckedToolCollectionPlan(ToolCollectionActionPlan plan)
     {
         ApplyGatheringToolPickup(plan.Actor, plan.Pickup);
